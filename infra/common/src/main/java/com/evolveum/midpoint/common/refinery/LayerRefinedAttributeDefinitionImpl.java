@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
@@ -693,5 +694,10 @@ public final class LayerRefinedAttributeDefinitionImpl<T> extends AbstractFreeza
     @Override
     public String toString() {
         return (isImmutable() ? "" : "+") + refinedAttributeDefinition + ":" + layer;
+    }
+
+    @Override
+    public Optional<ComplexTypeDefinition> structuredType() {
+        return refinedAttributeDefinition.structuredType();
     }
 }

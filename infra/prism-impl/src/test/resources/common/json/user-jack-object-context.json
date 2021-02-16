@@ -1,0 +1,92 @@
+{
+  "@context" : {
+    "": "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
+    "t": "http://prism.evolveum.com/xml/ns/public/types-3",
+    "q": "http://prism.evolveum.com/xml/ns/public/query-3",
+    "foo": "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
+  },
+  "object" : {
+    "@type" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd#UserType",
+    "oid" : "c0c010c0-d34d-b33f-f00d-111111111111",
+    "version" : "42",
+    "name" : "jack",
+    "description" : "This must be the best pirate the world has ever seen",
+    "extension" : {
+      "@ns" : "http://midpoint.evolveum.com/xml/ns/test/extension",
+      "singleStringType" : "foobar",
+      "indexedString" : [ "alpha", "bravo" ],
+      "bar" : [ {
+        "@type" : "http://www.w3.org/2001/XMLSchema#string",
+        "@value" : "BAR"
+      }, "BAR" ],
+      "num" : [ {
+        "@type" : "http://www.w3.org/2001/XMLSchema#int",
+        "@value" : 42
+      }, 42 ],
+      "multi" : [ {
+        "@type" : "http://www.w3.org/2001/XMLSchema#string",
+        "@value" : "raz"
+      }, "raz", {
+        "@type" : "http://www.w3.org/2001/XMLSchema#string",
+        "@value" : "dva"
+      }, "dva", {
+        "@type" : "http://www.w3.org/2001/XMLSchema#string",
+        "@value" : "tri"
+      }, "tri" ]
+    },
+    "fullName" : "cpt. Jack Sparrow",
+    "givenName" : "Jack",
+    "familyName" : "Sparrow",
+    "additionalNames" : [ "Captain", "Jackie" ],
+    "polyName" : "Džek Sperou",
+    "assignment" : [ {
+      "id" : 1111,
+      "description" : "Assignment 1"
+    }, {
+      "id" : 1112,
+      "description" : "Assignment 2",
+      "accountConstruction" : {
+        "howto" : "Just do it",
+        "when" : "2012-02-24T10:48:52.000Z",
+        "value" : [ "ABC", { "fullName" : "Nobody" } ]
+      }
+    } ],
+    "activation" : {
+      "enabled" : true,
+      "validFrom" : "1975-05-30T21:30:00.000Z"
+    },
+    "password" : {
+      "t:encryptedData" : {
+        "t:encryptionMethod" : {
+          "t:algorithm" : "http://www.w3.org/2001/04/xmlenc#aes256-cbc"
+        },
+        "t:keyInfo" : {
+          "t:keyName" : "HF6JRsNMeJt6alihT44CXKgpe0c="
+        },
+        "t:cipherData" : {
+          "t:cipherValue" : "blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB"
+        }
+      }
+    },
+    "accountRef" : {
+      "oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1112",
+      "type" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd#AccountType",
+      "description" : "This is a reference with a filter",
+      "filter" : {
+        "q:equal" : {
+          "q:path" : "foo:name",
+          "q:value" : [ "captain" ]
+        }
+      }
+    },
+      "special" : "got it!",
+
+      "singleActivation" : { },
+      "multiActivation" : { },
+      "multiActivationCopy" : [ { }, { "enabled" : "true" } ],
+
+      "singleConstruction" : { },
+      "multiConstruction" : [ { } ],
+      "multiConstructionCopy" : [ { }, { "howto" : "abc" } ]
+  }
+}

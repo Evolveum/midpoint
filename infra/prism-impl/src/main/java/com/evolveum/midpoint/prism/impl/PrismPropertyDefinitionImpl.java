@@ -9,9 +9,11 @@ package com.evolveum.midpoint.prism.impl;
 
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.impl.delta.PropertyDeltaImpl;
@@ -60,14 +62,22 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
     private T defaultValue;
     private QName matchingRuleQName = null;
 
+    private transient Lazy<Optional<ComplexTypeDefinition>> structuredType;
+
     public PrismPropertyDefinitionImpl(QName elementName, QName typeName, PrismContext prismContext) {
         super(elementName, typeName, prismContext);
+        this.structuredType = Lazy.from(() ->
+            Optional.ofNullable(getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByType(getTypeName()))
+        );
     }
 
     public PrismPropertyDefinitionImpl(QName elementName, QName typeName, PrismContext prismContext, Collection<? extends DisplayableValue<T>> allowedValues, T defaultValue) {
         super(elementName, typeName, prismContext);
         this.allowedValues = allowedValues;
         this.defaultValue = defaultValue;
+        this.structuredType = Lazy.from(() ->
+            Optional.ofNullable(getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByType(getTypeName()))
+        );
     }
 
     /**
@@ -108,6 +118,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
         return indexed;
     }
 
+    @Override
     public void setIndexed(Boolean indexed) {
         checkMutable();
         this.indexed = indexed;
@@ -185,6 +196,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
         clone.valueType = this.valueType;
     }
 
+    @Override
     protected void extendToString(StringBuilder sb) {
         super.extendToString(sb);
         if (indexed != null && indexed) {
@@ -212,6 +224,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
     /**
      * Return a human readable name of this class suitable for logs.
      */
+    @Override
     protected String getDebugDumpClassName() {
         return "PPD";
     }
@@ -225,5 +238,10 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
     public MutablePrismPropertyDefinition<T> toMutable() {
         checkMutableOnExposing();
         return this;
+    }
+
+    @Override
+    public Optional<ComplexTypeDefinition> structuredType() {
+        return structuredType.get();
     }
 }

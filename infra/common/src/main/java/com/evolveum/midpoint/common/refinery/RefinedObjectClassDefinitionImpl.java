@@ -691,6 +691,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
         return getObjectClassDefinition().getNativeObjectClass();
     }
 
+    @Override
     public boolean isAuxiliary() {
         return getObjectClassDefinition().isAuxiliary();
     }
@@ -1194,6 +1195,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
     /**
      * Return a human readable name of this class suitable for logs.
      */
+    @Override
     public String getDebugDumpClassName() {
         return "rOCD";
     }
@@ -1433,5 +1435,15 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
         originalObjectClassDefinition.freeze();                             // TODO really?
         auxiliaryObjectClassDefinitions.forEach(Freezable::freeze);
         this.immutable = true;
+    }
+
+    @Override
+    public boolean hasSubstitutions() {
+        return false;
+    }
+
+    @Override
+    public Optional<ItemDefinition<?>> substitution(QName name) {
+        return Optional.empty();
     }
 }

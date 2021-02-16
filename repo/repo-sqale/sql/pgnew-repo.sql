@@ -182,6 +182,15 @@ CREATE TABLE m_object (
     name_norm VARCHAR(255) NOT NULL,
     name_orig VARCHAR(255) NOT NULL,
     fullObject BYTEA,
+    tenantRef_targetOid UUID,
+    tenantRef_targetType INTEGER, -- soft-references m_objtype
+    tenantRef_relation_id INTEGER, -- soft-references m_uri,
+    lifecycleState VARCHAR(255), -- TODO what is this? how many distinct values?
+    cid_seq INTEGER NOT NULL DEFAULT 1, -- sequence for container id
+    version INTEGER NOT NULL DEFAULT 1,
+    -- add GIN index for concrete tables where more than hundreds of entries are expected (see m_user)
+    ext JSONB,
+    -- metadata
     creatorRef_targetOid UUID,
     creatorRef_targetType INTEGER, -- soft-references m_objtype
     creatorRef_relation_id INTEGER, -- soft-references m_uri,
@@ -192,14 +201,6 @@ CREATE TABLE m_object (
     modifierRef_relation_id INTEGER, -- soft-references m_uri
     modifyChannel_id INTEGER, -- soft-references m_uri,
     modifyTimestamp TIMESTAMPTZ,
-    tenantRef_targetOid UUID,
-    tenantRef_targetType INTEGER, -- soft-references m_objtype
-    tenantRef_relation_id INTEGER, -- soft-references m_uri,
-    lifecycleState VARCHAR(255), -- TODO what is this? how many distinct values?
-    cid_seq INTEGER NOT NULL DEFAULT 1, -- sequence for container id
-    version INTEGER NOT NULL DEFAULT 1,
-    -- add GIN index for concrete tables where more than hundreds of entries are expected (see m_user)
-    ext JSONB,
 
     -- these are purely DB-managed metadata, not mapped to in midPoint
     db_created TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
@@ -217,16 +218,6 @@ CREATE TABLE m_object (
 CREATE TABLE m_focus (
     -- will be overridden with GENERATED value in concrete table
     objectTypeClass INTEGER NOT NULL DEFAULT 17,
-    administrativeStatus INTEGER,
-    effectiveStatus INTEGER,
-    enableTimestamp TIMESTAMPTZ,
-    disableTimestamp TIMESTAMPTZ,
-    disableReason VARCHAR(255),
-    archiveTimestamp TIMESTAMPTZ,
-    validFrom TIMESTAMPTZ,
-    validTo TIMESTAMPTZ,
-    validityChangeTimestamp TIMESTAMPTZ,
-    validityStatus INTEGER,
     costCenter VARCHAR(255),
     emailAddress VARCHAR(255),
     photo BYTEA, -- will be TOAST-ed if necessary
@@ -238,6 +229,17 @@ CREATE TABLE m_focus (
     timezone VARCHAR(255),
     passwordCreateTimestamp TIMESTAMPTZ,
     passwordModifyTimestamp TIMESTAMPTZ,
+    -- activation
+    administrativeStatus INTEGER,
+    effectiveStatus INTEGER,
+    enableTimestamp TIMESTAMPTZ,
+    disableTimestamp TIMESTAMPTZ,
+    disableReason VARCHAR(255),
+    validityStatus INTEGER,
+    validFrom TIMESTAMPTZ,
+    validTo TIMESTAMPTZ,
+    validityChangeTimestamp TIMESTAMPTZ,
+    archiveTimestamp TIMESTAMPTZ,
 
     CHECK (FALSE) NO INHERIT
 )
@@ -413,44 +415,48 @@ CREATE TABLE m_assignment (
     cid INTEGER NOT NULL, -- container id
     -- new column may avoid join to object for some queries
     owner_type INTEGER NOT NULL,
-    administrativeStatus INTEGER,
-    archiveTimestamp TIMESTAMPTZ,
-    disableReason VARCHAR(255),
-    disableTimestamp TIMESTAMPTZ,
-    effectiveStatus INTEGER,
-    enableTimestamp TIMESTAMPTZ,
-    validFrom TIMESTAMPTZ,
-    validTo TIMESTAMPTZ,
-    validityChangeTimestamp TIMESTAMPTZ,
-    validityStatus INTEGER,
-    assignmentOwner INTEGER,
-    createChannel VARCHAR(255),
-    createTimestamp TIMESTAMPTZ,
-    creatorRef_targetOid UUID,
-    creatorRef_targetType INTEGER, -- soft-references m_objtype
-    creatorRef_relation_id INTEGER, -- soft-references m_uri
+    assignmentOwner INTEGER, -- TODO necessary?
     lifecycleState VARCHAR(255),
-    modifierRef_targetOid UUID,
-    modifierRef_targetType INTEGER, -- soft-references m_objtype
-    modifierRef_relation_id INTEGER, -- soft-references m_uri
-    modifyChannel VARCHAR(255),
-    modifyTimestamp TIMESTAMPTZ,
     orderValue INTEGER,
     orgRef_targetOid UUID,
     orgRef_targetType INTEGER, -- soft-references m_objtype
     orgRef_relation_id INTEGER, -- soft-references m_uri
-    resourceRef_targetOid UUID,
-    resourceRef_targetType INTEGER, -- soft-references m_objtype
-    resourceRef_relation_id INTEGER, -- soft-references m_uri
     targetRef_targetOid UUID,
     targetRef_targetType INTEGER, -- soft-references m_objtype
     targetRef_relation_id INTEGER, -- soft-references m_uri
     tenantRef_targetOid UUID,
     tenantRef_targetType INTEGER, -- soft-references m_objtype
     tenantRef_relation_id INTEGER, -- soft-references m_uri
-    extId INTEGER, -- TODO what is this?
+    -- TODO what is this? see RAssignment.getExtension (both extId/Oid)
+    extId INTEGER,
     extOid VARCHAR(36), -- is this UUID too?
     ext JSONB,
+    -- construction
+    resourceRef_targetOid UUID,
+    resourceRef_targetType INTEGER, -- soft-references m_objtype
+    resourceRef_relation_id INTEGER, -- soft-references m_uri
+    -- activation
+    administrativeStatus INTEGER,
+    effectiveStatus INTEGER,
+    enableTimestamp TIMESTAMPTZ,
+    disableTimestamp TIMESTAMPTZ,
+    disableReason VARCHAR(255),
+    validityStatus INTEGER,
+    validFrom TIMESTAMPTZ,
+    validTo TIMESTAMPTZ,
+    validityChangeTimestamp TIMESTAMPTZ,
+    archiveTimestamp TIMESTAMPTZ,
+    -- metadata
+    creatorRef_targetOid UUID,
+    creatorRef_targetType INTEGER, -- soft-references m_objtype
+    creatorRef_relation_id INTEGER, -- soft-references m_uri
+    createChannel_id INTEGER,
+    createTimestamp TIMESTAMPTZ,
+    modifierRef_targetOid UUID,
+    modifierRef_targetType INTEGER, -- soft-references m_objtype
+    modifierRef_relation_id INTEGER, -- soft-references m_uri
+    modifyChannel_id INTEGER,
+    modifyTimestamp TIMESTAMPTZ,
 
     CONSTRAINT m_assignment_pk PRIMARY KEY (owner_oid, cid)
     -- no need to index owner_oid, it's part of the PK index
@@ -1236,31 +1242,6 @@ CREATE TABLE m_case (
   targetRef_targetOid       VARCHAR(36),
   targetRef_targetType      INTEGER,
   oid                       VARCHAR(36) NOT NULL,
-  PRIMARY KEY (oid)
-);
-CREATE TABLE m_focus (
-  administrativeStatus    INTEGER,
-  archiveTimestamp        TIMESTAMP,
-  disableReason           VARCHAR(255),
-  disableTimestamp        TIMESTAMP,
-  effectiveStatus         INTEGER,
-  enableTimestamp         TIMESTAMP,
-  validFrom               TIMESTAMP,
-  validTo                 TIMESTAMP,
-  validityChangeTimestamp TIMESTAMP,
-  validityStatus          INTEGER,
-  costCenter              VARCHAR(255),
-  emailAddress            VARCHAR(255),
-  hasPhoto                BOOLEAN DEFAULT FALSE NOT NULL,
-  locale                  VARCHAR(255),
-  locality_norm           VARCHAR(255),
-  locality_orig           VARCHAR(255),
-  preferredLanguage       VARCHAR(255),
-  telephoneNumber         VARCHAR(255),
-  timezone                VARCHAR(255),
-  passwordCreateTimestamp TIMESTAMP,
-  passwordModifyTimestamp TIMESTAMP,
-  oid                     VARCHAR(36)           NOT NULL,
   PRIMARY KEY (oid)
 );
 CREATE TABLE m_form (

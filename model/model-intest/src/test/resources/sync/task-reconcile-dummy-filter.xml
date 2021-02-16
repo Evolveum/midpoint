@@ -10,6 +10,7 @@
 
 <task oid="10000000-0000-0000-5656-565600000014"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"

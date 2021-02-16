@@ -574,7 +574,11 @@ class DomToSchemaPostProcessor {
                             null, annotation, null);
                 }
                 if (definition != null) {
-                    definition.setSubstitutionHead(getSubstitutionHead(xsElementDecl));
+                    QName substitutionHead = getSubstitutionHead(xsElementDecl);
+                    if(substitutionHead != null) {
+                        definition.setSubstitutionHead(substitutionHead);
+                        schema.addSubstitution(substitutionHead, definition);
+                    }
                     schema.add(definition);
                 }
 

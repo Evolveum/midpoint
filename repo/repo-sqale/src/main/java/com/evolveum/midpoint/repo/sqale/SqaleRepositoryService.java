@@ -538,6 +538,7 @@ public class SqaleRepositoryService implements RepositoryService {
             var queryContext = SqaleQueryContext.from(type, transformerContext, sqlRepoContext);
             SearchResultList<T> result =
                     sqlQueryExecutor.list(queryContext, query, options);
+            // TODO see the commented code from old repo lower, problems for each object must be caught
             //noinspection unchecked
             return result.map(
                     o -> (PrismObject<T>) o.asPrismObject());
@@ -607,8 +608,30 @@ public class SqaleRepositoryService implements RepositoryService {
             Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
-        return null;
-        // TODO
+
+        Objects.requireNonNull(type, "Container type must not be null.");
+        Objects.requireNonNull(parentResult, "Operation result must not be null.");
+
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + "searchContainers")
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type.getName())
+                .addParam("query", query)
+                .build();
+
+        try {
+            var queryContext = SqaleQueryContext.from(type, transformerContext, sqlRepoContext);
+            SearchResultList<T> result =
+                    sqlQueryExecutor.list(queryContext, query, options);
+            return result;
+        } catch (QueryException | RuntimeException e) {
+            handleGeneralException(e, operationResult);
+            throw new SystemException(e);
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            operationResult.computeStatusIfUnknown();
+        }
     }
 
     @Override
@@ -675,8 +698,14 @@ public class SqaleRepositoryService implements RepositoryService {
     @Override
     public RepositoryQueryDiagResponse executeQueryDiagnostics(
             RepositoryQueryDiagRequest request, OperationResult result) {
-        return null;
-        // TODO
+
+        // TODO search like containers + dry run?
+
+        RepositoryQueryDiagResponse response = new RepositoryQueryDiagResponse(
+                null, null, Map.of());
+//                objects, implementationLevelQuery, implementationLevelQueryParameters);
+
+        return response;
     }
 
     @Override

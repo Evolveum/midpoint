@@ -7,10 +7,12 @@
 package com.evolveum.midpoint.prism.impl.xnode;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.MetadataAware;
@@ -47,18 +49,28 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
      */
     private final Set<String> unqualifiedSubnodeNames = new HashSet<>();
 
-    private boolean hasDefaultNamespaceMarkers;
-
     @NotNull private List<MapXNode> metadataNodes = new ArrayList<>();
 
+    @Deprecated
+    public MapXNodeImpl() {
+        super();
+    }
+
+    public MapXNodeImpl(PrismNamespaceContext localNsContext) {
+        super(localNsContext);
+    }
+
+    @Override
     public int size() {
         return subnodes.size();
     }
 
+    @Override
     public boolean isEmpty() {
         return subnodes.isEmpty();
     }
 
+    @Override
     @NotNull
     public Set<QName> keySet() {
         return Collections.unmodifiableSet(subnodes.keySet());
@@ -69,6 +81,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
         return Collections.unmodifiableSet(subnodes.entrySet());
     }
 
+    @Override
     public boolean containsKey(QName key) {
         return subnodes.containsKey(key) || unqualifiedSubnodeNames.contains(key.getLocalPart());
     }
@@ -78,6 +91,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
         return getByFullScan(key);
     }
 
+    @Override
     public XNodeImpl get(QName key) {
         // Here we assume that "get" on hash map is quote fast and that we do not mix
         // qualified and unqualified versions very often (so we hit directly if it's there).
@@ -164,7 +178,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
     @Override
     public RootXNode getSingleSubEntryAsRoot(String errorContext) throws SchemaException {
         Map.Entry<QName, XNodeImpl> entry = getSingleSubEntry(errorContext);
-        return entry != null ? new RootXNodeImpl(entry.getKey(), entry.getValue()) : null;
+        return entry != null ? new RootXNodeImpl(entry.getKey(), entry.getValue(), namespaceContext()) : null;
     }
 
     public Map.Entry<QName, XNodeImpl> getSingleEntryThatDoesNotMatch(QName... excludedKeys) throws SchemaException {
@@ -230,7 +244,8 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
             if (previous instanceof ListXNodeImpl) {
                 valueToStore = (ListXNodeImpl) previous;
             } else {
-                valueToStore = new ListXNodeImpl();
+                // FIXME: Is this correct?
+                valueToStore = new ListXNodeImpl(previous.namespaceContext());
                 valueToStore.add(previous);
             }
             if (otherValue instanceof ListXNodeImpl) {
@@ -255,15 +270,27 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
         MetadataAware.visitMetadata(this, visitor);
     }
 
+    @Override
     public boolean equals(Object o) {
         if (!(o instanceof MapXNodeImpl)) {
             return false;
         }
         MapXNodeImpl other = (MapXNodeImpl) o;
-        return MiscUtil.unorderedCollectionEquals(this.subnodes.entrySet(), other.subnodes.entrySet()) &&
+
+        return MiscUtil.unorderedCollectionEquals(this.subnodes.entrySet(), other.subnodes.entrySet(), MapXNodeImpl::equals) &&
                 metadataEquals(this.metadataNodes, other.metadataNodes);
     }
 
+    static boolean equals(Map.Entry<QName, XNodeImpl> left, Map.Entry<QName, XNodeImpl> right) {
+        QName leftName = left.getKey();
+        QName rightName = right.getKey();
+        if(!QNameUtil.match(leftName, rightName)) {
+            return false;
+        }
+        return left.getValue().equals(right.getValue());
+    }
+
+    @Override
     public int hashCode() {
         int result = 0xCAFEBABE;
         for (XNodeImpl node : subnodes.values()) {
@@ -322,9 +349,10 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
         put(key, value);
     }
 
+    @Override
     public RootXNodeImpl getEntryAsRoot(@NotNull QName key) {
         XNodeImpl xnode = get(key);
-        return xnode != null ? new RootXNodeImpl(key, xnode) : null;
+        return xnode != null ? new RootXNodeImpl(key, xnode, namespaceContext()) : null;
     }
 
 //    @NotNull
@@ -359,34 +387,6 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
         super.performFreeze();
     }
 
-    // TODO reconsider performance of this method
-    public void replaceDefaultNamespaceMarkers(String marker, String defaultNamespace) {
-        if (hasDefaultNamespaceMarkers) {
-            // As we have no method to replace existing entry in LinkedHashMap, we need to copy all the entries,
-            // qualifying them as needed.
-            LinkedHashMap<QName, XNodeImpl> originalSubNodes = subnodes;
-            subnodes = new LinkedHashMap<>();
-            unqualifiedSubnodeNames.clear();
-            for (Map.Entry<QName, XNodeImpl> originalEntry : originalSubNodes.entrySet()) {
-                QName originalKey = originalEntry.getKey();
-                QName newKey;
-                if (marker.equals(originalKey.getNamespaceURI())) {
-                    // Note that defaultNamespace can be "", so newKey can be unqualified
-                    newKey = new QName(defaultNamespace, originalKey.getLocalPart());
-                } else {
-                    newKey = originalKey;
-                }
-                merge(newKey, originalEntry.getValue());
-            }
-            hasDefaultNamespaceMarkers = false;
-        }
-    }
-
-    public void setHasDefaultNamespaceMarkers() {
-        hasDefaultNamespaceMarkers = true;
-    }
-
-
     @Override
     public @NotNull List<MapXNode> getMetadataNodes() {
         return metadataNodes;
@@ -395,5 +395,23 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
     @Override
     public void setMetadataNodes(@NotNull List<MapXNode> metadataNodes) {
         this.metadataNodes = metadataNodes;
+    }
+
+    @Override
+    public MapXNode copy() {
+        if(isImmutable()) {
+            return this;
+        }
+        MapXNodeImpl ret = new MapXNodeImpl(namespaceContext());
+        for(Entry<QName, XNodeImpl> node : subnodes.entrySet()) {
+            ret.put(node.getKey(), node.getValue().clone());
+        }
+
+        List<MapXNode> metadata = new ArrayList<>(metadataNodes.size());
+        for (MapXNode mapXNode : metadataNodes) {
+            metadata.add(mapXNode.copy());
+        }
+        ret.setMetadataNodes(metadata);
+        return ret;
     }
 }

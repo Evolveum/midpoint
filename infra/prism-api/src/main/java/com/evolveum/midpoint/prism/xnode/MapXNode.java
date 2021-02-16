@@ -24,8 +24,10 @@ public interface MapXNode extends XNode, MetadataAware {
 
     XNode get(QName key);
 
+    @Override
     boolean isEmpty();
 
+    @Override
     @NotNull
     MapXNode clone();
 
@@ -46,4 +48,7 @@ public interface MapXNode extends XNode, MetadataAware {
      * @return Shallow clone of the node in the form of a map.
      */
     Map<QName, ? extends XNode> toMap();
+
+    @Override
+    MapXNode copy();
 }

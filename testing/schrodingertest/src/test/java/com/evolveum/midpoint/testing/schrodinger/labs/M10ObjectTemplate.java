@@ -57,7 +57,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
     private static final File ARCHETYPE_ORG_GROUP_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-group.xml");
     private static final File ARCHETYPE_ORG_GROUP_LIST_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-group-list.xml");
     private static final File KIRK_USER_TIBERIUS_FILE = new File("./src/test/resources/labs/objects/users/kirk-tiberius-user.xml");
-    private static final File PICARD_USER_TIBERIUS_FILE = new File("./src/test/resources/labs/M10/users/kirk-tiberius-user.xml");
+    private static final File PICARD_USER_TIBERIUS_FILE = new File("./src/test/resources/labs/M10/users/picard-user.xml");
     private static final File INTERNAL_EMPLOYEE_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-internal-employee.xml");
     private static final File ORG_EXAMPLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/org-example.xml");
     private static final File ORG_WARP_SPEED_RESEARCH_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/warp-speed-research.xml");
@@ -429,7 +429,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
         showUser("picard")
                 .selectTabAssignments()
-                    .clickAddAssignemnt("New Organization type assignment with manager relation")
+                    .clickAddAssignemnt("New Organization type assignment with Manager relation")
                         .selectType("Org")
                             .table()
                                 .search()
@@ -470,7 +470,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
                     .clickByName("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com")
                         .assertInputAttributeValueMatches("manager", "picard");
 
-        importObject(CSV_3_RESOURCE_FILE_10_4);
+        importObject(CSV_3_RESOURCE_FILE_10_4, true);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
 

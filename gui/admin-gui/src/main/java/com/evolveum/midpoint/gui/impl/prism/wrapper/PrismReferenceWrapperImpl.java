@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
@@ -144,5 +145,10 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
     @Override
     protected PrismReferenceValue createNewEmptyValue(ModelServiceLocator locator) {
         return locator.getPrismContext().itemFactory().createReferenceValue();
+    }
+
+    @Override
+    public Optional<ComplexTypeDefinition> structuredType() {
+        return getItemDefinition().structuredType();
     }
 }

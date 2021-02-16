@@ -8,11 +8,8 @@
 package com.evolveum.midpoint.prism.impl.lex.json.writer;
 
 import com.evolveum.midpoint.prism.SerializationContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -38,6 +35,7 @@ class JsonWritingContext extends WritingContext<JsonGenerator> {
         super(prismSerializationContext);
     }
 
+    @Override
     JsonGenerator createJacksonGenerator(StringWriter out) {
         try {
             JsonFactory factory = new JsonFactory();
@@ -63,14 +61,13 @@ class JsonWritingContext extends WritingContext<JsonGenerator> {
         SimpleModule module = new SimpleModule("MidpointModule", new Version(0, 0, 0, "aa"));
         module.addSerializer(QName.class, new QNameSerializer());
         module.addSerializer(PolyString.class, new PolyStringSerializer());
-        module.addSerializer(ItemPath.class, new ItemPathSerializer());
-        module.addSerializer(ItemPathType.class, new ItemPathTypeSerializer());
         module.addSerializer(XMLGregorianCalendar.class, new XmlGregorianCalendarSerializer());
 //        module.addSerializer(Element.class, new DomElementJsonSerializer());
 //        module.addSerializer(JAXBElement.class, new JaxbElementSerializer());
         return module;
     }
 
+    @Override
     protected boolean supportsInlineTypes() {
         return false;
     }

@@ -7,9 +7,21 @@
 
 package com.evolveum.midpoint.prism.impl.lex.json.writer;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.SerializationContext;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 
 public class JsonWriter extends AbstractWriter {
+
+    @Deprecated
+    public JsonWriter() {
+        this(null);
+    }
+
+    public JsonWriter(@NotNull SchemaRegistry schemaRegistry) {
+        super(schemaRegistry);
+    }
 
     @Override
     WritingContext createWritingContext(SerializationContext prismSerializationContext) {

@@ -24,7 +24,7 @@ public class LookupTableRowTransformer
     @Override
     public LookupTableRowType toSchemaObject(MLookupTableRow row) {
         LookupTableRowType ltr = new LookupTableRowType()
-                .id((long) row.rowId)
+                .id((long) row.cid)
                 .key(row.rowKey)
                 .value(row.rowValue)
                 .lastChangeTimestamp(MiscUtil.asXMLGregorianCalendar(row.lastChangeTimestamp));

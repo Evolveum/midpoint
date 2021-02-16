@@ -11,8 +11,8 @@ import java.util.function.Function;
 import com.google.common.base.Strings;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.ExpressionUtils;
-import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.StringPath;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -41,23 +41,23 @@ public class PolyStringItemFilterProcessor
     private static final String ORIG_IGNORE_CASE = "origIgnoreCase";
     private static final String NORM_IGNORE_CASE = "normIgnoreCase";
 
-    private final Path<?> origPath;
-    private final Path<?> normPath;
+    private final StringPath origPath;
+    private final StringPath normPath;
 
     /**
      * Returns the mapper creating the string filter processor from context.
      */
     public static ItemSqlMapper mapper(
-            Function<EntityPath<?>, Path<?>> origMapping,
-            Function<EntityPath<?>, Path<?>> normMapping) {
+            Function<EntityPath<?>, StringPath> origMapping,
+            Function<EntityPath<?>, StringPath> normMapping) {
         return new ItemSqlMapper(ctx ->
                 new PolyStringItemFilterProcessor(ctx, origMapping, normMapping), origMapping);
     }
 
     private PolyStringItemFilterProcessor(
             SqlQueryContext<?, ?, ?> context,
-            Function<EntityPath<?>, Path<?>> origMapping,
-            Function<EntityPath<?>, Path<?>> normMapping) {
+            Function<EntityPath<?>, StringPath> origMapping,
+            Function<EntityPath<?>, StringPath> normMapping) {
         super(context);
         this.origPath = origMapping.apply(context.path());
         this.normPath = normMapping.apply(context.path());
@@ -72,15 +72,15 @@ public class PolyStringItemFilterProcessor
                 || STRICT.equals(matchingRule) || STRICT_IGNORE_CASE.equals(matchingRule)) {
             return ExpressionUtils.and(
                     createBinaryCondition(filter, normPath,
-                            new ValueFilterValues<>(filter, p -> p.getNorm())),
+                            ValueFilterValues.from(filter, p -> p.getNorm())),
                     createBinaryCondition(filter, origPath,
-                            new ValueFilterValues<>(filter, p -> p.getOrig())));
+                            ValueFilterValues.from(filter, p -> p.getOrig())));
         } else if (ORIG.equals(matchingRule) || ORIG_IGNORE_CASE.equals(matchingRule)) {
             return createBinaryCondition(filter, origPath,
-                    new ValueFilterValues<>(filter, p -> p.getOrig()));
+                    ValueFilterValues.from(filter, p -> p.getOrig()));
         } else if (NORM.equals(matchingRule) || NORM_IGNORE_CASE.equals(matchingRule)) {
             return createBinaryCondition(filter, normPath,
-                    new ValueFilterValues<>(filter, p -> p.getNorm()));
+                    ValueFilterValues.from(filter, p -> p.getNorm()));
         } else {
             throw new QueryException("Unknown matching rule '" + matchingRule + "'.");
         }

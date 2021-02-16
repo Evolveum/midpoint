@@ -53,6 +53,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 
 /**
  * Registry and resolver of schema files and resources.
@@ -209,6 +211,8 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
      * type name is specified.
      */
     private static final QName DEFAULT_VALUE_METADATA_NAME = new QName("valueMetadata");
+
+    private final Multimap<QName, ItemDefinition<?>> substitutions = HashMultimap.create();
 
     @Override
     public DynamicNamespacePrefixMapper getNamespacePrefixMapper() {
@@ -504,12 +508,13 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
     protected void parsePrismSchemas() throws SchemaException {
         parsePrismSchemas(schemaDescriptions, true);
-        applySchemaExtensions();
+        applyAugmentations();
         for (SchemaDescription schemaDescription : schemaDescriptions) {
             if (schemaDescription.getSchema() != null) {
                 PrismSchemaImpl schema = (PrismSchemaImpl) schemaDescription.getSchema();
                 resolveMissingTypeDefinitionsInGlobalItemDefinitions(schema);
-                fillInSubtypes(schema);
+                processTypes(schema);
+
             }
         }
         if (LOGGER.isTraceEnabled()) {
@@ -524,16 +529,54 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         }
     }
 
-    private void fillInSubtypes(PrismSchemaImpl schema) {
+    private void fillInSubstitutionGroups() {
+        // TODO Auto-generated method stub
+
+    }
+
+    private void fillInSubtype(TypeDefinition typeDefinition) {
+        if (typeDefinition.getSuperType() == null) {
+            return;
+        }
+        TypeDefinition superTypeDef = findTypeDefinitionByType(typeDefinition.getSuperType(), TypeDefinition.class);
+        if (superTypeDef instanceof TypeDefinitionImpl) {
+            ((TypeDefinitionImpl) superTypeDef).addStaticSubType(typeDefinition);
+        }
+    }
+
+    private void processTypes(PrismSchemaImpl schema) {
         for (TypeDefinition typeDefinition : schema.getDefinitions(TypeDefinition.class)) {
-            if (typeDefinition.getSuperType() == null) {
-                continue;
-            }
-            TypeDefinition superTypeDef = findTypeDefinitionByType(typeDefinition.getSuperType(), TypeDefinition.class);
-            if (superTypeDef instanceof TypeDefinitionImpl) {
-                ((TypeDefinitionImpl) superTypeDef).addStaticSubType(typeDefinition);
+            processSubstitutionGroups(typeDefinition);
+            fillInSubtype(typeDefinition);
+        }
+    }
+
+    private void processSubstitutionGroups(TypeDefinition typeDefinition) {
+        if(!(typeDefinition instanceof ComplexTypeDefinition)) {
+            return;
+        }
+        ComplexTypeDefinition complex = (ComplexTypeDefinition) typeDefinition;
+        for(ItemDefinition<?> itemDef : complex.getDefinitions()) {
+            Collection<ItemDefinition<?>> maybeSubst = substitutions.get(itemDef.getItemName());
+            if(!maybeSubst.isEmpty()) {
+                addSubstitutionsToComplexType(complex.toMutable(), itemDef, maybeSubst);
             }
         }
+
+
+    }
+
+    private void addSubstitutionsToComplexType(MutableComplexTypeDefinition mutable, ItemDefinition<?> itemDef,
+            Collection<ItemDefinition<?>> maybeSubst) {
+        for(ItemDefinition<?> substitution : maybeSubst) {
+            if(isSubstitution(itemDef, substitution)) {
+                mutable.addSubstitution(itemDef, substitution);
+            }
+        }
+    }
+
+    private boolean isSubstitution(ItemDefinition<?> itemDef, ItemDefinition<?> maybeSubst) {
+        return itemDef.getItemName().equals(maybeSubst.getSubstitutionHead());
     }
 
     // global item definitions may refer to types that are not yet available
@@ -566,7 +609,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         LOGGER.trace("Parsed schema {}, namespace: {}, isRuntime: {} in {} ms",
                 schemaDescription.getSourceDescription(), namespace, isRuntime, System.currentTimeMillis() - started);
         schemaDescription.setSchema(schema);
-        detectExtensionSchema(schema);
+        detectAugmentations(schema);
     }
 
     // see https://stackoverflow.com/questions/14837293/xsd-circular-import
@@ -609,7 +652,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
                 wrappedDescriptions.size(), System.currentTimeMillis() - started);
 
         for (SchemaDescription description : wrappedDescriptions) {
-            detectExtensionSchema(description.getSchema());
+            detectAugmentations(description.getSchema());
         }
 
         for (String namespace : fragmentedNamespaces) {
@@ -619,6 +662,15 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
                 parsePrismSchema(schemaDescription, allowDelayedItemDefinitions);
             }
         }
+    }
+
+    private void detectAugmentations(PrismSchema schema) {
+        detectSubstitutions(schema);
+        detectExtensionSchema(schema);
+    }
+
+    private void detectSubstitutions(PrismSchema schema) {
+        substitutions.putAll(schema.getSubstitutions());
     }
 
     private void detectExtensionSchema(PrismSchema schema) {
@@ -634,6 +686,11 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
                 }
             }
         }
+    }
+
+    private void applyAugmentations() throws SchemaException {
+        //applySubstitutions();
+        applySchemaExtensions();
     }
 
     private void applySchemaExtensions() throws SchemaException {

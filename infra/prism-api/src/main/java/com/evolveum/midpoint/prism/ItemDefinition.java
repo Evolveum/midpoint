@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.prism;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
@@ -152,6 +153,7 @@ public interface ItemDefinition<I extends Item> extends Definition {
 
     ItemDelta createEmptyDelta(ItemPath path);
 
+    @Override
     @NotNull
     ItemDefinition<I> clone();
 
@@ -172,5 +174,19 @@ public interface ItemDefinition<I extends Item> extends Definition {
 
     boolean canBeDefinitionOf(PrismValue pvalue);
 
+    @Override
     MutableItemDefinition<I> toMutable();
+
+
+    /**
+     * Returns complex type definition of item, if underlying value is possible structured.
+     *
+     * NOTE: This seems weird, since properties and references are simple values,
+     * but actually object reference is serialized as structured value and some of properties
+     * are also.
+     *
+     * @return
+     */
+    @Experimental
+    Optional<ComplexTypeDefinition> structuredType();
 }

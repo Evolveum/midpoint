@@ -7,18 +7,27 @@
 package com.evolveum.midpoint.prism.impl.lex.json;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Map;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
+import com.evolveum.midpoint.prism.impl.marshaller.ItemPathHolder;
+import com.evolveum.midpoint.prism.impl.xnode.XNodeDefinition;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.node.ValueNode;
+
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
@@ -27,33 +36,51 @@ import org.w3c.dom.Element;
 /**
  * TODO what about thread safety?
  */
-public class JsonValueParser<T> implements ValueParser<T> {
+public class JsonValueParser<T> implements ValueParser<T> , Serializable {
 
-    @NotNull private final JsonParser parser;
-    private final JsonNode node;
 
-    public JsonValueParser(@NotNull JsonParser parser, JsonNode node) {
-        this.parser = parser;
+    private static final long serialVersionUID = -5646889977104413611L;
+
+    @NotNull private final ObjectMapper mapper;
+    private final ValueNode node;
+    private final PrismNamespaceContext context;
+
+    public JsonValueParser(@NotNull JsonParser parser, ValueNode node, PrismNamespaceContext context) {
+        this.mapper = (ObjectMapper) parser.getCodec();
         this.node = node;
-    }
-
-    @NotNull
-    public JsonParser getParser() {
-        return parser;
+        this.context = context;
     }
 
     @Override
     public T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
-        ObjectMapper mapper = (ObjectMapper) parser.getCodec();
-        Class clazz = XsdTypeMapper.toJavaType(typeName);
+        Class<?> clazz = XsdTypeMapper.toJavaTypeIfKnown(typeName);
+
+        if(clazz == null) {
+            throw new SchemaException("No mapping", typeName);
+        }
+
+        if (ItemPathType.class.isAssignableFrom(clazz)) {
+            return (T) new ItemPathType(parseItemPath());
+        } else if(ItemPath.class.isAssignableFrom(clazz)) {
+            return (T) parseItemPath();
+        } if(QName.class.isAssignableFrom(clazz)) {
+            return (T) XNodeDefinition.resolveQName(getStringValue(), context);
+        } if(XMLGregorianCalendar.class.isAssignableFrom(clazz)) {
+            return (T) XmlTypeConverter.createXMLGregorianCalendar(getStringValue());
+        }
 
         ObjectReader r = mapper.readerFor(clazz);
+
         try {
             return r.readValue(node);
             // TODO implement COMPAT mode
         } catch (IOException e) {
             throw new SchemaException("Cannot parse value: " + e.getMessage(), e);
         }
+    }
+
+    private ItemPath parseItemPath() {
+        return ItemPathHolder.parseFromString(getStringValue(), context.allPrefixes());
     }
 
     @Override
@@ -81,16 +108,16 @@ public class JsonValueParser<T> implements ValueParser<T> {
 
     @Override
     public Map<String, String> getPotentiallyRelevantNamespaces() {
-        return null;                // TODO implement
+        return context.allPrefixes();
     }
 
     @Override
     public ValueParser<T> freeze() {
-        return this;        // TODO implement
+        // Value parser is effectivelly immutable
+        return this;
     }
 
     public Element asDomElement() throws IOException {
-        ObjectMapper mapper = (ObjectMapper) parser.getCodec();
         ObjectReader r = mapper.readerFor(Document.class);
         return ((Document) r.readValue(node)).getDocumentElement();
     }

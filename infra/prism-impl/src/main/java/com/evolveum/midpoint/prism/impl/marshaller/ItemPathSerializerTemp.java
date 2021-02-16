@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.prism.impl.marshaller;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  *  TEMPORARY. WILL BE RESOLVED SOMEHOW.
@@ -20,11 +19,4 @@ public class ItemPathSerializerTemp {
         return ItemPathHolder.serializeWithDeclarations(path);
     }
 
-    public static String serializeWithForcedDeclarations(ItemPath path) {
-        return ItemPathHolder.serializeWithForcedDeclarations(path);
-    }
-
-    public static String serializeWithForcedDeclarations(ItemPathType value) {
-        return ItemPathHolder.serializeWithForcedDeclarations(value.getItemPath());
-    }
 }

@@ -9,11 +9,10 @@ package com.evolveum.midpoint.prism.impl.lex.json.reader;
 
 import com.evolveum.midpoint.prism.ParserSource;
 import com.evolveum.midpoint.prism.ParsingContext;
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.impl.ParsingContextImpl;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.impl.xnode.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -21,8 +20,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,8 +42,11 @@ public abstract class AbstractReader {
 
     @NotNull protected final SchemaRegistry schemaRegistry;
 
+    private final PrismNamespaceContext namespaceContext;
+
     AbstractReader(@NotNull SchemaRegistry schemaRegistry) {
         this.schemaRegistry = schemaRegistry;
+        this.namespaceContext = schemaRegistry.globalNamespaceContext();
     }
 
     @NotNull
@@ -119,7 +119,7 @@ public abstract class AbstractReader {
             LexicalProcessor.RootXNodeHandler handler, boolean expectingMultipleObjects) throws SchemaException, IOException {
         JsonParser configuredParser = configureParser(unconfiguredParser);
         JsonReadingContext ctx = new JsonReadingContext(configuredParser, (ParsingContextImpl) parsingContext,
-                handler, this::tagToTypeName, schemaRegistry.getPrismContext());
+                handler, this::tagToTypeName, schemaRegistry);
         readTreatingExceptions(expectingMultipleObjects, configuredParser, ctx);
     }
 
@@ -128,9 +128,9 @@ public abstract class AbstractReader {
         try {
             readFirstTokenAndCheckEmptyInput(configuredParser);
             if (supportsMultipleDocuments()) {
-                new MultiDocumentReader(ctx).read(expectingMultipleObjects);
+                new MultiDocumentReader(ctx, globalNamespaceContext()).read(expectingMultipleObjects);
             } else {
-                new DocumentReader(ctx).read(expectingMultipleObjects);
+                new DocumentReader(ctx, globalNamespaceContext()).read(expectingMultipleObjects);
             }
         } catch (SchemaException e) {
             throw e;
@@ -141,6 +141,10 @@ public abstract class AbstractReader {
         } catch (Throwable t) {
             throw new SystemException("Couldn't parse JSON/YAML object: " + t.getMessage() + ctx.getPositionSuffixIfPresent(), t);
         }
+    }
+
+    private PrismNamespaceContext globalNamespaceContext() {
+        return namespaceContext;
     }
 
     abstract boolean supportsMultipleDocuments();
@@ -156,10 +160,7 @@ public abstract class AbstractReader {
         ObjectMapper mapper = new ObjectMapper();
         SimpleModule sm = new SimpleModule();
         sm.addDeserializer(QName.class, new QNameDeserializer());
-        sm.addDeserializer(UniformItemPath.class, new ItemPathDeserializer());
-        sm.addDeserializer(ItemPath.class, new ItemPathDeserializer());
         sm.addDeserializer(PolyString.class, new PolyStringDeserializer());
-        sm.addDeserializer(ItemPathType.class, new ItemPathTypeDeserializer());
 
         mapper.registerModule(sm);
         parser.setCodec(mapper);

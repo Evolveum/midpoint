@@ -60,7 +60,7 @@ public abstract class ObjectType
 {
 
     // This is NOT GENERATED. It is supplied here manually for the testing.
-    static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
+    public static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
 
     // This is NOT GENERATED. It is supplied here manually for the testing.
     public static final ItemName F_NAME = new ItemName(NS_FOO, "name");
@@ -86,6 +86,7 @@ public abstract class ObjectType
      *     {@link String }
      *
      */
+    @Override
     public PolyStringType getName() {
         return name;
     }
@@ -98,6 +99,7 @@ public abstract class ObjectType
      *     {@link String }
      *
      */
+    @Override
     public void setName(PolyStringType value) {
         this.name = value;
     }
@@ -110,6 +112,7 @@ public abstract class ObjectType
      *     {@link String }
      *
      */
+    @Override
     public String getDescription() {
         return description;
     }
@@ -122,6 +125,7 @@ public abstract class ObjectType
      *     {@link String }
      *
      */
+    @Override
     public void setDescription(String value) {
         this.description = value;
     }
@@ -158,6 +162,7 @@ public abstract class ObjectType
      *     {@link String }
      *
      */
+    @Override
     public String getOid() {
         return oid;
     }
@@ -170,6 +175,7 @@ public abstract class ObjectType
      *     {@link String }
      *
      */
+    @Override
     public void setOid(String value) {
         this.oid = value;
     }
@@ -182,6 +188,7 @@ public abstract class ObjectType
      *     {@link String }
      *
      */
+    @Override
     public String getVersion() {
         return version;
     }
@@ -194,6 +201,7 @@ public abstract class ObjectType
      *     {@link String }
      *
      */
+    @Override
     public void setVersion(String value) {
         this.version = value;
     }
