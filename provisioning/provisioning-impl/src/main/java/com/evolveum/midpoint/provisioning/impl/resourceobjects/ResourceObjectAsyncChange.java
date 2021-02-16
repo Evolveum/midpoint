@@ -34,7 +34,7 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
 
     public ResourceObjectAsyncChange(@NotNull UcfAsyncUpdateChange ucfAsyncUpdateChange,
             @NotNull ResourceObjectConverter converter, @NotNull ProvisioningContext ctx) {
-        super(ucfAsyncUpdateChange, ctx, converter.getLocalBeans());
+        super(ucfAsyncUpdateChange, null, ctx, converter.getLocalBeans());
         this.notificationOnly = ucfAsyncUpdateChange.isNotificationOnly();
         this.acknowledgementSink = ucfAsyncUpdateChange;
     }
@@ -43,10 +43,14 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
     public void initializeInternal(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException {
 
-        updateProvisioningContext(task);
-        updateRefinedObjectClass();
-        setResourceRefIfMissing(context.getResourceOid()); // TODO why not in other kinds of changes (LS, EXT)?
-        postProcessResourceObjectIfPresent(localBeans.resourceObjectConverter, result);
+        if (initializationState.isInitialStateOk()) {
+            updateProvisioningContext(task);
+            updateRefinedObjectClass();
+            setResourceRefIfMissing(context.getResourceOid()); // TODO why not in other kinds of changes (LS, EXT)?
+            postProcessResourceObjectIfPresent(localBeans.resourceObjectConverter, result);
+        } else {
+            addFakePrimaryIdentifierIfNeeded();
+        }
         freezeIdentifiers();
     }
 

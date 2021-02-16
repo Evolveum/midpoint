@@ -11,7 +11,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.SynchronizationEvent;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowedChange;
-import com.evolveum.midpoint.provisioning.util.ProcessingState;
 import com.evolveum.midpoint.util.DebugUtil;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -27,6 +26,9 @@ public abstract class SynchronizationEventImpl<AC extends ShadowedChange<?>> imp
 
     SynchronizationEventImpl(AC change) {
         this.change = change;
+
+        // This is a temporary measure. We assume that we get fully initialized (successfully or not) change here.
+        change.getInitializationState().checkAfterInitialization();
     }
 
     @Override
@@ -46,24 +48,23 @@ public abstract class SynchronizationEventImpl<AC extends ShadowedChange<?>> imp
 
     @Override
     public boolean isComplete() {
-        return change.isPreprocessed();
+        // Note that the initialization completeness was checked at construction. (Temporarily.)
+        return change.getInitializationState().isOk();
     }
 
     @Override
-    public boolean isSkip() {
-        ProcessingState processingState = change.getProcessingState();
-        return processingState.isSkipFurtherProcessing() && processingState.getExceptionEncountered() == null;
+    public boolean isNotApplicable() {
+        return change.getInitializationState().isNotApplicable();
     }
 
     @Override
     public boolean isError() {
-        ProcessingState processingState = change.getProcessingState();
-        return processingState.getExceptionEncountered() != null;
+        return change.getInitializationState().isError();
     }
 
     @Override
     public String getErrorMessage() {
-        Throwable e = change.getProcessingState().getExceptionEncountered();
+        Throwable e = change.getInitializationState().getExceptionEncountered();
         if (e != null) {
             return e.getClass().getSimpleName() + ": " + e.getMessage();
         } else {

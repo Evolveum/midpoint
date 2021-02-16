@@ -9,7 +9,6 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -22,6 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.Collections;
 
 import static com.evolveum.midpoint.util.MiscUtil.checkCollectionImmutable;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
@@ -61,9 +61,12 @@ public abstract class UcfChange implements DebugDumpable {
     /**
      * All identifiers of the object. Constraints:
      *
-     * 1. The collection is unmodifiable, and its elements are immutable.
+     * 1. The collection is unmodifiable. Its elements themselves are mutable.
      * 2. errorState.isSuccess: Always not empty.
      * 3. errorState.isError: Should be non-empty if at all possible. However, for AU changes it is currently always empty.
+     *
+     * Note: The mutability of the elements was chosen because currently there are definitions applied to them
+     * in the further processing. So if they were immutable, they would need to be cloned every time.
      */
     @NotNull private final Collection<ResourceAttribute<?>> identifiers;
 
@@ -97,7 +100,7 @@ public abstract class UcfChange implements DebugDumpable {
         this.localSequenceNumber = localSequenceNumber;
         this.primaryIdentifierRealValue = primaryIdentifierRealValue;
         this.objectClassDefinition = objectClassDefinition;
-        this.identifiers = PrismUtil.freezeCollectionDeeply(identifiers);
+        this.identifiers = Collections.unmodifiableCollection(identifiers);
         this.resourceObject = resourceObject;
         this.objectDelta = objectDelta;
         this.errorState = errorState;

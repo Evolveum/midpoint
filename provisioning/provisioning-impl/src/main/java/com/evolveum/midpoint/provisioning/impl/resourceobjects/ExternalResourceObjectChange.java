@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.util.ProcessingState;
+import com.evolveum.midpoint.provisioning.util.InitializationState;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -35,7 +35,7 @@ public class ExternalResourceObjectChange extends ResourceObjectChange {
             PrismObject<ShadowType> resourceObject, ObjectDelta<ShadowType> objectDelta,
             ProvisioningContext ctx, ResourceObjectConverter resourceObjectConverter) {
         super(localSequenceNumber, primaryIdentifierRealValue, identifiers, resourceObject, objectDelta,
-                ProcessingState.success(), ctx, resourceObjectConverter.getLocalBeans());
+                InitializationState.fromSuccess(), ctx, resourceObjectConverter.getLocalBeans());
     }
 
     @Override

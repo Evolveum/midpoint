@@ -19,6 +19,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
+import com.evolveum.midpoint.provisioning.util.InitializationState;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -100,26 +102,30 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
         ShadowedExternalChange adoptedChange = new ShadowedExternalChange(resourceObjectChange, false, changeProcessingBeans);
         adoptedChange.initialize(task, result);
 
-        if (adoptedChange.isPreprocessed()) {
+        InitializationState initializationState = adoptedChange.getInitializationState();
+        initializationState.checkAfterInitialization();
+        if (initializationState.isOk()) {
             ResourceObjectShadowChangeDescription shadowChangeDescription = adoptedChange.getShadowChangeDescription();
             changeNotificationDispatcher.notifyChange(shadowChangeDescription, task, result);
-        } else if (adoptedChange.getProcessingState().getExceptionEncountered() != null) {
-            // Currently we do very simple error handling: throw any exception to the client!
-            Throwable t = adoptedChange.getProcessingState().getExceptionEncountered();
-            if (t instanceof CommonException) {
-                throw (CommonException) t;
-            } else if (t instanceof RuntimeException) {
-                throw (RuntimeException) t;
-            } else if (t instanceof Error) {
-                throw (Error) t;
-            } else {
-                throw new SystemException(t);
-            }
-        } else if (adoptedChange.getProcessingState().isSkipFurtherProcessing()) {
-            LOGGER.debug("Change is not applicable:\n{}", adoptedChange.debugDumpLazily());
-            result.recordNotApplicable();
         } else {
-            throw new AssertionError();
+            Throwable t = initializationState.getExceptionEncountered();
+            if (t != null) {
+                // Currently we do very simple error handling: throw any exception to the client!
+                if (t instanceof CommonException) {
+                    throw (CommonException) t;
+                } else if (t instanceof RuntimeException) {
+                    throw (RuntimeException) t;
+                } else if (t instanceof Error) {
+                    throw (Error) t;
+                } else {
+                    throw new SystemException(t);
+                }
+            } else if (initializationState.isNotApplicable()) {
+                LOGGER.debug("Change is not applicable:\n{}", adoptedChange.debugDumpLazily());
+                result.recordNotApplicable();
+            } else {
+                throw new AssertionError();
+            }
         }
     }
 

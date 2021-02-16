@@ -1852,9 +1852,6 @@ public class ResourceObjectConverter {
         UcfLiveSyncChangeListener localListener = (ucfChange, lParentResult) -> {
             int changeNumber = processed.getAndIncrement();
 
-            ResourceObjectLiveSyncChange change = new ResourceObjectLiveSyncChange(ucfChange, ResourceObjectConverter.this,
-                    ctx, attrsToReturn);
-
             Task task = ctx.getTask();
             boolean requestedTracingHere;
             requestedTracingHere = task instanceof RunningTask &&
@@ -1872,15 +1869,20 @@ public class ResourceObjectConverter {
                 // Here we request tracing if configured to do so. Note that this is only a partial solution: for multithreaded
                 // livesync we currently do not trace the "worker" part of the processing.
                 boolean tracingRequested;
+                Exception preInitializationException = null;
                 try {
                     tracingRequested = setTracingInOperationResultIfRequested(resultBuilder,
                             TracingRootType.LIVE_SYNC_CHANGE_PROCESSING, task, lParentResult);
                 } catch (Exception e) {
-                    change.processException(e, lParentResult);
+                    lParentResult.recordFatalError(e);
+                    preInitializationException = e;
                     tracingRequested = false;
                 }
+
                 OperationResult lResult = resultBuilder.build();
                 try {
+                    ResourceObjectLiveSyncChange change = new ResourceObjectLiveSyncChange(ucfChange,
+                            preInitializationException, ResourceObjectConverter.this, ctx, attrsToReturn);
                     change.initialize(task, lResult);
                     return outerListener.onChange(change, lResult);
                 } catch (Throwable t) {

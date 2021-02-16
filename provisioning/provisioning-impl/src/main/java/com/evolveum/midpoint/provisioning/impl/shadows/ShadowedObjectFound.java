@@ -15,8 +15,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.InitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectFound;
-import com.evolveum.midpoint.provisioning.impl.shadows.sync.SkipProcessingException;
-import com.evolveum.midpoint.provisioning.util.ProcessingState;
+import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
+import com.evolveum.midpoint.provisioning.util.InitializationState;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -52,7 +52,7 @@ public class ShadowedObjectFound implements InitializableMixin {
     private PrismObject<ShadowType> shadowedObject;
 
     /** State of the processing. */
-    private final ProcessingState processingState;
+    private final InitializationState initializationState;
 
     /** Information used to initialize this object. */
     @NotNull private final InitializationContext ictx;
@@ -60,7 +60,7 @@ public class ShadowedObjectFound implements InitializableMixin {
     public ShadowedObjectFound(ResourceObjectFound resourceObjectFound, ShadowsLocalBeans localBeans, ProvisioningContext ctx) {
         this.resourceObject = resourceObjectFound.getResourceObject();
         this.primaryIdentifierValue = resourceObjectFound.getPrimaryIdentifierValue();
-        this.processingState = ProcessingState.fromLowerLevelState(resourceObjectFound.getProcessingState());
+        this.initializationState = InitializationState.fromPreviousState(resourceObjectFound.getInitializationState());
         this.ictx = new InitializationContext(localBeans, ctx);
     }
 
@@ -72,7 +72,7 @@ public class ShadowedObjectFound implements InitializableMixin {
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "shadowedObject", shadowedObject, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "processingState", String.valueOf(processingState), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "initializationState", String.valueOf(initializationState), indent + 1);
         return sb.toString();
     }
 
@@ -82,7 +82,7 @@ public class ShadowedObjectFound implements InitializableMixin {
                 "resourceObject=" + resourceObject +
                 ", primaryIdentifierValue=" + primaryIdentifierValue +
                 ", shadowedObject=" + shadowedObject +
-                ", processingState=" + processingState +
+                ", state=" + initializationState +
                 '}';
     }
 
@@ -97,7 +97,17 @@ public class ShadowedObjectFound implements InitializableMixin {
 
     @Override
     public void initializeInternal(Task task, OperationResult result)
-            throws CommonException, SkipProcessingException, EncryptionException {
+            throws CommonException, NotApplicableException, EncryptionException {
+
+        if (!initializationState.isInitialStateOk()) {
+            // The object is somehow flawed. However, we should try to create some shadow.
+            //
+            // To avoid any harm, we are minimalistic here: If a shadow can be found, it is used "as is". No updates here.
+            // If it cannot be found, it is created. We will skip kind/intent/tag determination. Most probably these would not be
+            // correct anyway.
+            shadowedObject = shadowResourceObjectInEmergency(result);
+            return;
+        }
 
         // The shadow does not have any kind or intent at this point.
         // But at least locate the definition using object classes.
@@ -134,19 +144,6 @@ public class ShadowedObjectFound implements InitializableMixin {
             shadowedObject = repoShadow;
             throw e;
         }
-    }
-
-    /**
-     * The object is somehow flawed. However, we should try to create some shadow.
-     *
-     * To avoid any harm, we are minimalistic here: If a shadow can be found, it is used "as is". No updates here.
-     * If it cannot be found, it is created. We will skip kind/intent/tag determination. Most probably these would not be
-     * correct anyway.
-     */
-    @Override
-    public void skipInitialization(Task task, OperationResult result) throws CommonException, SkipProcessingException,
-            EncryptionException {
-        shadowedObject = shadowResourceObjectInEmergency(result);
     }
 
     @NotNull
@@ -187,8 +184,8 @@ public class ShadowedObjectFound implements InitializableMixin {
     }
 
     @Override
-    public ProcessingState getProcessingState() {
-        return processingState;
+    public InitializationState getInitializationState() {
+        return initializationState;
     }
 
     @Override
@@ -214,7 +211,9 @@ public class ShadowedObjectFound implements InitializableMixin {
 
     // TEMPORARY (for migration)
     public @NotNull PrismObject<ShadowType> getResourceObjectWithFetchResult() {
-        if (processingState.isInitialized()) {
+        initializationState.checkAfterInitialization();
+
+        if (initializationState.isOk()) {
             return getAdoptedOrOriginalObject();
         } else {
             PrismObject<ShadowType> mostRelevantObject = getAdoptedOrOriginalObject();
@@ -235,7 +234,7 @@ public class ShadowedObjectFound implements InitializableMixin {
                 }
             }
             OperationResult result = new OperationResult("adoptObject"); // TODO HACK HACK HACK
-            Throwable exceptionEncountered = processingState.getExceptionEncountered();
+            Throwable exceptionEncountered = initializationState.getExceptionEncountered();
             // TODO HACK HACK
             result.recordFatalError(Objects.requireNonNullElseGet(
                     exceptionEncountered, () -> new IllegalStateException("Object was not initialized")));
@@ -246,7 +245,9 @@ public class ShadowedObjectFound implements InitializableMixin {
 
     // Maybe temporary
     public PrismObject<ShadowType> getResultingObject(FetchErrorReportingMethodType errorReportingMethod) {
-        Throwable exception = processingState.getExceptionEncountered();
+        initializationState.checkAfterInitialization();
+
+        Throwable exception = initializationState.getExceptionEncountered();
         if (exception == null) {
             return getAdoptedOrOriginalObject();
         } else if (errorReportingMethod != FETCH_RESULT) {

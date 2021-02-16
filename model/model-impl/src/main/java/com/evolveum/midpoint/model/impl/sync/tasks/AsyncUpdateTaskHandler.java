@@ -127,7 +127,7 @@ public class AsyncUpdateTaskHandler
                     ResourceObjectShadowChangeDescription changeDescription = event.getChangeDescription();
                     changeDescription.setItemProcessingIdentifier(request.getIdentifier());
                     changeNotificationDispatcher.notifyChange(changeDescription, workerTask, result);
-                } else if (event.isSkip()) {
+                } else if (event.isNotApplicable()) {
                     result.recordNotApplicable();
                 } else {
                     // TODO error criticality

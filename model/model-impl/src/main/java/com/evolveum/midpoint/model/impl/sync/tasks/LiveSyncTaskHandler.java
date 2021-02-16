@@ -184,7 +184,7 @@ public class LiveSyncTaskHandler
                         ResourceObjectShadowChangeDescription changeDescription = event.getChangeDescription();
                         changeDescription.setItemProcessingIdentifier(request.getIdentifier()); // hack?
                         changeNotificationDispatcher.notifyChange(changeDescription, workerTask, result);
-                    } else if (event.isSkip()) {
+                    } else if (event.isNotApplicable()) {
                         result.recordNotApplicable();
                     } else {
                         // TODO error criticality

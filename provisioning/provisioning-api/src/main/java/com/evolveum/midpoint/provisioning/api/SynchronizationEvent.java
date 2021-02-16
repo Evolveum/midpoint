@@ -48,7 +48,7 @@ public interface SynchronizationEvent extends AcknowledgementSink, DebugDumpable
      * This means no error has occurred, but simply there is nothing to do.
      * Like a deletion of already-deleted account.
      */
-    boolean isSkip();
+    boolean isNotApplicable();
 
     boolean isError();
 

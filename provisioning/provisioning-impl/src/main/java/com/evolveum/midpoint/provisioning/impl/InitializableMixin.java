@@ -8,8 +8,8 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.provisioning.impl.shadows.sync.SkipProcessingException;
-import com.evolveum.midpoint.provisioning.util.ProcessingState;
+import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
+import com.evolveum.midpoint.provisioning.util.InitializationState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -19,78 +19,65 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 
 /**
- * Implements primitive "life cycle" of an initializable item.
+ * Implements primitive "life cycle" of an object with deferred initialization.
  *
- * Such an item has deferrable {@link #initialize(Task, OperationResult)} method, which can be invoked right after
- * item creation but - if needed - also later, e.g. from a worker thread.
+ * Such an object has {@link #initialize(Task, OperationResult)} method, which can be invoked right after
+ * object creation but - if needed - also later, e.g. from a worker thread.
  *
- * Another feature of such item is that it has a {@link ProcessingState} that:
+ * Another feature of such item is that it has a {@link InitializationState} that:
  *
- * 1. tells if the item was (successfully) initialized or not,
- * 2. ...
+ * 1. informs about object initialization-related life cycle: created, initializing, initialized, failed;
+ * 2. informs about the error status before/after initialization: ok, error (plus exception), not applicable.
  *
- * TODO TODO TODO Re-think the whole lifecycle! It is not consistent today.
+ * TODO where to put statistics related e.g. to the processing time?
  */
 @Experimental
 public interface InitializableMixin extends DebugDumpable {
 
+    /**
+     * Initializes given object.
+     *
+     * - Precondition: lifecycle state is CREATED.
+     * - Postcondition (unless exception is thrown): lifecycle state is INITIALIZED or INITIALIZATION_FAILED.
+     */
     default void initialize(Task task, OperationResult result) {
 
-        getLogger().trace("Item before initialization:\n{}", debugDumpLazily());
+        InitializationState state = getInitializationState();
+
+        getLogger().trace("Item before initialization (state: {}):\n{}", state, debugDumpLazily());
 
         try {
+            state.moveFromCreatedToInitializing();
 
-            if (getProcessingState().isSkipFurtherProcessing()) {
-                getLogger().trace("Skipping initialization because skipFurtherProcessing is true.");
-                skipInitialization(task, result);
-                getProcessingState().setInitializationSkipped();
-            } else {
+            try {
                 initializeInternal(task, result);
-                getProcessingState().setInitialized();
+            } catch (NotApplicableException e) {
+                state.recordNotApplicable();
+                result.recordNotApplicable();
             }
+            state.moveFromInitializingToInitialized();
+
             checkConsistence();
 
-        } catch (Exception e) {
-            processException(e, result);
+        } catch (CommonException | EncryptionException | RuntimeException e) {
+            getLogger().warn("Got an exception during initialization of {}", this, e); // TODO change to debug
+            getInitializationState().recordInitializationFailed(e);
+            result.recordFatalError(e);
         }
 
-        getLogger().trace("Item after initialization (initialized: {}):\n{}", getProcessingState().isInitialized(),
-                debugDumpLazily());
+        state.checkAfterInitialization();
+        getLogger().trace("Item after initialization (state: {}):\n{}", state, debugDumpLazily());
     }
 
-    void initializeInternal(Task task, OperationResult result) throws CommonException, SkipProcessingException, EncryptionException;
-
-    /**
-     * If we need to do some processing even if initialization is skipped.
-     * For example we might want to create a shadow even for malformed objects.
-     */
-    default void skipInitialization(Task task, OperationResult result)
-            throws CommonException, SkipProcessingException, EncryptionException {
-    }
-
-    default void processException(Throwable t, OperationResult result) {
-        getLogger().warn("Got an exception, skipping further processing in {}", this, t); // TODO change to debug
-        Throwable cause = getProcessingState().recordException(t);
-        recordIntoResult(result, cause);
-    }
-
-    private void recordIntoResult(OperationResult result, Throwable cause) {
-        if (cause != null) {
-            result.recordFatalError(cause);
-        } else {
-            result.recordNotApplicable();
-        }
-    }
+    void initializeInternal(Task task, OperationResult result) throws CommonException, NotApplicableException, EncryptionException;
 
     Trace getLogger();
 
-    ProcessingState getProcessingState();
+    InitializationState getInitializationState();
 
     /**
-     * NOTE: this is called only after successful initialization or initialization-skip.
-     *
-     * TODO that is quite misleading. This method should provide reasonable results even if the initialization/init-skip
-     *  processing failed!
+     * Checks the consistence, taking into account the lifecycle and error state of the object.
+     * Called from the inside. But can be called also from outside clients.
      */
     void checkConsistence() throws SchemaException;
 }

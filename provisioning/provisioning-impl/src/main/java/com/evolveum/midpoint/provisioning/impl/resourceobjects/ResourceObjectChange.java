@@ -19,7 +19,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.provisioning.impl.shadows.sync.SkipProcessingException;
+import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +32,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceEventListener;
 import com.evolveum.midpoint.provisioning.impl.InitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfChange;
-import com.evolveum.midpoint.provisioning.util.ProcessingState;
+import com.evolveum.midpoint.provisioning.util.InitializationState;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -112,7 +112,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
      */
     protected PrismObject<ShadowType> resourceObject;
 
-    @NotNull protected final ProcessingState processingState;
+    @NotNull protected final InitializationState initializationState;
 
     /**
      * Provisioning context specific for this resource object.
@@ -126,25 +126,26 @@ public abstract class ResourceObjectChange implements InitializableMixin {
     ResourceObjectChange(int localSequenceNumber, Object primaryIdentifierRealValue,
             @NotNull Collection<ResourceAttribute<?>> identifiers,
             PrismObject<ShadowType> resourceObject, ObjectDelta<ShadowType> objectDelta,
-            @NotNull ProcessingState processingState,
+            @NotNull InitializationState initializationState,
             @NotNull ProvisioningContext context, @NotNull ResourceObjectsLocalBeans localBeans) {
         this.localSequenceNumber = localSequenceNumber;
         this.primaryIdentifierRealValue = primaryIdentifierRealValue;
         this.identifiers = new ArrayList<>(identifiers);
         this.resourceObject = resourceObject;
         this.objectDelta = objectDelta;
-        this.processingState = processingState;
+        this.initializationState = initializationState;
         this.context = context;
         this.localBeans = localBeans;
     }
 
-    ResourceObjectChange(UcfChange ucfChange, @NotNull ProvisioningContext context, ResourceObjectsLocalBeans localBeans) {
+    ResourceObjectChange(UcfChange ucfChange, Exception preInitializationException, @NotNull ProvisioningContext context,
+            ResourceObjectsLocalBeans localBeans) {
         this(ucfChange.getLocalSequenceNumber(),
                 ucfChange.getPrimaryIdentifierRealValue(),
                 ucfChange.getIdentifiers(),
                 ucfChange.getResourceObject(),
                 ucfChange.getObjectDelta(),
-                ProcessingState.fromUcfErrorState(ucfChange.getErrorState()), context, localBeans);
+                InitializationState.fromUcfErrorState(ucfChange.getErrorState(), preInitializationException), context, localBeans);
         this.objectClassDefinition = ucfChange.getObjectClassDefinition();
     }
 
@@ -152,15 +153,8 @@ public abstract class ResourceObjectChange implements InitializableMixin {
      * The meat is in subclasses. (In the future we might pull up common parts here.)
      */
     @Override
-    public abstract void initializeInternal(Task task, OperationResult result) throws CommonException, SkipProcessingException,
+    public abstract void initializeInternal(Task task, OperationResult result) throws CommonException, NotApplicableException,
             EncryptionException;
-
-    @Override
-    public void skipInitialization(Task task, OperationResult result) throws CommonException, SkipProcessingException,
-            EncryptionException {
-        addFakePrimaryIdentifierIfNeeded();
-        freezeIdentifiers();
-    }
 
     public void setObjectClassDefinition(RefinedObjectClassDefinition definition) {
         this.objectClassDefinition = definition;
@@ -183,8 +177,8 @@ public abstract class ResourceObjectChange implements InitializableMixin {
         }
     }
 
-    public @NotNull ProcessingState getProcessingState() {
-        return processingState;
+    public @NotNull InitializationState getInitializationState() {
+        return initializationState;
     }
 
     public boolean isDelete() {
@@ -216,7 +210,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
                 + ", identifiers=" + identifiers
                 + ", objectDelta=" + objectDelta
                 + ", resourceObject=" + resourceObject
-                + ", state=" + processingState
+                + ", state=" + initializationState
                 + toStringExtra() + ")";
     }
 
@@ -306,7 +300,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
 
         debugDumpExtra(sb, indent);
 
-        DebugUtil.debugDumpWithLabel(sb, "processingState", String.valueOf(processingState), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "processingState", String.valueOf(initializationState), indent + 1);
         return sb.toString();
     }
 
@@ -356,7 +350,9 @@ public abstract class ResourceObjectChange implements InitializableMixin {
 
     @Override
     public void checkConsistence() throws SchemaException {
-        if (!getProcessingState().isAfterInitialization()) {
+        InitializationState state = getInitializationState();
+
+        if (!state.isAfterInitialization() || !state.isOk()) {
             return;
         }
 

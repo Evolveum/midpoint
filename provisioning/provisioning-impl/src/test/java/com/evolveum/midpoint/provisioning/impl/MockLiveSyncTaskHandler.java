@@ -45,7 +45,7 @@ public class MockLiveSyncTaskHandler {
                     syncServiceMock.notifyChange(event.getChangeDescription(), task, hResult);
                     event.acknowledge(true, hResult);
                     return true;
-                } else if (event.isSkip()) {
+                } else if (event.isNotApplicable()) {
                     hResult.recordNotApplicable();
                     event.acknowledge(true, hResult);
                     return true;

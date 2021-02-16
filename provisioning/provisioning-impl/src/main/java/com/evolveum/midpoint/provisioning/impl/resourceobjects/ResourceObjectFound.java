@@ -9,13 +9,11 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.InitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.shadows.sync.SkipProcessingException;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfObjectFound;
-import com.evolveum.midpoint.provisioning.util.ProcessingState;
+import com.evolveum.midpoint.provisioning.util.InitializationState;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -72,7 +70,7 @@ public class ResourceObjectFound implements InitializableMixin {
      */
     private final Object primaryIdentifierValue;
 
-    @NotNull private final ProcessingState processingState;
+    @NotNull private final InitializationState initializationState;
 
     private final InitializationContext ictx;
 
@@ -82,7 +80,7 @@ public class ResourceObjectFound implements InitializableMixin {
             ProvisioningContext ctx, boolean fetchAssociations) {
         this.resourceObject = ucfObject.getResourceObject().clone();
         this.primaryIdentifierValue = ucfObject.getPrimaryIdentifierValue();
-        this.processingState = ProcessingState.fromUcfErrorState(ucfObject.getErrorState());
+        this.initializationState = InitializationState.fromUcfErrorState(ucfObject.getErrorState(), null);
         this.ictx = new InitializationContext(ctx, fetchAssociations);
         this.localBeans = converter.getLocalBeans();
     }
@@ -90,13 +88,12 @@ public class ResourceObjectFound implements InitializableMixin {
     public void initializeInternal(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
-        localBeans.resourceObjectConverter
-                .postProcessResourceObjectRead(ictx.ctx, resourceObject, ictx.fetchAssociations, result);
-    }
-
-    @Override
-    public void skipInitialization(Task task, OperationResult result) throws CommonException, SkipProcessingException, EncryptionException {
-        addFakePrimaryIdentifierIfNeeded();
+        if (initializationState.isInitialStateOk()) {
+            localBeans.resourceObjectConverter
+                    .postProcessResourceObjectRead(ictx.ctx, resourceObject, ictx.fetchAssociations, result);
+        } else {
+            addFakePrimaryIdentifierIfNeeded();
+        }
     }
 
     private void addFakePrimaryIdentifierIfNeeded() throws SchemaException, ObjectNotFoundException, CommunicationException,
@@ -121,8 +118,8 @@ public class ResourceObjectFound implements InitializableMixin {
     }
 
     @Override
-    public @NotNull ProcessingState getProcessingState() {
-        return processingState;
+    public @NotNull InitializationState getInitializationState() {
+        return initializationState;
     }
 
     @Override
@@ -135,7 +132,7 @@ public class ResourceObjectFound implements InitializableMixin {
         return "FetchedResourceObject{" +
                 "resourceObject=" + resourceObject +
                 ", primaryIdentifierValue=" + primaryIdentifierValue +
-                ", processingState=" + processingState +
+                ", processingState=" + initializationState +
                 '}';
     }
 
@@ -148,7 +145,7 @@ public class ResourceObjectFound implements InitializableMixin {
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "primaryIdentifierValue", String.valueOf(primaryIdentifierValue), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "processingState", String.valueOf(processingState), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "processingState", String.valueOf(initializationState), indent + 1);
         return sb.toString();
     }
 

@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.shadows.sync.SkipProcessingException;
+import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfLiveSyncChange;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
@@ -43,9 +43,9 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
      * @param originalCtx Provisioning context determined from the parameters of the synchronize method. It can be wildcard.
      * @param originalAttributesToReturn Attributes to return determined from the parameters of the synchronize method. It can be null.
      */
-    public ResourceObjectLiveSyncChange(UcfLiveSyncChange ucfLiveSyncChange, ResourceObjectConverter converter,
-            ProvisioningContext originalCtx, AttributesToReturn originalAttributesToReturn) {
-        super(ucfLiveSyncChange, originalCtx, converter.getLocalBeans());
+    public ResourceObjectLiveSyncChange(UcfLiveSyncChange ucfLiveSyncChange, Exception preInitializationException,
+            ResourceObjectConverter converter, ProvisioningContext originalCtx, AttributesToReturn originalAttributesToReturn) {
+        super(ucfLiveSyncChange, preInitializationException, originalCtx, converter.getLocalBeans());
         this.token = ucfLiveSyncChange.getToken();
         this.ictx = new InitializationContext(originalAttributesToReturn);
     }
@@ -53,16 +53,20 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
     @Override
     public void initializeInternal(Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, SecurityViolationException, SkipProcessingException {
+            ExpressionEvaluationException, SecurityViolationException, NotApplicableException {
 
-        ProvisioningContext originalCtx = context;
+        if (initializationState.isInitialStateOk()) {
+            ProvisioningContext originalCtx = context;
 
-        updateProvisioningContext(null);
-        updateRefinedObjectClass();
+            updateProvisioningContext(null);
+            updateRefinedObjectClass();
 
-        if (!isDelete()) {
-            postProcessOrFetchResourceObject(localBeans.resourceObjectConverter, originalCtx, ictx.originalAttrsToReturn,
-                    result);
+            if (!isDelete()) {
+                postProcessOrFetchResourceObject(localBeans.resourceObjectConverter, originalCtx, ictx.originalAttrsToReturn,
+                        result);
+            }
+        } else {
+            addFakePrimaryIdentifierIfNeeded();
         }
 
         freezeIdentifiers();
@@ -71,7 +75,7 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
     private void postProcessOrFetchResourceObject(ResourceObjectConverter converter, ProvisioningContext originalCtx,
             AttributesToReturn originalAttributesToReturn, OperationResult result) throws CommunicationException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
-            ObjectNotFoundException, SkipProcessingException {
+            ObjectNotFoundException, NotApplicableException {
         AttributesToReturn actualAttributesToReturn = determineAttributesToReturn(originalCtx, originalAttributesToReturn);
         if (resourceObject == null) {
             // TODO maybe we can postpone this fetch to ShadowCache.preProcessChange where it is implemented anyway
@@ -87,7 +91,7 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
 
     private void fetchResourceObject(ResourceObjectConverter converter, AttributesToReturn attributesToReturn,
             OperationResult result) throws CommunicationException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, SkipProcessingException {
+            ConfigurationException, ExpressionEvaluationException, NotApplicableException {
         try {
             // todo consider whether it is always necessary to fetch the entitlements
             resourceObject = converter.fetchResourceObject(context, identifiers, attributesToReturn, true, result);
@@ -96,7 +100,7 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
                     "Object detected in change log no longer exist on the resource. Skipping processing this object.", ex);
             LOGGER.warn("Object detected in change log no longer exist on the resource. Skipping processing this object "
                     + ex.getMessage());
-            throw new SkipProcessingException();
+            throw new NotApplicableException();
         }
     }
 

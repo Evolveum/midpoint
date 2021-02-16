@@ -12,9 +12,9 @@ import java.util.Collection;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.impl.InitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.shadows.sync.ChangeProcessingBeans;
-import com.evolveum.midpoint.provisioning.impl.shadows.sync.SkipProcessingException;
+import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
 
-import com.evolveum.midpoint.provisioning.util.ProcessingState;
+import com.evolveum.midpoint.provisioning.util.InitializationState;
 
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.task.api.Task;
@@ -82,7 +82,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
     // TODO reconsider, probably remove
     private final boolean simulate;
 
-    @NotNull protected final ProcessingState processingState;
+    @NotNull protected final InitializationState initializationState;
 
     @NotNull protected final ChangeProcessingBeans beans;
 
@@ -114,7 +114,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
     private PrismObject<ShadowType> repoShadow;
 
     public ShadowedChange(@NotNull ROC resourceObjectChange, boolean simulate, ChangeProcessingBeans beans) {
-        this.processingState = ProcessingState.fromLowerLevelState(resourceObjectChange.getProcessingState());
+        this.initializationState = InitializationState.fromPreviousState(resourceObjectChange.getInitializationState());
         this.resourceObjectChange = resourceObjectChange;
         this.context = resourceObjectChange.getContext();
         this.simulate = simulate;
@@ -126,7 +126,12 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
 
     @Override
     public void initializeInternal(Task task, OperationResult result)
-            throws CommonException, SkipProcessingException, EncryptionException {
+            throws CommonException, NotApplicableException, EncryptionException {
+
+        if (!initializationState.isInitialStateOk()) {
+            setShadowedResourceObjectInEmergency(result);
+            return;
+        }
 
         if (isDelete()) {
             lookupShadow(result);
@@ -172,12 +177,6 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
         }
     }
 
-    @Override
-    public void skipInitialization(Task task, OperationResult result) throws CommonException, SkipProcessingException,
-            EncryptionException {
-        setShadowedResourceObjectInEmergency(result);
-    }
-
     // TODO deduplicate with FetchedShadowedObject
     private void setShadowedResourceObjectInEmergency(OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException,
@@ -220,7 +219,9 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
     }
 
     public void checkConsistence() {
-        if (!isPreprocessed()) {
+        InitializationState state = getInitializationState();
+
+        if (!state.isAfterInitialization() || !state.isOk()) {
             return;
         }
 
@@ -243,7 +244,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
     @NotNull
     private PrismObject<ShadowType> determineCurrentResourceObject(OperationResult result) throws ObjectNotFoundException,
             SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            SecurityViolationException, EncryptionException, SkipProcessingException {
+            SecurityViolationException, EncryptionException, NotApplicableException {
         PrismObject<ShadowType> resourceObject;
         LOGGER.trace("Going to compute current resource object because it's null and delta is not delete");
         // Temporary measure: let us determine the current resource object; either by fetching it from the resource
@@ -268,7 +269,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
                 } catch (ObjectNotFoundException e) {
                     // The object on the resource does not exist (any more?).
                     LOGGER.warn("Object {} does not exist on the resource any more", repoShadow);
-                    throw new SkipProcessingException();
+                    throw new NotApplicableException();
                 }
                 LOGGER.trace("-> current object was taken from the resource:\n{}", resourceObject.debugDumpLazily());
             } else if (passiveCaching) {
@@ -309,7 +310,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
     // For delete deltas we don't bother with creating a shadow if it does not exist.
     private void lookupShadow(OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException,
-            ExpressionEvaluationException, SkipProcessingException {
+            ExpressionEvaluationException, NotApplicableException {
         assert isDelete();
         // This context is the best we know at this moment. It is possible that it is wildcard (no OC known).
         // But the only way how to detect the OC is to read existing repo shadow. So we must take the risk
@@ -319,7 +320,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
         if (repoShadow == null) {
             LOGGER.debug("No old shadow for delete synchronization event {}, we probably did not know about "
                     + "that object anyway, so well be ignoring this event", this);
-            throw new SkipProcessingException();
+            throw new NotApplicableException();
         }
     }
 
@@ -452,7 +453,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
      * So until clarified, we provide here the shadow object, with properly applied definitions.
      */
     private PrismObject<ShadowType> constructShadowedObjectForDeletion(OperationResult result) throws SchemaException,
-            ExpressionEvaluationException, ConfigurationException, CommunicationException, SkipProcessingException,
+            ExpressionEvaluationException, ConfigurationException, CommunicationException, NotApplicableException,
             ObjectNotFoundException {
         PrismObject<ShadowType> currentShadow;
         try {
@@ -460,7 +461,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
         } catch (ObjectNotFoundException e) {
             LOGGER.debug("Shadow for delete synchronization event {} disappeared recently."
                     + "Skipping this event.", this);
-            throw new SkipProcessingException();
+            throw new NotApplicableException();
         }
         context = beans.shadowCaretaker.applyAttributesDefinition(context, currentShadow);
         return currentShadow;
@@ -481,10 +482,6 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
         }
     }
 
-    public boolean isPreprocessed() {
-        return processingState.isInitialized();
-    }
-
     public Object getPrimaryIdentifierValue() {
         return resourceObjectChange.getPrimaryIdentifierRealValue();
     }
@@ -498,15 +495,15 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
         return LOGGER;
     }
 
-    public @NotNull ProcessingState getProcessingState() {
-        return processingState;
+    public @NotNull InitializationState getInitializationState() {
+        return initializationState;
     }
 
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{" +
                 "resourceObjectChange=" + resourceObjectChange +
-                ", processingState=" + processingState +
+                ", state=" + initializationState +
                 ", repoShadow OID " + (repoShadow != null ? repoShadow.getOid() : null) +
                 '}';
     }
@@ -519,7 +516,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectChange", resourceObjectChange, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "context", String.valueOf(context), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "processingState", String.valueOf(processingState), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "initializationState", String.valueOf(initializationState), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "repoShadow", repoShadow, indent + 1);
         return sb.toString();
     }
