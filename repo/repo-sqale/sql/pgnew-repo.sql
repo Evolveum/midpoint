@@ -348,7 +348,7 @@ ALTER TABLE IF EXISTS m_service_type
 */
 -- endregion
 
--- region OTHER tables
+-- region OTHER object tables
 -- "concrete" table, allows insert and defines "final" objectTypeClass with GENERATED
 CREATE TABLE m_resource (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -403,66 +403,6 @@ CREATE TRIGGER m_shadow_oid_delete_tr AFTER DELETE ON m_shadow
 CREATE INDEX m_shadow_name_orig_idx ON m_shadow (name_orig);
 ALTER TABLE m_shadow ADD CONSTRAINT m_shadow_name_norm_key UNIQUE (name_norm);
 CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin (ext);
-
--- TODO: if we never need mix of inducements and assignments then let's have two separate tables
--- consult with Rado/Katka/Palo
--- TODO: partitioning, not by object type, it's not even... hash-something?
--- select assignmentowner, count(*) From m_assignment group by assignmentowner;
---1	45 (inducements)
---0	48756229
-CREATE TABLE m_assignment (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
-    cid INTEGER NOT NULL, -- container id
-    -- new column may avoid join to object for some queries
-    owner_type INTEGER NOT NULL,
-    assignmentOwner INTEGER, -- TODO necessary?
-    lifecycleState VARCHAR(255),
-    orderValue INTEGER,
-    orgRef_targetOid UUID,
-    orgRef_targetType INTEGER, -- soft-references m_objtype
-    orgRef_relation_id INTEGER, -- soft-references m_uri
-    targetRef_targetOid UUID,
-    targetRef_targetType INTEGER, -- soft-references m_objtype
-    targetRef_relation_id INTEGER, -- soft-references m_uri
-    tenantRef_targetOid UUID,
-    tenantRef_targetType INTEGER, -- soft-references m_objtype
-    tenantRef_relation_id INTEGER, -- soft-references m_uri
-    -- TODO what is this? see RAssignment.getExtension (both extId/Oid)
-    extId INTEGER,
-    extOid VARCHAR(36), -- is this UUID too?
-    ext JSONB,
-    -- construction
-    resourceRef_targetOid UUID,
-    resourceRef_targetType INTEGER, -- soft-references m_objtype
-    resourceRef_relation_id INTEGER, -- soft-references m_uri
-    -- activation
-    administrativeStatus INTEGER,
-    effectiveStatus INTEGER,
-    enableTimestamp TIMESTAMPTZ,
-    disableTimestamp TIMESTAMPTZ,
-    disableReason VARCHAR(255),
-    validityStatus INTEGER,
-    validFrom TIMESTAMPTZ,
-    validTo TIMESTAMPTZ,
-    validityChangeTimestamp TIMESTAMPTZ,
-    archiveTimestamp TIMESTAMPTZ,
-    -- metadata
-    creatorRef_targetOid UUID,
-    creatorRef_targetType INTEGER, -- soft-references m_objtype
-    creatorRef_relation_id INTEGER, -- soft-references m_uri
-    createChannel_id INTEGER,
-    createTimestamp TIMESTAMPTZ,
-    modifierRef_targetOid UUID,
-    modifierRef_targetType INTEGER, -- soft-references m_objtype
-    modifierRef_relation_id INTEGER, -- soft-references m_uri
-    modifyChannel_id INTEGER,
-    modifyTimestamp TIMESTAMPTZ,
-
-    CONSTRAINT m_assignment_pk PRIMARY KEY (owner_oid, cid)
-    -- no need to index owner_oid, it's part of the PK index
-);
-
-CREATE INDEX m_assignment_ext_idx ON m_assignment USING gin (ext);
 
 CREATE TABLE m_acc_cert_campaign (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -858,7 +798,98 @@ ALTER TABLE IF EXISTS m_task_dependent
     ADD CONSTRAINT fk_task_dependent FOREIGN KEY (task_oid) REFERENCES m_task;
 CREATE INDEX iTaskDependentOid ON M_TASK_DEPENDENT(TASK_OID);
 */
+-- endregion
 
+-- region Assignment/Inducement tables
+-- TODO: if we never need mix of inducements and assignments then let's have two separate tables
+-- consult with Rado/Katka/Palo
+-- TODO: partitioning, not by object type, it's not even... hash-something?
+-- select assignmentowner, count(*) From m_assignment group by assignmentowner;
+--1	45 (inducements)
+--0	48756229
+CREATE TABLE m_assignment (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    cid INTEGER NOT NULL, -- container id
+    -- new column may avoid join to object for some queries
+    owner_type INTEGER NOT NULL,
+    assignmentOwner INTEGER, -- TODO rethink, not useful if inducements are separate
+    lifecycleState VARCHAR(255),
+    orderValue INTEGER,
+    orgRef_targetOid UUID,
+    orgRef_targetType INTEGER, -- soft-references m_objtype
+    orgRef_relation_id INTEGER, -- soft-references m_uri
+    targetRef_targetOid UUID,
+    targetRef_targetType INTEGER, -- soft-references m_objtype
+    targetRef_relation_id INTEGER, -- soft-references m_uri
+    tenantRef_targetOid UUID,
+    tenantRef_targetType INTEGER, -- soft-references m_objtype
+    tenantRef_relation_id INTEGER, -- soft-references m_uri
+    -- TODO what is this? see RAssignment.getExtension (both extId/Oid)
+    extId INTEGER,
+    extOid VARCHAR(36), -- is this UUID too?
+    ext JSONB,
+    -- construction
+    resourceRef_targetOid UUID,
+    resourceRef_targetType INTEGER, -- soft-references m_objtype
+    resourceRef_relation_id INTEGER, -- soft-references m_uri
+    -- activation
+    administrativeStatus INTEGER, -- TODO: switch to ActivationStatusType
+    effectiveStatus INTEGER, -- TODO: switch to ActivationStatusType
+    enableTimestamp TIMESTAMPTZ,
+    disableTimestamp TIMESTAMPTZ,
+    disableReason VARCHAR(255),
+    validityStatus INTEGER, -- TODO: switch to TimeIntervalStatusType
+    validFrom TIMESTAMPTZ,
+    validTo TIMESTAMPTZ,
+    validityChangeTimestamp TIMESTAMPTZ,
+    archiveTimestamp TIMESTAMPTZ,
+    -- metadata
+    creatorRef_targetOid UUID,
+    creatorRef_targetType INTEGER, -- soft-references m_objtype
+    creatorRef_relation_id INTEGER, -- soft-references m_uri
+    createChannel_id INTEGER,
+    createTimestamp TIMESTAMPTZ,
+    modifierRef_targetOid UUID,
+    modifierRef_targetType INTEGER, -- soft-references m_objtype
+    modifierRef_relation_id INTEGER, -- soft-references m_uri
+    modifyChannel_id INTEGER,
+    modifyTimestamp TIMESTAMPTZ,
+
+    CONSTRAINT m_assignment_pk PRIMARY KEY (owner_oid, cid)
+    -- no need to index owner_oid, it's part of the PK index
+);
+
+CREATE INDEX m_assignment_ext_idx ON m_assignment USING gin (ext);
+-- TODO was: CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);
+-- administrativeStatus has 3 states (ENABLED/DISABLED/ARCHIVED), not sure it's worth indexing
+-- but it can be used as a condition to index other (e.g. WHERE administrativeStatus='ENABLED')
+-- TODO the same: CREATE INDEX iAssignmentEffective ON m_assignment (effectiveStatus);
+CREATE INDEX m_assignment_validFrom_idx ON m_assignment (validFrom);
+CREATE INDEX m_assignment_validTo_idx ON m_assignment (validTo);
+CREATE INDEX m_assignment_targetRef_targetOid_idx ON m_assignment (targetRef_targetOid);
+CREATE INDEX m_assignment_tenantRef_targetOid_idx ON m_assignment (tenantRef_targetOid);
+CREATE INDEX m_assignment_orgRef_targetOid_idx ON m_assignment (orgRef_targetOid);
+CREATE INDEX m_assignment_resourceRef_targetOid_idx ON m_assignment (resourceRef_targetOid);
+
+/* TODO - this is also not mapped in Java, obviously
+CREATE TABLE m_assignment_policy_situation (
+  assignment_id   INTEGER        NOT NULL,
+  assignment_oid  VARCHAR(36) NOT NULL,
+  policySituation VARCHAR(255)
+);
+CREATE TABLE m_assignment_reference (
+  owner_id        INTEGER         NOT NULL,
+  owner_owner_oid VARCHAR(36)  NOT NULL,
+  reference_type  INTEGER         NOT NULL,
+  relation        VARCHAR(157) NOT NULL,
+  targetOid       VARCHAR(36)  NOT NULL,
+  targetType      INTEGER,
+  PRIMARY KEY (owner_owner_oid, owner_id, reference_type, relation, targetOid)
+);
+*/
+-- endregion
+
+-- region Extension support
 -- TODO: catalog unused at the moment
 CREATE TABLE m_ext_item (
     id SERIAL NOT NULL,
@@ -921,6 +952,7 @@ CREATE TABLE m_object_ext_string (
 -- TODO other indexes, only PKs/FKs are defined at the moment
 
 /*
+-- TODO hopefully replaced by JSON ext column and not needed
 CREATE TABLE m_assignment_ext_boolean (
   item_id                      INTEGER        NOT NULL,
   anyContainer_owner_id        INTEGER        NOT NULL,
@@ -971,21 +1003,9 @@ CREATE TABLE m_assignment_extension (
   owner_owner_oid VARCHAR(36) NOT NULL,
   PRIMARY KEY (owner_owner_oid, owner_id)
 );
+
+
 -- TODO HERE
-CREATE TABLE m_assignment_policy_situation (
-  assignment_id   INTEGER        NOT NULL,
-  assignment_oid  VARCHAR(36) NOT NULL,
-  policySituation VARCHAR(255)
-);
-CREATE TABLE m_assignment_reference (
-  owner_id        INTEGER         NOT NULL,
-  owner_owner_oid VARCHAR(36)  NOT NULL,
-  reference_type  INTEGER         NOT NULL,
-  relation        VARCHAR(157) NOT NULL,
-  targetOid       VARCHAR(36)  NOT NULL,
-  targetType      INTEGER,
-  PRIMARY KEY (owner_owner_oid, owner_id, reference_type, relation, targetOid)
-);
 CREATE TABLE m_audit_delta (
   checksum          VARCHAR(32) NOT NULL,
   record_id         BIGINT        NOT NULL,
@@ -1325,22 +1345,6 @@ ALTER TABLE IF EXISTS m_acc_cert_definition
   ADD CONSTRAINT uc_acc_cert_definition_name UNIQUE (name_norm);
 CREATE INDEX iCertWorkItemRefTargetOid
   ON m_acc_cert_wi_reference (targetOid);
-CREATE INDEX iAssignmentAdministrative
-  ON m_assignment (administrativeStatus);
-CREATE INDEX iAssignmentEffective
-  ON m_assignment (effectiveStatus);
-CREATE INDEX iAssignmentValidFrom
-  ON m_assignment (validFrom);
-CREATE INDEX iAssignmentValidTo
-  ON m_assignment (validTo);
-CREATE INDEX iTargetRefTargetOid
-  ON m_assignment (targetRef_targetOid);
-CREATE INDEX iTenantRefTargetOid
-  ON m_assignment (tenantRef_targetOid);
-CREATE INDEX iOrgRefTargetOid
-  ON m_assignment (orgRef_targetOid);
-CREATE INDEX iResourceRefTargetOid
-  ON m_assignment (resourceRef_targetOid);
 CREATE INDEX iAExtensionBoolean
   ON m_assignment_ext_boolean (booleanValue);
 CREATE INDEX iAExtensionDate
@@ -1514,8 +1518,6 @@ ALTER TABLE IF EXISTS m_acc_cert_wi
   ADD CONSTRAINT fk_acc_cert_wi_owner FOREIGN KEY (owner_owner_oid, owner_id) REFERENCES m_acc_cert_case;
 ALTER TABLE IF EXISTS m_acc_cert_wi_reference
   ADD CONSTRAINT fk_acc_cert_wi_ref_owner FOREIGN KEY (owner_owner_owner_oid, owner_owner_id, owner_id) REFERENCES m_acc_cert_wi;
-ALTER TABLE IF EXISTS m_assignment
-  ADD CONSTRAINT fk_assignment_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_assignment_ext_boolean
   ADD CONSTRAINT fk_a_ext_boolean_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
 ALTER TABLE IF EXISTS m_assignment_ext_date
