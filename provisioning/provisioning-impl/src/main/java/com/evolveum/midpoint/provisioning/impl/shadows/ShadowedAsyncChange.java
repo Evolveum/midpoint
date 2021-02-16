@@ -25,7 +25,7 @@ public class ShadowedAsyncChange
         implements AcknowledgementSink {
 
     public ShadowedAsyncChange(@NotNull ResourceObjectAsyncChange resourceObjectChange, ChangeProcessingBeans beans) {
-        super(resourceObjectChange, false, beans);
+        super(resourceObjectChange, beans);
     }
 
     @Override

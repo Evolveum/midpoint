@@ -1960,24 +1960,24 @@ public class ResourceObjectConverter {
      * Process simulated activation, credentials and other properties that are added to the object by midPoint.
      */
     public void postProcessResourceObjectRead(ProvisioningContext ctx, PrismObject<ShadowType> resourceObject,
-            boolean fetchAssociations, OperationResult parentResult) throws SchemaException, CommunicationException,
+            boolean fetchAssociations, OperationResult result) throws SchemaException, CommunicationException,
             ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (resourceObject == null) {
             return;
         }
         ShadowType resourceObjectBean = resourceObject.asObjectable();
 
-        ProvisioningUtil.setProtectedFlag(ctx, resourceObject, matchingRuleRegistry, relationRegistry, expressionFactory, parentResult);
+        ProvisioningUtil.setProtectedFlag(ctx, resourceObject, matchingRuleRegistry, relationRegistry, expressionFactory, result);
 
         if (resourceObjectBean.isExists() == null) {
             resourceObjectBean.setExists(true);
         }
 
-        completeActivation(ctx, resourceObject, parentResult);
+        completeActivation(ctx, resourceObject, result);
 
         // Entitlements
         if (fetchAssociations) {
-            entitlementConverter.postProcessEntitlementsRead(ctx, resourceObject, parentResult);
+            entitlementConverter.postProcessEntitlementsRead(ctx, resourceObject, result);
         }
     }
 
@@ -1985,7 +1985,6 @@ public class ResourceObjectConverter {
      * Completes activation state by determining simulated activation if necessary.
      */
     private void completeActivation(ProvisioningContext ctx, PrismObject<ShadowType> resourceObject, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        ResourceType resourceType = ctx.getResource();
         ShadowType resourceObjectType = resourceObject.asObjectable();
 
         ActivationCapabilityType effectiveActivationCapability = ctx.getEffectiveCapability(ActivationCapabilityType.class);

@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import com.evolveum.midpoint.task.api.Task;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -24,6 +22,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 /**
  * A live sync change at the level of ResourceObjectConverter, i.e. completely processed except
  * for repository (shadow) connection.
@@ -37,64 +37,50 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
      */
     @NotNull private final PrismProperty<?> token;
 
+    /** The context known at creation time. Used for initialization. */
     @NotNull private final InitializationContext ictx;
 
     /**
-     * @param originalCtx Provisioning context determined from the parameters of the synchronize method. It can be wildcard.
+     * @param originalContext Provisioning context determined from the parameters of the synchronize method. It can be wildcard.
      * @param originalAttributesToReturn Attributes to return determined from the parameters of the synchronize method. It can be null.
      */
     public ResourceObjectLiveSyncChange(UcfLiveSyncChange ucfLiveSyncChange, Exception preInitializationException,
-            ResourceObjectConverter converter, ProvisioningContext originalCtx, AttributesToReturn originalAttributesToReturn) {
-        super(ucfLiveSyncChange, preInitializationException, originalCtx, converter.getLocalBeans());
+            ResourceObjectConverter converter, ProvisioningContext originalContext, AttributesToReturn originalAttributesToReturn) {
+        super(ucfLiveSyncChange, preInitializationException, originalContext, converter.getLocalBeans());
         this.token = ucfLiveSyncChange.getToken();
-        this.ictx = new InitializationContext(originalAttributesToReturn);
+        this.ictx = new InitializationContext(originalAttributesToReturn, originalContext);
     }
 
     @Override
-    public void initializeInternal(Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, SecurityViolationException, NotApplicableException {
-
-        if (initializationState.isInitialStateOk()) {
-            ProvisioningContext originalCtx = context;
-
-            updateProvisioningContext(null);
-            updateRefinedObjectClass();
-
-            if (!isDelete()) {
-                postProcessOrFetchResourceObject(localBeans.resourceObjectConverter, originalCtx, ictx.originalAttrsToReturn,
-                        result);
-            }
-        } else {
-            addFakePrimaryIdentifierIfNeeded();
+    protected void processObjectAndDelta(OperationResult result) throws CommunicationException, ObjectNotFoundException,
+            NotApplicableException, SchemaException, SecurityViolationException, ConfigurationException,
+            ExpressionEvaluationException {
+        if (isDelete()) {
+            return;
         }
 
-        freezeIdentifiers();
-    }
-
-    private void postProcessOrFetchResourceObject(ResourceObjectConverter converter, ProvisioningContext originalCtx,
-            AttributesToReturn originalAttributesToReturn, OperationResult result) throws CommunicationException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
-            ObjectNotFoundException, NotApplicableException {
-        AttributesToReturn actualAttributesToReturn = determineAttributesToReturn(originalCtx, originalAttributesToReturn);
+        AttributesToReturn actualAttributesToReturn = determineAttributesToReturn(ictx.originalContext, ictx.originalAttrsToReturn);
         if (resourceObject == null) {
             // TODO maybe we can postpone this fetch to ShadowCache.preProcessChange where it is implemented anyway
+            //  But, actually, for all non-delete ConnId LS changes the object is here anyway.
             LOGGER.trace("Fetching object {} because it is not in the change", identifiers);
-            fetchResourceObject(converter, actualAttributesToReturn, result);
-        } else if (originalCtx.isWildcard() && !MiscUtil.equals(actualAttributesToReturn, originalAttributesToReturn)) {
+            fetchResourceObject(actualAttributesToReturn, result);
+        } else if (ictx.originalContext.isWildcard() && !MiscUtil.equals(actualAttributesToReturn, ictx.originalAttrsToReturn)) {
             LOGGER.trace("Re-fetching object {} because mismatching attributesToReturn", identifiers);
-            fetchResourceObject(converter, actualAttributesToReturn, result);
+            fetchResourceObject(actualAttributesToReturn, result);
         } else {
-            converter.postProcessResourceObjectRead(context, resourceObject, true, result);
+            localBeans.resourceObjectConverter
+                    .postProcessResourceObjectRead(context, resourceObject, true, result);
         }
     }
 
-    private void fetchResourceObject(ResourceObjectConverter converter, AttributesToReturn attributesToReturn,
-            OperationResult result) throws CommunicationException, SchemaException, SecurityViolationException,
+    private void fetchResourceObject(AttributesToReturn attributesToReturn, OperationResult result)
+            throws CommunicationException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, NotApplicableException {
         try {
             // todo consider whether it is always necessary to fetch the entitlements
-            resourceObject = converter.fetchResourceObject(context, identifiers, attributesToReturn, true, result);
+            resourceObject = localBeans.resourceObjectConverter
+                    .fetchResourceObject(context, identifiers, attributesToReturn, true, result);
         } catch (ObjectNotFoundException ex) {
             result.recordHandledError(
                     "Object detected in change log no longer exist on the resource. Skipping processing this object.", ex);
@@ -135,9 +121,20 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
 
     private static class InitializationContext {
         private final AttributesToReturn originalAttrsToReturn;
+        private final ProvisioningContext originalContext;
 
-        private InitializationContext(AttributesToReturn originalAttrsToReturn) {
+        private InitializationContext(AttributesToReturn originalAttrsToReturn, ProvisioningContext originalContext) {
             this.originalAttrsToReturn = originalAttrsToReturn;
+            this.originalContext = originalContext;
+        }
+    }
+
+    @Override
+    public void checkConsistence() throws SchemaException {
+        super.checkConsistence();
+        if (initializationState.isOk() && initializationState.isAfterInitialization()) {
+            // Maybe temporary. This is a specialty of LS change.
+            stateCheck(resourceObject != null || isDelete(), "No resource object for non-delete delta");
         }
     }
 }

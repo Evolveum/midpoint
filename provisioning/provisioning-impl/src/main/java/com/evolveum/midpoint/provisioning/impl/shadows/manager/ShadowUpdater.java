@@ -866,27 +866,27 @@ class ShadowUpdater {
 
     public PrismObject<ShadowType> updateShadow(@NotNull ProvisioningContext ctx,
             @NotNull PrismObject<ShadowType> currentResourceObject, ObjectDelta<ShadowType> resourceObjectDelta,
-            @NotNull PrismObject<ShadowType> oldShadow, ShadowState shadowState, OperationResult parentResult)
+            @NotNull PrismObject<ShadowType> repoShadow, ShadowState shadowState, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
             ExpressionEvaluationException {
 
-        ObjectDelta<ShadowType> computedShadowDelta = shadowDeltaComputer.computeShadowDelta(ctx, oldShadow, currentResourceObject,
+        ObjectDelta<ShadowType> computedShadowDelta = shadowDeltaComputer.computeShadowDelta(ctx, repoShadow, currentResourceObject,
                 resourceObjectDelta, shadowState);
 
         if (!computedShadowDelta.isEmpty()) {
-            LOGGER.trace("Updating repo shadow {} with delta:\n{}", oldShadow, computedShadowDelta.debugDumpLazily(1));
+            LOGGER.trace("Updating repo shadow {} with delta:\n{}", repoShadow, computedShadowDelta.debugDumpLazily(1));
             ConstraintsChecker.onShadowModifyOperation(computedShadowDelta.getModifications());
             try {
-                repositoryService.modifyObject(ShadowType.class, oldShadow.getOid(), computedShadowDelta.getModifications(), parentResult);
+                repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), computedShadowDelta.getModifications(), parentResult);
             } catch (ObjectAlreadyExistsException e) {
-                throw new SystemException(e.getMessage(), e);       // This should not happen for shadows
+                throw new SystemException(e.getMessage(), e); // This should not happen for shadows
             }
-            PrismObject<ShadowType> newShadow = oldShadow.clone();
-            computedShadowDelta.applyTo(newShadow);
-            return newShadow;
+            PrismObject<ShadowType> updatedShadow = repoShadow.clone();
+            computedShadowDelta.applyTo(updatedShadow);
+            return updatedShadow;
         } else {
-            LOGGER.trace("No need to update repo shadow {} (empty delta)", oldShadow);
-            return oldShadow;
+            LOGGER.trace("No need to update repo shadow {} (empty delta)", repoShadow);
+            return repoShadow;
         }
     }
 

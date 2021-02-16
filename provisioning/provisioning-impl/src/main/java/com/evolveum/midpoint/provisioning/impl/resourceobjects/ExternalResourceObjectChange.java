@@ -15,10 +15,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.util.InitializationState;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -30,12 +29,17 @@ public class ExternalResourceObjectChange extends ResourceObjectChange {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExternalResourceObjectChange.class);
 
-    public ExternalResourceObjectChange(int localSequenceNumber,
-            @NotNull Object primaryIdentifierRealValue, @NotNull Collection<ResourceAttribute<?>> identifiers,
+    public ExternalResourceObjectChange(int localSequenceNumber, @NotNull Object primaryIdentifierRealValue,
+            ObjectClassComplexTypeDefinition objectClassDefinition, @NotNull Collection<ResourceAttribute<?>> identifiers,
             PrismObject<ShadowType> resourceObject, ObjectDelta<ShadowType> objectDelta,
             ProvisioningContext ctx, ResourceObjectConverter resourceObjectConverter) {
-        super(localSequenceNumber, primaryIdentifierRealValue, identifiers, resourceObject, objectDelta,
+        super(localSequenceNumber, primaryIdentifierRealValue, objectClassDefinition, identifiers, resourceObject, objectDelta,
                 InitializationState.fromSuccess(), ctx, resourceObjectConverter.getLocalBeans());
+    }
+
+    @Override
+    protected void processObjectAndDelta(OperationResult result) {
+        // TODO why we don't do post-processing like in the case of LS and AU?
     }
 
     @Override
@@ -45,13 +49,6 @@ public class ExternalResourceObjectChange extends ResourceObjectChange {
 
     @Override
     protected void debugDumpExtra(StringBuilder sb, int indent) {
-    }
-
-    @Override
-    public void initializeInternal(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        updateRefinedObjectClass();
-        freezeIdentifiers();
     }
 
     @Override

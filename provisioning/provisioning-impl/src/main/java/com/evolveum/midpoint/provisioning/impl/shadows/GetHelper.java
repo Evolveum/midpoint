@@ -246,6 +246,8 @@ class GetHelper {
 
             LOGGER.trace("Shadow returned by ResourceObjectConverter:\n{}", resourceObject.debugDumpLazily(1));
 
+            // TODO this looks like a hack. We should not set kind/intent to the resource object...
+
             // Resource shadow may have different auxiliary object classes than
             // the original repo shadow. Make sure we have the definition that
             // applies to resource shadow. We will fix repo shadow later.

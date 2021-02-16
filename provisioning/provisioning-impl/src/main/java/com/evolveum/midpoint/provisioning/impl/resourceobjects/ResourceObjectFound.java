@@ -49,15 +49,21 @@ public class ResourceObjectFound implements InitializableMixin {
     /**
      * Resource object that has been found.
      *
-     * 1. At creation: Object as received from UCF.
-     * 2. At completion (full-success): The same object, with:
+     * 1. When created: Object as received from UCF.
+     *
+     * 2. When initialized-OK: The same object, with:
      *    a. protected flag set,
      *    b. exists flag not null,
      *    c. simulated activation done,
      *    d. associations fetched (if requested).
-     * 3. At completion (emergency-success):
+     *
+     * 3. When initialized-error:
      *    a. has primary identifier present, assuming: object class known + primary identifier value known.
-     * 4. At completion (any-failure):
+     *
+     * 4. When initialized-not-applicable:
+     *    a. Nothing guaranteed.
+     *
+     * 5. If initialization failed:
      *    a. Nothing guaranteed.
      */
     @NotNull private final PrismObject<ShadowType> resourceObject;
@@ -70,10 +76,13 @@ public class ResourceObjectFound implements InitializableMixin {
      */
     private final Object primaryIdentifierValue;
 
+    /** State of the initialization of this object. */
     @NotNull private final InitializationState initializationState;
 
+    /** Data needed for the initialization. Provided at object creation. */
     private final InitializationContext ictx;
 
+    /** Useful beans from Resource Objects layer. */
     private final ResourceObjectsLocalBeans localBeans;
 
     public ResourceObjectFound(UcfObjectFound ucfObject, ResourceObjectConverter converter,

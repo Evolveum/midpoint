@@ -126,6 +126,7 @@ public class AsyncUpdateTaskHandler
                 if (event.isComplete()) {
                     ResourceObjectShadowChangeDescription changeDescription = event.getChangeDescription();
                     changeDescription.setItemProcessingIdentifier(request.getIdentifier());
+                    changeDescription.setSimulate(partExecution.isSimulate());
                     changeNotificationDispatcher.notifyChange(changeDescription, workerTask, result);
                 } else if (event.isNotApplicable()) {
                     result.recordNotApplicable();

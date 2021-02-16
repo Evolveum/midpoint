@@ -119,11 +119,8 @@ public class InitializationState implements Serializable {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "{" +
-                initialErrorState + "->" + currentErrorState +
-                (exceptionEncountered != null ? " (e=" + MiscUtil.getClassWithMessage(exceptionEncountered) + ")" : "") +
-                "state: " + lifecycleState +
-                '}';
+        return lifecycleState + ": " + initialErrorState + " -> " + currentErrorState +
+                (exceptionEncountered != null ? " (e=" + MiscUtil.getClassWithMessage(exceptionEncountered) + ")" : "");
     }
 
     public Throwable getExceptionEncountered() {
@@ -132,6 +129,11 @@ public class InitializationState implements Serializable {
 
     public boolean isAfterInitialization() {
         return lifecycleState == LifecycleState.INITIALIZED || lifecycleState == LifecycleState.INITIALIZATION_FAILED;
+    }
+
+    // Beware, the error state can be anything!
+    public boolean isInitialized() {
+        return lifecycleState == LifecycleState.INITIALIZED;
     }
 
     // Useful during initialization.

@@ -17,8 +17,7 @@ import com.evolveum.midpoint.provisioning.impl.shadows.sync.ChangeProcessingBean
  */
 public class ShadowedExternalChange extends ShadowedChange<ExternalResourceObjectChange> {
 
-    public ShadowedExternalChange(@NotNull ExternalResourceObjectChange resourceObjectChange, boolean simulate,
-            ChangeProcessingBeans beans) {
-        super(resourceObjectChange, simulate, beans);
+    public ShadowedExternalChange(@NotNull ExternalResourceObjectChange resourceObjectChange, ChangeProcessingBeans beans) {
+        super(resourceObjectChange, beans);
     }
 }

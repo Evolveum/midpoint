@@ -57,39 +57,56 @@ public class ShadowDeltaComputer {
 
     @NotNull
     ObjectDelta<ShadowType> computeShadowDelta(@NotNull ProvisioningContext ctx,
-            @NotNull PrismObject<ShadowType> repoShadowOld, PrismObject<ShadowType> currentResourceObject,
+            @NotNull PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceObject,
             ObjectDelta<ShadowType> resourceObjectDelta, ShadowState shadowState)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
 
-        ObjectDelta<ShadowType> computedShadowDelta = repoShadowOld.createModifyDelta();
-
-        RefinedObjectClassDefinition ocDef = ctx.computeCompositeObjectClassDefinition(currentResourceObject);
-        PrismContainer<Containerable> currentResourceAttributes = currentResourceObject.findContainer(ShadowType.F_ATTRIBUTES);
-        PrismContainer<Containerable> oldRepoAttributes = repoShadowOld.findContainer(ShadowType.F_ATTRIBUTES);
-        ShadowType oldRepoShadowType = repoShadowOld.asObjectable();
+        ObjectDelta<ShadowType> computedShadowDelta = repoShadow.createModifyDelta();
 
         CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
         Collection<QName> incompleteCacheableItems = new HashSet<>();
 
-        processAttributes(computedShadowDelta, incompleteCacheableItems, oldRepoAttributes, currentResourceAttributes,
-                resourceObjectDelta, ocDef, cachingStrategy);
+        processAttributes(ctx, repoShadow, resourceObject, resourceObjectDelta,
+                cachingStrategy, incompleteCacheableItems, computedShadowDelta);
 
-        PolyString currentShadowName = ShadowUtil.determineShadowName(currentResourceObject);
-        PolyString oldRepoShadowName = repoShadowOld.getName();
-        if (currentShadowName != null && !currentShadowName.equalsOriginalValue(oldRepoShadowName)) {
-            PropertyDelta<?> shadowNameDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_NAME,
-                    repoShadowOld.getDefinition(), currentShadowName);
+        addShadowNameDelta(repoShadow, resourceObject, computedShadowDelta);
+        addAuxiliaryObjectClassDelta(repoShadow, resourceObject, computedShadowDelta);
+        addExistsDelta(shadowState, computedShadowDelta);
+
+        if (cachingStrategy == CachingStategyType.NONE) {
+            addClearCachingMetadataDelta(repoShadow, computedShadowDelta);
+        } else if (cachingStrategy == CachingStategyType.PASSIVE) {
+            addCachedActivationDeltas(repoShadow, resourceObject, computedShadowDelta);
+            addCachingMetadataDelta(incompleteCacheableItems, computedShadowDelta);
+        } else {
+            throw new ConfigurationException("Unknown caching strategy "+cachingStrategy);
+        }
+        return computedShadowDelta;
+    }
+
+    private void addShadowNameDelta(PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceObject,
+            ObjectDelta<ShadowType> computedShadowDelta) throws SchemaException {
+        PolyString resourceObjectName = ShadowUtil.determineShadowName(resourceObject);
+        PolyString repoShadowName = repoShadow.getName();
+        if (resourceObjectName != null && !resourceObjectName.equalsOriginalValue(repoShadowName)) {
+            PropertyDelta<?> shadowNameDelta = prismContext.deltaFactory().property()
+                    .createModificationReplaceProperty(ShadowType.F_NAME, repoShadow.getDefinition(), resourceObjectName);
             computedShadowDelta.addModification(shadowNameDelta);
         }
+    }
 
+    private void addAuxiliaryObjectClassDelta(PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceObject,
+            ObjectDelta<ShadowType> computedShadowDelta) {
         PropertyDelta<QName> auxOcDelta = ItemUtil.diff(
-                repoShadowOld.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS),
-                currentResourceObject.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS));
+                repoShadow.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS),
+                resourceObject.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS));
         if (auxOcDelta != null) {
             computedShadowDelta.addModification(auxOcDelta);
         }
+    }
 
+    private void addExistsDelta(ShadowState shadowState, ObjectDelta<ShadowType> computedShadowDelta) {
         // Resource object obviously exists in this case. However, we do not want to mess with isExists flag in some
         // situations (e.g. in CORPSE state) as this existence may be just a quantum illusion.
         if (shadowState == ShadowState.CONCEPTION || shadowState == ShadowState.GESTATION) {
@@ -97,43 +114,60 @@ public class ShadowDeltaComputer {
             existsDelta.setRealValuesToReplace(true);
             computedShadowDelta.addModification(existsDelta);
         }
-
-        if (cachingStrategy == CachingStategyType.NONE) {
-            if (oldRepoShadowType.getCachingMetadata() != null) {
-                computedShadowDelta.addModificationReplaceProperty(ShadowType.F_CACHING_METADATA);
-            }
-
-        } else if (cachingStrategy == CachingStategyType.PASSIVE) {
-
-            compareUpdateProperty(computedShadowDelta, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, currentResourceObject, repoShadowOld);
-            compareUpdateProperty(computedShadowDelta, SchemaConstants.PATH_ACTIVATION_VALID_FROM, currentResourceObject, repoShadowOld);
-            compareUpdateProperty(computedShadowDelta, SchemaConstants.PATH_ACTIVATION_VALID_TO, currentResourceObject, repoShadowOld);
-            compareUpdateProperty(computedShadowDelta, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, currentResourceObject, repoShadowOld);
-
-            if (incompleteCacheableItems.isEmpty()) {
-                CachingMetadataType cachingMetadata = new CachingMetadataType();
-                cachingMetadata.setRetrievalTimestamp(clock.currentTimeXMLGregorianCalendar());
-                computedShadowDelta.addModificationReplaceProperty(ShadowType.F_CACHING_METADATA, cachingMetadata);
-            } else {
-                LOGGER.trace("Shadow has incomplete cacheable items; will not update caching timestamp: {}", incompleteCacheableItems);
-            }
-        } else {
-            throw new ConfigurationException("Unknown caching strategy "+cachingStrategy);
-        }
-        return computedShadowDelta;
     }
 
-    private void processAttributes(ObjectDelta<ShadowType> computedShadowDelta, Collection<QName> incompleteCacheableAttributes,
-            PrismContainer<Containerable> oldRepoAttributes, PrismContainer<Containerable> currentResourceAttributes,
-            ObjectDelta<ShadowType> resourceObjectDelta, RefinedObjectClassDefinition ocDef, CachingStategyType cachingStrategy)
-            throws SchemaException, ConfigurationException {
+    private void addClearCachingMetadataDelta(@NotNull PrismObject<ShadowType> repoShadow, ObjectDelta<ShadowType> computedShadowDelta) {
+        if (repoShadow.asObjectable().getCachingMetadata() != null) {
+            computedShadowDelta.addModificationReplaceProperty(ShadowType.F_CACHING_METADATA);
+        }
+    }
 
-        // For complete attributes we can proceed as before: take currentResourceAttributes as authoritative.
+    private void addCachingMetadataDelta(Collection<QName> incompleteCacheableItems, ObjectDelta<ShadowType> computedShadowDelta) {
+        if (incompleteCacheableItems.isEmpty()) {
+            CachingMetadataType cachingMetadata = new CachingMetadataType();
+            cachingMetadata.setRetrievalTimestamp(clock.currentTimeXMLGregorianCalendar());
+            computedShadowDelta.addModificationReplaceProperty(ShadowType.F_CACHING_METADATA, cachingMetadata);
+        } else {
+            LOGGER.trace("Shadow has incomplete cacheable items; will not update caching timestamp: {}", incompleteCacheableItems);
+        }
+    }
+
+    private void addCachedActivationDeltas(PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceObject,
+            ObjectDelta<ShadowType> computedShadowDelta) {
+        compareUpdateProperty(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, repoShadow, resourceObject, computedShadowDelta);
+        compareUpdateProperty(SchemaConstants.PATH_ACTIVATION_VALID_FROM, repoShadow, resourceObject, computedShadowDelta);
+        compareUpdateProperty(SchemaConstants.PATH_ACTIVATION_VALID_TO, repoShadow, resourceObject, computedShadowDelta);
+        compareUpdateProperty(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, repoShadow, resourceObject, computedShadowDelta);
+    }
+
+    private <T> void compareUpdateProperty(ItemPath itemPath, PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceObject,
+            ObjectDelta<ShadowType> computedShadowDelta) {
+        PrismProperty<T> currentProperty = resourceObject.findProperty(itemPath);
+        PrismProperty<T> oldProperty = repoShadow.findProperty(itemPath);
+        PropertyDelta<T> itemDelta = ItemUtil.diff(oldProperty, currentProperty);
+        if (itemDelta != null && !itemDelta.isEmpty()) {
+            computedShadowDelta.addModification(itemDelta);
+        }
+    }
+
+    private void processAttributes(ProvisioningContext ctx,
+            PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceObject,
+            ObjectDelta<ShadowType> resourceObjectDelta, CachingStategyType cachingStrategy,
+            Collection<QName> incompleteCacheableAttributes,
+            ObjectDelta<ShadowType> computedShadowDelta)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException,
+            CommunicationException {
+
+        PrismContainer<Containerable> resourceObjectAttributes = resourceObject.findContainer(ShadowType.F_ATTRIBUTES);
+        PrismContainer<Containerable> repoShadowAttributes = repoShadow.findContainer(ShadowType.F_ATTRIBUTES);
+        RefinedObjectClassDefinition ocDef = ctx.computeCompositeObjectClassDefinition(resourceObject);
+
+        // For complete attributes we can proceed as before: take resourceObjectAttributes as authoritative.
         // If not obtained from the resource, they were created from object delta anyway. :)
         // However, for incomplete (e.g. index-only) attributes we have to rely on object delta, if present.
         // TODO clean this up! MID-5834
 
-        for (Item<?, ?> currentResourceAttrItem: currentResourceAttributes.getValue().getItems()) {
+        for (Item<?, ?> currentResourceAttrItem: resourceObjectAttributes.getValue().getItems()) {
             if (currentResourceAttrItem instanceof PrismProperty<?>) {
                 //noinspection unchecked
                 PrismProperty<Object> currentResourceAttrProperty = (PrismProperty<Object>) currentResourceAttrItem;
@@ -143,7 +177,7 @@ public class ShadowDeltaComputer {
                 }
                 if (ProvisioningUtil.shouldStoreAttributeInShadow(ocDef, attrDef.getItemName(), cachingStrategy)) {
                     if (!currentResourceAttrItem.isIncomplete()) {
-                        processResourceAttribute(computedShadowDelta, oldRepoAttributes, currentResourceAttrProperty, attrDef);
+                        processResourceAttribute(computedShadowDelta, repoShadowAttributes, currentResourceAttrProperty, attrDef);
                     } else {
                         incompleteCacheableAttributes.add(attrDef.getItemName());
                         if (resourceObjectDelta != null) {
@@ -165,21 +199,18 @@ public class ShadowDeltaComputer {
             }
         }
 
-        for (Item<?, ?> oldRepoItem: oldRepoAttributes.getValue().getItems()) {
+        for (Item<?, ?> oldRepoItem: repoShadowAttributes.getValue().getItems()) {
             if (oldRepoItem instanceof PrismProperty<?>) {
-                PrismProperty<?> oldRepoAttrProperty = (PrismProperty<?>) oldRepoItem;
+                //noinspection unchecked
+                PrismProperty<Object> oldRepoAttrProperty = (PrismProperty<Object>) oldRepoItem;
                 RefinedAttributeDefinition<Object> attrDef = ocDef.findAttributeDefinition(oldRepoAttrProperty.getElementName());
-                PrismProperty<Object> currentAttribute = currentResourceAttributes.findProperty(oldRepoAttrProperty.getElementName());
-                // note: incomplete attributes with no values are not here: they are found in currentResourceAttributes container
+                PrismProperty<Object> currentAttribute = resourceObjectAttributes.findProperty(oldRepoAttrProperty.getElementName());
+                // note: incomplete attributes with no values are not here: they are found in resourceObjectAttributes container
                 if (attrDef == null || !ProvisioningUtil.shouldStoreAttributeInShadow(ocDef, attrDef.getItemName(), cachingStrategy) ||
                         currentAttribute == null) {
                     // No definition for this property it should not be there or no current value: remove it from the shadow
-                    PropertyDelta<?> oldRepoAttrPropDelta = oldRepoAttrProperty.createDelta();
-                    if (oldRepoAttrPropDelta.getDefinition().getTypeName() == null) {
-                        throw new SchemaException("No definition in "+oldRepoAttrPropDelta);
-                    }
-                    //noinspection unchecked
-                    oldRepoAttrPropDelta.addValuesToDelete((Collection) PrismValueCollectionsUtil.cloneCollection(oldRepoAttrProperty.getValues()));
+                    PropertyDelta<Object> oldRepoAttrPropDelta = oldRepoAttrProperty.createDelta();
+                    oldRepoAttrPropDelta.addValuesToDelete(PrismValueCollectionsUtil.cloneCollection(oldRepoAttrProperty.getValues()));
                     computedShadowDelta.addModification(oldRepoAttrPropDelta);
                 }
             } else {
@@ -221,13 +252,10 @@ public class ShadowDeltaComputer {
                 if (valuesOnResource.size() >= 100) {
                     setNormalizedValuesToReplace(attrAddDelta, valuesOnResource, matchingRule);
                 } else {
-                    for (PrismPropertyValue<?> pval : valuesOnResource) {
-                        attrAddDelta.addRealValuesToAdd(matchingRule.normalize(pval.getValue()));
+                    for (PrismPropertyValue<?> pVal : valuesOnResource) {
+                        attrAddDelta.addRealValuesToAdd(matchingRule.normalize(pVal.getValue()));
                     }
                 }
-            }
-            if (attrAddDelta.getDefinition().getTypeName() == null) {
-                throw new SchemaException("No definition in " + attrAddDelta);
             }
             computedShadowDelta.addModification(attrAddDelta);
         } else {
@@ -235,36 +263,23 @@ public class ShadowDeltaComputer {
                 Object currentResourceRealValue = currentResourceAttrProperty.getRealValue();
                 Object currentResourceNormalizedRealValue = matchingRule.normalize(currentResourceRealValue);
                 if (!Objects.equals(currentResourceNormalizedRealValue, oldRepoAttributeProperty.getRealValue())) {
-                    PropertyDelta delta;
+                    PropertyDelta<Object> delta;
                     if (currentResourceNormalizedRealValue != null) {
                         delta = computedShadowDelta.addModificationReplaceProperty(currentResourceAttrProperty.getPath(),
                                 currentResourceNormalizedRealValue);
                     } else {
                         delta = computedShadowDelta.addModificationReplaceProperty(currentResourceAttrProperty.getPath());
                     }
-                    //noinspection unchecked
                     delta.setDefinition(currentResourceAttrProperty.getDefinition());
-                    if (delta.getDefinition().getTypeName() == null) {
-                        throw new SchemaException("No definition in " + delta);
-                    }
                 }
             } else {
                 PrismProperty<Object> normalizedCurrentResourceAttrProperty = currentResourceAttrProperty.clone();
-                for (PrismPropertyValue pval : normalizedCurrentResourceAttrProperty.getValues()) {
-                    Object normalizedRealValue = matchingRule.normalize(pval.getValue());
-                    //noinspection unchecked
-                    pval.setValue(normalizedRealValue);
+                for (PrismPropertyValue<Object> pVal : normalizedCurrentResourceAttrProperty.getValues()) {
+                    pVal.setValue(matchingRule.normalize(pVal.getValue()));
                 }
                 PropertyDelta<Object> attrDiff = oldRepoAttributeProperty.diff(normalizedCurrentResourceAttrProperty);
-                //                                LOGGER.trace("DIFF:\n{}\n-\n{}\n=:\n{}",
-                //                                        oldRepoAttributeProperty==null?null:oldRepoAttributeProperty.debugDump(1),
-                //                                        normalizedCurrentResourceAttrProperty==null?null:normalizedCurrentResourceAttrProperty.debugDump(1),
-                //                                        attrDiff==null?null:attrDiff.debugDump(1));
                 if (attrDiff != null && !attrDiff.isEmpty()) {
                     attrDiff.setParentPath(ShadowType.F_ATTRIBUTES);
-                    if (attrDiff.getDefinition().getTypeName() == null) {
-                        throw new SchemaException("No definition in " + attrDiff);
-                    }
                     computedShadowDelta.addModification(attrDiff);
                 }
             }
@@ -278,15 +293,5 @@ public class ShadowDeltaComputer {
             currentValuesNormalized[i] = matchingRule.normalize(currentValues.get(i).getValue());
         }
         attrAddDelta.setRealValuesToReplace(currentValuesNormalized);
-    }
-
-    private <T> void compareUpdateProperty(ObjectDelta<ShadowType> shadowDelta,
-            ItemPath itemPath, PrismObject<ShadowType> currentResourceShadow, PrismObject<ShadowType> oldRepoShadow) {
-        PrismProperty<T> currentProperty = currentResourceShadow.findProperty(itemPath);
-        PrismProperty<T> oldProperty = oldRepoShadow.findProperty(itemPath);
-        PropertyDelta<T> itemDelta = ItemUtil.diff(oldProperty, currentProperty);
-        if (itemDelta != null && !itemDelta.isEmpty()) {
-            shadowDelta.addModification(itemDelta);
-        }
     }
 }

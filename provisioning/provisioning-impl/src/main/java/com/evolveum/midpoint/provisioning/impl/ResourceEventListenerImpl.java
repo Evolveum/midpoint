@@ -21,6 +21,8 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectCon
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 import com.evolveum.midpoint.provisioning.util.InitializationState;
 
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -91,15 +93,20 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 
         Object primaryIdentifierRealValue = getPrimaryIdentifierRealValue(anyShadow, eventDescription);
         Collection<ResourceAttribute<?>> identifiers = emptyIfNull(ShadowUtil.getAllIdentifiers(anyShadow));
+        if (identifiers.isEmpty()) {
+            throw new SchemaException("No identifiers");
+        }
+
+        ObjectClassComplexTypeDefinition objectClassDefinition = ctx.getObjectClassDefinition().getObjectClassDefinition();
 
         ExternalResourceObjectChange resourceObjectChange = new ExternalResourceObjectChange(
                 currentSequenceNumber.getAndIncrement(),
-                primaryIdentifierRealValue, identifiers,
+                primaryIdentifierRealValue, objectClassDefinition, identifiers,
                 getResourceObject(eventDescription),
                 eventDescription.getObjectDelta(), ctx, resourceObjectConverter);
         resourceObjectChange.initialize(task, result);
 
-        ShadowedExternalChange adoptedChange = new ShadowedExternalChange(resourceObjectChange, false, changeProcessingBeans);
+        ShadowedExternalChange adoptedChange = new ShadowedExternalChange(resourceObjectChange, changeProcessingBeans);
         adoptedChange.initialize(task, result);
 
         InitializationState initializationState = adoptedChange.getInitializationState();

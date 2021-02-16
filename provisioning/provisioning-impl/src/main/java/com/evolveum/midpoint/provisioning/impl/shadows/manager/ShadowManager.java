@@ -131,6 +131,7 @@ public class ShadowManager {
      * uses stored attributes to execute the query.
      *
      * 2. Unlike other methods, this checks if the shadow returned has exists=true (and sets it in the repo if it does not).
+     * TODO TODO TODO - we should perhaps defer this to the update method! Because that method takes shadow state into account.
      *
      * @param objectClass Intentionally not taken from the context - yet.
      */
@@ -304,20 +305,19 @@ public class ShadowManager {
 
     /**
      * Updates repository shadow based on object or delta from resource.
-     * Handles rename cases, change of auxiliary object classes, etc.
+     * Updates: cached attributes and activation, shadow name, aux object classes, exists flag, caching metadata.
      *
-     * @param currentResourceObject Current state of the resource object (if known).
+     * @param currentResourceObject Current state of the resource object. Not shadowized yet.
      * @param resourceObjectDelta Delta coming from the resource (if known).
      *
-     * TODO should the currentResourceObject be already "shadowized", i.e. completed?
      * @return repository shadow as it should look like after the update
      */
     public PrismObject<ShadowType> updateShadow(@NotNull ProvisioningContext ctx,
             @NotNull PrismObject<ShadowType> currentResourceObject, ObjectDelta<ShadowType> resourceObjectDelta,
-            @NotNull PrismObject<ShadowType> oldShadow, ShadowState shadowState, OperationResult result)
+            @NotNull PrismObject<ShadowType> repoShadow, ShadowState shadowState, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
             ExpressionEvaluationException {
-        return shadowUpdater.updateShadow(ctx, currentResourceObject, resourceObjectDelta, oldShadow, shadowState, result);
+        return shadowUpdater.updateShadow(ctx, currentResourceObject, resourceObjectDelta, repoShadow, shadowState, result);
     }
 
     public PrismObject<ShadowType> recordDeleteResult(ProvisioningContext ctx, PrismObject<ShadowType> oldRepoShadow,

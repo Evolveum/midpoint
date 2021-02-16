@@ -20,9 +20,8 @@ import com.evolveum.midpoint.provisioning.impl.shadows.sync.ChangeProcessingBean
  */
 public class ShadowedLiveSyncChange extends ShadowedChange<ResourceObjectLiveSyncChange> {
 
-    public ShadowedLiveSyncChange(@NotNull ResourceObjectLiveSyncChange resourceObjectChange, boolean simulate,
-            ChangeProcessingBeans beans) {
-        super(resourceObjectChange, simulate, beans);
+    public ShadowedLiveSyncChange(@NotNull ResourceObjectLiveSyncChange resourceObjectChange, ChangeProcessingBeans beans) {
+        super(resourceObjectChange, beans);
     }
 
     public PrismProperty<?> getToken() {

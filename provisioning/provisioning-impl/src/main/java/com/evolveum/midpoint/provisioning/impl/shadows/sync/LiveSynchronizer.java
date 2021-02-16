@@ -84,7 +84,7 @@ public class LiveSynchronizer {
 
             int sequentialNumber = ctx.oldestTokenWatcher.changeArrived(resourceObjectChange.getToken());
 
-            ShadowedLiveSyncChange change = new ShadowedLiveSyncChange(resourceObjectChange, ctx.simulate, beans);
+            ShadowedLiveSyncChange change = new ShadowedLiveSyncChange(resourceObjectChange, beans);
             change.initialize(task, lResult);
 
             LiveSyncEvent event = new LiveSyncEventImpl(change) {

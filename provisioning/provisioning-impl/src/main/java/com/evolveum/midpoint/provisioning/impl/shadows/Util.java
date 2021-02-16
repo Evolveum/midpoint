@@ -105,6 +105,9 @@ class Util {
     }
 
     static PrismObject<ShadowType> minimize(PrismObject<ShadowType> resourceObject, RefinedObjectClassDefinition ocDef) {
+        if (resourceObject == null) {
+            return null;
+        }
         PrismObject<ShadowType> minimized = resourceObject.clone();
         ShadowUtil.removeAllAttributesExceptPrimaryIdentifier(minimized, ocDef);
         if (ShadowUtil.hasPrimaryIdentifier(minimized, ocDef)) {

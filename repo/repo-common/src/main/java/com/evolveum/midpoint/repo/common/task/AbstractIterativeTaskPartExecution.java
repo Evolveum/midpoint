@@ -10,6 +10,9 @@ package com.evolveum.midpoint.repo.common.task;
 import static com.evolveum.midpoint.repo.common.task.AnnotationSupportUtil.createFromAnnotation;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -369,5 +372,10 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
     public @NotNull TaskReportingOptions getReportingOptions() {
         return reportingOptions;
+    }
+
+    public boolean isSimulate() {
+        TaskPartitionDefinitionType partDefinition = taskExecution.partDefinition;
+        return partDefinition != null && partDefinition.getStage() == ExecutionModeType.SIMULATE;
     }
 }

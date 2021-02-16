@@ -43,11 +43,30 @@ public class ShadowedObjectFound implements InitializableMixin {
      */
     @NotNull private final PrismObject<ShadowType> resourceObject;
 
-    /** TODO */
+    /**
+     * Real value of the object primary identifier (e.g. ConnId UID).
+     * Usually not null (e.g. in ConnId 1.x), but this can change in the future.
+     *
+     * See {@link ResourceObjectFound#primaryIdentifierValue}.
+     */
+    @SuppressWarnings("JavadocReference")
     private final Object primaryIdentifierValue;
 
     /**
-     * The object after "shadowization". TODO
+     * The object after "shadowization". Fulfills the following:
+     *
+     * In initialized/OK state:
+     *
+     * 1. has an OID and exists in repository,
+     * 2. has classification applied (plus all the other things done when acquiring a shadow),
+     * 3. the repo shadow is updated: meaning cached attributes and activation, shadow name, aux object classes,
+     * exists flag, caching metadata,
+     * 4. contains all information merged from the resource object and the pre-existing shadow,
+     *
+     * In all other states:
+     *
+     * All reasonable attempts are done in order to create at least minimalistic shadow (because of error handling).
+     * This object points to such a shadow. The other parts (from resource object) can be missing.
      */
     private PrismObject<ShadowType> shadowedObject;
 
@@ -71,6 +90,7 @@ public class ShadowedObjectFound implements InitializableMixin {
         sb.append(this.getClass().getSimpleName());
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "primaryIdentifierValue", String.valueOf(primaryIdentifierValue), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "shadowedObject", shadowedObject, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "initializationState", String.valueOf(initializationState), indent + 1);
         return sb.toString();
@@ -87,57 +107,34 @@ public class ShadowedObjectFound implements InitializableMixin {
     }
 
     /**
-     * Contains processing of an object that has been found on a resource before it is passed to the caller-provided handler.
-     * We do basically the following:
-     *
-     * 1. apply definitions,
-     * 2. acquire and update repo shadow (includes classification),
-     * 3. construct resulting adopted object.
+     * Acquires repo shadow, updates it, and prepares the shadowedObject.
+     * In emergency does a minimalistic processing aimed at acquiring a shadow.
      */
-
     @Override
     public void initializeInternal(Task task, OperationResult result)
             throws CommonException, NotApplicableException, EncryptionException {
 
         if (!initializationState.isInitialStateOk()) {
-            // The object is somehow flawed. However, we should try to create some shadow.
+            // The object is somehow flawed. However, we try to create a shadow.
             //
             // To avoid any harm, we are minimalistic here: If a shadow can be found, it is used "as is". No updates here.
-            // If it cannot be found, it is created. We will skip kind/intent/tag determination. Most probably these would not be
-            // correct anyway.
-            shadowedObject = shadowResourceObjectInEmergency(result);
+            // If it cannot be found, it is created. We will skip kind/intent/tag determination.
+            // Most probably these would not be correct anyway.
+            shadowedObject = acquireRepoShadowInEmergency(result);
             return;
         }
 
-        // The shadow does not have any kind or intent at this point.
-        // But at least locate the definition using object classes.
-        ProvisioningContext estimatedShadowCtx = ictx.localBeans.shadowCaretaker.reapplyDefinitions(ictx.ctx, resourceObject);
-
-        PrismObject<ShadowType> repoShadow;
+        PrismObject<ShadowType> repoShadow = acquireRepoShadow(result);
         try {
-            repoShadow = ictx.localBeans.shadowAcquisitionHelper
-                    .acquireRepoShadow(estimatedShadowCtx, resourceObject, false, result);
-        } catch (Exception e) {
-            // No need to log stack trace now. It will be logged at the place where the exception is processed.
-            LOGGER.error("Couldn't acquire shadow for {}. Creating shadow in emergency mode. Error: {}", resourceObject, getClassWithMessage(e));
-            shadowedObject = shadowResourceObjectInEmergency(result);
-            throw e;
-        }
 
-        try {
-            // This determines the definitions exactly. Now the repo shadow should have proper kind/intent
-            ProvisioningContext shadowCtx = ictx.localBeans.shadowCaretaker.applyAttributesDefinition(ictx.ctx, repoShadow);
+            // This determines the definitions exactly. Now the repo shadow should have proper kind/intent.
+            ProvisioningContext preciseCtx = ictx.localBeans.shadowCaretaker.applyAttributesDefinition(ictx.ctx, repoShadow);
 
-            // TODO: shadowState
-            PrismObject<ShadowType> updatedRepoShadow = ictx.localBeans.shadowManager
-                    .updateShadow(shadowCtx, resourceObject, null, repoShadow, null, result);
-
-            // TODO do we want also to futurize the shadow like in getObject?
-
-            shadowedObject = ictx.localBeans.shadowedObjectConstructionHelper
-                    .constructShadowedObject(shadowCtx, updatedRepoShadow, resourceObject, result);
+            PrismObject<ShadowType> updatedRepoShadow = updateRepoShadow(preciseCtx, repoShadow, result);
+            shadowedObject = createShadowedObject(preciseCtx, updatedRepoShadow, result);
 
         } catch (Exception e) {
+
             // No need to log stack trace now. It will be logged at the place where the exception is processed.
             LOGGER.error("Couldn't initialize {}. Continuing with previously acquired repo shadow: {}. Error: {}",
                     resourceObject, repoShadow, getClassWithMessage(e));
@@ -147,7 +144,49 @@ public class ShadowedObjectFound implements InitializableMixin {
     }
 
     @NotNull
-    private PrismObject<ShadowType> shadowResourceObjectInEmergency(OperationResult result)
+    private PrismObject<ShadowType> acquireRepoShadow(OperationResult result) throws SchemaException, ConfigurationException,
+            ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, EncryptionException,
+            SecurityViolationException {
+        // The resource object does not have any kind or intent at this point.
+        // But at least locate the definition using object classes.
+        ProvisioningContext estimatedCtx = ictx.localBeans.shadowCaretaker.reapplyDefinitions(ictx.ctx, resourceObject);
+
+        // Now find or create repository shadow, along with its classification (maybe it is not a good idea to merge the two).
+        PrismObject<ShadowType> repoShadow;
+        try {
+            repoShadow = ictx.localBeans.shadowAcquisitionHelper
+                    .acquireRepoShadow(estimatedCtx, resourceObject, false, result);
+        } catch (Exception e) {
+            // No need to log stack trace now. It will be logged at the place where the exception is processed.
+            LOGGER.error("Couldn't acquire shadow for {}. Creating shadow in emergency mode. Error: {}", resourceObject, getClassWithMessage(e));
+            shadowedObject = acquireRepoShadowInEmergency(result);
+            throw e;
+        }
+        return repoShadow;
+    }
+
+    private PrismObject<ShadowType> updateRepoShadow(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
+            OperationResult result) throws SchemaException, ObjectNotFoundException, ConfigurationException,
+            CommunicationException, ExpressionEvaluationException {
+        // TODO: provide shadowState - it is needed when updating exists attribute (because of quantum effects)
+        return ictx.localBeans.shadowManager
+                .updateShadow(ctx, resourceObject, null, repoShadow, null, result);
+    }
+
+    private @NotNull PrismObject<ShadowType> createShadowedObject(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+        // TODO do we want also to futurize the shadow like in getObject?
+        return ictx.localBeans.shadowedObjectConstructionHelper
+                .constructShadowedObject(ctx, repoShadow, resourceObject, result);
+    }
+
+    /**
+     * Acquires repo shadow in non-OK situations. If not possible, steps down to "ultra-emergency", where
+     * attributes are stripped down to a bare primary identifier.
+     */
+    @NotNull
+    private PrismObject<ShadowType> acquireRepoShadowInEmergency(OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
         LOGGER.trace("Acquiring repo shadow in emergency:\n{}", DebugUtil.debugDumpLazily(resourceObject, 1));
