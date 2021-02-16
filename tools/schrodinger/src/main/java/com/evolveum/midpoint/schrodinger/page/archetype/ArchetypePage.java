@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
 import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
 import com.evolveum.midpoint.schrodinger.component.archetype.ArchetypePolicyTab;
 import com.evolveum.midpoint.schrodinger.page.AbstractRolePage;
+import com.evolveum.midpoint.schrodinger.page.service.ServicePage;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -41,6 +42,21 @@ public class ArchetypePage extends AbstractRolePage {
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new ArchetypePolicyTab(this, element);
+    }
+
+    public ArchetypePage assertName(String expectedValue) {
+        selectTabBasic().form().assertPropertyInputValue("name", expectedValue);
+        return this;
+    }
+
+    public ArchetypePage assertDisplayName(String expectedValue) {
+        selectTabBasic().form().assertPropertyInputValue("displayName", expectedValue);
+        return this;
+    }
+
+    public ArchetypePage assertIdentifier(String expectedValue) {
+        selectTabBasic().form().assertPropertyInputValue("identifier", expectedValue);
+        return this;
     }
 
 }
