@@ -1851,8 +1851,12 @@ th.composited-icon {
 
 .password-progress-bar {
     .progress {
-      height: 5px;
-      margin-bottom: 5px;
+      height: 15px;
+      margin-bottom: 10px;
+
+      .progress-bar{
+        line-height: 15px;
+      }
     }
 }
 
@@ -1870,8 +1874,8 @@ th.composited-icon {
         border-left: 1px solid rgb(210,214,222);
         border-top: 1px solid rgb(210,214,222);
         transform: translate(50%, -50%) rotate(45deg);
-        height: 16px;
-        width: 16px;
+        height: 15px;
+        width: 15px;
     }
 
     .popover-inner {
@@ -1891,13 +1895,7 @@ th.composited-icon {
     }
 
     .list-group-item {
-        margin-bottom: 0px;
         border: none;
-        border-bottom: 1px solid #d2d6de;
         padding: 5px 5px;
     }
-
-    .list-group-item:last-child {
-            margin-bottom: -1px;
-        }
 }

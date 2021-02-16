@@ -31,8 +31,8 @@ import java.util.List;
 
 public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
 
+    private static final String ID_ICON = "icon";
     private static final String ID_NAME = "name";
-    private static final String ID_HELP = "help";
     private static final String ID_RULES = "rules";
 
     public StringLimitationPanel(String id, IModel<StringLimitationResult> model) {
@@ -47,6 +47,19 @@ public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
 
     private void initLayout() {
 
+        Label icon = new Label(ID_ICON);
+        icon.add(AttributeModifier.append("class", (IModel<String>) () -> {
+            String cssClass;
+            if (Boolean.TRUE.equals(getModelObject().isSuccess())) {
+                cssClass = " fa-check";
+            } else {
+                cssClass = " fa-times";
+            }
+            return cssClass;
+        }));
+        icon.setOutputMarkupId(true);
+        add(icon);
+
         LabelWithHelpPanel label = new LabelWithHelpPanel(ID_NAME, Model.of(WebComponentUtil.getTranslatedPolyString(getModelObject().getName()))){
             @Override
             protected IModel<String> getHelpModel() {
@@ -55,22 +68,6 @@ public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
         };
         label.setOutputMarkupId(true);
         add(label);
-
-//        Label name = new Label(ID_NAME, WebComponentUtil.getTranslatedPolyString(getModelObject().getName()));
-//        name.setOutputMarkupId(true);
-//        add(name);
-//
-//        Label help = new Label(ID_HELP);
-//        IModel<String> helpModel = new IModel<String>() {
-//            @Override
-//            public String getObject() {
-//                return ;
-//            }
-//        };
-//        help.add(AttributeModifier.replace("title",createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
-//        help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpModel.getObject())));
-//        help.setOutputMarkupId(true);
-//        add(help);
 
         IModel<String> rulesModel = getRulesModel();
         Label rules = new Label(ID_RULES, rulesModel);

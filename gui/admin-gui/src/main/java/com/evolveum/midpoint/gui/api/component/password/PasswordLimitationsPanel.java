@@ -74,7 +74,7 @@ public class PasswordLimitationsPanel extends BasePanel<List<StringLimitationRes
                 item.add(AttributeModifier.append("class", new IModel<String>() {
                     @Override
                     public String getObject() {
-                        return Boolean.TRUE.equals(item.getModelObject().isSuccess()) ? "list-group-item-success" : "";
+                        return Boolean.TRUE.equals(item.getModelObject().isSuccess()) ? " text-success" : " text-danger";
                     }
                 }));
             }
