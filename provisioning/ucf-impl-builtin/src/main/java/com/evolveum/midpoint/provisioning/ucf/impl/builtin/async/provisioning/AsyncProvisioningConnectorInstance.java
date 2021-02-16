@@ -349,7 +349,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
 
     @Override
     public SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-            FetchedObjectHandler handler, AttributesToReturn attributesToReturn,
+            ObjectHandler handler, AttributesToReturn attributesToReturn,
             PagedSearchCapabilityType pagedSearchConfiguration, SearchHierarchyConstraints searchHierarchyConstraints,
             UcfFetchErrorReportingMethod ucfErrorReportingMethod,
             StateReporter reporter, OperationResult parentResult) {

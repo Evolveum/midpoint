@@ -554,7 +554,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
         // Determine object class from the schema
 
-        FetchedObjectHandler handler = ucfObject -> {
+        ObjectHandler handler = ucfObject -> {
             displayDumpable("Search: found", ucfObject);
             return true;
         };

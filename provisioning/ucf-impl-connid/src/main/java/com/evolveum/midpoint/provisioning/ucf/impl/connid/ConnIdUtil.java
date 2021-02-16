@@ -579,7 +579,7 @@ public class ConnIdUtil {
             ObjectClassComplexTypeDefinition ocDef, ResourceSchema resourceSchema) throws SchemaException {
         ObjectClassComplexTypeDefinition concreteObjectClassDefinition = getConcreteObjectClassDefinition(ocDef, resourceSchema);
         if (concreteObjectClassDefinition == null) {
-            throw new SchemaException("Concrete object class of "+ocDef+" cannot be found");
+            throw new SchemaException("Concrete object class for "+uid+" cannot be found");
         }
         ResourceAttributeDefinition<String> uidDefinition = getUidDefinition(concreteObjectClassDefinition);
         if (uidDefinition == null) {

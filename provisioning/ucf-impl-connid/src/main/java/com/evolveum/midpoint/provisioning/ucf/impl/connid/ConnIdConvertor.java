@@ -15,7 +15,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfFetchErrorReportingMethod;
-import com.evolveum.midpoint.provisioning.ucf.api.FetchedUcfObject;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfObjectFound;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfErrorState;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -84,7 +84,7 @@ class ConnIdConvertor {
      *
      * @return new mapped ResourceObject instance.
      */
-    @NotNull FetchedUcfObject convertToUcfObject(@NotNull ConnectorObject co,
+    @NotNull UcfObjectFound convertToUcfObject(@NotNull ConnectorObject co,
             @NotNull PrismObjectDefinition<ShadowType> objectDefinition, boolean full, boolean caseIgnoreAttributeNames,
             boolean legacySchema, UcfFetchErrorReportingMethod ucfErrorReportingMethod, OperationResult parentResult) throws SchemaException {
 
@@ -108,12 +108,12 @@ class ConnIdConvertor {
 
             try {
                 conversion.execute();
-                return new FetchedUcfObject(conversion.getResourceObject(), uidValue, UcfErrorState.success());
+                return new UcfObjectFound(conversion.getResourceObject(), uidValue, UcfErrorState.success());
             } catch (Throwable t) {
                 if (ucfErrorReportingMethod == UcfFetchErrorReportingMethod.UCF_OBJECT) {
                     @NotNull PrismObject<ShadowType> incompleteResourceObject = conversion.getResourceObject(); // can be empty!
                     Throwable wrappedException = MiscUtil.createSame(t, createMessage(co, t));
-                    return new FetchedUcfObject(incompleteResourceObject, uidValue, UcfErrorState.error(wrappedException));
+                    return new UcfObjectFound(incompleteResourceObject, uidValue, UcfErrorState.error(wrappedException));
                 } else {
                     throw t; // handled just below
                 }

@@ -23,7 +23,7 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.FetchedResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectFound;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectHandler;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -126,14 +126,14 @@ class SearchHelper {
         // (we do not have raw/noFetch option)
         InternalMonitor.recordCount(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        ResourceObjectHandler resultHandler = (FetchedResourceObject fetchedObject, OperationResult objResult) -> {
+        ResourceObjectHandler resultHandler = (ResourceObjectFound objectFound, OperationResult objResult) -> {
 
-            FetchedShadowedObject fetchedShadowedObject = new FetchedShadowedObject(fetchedObject, localBeans, ctx);
-            fetchedShadowedObject.initialize(ctx.getTask(), objResult);
-            PrismObject<ShadowType> resultShadow = fetchedShadowedObject.getResultingObject(ucfErrorReportingMethod);
+            ShadowedObjectFound shadowedObjectFound = new ShadowedObjectFound(objectFound, localBeans, ctx);
+            shadowedObjectFound.initialize(ctx.getTask(), objResult);
+            PrismObject<ShadowType> shadowedObject = shadowedObjectFound.getResultingObject(ucfErrorReportingMethod);
 
             try {
-                return handler.handle(resultShadow, objResult);
+                return handler.handle(shadowedObject, objResult);
             } catch (Throwable t) {
                 objResult.recordFatalError(t);
                 throw t;
@@ -473,7 +473,7 @@ class SearchHelper {
         InternalMonitor.recordCount(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         AtomicInteger counter = new AtomicInteger(0);
-        ResourceObjectHandler resultHandler = (FetchedResourceObject fetchedObject, OperationResult objResult) -> {
+        ResourceObjectHandler resultHandler = (ResourceObjectFound object, OperationResult objResult) -> {
             counter.incrementAndGet();
             return true;
         };

@@ -169,7 +169,7 @@ public class ResourceObjectConverter {
                     .itemWithDef(secondaryIdentifierDef, ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getItemName()).eq(secondaryIdentifierValue)
                     .build();
             final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>();
-            FetchedObjectHandler handler = ucfObject -> {
+            ObjectHandler handler = ucfObject -> {
                 if (!shadowHolder.isEmpty()) {
                     throw new IllegalStateException("More than one value found for secondary identifier "+finalSecondaryIdentifier);
                 }
@@ -1288,7 +1288,7 @@ public class ResourceObjectConverter {
 
             metadata = connector.search(objectClassDef, query,
                     (ucfObject) -> {
-                        FetchedResourceObject fetchedObject = new FetchedResourceObject(ucfObject, ResourceObjectConverter.this,
+                        ResourceObjectFound objectFound = new ResourceObjectFound(ucfObject, ResourceObjectConverter.this,
                                 ctx, fetchAssociations);
 
                         // in order to utilize the cache right from the beginning...
@@ -1318,8 +1318,8 @@ public class ResourceObjectConverter {
 
                                 OperationResult objResult = resultBuilder.build();
                                 try {
-                                    fetchedObject.initialize(task, objResult);
-                                    return resultHandler.handle(fetchedObject, objResult);
+                                    objectFound.initialize(task, objResult);
+                                    return resultHandler.handle(objectFound, objResult);
                                 } catch (Throwable t) {
                                     objResult.recordFatalError(t);
                                     throw t;

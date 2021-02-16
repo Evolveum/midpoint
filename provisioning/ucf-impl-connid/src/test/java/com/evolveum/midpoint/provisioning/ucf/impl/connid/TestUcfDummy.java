@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.provisioning.ucf.api.FetchedUcfObject;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfLiveSyncChange;
 
 import org.springframework.test.context.ContextConfiguration;
@@ -31,7 +30,7 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.provisioning.ucf.api.FetchedObjectHandler;
+import com.evolveum.midpoint.provisioning.ucf.api.ObjectHandler;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
@@ -307,7 +306,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         final List<PrismObject<ShadowType>> searchResults = new ArrayList<>();
 
-        FetchedObjectHandler handler = ucfObject -> {
+        ObjectHandler handler = ucfObject -> {
             displayDumpable("Search: found", ucfObject);
             checkUcfShadow(ucfObject.getResourceObject(), accountDefinition);
             searchResults.add(ucfObject.getResourceObject());

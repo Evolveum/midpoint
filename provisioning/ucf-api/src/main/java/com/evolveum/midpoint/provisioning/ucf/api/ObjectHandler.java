@@ -15,13 +15,13 @@ package com.evolveum.midpoint.provisioning.ucf.api;
  * @author Radovan Semancik
  */
 @FunctionalInterface
-public interface FetchedObjectHandler {
+public interface ObjectHandler {
 
     /**
      * Handle a single result.
      * @param object Resource object to process.
      * @return true if the operation should proceed, false if it should stop
      */
-    boolean handle(FetchedUcfObject object);
+    boolean handle(UcfObjectFound object);
 
 }

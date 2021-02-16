@@ -43,6 +43,10 @@ public class UcfErrorState implements DebugDumpable {
         return exception != null;
     }
 
+    public boolean isSuccess() {
+        return !isError();
+    }
+
     @Override
     public String toString() {
         return exception != null ? String.valueOf(exception) : "OK";

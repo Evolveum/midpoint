@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -21,7 +23,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
-import static java.util.Collections.unmodifiableCollection;
+import static com.evolveum.midpoint.util.MiscUtil.checkCollectionImmutable;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Represents a change event detected by UCF.
@@ -36,20 +39,31 @@ public abstract class UcfChange implements DebugDumpable {
     private final int localSequenceNumber;
 
     /**
-     * Real value of the primary identifier of the object.
-     * Can be null in the case of errors.
+     * Real value of the primary identifier of the object. Constraints:
+     *
+     * 1. errorState.isSuccess: must be non-null
+     * 2. errorState.isError: can be null (but only if there's no way how to determine it)
      */
     private final Object primaryIdentifierRealValue;
 
     /**
-     * Definition of the object class. Can be missing for delete deltas.
+     * Definition of the object class. Constraints:
+     *
+     * 1. errorState.isSuccess:
+     *    a. LiveSync: if delta is not DELETE or if object class was specified at request -> not null
+     *    b. AsyncUpdate: always not null
+     *
+     * 2. errorState.isError: Can be null but only if it cannot be reasonably determined.
+     *    (Unfortunately, current AsyncUpdate implementation always provides null value here.)
      */
-    private final ObjectClassComplexTypeDefinition objectClassDefinition;
+    protected final ObjectClassComplexTypeDefinition objectClassDefinition;
 
     /**
-     * All identifiers of the object.
+     * All identifiers of the object. Constraints:
      *
-     * The collection is unmodifiable. The elements should not be modified as well, although this is not enforced yet.
+     * 1. The collection is unmodifiable, and its elements are immutable.
+     * 2. errorState.isSuccess: Always not empty.
+     * 3. errorState.isError: Should be non-empty if at all possible. However, for AU changes it is currently always empty.
      */
     @NotNull private final Collection<ResourceAttribute<?>> identifiers;
 
@@ -71,8 +85,9 @@ public abstract class UcfChange implements DebugDumpable {
 
     /**
      * Was there any error while processing the change in UCF layer?
+     * I.e. to what extent can we rely on the information in this object?
      */
-    @NotNull private final UcfErrorState errorState;
+    @NotNull protected final UcfErrorState errorState;
 
     UcfChange(int localSequenceNumber, Object primaryIdentifierRealValue,
             ObjectClassComplexTypeDefinition objectClassDefinition,
@@ -82,10 +97,11 @@ public abstract class UcfChange implements DebugDumpable {
         this.localSequenceNumber = localSequenceNumber;
         this.primaryIdentifierRealValue = primaryIdentifierRealValue;
         this.objectClassDefinition = objectClassDefinition;
-        this.identifiers = unmodifiableCollection(identifiers);
+        this.identifiers = PrismUtil.freezeCollectionDeeply(identifiers);
         this.resourceObject = resourceObject;
         this.objectDelta = objectDelta;
         this.errorState = errorState;
+        checkConsistence();
     }
 
     public int getLocalSequenceNumber() {
@@ -157,5 +173,33 @@ public abstract class UcfChange implements DebugDumpable {
 
     public boolean isError() {
         return errorState.isError();
+    }
+
+    public boolean isDelete() {
+        return ObjectDelta.isDelete(objectDelta);
+    }
+
+    public void checkConsistence() {
+        if (!InternalsConfig.consistencyChecks) {
+            return;
+        }
+        checkPrimaryIdentifierRealValuePresence();
+        checkObjectClassDefinitionPresence();
+        checkIdentifiersCollection();
+    }
+
+    private void checkPrimaryIdentifierRealValuePresence() {
+        if (errorState.isSuccess()) {
+            stateCheck(primaryIdentifierRealValue != null, "Primary identifier real value is null");
+        }
+    }
+
+    protected abstract void checkObjectClassDefinitionPresence();
+
+    private void checkIdentifiersCollection() {
+        checkCollectionImmutable(identifiers);
+        if (errorState.isSuccess()) {
+            stateCheck(!identifiers.isEmpty(), "No identifiers");
+        }
     }
 }

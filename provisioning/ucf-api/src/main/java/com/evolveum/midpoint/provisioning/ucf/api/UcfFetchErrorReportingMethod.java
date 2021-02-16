@@ -23,7 +23,7 @@ public enum UcfFetchErrorReportingMethod {
     EXCEPTION,
 
     /**
-     * Errors are reported within {@link FetchedUcfObject} instance passed to the handler or returned.
+     * Errors are reported within {@link UcfObjectFound} instance passed to the handler or returned.
      * This allows more selective error handling in the client.
      */
     UCF_OBJECT

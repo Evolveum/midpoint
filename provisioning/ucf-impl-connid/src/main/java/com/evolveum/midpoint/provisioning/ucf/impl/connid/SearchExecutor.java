@@ -10,7 +10,6 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnectorInstanceConnIdImpl.toShadowDefinition;
 
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
 
@@ -52,7 +51,7 @@ class SearchExecutor {
     @NotNull private final ObjectClass icfObjectClass;
     private final ObjectQuery query;
     private final Filter connIdFilter;
-    @NotNull private final FetchedObjectHandler handler;
+    @NotNull private final ObjectHandler handler;
     private final AttributesToReturn attributesToReturn;
     private final PagedSearchCapabilityType pagedSearchConfiguration;
     private final SearchHierarchyConstraints searchHierarchyConstraints;
@@ -68,7 +67,7 @@ class SearchExecutor {
     private final AtomicInteger objectsFetched = new AtomicInteger(0);
 
     SearchExecutor(@NotNull ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-            @NotNull FetchedObjectHandler handler, AttributesToReturn attributesToReturn,
+            @NotNull ObjectHandler handler, AttributesToReturn attributesToReturn,
             PagedSearchCapabilityType pagedSearchConfiguration, SearchHierarchyConstraints searchHierarchyConstraints,
             UcfFetchErrorReportingMethod errorReportingMethod, StateReporter reporter, @NotNull OperationResult result,
             @NotNull ConnectorInstanceConnIdImpl connectorInstance) throws SchemaException {
@@ -312,7 +311,7 @@ class SearchExecutor {
                     }
                 }
 
-                FetchedUcfObject ucfObject = connectorInstance.connIdConvertor.convertToUcfObject(
+                UcfObjectFound ucfObject = connectorInstance.connIdConvertor.convertToUcfObject(
                         connectorObject, objectDefinition, false, connectorInstance.isCaseIgnoreAttributeNames(),
                         connectorInstance.isLegacySchema(), errorReportingMethod, result);
 

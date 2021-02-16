@@ -203,7 +203,7 @@ public interface ConnectorInstance {
      *                                 e.g. if search base points to an non-existent object.
      */
     SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-            FetchedObjectHandler handler, AttributesToReturn attributesToReturn, PagedSearchCapabilityType pagedSearchConfiguration,
+            ObjectHandler handler, AttributesToReturn attributesToReturn, PagedSearchCapabilityType pagedSearchConfiguration,
             SearchHierarchyConstraints searchHierarchyConstraints, UcfFetchErrorReportingMethod errorReportingMethod,
             StateReporter reporter, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException,

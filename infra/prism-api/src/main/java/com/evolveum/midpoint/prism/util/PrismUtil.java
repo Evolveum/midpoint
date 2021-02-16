@@ -23,6 +23,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.unmodifiableCollection;
+
 /**
  * TODO clean this up as it is part of prism-api!
  *
@@ -172,5 +174,11 @@ public class PrismUtil {
 
     public static boolean isStructuredType(QName typeName) {
         return QNameUtil.match(PolyStringType.COMPLEX_TYPE, typeName);
+    }
+
+    // Does NOT clone individual freezables.
+    public static <T extends Freezable> Collection<T> freezeCollectionDeeply(Collection<T> freezables) {
+        freezables.forEach(Freezable::freeze);
+        return unmodifiableCollection(freezables);
     }
 }

@@ -227,6 +227,9 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         setFromDefaults(changeBean.getObject(), objectClassName);
         Holder<Object> primaryIdentifierRealValueHolder = new Holder<>();
         Collection<ResourceAttribute<?>> identifiers = getIdentifiers(changeBean, objectClassDef, primaryIdentifierRealValueHolder);
+        if (identifiers.isEmpty()) {
+            throw new SchemaException("No identifiers in async update change bean " + changeBean);
+        }
         boolean notificationOnly = changeBean.getObject() == null && delta == null;
         return new UcfAsyncUpdateChange(
                 changeSequentialNumber, primaryIdentifierRealValueHolder.getValue(),

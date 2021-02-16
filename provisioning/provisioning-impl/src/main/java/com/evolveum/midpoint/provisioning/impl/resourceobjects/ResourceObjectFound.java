@@ -14,9 +14,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.InitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.shadows.sync.SkipProcessingException;
-import com.evolveum.midpoint.provisioning.ucf.api.FetchedUcfObject;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfObjectFound;
 import com.evolveum.midpoint.provisioning.util.ProcessingState;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -34,20 +33,34 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
 /**
- * Represents a resource object (e.g. an account) fetched by an UCF operation like
- * {@link ResourceObjectConverter#searchResourceObjects(ProvisioningContext, ResultHandler, ObjectQuery, boolean, FetchErrorReportingMethodType, OperationResult)}
- * or (in future) {@link ResourceObjectConverter#getResourceObject(ProvisioningContext, Collection, boolean, OperationResult)}.
+ * Represents a resource object (e.g. an account) found by the
+ * {@link ResourceObjectConverter#searchResourceObjects(ProvisioningContext, ResourceObjectHandler, ObjectQuery, boolean, FetchErrorReportingMethodType, OperationResult)}
+ * method.
+ *
+ * See also {@link ResourceObjectChange}.
+ *
+ * In the future we might create also analogous data structure for objects retrieved by {@link ResourceObjectConverter#getResourceObject(ProvisioningContext, Collection, boolean, OperationResult)}
+ * method.
  */
 @SuppressWarnings("JavadocReference")
 @Experimental
-public class FetchedResourceObject implements InitializableMixin {
+public class ResourceObjectFound implements InitializableMixin {
 
-    private static final Trace LOGGER = TraceManager.getTrace(FetchedResourceObject.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectFound.class);
 
     /**
-     * Resource object as it is known at this point.
+     * Resource object that has been found.
      *
-     * TODO what properties does it have?
+     * 1. At creation: Object as received from UCF.
+     * 2. At completion (full-success): The same object, with:
+     *    a. protected flag set,
+     *    b. exists flag not null,
+     *    c. simulated activation done,
+     *    d. associations fetched (if requested).
+     * 3. At completion (emergency-success):
+     *    a. has primary identifier present, assuming: object class known + primary identifier value known.
+     * 4. At completion (any-failure):
+     *    a. Nothing guaranteed.
      */
     @NotNull private final PrismObject<ShadowType> resourceObject;
 
@@ -55,7 +68,7 @@ public class FetchedResourceObject implements InitializableMixin {
      * Real value of the object primary identifier (e.g. ConnId UID).
      * Usually not null (e.g. in ConnId 1.x), but this can change in the future.
      *
-     * See {@link FetchedUcfObject#primaryIdentifierValue}.
+     * See {@link UcfObjectFound#primaryIdentifierValue}.
      */
     private final Object primaryIdentifierValue;
 
@@ -65,7 +78,7 @@ public class FetchedResourceObject implements InitializableMixin {
 
     private final ResourceObjectsLocalBeans localBeans;
 
-    public FetchedResourceObject(FetchedUcfObject ucfObject, ResourceObjectConverter converter,
+    public ResourceObjectFound(UcfObjectFound ucfObject, ResourceObjectConverter converter,
             ProvisioningContext ctx, boolean fetchAssociations) {
         this.resourceObject = ucfObject.getResourceObject().clone();
         this.primaryIdentifierValue = ucfObject.getPrimaryIdentifierValue();

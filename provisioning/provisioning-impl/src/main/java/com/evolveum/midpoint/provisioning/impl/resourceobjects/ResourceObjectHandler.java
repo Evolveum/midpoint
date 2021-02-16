@@ -16,6 +16,6 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 @Experimental
 public interface ResourceObjectHandler {
 
-    boolean handle(FetchedResourceObject resourceObject, OperationResult result);
+    boolean handle(ResourceObjectFound resourceObject, OperationResult result);
 
 }

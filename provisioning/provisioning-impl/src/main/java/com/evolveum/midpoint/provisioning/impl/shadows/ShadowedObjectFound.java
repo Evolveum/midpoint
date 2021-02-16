@@ -14,7 +14,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.InitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.FetchedResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectFound;
 import com.evolveum.midpoint.provisioning.impl.shadows.sync.SkipProcessingException;
 import com.evolveum.midpoint.provisioning.util.ProcessingState;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
@@ -31,16 +31,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * Represents an object fetched from resource "shadowed" by connecting with repo shadow (updating the shadow if necessary).
- *
- * Currently limited to objects retrieved by `searchObjects` method call.
- *
- * The extension to objects retrieved by `getObject` will require some tweaks: such objects are referenced by shadow OID,
- * so we first obtain a shadow, then resource object, and only after that we update the shadow.
+ * Represents an object found on the resource (using `searchObjects` call) and then "shadowed" by connecting with repo shadow;
+ * updating the shadow if necessary.
  */
-public class FetchedShadowedObject implements InitializableMixin {
+public class ShadowedObjectFound implements InitializableMixin {
 
-    private static final Trace LOGGER = TraceManager.getTrace(FetchedShadowedObject.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowedObjectFound.class);
 
     /**
      * The resource object as obtained from the resource object converter. It has no connection to the repo.
@@ -61,10 +57,10 @@ public class FetchedShadowedObject implements InitializableMixin {
     /** Information used to initialize this object. */
     @NotNull private final InitializationContext ictx;
 
-    public FetchedShadowedObject(FetchedResourceObject fetchedResourceObject, ShadowsLocalBeans localBeans, ProvisioningContext ctx) {
-        this.resourceObject = fetchedResourceObject.getResourceObject();
-        this.primaryIdentifierValue = fetchedResourceObject.getPrimaryIdentifierValue();
-        this.processingState = ProcessingState.fromLowerLevelState(fetchedResourceObject.getProcessingState());
+    public ShadowedObjectFound(ResourceObjectFound resourceObjectFound, ShadowsLocalBeans localBeans, ProvisioningContext ctx) {
+        this.resourceObject = resourceObjectFound.getResourceObject();
+        this.primaryIdentifierValue = resourceObjectFound.getPrimaryIdentifierValue();
+        this.processingState = ProcessingState.fromLowerLevelState(resourceObjectFound.getProcessingState());
         this.ictx = new InitializationContext(localBeans, ctx);
     }
 

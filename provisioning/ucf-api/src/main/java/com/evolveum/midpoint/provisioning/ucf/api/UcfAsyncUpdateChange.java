@@ -20,6 +20,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 import static java.util.Collections.emptyList;
 
 /**
@@ -72,5 +74,12 @@ public class UcfAsyncUpdateChange extends UcfChange implements AcknowledgementSi
     @Override
     public void acknowledge(boolean release, OperationResult result) {
         acknowledgeSink.acknowledge(release, result);
+    }
+
+    @Override
+    protected void checkObjectClassDefinitionPresence() {
+        if (errorState.isSuccess()) {
+            stateCheck(objectClassDefinition != null, "No object class definition");
+        }
     }
 }

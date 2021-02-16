@@ -115,6 +115,11 @@ class SyncDeltaConverter {
             } else {
                 throw new GenericFrameworkException("Unexpected sync delta type " + icfDeltaType);
             }
+
+            if (identifiers.isEmpty()) {
+                throw new SchemaException("No identifiers in sync delta " + connIdDelta);
+            }
+
             errorState = UcfErrorState.success();
 
         } catch (Exception e) {
