@@ -305,7 +305,7 @@ function showPassword(iconElement) {
 
             var showPopover=function(){
                 parent.find(inputId).each(function() {
-                    var itemH=$(this).innerHeight() + 18;
+                    var itemH=$(this).innerHeight() + 27;
                     parent.find(popover).fadeIn(300).css({top:itemH, left:0}).css("display", "block");
                 });
             }
@@ -331,7 +331,7 @@ function showPassword(iconElement) {
                 var showPopover=function(){
                     if (parent.find(inputId + ":hover").length != 0) {
                         parent.find(inputId).each(function() {
-                            var itemH=$(this).innerHeight() + 10;
+                            var itemH=$(this).innerHeight() + 9;
                             parent.find(popover).fadeIn(300).css({top:itemH, left:0}).css("display", "block");
                         });
                     }
