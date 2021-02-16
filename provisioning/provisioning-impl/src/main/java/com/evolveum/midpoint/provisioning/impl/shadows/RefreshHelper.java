@@ -523,7 +523,7 @@ class RefreshHelper {
             shadowManager.deleteShadow(ctx, repoShadow, parentResult);
             ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
             change.setCleanDeadShadow(true);
-            change.setOldShadow(repoShadow);
+            change.setShadowedResourceObject(repoShadow);
             change.setResource(ctx.getResource().asPrismObject());
             change.setObjectDelta(repoShadow.createDeleteDelta());
             change.setSourceChannel(SchemaConstants.CHANNEL_DISCOVERY_URI);

@@ -66,8 +66,8 @@ public class SyncItemProcessingRequest<SE extends SynchronizationEvent>
     @Override
     public @NotNull IterationItemInformation getIterationItemInformation() {
         ResourceObjectShadowChangeDescription changeDescription = getItem().getChangeDescription();
-        if (changeDescription != null && changeDescription.getCurrentShadow() != null) {
-            return new IterationItemInformation(changeDescription.getCurrentShadow());
+        if (changeDescription != null && changeDescription.getShadowedResourceObject() != null) {
+            return new IterationItemInformation(changeDescription.getShadowedResourceObject());
         } else {
             return new IterationItemInformation(); // TODO
         }
@@ -90,8 +90,8 @@ public class SyncItemProcessingRequest<SE extends SynchronizationEvent>
             return event.getShadowOid();
         }
         ResourceObjectShadowChangeDescription changeDescription = event.getChangeDescription();
-        if (changeDescription != null && changeDescription.getCurrentShadow() != null) {
-            return changeDescription.getCurrentShadow().getOid(); // TODO
+        if (changeDescription != null && changeDescription.getShadowedResourceObject() != null) {
+            return changeDescription.getShadowedResourceObject().getOid(); // TODO
         } else {
             return null;
         }
@@ -102,13 +102,9 @@ public class SyncItemProcessingRequest<SE extends SynchronizationEvent>
     public @Nullable SynchronizationSituationType getSynchronizationSituationOnProcessingStart() {
         ResourceObjectShadowChangeDescription changeDescription = item.getChangeDescription();
         if (changeDescription != null) {
-            if (changeDescription.getOldShadow() != null) {
-                return changeDescription.getOldShadow().asObjectable().getSynchronizationSituation();
-            }
-            if (changeDescription.getCurrentShadow() != null) {
-                return changeDescription.getCurrentShadow().asObjectable().getSynchronizationSituation();
-            }
+            return changeDescription.getShadowedResourceObject().asObjectable().getSynchronizationSituation();
+        } else {
+            return null;
         }
-        return null;
     }
 }

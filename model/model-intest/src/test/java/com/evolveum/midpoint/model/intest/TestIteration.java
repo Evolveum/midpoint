@@ -1584,7 +1584,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         importObjectFromFile(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_FILE);
 
         // THEN
-        waitForTaskStart(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, false);
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID);
     }
 
     /*

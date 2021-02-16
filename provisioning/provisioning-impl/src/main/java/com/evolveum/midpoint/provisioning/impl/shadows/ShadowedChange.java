@@ -450,11 +450,13 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
     public ResourceObjectShadowChangeDescription getShadowChangeDescription() {
         try {
             ResourceObjectShadowChangeDescription shadowChangeDescription = new ResourceObjectShadowChangeDescription();
+            if (objectDelta != null) {
+                objectDelta.setOid(shadowedObject.getOid());
+            }
             shadowChangeDescription.setObjectDelta(objectDelta);
             shadowChangeDescription.setResource(context.getResource().asPrismObject());
-            shadowChangeDescription.setOldShadow(repoShadow);
             shadowChangeDescription.setSourceChannel(getChannel());
-            shadowChangeDescription.setCurrentShadow(shadowedObject);
+            shadowChangeDescription.setShadowedResourceObject(shadowedObject);
             return shadowChangeDescription;
         } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
                 ExpressionEvaluationException e) {

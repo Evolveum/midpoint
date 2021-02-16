@@ -128,7 +128,7 @@ public class Synchronizer {
         } else {
             // No change, therefore the delta stays null. But we will set the current
         }
-        change.setCurrentShadow(shadowObject);
+        change.setShadowedResourceObject(shadowObject);
 
         try {
             change.checkConsistence();

@@ -658,7 +658,7 @@ public class TestDummyNegative extends AbstractDummyTest {
         assertThat(events.size()).as("events found").isEqualTo(3);
 
         List<PrismObject<ShadowType>> objects = events.stream()
-                .map(event -> event.getChangeDescription().getCurrentShadow())
+                .map(event -> event.getChangeDescription().getShadowedResourceObject())
                 .collect(Collectors.toList());
 
         assertSelectedAccountByName(objects, GOOD_ACCOUNT)

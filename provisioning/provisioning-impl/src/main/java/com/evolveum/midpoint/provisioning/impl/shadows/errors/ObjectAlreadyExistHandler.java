@@ -148,8 +148,7 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
                 ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
                 change.setResource(ctx.getResource().asPrismObject());
                 change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_DISCOVERY));
-                change.setOldShadow(oldShadow);
-                change.setCurrentShadow(conflictingShadow);
+                change.setShadowedResourceObject(conflictingShadow);
                 changeNotificationDispatcher.notifyChange(change, task, result);
             }
         } finally {
