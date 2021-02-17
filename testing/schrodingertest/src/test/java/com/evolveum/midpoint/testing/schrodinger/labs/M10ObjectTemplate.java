@@ -216,17 +216,13 @@ public class M10ObjectTemplate extends AbstractLabTest{
                         .isSuccess();
 
         showUser("X001212")
-                .selectTabBasic()
-                    .form()
-                        .assertPropertyInputValue("fullName", "John Smith");
+                .assertFullName("John Smith");
 
         FileUtils.copyFile(HR_SOURCE_FILE_10_1, hrTargetFile);
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
 
         showUser("X000998")
-                .selectTabBasic()
-                .form()
-                .assertPropertyInputValue("fullName", "David Lister");
+                .assertFullName("David Lister");
 
         TaskPage task = basicPage.newTask();
         task.setHandlerUriForNewTask("Recompute task");
@@ -242,9 +238,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
                     .isInfo();
 
         showUser("kirk")
-                .selectTabBasic()
-                .form()
-                .assertPropertyInputValue("fullName", "Jim Tiberius Kirk");
+                .assertFullName("Jim Tiberius Kirk");
     }
 
     @Test(dependsOnMethods = {"mod10test01SimpleObjectTemplate"})

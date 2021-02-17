@@ -7,14 +7,14 @@
 package com.evolveum.midpoint.repo.sqlbase;
 
 import java.sql.Connection;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
@@ -170,7 +170,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         // SQL logging is on DEBUG level of: com.querydsl.sql
         Q entity = root();
         List<Tuple> data = query
-                .select(mapping().selectExpressions(entity, options))
+                .select(buildSelectExpressions(entity, query))
                 .fetch();
 
         // TODO: run fetchers selectively based on options?
@@ -185,6 +185,23 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         }
 
         return new PageOf<>(data, PageOf.PAGE_NO_PAGINATION, 0);
+    }
+
+    private @NotNull Expression<?>[] buildSelectExpressions(Q entity, SQLQuery<?> query) {
+        Path<?>[] defaultExpressions = mapping().selectExpressions(entity, options);
+        if (!query.getMetadata().isDistinct() || query.getMetadata().getOrderBy().isEmpty()) {
+            return defaultExpressions;
+        }
+
+        // If DISTINCT is used with ORDER BY then anything in ORDER BY must be in SELECT too
+        List<Expression<?>> expressions = new ArrayList<>(Arrays.asList(defaultExpressions));
+        for (OrderSpecifier<?> orderSpecifier : query.getMetadata().getOrderBy()) {
+            Expression<?> orderPath = orderSpecifier.getTarget();
+            if (!expressions.contains(orderPath)) {
+                expressions.add(orderPath);
+            }
+        }
+        return expressions.toArray(new Expression<?>[0]);
     }
 
     public int executeCount(Connection conn) {
@@ -244,8 +261,12 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
             return;
         }
 
-        // TODO MID-6319: what other options are here? can they all be processed after filter?
-        if (GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options))) {
+        // TODO what other options we need here? can they all be processed after filter?
+
+        // Dropping DISTINCT without JOIN is OK for object/container queries where select
+        // already contains distinct columns (OID or owner_oid+cid).
+        if (GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options))
+                && sqlQuery.getMetadata().getJoins().size() > 1) {
             sqlQuery.distinct();
         }
     }
