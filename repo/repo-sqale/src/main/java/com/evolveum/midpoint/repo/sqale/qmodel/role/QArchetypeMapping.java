@@ -15,7 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 public class QArchetypeMapping
         extends QAbstractRoleMapping<ArchetypeType, QArchetype, MArchetype> {
 
-    public static final String DEFAULT_ALIAS_NAME = "a";
+    public static final String DEFAULT_ALIAS_NAME = "arch";
 
     public static final QArchetypeMapping INSTANCE = new QArchetypeMapping();
 

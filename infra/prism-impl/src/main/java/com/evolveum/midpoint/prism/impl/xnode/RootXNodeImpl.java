@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.prism.impl.xnode;
 
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -22,16 +23,41 @@ public class RootXNodeImpl extends XNodeImpl implements RootXNode {
     @NotNull private final QName rootElementName;
     private XNodeImpl subnode;
 
+    @Deprecated
     public RootXNodeImpl(@NotNull QName rootElementName) {
+        super();
         this.rootElementName = rootElementName;
     }
 
+    @Deprecated
     public RootXNodeImpl(@NotNull QName rootElementName, XNode subnode) {
+        super();
         this.rootElementName = rootElementName;
         this.subnode = (XNodeImpl) subnode;
     }
 
+    @Deprecated
     public RootXNodeImpl(@NotNull Map.Entry<QName, XNodeImpl> entry) {
+        super();
+        Validate.notNull(entry.getKey());
+        this.rootElementName = entry.getKey();
+        this.subnode = entry.getValue();
+    }
+
+
+    public RootXNodeImpl(@NotNull QName rootElementName, PrismNamespaceContext ctx) {
+        super(ctx);
+        this.rootElementName = rootElementName;
+    }
+
+    public RootXNodeImpl(@NotNull QName rootElementName, XNode subnode, PrismNamespaceContext ctx) {
+        super(ctx);
+        this.rootElementName = rootElementName;
+        this.subnode = (XNodeImpl) subnode;
+    }
+
+    public RootXNodeImpl(@NotNull Map.Entry<QName, XNodeImpl> entry, PrismNamespaceContext ctx) {
+        super(ctx);
         Validate.notNull(entry.getKey());
         this.rootElementName = entry.getKey();
         this.subnode = entry.getValue();
@@ -54,11 +80,13 @@ public class RootXNodeImpl extends XNodeImpl implements RootXNode {
         return super.isExplicitTypeDeclaration() || subnode != null && subnode.isExplicitTypeDeclaration();
     }
 
+    @Override
     @NotNull
     public QName getRootElementName() {
         return rootElementName;
     }
 
+    @Override
     public XNodeImpl getSubnode() {
         return subnode;
     }
@@ -127,8 +155,9 @@ public class RootXNodeImpl extends XNodeImpl implements RootXNode {
         return result;
     }
 
+    @Override
     public MapXNodeImpl toMapXNode() {
-        MapXNodeImpl map = new MapXNodeImpl();
+        MapXNodeImpl map = new MapXNodeImpl(namespaceContext());
         map.put(rootElementName, subnode);
         if (subnode.getTypeQName() == null) {
             subnode.setTypeQName(getTypeQName());
@@ -147,5 +176,15 @@ public class RootXNodeImpl extends XNodeImpl implements RootXNode {
             subnode.freeze();
         }
         super.performFreeze();
+    }
+
+    @Override
+    public RootXNode copy() {
+        if(isImmutable()) {
+            return this;
+        }
+        RootXNodeImpl ret = new RootXNodeImpl(rootElementName, namespaceContext());
+        copyCommonTo(ret).setSubnode((XNodeImpl) getSubnode().copy());
+        return ret;
     }
 }

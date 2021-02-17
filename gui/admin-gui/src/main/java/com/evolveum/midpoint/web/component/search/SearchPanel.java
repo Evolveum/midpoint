@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.attributes.ThrottlingSettings;
@@ -101,7 +102,9 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     private static final String ID_ADVANCED_GROUP = "advancedGroup";
     private static final String ID_MORE_GROUP = "moreGroup";
     private static final String ID_ADVANCED_AREA = "advancedArea";
+    private static final String ID_QUERY_DSL_FIELD = "queryDslField";
     private static final String ID_ADVANCED_CHECK = "advancedCheck";
+    private static final String ID_ADVANCED_ERROR_GROUP = "advancedErrorGroup";
     private static final String ID_ADVANCED_ERROR = "advancedError";
     private static final String ID_MENU_ITEM = "menuItem";
     private static final String ID_MENU_ITEM_BODY = "menuItemBody";
@@ -549,29 +552,10 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
         Label advancedCheck = new Label(ID_ADVANCED_CHECK);
         advancedCheck.add(AttributeAppender.append("class", createAdvancedGroupLabelStyle()));
+        advancedCheck.setOutputMarkupId(true);
         advancedGroup.add(advancedCheck);
 
-
-        IModel<String> advancedValueModel = new IModel<String>() {
-            @Override
-            public String getObject() {
-                if (SearchBoxModeType.QUERY_DSL.equals(getModelObject().getSearchType())) {
-                    return getModelObject().getDslQuery();
-                }
-                return getModelObject().getAdvancedQuery();
-            }
-
-            @Override
-            public void setObject(String object) {
-                if (SearchBoxModeType.QUERY_DSL.equals(getModelObject().getSearchType())) {
-                    getModelObject().setDslQuery(object);
-                } else {
-                    getModelObject().setAdvancedQuery(object);
-                }
-            }
-        };
-
-        TextArea<?> advancedArea = new TextArea<>(ID_ADVANCED_AREA, advancedValueModel);
+        TextArea<?> advancedArea = new TextArea<>(ID_ADVANCED_AREA, new PropertyModel<>(getModel(), Search.F_ADVANCED_QUERY));
         advancedArea.add(new AjaxFormComponentUpdatingBehavior("keyup") {
 
             @Override
@@ -587,18 +571,35 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                         new ThrottlingSettings(ID_ADVANCED_AREA, Duration.milliseconds(500), true));
             }
         });
-        IModel<String> advanceAreaPlaceholderModel = new IModel<String>() {
-            @Override
-            public String getObject() {
-                if (SearchBoxModeType.QUERY_DSL.equals(getModelObject().getSearchType())) {
-                    return getPageBase().createStringResource("SearchPanel.insertQueryDsl").getString();
-                }
-                return getPageBase().createStringResource("SearchPanel.insertFilterXml").getString();
-            }
-        };
-        advancedArea.add(AttributeAppender.append("placeholder", advanceAreaPlaceholderModel));
+        advancedArea.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertFilterXml")));
+        advancedArea.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED));
         advancedGroup.add(advancedArea);
 
+        TextField<String> queryDslField = new TextField<>(ID_QUERY_DSL_FIELD,
+                new PropertyModel<>(getModel(), Search.F_DSL_QUERY));
+        queryDslField.add(new AjaxFormComponentUpdatingBehavior("keyup") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                updateQueryDSLArea(advancedCheck, advancedGroup, target);
+            }
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+
+                attributes.setThrottlingSettings(
+                        new ThrottlingSettings(ID_QUERY_DSL_FIELD, Duration.milliseconds(500), true));
+                attributes.setChannel(new AjaxChannel("Drop", AjaxChannel.Type.DROP));
+            }
+        });
+        queryDslField.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertQueryDsl")));
+        queryDslField.add(createVisibleBehaviour(SearchBoxModeType.QUERY_DSL));
+        advancedGroup.add(queryDslField);
+
+        WebMarkupContainer advancedErrorGroup = new WebMarkupContainer(ID_ADVANCED_ERROR_GROUP);
+        advancedErrorGroup.setOutputMarkupId(true);
+        advancedGroup.add(advancedErrorGroup);
         Label advancedError = new Label(ID_ADVANCED_ERROR,
                 new PropertyModel<String>(getModel(), Search.F_ADVANCED_ERROR));
         advancedError.add(new VisibleEnableBehaviour() {
@@ -616,7 +617,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                 return StringUtils.isNotEmpty(search.getAdvancedError());
             }
         });
-        advancedGroup.add(advancedError);
+        advancedErrorGroup.add(advancedError);
     }
 
     private IModel<String> getIconLabelByModeModel() {
@@ -915,6 +916,21 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         }
 
         refreshSearchForm(target);
+    }
+
+    private void updateQueryDSLArea(Component child, Component parent, AjaxRequestTarget target) {
+        Search search = getModelObject();
+        PrismContext ctx = getPageBase().getPrismContext();
+
+        search.isAdvancedQueryValid(ctx);
+
+        target.appendJavaScript("$('#" + child.getMarkupId() + "').updateParentClass('fa-check-circle-o', 'has-success',"
+                + " '" + parent.getMarkupId() + "', 'fa-exclamation-triangle', 'has-error');");
+
+        target.add(
+                get(createComponentPath(ID_FORM, ID_ADVANCED_GROUP, ID_ADVANCED_CHECK)),
+                get(createComponentPath(ID_FORM, ID_ADVANCED_GROUP, ID_ADVANCED_ERROR_GROUP)),
+                get(createComponentPath(ID_FORM, ID_SEARCH_CONTAINER)));
     }
 
     private void updateAdvancedArea(Component area, AjaxRequestTarget target) {

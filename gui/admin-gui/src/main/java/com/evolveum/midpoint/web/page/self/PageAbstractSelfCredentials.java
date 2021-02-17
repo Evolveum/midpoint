@@ -11,7 +11,16 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.web.component.progress.ProgressReporter;
+
+import com.evolveum.midpoint.web.security.MidPointApplication;
+
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -30,10 +39,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -144,9 +149,10 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
     private MyPasswordsDto createMyPasswordsDto(PrismObject<? extends FocusType> focus) {
         MyPasswordsDto dto = new MyPasswordsDto();
         dto.setFocus(focus);
-        dto.getAccounts().add(createDefaultPasswordAccountDto(focus));
-
         CredentialsPolicyType credentialsPolicyType = getPasswordCredentialsPolicy(focus);
+        dto.getAccounts().add(createDefaultPasswordAccountDto(focus, getPasswordPolicyOid(credentialsPolicyType)));
+
+
         if (credentialsPolicyType != null) {
             PasswordCredentialsPolicyType passwordCredentialsPolicy = credentialsPolicyType.getPassword();
             if (passwordCredentialsPolicy != null) {
@@ -158,20 +164,40 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                 if (passwordChangeSecurity != null) {
                     dto.setPasswordChangeSecurity(passwordChangeSecurity);
                 }
+                ObjectReferenceType valuePolicyRef = passwordCredentialsPolicy.getValuePolicyRef();
+                if (valuePolicyRef != null && valuePolicyRef.getOid() != null){
+                    Task task = createSimpleTask("load value policy");
+                    PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch(
+                            valuePolicyRef, this, task, task.getResult());
+                    if (valuePolicy != null) {
+                        dto.addPasswordPolicy(valuePolicy.asObjectable());
+                    }
+                }
 
             }
         }
         return dto;
     }
 
+    private String getPasswordPolicyOid(CredentialsPolicyType credentialsPolicyType) {
+        if (credentialsPolicyType != null && credentialsPolicyType.getPassword() != null
+                && credentialsPolicyType.getPassword().getValuePolicyRef() != null) {
+            return credentialsPolicyType.getPassword().getValuePolicyRef().getOid();
+        }
+        return null;
+    }
+
     protected boolean shouldLoadAccounts(MyPasswordsDto dto) {
-        return dto.getPropagation() == null || CredentialsPropagationUserControlType.USER_CHOICE == dto.getPropagation();
+        return dto.getPropagation() == null || CredentialsPropagationUserControlType.USER_CHOICE.equals(dto.getPropagation())
+                || CredentialsPropagationUserControlType.ONLY_MAPPING.equals(dto.getPropagation())
+                || CredentialsPropagationUserControlType.IDENTITY_MANAGER_MANDATORY.equals(dto.getPropagation());
     }
 
     private void addAccountsToMyPasswordsDto(MyPasswordsDto dto, List<PrismReferenceValue> linkReferences, Task task, OperationResult result) {
         final Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
-                .noFetch()
                 .item(ShadowType.F_RESOURCE_REF).resolve()
+                .item(ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE,
+                        ResourceObjectTypeDefinitionType.F_SECURITY_POLICY_REF)).resolve()
                 .build();
         for (PrismReferenceValue value : linkReferences) {
             OperationResult subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);
@@ -180,7 +206,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                 PrismObject<ShadowType> account = getModelService().getObject(ShadowType.class,
                         accountOid, options, task, subResult);
 
-                dto.getAccounts().add(createPasswordAccountDto(account, task, subResult));
+                dto.getAccounts().add(createPasswordAccountDto(dto, account, task, subResult));
                 subResult.recordSuccessIfUnknown();
             } catch (Exception ex) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load account", ex);
@@ -252,14 +278,16 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         mainForm.add(cancel);
     }
 
-    private PasswordAccountDto createDefaultPasswordAccountDto(PrismObject<? extends FocusType> focus) {
+    private PasswordAccountDto createDefaultPasswordAccountDto(PrismObject<? extends FocusType> focus, String passwordPolicyOid) {
         String customSystemName = WebComponentUtil.getMidpointCustomSystemName(PageAbstractSelfCredentials.this, "midpoint.default.system.name");
-        return new PasswordAccountDto(focus.getOid(), focus.getName().getOrig(),
+        PasswordAccountDto accountDto = new PasswordAccountDto(focus, focus.getName().getOrig(),
                 getString("PageSelfCredentials.resourceMidpoint", customSystemName),
                 WebComponentUtil.isActivationEnabled(focus, ActivationType.F_EFFECTIVE_STATUS), true);
+        accountDto.setPasswordValuePolicyOid(passwordPolicyOid);
+        return accountDto;
     }
 
-    private PasswordAccountDto createPasswordAccountDto(PrismObject<ShadowType> account, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private PasswordAccountDto createPasswordAccountDto(MyPasswordsDto passwordDto, PrismObject<ShadowType> account, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         PrismReference resourceRef = account.findReference(ShadowType.F_RESOURCE_REF);
         String resourceName;
         if (resourceRef == null || resourceRef.getValue() == null || resourceRef.getValue().getObject() == null) {
@@ -268,11 +296,46 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             resourceName = WebComponentUtil.getName(resourceRef.getValue().getObject());
         }
 
-        PasswordAccountDto passwordAccountDto = new PasswordAccountDto(account.getOid(), WebComponentUtil.getName(account),
-                resourceName, WebComponentUtil.isActivationEnabled(account, ActivationType.F_ADMINISTRATIVE_STATUS));
+        PasswordAccountDto passwordAccountDto = new PasswordAccountDto(account, resourceName, resourceRef.getOid());
 
-        passwordAccountDto.setPasswordOutbound(getPasswordOutbound(account, task, result));
-        passwordAccountDto.setPasswordCapabilityEnabled(hasPasswordCapability(account));
+        ShadowType shadowType = account.asObjectable();
+        ResourceType resource = (ResourceType) shadowType.getResourceRef().asReferenceValue().getObject().asObjectable();
+        if (resource != null) {
+            ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());
+            passwordAccountDto.setPasswordCapabilityEnabled(ResourceTypeUtil.isPasswordCapabilityEnabled(resource, resourceObjectTypeDefinitionType));
+            passwordAccountDto.setMaintenanceState(ResourceTypeUtil.isInMaintenance(resource));
+            try {
+                RefinedObjectClassDefinition rOCDef = getModelInteractionService().getEditObjectClassDefinition(account,
+                        resource.asPrismObject(), AuthorizationPhaseType.REQUEST, task, result);
+
+                if (rOCDef != null) {
+                    passwordAccountDto.setPasswordOutbound(getPasswordOutbound(account, resource, rOCDef));
+                    CredentialsPolicyType credentialsPolicy = getPasswordCredentialsPolicy(rOCDef);
+                    if (credentialsPolicy != null && credentialsPolicy.getPassword() != null
+                            && credentialsPolicy.getPassword().getValuePolicyRef() != null) {
+                        PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch(
+                                credentialsPolicy.getPassword().getValuePolicyRef(), this, task, task.getResult());
+                        if (valuePolicy != null) {
+                            passwordAccountDto.setPasswordValuePolicyOid(valuePolicy.getOid());
+                            passwordDto.addPasswordPolicy(valuePolicy.asObjectable());
+                        }
+                    }
+                } else {
+                    passwordAccountDto.setPasswordOutbound(false);
+                }
+
+            } catch (Exception e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Fail to get RefinedObjectClassDefinition for {} ", e, account);
+                result.recordFatalError("Fail to get RefinedObjectClassDefinition for " + account, e);
+                showResult(result);
+                passwordAccountDto.setPasswordOutbound(false);
+            }
+
+        } else {
+            passwordAccountDto.setPasswordCapabilityEnabled(false);
+            passwordAccountDto.setPasswordOutbound(false);
+        }
+
         return passwordAccountDto;
     }
 
@@ -325,6 +388,12 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         }
 
         OperationResult result = new OperationResult(OPERATION_SAVE_PASSWORD);
+        ProgressReporter reporter = new ProgressReporter(MidPointApplication.get());
+        reporter.getProgress().clear();
+        reporter.setWriteOpResultForProgressActivity(true);
+
+        reporter.recordExecutionStart();
+        boolean showFeedback = true;
         try {
             MyPasswordsDto dto = model.getObject();
             ProtectedStringType password = dto.getPassword();
@@ -352,18 +421,35 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                 deltas.add(getPrismContext().deltaFactory().object().createModifyDelta(accDto.getOid(), delta, type
                 ));
             }
-            getModelService().executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_SELF_SERVICE_URI), result);
-
+            Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = getModelService().executeChanges(
+                    deltas, null, createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_SELF_SERVICE_URI), Collections.singleton(reporter), result);
             result.computeStatus();
         } catch (Exception ex) {
             setNullEncryptedPasswordData();
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save password changes", ex);
             result.recordFatalError(getString("PageAbstractSelfCredentials.save.password.failed", ex.getMessage()), ex);
         } finally {
+            reporter.recordExecutionStop();
+            model.getObject().setProgress(reporter.getProgress());
+            if (getChangePasswordPanel() != null) {
+                getChangePasswordPanel().updateResultColumnOfTable(target);
+            }
             result.computeStatusIfUnknown();
+            if (shouldLoadAccounts(model.getObject())) {
+                showFeedback = false;
+                info(createStringResource("PageAbstractSelfCredentials.message.resultInTable").getString());
+            }
         }
 
-        finishChangePassword(result, target);
+        finishChangePassword(result, target, showFeedback);
+    }
+
+    protected ChangePasswordPanel getChangePasswordPanel(){
+        Component component = get(createComponentPath(ID_MAIN_FORM, ID_TAB_PANEL, TabbedPanel.TAB_PANEL_ID));
+        if (component instanceof ChangePasswordPanel) {
+            return (ChangePasswordPanel) component;
+        }
+        return null;
     }
 
     protected void setNullEncryptedPasswordData() {
@@ -376,7 +462,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
     protected abstract boolean isCheckOldPassword();
 
-    protected abstract void finishChangePassword(OperationResult result, AjaxRequestTarget target);
+    protected abstract void finishChangePassword(OperationResult result, AjaxRequestTarget target, boolean showFeedback);
 
     protected List<PasswordAccountDto> getSelectedAccountsList() {
         List<PasswordAccountDto> passwordAccountDtos = model.getObject().getAccounts();
@@ -385,10 +471,22 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                 && model.getObject().getPropagation().equals(CredentialsPropagationUserControlType.MAPPING)) {
             selectedAccountList.addAll(passwordAccountDtos);
         } else {
+            boolean midpointAccountSelected = false;
+            List<PasswordAccountDto> selectedWithOutbound = new ArrayList<>();
             for (PasswordAccountDto passwordAccountDto : passwordAccountDtos) {
-                if (passwordAccountDto.getCssClass().equals(ChangePasswordPanel.SELECTED_ACCOUNT_ICON_CSS)) {
-                    selectedAccountList.add(passwordAccountDto);
+                if (passwordAccountDto.isMidpoint()){
+                    midpointAccountSelected = passwordAccountDto.isSelected();
                 }
+                if (passwordAccountDto.isSelected()) {
+                    if(!passwordAccountDto.isPasswordOutbound()) {
+                        selectedAccountList.add(passwordAccountDto);
+                    } else {
+                        selectedWithOutbound.add(passwordAccountDto);
+                    }
+                }
+            }
+            if (!midpointAccountSelected) {
+                selectedAccountList.addAll(selectedWithOutbound);
             }
         }
         return selectedAccountList;
@@ -398,23 +496,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         redirectBack();
     }
 
-    private boolean getPasswordOutbound(PrismObject<ShadowType> shadow, Task task, OperationResult result)
-            throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        try {
-
-            //TODO cannot be null?
-            PrismObject<ResourceType> resource =
-                    shadow.asObjectable().getResourceRef().asReferenceValue().getObject();
-            //what to return when we don't have resource?
-            if (resource == null) {
-                return false;
-            }
-
-            RefinedObjectClassDefinition rOCDef = getModelInteractionService().getEditObjectClassDefinition(shadow,
-                    resource, AuthorizationPhaseType.REQUEST, task, result);
-            if (rOCDef == null) {
-                return false;
-            }
+    private boolean getPasswordOutbound(PrismObject<ShadowType> shadow, ResourceType resource, RefinedObjectClassDefinition rOCDef) {
 
             List<MappingType> passwordOutbound = rOCDef.getPasswordOutbound();
             if (passwordOutbound == null) {
@@ -422,7 +504,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             }
             for (MappingType mapping : passwordOutbound) {
                 if (MappingStrengthType.WEAK == mapping.getStrength()) {
-                    CredentialsCapabilityType capability = ResourceTypeUtil.getEffectiveCapability(resource.asObjectable(), CredentialsCapabilityType.class);
+                    CredentialsCapabilityType capability = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
                     if (CapabilityUtil.isPasswordReadable(capability)) {
                         return true;
                     }
@@ -432,23 +514,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                 return true;
             }
 
-        } catch (SchemaException ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Failed to compute password propagation for {} ", ex, shadow);
-            result.recordFatalError("Faile to compute password propagation for " + shadow, ex);
-            showResult(result);
-        }
-
         return false;
-
-    }
-
-    private boolean hasPasswordCapability(PrismObject<ShadowType> shadow) {
-
-        ShadowType shadowType = shadow.asObjectable();
-        ResourceType resource = (ResourceType) shadowType.getResourceRef().asReferenceValue().getObject().asObjectable();
-        ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());
-
-        return ResourceTypeUtil.isPasswordCapabilityEnabled(resource, resourceObjectTypeDefinitionType);
 
     }
 
@@ -464,6 +530,27 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load credentials policy", ex);
             result.recordFatalError(
                     getString("PageAbstractSelfCredentials.message.getPasswordCredentialsPolicy.fatalError", ex.getMessage()), ex);
+        } finally {
+            result.computeStatus();
+        }
+        return credentialsPolicyType;
+    }
+
+    private CredentialsPolicyType getPasswordCredentialsPolicy(RefinedObjectClassDefinition rOCDef) {
+        LOGGER.debug("Getting credentials policy");
+        Task task = createSimpleTask(OPERATION_GET_CREDENTIALS_POLICY);
+        OperationResult result = new OperationResult(OPERATION_GET_CREDENTIALS_POLICY);
+        CredentialsPolicyType credentialsPolicyType = null;
+        try {
+            SecurityPolicyType securityPolicy = getModelInteractionService().getSecurityPolicy(rOCDef, task, result);
+            if (securityPolicy != null){
+                credentialsPolicyType = securityPolicy.getCredentials();
+            }
+            result.recordSuccessIfUnknown();
+        } catch (Exception ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load security policy", ex);
+            result.recordFatalError(
+                    getString("PageAbstractSelfCredentials.message.getPasswordSecurityPolicy.fatalError", ex.getMessage()), ex);
         } finally {
             result.computeStatus();
         }

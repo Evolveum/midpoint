@@ -25,6 +25,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.ParserSource;
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -97,7 +98,7 @@ class DomIterativeReader {
         Document objectDoc = domConverter.buildDocument(stream);
         Element objectElement = DOMUtil.getFirstChildElement(objectDoc);
         DOMUtil.setNamespaceDeclarations(objectElement, rootNamespaceDeclarations);
-        RootXNodeImpl rootNode = new DomReader(objectElement, schemaRegistry).read();
+        RootXNodeImpl rootNode = new DomReader(objectElement, schemaRegistry, PrismNamespaceContext.EMPTY).read();
         return handler.handleData(rootNode);
     }
 

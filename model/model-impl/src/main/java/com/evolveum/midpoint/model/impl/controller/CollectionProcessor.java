@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Evolveum and contributors
+ * Copyright (C) 2019-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,17 +9,7 @@ package com.evolveum.midpoint.model.impl.controller;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.impl.lens.assignments.ConditionState;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,15 +24,22 @@ import com.evolveum.midpoint.model.api.context.EvaluatedCollectionStatsTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.common.ArchetypeManager;
+import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathSegmentImpl;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.ConditionState;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluationOrderImpl;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -52,19 +49,14 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * @author semancik
- *
  */
 @Component
 public class CollectionProcessor {
@@ -95,20 +87,26 @@ public class CollectionProcessor {
                 continue;
             }
 
-            evaluatedPolicyRules.add(evaluatePolicyRule(collection, collectionView, assignmentType, policyRuleType, targetTypeClass, task, result));
+            evaluatedPolicyRules.add(evaluatePolicyRule(collection, collectionView, assignmentType, policyRuleType, task, result));
         }
         return evaluatedPolicyRules;
     }
 
-    /**
-     * Very simple implementation, needs to be extended later.
-     */
+    /** Very simple implementation, needs to be extended later. */
     @NotNull
-    private EvaluatedPolicyRule evaluatePolicyRule(PrismObject<ObjectCollectionType> collection, CompiledObjectCollectionView collectionView, @NotNull AssignmentType assignmentType, @NotNull PolicyRuleType policyRuleType, Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+    private EvaluatedPolicyRule evaluatePolicyRule(
+            PrismObject<ObjectCollectionType> collection,
+            CompiledObjectCollectionView collectionView,
+            @NotNull AssignmentType assignmentType,
+            @NotNull PolicyRuleType policyRuleType,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            ConfigurationException, CommunicationException, ExpressionEvaluationException {
         AssignmentPathImpl assignmentPath = new AssignmentPathImpl(prismContext);
         AssignmentPathSegmentImpl assignmentPathSegment = new AssignmentPathSegmentImpl.Builder()
                 .source(collection.asObjectable())
-                .sourceDescription("object collection "+collection)
+                .sourceDescription("object collection " + collection)
                 .assignment(assignmentType)
                 .isAssignment(true)
                 .relationRegistry(relationRegistry)
@@ -133,18 +131,18 @@ public class CollectionProcessor {
         for (CollectionStatsPolicyConstraintType collectionStatsPolicy : policyConstraints.getCollectionStats()) {
             CollectionStats stats = determineCollectionStats(collectionView, task, result);
             if (isThresholdTriggered(stats, collection, policyThreshold)) {
-                EvaluatedPolicyRuleTrigger<?> trigger = new EvaluatedCollectionStatsTrigger(PolicyConstraintKindType.COLLECTION_STATS,  collectionStatsPolicy,
+                EvaluatedPolicyRuleTrigger<?> trigger = new EvaluatedCollectionStatsTrigger(PolicyConstraintKindType.COLLECTION_STATS, collectionStatsPolicy,
                         new LocalizableMessageBuilder()
-                            .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
-                            .arg(ObjectTypeUtil.createDisplayInformation(collection, false))
-                            .args(/* TODO */)
-                            .build(),
+                                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
+                                .arg(ObjectTypeUtil.createDisplayInformation(collection, false))
+                                .args(/* TODO */)
+                                .build(),
                         new LocalizableMessageBuilder()
-                            .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY)
-                            .arg(ObjectTypeUtil.createDisplayInformation(collection, false))
-                            .args(/* TODO */)
-                            .build()
-                    );
+                                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY)
+                                .arg(ObjectTypeUtil.createDisplayInformation(collection, false))
+                                .args(/* TODO */)
+                                .build()
+                );
                 evaluatedPolicyRule.addTrigger(trigger);
             }
         }
@@ -214,7 +212,6 @@ public class CollectionProcessor {
         return stats;
     }
 
-
     private <O extends ObjectType> Integer countObjects(Class<O> targetTypeClass, ObjectFilter filter, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
         if (filter == null) {
             return null;
@@ -246,7 +243,6 @@ public class CollectionProcessor {
                         .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(collectionRef.getOid())
                         .buildFilter();
                 archetypeFilter.setTargetTypeNullAsAny(true);
-                archetypeFilter.setRelationNullAsAny(true);
 
                 if (collectionSpec.getBaseCollectionRef() != null) {
                     compileBaseCollectionSpec(archetypeFilter, existingView, null, collectionSpec.getBaseCollectionRef(), targetTypeClass, task, result);
@@ -309,6 +305,7 @@ public class CollectionProcessor {
             }
         } else {
             // E.g. the case of empty domain specification. Nothing to do. Just return what we have.
+            //noinspection UnnecessaryReturnStatement
             return;
         }
     }
@@ -322,7 +319,7 @@ public class CollectionProcessor {
             if (existingView.getContainerType() == null) {
                 QName targetTypeQName = objectCollectionType.getType();
                 if (targetTypeQName == null) {
-                    throw new SchemaException("Target container type not specified in "+objectCollectionType);
+                    throw new SchemaException("Target container type not specified in " + objectCollectionType);
                 }
                 targetTypeClass = ObjectTypes.getObjectTypeClassIfKnown(targetTypeQName);
                 if (targetTypeClass == null) {
@@ -405,7 +402,7 @@ public class CollectionProcessor {
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         if (targetTypeClass != null) {
             ObjectFilter objectFilter = prismContext.getQueryConverter().parseFilter(filter, targetTypeClass);
-            compileBaseCollectionSpec(objectFilter,existingView, options, baseCollectionRef, targetTypeClass, task, result);
+            compileBaseCollectionSpec(objectFilter, existingView, options, baseCollectionRef, targetTypeClass, task, result);
             return;
         }
         compileObjectCollectionView(existingView, baseCollectionRef, targetTypeClass, task, result);
@@ -463,7 +460,7 @@ public class CollectionProcessor {
 
     private void compileActions(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
         List<GuiActionType> newActions = objectListViewType.getAction();
-        for (GuiActionType newAction: newActions) {
+        for (GuiActionType newAction : newActions) {
             // TODO: check for action duplication/override
             existingView.getActions().add(newAction); // No need to clone, CompiledObjectCollectionView is not prism
         }
@@ -537,9 +534,9 @@ public class CollectionProcessor {
         }
     }
 
-    private void compileDisplayOrder(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist){
+    private void compileDisplayOrder(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
         Integer newDisplayOrder = objectListViewType.getDisplayOrder();
-        if (newDisplayOrder != null && (existingView.getDisplayOrder() == null || replaceIfExist)){
+        if (newDisplayOrder != null && (existingView.getDisplayOrder() == null || replaceIfExist)) {
             existingView.setDisplayOrder(newDisplayOrder);
         }
     }
@@ -554,5 +551,4 @@ public class CollectionProcessor {
             existingView.setSearchBoxConfiguration(newSearchBoxConfig);
         }
     }
-
 }

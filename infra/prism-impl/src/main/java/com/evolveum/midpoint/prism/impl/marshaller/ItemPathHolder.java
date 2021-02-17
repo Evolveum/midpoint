@@ -207,7 +207,7 @@ public final class ItemPathHolder {
 
     //region Serializing
 
-    static String serializeWithDeclarations(@NotNull ItemPath itemPath) {
+    public static String serializeWithDeclarations(@NotNull ItemPath itemPath) {
         return new ItemPathHolder(UniformItemPath.from(itemPath)).getXPathWithDeclarations();
     }
 
@@ -310,6 +310,10 @@ public final class ItemPathHolder {
     }
 
     private void addPureXpath(StringBuilder sb) {
+        addPureXpath(absolute, segments, sb);
+    }
+
+    static void addPureXpath(boolean absolute, Collection<PathHolderSegment> segments, StringBuilder sb) {
         if (!absolute && segments.isEmpty()) {
             // Empty segment list gives a "local node" XPath
             sb.append(".");
@@ -349,7 +353,7 @@ public final class ItemPathHolder {
                     sb.append(ParentPathSegment.SYMBOL);
                 } else if (IdentifierPathSegment.QNAME.equals(qname)) {
                     sb.append(IdentifierPathSegment.SYMBOL);
-                } else if (!StringUtils.isEmpty(qname.getPrefix())) {
+                } else if (StringUtils.isNotEmpty(qname.getPrefix())) {
                     sb.append(qname.getPrefix()).append(':').append(qname.getLocalPart());
                 } else {
                     if (StringUtils.isNotEmpty(qname.getNamespaceURI())) {
@@ -436,7 +440,12 @@ public final class ItemPathHolder {
     //region Misc
 
     private void addExplicitNsDeclarations(StringBuilder sb) {
-        for (Entry<String, String> declaration : explicitNamespaceDeclarations.entrySet()) {
+        addDeclarations(sb, explicitNamespaceDeclarations);
+
+    }
+
+    static void addDeclarations(StringBuilder sb, Map<String, String> prefixes) {
+        for (Entry<String, String> declaration : prefixes.entrySet()) {
             sb.append("declare ");
             String prefix = declaration.getKey();
             String value = declaration.getValue();

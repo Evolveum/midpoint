@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.util;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -22,6 +22,8 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
 
 /**
  * QName &lt;-&gt; URI conversion.
@@ -48,6 +50,7 @@ public class QNameUtil {
     // ThreadLocal "safe mode" override for the above value (MID-2218)
     // This can be set to true for raw reads, allowing to manually fix broken objects
     private static final ThreadLocal<Boolean> TEMPORARILY_TOLERATE_UNDECLARED_PREFIXES = new ThreadLocal<>();
+    private static final Splitter PREFIXED_NAME = Splitter.on(':');
 
     public static String qNameToUri(QName qname) {
         return qNameToUri(qname, true);
@@ -118,30 +121,6 @@ public class QNameUtil {
         }
     }
 
-//    // returns null if no change is requested
-//    public static String qualifyUriIfNeeded(String uri, String namespace) {
-//        if (StringUtils.isEmpty(namespace) || StringUtils.isEmpty(uri)) {
-//            return null;
-//        }
-//        QNameInfo info = uriToQNameInfo(uri, true);
-//        if (hasNamespace(info.name) || info.explicitEmptyNamespace) {
-//            return null;
-//        } else {
-//            return qNameToUri(new QName(namespace, info.name.getLocalPart()));
-//        }
-//    }
-
-//    @NotNull
-//    public static QName setNamespaceIfMissing(@NotNull QName name, @NotNull String namespace, @Nullable String prefix) {
-//        if (hasNamespace(name)) {
-//            return name;
-//        } else if (prefix == null) {
-//            return new QName(namespace, name.getLocalPart());
-//        } else {
-//            return new QName(namespace, name.getLocalPart(), prefix);
-//        }
-//    }
-
     public static boolean matchUri(String uri1, String uri2) {
         if (java.util.Objects.equals(uri1, uri2)) {
             return true;
@@ -162,9 +141,33 @@ public class QNameUtil {
         }
     }
 
+    public static PrefixedName parsePrefixedName(String name) {
+        Iterator<String> splitted = PREFIXED_NAME.split(name).iterator();
+        Preconditions.checkState(splitted.hasNext());
+        String first = splitted.next();
+        final PrefixedName ret;
+        if(splitted.hasNext()) {
+            ret = new PrefixedName(first, splitted.next());
+        } else {
+            ret = new PrefixedName("", first);
+        }
+        Preconditions.checkArgument(!splitted.hasNext(), "Name '%s' is not in format prefix:localName", name);
+        return ret;
+
+    }
+
+    public static QNameInfo qnameToQnameInfo(QName name) {
+        Preconditions.checkArgument(name.getNamespaceURI() != null, "Namespace must be qualified");
+        return new QNameInfo(name, false);
+    }
+
     @NotNull
     public static QName uriToQName(@NotNull String uri, boolean allowUnqualified) {
         return uriToQNameInfo(uri, allowUnqualified).name;
+    }
+
+    public static boolean isUriQName(@NotNull String maybeUri) {
+        return maybeUri.contains("/") || maybeUri.contains("#");
     }
 
     @NotNull
@@ -199,10 +202,6 @@ public class QNameUtil {
         } else {
             throw new IllegalArgumentException("The URI (" + uri + ") does not contain slash character");
         }
-    }
-
-    public static QName getNodeQName(Node node) {
-        return new QName(node.getNamespaceURI(), node.getLocalName());
     }
 
     public static boolean compareQName(QName qname, Node node) {
@@ -406,5 +405,31 @@ public class QNameUtil {
 
     public static String prettyPrint(QName... qnames) {
         return PrettyPrinter.prettyPrint(Arrays.asList(qnames));
+    }
+
+    public static class PrefixedName {
+        private final @NotNull String prefix;
+        private final @NotNull String localName;
+
+        PrefixedName(@NotNull String prefix, @NotNull String localName) {
+            this.prefix = prefix;
+            this.localName = localName;
+        }
+
+        @Override
+        public String toString() {
+            if(prefix.isEmpty()) {
+                return localName;
+            }
+            return prefix + ":" + localName;
+        }
+
+        public String prefix() {
+            return prefix;
+        }
+
+        public String localName() {
+            return localName;
+        }
     }
 }

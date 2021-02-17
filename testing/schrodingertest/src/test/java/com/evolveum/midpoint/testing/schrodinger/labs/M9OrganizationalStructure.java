@@ -36,8 +36,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
     private static final File ARCHETYPE_ORG_GROUP_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-group.xml");
     private static final File ARCHETYPE_ORG_GROUP_LIST_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-group-list.xml");
     private static final File KIRK_USER_TIBERIUS_FILE = new File(LAB_OBJECTS_DIRECTORY + "users/kirk-tiberius-user.xml");
-    private static final File OBJECT_TEMPLATE_USER_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user.xml");
-    private static final File NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE = new File(LAB_OBJECTS_DIRECTORY + "valuePolicies/numeric-pin-first-nonzero-policy.xml");
+    private static final File OBJECT_TEMPLATE_USER_FILE = new File(LAB_OBJECTS_DIRECTORY + "objecttemplate/object-template-example-user.xml");
+    private static final File NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE = new File(LAB_OBJECTS_DIRECTORY + "valuepolicies/numeric-pin-first-nonzero-policy.xml");
     private static final File ORG_EXAMPLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/org-example.xml");
     private static final File ORG_SECRET_OPS_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/org-secret-ops.xml");
     private static final File CSV_1_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-9.xml");
@@ -119,7 +119,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                             .edit()
                                 .selectTabBasic()
                                     .form()
-                                        .assertInputAttributeValueMatches("Name", "0919");
+                                        .assertPropertyInputValue("Name", "0919");
 
         showUser("kirk").selectTabAssignments()
                 .clickAddAssignemnt("New Organization type assignment with Member relation")
@@ -248,7 +248,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
         Selenide.screenshot("M9_accountPage");
         accountPage
                         .form()
-                        .assertInputAttributeValuesMatches("groups", "Internal Employees",
+                        .assertPropertyInputValues("groups", "Internal Employees",
                                 "Essential Documents", "Teleportation", "Time Travel");
 
         basicPage.orgStructure()
@@ -277,7 +277,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
 
         showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
                         .form()
-                        .assertInputAttributeValuesMatches("groups", "Internal Employees",
+                        .assertPropertyInputValues("groups", "Internal Employees",
                                 "Essential Documents", "Teleportation", "Time Travel");
 
         basicPage.orgStructure()
@@ -297,7 +297,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
 
         showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
                         .form()
-                        .assertInputAttributeValuesMatches("groups", "Internal Employees", "Essential Documents",
+                        .assertPropertyInputValues("groups", "Internal Employees", "Essential Documents",
                                 "Teleportation", "Time Travel", "Lucky Numbers", "Presidential Candidates Motivation");
 
         showUser("kirk").selectTabAssignments()

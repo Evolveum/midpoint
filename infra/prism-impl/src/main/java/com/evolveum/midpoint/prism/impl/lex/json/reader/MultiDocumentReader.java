@@ -11,6 +11,7 @@ import java.io.IOException;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -22,14 +23,16 @@ class MultiDocumentReader {
      * TODO
      */
     @NotNull private final JsonReadingContext ctx;
+    private final PrismNamespaceContext nsContext;
 
-    MultiDocumentReader(@NotNull JsonReadingContext ctx) {
+    MultiDocumentReader(@NotNull JsonReadingContext ctx, PrismNamespaceContext global) {
         this.ctx = ctx;
+        this.nsContext = global;
     }
 
     public void read(boolean expectingMultipleObjects) throws IOException, SchemaException {
         do {
-            new DocumentReader(ctx).read(expectingMultipleObjects);
+            new DocumentReader(ctx,nsContext).read(expectingMultipleObjects);
         } while (!ctx.isAborted() && ctx.parser.nextToken() != null); // YAML multi-document files
     }
 }

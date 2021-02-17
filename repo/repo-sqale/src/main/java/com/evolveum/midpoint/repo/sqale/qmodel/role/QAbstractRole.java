@@ -13,21 +13,26 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocus;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QAbstractRole<T extends MAbstractRole> extends QObject<T> {
+public class QAbstractRole<T extends MAbstractRole> extends QFocus<T> {
 
     private static final long serialVersionUID = 8559628642680237808L;
 
+    /**
+     * If {@code QAbstractRole.class} is not enough because of generics,
+     * try {@code QAbstractRole.CLASS}.
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public static final Class<QAbstractRole<MAbstractRole>> CLASS = (Class) QAbstractRole.class;
+
     public static final String TABLE_NAME = "m_abstract_role";
 
-    public static final ColumnMetadata APPROVAL_PROCESS =
-            ColumnMetadata.named("approvalProcess").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata AUTOASSIGN_ENABLED =
             ColumnMetadata.named("autoassign_enabled").ofType(Types.BOOLEAN);
     public static final ColumnMetadata DISPLAY_NAME_NORM =
@@ -47,8 +52,7 @@ public class QAbstractRole<T extends MAbstractRole> extends QObject<T> {
     public static final ColumnMetadata RISK_LEVEL =
             ColumnMetadata.named("riskLevel").ofType(Types.VARCHAR).withSize(255);
 
-    public final StringPath approvalProcess = createString("approvalProcess", APPROVAL_PROCESS);
-    public final BooleanPath effectiveStatus = createBoolean("autoassignEnabled", AUTOASSIGN_ENABLED);
+    public final BooleanPath autoassignEnabled = createBoolean("autoassignEnabled", AUTOASSIGN_ENABLED);
     public final StringPath displayNameNorm = createString("displayNameNorm", DISPLAY_NAME_NORM);
     public final StringPath displayNameOrig = createString("displayNameOrig", DISPLAY_NAME_ORIG);
     public final StringPath identifier = createString("identifier", IDENTIFIER);
@@ -66,15 +70,5 @@ public class QAbstractRole<T extends MAbstractRole> extends QObject<T> {
 
     public QAbstractRole(Class<? extends T> type, String variable, String schema, String table) {
         super(type, variable, schema, table);
-    }
-
-    /**
-     * Class representing generic {@code QAbstractRole<MAbstractRole>.class} which is otherwise impossible.
-     * There should be no need to instantiate this, so the class is private and final.
-     */
-    public static final class QAbstractRoleReal extends QAbstractRole<MAbstractRole> {
-        public QAbstractRoleReal(String variable) {
-            super(MAbstractRole.class, variable);
-        }
     }
 }

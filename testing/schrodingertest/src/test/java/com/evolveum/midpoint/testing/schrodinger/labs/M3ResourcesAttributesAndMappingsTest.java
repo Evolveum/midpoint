@@ -14,7 +14,6 @@ import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceConfigurationTab;
 import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
-import com.evolveum.midpoint.schrodinger.page.resource.ResourceWizardPage;
 import com.evolveum.midpoint.schrodinger.page.resource.SchemaStepSchemaTab;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 
@@ -38,7 +37,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
 
     private static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M3/";
     private static final File CSV_1_SIMPLE_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-simple.xml");
-    private static final File NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE = new File(LAB_OBJECTS_DIRECTORY + "valuePolicies/numeric-pin-first-nonzero-policy.xml");
+    private static final File NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE = new File(LAB_OBJECTS_DIRECTORY + "valuepolicies/numeric-pin-first-nonzero-policy.xml");
     private static final File CSV_2_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-2-canteen.xml");
     private static final File CSV_3_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap.xml");
 
@@ -65,10 +64,10 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
                     .clickEditResourceConfiguration()
                     .form();
         // Unique attribute name should be login
-        configTab.assertInputAttributeValueMatches(UNIQUE_ATTRIBUTE_NAME, CSV_1_UNIQUE_ATTRIBUTE_NAME);
+        configTab.assertPropertyInputValue(UNIQUE_ATTRIBUTE_NAME, CSV_1_UNIQUE_ATTRIBUTE_NAME);
 
         // Password attribute name should be password
-        configTab.assertInputAttributeValueMatches(PASSWORD_ATTRIBUTE_NAME, CSV_1_PASSWORD_ATTRIBUTE_NAME);
+        configTab.assertPropertyInputValue(PASSWORD_ATTRIBUTE_NAME, CSV_1_PASSWORD_ATTRIBUTE_NAME);
 
         SchemaStepSchemaTab schemaStepSchemaTab = basicPage.listResources()
                 .table()
@@ -151,7 +150,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
                 .form();
 
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-        accountForm.assertInputAttributeValueMatches("fname", "Jim T.");
+        accountForm.assertPropertyInputValue("fname", "Jim T.");
 
         showUser("kirk")
                     .selectTabProjections()

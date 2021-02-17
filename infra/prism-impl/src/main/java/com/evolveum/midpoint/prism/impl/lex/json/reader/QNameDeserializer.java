@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.prism.impl.lex.json.reader;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import javax.xml.namespace.QName;
 
@@ -19,7 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 
-public class QNameDeserializer extends JsonDeserializer<QName>{
+public class QNameDeserializer extends JsonDeserializer<QName> implements Serializable {
 
     @Override
     public QName deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException,

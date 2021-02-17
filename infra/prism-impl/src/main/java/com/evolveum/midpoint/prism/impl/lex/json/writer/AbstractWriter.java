@@ -19,7 +19,9 @@ import com.evolveum.midpoint.prism.SerializationContext;
 import com.evolveum.midpoint.prism.impl.lex.LexicalUtils;
 import com.evolveum.midpoint.prism.impl.xnode.ListXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
+import com.evolveum.midpoint.prism.impl.xnode.XNodeDefinition;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -29,6 +31,16 @@ import com.evolveum.midpoint.util.exception.SystemException;
  * Writes XNode into JSON/YAML.
  */
 abstract public class AbstractWriter {
+
+    private XNodeDefinition.Root schema;
+
+    public AbstractWriter(@NotNull SchemaRegistry schemaRegistry) {
+        schema = schemaRegistry != null ? XNodeDefinition.root(schemaRegistry) : XNodeDefinition.empty();
+    }
+
+    public XNodeDefinition getSchema() {
+        return schema;
+    }
 
     @NotNull
     public String write(@NotNull XNode xnode, @NotNull QName rootElementName, SerializationContext prismSerializationContext) throws SchemaException{
@@ -52,7 +64,7 @@ abstract public class AbstractWriter {
     @NotNull
     private String writeInternal(@NotNull XNodeImpl root, SerializationContext prismSerializationContext, boolean useMultiDocument) throws SchemaException {
         try (WritingContext<?> ctx = createWritingContext(prismSerializationContext)) {
-            DocumentWriter documentWriter = new DocumentWriter(ctx);
+            DocumentWriter documentWriter = new DocumentWriter(ctx, schema);
             if (root instanceof ListXNodeImpl && !root.isEmpty() && useMultiDocument && ctx.supportsMultipleDocuments()) {
                 // Note we cannot serialize empty lists in multi-document mode.
                 // It would result in empty content and an exception during serialization.

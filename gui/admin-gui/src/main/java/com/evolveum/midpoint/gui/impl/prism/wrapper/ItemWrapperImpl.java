@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
@@ -147,6 +148,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         return getItemDefinition().isMandatory();
     }
 
+    @Override
     public ItemStatus getStatus() {
         return status;
     }
@@ -166,6 +168,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         return column;
     }
 
+    @Override
     public PrismContainerValueWrapper<?> getParent() {
         return parent;
     }
@@ -376,6 +379,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         this.visibleOverwrite = visibleOverwrite;
     }
 
+    @Override
     public boolean isEmpty() {
         return newItem.isEmpty();
     }
@@ -649,6 +653,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         return false;   // todo
     }
 
+    @Override
     public UserInterfaceElementVisibilityType getVisibleOverwrite() {
         return visibleOverwrite;
     }
@@ -817,5 +822,10 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     @Override
     public void setProcessProvenanceMetadata(boolean processProvenanceMetadata) {
         this.processProvenanceMetadata = processProvenanceMetadata;
+    }
+
+    @Override
+    public Optional<ComplexTypeDefinition> structuredType() {
+        return getItemDefinition().structuredType();
     }
 }

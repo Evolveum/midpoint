@@ -21,7 +21,7 @@ import com.evolveum.midpoint.repo.sqale.MObjectTypeMapping;
 import com.evolveum.midpoint.repo.sqale.SqaleTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -37,20 +37,25 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected final SqaleTransformerContext transformerContext;
-    protected final QueryModelMapping<S, Q, R> mapping;
+    protected final QueryTableMapping<S, Q, R> mapping;
 
     /**
      * Constructor uses {@link SqlTransformerContext} type even when it really is
      * {@link SqaleTransformerContext}, but this way we can cast it just once here; otherwise cast
-     * would be needed in each implementation of {@link QueryModelMapping#createTransformer)}.
-     * (Alternative is to parametrize {@link QueryModelMapping} with various {@link SqlTransformer}
+     * would be needed in each implementation of {@link QueryTableMapping#createTransformer)}.
+     * (Alternative is to parametrize {@link QueryTableMapping} with various {@link SqlTransformer}
      * types which is not convenient at all. This little downcast is low price to pay.)
      */
     protected SqaleTransformerBase(
             SqlTransformerContext transformerContext,
-            QueryModelMapping<S, Q, R> mapping) {
+            QueryTableMapping<S, Q, R> mapping) {
         this.transformerContext = (SqaleTransformerContext) transformerContext;
         this.mapping = mapping;
+    }
+
+    @Override
+    public S toSchemaObject(R row) {
+        throw new UnsupportedOperationException("Use toSchemaObject(Tuple,...)");
     }
 
     /**
@@ -131,15 +136,15 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
     }
 
     /** Returns ID for cached URI (represented by QName) without going ot database. */
-    protected Integer getCachedUriId(QName qName) {
+    protected Integer resolveToId(QName qName) {
         return qName != null
-                ? getCachedUriId(QNameUtil.qNameToUri(transformerContext.normalizeRelation(qName)))
+                ? resolveToId(QNameUtil.qNameToUri(transformerContext.normalizeRelation(qName)))
                 : null;
     }
 
     /** Returns ID for cached URI without going ot database. */
-    protected Integer getCachedUriId(String uri) {
-        return transformerContext.getCachedUriId(uri);
+    protected Integer resolveToId(String uri) {
+        return transformerContext.resolveToId(uri);
     }
 
     /** Returns ID for URI (represented by QName) creating new cache row in DB as needed. */

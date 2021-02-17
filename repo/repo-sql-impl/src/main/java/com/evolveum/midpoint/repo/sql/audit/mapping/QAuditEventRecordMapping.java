@@ -16,7 +16,7 @@ import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlDetailFetchMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.CanonicalItemPathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.DetailTableItemFilterProcessor;
@@ -28,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
  * Mapping between {@link QAuditEventRecord} and {@link AuditEventRecordType}.
  */
 public class QAuditEventRecordMapping
-        extends QueryModelMapping<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> {
+        extends QueryTableMapping<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> {
 
     public static final String DEFAULT_ALIAS_NAME = "aer";
 

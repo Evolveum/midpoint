@@ -10,11 +10,15 @@ package com.evolveum.midpoint.prism.schema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.google.common.collect.Multimap;
+
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 
 import java.util.Collection;
 import java.util.List;
+
+import javax.xml.namespace.QName;
 
 /**
  * Schema as a collection of definitions. This is a midPoint-specific view of
@@ -76,4 +80,6 @@ public interface PrismSchema extends DebugDumpable, GlobalDefinitionsStore, Defi
     Document serializeToXsd() throws SchemaException;
 
     boolean isEmpty();
+
+    Multimap<QName, ItemDefinition<?>> getSubstitutions();
 }

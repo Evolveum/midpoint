@@ -1,54 +1,50 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.testing.story;
+
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import java.util.Arrays;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
-import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.util.Arrays;
-
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
- *
  * @author mederly
- *
  */
 
 @SuppressWarnings("FieldCanBeLocal")
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestDelivery extends AbstractStoryTest {
 
@@ -61,36 +57,21 @@ public class TestDelivery extends AbstractStoryTest {
     private static final String RULES_DIR = TEST_DIR + "/rules";
     private static final String USERS_DIR = TEST_DIR + "/users";
 
-    public static final String NS_EXT = "http://midpoint.evolveum.com/xml/ns/story/delivery/ext";
-
     private static final File ORG_MONKEY_ISLAND_FILE = new File(ORG_DIR, "0-org-monkey-island-modified.xml");
 
     private static final File ROLE_END_USER_FILE = new File(ROLES_DIR, "role-end-user.xml");
-    private static String roleEndUserOid;
     private static final File RULE_K10_FILE = new File(RULES_DIR, "k10.xml");
-    private static String ruleK10_oid;
     private static final File RULE_K11_FILE = new File(RULES_DIR, "k11.xml");
-    private static String ruleK11_oid;
     private static final File RULE_K20_FILE = new File(RULES_DIR, "k20.xml");
-    private static String ruleK20_oid;
     private static final File RULE_K21_FILE = new File(RULES_DIR, "k21.xml");
-    private static String ruleK21_oid;
     private static final File RULE_K23_FILE = new File(RULES_DIR, "k23.xml");
-    private static String ruleK23_oid;
     private static final File RULE_K10_TPU_10_FILE = new File(RULES_DIR, "k10-tpu-10.xml");
-    private static String ruleK10_tpu_10_oid;
     private static final File RULE_K10_TPU_10_REM_ELAINE_FILE = new File(RULES_DIR, "k10-tpu-10-rem-elaine.xml");
-    private static String ruleK10_tpu_10_rem_elaine_oid;
     private static final File RULE_K10_CC_1900_REM_ADMINISTRATOR_FILE = new File(RULES_DIR, "k10-cc-1900-rem-administrator.xml");
-    private static String ruleK10_cc_1900_rem_administrator_oid;
     private static final File RULE_K11_TPU_10_REM_ELAINE_FILE = new File(RULES_DIR, "k11-tpu-10-rem-elaine.xml");
-    private static String ruleK11_tpu_10_rem_elaine_oid;
     private static final File RULE_K20_IT_1_REM_ELAINE_FILE = new File(RULES_DIR, "k20-it-1-rem-elaine.xml");
-    private static String ruleK20_it_1_rem_elaine_oid;
     private static final File RULE_K21_IT_1_REM_ELAINE_FILE = new File(RULES_DIR, "k21-it-1-rem-elaine.xml");
-    private static String ruleK21_it_1_rem_elaine_oid;
     private static final File RULE_K23_REM_ELAINE_FILE = new File(RULES_DIR, "k23-rem-elaine.xml");
-    private static String ruleK23_rem_elaine_oid;
 
     private static final File LIBRARY_FILE = new File(RULES_DIR, "library.xml");
 
@@ -112,15 +93,10 @@ public class TestDelivery extends AbstractStoryTest {
     private static final File USER_CARLA_FILE = new File(USERS_DIR, "carla.xml");
     private static String userCarlaOid;
     private static final File USER_CHEESE_FILE = new File(USERS_DIR, "cheese.xml");
-    private static String userCheeseOid;
     private static final File USER_CHEF_FILE = new File(USERS_DIR, "chef.xml");
-    private static String userChefOid;
     private static final File USER_ELAINE_FILE = new File(USERS_DIR, "elaine.xml");
-    private static String userElaineOid;
     private static final File USER_GUYBRUSH_FILE = new File(USERS_DIR, "guybrush.xml");
-    private static String userGuybrushOid;
     private static final File USER_LECHUCK_FILE = new File(USERS_DIR, "lechuck.xml");
-    private static String userLechuckOid;
 
     private static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
     private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000000";
@@ -138,6 +114,11 @@ public class TestDelivery extends AbstractStoryTest {
         openDJController.startCleanServer();
     }
 
+    @AfterClass
+    public static void stopResources() {
+        openDJController.stop();
+    }
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -152,19 +133,19 @@ public class TestDelivery extends AbstractStoryTest {
         // import of story objects
         repoAddObjectsFromFile(ORG_MONKEY_ISLAND_FILE, OrgType.class, initResult);
 
-        roleEndUserOid = repoAddObjectFromFile(ROLE_END_USER_FILE, initResult).getOid();
-        ruleK10_oid = addAndRecompute(RULE_K10_FILE, initTask, initResult);
-        ruleK11_oid = addAndRecompute(RULE_K11_FILE, initTask, initResult);
-        ruleK20_oid = addAndRecompute(RULE_K20_FILE, initTask, initResult);
-        ruleK21_oid = addAndRecompute(RULE_K21_FILE, initTask, initResult);
-        ruleK23_oid = addAndRecompute(RULE_K23_FILE, initTask, initResult);
-        ruleK10_tpu_10_oid = addAndRecompute(RULE_K10_TPU_10_FILE, initTask, initResult);
-        ruleK10_tpu_10_rem_elaine_oid = addAndRecompute(RULE_K10_TPU_10_REM_ELAINE_FILE, initTask, initResult);
-        ruleK10_cc_1900_rem_administrator_oid = addAndRecompute(RULE_K10_CC_1900_REM_ADMINISTRATOR_FILE, initTask, initResult);
-        ruleK11_tpu_10_rem_elaine_oid = addAndRecompute(RULE_K11_TPU_10_REM_ELAINE_FILE, initTask, initResult);
-        ruleK20_it_1_rem_elaine_oid = addAndRecompute(RULE_K20_IT_1_REM_ELAINE_FILE, initTask, initResult);
-        ruleK21_it_1_rem_elaine_oid = addAndRecompute(RULE_K21_IT_1_REM_ELAINE_FILE, initTask, initResult);
-        ruleK23_rem_elaine_oid = addAndRecompute(RULE_K23_REM_ELAINE_FILE, initTask, initResult);
+        repoAddObjectFromFile(ROLE_END_USER_FILE, initResult).getOid();
+        addAndRecompute(RULE_K10_FILE, initTask, initResult);
+        addAndRecompute(RULE_K11_FILE, initTask, initResult);
+        addAndRecompute(RULE_K20_FILE, initTask, initResult);
+        addAndRecompute(RULE_K21_FILE, initTask, initResult);
+        addAndRecompute(RULE_K23_FILE, initTask, initResult);
+        addAndRecompute(RULE_K10_TPU_10_FILE, initTask, initResult);
+        addAndRecompute(RULE_K10_TPU_10_REM_ELAINE_FILE, initTask, initResult);
+        addAndRecompute(RULE_K10_CC_1900_REM_ADMINISTRATOR_FILE, initTask, initResult);
+        addAndRecompute(RULE_K11_TPU_10_REM_ELAINE_FILE, initTask, initResult);
+        addAndRecompute(RULE_K20_IT_1_REM_ELAINE_FILE, initTask, initResult);
+        addAndRecompute(RULE_K21_IT_1_REM_ELAINE_FILE, initTask, initResult);
+        addAndRecompute(RULE_K23_REM_ELAINE_FILE, initTask, initResult);
         roleIt1Oid = addAndRecompute(ROLE_IT_1_FILE, initTask, initResult);
         roleIt2Oid = addAndRecompute(ROLE_IT_2_FILE, initTask, initResult);
         roleIt3Oid = addAndRecompute(ROLE_IT_3_FILE, initTask, initResult);
@@ -174,11 +155,11 @@ public class TestDelivery extends AbstractStoryTest {
         userBarkeeperOid = addAndRecomputeUser(USER_BARKEEPER_FILE, initTask, initResult);
         userBobOid = addAndRecomputeUser(USER_BOB_FILE, initTask, initResult);
         userCarlaOid = addAndRecomputeUser(USER_CARLA_FILE, initTask, initResult);
-        userCheeseOid = addAndRecomputeUser(USER_CHEESE_FILE, initTask, initResult);
-        userChefOid = addAndRecomputeUser(USER_CHEF_FILE, initTask, initResult);
-        userElaineOid = addAndRecomputeUser(USER_ELAINE_FILE, initTask, initResult);
-        userGuybrushOid = addAndRecomputeUser(USER_GUYBRUSH_FILE, initTask, initResult);
-        userLechuckOid = addAndRecomputeUser(USER_LECHUCK_FILE, initTask, initResult);
+        addAndRecomputeUser(USER_CHEESE_FILE, initTask, initResult);
+        addAndRecomputeUser(USER_CHEF_FILE, initTask, initResult);
+        addAndRecomputeUser(USER_ELAINE_FILE, initTask, initResult);
+        addAndRecomputeUser(USER_GUYBRUSH_FILE, initTask, initResult);
+        addAndRecomputeUser(USER_LECHUCK_FILE, initTask, initResult);
 
         resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE,
                 RESOURCE_OPENDJ_OID, initTask, initResult);
@@ -353,13 +334,12 @@ public class TestDelivery extends AbstractStoryTest {
         assertUser(userBobAfter, "after")
                 .assertLinks(1)
                 .assignments()
-                    .assertRole(ROLE_OPENDJ_OID);
+                .assertRole(ROLE_OPENDJ_OID);
 
         PrismObject<ShadowType> shadow = findShadowByNameViaModel(ShadowKindType.ACCOUNT, "default", "uid=bob,ou=People,dc=example,dc=com", resourceOpenDj, null, task, result);
         assertNotNull(shadow);
         bobShadowOid = shadow.getOid();
-        new ShadowAsserter(shadow).attributes().assertNoAttribute(ATTR_JPEG_PHOTO);
-
+        new ShadowAsserter<>(shadow).attributes().assertNoAttribute(ATTR_JPEG_PHOTO);
     }
 
     @Test
@@ -369,6 +349,7 @@ public class TestDelivery extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        //noinspection PrimitiveArrayArgumentToVarargsMethod
         modifyUserAdd(userBobOid, UserType.F_JPEG_PHOTO, task, result, "SGVsbG8=".getBytes());
         assertResultStatus(result, OperationResultStatus.SUCCESS);
 
@@ -378,11 +359,10 @@ public class TestDelivery extends AbstractStoryTest {
                 .assertLinks(1);
 
         PrismObject<ShadowType> shadow = findShadowByNameViaModel(ShadowKindType.ACCOUNT, "default", "uid=bob,ou=People,dc=example,dc=com", resourceOpenDj, null, task, result);
-        new ShadowAsserter(shadow)
+        new ShadowAsserter<>(shadow)
                 .attributes()
-                    .attribute(ATTR_JPEG_PHOTO)
-                        .assertSize(1);
-
+                .attribute(ATTR_JPEG_PHOTO)
+                .assertSize(1);
 
     }
 
@@ -396,8 +376,6 @@ public class TestDelivery extends AbstractStoryTest {
         ModelContext<UserType> previewContext = previewChanges(prismContext.deltaFor(UserType.class).asObjectDelta(userBobOid), ModelExecuteOptions.create(prismContext).reconcile(), task, result);
         assertPreviewContext(previewContext).projectionContexts().by().shadowOid(bobShadowOid).find().assertNoSecondaryDelta();
     }
-
-
 
     @NotNull
     public CaseType getRootCase(OperationResult result) throws ObjectNotFoundException, SchemaException {

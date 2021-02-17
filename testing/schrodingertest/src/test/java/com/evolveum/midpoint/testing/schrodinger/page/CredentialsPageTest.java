@@ -40,7 +40,7 @@ public class CredentialsPageTest extends AbstractSchrodingerTest {
                     .and()
                 .save()
                 .feedback()
-                .assertSuccess();
+                .assertInfo();
         basicPage.loggedUser().logout();
         midPoint.formLogin()
                 .loginWithReloadLoginPage("CredentialsPageTestUser", "password1")

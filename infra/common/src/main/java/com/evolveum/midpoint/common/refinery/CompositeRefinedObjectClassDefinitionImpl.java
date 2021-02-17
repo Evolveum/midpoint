@@ -56,6 +56,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
         }
     }
 
+    @Override
     public RefinedObjectClassDefinition getStructuralObjectClassDefinition() {
         return structuralObjectClassDefinition;
     }
@@ -104,6 +105,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
         return structuralObjectClassDefinition.getProcessing();
     }
 
+    @Override
     public List<SchemaMigration> getSchemaMigrations() {
         return structuralObjectClassDefinition.getSchemaMigrations();
     }
@@ -340,6 +342,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
         return structuralObjectClassDefinition.getPasswordPolicy();
     }
 
+    @Override
     public ObjectReferenceType getSecurityPolicyRef() {
         return structuralObjectClassDefinition.getSecurityPolicyRef();
     }
@@ -369,6 +372,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
         return structuralObjectClassDefinition.getCapabilities();
     }
 
+    @Override
     public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resourceType) {
         return structuralObjectClassDefinition.getEffectiveCapability(capabilityClass, resourceType);
     }
@@ -489,6 +493,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
         return findAttributeDefinition(name, false);
     }
 
+    @Override
     public RefinedAssociationDefinition findAssociationDefinition(QName name) {
         for (RefinedAssociationDefinition assocType : getAssociationDefinitions()) {
             if (QNameUtil.match(assocType.getName(), name)) {
@@ -719,10 +724,12 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
     /**
      * Return a human readable name of this class suitable for logs.
      */
+    @Override
     public String getDebugDumpClassName() {
         return "crOCD";
     }
 
+    @Override
     public String getHumanReadableName() {
         if (getDisplayName() != null) {
             return getDisplayName();
@@ -827,5 +834,15 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
     @Override
     public boolean isImmutable() {
         return immutable;
+    }
+
+    @Override
+    public boolean hasSubstitutions() {
+        return false;
+    }
+
+    @Override
+    public Optional<ItemDefinition<?>> substitution(QName name) {
+        return Optional.empty();
     }
 }

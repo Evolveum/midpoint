@@ -21,22 +21,23 @@ public class MObject {
     public String nameNorm;
     public String nameOrig;
     public byte[] fullObject;
-    public Integer creatorRefRelationId;
-    public UUID creatorRefTargetOid;
-    public Integer creatorRefTargetType;
-    public Integer createChannelId;
-    public Instant createTimestamp;
-    public Integer modifierRefRelationId;
-    public UUID modifierRefTargetOid;
-    public Integer modifierRefTargetType;
-    public Integer modifyChannelId;
-    public Instant modifyTimestamp;
-    public Integer tenantRefRelationId;
     public UUID tenantRefTargetOid;
     public Integer tenantRefTargetType;
+    public Integer tenantRefRelationId;
     public String lifecycleState;
     public Integer version;
     public byte[] ext;
+    // metadata
+    public UUID creatorRefTargetOid;
+    public Integer creatorRefTargetType;
+    public Integer creatorRefRelationId;
+    public Integer createChannelId;
+    public Instant createTimestamp;
+    public UUID modifierRefTargetOid;
+    public Integer modifierRefTargetType;
+    public Integer modifierRefRelationId;
+    public Integer modifyChannelId;
+    public Instant modifyTimestamp;
 
     public PolyString getName() {
         return new PolyString(nameOrig, nameNorm);

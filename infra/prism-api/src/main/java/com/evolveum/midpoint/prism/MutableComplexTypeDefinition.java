@@ -9,7 +9,10 @@ package com.evolveum.midpoint.prism;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import javax.xml.namespace.QName;
+
 import java.util.List;
 
 /**
@@ -25,6 +28,7 @@ public interface MutableComplexTypeDefinition extends ComplexTypeDefinition, Mut
 
     MutablePrismPropertyDefinition<?> createPropertyDefinition(String name, QName typeName);
 
+    @Override
     @NotNull
     ComplexTypeDefinition clone();
 
@@ -51,4 +55,7 @@ public interface MutableComplexTypeDefinition extends ComplexTypeDefinition, Mut
     void setCompileTimeClass(Class<?> compileTimeClass);
 
     void replaceDefinition(QName itemName, ItemDefinition newDefinition);
+
+    @Experimental
+    void addSubstitution(ItemDefinition<?> itemDef, ItemDefinition<?> maybeSubst);
 }

@@ -13,6 +13,7 @@ import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
+import com.querydsl.sql.PrimaryKey;
 
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
@@ -30,7 +31,7 @@ public class QLookupTableRow extends FlexibleRelationalPathBase<MLookupTableRow>
     public static final ColumnMetadata OWNER_OID =
             ColumnMetadata.named("owner_oid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata ROW_ID =
-            ColumnMetadata.named("row_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("cid").ofType(Types.INTEGER);
     public static final ColumnMetadata ROW_KEY =
             ColumnMetadata.named("row_key").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata LABEL_NORM =
@@ -42,14 +43,16 @@ public class QLookupTableRow extends FlexibleRelationalPathBase<MLookupTableRow>
     public static final ColumnMetadata LAST_CHANGE_TIMESTAMP =
             ColumnMetadata.named("lastChangeTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
 
-    public UuidPath ownerOid = createUuid("", OWNER_OID);
-    public NumberPath<Integer> rowId = createInteger("rowId", ROW_ID);
+    public UuidPath ownerOid = createUuid("ownerOid", OWNER_OID);
+    public NumberPath<Integer> cid = createInteger("cid", ROW_ID);
     public StringPath rowKey = createString("rowKey", ROW_KEY);
     public StringPath labelNorm = createString("labelNorm", LABEL_NORM);
     public StringPath labelOrig = createString("labelOrig", LABEL_ORIG);
     public StringPath rowValue = createString("rowValue", ROW_VALUE);
     public DateTimePath<Instant> lastChangeTimestamp =
             createInstant("lastChangeTimestamp", LAST_CHANGE_TIMESTAMP);
+
+    public final PrimaryKey<MLookupTableRow> pk = createPrimaryKey(ownerOid, cid);
 
     public QLookupTableRow(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

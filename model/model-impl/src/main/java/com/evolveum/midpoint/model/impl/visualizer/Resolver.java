@@ -22,6 +22,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -75,6 +77,18 @@ public class Resolver {
                     }
                 } else {
                     object.applyDefinition(def);
+                }
+                if (object.getName() == null && object.getOid() != null) {
+                    String oid = object.getOid();
+                    try {
+                        PrismObject<O> originalObject = modelService.getObject(clazz, oid, createCollection(createNoFetch()), task, result);
+                        object.asObjectable().setName(new PolyStringType(originalObject.getName()));
+                    } catch (ObjectNotFoundException e) {
+                        //ignore when object doesn't exist
+                    } catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException | SecurityViolationException e) {
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
+                        warn(result, "Couldn't resolve object " + oid + ": " + e.getMessage(), e);
+                    }
                 }
             } else {
                 warn(result, "Definition for " + toShortString(object) + " couldn't be found");

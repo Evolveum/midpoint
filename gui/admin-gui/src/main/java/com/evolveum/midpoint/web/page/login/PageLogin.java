@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.web.page.login;
 
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -23,10 +24,7 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.forgetpassword.PageForgotPassword;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -77,7 +75,7 @@ public class PageLogin extends AbstractPageLogin {
         OperationResult parentResult = new OperationResult(OPERATION_LOAD_RESET_PASSWORD_POLICY);
         SecurityPolicyType securityPolicy = null;
         try {
-            securityPolicy = getModelInteractionService().getSecurityPolicy(null, null, parentResult);
+            securityPolicy = getModelInteractionService().getSecurityPolicy((PrismObject<? extends FocusType>) null, null, parentResult);
         } catch (CommonException e) {
             LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
         }

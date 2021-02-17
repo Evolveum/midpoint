@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -21,8 +21,6 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.util.PolyStringUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.opends.server.types.Entry;
@@ -48,7 +46,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -73,7 +70,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
@@ -2168,13 +2164,13 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertRepoShadow(accountOid)
                 .hasUnfinishedPendingOperations()
                 .pendingOperations()
-                    .assertOperations(1)
-                    .modifyOperation()
-                        .display()
-                        .assertAttemptNumber(1)
-                        .delta()
-                            .assertModify()
-                            .assertHasModification(ItemPath.create(ShadowType.F_ATTRIBUTES, LDAP_ATTRIBUTE_DN));
+                .assertOperations(1)
+                .modifyOperation()
+                .display()
+                .assertAttemptNumber(1)
+                .delta()
+                .assertModify()
+                .assertHasModification(ItemPath.create(ShadowType.F_ATTRIBUTES, LDAP_ATTRIBUTE_DN));
     }
 
     //TODO: enable after notify failure will be implemented..
@@ -2919,7 +2915,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // Too much noise
 //        displayJaxb("shadow from the repository: ", failedAccountType, ShadowType.COMPLEX_TYPE);
         // TODO FIX THIS!!!
-//        assertEquals("Failed operation saved with account differt from  the expected value.",
+//        assertEquals("Failed operation saved with account different from the expected value.",
 //                failedOperation, failedAccountType.getFailedOperationType());
 //        assertNotNull("Result of failed shadow must not be null.", failedAccountType.getResult());
 //        assertNotNull("Shadow does not contain resource ref.", failedAccountType.getResourceRef());
@@ -2933,24 +2929,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     private ShadowType checkPostponedAccountBasic(String accountOid, boolean modify, OperationResult parentResult) throws Exception {
         PrismObject<ShadowType> faieldAccount = repositoryService.getObject(ShadowType.class, accountOid, null, parentResult);
         return checkPostponedAccountBasic(faieldAccount, modify, parentResult);
-    }
-
-    // TODO found as unused in 2020
-    private Collection<ObjectDelta<? extends ObjectType>> createDeltas(
-            Class type, File requestFile, String objectOid)
-            throws IOException, SchemaException {
-
-        try {
-            ObjectDeltaType objectChange = unmarshalValueFromFile(requestFile);
-            objectChange.setOid(objectOid);
-
-            ObjectDelta<?> delta = DeltaConvertor.createObjectDelta(objectChange, prismContext);
-            return MiscSchemaUtil.createCollection(delta);
-        } catch (Exception ex) {
-            logger.error("ERROR while unmarshalling", ex);
-            throw ex;
-        }
-
     }
 
     private void modifyResourceAvailabilityStatus(AvailabilityStatusType status, OperationResult parentResult) throws Exception {

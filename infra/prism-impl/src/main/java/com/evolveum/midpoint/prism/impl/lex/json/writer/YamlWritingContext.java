@@ -24,11 +24,9 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.prism.SerializationContext;
 import com.evolveum.midpoint.prism.impl.lex.json.yaml.MidpointYAMLFactory;
 import com.evolveum.midpoint.prism.impl.lex.json.yaml.MidpointYAMLGenerator;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class YamlWritingContext extends WritingContext<MidpointYAMLGenerator> {
 
@@ -36,6 +34,7 @@ public class YamlWritingContext extends WritingContext<MidpointYAMLGenerator> {
         super(prismSerializationContext);
     }
 
+    @Override
     MidpointYAMLGenerator createJacksonGenerator(StringWriter out) {
         try {
             MidpointYAMLFactory factory = new MidpointYAMLFactory();
@@ -70,8 +69,6 @@ public class YamlWritingContext extends WritingContext<MidpointYAMLGenerator> {
         SimpleModule module = new SimpleModule("MidpointModule", new Version(0, 0, 0, "aa"));
         module.addSerializer(QName.class, new QNameSerializer());
         module.addSerializer(PolyString.class, new PolyStringSerializer());
-        module.addSerializer(ItemPath.class, new ItemPathSerializer());
-        module.addSerializer(ItemPathType.class, new ItemPathTypeSerializer());
 //        module.addSerializer(JAXBElement.class, new JaxbElementSerializer());
         module.addSerializer(XMLGregorianCalendar.class, new XmlGregorianCalendarSerializer());
         module.addSerializer(Element.class, new DomElementSerializer());

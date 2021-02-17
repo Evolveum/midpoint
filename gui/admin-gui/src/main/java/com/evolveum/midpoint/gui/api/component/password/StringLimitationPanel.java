@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.api.component.password;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
@@ -18,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -29,8 +31,8 @@ import java.util.List;
 
 public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
 
+    private static final String ID_ICON = "icon";
     private static final String ID_NAME = "name";
-    private static final String ID_HELP = "help";
     private static final String ID_RULES = "rules";
 
     public StringLimitationPanel(String id, IModel<StringLimitationResult> model) {
@@ -44,21 +46,28 @@ public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
     }
 
     private void initLayout() {
-        Label name = new Label(ID_NAME, WebComponentUtil.getTranslatedPolyString(getModelObject().getName()));
-        name.setOutputMarkupId(true);
-        add(name);
 
-        Label help = new Label(ID_HELP);
-        IModel<String> helpModel = new IModel<String>() {
+        Label icon = new Label(ID_ICON);
+        icon.add(AttributeModifier.append("class", (IModel<String>) () -> {
+            String cssClass;
+            if (Boolean.TRUE.equals(getModelObject().isSuccess())) {
+                cssClass = " fa-check";
+            } else {
+                cssClass = " fa-times";
+            }
+            return cssClass;
+        }));
+        icon.setOutputMarkupId(true);
+        add(icon);
+
+        LabelWithHelpPanel label = new LabelWithHelpPanel(ID_NAME, Model.of(WebComponentUtil.getTranslatedPolyString(getModelObject().getName()))){
             @Override
-            public String getObject() {
-                return WebComponentUtil.getTranslatedPolyString(getModelObject().getHelp());
+            protected IModel<String> getHelpModel() {
+                return Model.of(WebComponentUtil.getTranslatedPolyString(StringLimitationPanel.this.getModelObject().getHelp()));
             }
         };
-        help.add(AttributeModifier.replace("title",createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
-        help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpModel.getObject())));
-        help.setOutputMarkupId(true);
-        add(help);
+        label.setOutputMarkupId(true);
+        add(label);
 
         IModel<String> rulesModel = getRulesModel();
         Label rules = new Label(ID_RULES, rulesModel);

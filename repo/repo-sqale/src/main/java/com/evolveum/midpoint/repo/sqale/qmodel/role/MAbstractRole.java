@@ -8,14 +8,13 @@ package com.evolveum.midpoint.repo.sqale.qmodel.role;
 
 import java.util.UUID;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.MFocus;
 
 /**
  * Querydsl "row bean" type related to {@link QAbstractRole}.
  */
-public class MAbstractRole extends MObject {
+public class MAbstractRole extends MFocus {
 
-    public String approvalProcess;
     public Boolean autoassignEnabled;
     public String displayNameNorm;
     public String displayNameOrig;

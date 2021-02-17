@@ -18,6 +18,17 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 
+/**
+ * Declarative information how an item (from schema/prism world) is to be processed
+ * when interpreting query.
+ * As this is declarative it does not point to any Q-class attributes - instead it knows
+ * how to get to the attributes when the Q-class instance (entity path) is provided; this is
+ * provided as a function (or functions for multiple paths), typically as lambdas.
+ *
+ * Based on this information the mapper can later create {@link FilterProcessor} when needed,
+ * again providing the right type of {@link FilterProcessor}, based on the type of the item
+ * and/or how the item is mapped to the database.
+ */
 public class ItemSqlMapper {
 
     /**
@@ -28,10 +39,10 @@ public class ItemSqlMapper {
      */
     @Nullable private final Function<EntityPath<?>, Path<?>> primaryItemMapping;
 
-    @NotNull private final Function<SqlQueryContext<?, ?, ?>, FilterProcessor<?>> filterProcessorFactory;
+    @NotNull private final Function<SqlQueryContext<?, ?, ?>, ItemFilterProcessor<?>> filterProcessorFactory;
 
     public <P extends Path<?>> ItemSqlMapper(
-            @NotNull Function<SqlQueryContext<?, ?, ?>, FilterProcessor<?>> filterProcessorFactory,
+            @NotNull Function<SqlQueryContext<?, ?, ?>, ItemFilterProcessor<?>> filterProcessorFactory,
             @Nullable Function<EntityPath<?>, P> primaryItemMapping) {
         this.filterProcessorFactory = Objects.requireNonNull(filterProcessorFactory);
         //noinspection unchecked
@@ -39,7 +50,7 @@ public class ItemSqlMapper {
     }
 
     public ItemSqlMapper(
-            @NotNull Function<SqlQueryContext<?, ?, ?>, FilterProcessor<?>> filterProcessorFactory) {
+            @NotNull Function<SqlQueryContext<?, ?, ?>, ItemFilterProcessor<?>> filterProcessorFactory) {
         this(filterProcessorFactory, null);
     }
 
@@ -47,10 +58,18 @@ public class ItemSqlMapper {
         return primaryItemMapping != null ? primaryItemMapping.apply(root) : null;
     }
 
-    public <T extends ObjectFilter> FilterProcessor<T> createFilterProcessor(
-            SqlQueryContext<?, ?, ?> pathContext) {
+    /**
+     * Creates {@link ItemFilterProcessor} based on this mapping.
+     * Provided {@link SqlQueryContext} is used to figure out the query paths when this is executed
+     * (as the entity path instance is not yet available when the mapping is configured
+     * in a declarative manner).
+     *
+     * The type of the returned filter is adapted to the client code needs for convenience.
+     */
+    public <T extends ObjectFilter> ItemFilterProcessor<T> createFilterProcessor(
+            SqlQueryContext<?, ?, ?> sqlQueryContext) {
         //noinspection unchecked
-        return (FilterProcessor<T>) filterProcessorFactory.apply(pathContext);
+        return (ItemFilterProcessor<T>) filterProcessorFactory.apply(sqlQueryContext);
     }
 
     // TODO createDeltaProcessor?

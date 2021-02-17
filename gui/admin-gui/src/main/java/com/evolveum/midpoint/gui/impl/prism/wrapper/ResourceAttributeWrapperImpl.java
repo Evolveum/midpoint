@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
@@ -316,5 +317,10 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     @Override
     public MutableResourceAttributeDefinition<T> toMutable() {
         return getRefinedAttributeDefinition().toMutable();
+    }
+
+    @Override
+    public Optional<ComplexTypeDefinition> structuredType() {
+        return getRefinedAttributeDefinition().structuredType();
     }
 }

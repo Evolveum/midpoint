@@ -15,6 +15,7 @@ import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.NumberPath;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
@@ -82,13 +83,18 @@ public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
         } else if (!filter.isOidNullAsAny()) {
             predicate = oidPath.isNull();
         }
-        if (ref.getRelation() != null) {
+        if (ref.getRelation() == null) {
+            Integer defaultRelationId = ((SqaleRepoContext) context.sqlRepoContext())
+                    .searchCachedUriId(context.prismContext().getDefaultRelation());
+            predicate = ExpressionUtils.and(predicate,
+                    predicateWithNotTreated(relationIdPath, relationIdPath.eq(defaultRelationId)));
+        } else if (ref.getRelation().equals(PrismConstants.Q_ANY)) {
+            // no additional predicate needed
+        } else {
             Integer relationId = ((SqaleRepoContext) context.sqlRepoContext())
-                    .getCachedUriId(ref.getRelation());
+                    .searchCachedUriId(ref.getRelation());
             predicate = ExpressionUtils.and(predicate,
                     predicateWithNotTreated(relationIdPath, relationIdPath.eq(relationId)));
-        } else if (!filter.isRelationNullAsAny()) {
-            predicate = ExpressionUtils.and(predicate, relationIdPath.isNull());
         }
         if (ref.getTargetType() != null) {
             int typeCode = MObjectTypeMapping.fromTypeQName(ref.getTargetType()).code();

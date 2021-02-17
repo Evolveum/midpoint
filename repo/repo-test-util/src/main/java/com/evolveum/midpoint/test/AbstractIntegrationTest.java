@@ -181,10 +181,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     @Qualifier("repoSimpleObjectResolver")
     protected SimpleObjectResolver repoSimpleObjectResolver;
 
-    // Controllers for embedded OpenDJ and Derby. The abstract test will configure it, but
-    // it will not start only tests that need OpenDJ or derby should start it
+    // Controllers for embedded OpenDJ. The abstract test will configure it, but
+    // it will not start only tests that need OpenDJ should start it.
     protected static OpenDJController openDJController = new OpenDJController();
-    protected static DerbyController derbyController = new DerbyController();
 
     /**
      * Fast and simple way how to enable tracing of test methods.
@@ -207,6 +206,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
      */
     @PostConstruct
     public void initSystem() throws Exception {
+        displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
         if (initSystemExecuted) {
             logger.trace("initSystem: already called for class {} - IGNORING", getClass().getName());
             return;

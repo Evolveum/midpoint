@@ -207,7 +207,7 @@ public class PrismForm<T> extends Component<T> {
 
     }
 
-    public PrismForm<T> assertSelectAttributeValueMatches(String attributeName, String expectedValue) {
+    public PrismForm<T> assertPropertySelectValue(String attributeName, String expectedValue) {
         Assert.assertTrue(compareSelectAttributeValue(attributeName, expectedValue),"The value of the select attribute " + attributeName
                     + " doesn't match to expected value '" + expectedValue + "'.");
         return this;
@@ -493,6 +493,15 @@ public class PrismForm<T> extends Component<T> {
         return new PrismContainerPanel<PrismForm<T>>(this, containerPanel);
     }
 
+    public PrismContainerPanel<PrismForm<T>> getPrismContainerPanelByResourceKey(String resourceKey) {
+        SelenideElement containerPanel = getParentElement().$(Schrodinger.byDataResourceKey(resourceKey))
+                .parent()
+                .parent()
+                .parent();
+        containerPanel.scrollTo();
+        return new PrismContainerPanel<PrismForm<T>>(this, containerPanel);
+    }
+
     public PrismForm<T> assertPropertyWithTitleTextExist(String propertyName, String text) {
         Assert.assertTrue(propertyWithTitleTextExists(propertyName, text),
                 "Property " + propertyName + " with title text '" + text + "' doesn't exist.");
@@ -506,23 +515,28 @@ public class PrismForm<T> extends Component<T> {
     }
 
     public PrismForm<T> assertPropertyEnabled(String propertyName) {
-        Assert.assertTrue(isPropertyEnabled(propertyName), "Property " + propertyName + " is disabled.");
+        Assert.assertTrue(isPropertyEnabled(propertyName), "Property " + propertyName + " should be enabled.");
         return this;
     }
 
-    public PrismForm<T> assertInputAttributeValueMatches(String attributeName, String expectedValue) {
+    public PrismForm<T> assertPropertyDisabled(String propertyName) {
+        Assert.assertFalse(isPropertyEnabled(propertyName), "Property " + propertyName + " should be disabled.");
+        return this;
+    }
+
+    public PrismForm<T> assertPropertyInputValue(String attributeName, String expectedValue) {
         Assert.assertTrue(compareInputAttributeValue(attributeName, expectedValue), "The value of the input attribute " + attributeName
                 + " doesn't match to expected value '" + expectedValue + "'.");
         return this;
     }
 
-    public PrismForm<T> assertInputAttributeValuesMatches(String attributeName, String... expectedValues) {
+    public PrismForm<T> assertPropertyInputValues(String attributeName, String... expectedValues) {
         Assert.assertTrue(compareInputAttributeValues(attributeName, expectedValues), "The values of the input attribute " + attributeName
                 + " doesn't match to expected values.");
         return this;
     }
 
-    public PrismForm<T> assertInputAttributeValuesMatches(String attributeName, List<String> expectedValues) {
+    public PrismForm<T> assertPropertyInputValues(String attributeName, List<String> expectedValues) {
         Assert.assertTrue(compareInputAttributeValues(attributeName, expectedValues), "The values of the input attribute " + attributeName
                 + " doesn't match to expected values.");
         return this;

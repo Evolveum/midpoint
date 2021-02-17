@@ -1,20 +1,17 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.prism.query;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.NS_FOO;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getSchemaRegistry;
 
-import java.lang.reflect.Method;
 import javax.xml.namespace.QName;
 
 import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.*;
@@ -94,15 +91,20 @@ public class TestQueryBuilder extends AbstractPrismTest {
 
     @Test
     public void test122AllInBlock() {
-        ObjectQuery actual = getPrismContext().queryFor(UserType.class).block().all().endBlock().build();
+        ObjectQuery actual = getPrismContext().queryFor(UserType.class)
+                .block().all().endBlock()
+                .build();
         ObjectQuery expected = ObjectQueryImpl.createObjectQuery(AllFilterImpl.createAll());
         compare(actual, expected);
     }
 
     @Test
     public void test130SingleEquals() {
-        ObjectQuery actual = getPrismContext().queryFor(UserType.class).item(UserType.F_LOCALITY).eq("Caribbean").build();
-        ObjectQuery expected = ObjectQueryImpl.createObjectQuery(createEqual(UserType.F_LOCALITY, UserType.class, null, "Caribbean"));
+        ObjectQuery actual = getPrismContext().queryFor(UserType.class)
+                .item(UserType.F_LOCALITY).eq("Caribbean")
+                .build();
+        ObjectQuery expected = ObjectQueryImpl.createObjectQuery(
+                createEqual(UserType.F_LOCALITY, UserType.class, null, "Caribbean"));
         compare(actual, expected);
     }
 
@@ -306,8 +308,10 @@ public class TestQueryBuilder extends AbstractPrismTest {
                 .exists(UserType.F_ASSIGNMENT)
                 .item(AssignmentType.F_DESCRIPTION).startsWith("desc1")
                 .build();
-        ComplexTypeDefinition assCtd = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(AssignmentType.class);
-        PrismContainerDefinition userPcd = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(UserType.class);
+        ComplexTypeDefinition assCtd = getPrismContext().getSchemaRegistry()
+                .findComplexTypeDefinitionByCompileTimeClass(AssignmentType.class);
+        PrismContainerDefinition<?> userPcd = getPrismContext().getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(UserType.class);
         ObjectQuery expected = ObjectQueryImpl.createObjectQuery(
                 ExistsFilterImpl.createExists(
                         UserType.F_ASSIGNMENT,
@@ -316,9 +320,7 @@ public class TestQueryBuilder extends AbstractPrismTest {
                                 AssignmentType.F_DESCRIPTION,
                                 assCtd.findPropertyDefinition(AssignmentType.F_DESCRIPTION),
                                 getPrismContext(),
-                                null, "desc1", true, false)
-                )
-        );
+                                null, "desc1", true, false)));
         compare(actual, expected);
     }
 
@@ -328,8 +330,10 @@ public class TestQueryBuilder extends AbstractPrismTest {
                 .exists(UserType.F_ASSIGNMENT)
                 .item(AssignmentType.F_NOTE).endsWith("DONE.")
                 .build();
-        ComplexTypeDefinition assCtd = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(AssignmentType.class);
-        PrismContainerDefinition userPcd = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(UserType.class);
+        ComplexTypeDefinition assCtd = getPrismContext().getSchemaRegistry()
+                .findComplexTypeDefinitionByCompileTimeClass(AssignmentType.class);
+        PrismContainerDefinition<?> userPcd = getPrismContext().getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(UserType.class);
         ObjectQuery expected = ObjectQueryImpl.createObjectQuery(
                 ExistsFilterImpl.createExists(
                         UserType.F_ASSIGNMENT,
@@ -338,9 +342,7 @@ public class TestQueryBuilder extends AbstractPrismTest {
                                 AssignmentType.F_NOTE,
                                 assCtd.findPropertyDefinition(AssignmentType.F_NOTE),
                                 getPrismContext(),
-                                null, "DONE.", false, true)
-                )
-        );
+                                null, "DONE.", false, true)));
         compare(actual, expected);
     }
 
@@ -352,8 +354,10 @@ public class TestQueryBuilder extends AbstractPrismTest {
                 .item(AssignmentType.F_NOTE).endsWith("DONE.")
                 .endBlock()
                 .build();
-        ComplexTypeDefinition assCtd = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(AssignmentType.class);
-        PrismContainerDefinition userPcd = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(UserType.class);
+        ComplexTypeDefinition assCtd = getPrismContext().getSchemaRegistry()
+                .findComplexTypeDefinitionByCompileTimeClass(AssignmentType.class);
+        PrismContainerDefinition<?> userPcd = getPrismContext().getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(UserType.class);
         ObjectQuery expected = ObjectQueryImpl.createObjectQuery(
                 ExistsFilterImpl.createExists(
                         UserType.F_ASSIGNMENT,
@@ -362,9 +366,7 @@ public class TestQueryBuilder extends AbstractPrismTest {
                                 AssignmentType.F_NOTE,
                                 assCtd.findPropertyDefinition(AssignmentType.F_NOTE),
                                 getPrismContext(),
-                                null, "DONE.", false, true)
-                )
-        );
+                                null, "DONE.", false, true)));
         compare(actual, expected);
     }
 
@@ -377,8 +379,10 @@ public class TestQueryBuilder extends AbstractPrismTest {
                 .and().all()
                 .endBlock()
                 .build();
-        ComplexTypeDefinition assCtd = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(AssignmentType.class);
-        PrismContainerDefinition userPcd = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(UserType.class);
+        ComplexTypeDefinition assCtd = getPrismContext().getSchemaRegistry()
+                .findComplexTypeDefinitionByCompileTimeClass(AssignmentType.class);
+        PrismContainerDefinition<?> userPcd = getPrismContext().getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(UserType.class);
         ObjectQuery expected = ObjectQueryImpl.createObjectQuery(
                 ExistsFilterImpl.createExists(
                         UserType.F_ASSIGNMENT,
@@ -388,12 +392,8 @@ public class TestQueryBuilder extends AbstractPrismTest {
                                         AssignmentType.F_NOTE,
                                         assCtd.findPropertyDefinition(AssignmentType.F_NOTE),
                                         getPrismContext(),
-                                        null, "DONE.", false, true
-                                ),
-                                AllFilterImpl.createAll()
-                        )
-                )
-        );
+                                        null, "DONE.", false, true),
+                                AllFilterImpl.createAll())));
         compare(actual, expected);
     }
 
@@ -405,18 +405,15 @@ public class TestQueryBuilder extends AbstractPrismTest {
                 .and().all()
                 .build();
 
-        ComplexTypeDefinition assCtd = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(AssignmentType.class);
-        PrismContainerDefinition userPcd = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(UserType.class);
+        PrismContainerDefinition<?> userPcd = getPrismContext().getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(UserType.class);
         ObjectQuery expected = ObjectQueryImpl.createObjectQuery(
                 AndFilterImpl.createAnd(
                         ExistsFilterImpl.createExists(
                                 UserType.F_ASSIGNMENT,
                                 userPcd,
-                                NoneFilterImpl.createNone()
-                        ),
-                        AllFilterImpl.createAll()
-                )
-        );
+                                NoneFilterImpl.createNone()),
+                        AllFilterImpl.createAll()));
         compare(actual, expected);
     }
 
@@ -452,24 +449,24 @@ public class TestQueryBuilder extends AbstractPrismTest {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_LOCALITY).eq().item(UserType.F_NAME)
                 .build();
-        PrismContainerDefinition userPcd = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(UserType.class);
+        PrismContainerDefinition<?> userPcd = getPrismContext().getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(UserType.class);
         ObjectQuery expected = ObjectQueryImpl.createObjectQuery(
                 EqualFilterImpl.createEqual(
                         UserType.F_LOCALITY,
                         userPcd.findPropertyDefinition(UserType.F_LOCALITY),
                         null,
                         UserType.F_NAME,
-                        null
-                )
-        );
+                        null));
         compare(actual, expected);
     }
 
     @Test
     public void test310LessThanItem() {
-        PrismObjectDefinition userDef = getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        PrismPropertyDefinition nameDef = userDef.findPropertyDefinition(UserType.F_NAME);
-        PrismPropertyDefinition localityDef = userDef.findPropertyDefinition(UserType.F_LOCALITY);
+        PrismObjectDefinition<?> userDef =
+                getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+        PrismPropertyDefinition<?> nameDef = userDef.findPropertyDefinition(UserType.F_NAME);
+        PrismPropertyDefinition<?> localityDef = userDef.findPropertyDefinition(UserType.F_LOCALITY);
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_LOCALITY, localityDef)
                 .le()
@@ -489,9 +486,12 @@ public class TestQueryBuilder extends AbstractPrismTest {
         AssertJUnit.assertEquals("queries do not match", exp, act);
     }
 
-    private <C extends Containerable, T> EqualFilter<T> createEqual(ItemPath propertyPath, Class<C> type, QName matchingRule, T realValue) {
-        PrismPropertyDefinition<T> propertyDefinition = (PrismPropertyDefinition) FilterImplUtil
-                .findItemDefinition(propertyPath, type, getPrismContext());
-        return EqualFilterImpl.createEqual(propertyPath, propertyDefinition, matchingRule, getPrismContext(), realValue);
+    private <C extends Containerable, T> EqualFilter<T> createEqual(
+            ItemPath propertyPath, Class<C> type, QName matchingRule, T realValue) {
+        //noinspection unchecked
+        PrismPropertyDefinition<T> propertyDefinition = (PrismPropertyDefinition<T>)
+                FilterImplUtil.findItemDefinition(propertyPath, type, getPrismContext());
+        return EqualFilterImpl.createEqual(
+                propertyPath, propertyDefinition, matchingRule, getPrismContext(), realValue);
     }
 }

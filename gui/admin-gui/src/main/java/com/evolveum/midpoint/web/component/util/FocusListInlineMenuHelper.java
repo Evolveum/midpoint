@@ -209,6 +209,8 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             iconClass = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
         } else if (type.equals(ServiceType.class)){
             iconClass = GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON;
+        } else if (type.equals(OrgType.class)){
+            iconClass = GuiStyleConstants.CLASS_OBJECT_ORG_ICON;
         }
         return iconClass;
     }

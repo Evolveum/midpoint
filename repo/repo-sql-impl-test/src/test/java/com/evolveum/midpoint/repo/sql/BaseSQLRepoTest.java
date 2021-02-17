@@ -53,13 +53,13 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
-import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.repo.sql.testing.TestQueryListener;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -147,6 +147,8 @@ public class BaseSQLRepoTest extends AbstractSpringTest
             logger.trace("initSystem: already called for class {} - IGNORING", getClass().getName());
             return;
         }
+
+        displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
         initSystemExecuted = true;
         initSystem();
     }
@@ -327,7 +329,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     }
 
     protected <S, Q extends FlexibleRelationalPathBase<R>, R> List<R> select(
-            QueryModelMapping<S, Q, R> mapping, Predicate... conditions) {
+            QueryTableMapping<S, Q, R> mapping, Predicate... conditions) {
         try (JdbcSession jdbcSession = createJdbcSession().startReadOnlyTransaction()) {
             Q alias = mapping.defaultAlias();
             SQLQuery<R> query = jdbcSession.newQuery()
@@ -348,7 +350,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     }
 
     protected <S, Q extends FlexibleRelationalPathBase<R>, R> long count(
-            QueryModelMapping<S, Q, R> mapping, Predicate... conditions) {
+            QueryTableMapping<S, Q, R> mapping, Predicate... conditions) {
         try (JdbcSession jdbcSession = createJdbcSession().startReadOnlyTransaction()) {
             Q alias = mapping.defaultAlias();
             return jdbcSession.newQuery()

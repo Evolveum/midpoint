@@ -1,19 +1,19 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql.util;
 
-import org.hibernate.transform.BasicTransformerAdapter;
-import org.hibernate.transform.ResultTransformer;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import org.hibernate.transform.BasicTransformerAdapter;
+import org.hibernate.transform.ResultTransformer;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lazyman
@@ -39,7 +39,7 @@ public final class GetContainerableResult implements Serializable {
 
         @Override
         public String getCountString(String basePath) {
-            return "*";     // TODO ok?
+            return "*";
         }
 
         @Override

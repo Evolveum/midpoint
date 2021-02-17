@@ -6,20 +6,15 @@
  */
 package com.evolveum.midpoint.prism.impl.lex.json.yaml;
 
-import com.fasterxml.jackson.core.Base64Variant;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.events.DocumentEndEvent;
-import org.yaml.snakeyaml.events.DocumentStartEvent;
 import org.yaml.snakeyaml.events.ImplicitTuple;
 import org.yaml.snakeyaml.events.ScalarEvent;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Arrays;
-import java.util.Collections;
 
 public class MidpointYAMLGenerator extends YAMLGenerator {
 
@@ -66,7 +61,8 @@ public class MidpointYAMLGenerator extends YAMLGenerator {
     }
 
     public void newDocument() throws IOException {
-        _emitter.emit(new DocumentEndEvent(null, null, false));
-        _emitter.emit(new DocumentStartEvent(null, null, true, version, Collections.emptyMap()));
+        // NOOP, snakeyaml 1.27 handles startDocument, endDocument
+        // with startObject and endObject in document root, which
+        // we use.
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,35 +12,32 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.expression.TypedValue;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.*;
-
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -100,7 +97,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         this.isFullTextSearchEnabled = isFullTextSearchEnabled;
 
         if (searchBoxModeType != null) {
-            if (!isOidSearchenabled && SearchBoxModeType.OID.equals(searchBoxModeType)){
+            if (!isOidSearchenabled && SearchBoxModeType.OID.equals(searchBoxModeType)) {
                 searchType = SearchBoxModeType.BASIC;
             } else {
                 searchType = searchBoxModeType;
@@ -110,7 +107,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         } else {
             searchType = SearchBoxModeType.BASIC;
         }
-        allDefinitions.forEach(searchItemDef -> availableDefinitions.add(searchItemDef));
+        availableDefinitions.addAll(allDefinitions);
     }
 
     public List<SearchItem> getItems() {
@@ -121,11 +118,11 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return specialItems;
     }
 
-    public void setSpecialItems( List<SearchItem> specialItems) {
+    public void setSpecialItems(List<SearchItem> specialItems) {
         this.specialItems = specialItems;
     }
 
-    public void addSpecialItem (SearchItem item) {
+    public void addSpecialItem(SearchItem item) {
         specialItems.add(item);
     }
 
@@ -204,7 +201,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         } else if (ShadowType.F_OBJECT_CLASS.equivalent(itemToRemove.getPath())) {
             item = new ObjectClassSearchItem(this, itemToRemove);
         } else {
-            item = new PropertySearchItem(this, itemToRemove);
+            item = new PropertySearchItem<>(this, itemToRemove);
         }
         if (def instanceof PrismReferenceDefinition) {
             ObjectReferenceType ref = new ObjectReferenceType();
@@ -213,7 +210,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                 ref.setType(supportedTargets.iterator().next());
             }
             if (itemToRemove.getAllowedValues() != null && itemToRemove.getAllowedValues().size() == 1) {
-                ref.setRelation((QName) itemToRemove.getAllowedValues().iterator().next());
+                ref.setRelation(itemToRemove.getAllowedValues().iterator().next());
             }
 
             item.setValue(new SearchValue<>(ref));
@@ -258,7 +255,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return null;
     }
 
-    public void addItemToAllDefinitions(SearchItemDefinition itemDef){
+    public void addItemToAllDefinitions(SearchItemDefinition itemDef) {
         allDefinitions.add(itemDef);
         availableDefinitions.add(itemDef);
     }
@@ -292,7 +289,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public ObjectQuery createObjectQuery(ExpressionVariables variables, PageBase pageBase, ObjectQuery customizeContentQuery) {
         LOGGER.debug("Creating query from {}", this);
         ObjectQuery query;
-        if (SearchBoxModeType.OID.equals(searchType)){
+        if (SearchBoxModeType.OID.equals(searchType)) {
             query = createObjectQueryOid(pageBase);
         } else {
             query = createQueryFromDefaultItems(pageBase, variables);
@@ -325,7 +322,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         }
 
         List<ObjectFilter> conditions = new ArrayList<>();
-        for (SearchItem item : specialItems){
+        for (SearchItem item : specialItems) {
             if (item.isApplyFilter()) {
                 if (item instanceof SpecialSearchItem) {
                     ObjectFilter filter = ((SpecialSearchItem) item).createFilter(pageBase, variables);
@@ -341,7 +338,6 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                 }
             }
         }
-
 
         ObjectQuery query;
         if (getTypeClass() != null) {
@@ -499,16 +495,20 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             if (refValue.isEmpty()) {
                 return null;
             }
+            List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) definition).getTargetTypeName());
+            if (supportedTargets.size() == 1 && QNameUtil.match(supportedTargets.iterator().next(), refValue.getTargetType())  && refValue.getOid() == null
+                    && refValue.getObject() == null && refValue.getRelation() == null && refValue.getFilter() == null) {
+                return null;
+            }
             RefFilter refFilter = (RefFilter) ctx.queryFor(ObjectType.class)
                     .item(path, definition).ref(refValue.clone())
                     .buildFilter();
             refFilter.setOidNullAsAny(true);
-            refFilter.setRelationNullAsAny(true);
             refFilter.setTargetTypeNullAsAny(true);
             return refFilter;
         }
 
-        PrismPropertyDefinition propDef = (PrismPropertyDefinition) definition;
+        PrismPropertyDefinition<?> propDef = (PrismPropertyDefinition<?>) definition;
         if ((propDef.getAllowedValues() != null && !propDef.getAllowedValues().isEmpty())
                 || DOMUtil.XSD_BOOLEAN.equals(propDef.getTypeName())) {
             //we're looking for enum value, therefore equals filter is ok
@@ -722,12 +722,12 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         this.canConfigure = canConfigure;
     }
 
-    public SearchItem findPropertySearchItem(ItemPath path){
-        if (path == null){
+    public SearchItem findPropertySearchItem(ItemPath path) {
+        if (path == null) {
             return null;
         }
-        for (PropertySearchItem searchItem : getPropertyItems()){
-            if (path.equivalent(searchItem.getPath())){
+        for (PropertySearchItem searchItem : getPropertyItems()) {
+            if (path.equivalent(searchItem.getPath())) {
                 return searchItem;
             }
         }
@@ -778,7 +778,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                 '}';
     }
 
-    public boolean isTypeChanged(){
+    public boolean isTypeChanged() {
         return getType() == null ? false : getType().isTypeChanged();
     }
 
