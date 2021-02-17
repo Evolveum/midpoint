@@ -261,8 +261,12 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
             return;
         }
 
-        // TODO MID-6319: what other options are here? can they all be processed after filter?
-        if (GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options))) {
+        // TODO what other options we need here? can they all be processed after filter?
+
+        // Dropping DISTINCT without JOIN is OK for object/container queries where select
+        // already contains distinct columns (OID or owner_oid+cid).
+        if (GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options))
+                && sqlQuery.getMetadata().getJoins().size() > 1) {
             sqlQuery.distinct();
         }
     }
