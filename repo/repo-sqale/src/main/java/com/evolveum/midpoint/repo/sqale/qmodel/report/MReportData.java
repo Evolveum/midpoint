@@ -11,9 +11,9 @@ import java.util.UUID;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 
 /**
- * Querydsl "row bean" type related to {@link QReportOutput}.
+ * Querydsl "row bean" type related to {@link QReportData}.
  */
-public class MReportOutput extends MObject {
+public class MReportData extends MObject {
 
     public UUID reportRefTargetOid;
     public Integer reportRefTargetType;

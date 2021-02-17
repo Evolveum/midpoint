@@ -24,7 +24,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.node.QNode;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping.QAssignmentHolder;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReport;
-import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportOutput;
+import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportData;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QAbstractRole;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetype;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QRole;
@@ -51,7 +51,7 @@ public enum MObjectTypeMapping {
     TASK(10, QTask.class, TaskType.class),
     USER(11, QUser.class, UserType.class),
     REPORT(12, QReport.class, ReportType.class),
-    REPORT_DATA(13, QReportOutput.class, ReportDataType.class),
+    REPORT_DATA(13, QReportData.class, ReportDataType.class),
     OBJECT_TEMPLATE(14, null, ObjectTemplateType.class),
     NODE(15, QNode.class, NodeType.class),
     ORG(16, null, OrgType.class),

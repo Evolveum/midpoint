@@ -15,18 +15,18 @@ import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 
 /**
- * Mapping between {@link QReportOutput} and {@link ReportDataType}.
+ * Mapping between {@link QReportData} and {@link ReportDataType}.
  */
-public class QReportOutputMapping
-        extends QObjectMapping<ReportDataType, QReportOutput, MReportOutput> {
+public class QReportDataMapping
+        extends QObjectMapping<ReportDataType, QReportData, MReportData> {
 
     public static final String DEFAULT_ALIAS_NAME = "repout";
 
-    public static final QReportOutputMapping INSTANCE = new QReportOutputMapping();
+    public static final QReportDataMapping INSTANCE = new QReportDataMapping();
 
-    private QReportOutputMapping() {
-        super(QReportOutput.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                ReportDataType.class, QReportOutput.class);
+    private QReportDataMapping() {
+        super(QReportData.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                ReportDataType.class, QReportData.class);
 
         addItemMapping(F_REPORT_REF, RefItemFilterProcessor.mapper(
                 path(q -> q.reportRefTargetOid),
@@ -35,19 +35,19 @@ public class QReportOutputMapping
     }
 
     @Override
-    protected QReportOutput newAliasInstance(String alias) {
-        return new QReportOutput(alias);
+    protected QReportData newAliasInstance(String alias) {
+        return new QReportData(alias);
     }
 
     @Override
-    public ObjectSqlTransformer<ReportDataType, QReportOutput, MReportOutput>
+    public ObjectSqlTransformer<ReportDataType, QReportData, MReportData>
     createTransformer(SqlTransformerContext transformerContext) {
         // no special class needed, no additional columns
         return new ObjectSqlTransformer<>(transformerContext, this);
     }
 
     @Override
-    public MReportOutput newRowObject() {
-        return new MReportOutput();
+    public MReportData newRowObject() {
+        return new MReportData();
     }
 }

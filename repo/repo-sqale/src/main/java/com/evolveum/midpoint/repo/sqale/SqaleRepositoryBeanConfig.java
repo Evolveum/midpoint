@@ -31,7 +31,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.node.QNodeMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportOutputMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportDataMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QAbstractRoleMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetypeMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QRoleMapping;
@@ -110,7 +110,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(ObjectType.COMPLEX_TYPE, QObjectMapping.INSTANCE)
                 .register(ObjectCollectionType.COMPLEX_TYPE, QObjectCollectionMapping.INSTANCE)
                 .register(ReportType.COMPLEX_TYPE, QReportMapping.INSTANCE)
-                .register(ReportDataType.COMPLEX_TYPE, QReportOutputMapping.INSTANCE)
+                .register(ReportDataType.COMPLEX_TYPE, QReportDataMapping.INSTANCE)
                 .register(RoleType.COMPLEX_TYPE, QRoleMapping.INSTANCE)
                 .register(SecurityPolicyType.COMPLEX_TYPE, QSecurityPolicyMapping.INSTANCE)
                 .register(ServiceType.COMPLEX_TYPE, QServiceMapping.INSTANCE)

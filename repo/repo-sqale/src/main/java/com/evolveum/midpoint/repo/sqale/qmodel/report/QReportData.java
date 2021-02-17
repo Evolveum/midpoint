@@ -18,11 +18,11 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QReportOutput extends QObject<MReportOutput> {
+public class QReportData extends QObject<MReportData> {
 
     private static final long serialVersionUID = -544485328996889511L;
 
-    public static final String TABLE_NAME = "m_report_output";
+    public static final String TABLE_NAME = "m_report_data";
 
     public static final ColumnMetadata REPORT_REF_TARGET_OID =
             ColumnMetadata.named("reportRef_targetOid").ofType(UuidPath.UUID_TYPE);
@@ -38,11 +38,11 @@ public class QReportOutput extends QObject<MReportOutput> {
     public final NumberPath<Integer> reportRefRelationId =
             createInteger("reportRefRelationId", REPORT_REF_RELATION_ID);
 
-    public QReportOutput(String variable) {
+    public QReportData(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
-    public QReportOutput(String variable, String schema, String table) {
-        super(MReportOutput.class, variable, schema, table);
+    public QReportData(String variable, String schema, String table) {
+        super(MReportData.class, variable, schema, table);
     }
 }

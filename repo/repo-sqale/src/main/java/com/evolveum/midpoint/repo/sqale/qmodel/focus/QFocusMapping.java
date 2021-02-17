@@ -21,8 +21,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProce
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Mapping between {@link QFocus} and {@link FocusType}.
@@ -43,18 +42,6 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
             @NotNull Class<Q> queryType) {
         super(tableName, defaultAliasName, schemaType, queryType);
 
-/*        addItemMapping(FocusType.F_ACTIVATION, null); // TODO sub-mapping for activation
-    public final static ItemName F_ADMINISTRATIVE_STATUS = new ItemName(SchemaConstantsGenerated.NS_COMMON, "administrativeStatus");
-    public final static ItemName F_EFFECTIVE_STATUS = new ItemName(SchemaConstantsGenerated.NS_COMMON, "effectiveStatus");
-    public final static ItemName F_VALID_FROM = new ItemName(SchemaConstantsGenerated.NS_COMMON, "validFrom");
-    public final static ItemName F_VALID_TO = new ItemName(SchemaConstantsGenerated.NS_COMMON, "validTo");
-    public final static ItemName F_VALIDITY_STATUS = new ItemName(SchemaConstantsGenerated.NS_COMMON, "validityStatus");
-    public final static ItemName F_DISABLE_REASON = new ItemName(SchemaConstantsGenerated.NS_COMMON, "disableReason");
-    public final static ItemName F_DISABLE_TIMESTAMP = new ItemName(SchemaConstantsGenerated.NS_COMMON, "disableTimestamp");
-    public final static ItemName F_ENABLE_TIMESTAMP = new ItemName(SchemaConstantsGenerated.NS_COMMON, "enableTimestamp");
-    public final static ItemName F_ARCHIVE_TIMESTAMP = new ItemName(SchemaConstantsGenerated.NS_COMMON, "archiveTimestamp");
-    public final static ItemName F_VALIDITY_CHANGE_TIMESTAMP = new ItemName(SchemaConstantsGenerated.NS_COMMON, "validityChangeTimestamp");
- */
         addItemMapping(F_COST_CENTER, stringMapper(path(q -> q.costCenter)));
         addItemMapping(F_EMAIL_ADDRESS, stringMapper(path(q -> q.emailAddress)));
         // TODO byte[] mapping for F_JPEG_PHOTO -> q.photo
@@ -65,7 +52,14 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
         addItemMapping(F_PREFERRED_LANGUAGE, stringMapper(path(q -> q.preferredLanguage)));
         addItemMapping(F_TIMEZONE, stringMapper(path(q -> q.timezone)));
         addItemMapping(F_TELEPHONE_NUMBER, stringMapper(path(q -> q.telephoneNumber)));
-        // TODO how to map CredentialsType/PasswordType/PasswordHistoryEntryType (List) to create/modify timestamp?
+        // passwordModify/CreateTimestamps are just a bit deeper
+        nestedMapping(F_CREDENTIALS, CredentialsType.class)
+                .nestedMapping(CredentialsType.F_PASSWORD, PasswordType.class)
+                .nestedMapping(PasswordType.F_METADATA, MetadataType.class)
+                .addItemMapping(MetadataType.F_CREATE_TIMESTAMP,
+                        TimestampItemFilterProcessor.mapper(path(q -> q.passwordCreateTimestamp)))
+                .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
+                        TimestampItemFilterProcessor.mapper(path(q -> q.passwordModifyTimestamp)));
         nestedMapping(F_ACTIVATION, ActivationType.class)
                 .addItemMapping(ActivationType.F_ADMINISTRATIVE_STATUS,
                         integerMapper(path(q -> q.administrativeStatus)))
@@ -96,7 +90,6 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
         return new Path[] { entity.oid, entity.fullObject };
     }
 
-    // TODO verify that this allows creation of QFocus alias and that it suffices for "generic query"
     @Override
     protected Q newAliasInstance(String alias) {
         //noinspection unchecked

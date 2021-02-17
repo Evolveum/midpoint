@@ -23,7 +23,7 @@ public class MTask extends MObject {
     public Instant completionTimestamp;
     public TaskExecutionStatusType executionStatus;
     public byte[] fullResult;
-    public String handlerUri;
+    public Integer handlerUriId;
     public Instant lastRunFinishTimestamp;
     public Instant lastRunStartTimestamp;
     public String node;
