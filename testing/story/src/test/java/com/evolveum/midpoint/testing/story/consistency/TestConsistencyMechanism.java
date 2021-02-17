@@ -232,6 +232,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
     // This will get called from the superclass to init the repository
     // It will be called only once
+    @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         logger.trace("initSystem");
         super.initSystem(initTask, initResult);
@@ -2453,7 +2454,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         ExpressionType expression = new ExpressionType();
         ObjectFactory of = new ObjectFactory();
-        RawType raw = new RawType(prismContext.xnodeFactory().primitive("uid=morgan,ou=users,dc=example,dc=com"), prismContext);
+        RawType raw = new RawType(prismContext.xnodeFactory().primitive("uid=morgan,ou=users,dc=example,dc=com").frozen(), prismContext);
 
         JAXBElement val = of.createValue(raw);
         expression.getExpressionEvaluator().add(val);

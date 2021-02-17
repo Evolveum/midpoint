@@ -45,4 +45,9 @@ public interface XNode extends DebugDumpable, Visitable<XNode>, Cloneable, Copya
     default PrismNamespaceContext namespaceContext() {
         return PrismNamespaceContext.EMPTY;
     }
+
+    default XNode frozen() {
+        freeze();
+        return this;
+    }
 }

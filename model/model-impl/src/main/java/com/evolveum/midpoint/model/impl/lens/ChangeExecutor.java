@@ -1794,7 +1794,7 @@ public class ChangeExecutor {
         } else {
             for (PrismPropertyValue<String> val : nonNegativeValues) {
                 PrimitiveXNode<String> prim = factory.primitive(val.getValue(), DOMUtil.XSD_STRING);
-                JAXBElement<RawType> el = new JAXBElement<>(SchemaConstants.C_VALUE, RawType.class, new RawType(prim, prismContext));
+                JAXBElement<RawType> el = new JAXBElement<>(SchemaConstants.C_VALUE, RawType.class, new RawType(prim.frozen(), prismContext));
                 argument.getExpressionEvaluator().add(el);
             }
         }
@@ -1854,11 +1854,11 @@ public class ChangeExecutor {
         }
 
         if (order == BeforeAfterType.BEFORE) {
-            shadow = (PrismObject<ShadowType>) projContext.getObjectOld();
+            shadow = projContext.getObjectOld();
         } else if (order == BeforeAfterType.AFTER) {
-            shadow = (PrismObject<ShadowType>) projContext.getObjectNew();
+            shadow = projContext.getObjectNew();
         } else {
-            shadow = (PrismObject<ShadowType>) projContext.getObjectCurrent();
+            shadow = projContext.getObjectCurrent();
         }
 
         ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(user, shadow,
