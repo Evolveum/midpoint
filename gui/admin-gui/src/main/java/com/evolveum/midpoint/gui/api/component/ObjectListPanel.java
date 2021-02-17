@@ -21,8 +21,6 @@ import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import static java.util.Collections.singleton;
 
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -58,14 +56,14 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     /**
      * @param defaultType specifies type of the object that will be selected by default. It can be changed.
      */
-    public ObjectListPanel(String id, Class<? extends O> defaultType) {
+    public ObjectListPanel(String id, Class<O> defaultType) {
         this(id, defaultType, null);
     }
 
     /**
      * @param defaultType specifies type of the object that will be selected by default. It can be changed.
      */
-    public ObjectListPanel(String id, Class<? extends O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options) {
+    public ObjectListPanel(String id, Class<O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options) {
         super(id, defaultType, options);
     }
 
@@ -122,7 +120,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
             @NotNull
             @Override
             protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-                List<ObjectOrdering> customOrdering = createCustomOrdering(sortParam);
+                List<ObjectOrdering> customOrdering = createCustomOrdering();
                 if (customOrdering != null) {
                     return customOrdering;
                 }

@@ -431,10 +431,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 return provider;
             }
 
-            protected boolean isTypeChanged(Class<ObjectType> newTypeClass) {
-                return true;
-            }
-
             @Override
             public void refreshTable(AjaxRequestTarget target) {
                 if (getSearchModel().isLoaded() && getSearchModel().getObject()!= null

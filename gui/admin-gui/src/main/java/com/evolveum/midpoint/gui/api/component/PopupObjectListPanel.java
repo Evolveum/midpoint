@@ -56,12 +56,12 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     /**
      * @param defaultType specifies type of the object that will be selected by default
      */
-    public PopupObjectListPanel(String id, Class<? extends O> defaultType, boolean multiselect) {
+    public PopupObjectListPanel(String id, Class<O> defaultType, boolean multiselect) {
         this(id, defaultType, null, multiselect);
         this.multiselect = multiselect;
     }
 
-    public PopupObjectListPanel(String id, Class<? extends O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options,
+    public PopupObjectListPanel(String id, Class<O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options,
                                 boolean multiselect) {
         super(id, defaultType, options);
         this.multiselect = multiselect;
@@ -104,23 +104,6 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
         return !isMultiselect();
     }
 
-    private IModel<String> evaluateColumnExpression(Object object, ExpressionType expression) {
-        Task task = getPageBase().createSimpleTask("evaluate column expression");
-        try {
-            ExpressionVariables expressionVariables = new ExpressionVariables();
-            expressionVariables.put(ExpressionConstants.VAR_OBJECT, object, object.getClass());
-            String stringValue = ExpressionUtil.evaluateStringExpression(expressionVariables, getPageBase().getPrismContext(), expression,
-                    MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
-                    task, task.getResult()).iterator().next();
-            return Model.of(stringValue);
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-                | ConfigurationException | SecurityViolationException e) {
-            LOGGER.error("Couldn't execute expression for name column");
-            OperationResult result = task.getResult();
-            OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
-            return getPageBase().createStringResource(props.getStatusLabelKey());
-        }
-    }
 
     @Override
     protected List<IColumn<SelectableBean<O>, String>> createDefaultColumns() {
