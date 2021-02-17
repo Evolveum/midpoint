@@ -268,7 +268,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 .iterativeTaskInformation()
                     .display()
                     .assertSuccessCount(8)
-                    .assertFailureCount(3) // u-000003 failed once in 2nd part, and once in 3rd part
+                    .assertFailureCount(3) // u-000001 failed once in 2nd part, and once in 3rd part
                     .assertLastFailureObjectName(MALFORMED_SHADOW_NAME)
                     .end()
                 .synchronizationInformation()
@@ -280,8 +280,9 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
 
         assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
                 .display();
+        assertShadow(formatAccountName(IDX_MALFORMED_SHADOW), RESOURCE_DUMMY_SOURCE.getResource())
+                .display();
         assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.getResource())
                 .display();
-        // TODO assert redirected errors in the task
     }
 }

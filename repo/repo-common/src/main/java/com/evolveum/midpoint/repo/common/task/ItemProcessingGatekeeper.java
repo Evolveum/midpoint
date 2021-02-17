@@ -393,7 +393,7 @@ class ItemProcessingGatekeeper<I> {
         OperationExecutionRecorderForTasks.Target target = request.getOperationExecutionRecordingTarget();
         RunningTask task = taskExecution.localCoordinatorTask;
 
-        getOperationExecutionRecorder().recordOperationExecution(target, resultException, task, result);
+        getOperationExecutionRecorder().recordOperationExecution(target, task, result);
     }
 
     private OperationExecutionRecorderForTasks getOperationExecutionRecorder() {

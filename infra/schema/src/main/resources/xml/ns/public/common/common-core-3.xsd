@@ -18377,11 +18377,34 @@
             <xsd:element name="operationExecutionRecording" type="tns:OperationExecutionRecordingStrategyType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How operationExecution records should be updated.
+                        How operationExecution records should be updated. This is the default to be used
+                        if simpleOperationExecutionRecording or complexOperationExecutionRecording is not set.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
                         <a:displayName>InternalsConfigurationType.operationExecutionRecording</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="simpleOperationExecutionRecording" type="tns:OperationExecutionRecordingStrategyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How simple operationExecution records should be updated.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                        <a:displayName>InternalsConfigurationType.simpleOperationExecutionRecording</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="complexOperationExecutionRecording" type="tns:OperationExecutionRecordingStrategyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How complex operationExecution records should be updated.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                        <a:displayName>InternalsConfigurationType.complexOperationExecutionRecording</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -22749,6 +22772,24 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>CleanupPoliciesType.objectResults</a:displayName>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.3</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="simpleOperationExecutions" type="tns:CleanupPolicyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>CleanupPoliciesType.simpleOperationExecutions</a:displayName>
+                        <a:since>4.3</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="complexOperationExecutions" type="tns:CleanupPolicyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>CleanupPoliciesType.complexOperationExecutions</a:displayName>
+                        <a:since>4.3</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -28581,11 +28622,12 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="redirection" type="tns:OperationExecutionRecordRedirectionType" minOccurs="0">
+            <xsd:element name="realOwner" type="tns:OperationExecutionRecordRealOwnerType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Information about operation execution record redirection: the fact that the record
-                        belongs to object other than its current holder.
+                        Information about operation execution record real owner. It is set only in the case that the record
+                        belongs to object other than its current holder. (The only reason for such redirection is that
+                        real owner has no repository object to attach the record to.)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.3</a:since>
@@ -28686,11 +28728,12 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="OperationExecutionRecordRedirectionType">
+    <xsd:complexType name="OperationExecutionRecordRealOwnerType">
         <xsd:annotation>
             <xsd:documentation>
-                Information about operation execution record redirection: the fact that the record
-                belongs to object other than its current holder.
+                Information about operation execution record real owner. It is created only in the case that the record
+                belongs to object other than its current holder. (The only reason for such redirection is that
+                real owner has no repository object to attach the record to.)
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.3</a:since>
@@ -28699,33 +28742,25 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="redirected" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        True if the operation execution record belongs to object other than the current one.
-                        (Actually this flag exists solely to allow easy query formulation and implementation.
-                        TODO: reconsider it.)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="objectType" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Type of the proper record holder (if known).
+                        Type of the real record owner (if known).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="identification" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Identification of the proper record holder. Free-form, using
+                        Identification of the real record owner. Free-form, using
                         any relevant data that is available. An example: connector object UID.
+                        Should not be null.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="operationExecutionRecordRedirection" type="tns:OperationExecutionRecordRedirectionType"/>
+    <xsd:element name="operationExecutionRecordRealOwner" type="tns:OperationExecutionRecordRealOwnerType"/>
 
     <xsd:complexType name="LocalizableMessageType" abstract="true">
         <xsd:annotation>
