@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.QCase;
 import com.evolveum.midpoint.repo.sqale.qmodel.QDashboard;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObjectCollection;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnector;
@@ -65,7 +66,7 @@ public enum MObjectTypeMapping {
     SEQUENCE(24, null, SequenceType.class),
     SERVICE(25, QService.class, ServiceType.class),
     FORM(26, null, FormType.class),
-    CASE(27, null, CaseType.class),
+    CASE(27, QCase.class, CaseType.class),
     FUNCTION_LIBRARY(28, null, FunctionLibraryType.class),
     OBJECT_COLLECTION(29, QObjectCollection.class, ObjectCollectionType.class),
     ARCHETYPE(30, QArchetype.class, ArchetypeType.class),

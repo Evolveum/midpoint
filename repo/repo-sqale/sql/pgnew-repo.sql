@@ -842,6 +842,7 @@ CREATE INDEX iTaskDependentOid ON M_TASK_DEPENDENT(TASK_OID);
 CREATE TABLE m_case (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (26) STORED,
+    state VARCHAR(255),
     closeTimestamp TIMESTAMPTZ,
     objectRef_targetOid UUID,
     objectRef_targetType INTEGER, -- soft-references m_objtype
@@ -852,7 +853,6 @@ CREATE TABLE m_case (
     requestorRef_targetOid UUID,
     requestorRef_targetType INTEGER, -- soft-references m_objtype
     requestorRef_relation_id INTEGER, -- soft-references m_uri
-    state VARCHAR(255),
     targetRef_targetOid UUID,
     targetRef_targetType INTEGER, -- soft-references m_objtype
     targetRef_relation_id INTEGER -- soft-references m_uri

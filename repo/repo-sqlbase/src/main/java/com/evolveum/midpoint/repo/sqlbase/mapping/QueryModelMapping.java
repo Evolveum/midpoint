@@ -101,6 +101,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
      * This is in contrast with "item mapping" that is used for single (or last) component
      * of the item path and helps with query interpretation.
      */
+    // TODO add "to-many" option so the interpreter can use WHERE EXISTS instead of JOIN
     public final QueryModelMapping<S, Q, R> addRelationResolver(
             @NotNull ItemName itemName,
             @NotNull ItemRelationResolver itemRelationResolver) {

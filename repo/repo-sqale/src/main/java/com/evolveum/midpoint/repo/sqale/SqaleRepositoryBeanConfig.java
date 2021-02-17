@@ -18,6 +18,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
+import com.evolveum.midpoint.repo.sqale.qmodel.QCaseMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.QDashboardMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObjectCollectionMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
@@ -30,8 +31,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableRowMappin
 import com.evolveum.midpoint.repo.sqale.qmodel.node.QNodeMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportDataMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QAbstractRoleMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetypeMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QRoleMapping;
@@ -100,6 +101,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(ArchetypeType.COMPLEX_TYPE, QArchetypeMapping.INSTANCE)
                 .register(AssignmentHolderType.COMPLEX_TYPE, QAssignmentHolderMapping.INSTANCE)
                 .register(AssignmentType.COMPLEX_TYPE, QAssignmentMapping.INSTANCE)
+                .register(CaseType.COMPLEX_TYPE, QCaseMapping.INSTANCE)
                 .register(DashboardType.COMPLEX_TYPE, QDashboardMapping.INSTANCE)
                 .register(FocusType.COMPLEX_TYPE, QFocusMapping.INSTANCE)
                 .register(ConnectorType.COMPLEX_TYPE, QConnectorMapping.INSTANCE)

@@ -82,6 +82,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         addRelationResolver(AssignmentHolderType.F_ASSIGNMENT,
                 new TableRelationResolver<>(QAssignment.class,
                         joinOn((o, a) -> o.oid.eq(a.ownerOid))));
+        // TODO map trigger
     }
 
     @Override
