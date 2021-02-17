@@ -21,9 +21,9 @@ public class MObject {
     public String nameNorm;
     public String nameOrig;
     public byte[] fullObject;
-    public Integer tenantRefRelationId;
     public UUID tenantRefTargetOid;
     public Integer tenantRefTargetType;
+    public Integer tenantRefRelationId;
     public String lifecycleState;
     public Integer version;
     public byte[] ext;

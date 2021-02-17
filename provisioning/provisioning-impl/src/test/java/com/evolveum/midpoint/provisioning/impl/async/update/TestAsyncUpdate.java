@@ -226,12 +226,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         assertNotNull("No last change", lastChange);
         displayDumpable("The change", lastChange);
 
-        PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
-        assertNotNull("Old shadow missing", oldShadow);
-        assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
-
         assertNotNull("Delta is missing", lastChange.getObjectDelta());
-        assertNotNull("Current shadow is not present", lastChange.getCurrentShadow());
+        assertNotNull("Current shadow is not present", lastChange.getShadowedResourceObject());
 
         PrismObject<ShadowType> accountRepo = findAccountShadowByUsername("banderson", resource, result);
         assertNotNull("Shadow was not created in the repository", accountRepo);
@@ -256,10 +252,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
 
-        PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
-        assertNotNull("Old shadow missing", oldShadow);
-        assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
-
         assertNotNull("Delta is missing", lastChange.getObjectDelta());
         assertTrue("Delta is not a MODIFY one", lastChange.getObjectDelta().isModify());
         Collection<? extends ItemDelta<?, ?>> modifications = lastChange.getObjectDelta().getModifications();
@@ -267,7 +259,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         Iterator<? extends ItemDelta<?, ?>> iterator = modifications.iterator();
         assertEquals("Wrong # of values added (first mod)", 3, iterator.next().getValuesToAdd().size());
         assertEquals("Wrong # of values added (second mod)", 6, iterator.next().getValuesToAdd().size());
-        assertNotNull("Current shadow is not present", lastChange.getCurrentShadow());
+        assertNotNull("Current shadow is not present", lastChange.getShadowedResourceObject());
 
         ShadowAsserter<Void> asserter = getAndersonFull(false, task, result);
         if (isCached()) {
@@ -294,10 +286,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
 
-        PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
-        assertNotNull("Old shadow missing", oldShadow);
-        assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
-
         assertNotNull("Delta is missing", lastChange.getObjectDelta());
         assertTrue("Delta is not a MODIFY one", lastChange.getObjectDelta().isModify());
         Collection<? extends ItemDelta<?, ?>> modifications = lastChange.getObjectDelta().getModifications();
@@ -305,7 +293,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         Iterator<? extends ItemDelta<?, ?>> iterator = modifications.iterator();
         assertEquals("Wrong # of values added (first mod)", 1, iterator.next().getValuesToAdd().size());
         assertEquals("Wrong # of values added (second mod)", 1, iterator.next().getValuesToAdd().size());
-        assertNotNull("Current shadow is not present", lastChange.getCurrentShadow());
+        assertNotNull("Current shadow is not present", lastChange.getShadowedResourceObject());
 
         ShadowAsserter<Void> asserter = getAndersonFull(false, task, result);
         if (isCached()) {
@@ -332,10 +320,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
 
-        PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
-        assertNotNull("Old shadow missing", oldShadow);
-        assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
-
         assertNotNull("Delta is missing", lastChange.getObjectDelta());
         assertTrue("Delta is not a MODIFY one", lastChange.getObjectDelta().isModify());
         Collection<? extends ItemDelta<?, ?>> modifications = lastChange.getObjectDelta().getModifications();
@@ -343,7 +327,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         Iterator<? extends ItemDelta<?, ?>> iterator = modifications.iterator();
         assertEquals("Wrong # of values deleted (first mod)", 1, iterator.next().getValuesToDelete().size());
         assertEquals("Wrong # of values deleted (second mod)", 2, iterator.next().getValuesToDelete().size());
-        assertNotNull("Current shadow is not present", lastChange.getCurrentShadow());
+        assertNotNull("Current shadow is not present", lastChange.getShadowedResourceObject());
 
         ShadowAsserter<Void> asserter = getAndersonFull(false, task, result);
         if (isCached()) {
@@ -370,10 +354,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
 
-        PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
-        assertNotNull("Old shadow missing", oldShadow);
-        assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
-
         assertNotNull("Delta is missing", lastChange.getObjectDelta());
         assertTrue("Delta is not a MODIFY one", lastChange.getObjectDelta().isModify());
         Collection<? extends ItemDelta<?, ?>> modifications = lastChange.getObjectDelta().getModifications();
@@ -381,7 +361,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         Iterator<? extends ItemDelta<?, ?>> iterator = modifications.iterator();
         assertEquals("Wrong # of values replaced (first mod)", 1, iterator.next().getValuesToReplace().size());
         assertEquals("Wrong # of values replaced (second mod)", 2, iterator.next().getValuesToReplace().size());
-        assertNotNull("Current shadow is not present", lastChange.getCurrentShadow());
+        assertNotNull("Current shadow is not present", lastChange.getShadowedResourceObject());
 
         ShadowAsserter<Void> asserter = getAndersonFull(false, task, result);
         if (isCached()) {
@@ -408,12 +388,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
 
-        PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
-        assertNotNull("Old shadow missing", oldShadow);
-        assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
-
         assertNull("Delta is present although it should not be", lastChange.getObjectDelta());
-        assertNotNull("Current shadow is missing", lastChange.getCurrentShadow());
+        assertNotNull("Current shadow is missing", lastChange.getShadowedResourceObject());
 
         getAndersonFull(false, task, result);
     }
@@ -440,14 +416,10 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
 
-        PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
-        assertNotNull("Old shadow missing", oldShadow);
-        assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
-
         assertNull("Delta is present although it should not be", lastChange.getObjectDelta());
-        assertNotNull("Current shadow is missing", lastChange.getCurrentShadow());
+        assertNotNull("Current shadow is missing", lastChange.getShadowedResourceObject());
 
-        display("change current shadow", lastChange.getCurrentShadow());
+        display("change current shadow", lastChange.getShadowedResourceObject());
 
         getAndersonFull(false, task, result);
     }
@@ -466,10 +438,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
-
-        PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
-        assertNotNull("Old shadow missing", oldShadow);
-        assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
 
         assertNotNull("Delta is missing", lastChange.getObjectDelta());
         assertTrue("Delta is not a DELETE one", lastChange.getObjectDelta().isDelete());

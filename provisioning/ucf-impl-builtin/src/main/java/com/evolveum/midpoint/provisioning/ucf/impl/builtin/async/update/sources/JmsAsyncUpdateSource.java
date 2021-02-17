@@ -23,7 +23,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateMessageListen
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update.AsyncUpdateConnectorInstance;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -38,6 +37,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * Async Update source for JMS API.
  *
  * An experimental implementation. Very primitive; suitable basically for testing and demonstration purposes.
+ * In particular, it does NOT work with multiple worker threads.
  */
 @Experimental
 public class JmsAsyncUpdateSource implements ActiveAsyncUpdateSource {
@@ -83,16 +83,19 @@ public class JmsAsyncUpdateSource implements ActiveAsyncUpdateSource {
                 MessageConsumer consumer = session.createConsumer(destination);
                 consumer.setMessageListener(message -> {
                     try {
-                        boolean successful = listener.onMessage(createAsyncUpdateMessage(message), (processed, result) -> {
-                            // TODO acknowledge or reject the message -- BEWARE, it has to be done in the correct thread!
+                        listener.onMessage(createAsyncUpdateMessage(message), (release, result) -> {
+                            // TODO This has to be done in the correct thread!!!
+                            if (release) {
+                                try {
+                                    message.acknowledge();
+                                } catch (JMSException e) {
+                                    LoggingUtils.logUnexpectedException(LOGGER, "Message could not be acknowledged", e);
+                                }
+                            } else {
+                                LOGGER.debug("Message processing was not successful. Message will not be acknowledged.");
+                            }
                         });
-                        if (successful) {
-                            message.acknowledge();
-                        } else {
-                            LOGGER.debug("Message processing was not successful. Message will not be acknowledged.");
-                            throw new java.lang.IllegalStateException("Message could not be processed (successful = false)");
-                        }
-                    } catch (JMSException | SchemaException e) {
+                    } catch (JMSException e) {
                         throw new SystemException("Couldn't process JMS message: " + e.getMessage(), e);
                     }
                 });

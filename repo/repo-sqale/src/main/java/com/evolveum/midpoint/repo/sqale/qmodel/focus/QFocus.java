@@ -52,7 +52,7 @@ public class QFocus<T extends MFocus> extends QObject<T> {
             ColumnMetadata.named("telephoneNumber").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata TIMEZONE =
             ColumnMetadata.named("timezone").ofType(Types.VARCHAR).withSize(255);
-    // credential columns
+    // credential/password/metadata columns
     public static final ColumnMetadata PASSWORD_CREATE_TIMESTAMP =
             ColumnMetadata.named("passwordCreateTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     public static final ColumnMetadata PASSWORD_MODIFY_TIMESTAMP =
@@ -89,7 +89,7 @@ public class QFocus<T extends MFocus> extends QObject<T> {
             createString("preferredLanguage", PREFERRED_LANGUAGE);
     public final StringPath telephoneNumber = createString("telephoneNumber", TELEPHONE_NUMBER);
     public final StringPath timezone = createString("timezone", TIMEZONE);
-    // credential attributes
+    // credential/password/metadata attributes
     public final DateTimePath<Instant> passwordCreateTimestamp =
             createInstant("passwordCreateTimestamp", PASSWORD_CREATE_TIMESTAMP);
     public final DateTimePath<Instant> passwordModifyTimestamp =

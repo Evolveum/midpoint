@@ -331,6 +331,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     }
 
     @Override
+    @NotNull
     public PrismContainerDefinition<C> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
         PrismContainerDefinitionImpl<C> clone = clone();
         clone.replaceDefinition(itemName, newDefinition);

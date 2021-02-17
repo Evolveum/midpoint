@@ -6,11 +6,12 @@
  */
 package com.evolveum.midpoint.prism.impl.query.lang;
 
+import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
+
 import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableMap;
@@ -413,12 +414,6 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
         }
         // FIXME: Workaround for
         return parent.getComplexTypeDefinition().findItemDefinition(path, type);
-    }
-
-    static void schemaCheck(boolean condition, String template, Object... arguments) throws SchemaException {
-        if (!condition) {
-            throw new SchemaException(Strings.lenientFormat(template, arguments));
-        }
     }
 
     private ObjectFilter createItemFilter(ItemFilterFactory factory, PrismContainerDefinition<?> parent, ItemPath path,

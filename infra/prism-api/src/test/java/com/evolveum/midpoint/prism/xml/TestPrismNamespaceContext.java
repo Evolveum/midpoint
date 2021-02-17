@@ -37,17 +37,17 @@ public class TestPrismNamespaceContext {
     public void testLookupByPrefix() {
         assertRootPrefixesToNamespace(GLOBAL);
 
-        assertTrue(GLOBAL.get("nonExistant").isLocalEmpty());
+        assertTrue(GLOBAL.namespaceFor("nonExistant").isEmpty());
 
         PrismNamespaceContext derivedNs = GLOBAL.childContext(ImmutableMap.of("", NS_EXAMPLE));
         assertRootPrefixesToNamespace(derivedNs);
-        assertEquals(derivedNs.get("").get(), NS_EXAMPLE);
-        assertEquals(derivedNs.get(null).get(), NS_EXAMPLE);
+        assertEquals(derivedNs.namespaceFor("").get(), NS_EXAMPLE);
+        assertEquals(derivedNs.namespaceFor(null).get(), NS_EXAMPLE);
 
         PrismNamespaceContext overridenNs = derivedNs.childContext(ImmutableMap.of("", NS_QUERY));
 
         assertRootPrefixesToNamespace(overridenNs);
-        assertEquals(overridenNs.get("").get(), NS_QUERY);
+        assertEquals(overridenNs.namespaceFor("").get(), NS_QUERY);
 
     }
 
@@ -83,8 +83,8 @@ public class TestPrismNamespaceContext {
     }
 
     private void assertRootPrefixesToNamespace(PrismNamespaceContext globalNs) {
-        assertEquals(globalNs.get(PREFIX_NS_QUERY).get(), PrismConstants.NS_QUERY);
-        assertEquals(globalNs.get(PREFIX_NS_TYPES).get(), PrismConstants.NS_TYPES);
+        assertEquals(globalNs.namespaceFor(PREFIX_NS_QUERY).get(), PrismConstants.NS_QUERY);
+        assertEquals(globalNs.namespaceFor(PREFIX_NS_TYPES).get(), PrismConstants.NS_TYPES);
     }
 
 

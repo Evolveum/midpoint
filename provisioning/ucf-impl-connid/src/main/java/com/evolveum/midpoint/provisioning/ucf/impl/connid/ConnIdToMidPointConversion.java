@@ -7,16 +7,28 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import static java.util.Collections.emptyList;
+
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.xml.namespace.QName;
+
+import org.identityconnectors.common.security.GuardedString;
+import org.identityconnectors.framework.common.objects.*;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
-
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -25,24 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.framework.common.objects.*;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
-
-import static java.util.Collections.emptyList;
 
 /**
  * Conversion of a single ConnId connector object to midPoint resource object.
@@ -95,7 +90,7 @@ class ConnIdToMidPointConversion {
         this.connIdConvertor = connIdConvertor;
     }
 
-    @NotNull PrismObject<ShadowType> execute() throws SchemaException {
+    void execute() throws SchemaException {
 
         convertObjectClasses();
 
@@ -104,8 +99,6 @@ class ConnIdToMidPointConversion {
         }
 
         convertUid();
-
-        return resourceObject;
     }
 
     private void convertObjectClasses() throws SchemaException {
@@ -405,15 +398,7 @@ class ConnIdToMidPointConversion {
                 + " in resource object identified by " + connectorObject.getName(), convertedAttrName);
     }
 
-    /**
-     * Returns the partially converted resource object with an indication of a conversion failure.
-     * @param result Operation result reflecting the failure.
-     */
-    @NotNull PrismObject<ShadowType> reportErrorInFetchResult(OperationResult result) {
-        ObjectTypeUtil.recordFetchError(resourceObject, result);
-        if (resourceObject.asObjectable().getName() == null) {
-            resourceObject.asObjectable().setName(PolyStringType.fromOrig(connectorObject.getUid().getUidValue()));
-        }
+    public @NotNull PrismObject<ShadowType> getResourceObject() {
         return resourceObject;
     }
 }

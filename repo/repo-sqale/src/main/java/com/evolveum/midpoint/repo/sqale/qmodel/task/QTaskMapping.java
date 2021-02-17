@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterPr
 import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
 
 import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.EnumItemFilterProcessor;
@@ -36,9 +37,9 @@ public class QTaskMapping
                 TimestampItemFilterProcessor.mapper(path(q -> q.completionTimestamp)));
         addItemMapping(TaskType.F_EXECUTION_STATUS,
                 EnumItemFilterProcessor.mapper(path(q -> q.executionStatus)));
-        // TaskExecutionStatusType
         // TODO byte[] fullResult mapping
-        addItemMapping(TaskType.F_HANDLER_URI, stringMapper(path(q -> q.handlerUri)));
+        addItemMapping(TaskType.F_HANDLER_URI,
+                UriItemFilterProcessor.mapper(path(q -> q.handlerUriId)));
         addItemMapping(TaskType.F_LAST_RUN_FINISH_TIMESTAMP,
                 TimestampItemFilterProcessor.mapper(path(q -> q.lastRunFinishTimestamp)));
         addItemMapping(TaskType.F_LAST_RUN_START_TIMESTAMP,

@@ -46,30 +46,9 @@ public class ResourceObjectShadowChangeDescriptionAsserter {
     }
 
     public ShadowAsserter<ResourceObjectShadowChangeDescriptionAsserter> currentShadow() {
-        PrismObject<ShadowType> currentShadow = changeDesc.getCurrentShadow();
+        PrismObject<ShadowType> currentShadow = changeDesc.getShadowedResourceObject();
         assertNotNull("No current shadow in change notification", currentShadow);
         return new ShadowAsserter<>(currentShadow, this, "currentShadow in change notification");
-    }
-
-    public ResourceObjectShadowChangeDescriptionAsserter assertNoCurrentShadow() {
-        assertNull("Unexpected current shadow in change notificaiton", changeDesc.getCurrentShadow());
-        return this;
-    }
-
-    public ShadowAsserter<ResourceObjectShadowChangeDescriptionAsserter> oldShadow() {
-        PrismObject<ShadowType> oldShadow = changeDesc.getOldShadow();
-        assertNotNull("No old shadow in change notification", oldShadow);
-        return new ShadowAsserter<>(oldShadow, this, "oldShadow in change notification");
-    }
-
-    public ResourceObjectShadowChangeDescriptionAsserter assertNoOldShadow() {
-        assertNull("Unexpected old shadow in change notification", changeDesc.getOldShadow());
-        return this;
-    }
-
-    public ResourceObjectShadowChangeDescriptionAsserter assertUnrelatedChange(boolean expected) {
-        assertEquals("Wrong unrelated change flag in change notification", expected, changeDesc.isUnrelatedChange());
-        return this;
     }
 
     public ResourceObjectShadowChangeDescriptionAsserter assertProtected(boolean expected) {

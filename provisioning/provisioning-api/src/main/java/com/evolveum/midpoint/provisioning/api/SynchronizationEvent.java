@@ -7,8 +7,10 @@
 
 package com.evolveum.midpoint.provisioning.api;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.AcknowledgementSink;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * TODO
@@ -46,7 +48,7 @@ public interface SynchronizationEvent extends AcknowledgementSink, DebugDumpable
      * This means no error has occurred, but simply there is nothing to do.
      * Like a deletion of already-deleted account.
      */
-    boolean isSkip();
+    boolean isNotApplicable();
 
     boolean isError();
 
@@ -55,4 +57,7 @@ public interface SynchronizationEvent extends AcknowledgementSink, DebugDumpable
 
     // TODO
     String getShadowOid();
+
+    // TODO
+    PrismObject<ShadowType> getShadowedObject();
 }

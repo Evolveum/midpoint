@@ -200,7 +200,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 .synchronizationInformation()
                     .display()
                     .assertTransition(LINKED, LINKED, LINKED, null, 9, 0, 0) // Those 9 records were already linked and remain so.
-                    .assertTransition(null, null, null, null, 0, 1, 0) // Malformed account has no shadow, so no situation
+                    .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
                     .assertTransitions(2)
                     .end();
 
@@ -234,7 +234,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 .synchronizationInformation()
                     .display()
                     .assertTransition(LINKED, LINKED, LINKED, null, 8, 1, 0) // Those 9 records were already linked and remain so.
-                    .assertTransition(null, null, null, null, 0, 1, 0) // Malformed account has no shadow, so no situation
+                    .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
                     .assertTransitions(2);
 
         // TODO assert redirected errors in the task
@@ -274,7 +274,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 .synchronizationInformation()
                     .display()
                     .assertTransition(LINKED, LINKED, LINKED, null, 8, 1, 0) // Those 9 records were already linked and remain so.
-                    .assertTransition(null, null, null, null, 0, 1, 0) // Malformed account has no shadow, so no situation
+                    .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
                     ;
         //.assertTransitions(2);
 

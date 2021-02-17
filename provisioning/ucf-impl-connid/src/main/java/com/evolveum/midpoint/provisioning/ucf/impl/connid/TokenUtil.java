@@ -16,6 +16,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.identityconnectors.framework.common.objects.SyncToken;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -24,6 +25,7 @@ import javax.xml.namespace.QName;
  */
 public class TokenUtil {
 
+    @NotNull
     static <T> PrismProperty<T> createTokenPropertyFromRealValue(T realValue, PrismContext prismContext) {
         QName type = XsdTypeMapper.toXsdType(realValue.getClass());
 

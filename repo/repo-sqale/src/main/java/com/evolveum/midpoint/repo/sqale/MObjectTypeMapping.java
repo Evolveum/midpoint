@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.QCase;
 import com.evolveum.midpoint.repo.sqale.qmodel.QDashboard;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObjectCollection;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnector;
@@ -24,7 +25,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.node.QNode;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping.QAssignmentHolder;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReport;
-import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportOutput;
+import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportData;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QAbstractRole;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetype;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QRole;
@@ -51,7 +52,7 @@ public enum MObjectTypeMapping {
     TASK(10, QTask.class, TaskType.class),
     USER(11, QUser.class, UserType.class),
     REPORT(12, QReport.class, ReportType.class),
-    REPORT_DATA(13, QReportOutput.class, ReportDataType.class),
+    REPORT_DATA(13, QReportData.class, ReportDataType.class),
     OBJECT_TEMPLATE(14, null, ObjectTemplateType.class),
     NODE(15, QNode.class, NodeType.class),
     ORG(16, null, OrgType.class),
@@ -65,7 +66,7 @@ public enum MObjectTypeMapping {
     SEQUENCE(24, null, SequenceType.class),
     SERVICE(25, QService.class, ServiceType.class),
     FORM(26, null, FormType.class),
-    CASE(27, null, CaseType.class),
+    CASE(27, QCase.class, CaseType.class),
     FUNCTION_LIBRARY(28, null, FunctionLibraryType.class),
     OBJECT_COLLECTION(29, QObjectCollection.class, ObjectCollectionType.class),
     ARCHETYPE(30, QArchetype.class, ArchetypeType.class),

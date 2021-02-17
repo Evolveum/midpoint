@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -20,8 +21,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.Collections;
 
-import static java.util.Collections.unmodifiableCollection;
+import static com.evolveum.midpoint.util.MiscUtil.checkCollectionImmutable;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Represents a change event detected by UCF.
@@ -36,19 +39,34 @@ public abstract class UcfChange implements DebugDumpable {
     private final int localSequenceNumber;
 
     /**
-     * Real value of the primary identifier of the object.
-     */
-    @NotNull private final Object primaryIdentifierRealValue;
-
-    /**
-     * Definition of the object class. Can be missing for delete deltas.
-     */
-    private final ObjectClassComplexTypeDefinition objectClassDefinition;
-
-    /**
-     * All identifiers of the object.
+     * Real value of the primary identifier of the object. Constraints:
      *
-     * The collection is unmodifiable. The elements should not be modified as well, although this is not enforced yet.
+     * 1. errorState.isSuccess: must be non-null
+     * 2. errorState.isError: can be null (but only if there's no way how to determine it)
+     */
+    private final Object primaryIdentifierRealValue;
+
+    /**
+     * Definition of the object class. Constraints:
+     *
+     * 1. errorState.isSuccess:
+     *    a. LiveSync: if delta is not DELETE or if object class was specified at request -> not null
+     *    b. AsyncUpdate: always not null
+     *
+     * 2. errorState.isError: Can be null but only if it cannot be reasonably determined.
+     *    (Unfortunately, current AsyncUpdate implementation always provides null value here.)
+     */
+    protected final ObjectClassComplexTypeDefinition objectClassDefinition;
+
+    /**
+     * All identifiers of the object. Constraints:
+     *
+     * 1. The collection is unmodifiable. Its elements themselves are mutable.
+     * 2. errorState.isSuccess: Always not empty.
+     * 3. errorState.isError: Should be non-empty if at all possible. However, for AU changes it is currently always empty.
+     *
+     * Note: The mutability of the elements was chosen because currently there are definitions applied to them
+     * in the further processing. So if they were immutable, they would need to be cloned every time.
      */
     @NotNull private final Collection<ResourceAttribute<?>> identifiers;
 
@@ -68,24 +86,32 @@ public abstract class UcfChange implements DebugDumpable {
      */
     private final PrismObject<ShadowType> resourceObject;
 
-    UcfChange(int localSequenceNumber, @NotNull Object primaryIdentifierRealValue,
+    /**
+     * Was there any error while processing the change in UCF layer?
+     * I.e. to what extent can we rely on the information in this object?
+     */
+    @NotNull protected final UcfErrorState errorState;
+
+    UcfChange(int localSequenceNumber, Object primaryIdentifierRealValue,
             ObjectClassComplexTypeDefinition objectClassDefinition,
             @NotNull Collection<ResourceAttribute<?>> identifiers,
             ObjectDelta<ShadowType> objectDelta,
-            PrismObject<ShadowType> resourceObject) {
+            PrismObject<ShadowType> resourceObject, @NotNull UcfErrorState errorState) {
         this.localSequenceNumber = localSequenceNumber;
         this.primaryIdentifierRealValue = primaryIdentifierRealValue;
         this.objectClassDefinition = objectClassDefinition;
-        this.identifiers = unmodifiableCollection(identifiers);
+        this.identifiers = Collections.unmodifiableCollection(identifiers);
         this.resourceObject = resourceObject;
         this.objectDelta = objectDelta;
+        this.errorState = errorState;
+        checkConsistence();
     }
 
     public int getLocalSequenceNumber() {
         return localSequenceNumber;
     }
 
-    public @NotNull Object getPrimaryIdentifierRealValue() {
+    public Object getPrimaryIdentifierRealValue() {
         return primaryIdentifierRealValue;
     }
 
@@ -105,6 +131,10 @@ public abstract class UcfChange implements DebugDumpable {
         return resourceObject;
     }
 
+    public @NotNull UcfErrorState getErrorState() {
+        return errorState;
+    }
+
     @Override
     public String toString() {
         return getClass().getSimpleName()
@@ -114,6 +144,7 @@ public abstract class UcfChange implements DebugDumpable {
                 + ", identifiers=" + identifiers
                 + ", objectDelta=" + objectDelta
                 + ", resourceObject=" + resourceObject
+                + ", errorState=" + errorState
                 + toStringExtra() + ")";
     }
 
@@ -127,23 +158,51 @@ public abstract class UcfChange implements DebugDumpable {
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        DebugUtil.indentDebugDump(sb, 0);
+        DebugUtil.indentDebugDump(sb, indent);
         sb.append(getClass().getSimpleName());
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "localSequenceNumber", localSequenceNumber, indent + 1);
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "primaryIdentifierValue", String.valueOf(primaryIdentifierRealValue), indent + 1);
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "objectClassDefinition", objectClassDefinition, indent + 1);
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "identifiers", identifiers, indent + 1);
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "objectDelta", objectDelta, indent + 1);
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "resourceObject", resourceObject, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "localSequenceNumber", localSequenceNumber, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "primaryIdentifierValue", String.valueOf(primaryIdentifierRealValue), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "objectClassDefinition", objectClassDefinition, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "identifiers", identifiers, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "objectDelta", objectDelta, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "errorState", errorState, indent + 1);
         debugDumpExtra(sb, indent);
         return sb.toString();
     }
 
     protected abstract void debugDumpExtra(StringBuilder sb, int indent);
+
+    public boolean isError() {
+        return errorState.isError();
+    }
+
+    public boolean isDelete() {
+        return ObjectDelta.isDelete(objectDelta);
+    }
+
+    public void checkConsistence() {
+        if (!InternalsConfig.consistencyChecks) {
+            return;
+        }
+        checkPrimaryIdentifierRealValuePresence();
+        checkObjectClassDefinitionPresence();
+        checkIdentifiersCollection();
+    }
+
+    private void checkPrimaryIdentifierRealValuePresence() {
+        if (errorState.isSuccess()) {
+            stateCheck(primaryIdentifierRealValue != null, "Primary identifier real value is null");
+        }
+    }
+
+    protected abstract void checkObjectClassDefinitionPresence();
+
+    private void checkIdentifiersCollection() {
+        checkCollectionImmutable(identifiers);
+        if (errorState.isSuccess()) {
+            stateCheck(!identifiers.isEmpty(), "No identifiers");
+        }
+    }
 }

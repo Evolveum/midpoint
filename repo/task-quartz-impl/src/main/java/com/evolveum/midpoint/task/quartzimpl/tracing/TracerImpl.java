@@ -47,6 +47,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 /**
  * Manages tracing requests.
  */
@@ -248,6 +250,9 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
         if (tracingProfile.getRef().isEmpty()) {
             return tracingProfile;
         } else {
+            stateCheck(tracingConfiguration != null,
+                    "No tracing configuration while resolving reference(s): %s", tracingProfile.getRef());
+
             TracingProfileType rv = new TracingProfileType();
             for (String ref : tracingProfile.getRef()) {
                 merge(rv, getResolvedProfile(ref, tracingConfiguration, resolutionPath));
@@ -258,7 +263,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
         }
     }
 
-    private TracingProfileType getResolvedProfile(String ref, TracingConfigurationType tracingConfiguration,
+    private TracingProfileType getResolvedProfile(@NotNull String ref, @NotNull TracingConfigurationType tracingConfiguration,
             List<String> resolutionPath) throws SchemaException {
         if (resolutionPath.contains(ref)) {
             throw new IllegalStateException("A cycle in tracing profile resolution path: " + resolutionPath + " -> " + ref);
@@ -271,7 +276,8 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
         return rv;
     }
 
-    private TracingProfileType findProfile(String name, TracingConfigurationType tracingConfiguration) throws SchemaException {
+    private TracingProfileType findProfile(@NotNull String name, @NotNull TracingConfigurationType tracingConfiguration)
+            throws SchemaException {
         List<TracingProfileType> matching = tracingConfiguration.getProfile().stream()
                 .filter(p -> name.equals(p.getName()))
                 .collect(Collectors.toList());

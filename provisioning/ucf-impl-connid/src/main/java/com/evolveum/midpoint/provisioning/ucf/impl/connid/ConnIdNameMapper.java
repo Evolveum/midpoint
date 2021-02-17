@@ -36,6 +36,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 public class ConnIdNameMapper {
 
     private static final String CUSTOM_OBJECTCLASS_PREFIX = "Custom";
@@ -46,7 +49,7 @@ public class ConnIdNameMapper {
 
     private ResourceSchema resourceSchema = null;
     // Used when there is no schema (schemaless resource)
-    private String resourceSchemaNamespace = null;
+    private String resourceSchemaNamespace;
 
     public ConnIdNameMapper(String resourceSchemaNamespace) {
         super();
@@ -199,7 +202,7 @@ public class ConnIdNameMapper {
         while (true) {
             int nextIndex = inside.indexOf("_", lastIndex);
             if (nextIndex < 0) {
-                String upcase = inside.substring(lastIndex, inside.length());
+                String upcase = inside.substring(lastIndex);
                 sb.append(toCamelCase(upcase, lastIndex == 0));
                 break;
             }
@@ -250,50 +253,57 @@ public class ConnIdNameMapper {
         }
     }
 
-    public ObjectClass objectClassToConnId(PrismObject<? extends ShadowType> shadow, String schemaNamespace, ConnectorType connectorType, boolean legacySchema) {
+    @Nullable
+    ObjectClass objectClassToConnId(PrismObject<? extends ShadowType> shadow, String schemaNamespace,
+            ConnectorType connectorBean, boolean legacySchema) {
 
-        ShadowType shadowType = shadow.asObjectable();
-        QName qnameObjectClass = shadowType.getObjectClass();
-        if (qnameObjectClass == null) {
-            ResourceAttributeContainer attrContainer = ShadowUtil.getAttributesContainer(shadowType);
+        ShadowType shadowBean = shadow.asObjectable();
+        QName objectClassName = shadowBean.getObjectClass();
+        if (objectClassName == null) {
+            ResourceAttributeContainer attrContainer = ShadowUtil.getAttributesContainer(shadowBean);
             if (attrContainer == null) {
                 return null;
             }
             ResourceAttributeContainerDefinition objectClassDefinition = attrContainer.getDefinition();
-            qnameObjectClass = objectClassDefinition.getTypeName();
+            objectClassName = objectClassDefinition.getTypeName();
         }
 
-        return objectClassToConnId(qnameObjectClass, schemaNamespace, connectorType, legacySchema);
+        return objectClassToConnId(objectClassName, schemaNamespace, connectorBean, legacySchema);
     }
 
     /**
-     * Maps a midPoint QName objctclass to the ICF native objectclass name.
-     * <p/>
+     * Maps a midPoint object class QName to the ICF native objectclass name.
+     *
      * The mapping is "stateless" - it does not keep any mapping database or any
      * other state. There is a bi-directional mapping algorithm.
-     * <p/>
+     *
      * TODO: mind the special characters in the ICF objectclass names.
      */
-    public ObjectClass objectClassToConnId(ObjectClassComplexTypeDefinition objectClassDefinition, String schemaNamespace, ConnectorType connectorType, boolean legacySchema) {
+    @NotNull
+    ObjectClass objectClassToConnId(ObjectClassComplexTypeDefinition objectClassDefinition, String schemaNamespace,
+            ConnectorType connectorBean, boolean legacySchema) {
         QName qnameObjectClass = objectClassDefinition.getTypeName();
-        return objectClassToConnId(qnameObjectClass, schemaNamespace, connectorType, legacySchema);
+        return objectClassToConnId(qnameObjectClass, schemaNamespace, connectorBean, legacySchema);
     }
 
-    public ObjectClass objectClassToConnId(QName qnameObjectClass, String schemaNamespace, ConnectorType connectorType, boolean legacySchema) {
+    @NotNull
+    ObjectClass objectClassToConnId(QName qnameObjectClass, String schemaNamespace, ConnectorType connectorType,
+            boolean legacySchema) {
+
         if (!schemaNamespace.equals(qnameObjectClass.getNamespaceURI())) {
             throw new IllegalArgumentException("ObjectClass QName " + qnameObjectClass
                     + " is not in the appropriate namespace for "
                     + connectorType + ", expected: " + schemaNamespace);
         }
 
-        String lname = qnameObjectClass.getLocalPart();
+        String localName = qnameObjectClass.getLocalPart();
         if (legacySchema) {
-            if (SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME.equals(lname)) {
+            if (SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME.equals(localName)) {
                 return ObjectClass.ACCOUNT;
-            } else if (SchemaConstants.GROUP_OBJECT_CLASS_LOCAL_NAME.equals(lname)) {
+            } else if (SchemaConstants.GROUP_OBJECT_CLASS_LOCAL_NAME.equals(localName)) {
                 return ObjectClass.GROUP;
-            } else if (lname.startsWith(CUSTOM_OBJECTCLASS_PREFIX) && lname.endsWith(CUSTOM_OBJECTCLASS_SUFFIX)) {
-                String icfObjectClassName = lname.substring(CUSTOM_OBJECTCLASS_PREFIX.length(), lname.length()
+            } else if (localName.startsWith(CUSTOM_OBJECTCLASS_PREFIX) && localName.endsWith(CUSTOM_OBJECTCLASS_SUFFIX)) {
+                String icfObjectClassName = localName.substring(CUSTOM_OBJECTCLASS_PREFIX.length(), localName.length()
                         - CUSTOM_OBJECTCLASS_SUFFIX.length());
                 return new ObjectClass(icfObjectClassName);
             } else {
@@ -302,7 +312,7 @@ public class ConnIdNameMapper {
                         + schemaNamespace);
             }
         } else {
-            return new ObjectClass(lname);
+            return new ObjectClass(localName);
         }
     }
 

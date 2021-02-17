@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -108,7 +109,7 @@ public class ResourceManager {
     /**
      * Gets a resource.
      */
-    public PrismObject<ResourceType> getResource(String oid, GetOperationOptions options, Task task, OperationResult parentResult)
+    @NotNull public PrismObject<ResourceType> getResource(String oid, GetOperationOptions options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
         boolean readonly = GetOperationOptions.isReadOnly(options);
         PrismObject<ResourceType> cachedResource = resourceCache.getIfLatest(oid, readonly, parentResult);
@@ -126,7 +127,7 @@ public class ResourceManager {
         }
     }
 
-    private PrismObject<ResourceType> readResourceFromRepository(String oid, OperationResult parentResult)
+    @NotNull private PrismObject<ResourceType> readResourceFromRepository(String oid, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
         InternalMonitor.recordCount(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT);
         return repositoryService.getObject(ResourceType.class, oid, null, parentResult);
@@ -137,7 +138,7 @@ public class ResourceManager {
      *
      * @param repositoryObject Up-to-date repository object. Must be mutable.
      */
-    private PrismObject<ResourceType> completeAndCacheResource(PrismObject<ResourceType> repositoryObject,
+    @NotNull private PrismObject<ResourceType> completeAndCacheResource(@NotNull PrismObject<ResourceType> repositoryObject,
             GetOperationOptions options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
@@ -207,8 +208,9 @@ public class ResourceManager {
      *
      * @return completed resource
      */
-    private PrismObject<ResourceType> completeResourceInternal(PrismObject<ResourceType> repoResource, ResourceSchema resourceSchema,
-            boolean fetchedSchema, Map<String,Collection<Object>> capabilityMap, GetOperationOptions options, Task task, OperationResult parentResult)
+    @NotNull private PrismObject<ResourceType> completeResourceInternal(@NotNull PrismObject<ResourceType> repoResource,
+            ResourceSchema resourceSchema, boolean fetchedSchema, Map<String,Collection<Object>> capabilityMap,
+            GetOperationOptions options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         checkMutable(repoResource);

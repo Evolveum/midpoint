@@ -60,9 +60,9 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_PASSWORD_PANEL = "passwordPanel";
+    private static final String ID_OLD_PASSWORD_CONTAINER = "oldPasswordContainer";
     private static final String ID_OLD_PASSWORD_FIELD = "oldPassword";
     private static final String ID_PASSWORD_LABEL = "passwordLabel";
-    private static final String ID_OLD_PASSWORD_LABEL = "oldPasswordLabel";
     public static final String ID_ACCOUNTS_TABLE = "accounts";
     public static final String ID_ACCOUNTS_CONTAINER = "accountsContainer";
 
@@ -102,9 +102,8 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
     private void initLayout() {
         model = (LoadableModel<MyPasswordsDto>) getModel();
 
-        Label oldPasswordLabel = new Label(ID_OLD_PASSWORD_LABEL, createStringResource("PageSelfCredentials.oldPasswordLabel"));
-        add(oldPasswordLabel);
-        oldPasswordLabel.add(new VisibleEnableBehaviour() {
+        WebMarkupContainer oldPasswordContainer = new WebMarkupContainer(ID_OLD_PASSWORD_CONTAINER);
+        oldPasswordContainer.add(new VisibleEnableBehaviour() {
 
             private static final long serialVersionUID = 1L;
 
@@ -113,22 +112,15 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                 return oldPasswordVisible;
             }
         });
-
-        Label passwordLabel = new Label(ID_PASSWORD_LABEL, createStringResource("PageSelfCredentials.passwordLabel1"));
-        add(passwordLabel);
+        add(oldPasswordContainer);
 
         PasswordTextField oldPasswordField =
                 new PasswordTextField(ID_OLD_PASSWORD_FIELD, new PropertyModel<>(model, MyPasswordsDto.F_OLD_PASSWORD));
         oldPasswordField.setRequired(false);
-        add(oldPasswordField);
-        oldPasswordField.add(new VisibleEnableBehaviour() {
+        oldPasswordContainer.add(oldPasswordField);
 
-            private static final long serialVersionUID = 1L;
-
-            public boolean isVisible() {
-                return oldPasswordVisible;
-            }
-        });
+        Label passwordLabel = new Label(ID_PASSWORD_LABEL, createStringResource("PageSelfCredentials.passwordLabel1"));
+        add(passwordLabel);
 
         PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new PropertyModel<>(model, MyPasswordsDto.F_PASSWORD),
                 model.getObject().getFocus(), getPageBase()){
@@ -187,6 +179,9 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                         return false;
                     }
                     if (CredentialsPropagationUserControlType.ONLY_MAPPING.equals(getModelObject().getPropagation())) {
+                        if (!passwordAccountDto.isMidpoint() && !passwordAccountDto.isPasswordOutbound()) {
+                            passwordAccountDto.setSelected(false);
+                        }
                         return false;
                     }
                     if (passwordAccountDto.isMidpoint() && CredentialsPropagationUserControlType.IDENTITY_MANAGER_MANDATORY.equals(getModelObject().getPropagation())) {

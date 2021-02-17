@@ -27,7 +27,6 @@ public interface ResourceAttributeContainerDefinition extends PrismContainerDefi
     @Override
     ObjectClassComplexTypeDefinition getComplexTypeDefinition();
 
-    // TODO: rename to getPrimaryIdentifiers
     Collection<? extends ResourceAttributeDefinition> getPrimaryIdentifiers();
 
     Collection<? extends ResourceAttributeDefinition> getSecondaryIdentifiers();
@@ -69,5 +68,5 @@ public interface ResourceAttributeContainerDefinition extends PrismContainerDefi
     @Override
     List<? extends ResourceAttributeDefinition> getDefinitions();
 
-    <T extends ShadowType> PrismObjectDefinition<T> toShadowDefinition();
+    @NotNull <T extends ShadowType> PrismObjectDefinition<T> toShadowDefinition();
 }

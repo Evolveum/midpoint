@@ -11,20 +11,10 @@ import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.proc
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.provisioning.ucf.api.*;
-import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.result.*;
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.util.DebugUtil;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
@@ -35,24 +25,7 @@ import org.identityconnectors.framework.api.ConnectorFacade;
 import org.identityconnectors.framework.api.ConnectorFacadeFactory;
 import org.identityconnectors.framework.api.ConnectorInfo;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
-import org.identityconnectors.framework.common.objects.Attribute;
-import org.identityconnectors.framework.common.objects.AttributeBuilder;
-import org.identityconnectors.framework.common.objects.AttributeDelta;
-import org.identityconnectors.framework.common.objects.ConnectorObject;
-import org.identityconnectors.framework.common.objects.Name;
-import org.identityconnectors.framework.common.objects.ObjectClass;
-import org.identityconnectors.framework.common.objects.OperationOptions;
-import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
-import org.identityconnectors.framework.common.objects.OperationalAttributes;
-import org.identityconnectors.framework.common.objects.PredefinedAttributes;
-import org.identityconnectors.framework.common.objects.QualifiedUid;
-import org.identityconnectors.framework.common.objects.ResultsHandler;
-import org.identityconnectors.framework.common.objects.ScriptContext;
-import org.identityconnectors.framework.common.objects.SearchResult;
-import org.identityconnectors.framework.common.objects.SortKey;
-import org.identityconnectors.framework.common.objects.SyncResultsHandler;
-import org.identityconnectors.framework.common.objects.SyncToken;
-import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.impl.api.APIConfigurationImpl;
 import org.identityconnectors.framework.impl.api.local.LocalConnectorInfoImpl;
@@ -61,40 +34,45 @@ import org.identityconnectors.framework.impl.api.local.ObjectPool.Statistics;
 import org.identityconnectors.framework.impl.api.local.operations.ConnectorOperationalContext;
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.PoolableConnector;
+import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.impl.connid.query.FilterInterpreter;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.util.ActivationUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Implementation of ConnectorInstance for ConnId connectors.
@@ -336,11 +314,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         return status;
     }
 
-    private void validateConnectorFacade(OperationResult result) {
+    private void validateConnectorFacade() {
         if (connIdConnectorFacade == null) {
-            result.recordFatalError("Attempt to use unconfigured connector");
-            throw new IllegalStateException("Attempt to use unconfigured connector "
-                    + connectorType);
+            throw new IllegalStateException("Attempt to use unconfigured connector " + connectorType);
         }
     }
 
@@ -352,37 +328,28 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_INITIALIZE);
         result.addContext("connector", connectorType);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ConnectorFactoryConnIdImpl.class);
+        try {
+            validateConnectorFacade();
 
-        validateConnectorFacade(parentResult);
+            updateSchema(resourceSchema);
+            this.capabilities = capabilities;
+            this.caseIgnoreAttributeNames = caseIgnoreAttributeNames;
 
-        updateSchema(resourceSchema);
-        this.capabilities = capabilities;
-        this.caseIgnoreAttributeNames = caseIgnoreAttributeNames;
-
-        if (resourceSchema == null || capabilities == null) {
-            try {
-
+            if (resourceSchema == null || capabilities == null) {
                 retrieveAndParseResourceCapabilitiesAndSchema(generateObjectClasses, result);
 
                 this.legacySchema = parsedCapabilitiesAndSchema.getLegacySchema();
                 setResourceSchema(parsedCapabilitiesAndSchema.getResourceSchema());
                 this.capabilities = parsedCapabilitiesAndSchema.getCapabilities();
-
-            } catch (CommunicationException ex) {
-                // This is in fact fatal. There is not schema. Not even the pre-cached one.
-                // The connector will not be able to work.
-                result.recordFatalError(ex);
-                throw ex;
-            } catch (ConfigurationException ex) {
-                result.recordFatalError(ex);
-                throw ex;
-            } catch (GenericFrameworkException ex) {
-                result.recordFatalError(ex);
-                throw ex;
             }
+        } catch (Throwable t) {
+            // Note that even communication exception while retrieving the schema is in fact fatal, because
+            // there is no schema. Not even the pre-cached one. The connector will not be able to work.
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
         }
-
-        result.recordSuccess();
     }
 
     public void updateSchema(ResourceSchema resourceSchema) {
@@ -482,6 +449,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         }
         for (Object cap: capabilities) {
             if (capClass.isAssignableFrom(cap.getClass())) {
+                //noinspection unchecked
                 return (C) cap;
             }
         }
@@ -514,14 +482,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                                 + resourceObjectIdentification + " from " + description);
             }
 
-            ObjectClass icfObjectClass = connIdNameMapper
-                    .objectClassToConnId(objectClassDefinition, getSchemaNamespace(), connectorType, legacySchema);
-            if (icfObjectClass == null) {
-                throw new IllegalArgumentException("Unable to determine object class from QName "
-                        + objectClassDefinition.getTypeName()
-                        + " while attempting to fetch object identified by " + resourceObjectIdentification + " from "
-                        + description);
-            }
+            ObjectClass icfObjectClass = objectClassToConnId(objectClassDefinition);
 
             OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
             convertToIcfAttrsToGet(objectClassDefinition, attributesToReturn, optionsBuilder);
@@ -551,8 +512,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             PrismObjectDefinition<ShadowType> shadowDefinition = toShadowDefinition(objectClassDefinition);
             // TODO configure error reporting method
             PrismObject<ShadowType> shadow = connIdConvertor
-                    .convertToResourceObject(co, shadowDefinition, false, caseIgnoreAttributeNames,
-                            legacySchema, FetchErrorReportingMethodType.DEFAULT, result);
+                    .convertToUcfObject(co, shadowDefinition, false, caseIgnoreAttributeNames,
+                            legacySchema, UcfFetchErrorReportingMethod.EXCEPTION, result)
+                    .getResourceObject();
 
             result.recordSuccess();
             return shadow;
@@ -564,11 +526,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         }
     }
 
-    static PrismObjectDefinition<ShadowType> toShadowDefinition(
-            ObjectClassComplexTypeDefinition objectClassDefinition) {
-        ResourceAttributeContainerDefinition resourceAttributeContainerDefinition = objectClassDefinition
-                .toResourceAttributeContainerDefinition(ShadowType.F_ATTRIBUTES);
-        return resourceAttributeContainerDefinition.toShadowDefinition();
+    @NotNull
+    static PrismObjectDefinition<ShadowType> toShadowDefinition(ObjectClassComplexTypeDefinition objectClassDefinition) {
+        return objectClassDefinition
+                .toResourceAttributeContainerDefinition(ShadowType.F_ATTRIBUTES)
+                .toShadowDefinition();
     }
 
     /**
@@ -592,7 +554,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                     icfObjectClass, uid, ConnIdUtil.dumpOptions(options));
         }
 
-        ConnectorObject co = null;
+        ConnectorObject co;
         try {
 
             // Invoke the ConnId connector
@@ -636,7 +598,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         return co;
     }
 
-    private void convertToIcfAttrsToGet(ObjectClassComplexTypeDefinition objectClassDefinition,
+    void convertToIcfAttrsToGet(ObjectClassComplexTypeDefinition objectClassDefinition,
             AttributesToReturn attributesToReturn, OperationOptionsBuilder optionsBuilder) throws SchemaException {
         if (attributesToReturn == null) {
             return;
@@ -838,7 +800,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         connIdResult.addArbitraryObjectAsParam("options", options);
         connIdResult.addContext("connector", connIdConnectorFacade.getClass());
 
-        Uid uid = null;
+        Uid uid;
         try {
 
             // CALL THE ConnId FRAMEWORK
@@ -948,7 +910,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             return AsynchronousOperationReturnValue.wrap(new ArrayList<>(0), result);
         }
 
-        ObjectClass objClass = connIdNameMapper.objectClassToConnId(identification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
+        ObjectClass objClass = objectClassToConnId(identification.getObjectClassDefinition());
 
         Uid uid;
         try {
@@ -987,7 +949,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
         ObjectClassComplexTypeDefinition objectClassDef = identification.getObjectClassDefinition();
         Set<AttributeDelta> sideEffect = new HashSet<>();
-        String originalUid = uid.getUidValue();
 
         DeltaModificationConverter converter = new DeltaModificationConverter();
         converter.setChanges(changes);
@@ -1013,14 +974,14 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             LOGGER.trace("converted attributesDelta:\n {}", converter.debugDump(1));
         }
 
-        OperationResult connIdResult = null;
+        OperationResult connIdResult;
 
         Set<AttributeDelta> attributesDelta = converter.getAttributesDelta();
         if (!attributesDelta.isEmpty()) {
             OperationOptions connIdOptions = createConnIdOptions(options, changes);
             connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".updateDelta");
             connIdResult.addParam("objectClass", objectClassDef.toString());
-            connIdResult.addParam("uid", uid==null? "null":uid.getUidValue());
+            connIdResult.addParam("uid", uid.getUidValue());
             connIdResult.addParam("attributesDelta", attributesDelta.toString());
             connIdResult.addArbitraryObjectAsParam("options", connIdOptions);
             connIdResult.addContext("connector", connIdConnectorFacade.getClass());
@@ -1079,7 +1040,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         if(sideEffect == null || sideEffect.isEmpty()) {
             return AsynchronousOperationReturnValue.wrap(sideEffectChanges, result);
         } else {
-            boolean changeUid = false, changeName = false;
             for (AttributeDelta attrDeltaSideEffect : sideEffect){
                 String name = attrDeltaSideEffect.getName();
                 if(name.equals(Uid.NAME)){
@@ -1175,7 +1135,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         // icfResult for each operation
         // and handle the faults individually
 
-        OperationResult connIdResult = null;
+        OperationResult connIdResult;
         Set<Attribute> attributesToAdd = converter.getAttributesToAdd();
         if (!attributesToAdd.isEmpty()) {
 
@@ -1476,7 +1436,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                 + ".deleteObject");
         result.addArbitraryObjectCollectionAsParam("identifiers", identifiers);
 
-        ObjectClass objClass = connIdNameMapper.objectClassToConnId(objectClass, getSchemaNamespace(), connectorType, legacySchema);
+        ObjectClass objClass = objectClassToConnId(objectClass);
         Uid uid;
         try {
             uid = getUid(objectClass, identifiers);
@@ -1546,7 +1506,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         if (objectClassDef == null) {
             icfObjectClass = ObjectClass.ALL;
         } else {
-            icfObjectClass = connIdNameMapper.objectClassToConnId(objectClassDef, getSchemaNamespace(), connectorType, legacySchema);
+            icfObjectClass = objectClassToConnId(objectClassDef);
         }
 
         OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".sync");
@@ -1608,8 +1568,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             if (objectClass == null) {
                 requestConnIdObjectClass = ObjectClass.ALL;
             } else {
-                requestConnIdObjectClass = connIdNameMapper
-                        .objectClassToConnId(objectClass, getSchemaNamespace(), connectorType, legacySchema);
+                requestConnIdObjectClass = objectClassToConnId(objectClass);
             }
 
             OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
@@ -1663,27 +1622,14 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                     }
                     UcfLiveSyncChange change = null;
                     try {
-                        boolean canContinue = false; // Driven by the signal from the listener
-
                         // Here we again assume we are called in a single thread, and that changes received here are in
                         // the correct order - i.e. in the order in which they are to be processed.
                         int sequentialNumber = deltasProcessed.incrementAndGet();
 
-                        try {
-                            change = changeConverter.prepareChange(sequentialNumber, syncDelta, handleResult);
-                        } catch (Exception e) {
-                            handleResult.recordFatalError(e);
-                            String primaryIdentifierValue = syncDelta.getUid().getUidValue();
-                            PrismProperty<?> token = TokenUtil.createTokenProperty(syncDelta.getToken(), prismContext);
-                            canContinue = changeListener.onError(sequentialNumber, primaryIdentifierValue,
-                                    token, e, handleResult);
-                            change = null; // just to be sure that the change listener will not get executed
-                        }
+                        change = changeConverter.createChange(sequentialNumber, syncDelta, handleResult);
 
-                        if (change != null) {
-                            // The following should not throw any exceptions
-                            canContinue = changeListener.onChange(change, handleResult);
-                        }
+                        // The following should not throw any exceptions
+                        boolean canContinue = changeListener.onChange(change, handleResult);
 
                         boolean doContinue = canContinue && canRun(reporter) && (maxChanges == null || maxChanges == 0 || sequentialNumber < maxChanges);
                         if (!doContinue) {
@@ -1805,10 +1751,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public SearchResultMetadata search(final ObjectClassComplexTypeDefinition objectClassDefinition,
-            final ObjectQuery query, final ShadowResultHandler handler, AttributesToReturn attributesToReturn,
+    public SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition,
+            ObjectQuery query, ObjectHandler handler, AttributesToReturn attributesToReturn,
             PagedSearchCapabilityType pagedSearchConfiguration, SearchHierarchyConstraints searchHierarchyConstraints,
-            FetchErrorReportingMethodType errorReportingMethod, StateReporter reporter, OperationResult parentResult)
+            UcfFetchErrorReportingMethod ucfErrorReportingMethod, StateReporter reporter, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SecurityViolationException, SchemaException,
                         ObjectNotFoundException {
 
@@ -1817,223 +1763,28 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                 + ".search");
         result.addArbitraryObjectAsParam("objectClass", objectClassDefinition);
         result.addContext("connector", connectorType);
-
-        validateConnectorFacade(result);
-
-        if (objectClassDefinition == null) {
-            result.recordFatalError("Object class not defined");
-            throw new IllegalArgumentException("objectClass not defined");
-        }
-
-        ObjectClass icfObjectClass = connIdNameMapper.objectClassToConnId(objectClassDefinition, getSchemaNamespace(), connectorType, legacySchema);
-        if (icfObjectClass == null) {
-            IllegalArgumentException ex = new IllegalArgumentException(
-                    "Unable to determine object class from QName " + objectClassDefinition
-                            + " while attempting to search objects by "
-                            + ObjectTypeUtil.toShortString(connectorType));
-            result.recordFatalError("Unable to determine object class", ex);
-            throw ex;
-        }
-        final PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(objectClassDefinition);
-
-        if (pagedSearchConfiguration == null) {
-            pagedSearchConfiguration = getCapability(PagedSearchCapabilityType.class);
-        }
-
-        boolean useConnectorPaging = pagedSearchConfiguration != null;
-        if (!useConnectorPaging && query != null && query.getPaging() != null &&
-                (query.getPaging().getOffset() != null || query.getPaging().getMaxSize() != null)) {
-            InternalMonitor.recordCount(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
-        }
-
-        final Holder<Integer> countHolder = new Holder<>(0);
-
-        ResultsHandler connIdHandler = new ResultsHandler() {
-            @Override
-            public boolean handle(ConnectorObject connectorObject) {
-                Validate.notNull(connectorObject, "null connector object"); // todo apply error reporting method?
-
-                recordIcfOperationSuspend(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
-                try {
-                    int count = countHolder.getValue();
-                    countHolder.setValue(count + 1);
-                    if (!useConnectorPaging) {
-                        // TODO allow offset or maxSize be null
-                        if (query != null && query.getPaging() != null && query.getPaging().getOffset() != null
-                                && query.getPaging().getMaxSize() != null) {
-                            if (count < query.getPaging().getOffset()) {
-                                return true;
-                            }
-                            if (count == (query.getPaging().getOffset() + query.getPaging().getMaxSize())) {
-                                return false;
-                            }
-                        }
-                    }
-
-                    PrismObject<ShadowType> resourceObject = connIdConvertor.convertToResourceObject(connectorObject,
-                            objectDefinition, false, caseIgnoreAttributeNames, legacySchema, errorReportingMethod, result);
-                    return handler.handle(resourceObject);
-
-                } catch (SchemaException e) {
-                    throw new IntermediateException(e);
-                } finally {
-                    recordIcfOperationResume(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
-                }
-            }
-
-            @Override
-            public String toString() {
-                return "(midPoint searching result handler)";
-            }
-        };
-
-        OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
-
         try {
-            convertToIcfAttrsToGet(objectClassDefinition, attributesToReturn, optionsBuilder);
-            if (query != null && query.isAllowPartialResults()) {
-                optionsBuilder.setAllowPartialResults(query.isAllowPartialResults());
-            }
-            // preparing paging-related options
-            if (useConnectorPaging && query != null && query.getPaging() != null) {
-                ObjectPaging paging = query.getPaging();
-                if (paging.getOffset() != null) {
-                    optionsBuilder.setPagedResultsOffset(paging.getOffset() + 1);       // ConnId API says the numbering starts at 1
-                }
-                if (paging.getMaxSize() != null) {
-                    optionsBuilder.setPageSize(paging.getMaxSize());
-                }
-                QName orderByAttributeName;
-                boolean isAscending;
-                ItemPath orderByPath = paging.getOrderBy();
-                String desc;
-                if (orderByPath != null && !orderByPath.isEmpty()) {
-                    orderByAttributeName = ShadowUtil.getAttributeName(orderByPath, "OrderBy path");
-                    if (SchemaConstants.C_NAME.equals(orderByAttributeName)) {
-                        orderByAttributeName = SchemaConstants.ICFS_NAME;
-                    }
-                    isAscending = paging.getDirection() != OrderDirection.DESCENDING;
-                    desc = "(explicitly specified orderBy attribute)";
-                } else {
-                    orderByAttributeName = pagedSearchConfiguration.getDefaultSortField();
-                    isAscending = pagedSearchConfiguration.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
-                    desc = "(default orderBy attribute from capability definition)";
-                }
-                if (orderByAttributeName != null) {
-                    String orderByIcfName = connIdNameMapper.convertAttributeNameToConnId(orderByAttributeName, objectClassDefinition, desc);
-                    optionsBuilder.setSortKeys(new SortKey(orderByIcfName, isAscending));
-                }
-            }
-            if (searchHierarchyConstraints != null) {
-                ResourceObjectIdentification baseContextIdentification = searchHierarchyConstraints.getBaseContext();
-                if (baseContextIdentification != null) {
-                    // Only LDAP connector really supports base context. And this one will work better with
-                    // DN. And DN is secondary identifier (__NAME__). This is ugly, but practical. It works around ConnId problems.
-                    ResourceAttribute<?> secondaryIdentifier = baseContextIdentification.getSecondaryIdentifier();
-                    if (secondaryIdentifier == null) {
-                        SchemaException e = new SchemaException("No secondary identifier in base context identification "+baseContextIdentification);
-                        result.recordFatalError(e);
-                        throw e;
-                    }
-                    String secondaryIdentifierValue = secondaryIdentifier.getRealValue(String.class);
-                    ObjectClass baseContextIcfObjectClass = connIdNameMapper.objectClassToConnId(baseContextIdentification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
-                    QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(secondaryIdentifierValue));
-                    optionsBuilder.setContainer(containerQualifiedUid);
-                }
-                SearchHierarchyScope scope = searchHierarchyConstraints.getScope();
-                if (scope != null) {
-                    optionsBuilder.setScope(scope.getScopeString());
-                }
+            validateConnectorFacade();
+
+            if (objectClassDefinition == null) {
+                throw new IllegalArgumentException("Object class not defined");
             }
 
-        } catch (SchemaException e) {
-            result.recordFatalError(e);
-            throw e;
+            if (pagedSearchConfiguration == null) {
+                pagedSearchConfiguration = getCapability(PagedSearchCapabilityType.class);
+            }
+
+            return new SearchExecutor(objectClassDefinition, query, handler, attributesToReturn,
+                    pagedSearchConfiguration, searchHierarchyConstraints,
+                    ucfErrorReportingMethod, reporter, result, this)
+                    .execute();
+
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown(); // or should we simply record success if unknown?
         }
-
-        // Relax completeness requirements. This is a search, not get. So it is OK to
-        // return incomplete member lists and similar attributes.
-        optionsBuilder.setAllowPartialAttributeValues(true);
-
-        OperationOptions options = optionsBuilder.build();
-
-        Filter filter;
-        try {
-            filter = convertFilterToIcf(query, objectClassDefinition);
-        } catch (SchemaException | RuntimeException e) {
-            result.recordFatalError(e);
-            throw e;
-        }
-
-        // Connector operation cannot create result for itself, so we need to
-        // create result for it
-        OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".search");
-        icfResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
-
-        SearchResult connIdSearchResult;
-        try {
-
-            InternalMonitor.recordConnectorOperation("search");
-            recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
-            connIdSearchResult = connIdConnectorFacade.search(icfObjectClass, filter, connIdHandler, options);
-            recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
-
-            icfResult.recordSuccess();
-        } catch (IntermediateException inex) {
-            recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition, inex);
-            SchemaException ex = (SchemaException) inex.getCause();
-            icfResult.recordFatalError(ex);
-            result.recordFatalError(ex);
-            throw ex;
-        } catch (Throwable ex) {
-            recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition, ex);
-            Throwable midpointEx = processConnIdException(ex, this, icfResult);
-            result.computeStatus();
-            // Do some kind of acrobatics to do proper throwing of checked
-            // exception
-            if (midpointEx instanceof CommunicationException) {
-                throw (CommunicationException) midpointEx;
-            } else if (midpointEx instanceof ObjectNotFoundException) {
-                throw (ObjectNotFoundException) midpointEx;
-            } else if (midpointEx instanceof GenericFrameworkException) {
-                throw (GenericFrameworkException) midpointEx;
-            } else if (midpointEx instanceof SchemaException) {
-                throw (SchemaException) midpointEx;
-            } else if (midpointEx instanceof SecurityViolationException) {
-                throw (SecurityViolationException) midpointEx;
-            } else if (midpointEx instanceof RuntimeException) {
-                throw (RuntimeException) midpointEx;
-            } else if (midpointEx instanceof Error) {
-                throw (Error) midpointEx;
-            } else {
-                throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
-            }
-        }
-
-        SearchResultMetadata metadata = null;
-        if (connIdSearchResult != null) {
-            metadata = new SearchResultMetadata();
-            metadata.setPagingCookie(connIdSearchResult.getPagedResultsCookie());
-            int remainingPagedResults = connIdSearchResult.getRemainingPagedResults();
-            if (remainingPagedResults >= 0) {
-                int offset = 0;
-                Integer connIdOffset = options.getPagedResultsOffset();
-                if (connIdOffset != null && connIdOffset > 0) {
-                    offset = connIdOffset - 1;
-                }
-                int allResults = remainingPagedResults + offset + countHolder.getValue();
-                metadata.setApproxNumberOfAllResults(allResults);
-            }
-            if (!connIdSearchResult.isAllResultsReturned()) {
-                metadata.setPartialResults(true);
-            }
-        }
-
-        if (result.isUnknown()) {
-            result.recordSuccess();
-        }
-
-        return metadata;
     }
 
     @Override
@@ -2052,15 +1803,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             throw new IllegalArgumentException("objectClass not defined");
         }
 
-        ObjectClass icfObjectClass = connIdNameMapper.objectClassToConnId(objectClassDefinition, getSchemaNamespace(), connectorType, legacySchema);
-        if (icfObjectClass == null) {
-            IllegalArgumentException ex = new IllegalArgumentException(
-                    "Unable to determine object class from QName " + objectClassDefinition
-                            + " while attempting to search objects by "
-                            + ObjectTypeUtil.toShortString(connectorType));
-            result.recordFatalError("Unable to determine object class", ex);
-            throw ex;
-        }
+        ObjectClass icfObjectClass = objectClassToConnId(objectClassDefinition);
         final boolean useConnectorPaging = pagedSearchCapabilityType != null;
         if (!useConnectorPaging) {
             throw new UnsupportedOperationException("ConnectorInstanceIcfImpl.count operation is supported only in combination with connector-implemented paging");
@@ -2153,18 +1896,22 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         return retval;
     }
 
-    private Filter convertFilterToIcf(ObjectQuery query, ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
-        Filter filter = null;
-        if (query != null && query.getFilter() != null) {
-            FilterInterpreter interpreter = new FilterInterpreter(objectClassDefinition);
-            LOGGER.trace("Start to convert filter: {}", query.getFilter().debugDump());
-            filter = interpreter.interpret(query.getFilter(), connIdNameMapper);
+    @NotNull
+    ObjectClass objectClassToConnId(ObjectClassComplexTypeDefinition objectClassDefinition) {
+        return connIdNameMapper.objectClassToConnId(objectClassDefinition, getSchemaNamespace(), connectorType, legacySchema);
+    }
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("ConnId filter: {}", ConnIdUtil.dump(filter));
-            }
+    Filter convertFilterToIcf(ObjectQuery query, ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
+        ObjectFilter prismFilter = query != null ? query.getFilter() : null;
+        if (prismFilter != null) {
+            LOGGER.trace("Start to convert filter: {}", prismFilter.debugDumpLazily());
+            FilterInterpreter interpreter = new FilterInterpreter(objectClassDefinition);
+            Filter connIdFilter = interpreter.interpret(prismFilter, connIdNameMapper);
+            LOGGER.trace("ConnId filter: {}", DebugUtil.lazy(() -> ConnIdUtil.dump(connIdFilter)));
+            return connIdFilter;
+        } else {
+            return null;
         }
-        return filter;
     }
 
     // UTILITY METHODS
@@ -2306,39 +2053,25 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     @Override
     public Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, StateReporter reporter, OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
 
-        OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
-                + ".executeScript");
-
-        Object output = null;
+        OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName() + ".executeScript");
         try {
-
-            output = executeScriptIcf(reporter, scriptOperation, result);
-
-        } catch (CommunicationException e) {
-            result.recordFatalError(e);
-            throw e;
-        } catch (GenericFrameworkException e) {
-            result.recordFatalError(e);
-            throw e;
-        } catch (RuntimeException e) {
-            result.recordFatalError(e);
-            throw e;
+            return executeScriptIcf(reporter, scriptOperation, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
         }
-
-        result.computeStatus();
-
-        return output;
     }
 
     private Object executeScriptIcf(StateReporter reporter, ExecuteProvisioningScriptOperation scriptOperation, OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
 
-        String icfOpName = null;
+        String icfOpName;
         if (scriptOperation.isConnectorHost()) {
             icfOpName = "runScriptOnConnector";
         } else if (scriptOperation.isResourceHost()) {
             icfOpName = "runScriptOnResource";
         } else {
-            parentResult.recordFatalError("Where to execute the script?");
             throw new IllegalArgumentException("Where to execute the script?");
         }
 
@@ -2375,9 +2108,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
             recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SCRIPT, null, ex);
 
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Finished running script ({}), ERROR: {}", icfOpName, ex.getMessage());
-            }
+            LOGGER.debug("Finished running script ({}), ERROR: {}", icfOpName, ex.getMessage());
 
             Throwable midpointEx = processConnIdException(ex, this, icfResult);
 
@@ -2417,16 +2148,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         for (ExecuteScriptArgument argument : executeOp.getArgument()) {
             scriptArguments.put(argument.getArgumentName(), argument.getArgumentValue());
         }
-        ScriptContext scriptContext = new ScriptContext(executeOp.getLanguage(), executeOp.getTextCode(),
-                scriptArguments);
-        return scriptContext;
+        return new ScriptContext(executeOp.getLanguage(), executeOp.getTextCode(), scriptArguments);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
         return "ConnectorInstanceIcfImpl(" + connectorType + ")";
@@ -2453,7 +2177,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         }
     }
 
-    private void recordIcfOperationStart(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition) {
+    void recordIcfOperationStart(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition) {
         if (reporter != null) {
             reporter.recordIcfOperationStart(operation, objectClassDefinition, null);
         } else {
@@ -2461,7 +2185,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         }
     }
 
-    private void recordIcfOperationResume(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition) {
+    void recordIcfOperationResume(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition) {
         if (reporter != null) {
             reporter.recordIcfOperationResume(operation, objectClassDefinition);
         } else {
@@ -2469,7 +2193,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         }
     }
 
-    private void recordIcfOperationSuspend(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition) {
+    void recordIcfOperationSuspend(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition) {
         if (reporter != null) {
             reporter.recordIcfOperationSuspend(operation, objectClassDefinition);
         } else {
@@ -2485,7 +2209,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         }
     }
 
-    private void recordIcfOperationEnd(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition, Throwable ex) {
+    void recordIcfOperationEnd(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition, Throwable ex) {
         if (reporter != null) {
             reporter.recordIcfOperationEnd(operation, objectClassDefinition, ex, null);
         } else {
@@ -2501,13 +2225,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         }
     }
 
-
     private void recordIcfOperationEnd(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition) {
-        if (reporter != null) {
-            reporter.recordIcfOperationEnd(operation, objectClassDefinition, null, null);
-        } else {
-            LOGGER.warn("Couldn't record ConnId operation end as reporter is null.");
-        }
+        recordIcfOperationEnd(reporter, operation, objectClassDefinition, (Throwable) null);
     }
 
     private OperationOptions createConnIdOptions(ConnectorOperationOptions options, Collection<Operation> changes) throws SchemaException {
@@ -2551,5 +2270,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     boolean isCaseIgnoreAttributeNames() {
         return caseIgnoreAttributeNames;
+    }
+
+    ConnectorFacade getConnIdConnectorFacade() {
+        return connIdConnectorFacade;
     }
 }

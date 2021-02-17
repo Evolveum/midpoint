@@ -953,7 +953,8 @@ public class TestOrgSync extends AbstractStoryTest {
         // THEN
         then();
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 17, 0, 0);
+        // expected shadow recon of idm (originally it was not, maybe because of non-matching intent?)
+        reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 17, 0, 1);
 
         users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after recon", users);

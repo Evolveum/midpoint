@@ -56,7 +56,7 @@ public class CacheConfigurationManager {
     private boolean wrongConfiguration;
     private Map<CacheType, CacheConfiguration> compiledGlobalConfigurations;        // not null if !wrongConfiguration
 
-    private ThreadLocal<ThreadLocalConfiguration> threadLocalConfiguration = new ThreadLocal<>();
+    private final ThreadLocal<ThreadLocalConfiguration> threadLocalConfiguration = new ThreadLocal<>();
 
     @PostConstruct
     public void initialize() {

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.ucf.api.async;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * Represents a source of asynchronous update messages.
  *
@@ -20,6 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  * An instance of this interface is created by calling static method create(AsyncUpdateSourceType configuration)
  * on the implementing class.
  */
+@VisibleForTesting // just to provide mock implementations
 public interface AsyncUpdateSource {
 
     /**

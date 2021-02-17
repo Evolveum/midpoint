@@ -7,11 +7,13 @@
 
 package com.evolveum.midpoint.provisioning.ucf.api.async;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Provisioning request represented by simple string value.
  */
+@VisibleForTesting // just to provide mock implementations
 public class StringAsyncProvisioningRequest implements AsyncProvisioningRequest {
 
     @NotNull private final String stringValue;

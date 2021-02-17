@@ -79,7 +79,8 @@ public class TaskFinishChecker implements Checker {
             if (errorOk) {
                 return executionStatusIsDone();
             } else {
-                throw new AssertionError("Error in " + freshTask + ": " + TestUtil.getErrorMessage(result));
+                display("Failed result of task " + freshTask, freshTask.getResult());
+                throw new AssertionError("Error in " + freshTask + ": " + result);
             }
         } else {
             boolean resultDone = !isUnknown(result, checkSubresult) && !isInProgress(result, checkSubresult);

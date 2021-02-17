@@ -15,7 +15,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.MFocus;
  */
 public class MAbstractRole extends MFocus {
 
-    public String approvalProcess;
     public Boolean autoassignEnabled;
     public String displayNameNorm;
     public String displayNameOrig;

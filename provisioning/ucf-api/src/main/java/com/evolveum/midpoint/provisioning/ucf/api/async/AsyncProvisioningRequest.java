@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.ucf.api.async;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
@@ -16,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Request for asynchronous provisioning operation. It is to be sent to one or more asynchronous provisioning targets.
  */
+@VisibleForTesting // just to provide mock implementations
 public interface AsyncProvisioningRequest extends DebugDumpable {
 
     /**

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.NestedMappingResolver;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.util.QNameUtil;
 
@@ -100,6 +101,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
      * This is in contrast with "item mapping" that is used for single (or last) component
      * of the item path and helps with query interpretation.
      */
+    // TODO add "to-many" option so the interpreter can use WHERE EXISTS instead of JOIN
     public final QueryModelMapping<S, Q, R> addRelationResolver(
             @NotNull ItemName itemName,
             @NotNull ItemRelationResolver itemRelationResolver) {
@@ -132,5 +134,18 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
                     + " in mapping " + getClass().getSimpleName());
         }
         return resolver;
+    }
+
+    /**
+     * Creates relation resolver for nested mapping and returns the mapping so the nested items
+     * can be mapped in a fluent matter.
+     */
+    public final <N> QueryModelMapping<N, Q, R> nestedMapping(
+            @NotNull ItemName itemName,
+            @NotNull Class<N> nestedSchemaType) {
+        QueryModelMapping<N, Q, R> nestedMapping =
+                new QueryModelMapping<>(nestedSchemaType, queryType());
+        addRelationResolver(itemName, new NestedMappingResolver<>(nestedMapping));
+        return nestedMapping;
     }
 }

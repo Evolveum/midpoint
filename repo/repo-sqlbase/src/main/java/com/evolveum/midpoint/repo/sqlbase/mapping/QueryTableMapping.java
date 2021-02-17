@@ -23,7 +23,6 @@ import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.NestedMappingResolver;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -84,19 +83,6 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
         super(schemaType, queryType);
         this.tableName = tableName;
         this.defaultAliasName = defaultAliasName;
-    }
-
-    /**
-     * Creates relation resolver for nested mapping and returns the mapping so the nested items
-     * can be mapped in a fluent matter.
-     */
-    public final <N> QueryModelMapping<N, Q, R> nestedMapping(
-            @NotNull ItemName itemName,
-            @NotNull Class<N> nestedSchemaType) {
-        QueryModelMapping<N, Q, R> nestedMapping =
-                new QueryModelMapping<>(nestedSchemaType, queryType());
-        addRelationResolver(itemName, new NestedMappingResolver<>(nestedMapping));
-        return nestedMapping;
     }
 
     /**

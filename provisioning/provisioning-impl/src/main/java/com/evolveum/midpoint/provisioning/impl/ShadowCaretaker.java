@@ -8,27 +8,15 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.Holder;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -40,23 +28,13 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefiniti
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
- * Component that takes care of some shadow maintenance, such as applying definitions, applying pending
+ * Component that takes care of some shadow (or resource object) maintenance, such as applying definitions, applying pending
  * operations and so on.
  *
  * Important: this component should be pretty much stand-alone low-level component. It should NOT have
@@ -67,11 +45,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 @Component
 public class ShadowCaretaker {
 
-    @Autowired private Clock clock;
     @Autowired private PrismContext prismContext;
-    @Autowired private ProvisioningContextFactory ctxFactory;
-
-    private static final Trace LOGGER = TraceManager.getTrace(ShadowCaretaker.class);
 
     public void applyAttributesDefinition(ProvisioningContext ctx, ObjectDelta<ShadowType> delta)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
@@ -217,21 +191,21 @@ public class ShadowCaretaker {
      * reapplied e.g. if the shadow has auxiliary object classes, if it is of a subclass
      * of the object class that was originally requested, etc.
      */
-    ProvisioningContext reapplyDefinitions(ProvisioningContext ctx,
-            PrismObject<ShadowType> rawResourceShadow) throws SchemaException, ConfigurationException,
+    public ProvisioningContext reapplyDefinitions(ProvisioningContext ctx,
+            PrismObject<ShadowType> rawResourceObject) throws SchemaException, ConfigurationException,
                     ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-        ShadowType rawResourceShadowType = rawResourceShadow.asObjectable();
-        QName objectClassQName = rawResourceShadowType.getObjectClass();
-        List<QName> auxiliaryObjectClassQNames = rawResourceShadowType.getAuxiliaryObjectClass();
+        ShadowType rawResourceObjectBean = rawResourceObject.asObjectable();
+        QName objectClassQName = rawResourceObjectBean.getObjectClass();
+        List<QName> auxiliaryObjectClassQNames = rawResourceObjectBean.getAuxiliaryObjectClass();
         if (auxiliaryObjectClassQNames.isEmpty()
                 && objectClassQName.equals(ctx.getObjectClassDefinition().getTypeName())) {
             // shortcut, no need to reapply anything
             return ctx;
         }
-        ProvisioningContext shadowCtx = ctx.spawn(rawResourceShadow);
+        ProvisioningContext shadowCtx = ctx.spawn(rawResourceObject);
         shadowCtx.assertDefinition();
         RefinedObjectClassDefinition shadowDef = shadowCtx.getObjectClassDefinition();
-        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(rawResourceShadow);
+        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(rawResourceObject);
         attributesContainer.applyDefinition(shadowDef.toResourceAttributeContainerDefinition());
         return shadowCtx;
     }

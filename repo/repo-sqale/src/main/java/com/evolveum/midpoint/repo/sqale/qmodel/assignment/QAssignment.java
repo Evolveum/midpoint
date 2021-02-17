@@ -31,7 +31,7 @@ public class QAssignment extends FlexibleRelationalPathBase<MAssignment> {
 
     public static final ColumnMetadata OWNER_OID =
             ColumnMetadata.named("owner_oid").ofType(UuidPath.UUID_TYPE);
-    public static final ColumnMetadata ID =
+    public static final ColumnMetadata CID =
             ColumnMetadata.named("cid").ofType(Types.INTEGER);
     public static final ColumnMetadata OWNER_TYPE =
             ColumnMetadata.named("owner_type").ofType(Types.INTEGER);
@@ -119,7 +119,7 @@ public class QAssignment extends FlexibleRelationalPathBase<MAssignment> {
     // attributes
 
     public final UuidPath ownerOid = createUuid("ownerOid", OWNER_OID);
-    public final NumberPath<Integer> cid = createInteger("cid", ID);
+    public final NumberPath<Integer> cid = createInteger("cid", CID);
     public final NumberPath<Integer> ownerType = createInteger("ownerType", OWNER_TYPE);
     public final NumberPath<Integer> assignmentOwner =
             createInteger("assignmentOwner", ASSIGNMENT_OWNER);

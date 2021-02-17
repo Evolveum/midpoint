@@ -20,6 +20,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
+import static java.util.Collections.emptyList;
+
 /**
  * TODO
  */
@@ -40,8 +44,15 @@ public class UcfAsyncUpdateChange extends UcfChange implements AcknowledgementSi
             ObjectDelta<ShadowType> objectDelta, PrismObject<ShadowType> currentResourceObject,
             boolean notificationOnly, AcknowledgementSink acknowledgeSink) {
         super(localSequenceNumber, primaryIdentifierRealValue, objectClassDefinition, identifiers,
-                objectDelta, currentResourceObject);
+                objectDelta, currentResourceObject, UcfErrorState.success());
         this.notificationOnly = notificationOnly;
+        this.acknowledgeSink = acknowledgeSink;
+    }
+
+    public UcfAsyncUpdateChange(int localSequenceNumber, UcfErrorState errorState, AcknowledgementSink acknowledgeSink) {
+        super(localSequenceNumber, null, null, emptyList(),
+                null, null, errorState);
+        this.notificationOnly = false;
         this.acknowledgeSink = acknowledgeSink;
     }
 
@@ -63,5 +74,12 @@ public class UcfAsyncUpdateChange extends UcfChange implements AcknowledgementSi
     @Override
     public void acknowledge(boolean release, OperationResult result) {
         acknowledgeSink.acknowledge(release, result);
+    }
+
+    @Override
+    protected void checkObjectClassDefinitionPresence() {
+        if (errorState.isSuccess()) {
+            stateCheck(objectClassDefinition != null, "No object class definition");
+        }
     }
 }
