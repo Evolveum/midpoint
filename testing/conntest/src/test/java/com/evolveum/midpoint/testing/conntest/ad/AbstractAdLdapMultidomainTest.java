@@ -2268,7 +2268,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         when();
         addTask(getReconciliationTaskFile());
 
-        waitForTaskFinish(getReconciliationTaskOid(), true);
+        waitForTaskFinish(getReconciliationTaskOid(), false);
 
         // THEN
         then();
