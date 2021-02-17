@@ -18,6 +18,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -38,9 +39,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.util.time.Duration;
-import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.IValidator;
-import org.apache.wicket.validation.ValidationError;
+import org.apache.wicket.validation.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -73,6 +72,7 @@ public class PasswordPanel extends InputPanel {
     private static final String ID_INPUT_CONTAINER = "inputContainer";
     private static final String ID_PASSWORD_ONE = "password1";
     private static final String ID_PASSWORD_TWO = "password2";
+    private static final String ID_PASSWORD_TWO_VALIDATION_MESSAGE = "password2ValidationMessage";
     private static final String ID_VALIDATION_PANEL = "validationPanel";
 
     private boolean passwordInputVisible;
@@ -196,8 +196,41 @@ public class PasswordPanel extends InputPanel {
                 attributes.setChannel(new AjaxChannel("Drop", AjaxChannel.Type.DROP));
             }
         });
-        password2.add
-                (new PasswordValidator(password1));
+
+        IModel<String> password2ValidationModel = (IModel<String>) () -> {
+            String s1 = password1.getModelObject();
+            String s2 = password2.getValue();
+
+            if (StringUtils.isEmpty(s1) && StringUtils.isEmpty(s2)) {
+                return "";
+            }
+
+            if (!Objects.equals(s1, s2)) {
+                return getPageBase().createStringResource("passwordPanel.error").getString();
+            }
+            return "";
+        };
+        Label password2ValidationMessage = new Label(ID_PASSWORD_TWO_VALIDATION_MESSAGE, password2ValidationModel);
+        password2ValidationMessage.setOutputMarkupId(true);
+        inputContainer.add(password2ValidationMessage);
+
+        PasswordValidator pass2Validator = new PasswordValidator(password1);
+        password2.add(pass2Validator);
+        password2.add(new AjaxFormComponentUpdatingBehavior("keyup") {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                target.add(password2ValidationMessage);
+            }
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                attributes.setThrottlingSettings(new ThrottlingSettings(Duration.milliseconds(500), true));
+                attributes.setChannel(new AjaxChannel("Drop", AjaxChannel.Type.DROP));
+            }
+        });
 
         final WebMarkupContainer linkContainer = new WebMarkupContainer(ID_LINK_CONTAINER) {
             private static final long serialVersionUID = 1L;
