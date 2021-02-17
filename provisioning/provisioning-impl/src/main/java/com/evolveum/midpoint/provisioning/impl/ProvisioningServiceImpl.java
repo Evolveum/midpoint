@@ -15,6 +15,9 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
+
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,9 +40,9 @@ import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.*;
-import com.evolveum.midpoint.provisioning.impl.sync.AsyncUpdater;
-import com.evolveum.midpoint.provisioning.impl.sync.LiveSynchronizer;
-import com.evolveum.midpoint.provisioning.impl.sync.SynchronizationOperationResult;
+import com.evolveum.midpoint.provisioning.impl.shadows.sync.AsyncUpdater;
+import com.evolveum.midpoint.provisioning.impl.shadows.sync.LiveSynchronizer;
+import com.evolveum.midpoint.provisioning.impl.shadows.sync.SynchronizationOperationResult;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -78,7 +81,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
     private static final String OPERATION_REFRESH_SHADOW = ProvisioningServiceImpl.class.getName() + ".refreshShadow";
 
-    @Autowired ShadowCache shadowCache;
+    @Autowired
+    ShadowsFacade shadowsFacade;
     @Autowired ResourceManager resourceManager;
     @Autowired ConnectorManager connectorManager;
     @Autowired ProvisioningContextFactory ctxFactory;
@@ -92,7 +96,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Qualifier("cacheRepositoryService")
     private RepositoryService cacheRepositoryService;
 
-    private SystemConfigurationType systemConfiguration;
+    private volatile SystemConfigurationType systemConfiguration;
 
     private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImpl.class);
 
@@ -174,7 +178,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
                 if (repositoryObject.canRepresent(ShadowType.class)) {
                     try {
-                        resultingObject = (PrismObject<T>) shadowCache.getShadow(oid,
+                        resultingObject = (PrismObject<T>) shadowsFacade.getShadow(oid,
                                 (PrismObject<ShadowType>) (repositoryObject), null, options, task, result);
                     } catch (ObjectNotFoundException e) {
                         if (!GetOperationOptions.isAllowNotFound(rootOptions)) {
@@ -249,8 +253,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             try {
                 // calling shadow cache to add object
                 //noinspection unchecked
-                oid = shadowCache.addShadow((PrismObject<ShadowType>) object, scripts,
-                        null, options, task, result);
+                oid = shadowsFacade.addResourceObject((PrismObject<ShadowType>) object, scripts, options, task, result);
                 LOGGER.trace("Added shadow object {}", oid);
                 // Status might be set already (e.g. by consistency mechanism)
                 result.computeStatusIfUnknown();
@@ -408,7 +411,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         if (ShadowType.class.isAssignableFrom(type)) {
             try {
                 //noinspection unchecked,rawtypes
-                objects = (SearchResultList) shadowCache.searchObjects(query, options, task, result);
+                objects = (SearchResultList) shadowsFacade.searchObjects(query, options, task, result);
             } catch (Throwable e) {
                 ProvisioningUtil.recordFatalError(LOGGER, result, "Could not search objects: " + e.getMessage(), e);
                 throw e;
@@ -533,7 +536,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         Integer count;
         try {
-            count = shadowCache.countObjects(query, task, result);
+            count = shadowsFacade.countObjects(query, task, result);
 
             result.computeStatus();
         } catch (ConfigurationException | CommunicationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException | Error e) {
@@ -584,7 +587,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             if (ShadowType.class.isAssignableFrom(type)) {
                 // calling shadow cache to modify object
                 //noinspection unchecked
-                oid = shadowCache.modifyShadow((PrismObject<ShadowType>) repoShadow,
+                oid = shadowsFacade.modifyShadow((PrismObject<ShadowType>) repoShadow,
                         modifications, scripts, options, task, result);
             } else {
                 cacheRepositoryService.modifyObject(type, oid, modifications, result);
@@ -639,7 +642,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             try {
 
                 //noinspection unchecked
-                deadShadow = (PrismObject<T>) shadowCache.deleteShadow((PrismObject<ShadowType>) object, options, scripts, task, result);
+                deadShadow = (PrismObject<T>) shadowsFacade.deleteShadow((PrismObject<ShadowType>) object, options, scripts, task, result);
 
             } catch (CommunicationException e) {
                 ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: communication problem: " + e.getMessage(), e);
@@ -760,7 +763,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         try {
 
-            shadowCache.refreshShadow(shadow, options, task, result);
+            shadowsFacade.refreshShadow(shadow, options, task, result);
 
         } catch (CommunicationException | SchemaException | ObjectNotFoundException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
             ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't refresh shadow: " + e.getClass().getSimpleName() + ": " + e.getMessage(), e);
@@ -851,7 +854,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
             try {
 
-                metadata = shadowCache.searchObjectsIterative(query, options, (ResultHandler<ShadowType>) handler, true, task, result);
+                metadata = shadowsFacade.searchObjectsIterative(query, options, (ResultHandler<ShadowType>) handler, task, result);
 
                 result.computeStatus();
                 result.cleanupResult();
@@ -971,7 +974,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         try {
 
             if (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())) {
-                shadowCache.applyDefinition((ObjectDelta<ShadowType>) delta, (ShadowType) object, result);
+                shadowsFacade.applyDefinition((ObjectDelta<ShadowType>) delta, (ShadowType) object, result);
             } else if (ResourceType.class.isAssignableFrom(delta.getObjectTypeClass())) {
                 resourceManager.applyDefinition((ObjectDelta<ResourceType>) delta, (ResourceType) object, null, task, result);
             } else {
@@ -999,7 +1002,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         try {
 
             if (object.isOfType(ShadowType.class)) {
-                shadowCache.applyDefinition((PrismObject<ShadowType>) object, result);
+                shadowsFacade.applyDefinition((PrismObject<ShadowType>) object, result);
             } else if (object.isOfType(ResourceType.class)) {
                 resourceManager.applyDefinition((PrismObject<ResourceType>) object, task, result);
             } else {
@@ -1034,7 +1037,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             }
 
             if (ShadowType.class.isAssignableFrom(type)) {
-                shadowCache.applyDefinition(query, result);
+                shadowsFacade.applyDefinition(query, result);
             } else if (ResourceType.class.isAssignableFrom(type)) {
                 resourceManager.applyDefinition(query, result);
             } else {
@@ -1104,9 +1107,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".checkConstraints");
         try {
             ConstraintsChecker checker = new ConstraintsChecker();
-            checker.setRepositoryService(cacheRepositoryService);
             checker.setCacheConfigurationManager(cacheConfigurationManager);
-            checker.setShadowCache(shadowCache);
+            checker.setShadowsFacade(shadowsFacade);
             checker.setShadowObjectOld(shadowObjectOld);
             checker.setPrismContext(prismContext);
             ProvisioningContext ctx = ctxFactory.create(shadowObject, task, result);
@@ -1184,7 +1186,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             LOGGER.trace("Retrieved repository object:\n{}", repositoryObject.debugDumpLazily());
 
             //noinspection unchecked
-            comparisonResult = shadowCache.compare((PrismObject<ShadowType>) (repositoryObject), path, expectedValue, task, result);
+            comparisonResult = shadowsFacade.compare((PrismObject<ShadowType>) (repositoryObject), path, expectedValue, task, result);
 
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | EncryptionException | RuntimeException | Error e) {
             ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
@@ -1205,5 +1207,10 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Override
     public SystemConfigurationType getSystemConfiguration() {
         return systemConfiguration;
+    }
+
+    @Override
+    public void setResourceObjectClassifier(ResourceObjectClassifier classifier) {
+        shadowsFacade.setResourceObjectClassifier(classifier);
     }
 }

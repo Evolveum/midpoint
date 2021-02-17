@@ -106,7 +106,7 @@ INSERT INTO m_objtype VALUES (8, 'SYSTEM_CONFIGURATION', 'm_system_configuration
 INSERT INTO m_objtype VALUES (9, 'TASK', 'm_task');
 INSERT INTO m_objtype VALUES (10, 'USER', 'm_user');
 INSERT INTO m_objtype VALUES (11, 'REPORT', 'm_report');
-INSERT INTO m_objtype VALUES (12, 'REPORT_DATA', 'm_report_output');
+INSERT INTO m_objtype VALUES (12, 'REPORT_DATA', 'm_report_data');
 INSERT INTO m_objtype VALUES (13, 'OBJECT_TEMPLATE', 'm_object_template');
 INSERT INTO m_objtype VALUES (14, 'NODE', 'm_node');
 INSERT INTO m_objtype VALUES (15, 'ORG', 'm_org');
@@ -166,7 +166,8 @@ CREATE TYPE TaskWaitingReasonType AS ENUM ('OTHER_TASKS', 'OTHER');
 -- endregion
 
 -- region M_OBJECT
--- Purely abstract table (no entries are allowed).
+-- Purely abstract table (no entries are allowed). Represents ObjectType+ArchetypeHolderType.
+-- See https://wiki.evolveum.com/display/midPoint/ObjectType
 -- Following is recommended for each concrete table (see m_resource just below for example):
 -- 1) override OID like this (PK+FK): oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
 -- 2) define object type class (change value): objectTypeClass INTEGER GENERATED ALWAYS AS (5) STORED,
@@ -214,6 +215,7 @@ CREATE TABLE m_object (
 -- endregion
 
 -- region FOCUS related tables
+-- Represents FocusType (Users, Roles, ...), see https://wiki.evolveum.com/display/midPoint/Focus+and+Projections
 -- extending m_object, but still abstract, hence DEFAULT for objectTypeClass and CHECK (false)
 CREATE TABLE m_focus (
     -- will be overridden with GENERATED value in concrete table
@@ -227,6 +229,7 @@ CREATE TABLE m_focus (
     preferredLanguage VARCHAR(255),
     telephoneNumber VARCHAR(255),
     timezone VARCHAR(255),
+    -- credential/password/metadata
     passwordCreateTimestamp TIMESTAMPTZ,
     passwordModifyTimestamp TIMESTAMPTZ,
     -- activation
@@ -245,6 +248,7 @@ CREATE TABLE m_focus (
 )
     INHERITS (m_object);
 
+-- Represents UserType, see https://wiki.evolveum.com/display/midPoint/UserType
 CREATE TABLE m_user (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (10) STORED,
@@ -285,10 +289,10 @@ CREATE INDEX m_user_employeeNumber_idx ON m_user (employeeNumber);
 -- endregion
 
 -- region ROLE related tables
+-- Represents AbstractRoleType, see https://wiki.evolveum.com/display/midPoint/Abstract+Role
 CREATE TABLE m_abstract_role (
     -- will be overridden with GENERATED value in concrete table
     objectTypeClass INTEGER NOT NULL DEFAULT 16,
-    approvalProcess VARCHAR(255),
     autoassign_enabled BOOLEAN,
     displayName_norm VARCHAR(255),
     displayName_orig VARCHAR(255),
@@ -301,8 +305,9 @@ CREATE TABLE m_abstract_role (
 
     CHECK (FALSE) NO INHERIT
 )
-    INHERITS (m_object);
+    INHERITS (m_focus);
 
+-- Represents RoleType, see https://wiki.evolveum.com/display/midPoint/RoleType
 CREATE TABLE m_role (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (7) STORED,
@@ -320,6 +325,7 @@ CREATE TRIGGER m_role_oid_delete_tr AFTER DELETE ON m_role
 CREATE INDEX m_role_name_orig_idx ON m_role (name_orig);
 ALTER TABLE m_role ADD CONSTRAINT m_role_name_norm_key UNIQUE (name_norm);
 
+-- Represents ServiceType, see https://wiki.evolveum.com/display/midPoint/Service+Account+Management
 CREATE TABLE m_service (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (24) STORED,
@@ -346,123 +352,49 @@ CREATE INDEX iServiceTypeOid ON M_SERVICE_TYPE(SERVICE_OID);
 ALTER TABLE IF EXISTS m_service_type
     ADD CONSTRAINT fk_service_type FOREIGN KEY (service_oid) REFERENCES m_service;
 */
+
+-- Represents ArchetypeType, see https://wiki.evolveum.com/display/midPoint/Archetypes
+CREATE TABLE m_archetype (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectTypeClass INTEGER GENERATED ALWAYS AS (29) STORED
+)
+    INHERITS (m_abstract_role);
+
+CREATE TRIGGER m_archetype_oid_insert_tr BEFORE INSERT ON m_archetype
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_archetype_update_tr BEFORE UPDATE ON m_archetype
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_archetype_oid_delete_tr AFTER DELETE ON m_archetype
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_archetype_name_orig_idx ON m_archetype (name_orig);
+ALTER TABLE m_archetype ADD CONSTRAINT m_archetype_name_norm_key UNIQUE (name_norm);
 -- endregion
 
--- region OTHER tables
--- "concrete" table, allows insert and defines "final" objectTypeClass with GENERATED
-CREATE TABLE m_resource (
+-- region Access Certification object tables
+-- TODO not mapped yet (to the end of m_acc_cert* region)
+CREATE TABLE m_acc_cert_definition (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (5) STORED,
-    administrativeState INTEGER,
-    connectorRef_targetOid UUID,
-    connectorRef_targetType INTEGER, -- soft-references m_objtype
-    connectorRef_relation_id INTEGER, -- soft-references m_uri
-    o16_lastAvailabilityStatus INTEGER
+    objectTypeClass INTEGER GENERATED ALWAYS AS (21) STORED,
+    handlerUri_id INTEGER, -- soft-references m_uri
+    lastCampaignClosedTimestamp TIMESTAMPTZ,
+    lastCampaignStartedTimestamp TIMESTAMPTZ,
+    ownerRef_targetOid UUID,
+    ownerRef_targetType INTEGER, -- soft-references m_objtype
+    ownerRef_relation_id INTEGER -- soft-references m_uri
 )
     INHERITS (m_object);
 
-CREATE TRIGGER m_resource_oid_insert_tr BEFORE INSERT ON m_resource
+CREATE TRIGGER m_acc_cert_definition_oid_insert_tr BEFORE INSERT ON m_acc_cert_definition
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
-CREATE TRIGGER m_resource_update_tr BEFORE UPDATE ON m_resource
+CREATE TRIGGER m_acc_cert_definition_update_tr BEFORE UPDATE ON m_acc_cert_definition
     FOR EACH ROW EXECUTE PROCEDURE before_update_object();
-CREATE TRIGGER m_resource_oid_delete_tr AFTER DELETE ON m_resource
+CREATE TRIGGER m_acc_cert_definition_oid_delete_tr AFTER DELETE ON m_acc_cert_definition
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
-CREATE INDEX m_resource_name_orig_idx ON m_resource (name_orig);
-ALTER TABLE m_resource ADD CONSTRAINT m_resource_name_norm_key UNIQUE (name_norm);
-
-CREATE TABLE m_shadow (
-    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (6) STORED,
-    objectClass VARCHAR(157) NOT NULL,
-    resourceRef_targetOid UUID,
-    resourceRef_targetType INTEGER, -- soft-references m_uri
-    resourceRef_relation_id INTEGER, -- soft-references m_uri
-    intent VARCHAR(255),
-    kind INTEGER,
-    attemptNumber INTEGER,
-    dead BOOLEAN,
-    exist BOOLEAN,
-    failedOperationType INTEGER,
-    fullSynchronizationTimestamp TIMESTAMPTZ,
-    pendingOperationCount INTEGER,
-    primaryIdentifierValue VARCHAR(255),
-    status INTEGER,
-    synchronizationSituation INTEGER,
-    synchronizationTimestamp TIMESTAMPTZ
-)
-    INHERITS (m_object);
-
-CREATE TRIGGER m_shadow_oid_insert_tr BEFORE INSERT ON m_shadow
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
-CREATE TRIGGER m_shadow_update_tr BEFORE UPDATE ON m_shadow
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
-CREATE TRIGGER m_shadow_oid_delete_tr AFTER DELETE ON m_shadow
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
-
-CREATE INDEX m_shadow_name_orig_idx ON m_shadow (name_orig);
-ALTER TABLE m_shadow ADD CONSTRAINT m_shadow_name_norm_key UNIQUE (name_norm);
-CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin (ext);
-
--- TODO: if we never need mix of inducements and assignments then let's have two separate tables
--- consult with Rado/Katka/Palo
--- TODO: partitioning, not by object type, it's not even... hash-something?
--- select assignmentowner, count(*) From m_assignment group by assignmentowner;
---1	45 (inducements)
---0	48756229
-CREATE TABLE m_assignment (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
-    cid INTEGER NOT NULL, -- container id
-    -- new column may avoid join to object for some queries
-    owner_type INTEGER NOT NULL,
-    assignmentOwner INTEGER, -- TODO necessary?
-    lifecycleState VARCHAR(255),
-    orderValue INTEGER,
-    orgRef_targetOid UUID,
-    orgRef_targetType INTEGER, -- soft-references m_objtype
-    orgRef_relation_id INTEGER, -- soft-references m_uri
-    targetRef_targetOid UUID,
-    targetRef_targetType INTEGER, -- soft-references m_objtype
-    targetRef_relation_id INTEGER, -- soft-references m_uri
-    tenantRef_targetOid UUID,
-    tenantRef_targetType INTEGER, -- soft-references m_objtype
-    tenantRef_relation_id INTEGER, -- soft-references m_uri
-    -- TODO what is this? see RAssignment.getExtension (both extId/Oid)
-    extId INTEGER,
-    extOid VARCHAR(36), -- is this UUID too?
-    ext JSONB,
-    -- construction
-    resourceRef_targetOid UUID,
-    resourceRef_targetType INTEGER, -- soft-references m_objtype
-    resourceRef_relation_id INTEGER, -- soft-references m_uri
-    -- activation
-    administrativeStatus INTEGER,
-    effectiveStatus INTEGER,
-    enableTimestamp TIMESTAMPTZ,
-    disableTimestamp TIMESTAMPTZ,
-    disableReason VARCHAR(255),
-    validityStatus INTEGER,
-    validFrom TIMESTAMPTZ,
-    validTo TIMESTAMPTZ,
-    validityChangeTimestamp TIMESTAMPTZ,
-    archiveTimestamp TIMESTAMPTZ,
-    -- metadata
-    creatorRef_targetOid UUID,
-    creatorRef_targetType INTEGER, -- soft-references m_objtype
-    creatorRef_relation_id INTEGER, -- soft-references m_uri
-    createChannel_id INTEGER,
-    createTimestamp TIMESTAMPTZ,
-    modifierRef_targetOid UUID,
-    modifierRef_targetType INTEGER, -- soft-references m_objtype
-    modifierRef_relation_id INTEGER, -- soft-references m_uri
-    modifyChannel_id INTEGER,
-    modifyTimestamp TIMESTAMPTZ,
-
-    CONSTRAINT m_assignment_pk PRIMARY KEY (owner_oid, cid)
-    -- no need to index owner_oid, it's part of the PK index
-);
-
-CREATE INDEX m_assignment_ext_idx ON m_assignment USING gin (ext);
+CREATE INDEX m_acc_cert_definition_name_orig_idx ON m_acc_cert_definition (name_orig);
+ALTER TABLE m_acc_cert_definition ADD CONSTRAINT m_acc_cert_definition_name_norm_key UNIQUE (name_norm);
+CREATE INDEX m_acc_cert_definition_ext_idx ON m_acc_cert_definition USING gin (ext);
 
 CREATE TABLE m_acc_cert_campaign (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -471,10 +403,8 @@ CREATE TABLE m_acc_cert_campaign (
     definitionRef_targetType INTEGER, -- soft-references m_objtype
     definitionRef_relation_id INTEGER, -- soft-references m_uri
     endTimestamp TIMESTAMPTZ,
-    handlerUri VARCHAR(255),
+    handlerUri_id INTEGER, -- soft-references m_uri
     iteration INTEGER NOT NULL,
-    name_norm VARCHAR(255),
-    name_orig VARCHAR(255),
     ownerRef_targetOid UUID,
     ownerRef_targetType INTEGER, -- soft-references m_objtype
     ownerRef_relation_id INTEGER, -- soft-references m_uri
@@ -532,31 +462,6 @@ CREATE TABLE m_acc_cert_case (
     PRIMARY KEY (owner_oid, cid)
 );
 
-CREATE TABLE m_acc_cert_definition (
-    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (21) STORED,
-    handlerUri VARCHAR(255),
-    lastCampaignClosedTimestamp TIMESTAMPTZ,
-    lastCampaignStartedTimestamp TIMESTAMPTZ,
-    name_norm VARCHAR(255),
-    name_orig VARCHAR(255),
-    ownerRef_targetOid UUID,
-    ownerRef_targetType INTEGER, -- soft-references m_objtype
-    ownerRef_relation_id INTEGER -- soft-references m_uri
-)
-    INHERITS (m_object);
-
-CREATE TRIGGER m_acc_cert_definition_oid_insert_tr BEFORE INSERT ON m_acc_cert_definition
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
-CREATE TRIGGER m_acc_cert_definition_update_tr BEFORE UPDATE ON m_acc_cert_definition
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
-CREATE TRIGGER m_acc_cert_definition_oid_delete_tr AFTER DELETE ON m_acc_cert_definition
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
-
-CREATE INDEX m_acc_cert_definition_name_orig_idx ON m_acc_cert_definition (name_orig);
-ALTER TABLE m_acc_cert_definition ADD CONSTRAINT m_acc_cert_definition_name_norm_key UNIQUE (name_norm);
-CREATE INDEX m_acc_cert_definition_ext_idx ON m_acc_cert_definition USING gin (ext);
-
 CREATE TABLE m_acc_cert_wi (
     owner_id INTEGER NOT NULL,
     cid INTEGER NOT NULL,
@@ -565,9 +470,9 @@ CREATE TABLE m_acc_cert_wi (
     iteration INTEGER NOT NULL,
     outcome VARCHAR(255),
     outputChangeTimestamp TIMESTAMPTZ,
-    performerRef_relation_id INTEGER, -- soft-references m_uri
     performerRef_targetOid UUID,
-    performerRef_targetType INTEGER,
+    performerRef_targetType INTEGER, -- soft-references m_objtype
+    performerRef_relation_id INTEGER, -- soft-references m_uri
     stageNumber INTEGER,
 
     PRIMARY KEY (owner_owner_oid, owner_id, cid)
@@ -583,7 +488,83 @@ CREATE TABLE m_acc_cert_wi_reference (
 
     PRIMARY KEY (owner_owner_owner_oid, owner_owner_id, owner_id, relation_id, targetOid)
 );
+/*
+CREATE INDEX iCertCampaignNameOrig ON m_acc_cert_campaign (name_orig);
+ALTER TABLE IF EXISTS m_acc_cert_campaign ADD CONSTRAINT uc_acc_cert_campaign_name UNIQUE (name_norm);
+CREATE INDEX iCaseObjectRefTargetOid ON m_acc_cert_case (objectRef_targetOid);
+CREATE INDEX iCaseTargetRefTargetOid ON m_acc_cert_case (targetRef_targetOid);
+CREATE INDEX iCaseTenantRefTargetOid ON m_acc_cert_case (tenantRef_targetOid);
+CREATE INDEX iCaseOrgRefTargetOid ON m_acc_cert_case (orgRef_targetOid);
+CREATE INDEX iCertDefinitionNameOrig ON m_acc_cert_definition (name_orig);
+ALTER TABLE IF EXISTS m_acc_cert_definition ADD CONSTRAINT uc_acc_cert_definition_name UNIQUE (name_norm);
+CREATE INDEX iCertWorkItemRefTargetOid ON m_acc_cert_wi_reference (targetOid);
+ALTER TABLE IF EXISTS m_acc_cert_case
+  ADD CONSTRAINT fk_acc_cert_case_owner FOREIGN KEY (owner_oid) REFERENCES m_acc_cert_campaign;
+ALTER TABLE IF EXISTS m_acc_cert_wi
+  ADD CONSTRAINT fk_acc_cert_wi_owner FOREIGN KEY (owner_owner_oid, owner_id) REFERENCES m_acc_cert_case;
+ALTER TABLE IF EXISTS m_acc_cert_wi_reference
+  ADD CONSTRAINT fk_acc_cert_wi_ref_owner FOREIGN KEY (owner_owner_owner_oid, owner_owner_id, owner_id) REFERENCES m_acc_cert_wi;
+ */
+-- endregion
 
+-- region OTHER object tables
+-- TODO not mapped yet
+CREATE TABLE m_resource (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectTypeClass INTEGER GENERATED ALWAYS AS (5) STORED,
+    administrativeState INTEGER,
+    connectorRef_targetOid UUID,
+    connectorRef_targetType INTEGER, -- soft-references m_objtype
+    connectorRef_relation_id INTEGER, -- soft-references m_uri
+    o16_lastAvailabilityStatus INTEGER
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_resource_oid_insert_tr BEFORE INSERT ON m_resource
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_resource_update_tr BEFORE UPDATE ON m_resource
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_resource_oid_delete_tr AFTER DELETE ON m_resource
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_resource_name_orig_idx ON m_resource (name_orig);
+ALTER TABLE m_resource ADD CONSTRAINT m_resource_name_norm_key UNIQUE (name_norm);
+
+-- TODO not mapped yet
+CREATE TABLE m_shadow (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectTypeClass INTEGER GENERATED ALWAYS AS (6) STORED,
+    objectClass VARCHAR(157) NOT NULL,
+    resourceRef_targetOid UUID,
+    resourceRef_targetType INTEGER, -- soft-references m_uri
+    resourceRef_relation_id INTEGER, -- soft-references m_uri
+    intent VARCHAR(255),
+    kind INTEGER,
+    attemptNumber INTEGER,
+    dead BOOLEAN,
+    exist BOOLEAN,
+    failedOperationType INTEGER,
+    fullSynchronizationTimestamp TIMESTAMPTZ,
+    pendingOperationCount INTEGER,
+    primaryIdentifierValue VARCHAR(255),
+    status INTEGER,
+    synchronizationSituation INTEGER,
+    synchronizationTimestamp TIMESTAMPTZ
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_shadow_oid_insert_tr BEFORE INSERT ON m_shadow
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_shadow_update_tr BEFORE UPDATE ON m_shadow
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_shadow_oid_delete_tr AFTER DELETE ON m_shadow
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_shadow_name_orig_idx ON m_shadow (name_orig);
+ALTER TABLE m_shadow ADD CONSTRAINT m_shadow_name_norm_key UNIQUE (name_norm);
+CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin (ext);
+
+-- Represents NodeType, see https://wiki.evolveum.com/display/midPoint/Managing+cluster+nodes
 CREATE TABLE m_node (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (14) STORED,
@@ -602,6 +583,7 @@ CREATE INDEX m_node_name_orig_idx ON m_node (name_orig);
 ALTER TABLE m_node ADD CONSTRAINT m_node_name_norm_key UNIQUE (name_norm);
 -- not interested in ext index for this one, this table will be small
 
+-- Represents SystemConfigurationType, see https://wiki.evolveum.com/display/midPoint/System+Configuration+Object
 CREATE TABLE m_system_configuration (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (8) STORED
@@ -617,6 +599,7 @@ CREATE TRIGGER m_system_configuration_oid_delete_tr AFTER DELETE ON m_system_con
 
 -- no need for the name index, m_system_configuration table is very small
 
+-- Represents SecurityPolicyType, see https://wiki.evolveum.com/display/midPoint/Security+Policy+Configuration
 CREATE TABLE m_security_policy (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (19) STORED
@@ -632,6 +615,7 @@ CREATE TRIGGER m_security_policy_oid_delete_tr AFTER DELETE ON m_security_policy
 
 -- no need for the name index, m_security_policy table is very small
 
+-- Represents ObjectCollectionType, see https://wiki.evolveum.com/display/midPoint/Object+Collections+and+Views+Configuration
 CREATE TABLE m_object_collection (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (19) STORED
@@ -648,22 +632,7 @@ CREATE TRIGGER m_object_collection_oid_delete_tr AFTER DELETE ON m_object_collec
 CREATE INDEX m_object_collection_name_orig_idx ON m_object_collection (name_orig);
 ALTER TABLE m_object_collection ADD CONSTRAINT m_object_collection_name_norm_key UNIQUE (name_norm);
 
-CREATE TABLE m_archetype (
-    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (29) STORED
-)
-    INHERITS (m_object);
-
-CREATE TRIGGER m_archetype_oid_insert_tr BEFORE INSERT ON m_archetype
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
-CREATE TRIGGER m_archetype_update_tr BEFORE UPDATE ON m_archetype
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
-CREATE TRIGGER m_archetype_oid_delete_tr AFTER DELETE ON m_archetype
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
-
-CREATE INDEX m_archetype_name_orig_idx ON m_archetype (name_orig);
-ALTER TABLE m_archetype ADD CONSTRAINT m_archetype_name_norm_key UNIQUE (name_norm);
-
+-- Represents DashboardType, see https://wiki.evolveum.com/display/midPoint/Dashboard+configuration
 CREATE TABLE m_dashboard (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (30) STORED
@@ -680,6 +649,7 @@ CREATE TRIGGER m_dashboard_oid_delete_tr AFTER DELETE ON m_dashboard
 CREATE INDEX m_dashboard_name_orig_idx ON m_dashboard (name_orig);
 ALTER TABLE m_dashboard ADD CONSTRAINT m_dashboard_name_norm_key UNIQUE (name_norm);
 
+-- Represents ValuePolicyType
 CREATE TABLE m_value_policy (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (4) STORED
@@ -696,6 +666,7 @@ CREATE TRIGGER m_value_policy_oid_delete_tr AFTER DELETE ON m_value_policy
 CREATE INDEX m_value_policy_name_orig_idx ON m_value_policy (name_orig);
 ALTER TABLE m_value_policy ADD CONSTRAINT m_value_policy_name_norm_key UNIQUE (name_norm);
 
+-- Represents ReportType, see https://wiki.evolveum.com/display/midPoint/Report+Configuration
 CREATE TABLE m_report (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (11) STORED,
@@ -715,9 +686,10 @@ CREATE TRIGGER m_report_oid_delete_tr AFTER DELETE ON m_report
 
 CREATE INDEX m_report_name_orig_idx ON m_report (name_orig);
 ALTER TABLE m_report ADD CONSTRAINT m_report_name_norm_key UNIQUE (name_norm);
--- TODO old repo had index on parent, does it make sense? if so, which value is sparse?
+-- TODO old repo had index on parent (boolean), does it make sense? if so, which value is sparse?
 
-CREATE TABLE m_report_output (
+-- Represents ReportDataType, see also m_report above
+CREATE TABLE m_report_data (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (12) STORED,
     reportRef_targetOid UUID,
@@ -726,9 +698,10 @@ CREATE TABLE m_report_output (
 )
     INHERITS (m_object);
 
-CREATE INDEX m_report_output_name_orig_idx ON m_report_output (name_orig);
-ALTER TABLE m_report_output ADD CONSTRAINT m_report_output_name_norm_key UNIQUE (name_norm);
+CREATE INDEX m_report_data_name_orig_idx ON m_report_data (name_orig);
+ALTER TABLE m_report_data ADD CONSTRAINT m_report_data_name_norm_key UNIQUE (name_norm);
 
+-- Represents LookupTableType, see https://wiki.evolveum.com/display/midPoint/Lookup+Tables
 CREATE TABLE m_lookup_table (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (20) STORED
@@ -745,6 +718,7 @@ CREATE TRIGGER m_lookup_table_oid_delete_tr AFTER DELETE ON m_lookup_table
 CREATE INDEX m_lookup_table_name_orig_idx ON m_lookup_table (name_orig);
 ALTER TABLE m_lookup_table ADD CONSTRAINT m_lookup_table_name_norm_key UNIQUE (name_norm);
 
+-- Represents LookupTableRowType, see also m_lookup_table above
 CREATE TABLE m_lookup_table_row (
     owner_oid UUID NOT NULL REFERENCES m_lookup_table(oid),
     row_id INTEGER NOT NULL,
@@ -752,7 +726,7 @@ CREATE TABLE m_lookup_table_row (
     label_norm VARCHAR(255),
     label_orig VARCHAR(255),
     row_value VARCHAR(255),
-    lastChangeTimestamp TIMESTAMP,
+    lastChangeTimestamp TIMESTAMPTZ,
 
     PRIMARY KEY (owner_oid, row_id)
 );
@@ -760,6 +734,7 @@ CREATE TABLE m_lookup_table_row (
 ALTER TABLE m_lookup_table_row
     ADD CONSTRAINT m_lookup_table_row_owner_oid_row_key_key UNIQUE (owner_oid, row_key);
 
+-- Represents ConnectorType, see https://wiki.evolveum.com/display/midPoint/Identity+Connectors
 CREATE TABLE m_connector (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (0) STORED,
@@ -767,9 +742,10 @@ CREATE TABLE m_connector (
     connectorType VARCHAR(255),
     connectorVersion VARCHAR(255),
     framework VARCHAR(255),
-    connectorHostRef_relation_id INTEGER,
     connectorHostRef_targetOid UUID,
-    connectorHostRef_targetType INTEGER
+    connectorHostRef_targetType INTEGER, -- soft-references m_objtype
+    connectorHostRef_relation_id INTEGER -- soft-references m_uri
+
 )
     INHERITS (m_object);
 
@@ -791,6 +767,7 @@ ALTER TABLE m_connector ADD CONSTRAINT m_connector_name_norm_key UNIQUE (name_no
 -- ALTER TABLE IF EXISTS m_connector_target_system
 --     ADD CONSTRAINT fk_connector_target_system FOREIGN KEY (connector_oid) REFERENCES m_connector;
 
+-- Represents ConnectorHostType, see https://wiki.evolveum.com/display/midPoint/Connector+Server
 CREATE TABLE m_connector_host (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (1) STORED,
@@ -809,6 +786,7 @@ CREATE TRIGGER m_connector_host_oid_delete_tr AFTER DELETE ON m_connector_host
 CREATE INDEX m_connector_host_name_orig_idx ON m_connector_host (name_orig);
 ALTER TABLE m_connector_host ADD CONSTRAINT m_connector_host_name_norm_key UNIQUE (name_norm);
 
+-- Represents persistent TaskType, see https://wiki.evolveum.com/display/midPoint/Task+Manager
 CREATE TABLE m_task (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (9) STORED,
@@ -817,17 +795,17 @@ CREATE TABLE m_task (
     completionTimestamp TIMESTAMPTZ,
     executionStatus TaskExecutionStatusType,
     fullResult BYTEA,
-    handlerUri VARCHAR(255), -- TODO q_name?
+    handlerUri_id INTEGER, -- soft-references m_uri
     lastRunFinishTimestamp TIMESTAMPTZ,
     lastRunStartTimestamp TIMESTAMPTZ,
-    node VARCHAR(255), -- TODO why not FK?
+    node VARCHAR(255), -- node_id only for information purposes
     objectRef_targetOid UUID,
     objectRef_targetType INTEGER, -- soft-references m_objtype
     objectRef_relation_id INTEGER, -- soft-references m_uri
     ownerRef_targetOid UUID,
     ownerRef_targetType INTEGER, -- soft-references m_objtype
     ownerRef_relation_id INTEGER, -- soft-references m_uri
-    parent VARCHAR(255), -- TODO why not FK?
+    parent VARCHAR(255), -- value of taskIdentifier
     recurrence INTEGER,
     resultStatus OperationResultStatusType,
     taskIdentifier VARCHAR(255),
@@ -859,6 +837,127 @@ ALTER TABLE IF EXISTS m_task_dependent
 CREATE INDEX iTaskDependentOid ON M_TASK_DEPENDENT(TASK_OID);
 */
 
+-- Represents CaseType, see https://wiki.evolveum.com/display/midPoint/Case+Management
+-- TODO not mapped yet
+CREATE TABLE m_case (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectTypeClass INTEGER GENERATED ALWAYS AS (26) STORED,
+    state VARCHAR(255),
+    closeTimestamp TIMESTAMPTZ,
+    objectRef_targetOid UUID,
+    objectRef_targetType INTEGER, -- soft-references m_objtype
+    objectRef_relation_id INTEGER, -- soft-references m_uri
+    parentRef_targetOid UUID,
+    parentRef_targetType INTEGER, -- soft-references m_objtype
+    parentRef_relation_id INTEGER, -- soft-references m_uri
+    requestorRef_targetOid UUID,
+    requestorRef_targetType INTEGER, -- soft-references m_objtype
+    requestorRef_relation_id INTEGER, -- soft-references m_uri
+    targetRef_targetOid UUID,
+    targetRef_targetType INTEGER, -- soft-references m_objtype
+    targetRef_relation_id INTEGER -- soft-references m_uri
+);
+
+-- endregion
+
+-- region Assignment/Inducement tables
+-- Represents AssignmentType, see https://wiki.evolveum.com/display/midPoint/Assignment
+-- and also https://wiki.evolveum.com/display/midPoint/Assignment+vs+Inducement
+-- TODO: if we never need mix of inducements and assignments then let's have two separate tables
+-- consult with Rado/Katka/Palo
+-- TODO: partitioning, not by object type, it's not even... hash-something?
+-- select assignmentowner, count(*) From m_assignment group by assignmentowner;
+--1	45 (inducements)
+--0	48756229
+CREATE TABLE m_assignment (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    cid INTEGER NOT NULL, -- container id
+    -- new column may avoid join to object for some queries
+    owner_type INTEGER NOT NULL,
+    assignmentOwner INTEGER, -- TODO rethink, not useful if inducements are separate
+    lifecycleState VARCHAR(255),
+    orderValue INTEGER,
+    orgRef_targetOid UUID,
+    orgRef_targetType INTEGER, -- soft-references m_objtype
+    orgRef_relation_id INTEGER, -- soft-references m_uri
+    targetRef_targetOid UUID,
+    targetRef_targetType INTEGER, -- soft-references m_objtype
+    targetRef_relation_id INTEGER, -- soft-references m_uri
+    tenantRef_targetOid UUID,
+    tenantRef_targetType INTEGER, -- soft-references m_objtype
+    tenantRef_relation_id INTEGER, -- soft-references m_uri
+    -- TODO what is this? see RAssignment.getExtension (both extId/Oid)
+    extId INTEGER,
+    extOid VARCHAR(36), -- is this UUID too?
+    ext JSONB,
+    -- construction
+    resourceRef_targetOid UUID,
+    resourceRef_targetType INTEGER, -- soft-references m_objtype
+    resourceRef_relation_id INTEGER, -- soft-references m_uri
+    -- activation
+    administrativeStatus INTEGER, -- TODO: switch to ActivationStatusType
+    effectiveStatus INTEGER, -- TODO: switch to ActivationStatusType
+    enableTimestamp TIMESTAMPTZ,
+    disableTimestamp TIMESTAMPTZ,
+    disableReason VARCHAR(255),
+    validityStatus INTEGER, -- TODO: switch to TimeIntervalStatusType
+    validFrom TIMESTAMPTZ,
+    validTo TIMESTAMPTZ,
+    validityChangeTimestamp TIMESTAMPTZ,
+    archiveTimestamp TIMESTAMPTZ,
+    -- metadata
+    creatorRef_targetOid UUID,
+    creatorRef_targetType INTEGER, -- soft-references m_objtype
+    creatorRef_relation_id INTEGER, -- soft-references m_uri
+    createChannel_id INTEGER,
+    createTimestamp TIMESTAMPTZ,
+    modifierRef_targetOid UUID,
+    modifierRef_targetType INTEGER, -- soft-references m_objtype
+    modifierRef_relation_id INTEGER, -- soft-references m_uri
+    modifyChannel_id INTEGER,
+    modifyTimestamp TIMESTAMPTZ,
+
+    CONSTRAINT m_assignment_pk PRIMARY KEY (owner_oid, cid)
+    -- no need to index owner_oid, it's part of the PK index
+);
+
+CREATE INDEX m_assignment_ext_idx ON m_assignment USING gin (ext);
+-- TODO was: CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);
+-- administrativeStatus has 3 states (ENABLED/DISABLED/ARCHIVED), not sure it's worth indexing
+-- but it can be used as a condition to index other (e.g. WHERE administrativeStatus='ENABLED')
+-- TODO the same: CREATE INDEX iAssignmentEffective ON m_assignment (effectiveStatus);
+CREATE INDEX m_assignment_validFrom_idx ON m_assignment (validFrom);
+CREATE INDEX m_assignment_validTo_idx ON m_assignment (validTo);
+CREATE INDEX m_assignment_targetRef_targetOid_idx ON m_assignment (targetRef_targetOid);
+CREATE INDEX m_assignment_tenantRef_targetOid_idx ON m_assignment (tenantRef_targetOid);
+CREATE INDEX m_assignment_orgRef_targetOid_idx ON m_assignment (orgRef_targetOid);
+CREATE INDEX m_assignment_resourceRef_targetOid_idx ON m_assignment (resourceRef_targetOid);
+
+/* TODO - this is also not mapped in Java, obviously
+CREATE TABLE m_assignment_policy_situation (
+  assignment_id   INTEGER        NOT NULL,
+  assignment_oid  VARCHAR(36) NOT NULL,
+  policySituation VARCHAR(255)
+);
+CREATE INDEX iAssignmentPolicySituationId ON M_ASSIGNMENT_POLICY_SITUATION(ASSIGNMENT_OID, ASSIGNMENT_ID);
+ALTER TABLE IF EXISTS m_assignment_policy_situation
+  ADD CONSTRAINT fk_assignment_policy_situation FOREIGN KEY (assignment_oid, assignment_id) REFERENCES m_assignment;
+
+CREATE TABLE m_assignment_reference (
+  owner_id        INTEGER         NOT NULL,
+  owner_owner_oid VARCHAR(36)  NOT NULL,
+  reference_type  INTEGER         NOT NULL,
+  relation        VARCHAR(157) NOT NULL,
+  targetOid       VARCHAR(36)  NOT NULL,
+  targetType      INTEGER,
+  PRIMARY KEY (owner_owner_oid, owner_id, reference_type, relation, targetOid)
+);
+ALTER TABLE IF EXISTS m_assignment_reference
+  ADD CONSTRAINT fk_assignment_reference FOREIGN KEY (owner_owner_oid, owner_id) REFERENCES m_assignment;
+*/
+-- endregion
+
+-- region Extension support
 -- TODO: catalog unused at the moment
 CREATE TABLE m_ext_item (
     id SERIAL NOT NULL,
@@ -921,6 +1020,7 @@ CREATE TABLE m_object_ext_string (
 -- TODO other indexes, only PKs/FKs are defined at the moment
 
 /*
+-- TODO hopefully replaced by JSON ext column and not needed
 CREATE TABLE m_assignment_ext_boolean (
   item_id                      INTEGER        NOT NULL,
   anyContainer_owner_id        INTEGER        NOT NULL,
@@ -932,7 +1032,7 @@ CREATE TABLE m_assignment_ext_date (
   item_id                      INTEGER        NOT NULL,
   anyContainer_owner_id        INTEGER        NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36) NOT NULL,
-  dateValue                    TIMESTAMP   NOT NULL,
+  dateValue                    TIMESTAMPTZ   NOT NULL,
   PRIMARY KEY (anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, dateValue)
 );
 CREATE TABLE m_assignment_ext_long (
@@ -971,21 +1071,9 @@ CREATE TABLE m_assignment_extension (
   owner_owner_oid VARCHAR(36) NOT NULL,
   PRIMARY KEY (owner_owner_oid, owner_id)
 );
+
+
 -- TODO HERE
-CREATE TABLE m_assignment_policy_situation (
-  assignment_id   INTEGER        NOT NULL,
-  assignment_oid  VARCHAR(36) NOT NULL,
-  policySituation VARCHAR(255)
-);
-CREATE TABLE m_assignment_reference (
-  owner_id        INTEGER         NOT NULL,
-  owner_owner_oid VARCHAR(36)  NOT NULL,
-  reference_type  INTEGER         NOT NULL,
-  relation        VARCHAR(157) NOT NULL,
-  targetOid       VARCHAR(36)  NOT NULL,
-  targetType      INTEGER,
-  PRIMARY KEY (owner_owner_oid, owner_id, reference_type, relation, targetOid)
-);
 CREATE TABLE m_audit_delta (
   checksum          VARCHAR(32) NOT NULL,
   record_id         BIGINT        NOT NULL,
@@ -1029,7 +1117,7 @@ CREATE TABLE m_audit_event (
   targetType        INTEGER,
   taskIdentifier    VARCHAR(255),
   taskOID           VARCHAR(255),
-  timestampValue    TIMESTAMP,
+  timestampValue    TIMESTAMPTZ,
   PRIMARY KEY (id)
 );
 CREATE TABLE m_audit_item (
@@ -1062,9 +1150,9 @@ CREATE TABLE m_audit_resource (
 CREATE TABLE m_case_wi (
   id                                INTEGER        NOT NULL,
   owner_oid                         VARCHAR(36) NOT NULL,
-  closeTimestamp                    TIMESTAMP,
-  createTimestamp                   TIMESTAMP,
-  deadline                          TIMESTAMP,
+  closeTimestamp                    TIMESTAMPTZ,
+  createTimestamp                   TIMESTAMPTZ,
+  deadline                          TIMESTAMPTZ,
   originalAssigneeRef_relation      VARCHAR(157),
   originalAssigneeRef_targetOid     VARCHAR(36),
   originalAssigneeRef_targetType    INTEGER,
@@ -1106,7 +1194,7 @@ CREATE TABLE m_object_ext_date (
   item_id   INTEGER        NOT NULL,
   owner_oid VARCHAR(36) NOT NULL,
   ownerType INTEGER        NOT NULL,
-  dateValue TIMESTAMP   NOT NULL,
+  dateValue TIMESTAMPTZ   NOT NULL,
   PRIMARY KEY (owner_oid, ownerType, item_id, dateValue)
 );
 CREATE TABLE m_object_ext_long (
@@ -1160,7 +1248,7 @@ CREATE TABLE m_operation_execution (
   taskRef_relation          VARCHAR(157),
   taskRef_targetOid         VARCHAR(36),
   taskRef_targetType        INTEGER,
-  timestampValue            TIMESTAMP,
+  timestampValue            TIMESTAMPTZ,
   PRIMARY KEY (owner_oid, id)
 );
 CREATE TABLE m_org_closure (
@@ -1193,7 +1281,7 @@ CREATE TABLE m_shadow (
   dead                         BOOLEAN,
   exist                        BOOLEAN,
   failedOperationType          INTEGER,
-  fullSynchronizationTimestamp TIMESTAMP,
+  fullSynchronizationTimestamp TIMESTAMPTZ,
   intent                       VARCHAR(255),
   kind                         INTEGER,
   name_norm                    VARCHAR(255),
@@ -1206,7 +1294,7 @@ CREATE TABLE m_shadow (
   resourceRef_targetType       INTEGER,
   status                       INTEGER,
   synchronizationSituation     INTEGER,
-  synchronizationTimestamp     TIMESTAMP,
+  synchronizationTimestamp     TIMESTAMPTZ,
   oid                          VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -1223,26 +1311,6 @@ CREATE TABLE m_user_organizational_unit (
   user_oid VARCHAR(36) NOT NULL,
   norm     VARCHAR(255),
   orig     VARCHAR(255)
-);
-CREATE TABLE m_case (
-  closeTimestamp            TIMESTAMP,
-  name_norm                 VARCHAR(255),
-  name_orig                 VARCHAR(255),
-  objectRef_relation        VARCHAR(157),
-  objectRef_targetOid       VARCHAR(36),
-  objectRef_targetType      INTEGER,
-  parentRef_relation        VARCHAR(157),
-  parentRef_targetOid       VARCHAR(36),
-  parentRef_targetType      INTEGER,
-  requestorRef_relation     VARCHAR(157),
-  requestorRef_targetOid    VARCHAR(36),
-  requestorRef_targetType   INTEGER,
-  state                     VARCHAR(255),
-  targetRef_relation        VARCHAR(157),
-  targetRef_targetOid       VARCHAR(36),
-  targetRef_targetType      INTEGER,
-  oid                       VARCHAR(36) NOT NULL,
-  PRIMARY KEY (oid)
 );
 CREATE TABLE m_form (
   name_norm VARCHAR(255),
@@ -1302,45 +1370,11 @@ CREATE TABLE m_sequence (
 );
 CREATE TABLE m_trigger (
   id             INTEGER        NOT NULL,
-  owner_oid      VARCHAR(36) NOT NULL,
-  handlerUri     VARCHAR(255),
-  timestampValue TIMESTAMP,
+  owner_oid UUID NOT NULL,
+  handlerUri_id INTEGER,
+  timestampValue TIMESTAMPTZ,
   PRIMARY KEY (owner_oid, id)
 );
-CREATE INDEX iCertCampaignNameOrig
-  ON m_acc_cert_campaign (name_orig);
-ALTER TABLE IF EXISTS m_acc_cert_campaign
-  ADD CONSTRAINT uc_acc_cert_campaign_name UNIQUE (name_norm);
-CREATE INDEX iCaseObjectRefTargetOid
-  ON m_acc_cert_case (objectRef_targetOid);
-CREATE INDEX iCaseTargetRefTargetOid
-  ON m_acc_cert_case (targetRef_targetOid);
-CREATE INDEX iCaseTenantRefTargetOid
-  ON m_acc_cert_case (tenantRef_targetOid);
-CREATE INDEX iCaseOrgRefTargetOid
-  ON m_acc_cert_case (orgRef_targetOid);
-CREATE INDEX iCertDefinitionNameOrig
-  ON m_acc_cert_definition (name_orig);
-ALTER TABLE IF EXISTS m_acc_cert_definition
-  ADD CONSTRAINT uc_acc_cert_definition_name UNIQUE (name_norm);
-CREATE INDEX iCertWorkItemRefTargetOid
-  ON m_acc_cert_wi_reference (targetOid);
-CREATE INDEX iAssignmentAdministrative
-  ON m_assignment (administrativeStatus);
-CREATE INDEX iAssignmentEffective
-  ON m_assignment (effectiveStatus);
-CREATE INDEX iAssignmentValidFrom
-  ON m_assignment (validFrom);
-CREATE INDEX iAssignmentValidTo
-  ON m_assignment (validTo);
-CREATE INDEX iTargetRefTargetOid
-  ON m_assignment (targetRef_targetOid);
-CREATE INDEX iTenantRefTargetOid
-  ON m_assignment (tenantRef_targetOid);
-CREATE INDEX iOrgRefTargetOid
-  ON m_assignment (orgRef_targetOid);
-CREATE INDEX iResourceRefTargetOid
-  ON m_assignment (resourceRef_targetOid);
 CREATE INDEX iAExtensionBoolean
   ON m_assignment_ext_boolean (booleanValue);
 CREATE INDEX iAExtensionDate
@@ -1504,18 +1538,6 @@ ALTER TABLE IF EXISTS m_system_configuration
   ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm);
 CREATE INDEX iTriggerTimestamp
   ON m_trigger (timestampValue);
-ALTER TABLE IF EXISTS m_acc_cert_campaign
-  ADD CONSTRAINT fk_acc_cert_campaign FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_acc_cert_case
-  ADD CONSTRAINT fk_acc_cert_case_owner FOREIGN KEY (owner_oid) REFERENCES m_acc_cert_campaign;
-ALTER TABLE IF EXISTS m_acc_cert_definition
-  ADD CONSTRAINT fk_acc_cert_definition FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_acc_cert_wi
-  ADD CONSTRAINT fk_acc_cert_wi_owner FOREIGN KEY (owner_owner_oid, owner_id) REFERENCES m_acc_cert_case;
-ALTER TABLE IF EXISTS m_acc_cert_wi_reference
-  ADD CONSTRAINT fk_acc_cert_wi_ref_owner FOREIGN KEY (owner_owner_owner_oid, owner_owner_id, owner_id) REFERENCES m_acc_cert_wi;
-ALTER TABLE IF EXISTS m_assignment
-  ADD CONSTRAINT fk_assignment_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_assignment_ext_boolean
   ADD CONSTRAINT fk_a_ext_boolean_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
 ALTER TABLE IF EXISTS m_assignment_ext_date
@@ -1528,10 +1550,6 @@ ALTER TABLE IF EXISTS m_assignment_ext_reference
   ADD CONSTRAINT fk_a_ext_reference_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
 ALTER TABLE IF EXISTS m_assignment_ext_string
   ADD CONSTRAINT fk_a_ext_string_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE IF EXISTS m_assignment_policy_situation
-  ADD CONSTRAINT fk_assignment_policy_situation FOREIGN KEY (assignment_oid, assignment_id) REFERENCES m_assignment;
-ALTER TABLE IF EXISTS m_assignment_reference
-  ADD CONSTRAINT fk_assignment_reference FOREIGN KEY (owner_owner_oid, owner_id) REFERENCES m_assignment;
 
 -- These are created manually
 ALTER TABLE IF EXISTS m_assignment_ext_boolean
@@ -1653,7 +1671,6 @@ CREATE INDEX iAssignmentExtLongItemId ON M_ASSIGNMENT_EXT_LONG(ITEM_ID);
 CREATE INDEX iAssignmentExtPolyItemId ON M_ASSIGNMENT_EXT_POLY(ITEM_ID);
 CREATE INDEX iAssignmentExtReferenceItemId ON M_ASSIGNMENT_EXT_REFERENCE(ITEM_ID);
 CREATE INDEX iAssignmentExtStringItemId ON M_ASSIGNMENT_EXT_STRING(ITEM_ID);
-CREATE INDEX iAssignmentPolicySituationId ON M_ASSIGNMENT_POLICY_SITUATION(ASSIGNMENT_OID, ASSIGNMENT_ID);
 CREATE INDEX iObjectPolicySituationOid ON M_OBJECT_POLICY_SITUATION(OBJECT_OID);
 CREATE INDEX iObjectExtBooleanItemId ON M_OBJECT_EXT_BOOLEAN(ITEM_ID);
 CREATE INDEX iObjectExtDateItemId ON M_OBJECT_EXT_DATE(ITEM_ID);

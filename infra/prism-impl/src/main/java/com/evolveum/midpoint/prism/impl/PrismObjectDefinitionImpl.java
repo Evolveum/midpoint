@@ -76,6 +76,7 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
     }
 
     @Override
+    @NotNull
     public PrismObjectDefinition<O> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
         return (PrismObjectDefinition<O>) super.cloneWithReplacedDefinition(itemName, newDefinition);
     }

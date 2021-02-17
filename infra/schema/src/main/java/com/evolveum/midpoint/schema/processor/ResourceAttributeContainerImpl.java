@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Resource Object.
@@ -188,7 +189,7 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
     }
 
     @Override
-    public Collection<ResourceAttribute<?>> extractAttributesByDefinitions(
+    public @NotNull Collection<ResourceAttribute<?>> extractAttributesByDefinitions(
             Collection<? extends ResourceAttributeDefinition> definitions) {
         Collection<ResourceAttribute<?>> attributes = new ArrayList<>(definitions.size());
         for (ResourceAttributeDefinition attrDef : definitions) {

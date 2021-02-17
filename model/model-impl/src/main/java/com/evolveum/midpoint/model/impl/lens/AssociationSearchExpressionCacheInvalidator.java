@@ -28,7 +28,7 @@ class AssociationSearchExpressionCacheInvalidator implements ResourceOperationLi
 
     @Override
     public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
-        cache.invalidate(change.getResource(), change.getCurrentShadow());
+        cache.invalidate(change.getResource(), change.getShadowedResourceObject());
     }
 
     @Override

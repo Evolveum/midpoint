@@ -19,6 +19,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 /**
  * Represents live sync change at the level of UCF.
  */
@@ -32,8 +34,9 @@ public class UcfLiveSyncChange extends UcfChange {
     public UcfLiveSyncChange(int localSequenceNumber, @NotNull Object primaryIdentifierRealValue,
             @NotNull Collection<ResourceAttribute<?>> identifiers, ObjectClassComplexTypeDefinition objectClassDefinition,
             ObjectDelta<ShadowType> objectDelta, PrismObject<ShadowType> resourceObject,
-            @NotNull PrismProperty<?> token) {
-        super(localSequenceNumber, primaryIdentifierRealValue, objectClassDefinition, identifiers, objectDelta, resourceObject);
+            @NotNull PrismProperty<?> token, UcfErrorState errorState) {
+        super(localSequenceNumber, primaryIdentifierRealValue, objectClassDefinition, identifiers, objectDelta, resourceObject,
+                errorState);
         this.token = token;
     }
 
@@ -50,5 +53,12 @@ public class UcfLiveSyncChange extends UcfChange {
     protected void debugDumpExtra(StringBuilder sb, int indent) {
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "token", token, indent + 1);
+    }
+
+    @Override
+    protected void checkObjectClassDefinitionPresence() {
+        if (errorState.isSuccess()) {
+            stateCheck(isDelete() || objectClassDefinition != null, "No object class definition for non-delete LS change");
+        }
     }
 }

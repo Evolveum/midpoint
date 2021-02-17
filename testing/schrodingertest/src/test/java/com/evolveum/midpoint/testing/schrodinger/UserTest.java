@@ -62,9 +62,9 @@ public class UserTest extends AbstractSchrodingerTest {
                 .clickByName("jdoe222323")
                 .selectTabBasic()
                 .form()
-                .assertInputAttributeValueMatches("name", "jdoe222323")
-                .assertInputAttributeValueMatches("givenName", "john")
-                .assertInputAttributeValueMatches("familyName", "doe");
+                .assertPropertyInputValue("name", "jdoe222323")
+                .assertPropertyInputValue("givenName", "john")
+                .assertPropertyInputValue("familyName", "doe");
 
     }
 
@@ -96,7 +96,7 @@ public class UserTest extends AbstractSchrodingerTest {
                     .clickByName(LOCALIZATION_TEST_USER_NAME_ORIG)
                         .selectTabBasic()
                             .form()
-                                .assertInputAttributeValueMatches("name", LOCALIZATION_TEST_USER_NAME_DE);
+                                .assertPropertyInputValue("name", LOCALIZATION_TEST_USER_NAME_DE);
     }
 
     @Test

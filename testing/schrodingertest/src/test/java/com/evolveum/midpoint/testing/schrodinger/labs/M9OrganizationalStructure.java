@@ -119,7 +119,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                             .edit()
                                 .selectTabBasic()
                                     .form()
-                                        .assertInputAttributeValueMatches("Name", "0919");
+                                        .assertPropertyInputValue("Name", "0919");
 
         showUser("kirk").selectTabAssignments()
                 .clickAddAssignemnt("New Organization type assignment with Member relation")
@@ -248,7 +248,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
         Selenide.screenshot("M9_accountPage");
         accountPage
                         .form()
-                        .assertInputAttributeValuesMatches("groups", "Internal Employees",
+                        .assertPropertyInputValues("groups", "Internal Employees",
                                 "Essential Documents", "Teleportation", "Time Travel");
 
         basicPage.orgStructure()
@@ -277,7 +277,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
 
         showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
                         .form()
-                        .assertInputAttributeValuesMatches("groups", "Internal Employees",
+                        .assertPropertyInputValues("groups", "Internal Employees",
                                 "Essential Documents", "Teleportation", "Time Travel");
 
         basicPage.orgStructure()
@@ -297,7 +297,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
 
         showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
                         .form()
-                        .assertInputAttributeValuesMatches("groups", "Internal Employees", "Essential Documents",
+                        .assertPropertyInputValues("groups", "Internal Employees", "Essential Documents",
                                 "Teleportation", "Time Travel", "Lucky Numbers", "Presidential Candidates Motivation");
 
         showUser("kirk").selectTabAssignments()

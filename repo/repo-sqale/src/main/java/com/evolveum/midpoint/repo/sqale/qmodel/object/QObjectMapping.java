@@ -82,6 +82,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         addRelationResolver(AssignmentHolderType.F_ASSIGNMENT,
                 new TableRelationResolver<>(QAssignment.class,
                         joinOn((o, a) -> o.oid.eq(a.ownerOid))));
+        // TODO map trigger
     }
 
     @Override
@@ -90,7 +91,6 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         return new Path[] { entity.oid, entity.fullObject };
     }
 
-    // TODO verify that this allows creation of QObject alias and that it suffices for "generic query"
     @Override
     protected Q newAliasInstance(String alias) {
         //noinspection unchecked

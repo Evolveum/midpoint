@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfAsyncUpdateChange;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfErrorState;
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateMessageListener;
 import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
 import com.evolveum.midpoint.schema.AcknowledgementSink;
@@ -45,6 +46,7 @@ import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.CHANNEL_ASYNC_UPDATE_URI;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
+
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
@@ -77,7 +79,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
     }
 
     @Override
-    public boolean onMessage(AsyncUpdateMessageType message, AcknowledgementSink acknowledgementSink) throws SchemaException {
+    public void onMessage(AsyncUpdateMessageType message, AcknowledgementSink acknowledgementSink) {
         int messageNumber = messagesSeen.getAndIncrement();
         LOGGER.trace("Got message number {}: {}", messageNumber, message);
 
@@ -148,15 +150,17 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
                     UcfAsyncUpdateChange change = createChange(changeBean, result, changeSequentialNumber, aggregatedAcknowledgementSink);
                     changeListener.onChange(change, task, result);
                 }
-                // We need asynchronous message confirmation.
-                return true; // FIXME message confirmation
-            } catch (Throwable t) {
+            } catch (Exception e) {
+                result.recordFatalError(e.getMessage(), e);
+
                 int changeSequentialNumber = changesProduced.incrementAndGet();
-                changeListener.onError(changeSequentialNumber, t, acknowledgementSink, result);
-                result.recordFatalError(t.getMessage(), t);
-                throw t;
+                UcfAsyncUpdateChange change = new UcfAsyncUpdateChange(changeSequentialNumber, UcfErrorState.error(e),
+                        acknowledgementSink);
+                changeListener.onChange(change, task, result);
             } finally {
                 result.computeStatusIfUnknown();
+                // Note that tracing really works only if the processing is synchronous.
+                // (Otherwise it captures only the pre-processing activities.)
                 if (result.isTraced()) {
                     tracer.storeTrace(task, result, null);
                 }
@@ -223,6 +227,9 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         setFromDefaults(changeBean.getObject(), objectClassName);
         Holder<Object> primaryIdentifierRealValueHolder = new Holder<>();
         Collection<ResourceAttribute<?>> identifiers = getIdentifiers(changeBean, objectClassDef, primaryIdentifierRealValueHolder);
+        if (identifiers.isEmpty()) {
+            throw new SchemaException("No identifiers in async update change bean " + changeBean);
+        }
         boolean notificationOnly = changeBean.getObject() == null && delta == null;
         return new UcfAsyncUpdateChange(
                 changeSequentialNumber, primaryIdentifierRealValueHolder.getValue(),

@@ -33,8 +33,6 @@ public class QAbstractRole<T extends MAbstractRole> extends QFocus<T> {
 
     public static final String TABLE_NAME = "m_abstract_role";
 
-    public static final ColumnMetadata APPROVAL_PROCESS =
-            ColumnMetadata.named("approvalProcess").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata AUTOASSIGN_ENABLED =
             ColumnMetadata.named("autoassign_enabled").ofType(Types.BOOLEAN);
     public static final ColumnMetadata DISPLAY_NAME_NORM =
@@ -54,8 +52,7 @@ public class QAbstractRole<T extends MAbstractRole> extends QFocus<T> {
     public static final ColumnMetadata RISK_LEVEL =
             ColumnMetadata.named("riskLevel").ofType(Types.VARCHAR).withSize(255);
 
-    public final StringPath approvalProcess = createString("approvalProcess", APPROVAL_PROCESS);
-    public final BooleanPath effectiveStatus = createBoolean("autoassignEnabled", AUTOASSIGN_ENABLED);
+    public final BooleanPath autoassignEnabled = createBoolean("autoassignEnabled", AUTOASSIGN_ENABLED);
     public final StringPath displayNameNorm = createString("displayNameNorm", DISPLAY_NAME_NORM);
     public final StringPath displayNameOrig = createString("displayNameOrig", DISPLAY_NAME_ORIG);
     public final StringPath identifier = createString("identifier", IDENTIFIER);

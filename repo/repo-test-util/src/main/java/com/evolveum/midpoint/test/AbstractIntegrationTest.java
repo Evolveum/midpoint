@@ -1346,6 +1346,20 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return shadows.iterator().next();
     }
 
+    protected PrismObject<ShadowType> findShadowByPrismName(String name, PrismObject<ResourceType> resource, OperationResult result) throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(ShadowType.class)
+                .item(ShadowType.F_NAME).eqPoly(name)
+                .and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
+                .build();
+
+        List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        if (shadows.isEmpty()) {
+            return null;
+        }
+        assert shadows.size() == 1 : "Too many shadows found for name " + name + " on " + resource + ": " + shadows;
+        return shadows.iterator().next();
+    }
+
     protected ObjectQuery createAccountShadowQuery(String identifier, PrismObject<ResourceType> resource) throws SchemaException {
         RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
         RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
@@ -2988,5 +3002,16 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
      */
     protected void stabilize() throws InterruptedException {
         Thread.sleep(500);
+    }
+
+    protected ShadowAsserter<Void> assertSelectedAccountByName(Collection<PrismObject<ShadowType>> accounts, String name) {
+        return assertShadow(selectAccountByName(accounts, name), name);
+    }
+
+    protected PrismObject<ShadowType> selectAccountByName(Collection<PrismObject<ShadowType>> accounts, String name) {
+        return accounts.stream()
+                .filter(a -> name.equals(a.getName().getOrig()))
+                .findAny()
+                .orElseThrow(() -> new AssertionError("Account '" + name + "' was not found"));
     }
 }

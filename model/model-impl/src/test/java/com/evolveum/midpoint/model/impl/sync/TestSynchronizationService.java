@@ -102,7 +102,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         getDummyResource().addAccount(dummyAccount);
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-        change.setCurrentShadow(accountShadowJack);
+        change.setShadowedResourceObject(accountShadowJack);
         change.setResource(getDummyResourceObject());
 
         // WHEN
@@ -150,7 +150,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         PrismObject<ShadowType> accountShadowJack = provisioningService.getObject(ShadowType.class, accountShadowJackDummyOid, null, task, result);
-        change.setCurrentShadow(accountShadowJack);
+        change.setShadowedResourceObject(accountShadowJack);
         change.setResource(getDummyResourceObject());
         change.setSourceChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
@@ -205,7 +205,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         PrismObject<ShadowType> accountShadowJack = provisioningService.getObject(ShadowType.class, accountShadowJackDummyOid, null, task, result);
-        change.setCurrentShadow(accountShadowJack);
+        change.setShadowedResourceObject(accountShadowJack);
         change.setResource(getDummyResourceObject());
         change.setSourceChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
@@ -261,7 +261,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         PrismObject<ShadowType> accountShadowJack = provisioningService.getObject(ShadowType.class, accountShadowJackDummyOid, null, task, result);
-        change.setCurrentShadow(accountShadowJack);
+        change.setShadowedResourceObject(accountShadowJack);
         change.setResource(getDummyResourceObject());
         change.setSourceChannel(SchemaConstants.CHANNEL_DISCOVERY_URI);
 
@@ -343,7 +343,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
             .assertSynchronizationSituation(SynchronizationSituationType.LINKED);
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-        change.setCurrentShadow(shadow);
+        change.setShadowedResourceObject(shadow);
         change.setResource(getDummyResourceObject());
         ObjectDelta<ShadowType> syncDelta = prismContext.deltaFactory().object()
                 .createDeleteDelta(ShadowType.class, accountShadowJackDummyOid);
@@ -417,7 +417,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         getDummyResource().addAccount(dummyAccount);
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-        change.setCurrentShadow(accountShadowCalypso);
+        change.setShadowedResourceObject(accountShadowCalypso);
         change.setResource(getDummyResourceObject());
 
         // WHEN
@@ -460,7 +460,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         accountShadowCalypso.asObjectable().setProtectedObject(true);
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-        change.setCurrentShadow(accountShadowCalypso);
+        change.setShadowedResourceObject(accountShadowCalypso);
         change.setResource(getDummyResourceObject());
 
         displayDumpable("Change notification", change);
@@ -510,7 +510,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         displayDumpable("Dummy resource before", getDummyResource());
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-        change.setCurrentShadow(accountShadowJack);
+        change.setShadowedResourceObject(accountShadowJack);
         change.setResource(getDummyResourceObject());
 
         // WHEN
@@ -566,7 +566,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowJackDummyOid);
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-        change.setCurrentShadow(shadow);
+        change.setShadowedResourceObject(shadow);
         change.setResource(getDummyResourceObject());
         ObjectDelta<ShadowType> syncDelta = prismContext.deltaFactory().object()
                 .createDeleteDelta(ShadowType.class, accountShadowJackDummyOid);
@@ -636,7 +636,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         getDummyResource().setModifyBreakMode(BreakMode.SCHEMA);
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-        change.setCurrentShadow(accountShadowJack);
+        change.setShadowedResourceObject(accountShadowJack);
         change.setResource(getDummyResourceObject());
 
         // WHEN
@@ -697,7 +697,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         PrismObject<ShadowType> accountShadowJackBefore = getShadowModelNoFetch(accountShadowJackDummyOid);
-        change.setCurrentShadow(accountShadowJackBefore);
+        change.setShadowedResourceObject(accountShadowJackBefore);
         change.setResource(getDummyResourceObject());
 
         // WHEN
@@ -863,7 +863,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         PrismObject<ShadowType> accountShadowLimitedJackBefore = getShadowModelNoFetch(accountShadowJackDummyLimitedOid);
-        change.setCurrentShadow(accountShadowLimitedJackBefore);
+        change.setShadowedResourceObject(accountShadowLimitedJackBefore);
         change.setResource(getDummyResourceObject(RESOURCE_DUMMY_LIMITED_NAME));
 
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
@@ -944,7 +944,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         getDummyResource().addGroup(dummyGroup);
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-        change.setCurrentShadow(shadowPirates);
+        change.setShadowedResourceObject(shadowPirates);
         change.setResource(getDummyResourceObject());
 
         // WHEN

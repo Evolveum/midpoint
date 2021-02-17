@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.common.StaticExpressionUtil;
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -37,7 +38,6 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -48,13 +48,10 @@ import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -62,6 +59,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -71,6 +69,10 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCa
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ProvisioningUtil {
 
@@ -146,8 +148,8 @@ public class ProvisioningUtil {
                 explicit.add(attributeDefinition);
             } else if (hasMinimal && (fetchStrategy != AttributeFetchStrategyType.MINIMAL ||
                     (SelectorOptions.hasToLoadPath(ctx.getPrismContext().path(ShadowType.F_ATTRIBUTES, attributeDefinition.getItemName()), ctx.getGetOperationOptions(), false) ||
-                    // Following clause is legacy (MID-5838)
-                    SelectorOptions.hasToLoadPath(ctx.getPrismContext().toUniformPath(attributeDefinition.getItemName()), ctx.getGetOperationOptions(), false)))) {
+                            // Following clause is legacy (MID-5838)
+                            SelectorOptions.hasToLoadPath(ctx.getPrismContext().toUniformPath(attributeDefinition.getItemName()), ctx.getGetOperationOptions(), false)))) {
                 explicit.add(attributeDefinition);
             }
         }
@@ -248,7 +250,6 @@ public class ProvisioningUtil {
             }
         }
 
-
         if (apply) {
             return attributesToReturn;
         } else {
@@ -264,7 +265,7 @@ public class ProvisioningUtil {
         if (overridingMatchingRuleQName != null) {
             matchingRuleQName = overridingMatchingRuleQName;
         } else if (propertyDef instanceof RefinedAttributeDefinition) {
-            matchingRuleQName = ((RefinedAttributeDefinition<?>)propertyDef).getMatchingRuleQName();
+            matchingRuleQName = ((RefinedAttributeDefinition<?>) propertyDef).getMatchingRuleQName();
         } else {
             matchingRuleQName = null;
         }
@@ -288,8 +289,8 @@ public class ProvisioningUtil {
         // Because we are dealing with properties, container IDs are also out of questions, and operational items
         // as well.
         PropertyDelta<T> filteredDelta = propertyDelta.narrow(currentShadow, comparator, comparator, true); // MID-5280
-        if (LOGGER.isTraceEnabled() && (filteredDelta == null || !filteredDelta.equals(propertyDelta))) {
-            LOGGER.trace("Narrowed delta: {}", filteredDelta==null?null:filteredDelta.debugDump());
+        if (filteredDelta == null || !filteredDelta.equals(propertyDelta)) {
+            LOGGER.trace("Narrowed delta: {}", DebugUtil.debugDumpLazily(filteredDelta));
         }
         return filteredDelta;
     }
@@ -297,7 +298,7 @@ public class ProvisioningUtil {
     public static RefinedResourceSchema getRefinedSchema(ResourceType resourceType) throws SchemaException, ConfigurationException {
         RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
         if (refinedSchema == null) {
-            throw new ConfigurationException("No schema for "+resourceType);
+            throw new ConfigurationException("No schema for " + resourceType);
         }
         return refinedSchema;
     }
@@ -338,7 +339,7 @@ public class ProvisioningUtil {
     public static RefinedResourceSchema getRefinedSchema(PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
         RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
         if (refinedSchema == null) {
-            throw new ConfigurationException("No schema for "+resource);
+            throw new ConfigurationException("No schema for " + resource);
         }
         return refinedSchema;
     }
@@ -361,7 +362,7 @@ public class ProvisioningUtil {
             if (objectClassDefinition.isPrimaryIdentifier(attributeName) || objectClassDefinition.isSecondaryIdentifier(attributeName)) {
                 return true;
             }
-            for (RefinedAssociationDefinition associationDef: objectClassDefinition.getAssociationDefinitions()) {
+            for (RefinedAssociationDefinition associationDef : objectClassDefinition.getAssociationDefinitions()) {
                 if (associationDef.getResourceObjectAssociationType().getDirection() == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
                     QName valueAttributeName = associationDef.getResourceObjectAssociationType().getValueAttribute();
                     if (QNameUtil.match(attributeName, valueAttributeName)) {
@@ -376,7 +377,7 @@ public class ProvisioningUtil {
             return attrDef != null;
 
         } else {
-            throw new ConfigurationException("Unknown caching strategy "+cachingStrategy);
+            throw new ConfigurationException("Unknown caching strategy " + cachingStrategy);
         }
     }
 
@@ -385,9 +386,9 @@ public class ProvisioningUtil {
             return true;
         } else {
             return QNameUtil.match(elementName, ActivationType.F_ARCHIVE_TIMESTAMP) ||
-                QNameUtil.match(elementName, ActivationType.F_DISABLE_TIMESTAMP) ||
-                QNameUtil.match(elementName, ActivationType.F_ENABLE_TIMESTAMP) ||
-                QNameUtil.match(elementName, ActivationType.F_DISABLE_REASON);
+                    QNameUtil.match(elementName, ActivationType.F_DISABLE_TIMESTAMP) ||
+                    QNameUtil.match(elementName, ActivationType.F_ENABLE_TIMESTAMP) ||
+                    QNameUtil.match(elementName, ActivationType.F_DISABLE_REASON);
         }
     }
 
@@ -670,11 +671,11 @@ public class ProvisioningUtil {
     }
 
     public static boolean isCompleted(OperationResultStatusType statusType) {
-         return statusType != null && statusType != OperationResultStatusType.IN_PROGRESS && statusType != OperationResultStatusType.UNKNOWN;
+        return statusType != null && statusType != OperationResultStatusType.IN_PROGRESS && statusType != OperationResultStatusType.UNKNOWN;
     }
 
     public static boolean hasPendingAddOperation(PrismObject<ShadowType> shadow) {
-        for (PendingOperationType pendingOperation: shadow.asObjectable().getPendingOperation()) {
+        for (PendingOperationType pendingOperation : shadow.asObjectable().getPendingOperation()) {
             if (isPendingAddOperation(pendingOperation)) {
                 return true;
             }
@@ -726,27 +727,19 @@ public class ProvisioningUtil {
         return !ProvisioningOperationOptions.isDoNotDiscovery(options) && isDoDiscovery(resource);
     }
 
-    public static boolean isDoDiscovery (ResourceType resource) {
-        if (resource == null) {
-            return true;
-        }
-        if (resource.getConsistency() == null) {
-            return true;
-        }
-
-        if (resource.getConsistency().isDiscovery() == null) {
-            return true;
-        }
-
-        return resource.getConsistency().isDiscovery();
+    public static boolean isDoDiscovery(ResourceType resource) {
+        return resource == null
+                || resource.getConsistency() == null
+                || resource.getConsistency().isDiscovery() == null
+                || resource.getConsistency().isDiscovery();
     }
 
     public static OperationResultStatus postponeModify(ProvisioningContext ctx,
-                                                   PrismObject<ShadowType> repoShadow,
-                                                   Collection<? extends ItemDelta> modifications,
-                                                   ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
-                                                   OperationResult failedOperationResult,
-                                                   OperationResult result) {
+            PrismObject<ShadowType> repoShadow,
+            Collection<? extends ItemDelta> modifications,
+            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+            OperationResult failedOperationResult,
+            OperationResult result) {
         LOGGER.trace("Postponing MODIFY operation for {}", repoShadow);
         opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTING);
         AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncResult = new AsynchronousOperationReturnValue<>();
@@ -760,4 +753,121 @@ public class ProvisioningUtil {
         return OperationResultStatus.IN_PROGRESS;
     }
 
+    // TODO better place?
+    @Nullable
+    public static PrismObject<ShadowType> selectSingleShadow(@NotNull List<PrismObject<ShadowType>> shadows, Object context) {
+        LOGGER.trace("Selecting from {} objects", shadows.size());
+
+        if (shadows.size() == 0) {
+            return null;
+        } else if (shadows.size() > 1) {
+            LOGGER.error("Too many shadows ({}) for {}", shadows.size(), context);
+            LOGGER.debug("Shadows:\n{}", DebugUtil.debugDumpLazily(shadows));
+            throw new IllegalStateException("More than one shadow for " + context);
+        } else {
+            return shadows.get(0);
+        }
+    }
+
+    // TODO better place?
+    @Nullable
+    public static PrismObject<ShadowType> selectLiveShadow(List<PrismObject<ShadowType>> shadows) {
+        if (shadows == null || shadows.isEmpty()) {
+            return null;
+        }
+
+        List<PrismObject<ShadowType>> liveShadows = shadows.stream()
+                .filter(ShadowUtil::isNotDead)
+                .collect(Collectors.toList());
+
+        if (liveShadows.isEmpty()) {
+            return null;
+        } else if (liveShadows.size() > 1) {
+            LOGGER.trace("More than one live shadow found ({} out of {}):\n{}",
+                    liveShadows.size(), shadows.size(), DebugUtil.debugDumpLazily(shadows, 1));
+            // TODO: handle "more than one shadow" case for conflicting shadows - MID-4490
+            throw new IllegalStateException("Found more than one live shadow: " + liveShadows);
+        } else {
+            return liveShadows.get(0);
+        }
+    }
+
+    /**
+     * @return Live shadow (if there's one) or any of the dead ones.
+     * (We ignore the possibility of conflicting information in shadows.)
+     *
+     * TODO better place?
+     */
+    public static PrismObject<ShadowType> selectLiveOrAnyShadow(List<PrismObject<ShadowType>> shadows) {
+        PrismObject<ShadowType> liveShadow = ProvisioningUtil.selectLiveShadow(shadows);
+        if (liveShadow != null) {
+            return liveShadow;
+        } else if (shadows.isEmpty()) {
+            return null;
+        } else {
+            return shadows.get(0);
+        }
+    }
+
+    // TODO better place?
+    @Nullable
+    public static PrismProperty<?> getSingleValuedPrimaryIdentifier(PrismObject<ShadowType> resourceObject) {
+        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceObject);
+        PrismProperty<?> identifier = attributesContainer.getPrimaryIdentifier();
+        if (identifier == null) {
+            return null;
+        }
+
+        checkSingleIdentifierValue(identifier);
+        return identifier;
+    }
+
+    // TODO better place?
+    private static void checkSingleIdentifierValue(PrismProperty<?> identifier) {
+        int identifierCount = identifier.getValues().size();
+        // Only one value is supported for an identifier
+        if (identifierCount > 1) {
+            // TODO: This should probably be switched to checked exception later
+            throw new IllegalArgumentException("More than one identifier value is not supported");
+        }
+        if (identifierCount < 1) {
+            // TODO: This should probably be switched to checked exception later
+            throw new IllegalArgumentException("The identifier has no value");
+        }
+    }
+
+    // TODO better place?
+    public static CachingStategyType getPasswordCachingStrategy(RefinedObjectClassDefinition objectClassDefinition) {
+        ResourcePasswordDefinitionType passwordDefinition = objectClassDefinition.getPasswordDefinition();
+        if (passwordDefinition == null) {
+            return null;
+        }
+        CachingPolicyType passwordCachingPolicy = passwordDefinition.getCaching();
+        if (passwordCachingPolicy == null) {
+            return null;
+        }
+        return passwordCachingPolicy.getCachingStategy();
+    }
+
+    // TODO better place?
+    public static void validateShadow(PrismObject<ShadowType> shadow, boolean requireOid) {
+        if (requireOid) {
+            Validate.notNull(shadow.getOid(), "null shadow OID");
+        }
+        if (InternalsConfig.encryptionChecks) {
+            CryptoUtil.checkEncrypted(shadow);
+        }
+    }
+
+    public static Collection<ResourceAttribute<?>> selectPrimaryIdentifiers(Collection<ResourceAttribute<?>> identifiers,
+            ObjectClassComplexTypeDefinition ocDef) {
+
+        Collection<ItemName> primaryIdentifiers = ocDef.getPrimaryIdentifiers().stream()
+                .map(ItemDefinition::getItemName)
+                .collect(Collectors.toSet());
+
+        return identifiers.stream()
+                .filter(attr -> QNameUtil.matchAny(attr.getElementName(), primaryIdentifiers))
+                .collect(Collectors.toList());
+    }
 }

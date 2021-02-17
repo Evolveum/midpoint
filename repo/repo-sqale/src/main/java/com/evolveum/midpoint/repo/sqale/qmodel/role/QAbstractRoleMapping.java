@@ -16,6 +16,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignSpecificationType;
 
 /**
  * Mapping between {@link QAbstractRole} and {@link AbstractRoleType}.
@@ -38,8 +39,9 @@ public class QAbstractRoleMapping<
             @NotNull Class<Q> queryType) {
         super(tableName, defaultAliasName, schemaType, queryType);
 
-        // TODO how is approvalProcess mapped? Nothing found in RAbstractRole
-        // addItemMapping(AbstractRoleType.F_AUTOASSIGN ...TODO nested mapping AutoassignSpecificationType
+        nestedMapping(F_AUTOASSIGN, AutoassignSpecificationType.class)
+                .addItemMapping(AutoassignSpecificationType.F_ENABLED,
+                        booleanMapper(path(q -> q.autoassignEnabled)));
         addItemMapping(F_DISPLAY_NAME, PolyStringItemFilterProcessor.mapper(
                 path(q -> q.displayNameOrig), path(q -> q.displayNameNorm)));
         addItemMapping(F_IDENTIFIER, stringMapper(path(q -> q.identifier)));
@@ -48,7 +50,6 @@ public class QAbstractRoleMapping<
         addItemMapping(F_RISK_LEVEL, stringMapper(path(q -> q.riskLevel)));
     }
 
-    // TODO verify that this allows creation of QAbstractRole alias and that it suffices for "generic query"
     @Override
     protected Q newAliasInstance(String alias) {
         //noinspection unchecked

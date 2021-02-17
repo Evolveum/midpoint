@@ -176,8 +176,7 @@ public class DeleteNotUpdatedShadowTaskHandler
             ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
             change.setObjectDelta(shadow.createDeleteDelta());
             change.setResource(ctx.resource);
-            change.setOldShadow(shadow);
-            change.setCurrentShadow(shadow); // TODO why?!
+            change.setShadowedResourceObject(shadow);
             synchronizationService.notifyChange(change, workerTask, result);
         }
     }

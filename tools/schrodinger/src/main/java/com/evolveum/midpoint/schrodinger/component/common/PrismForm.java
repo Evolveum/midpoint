@@ -207,7 +207,7 @@ public class PrismForm<T> extends Component<T> {
 
     }
 
-    public PrismForm<T> assertSelectAttributeValueMatches(String attributeName, String expectedValue) {
+    public PrismForm<T> assertPropertySelectValue(String attributeName, String expectedValue) {
         Assert.assertTrue(compareSelectAttributeValue(attributeName, expectedValue),"The value of the select attribute " + attributeName
                     + " doesn't match to expected value '" + expectedValue + "'.");
         return this;
@@ -524,19 +524,19 @@ public class PrismForm<T> extends Component<T> {
         return this;
     }
 
-    public PrismForm<T> assertInputAttributeValueMatches(String attributeName, String expectedValue) {
+    public PrismForm<T> assertPropertyInputValue(String attributeName, String expectedValue) {
         Assert.assertTrue(compareInputAttributeValue(attributeName, expectedValue), "The value of the input attribute " + attributeName
                 + " doesn't match to expected value '" + expectedValue + "'.");
         return this;
     }
 
-    public PrismForm<T> assertInputAttributeValuesMatches(String attributeName, String... expectedValues) {
+    public PrismForm<T> assertPropertyInputValues(String attributeName, String... expectedValues) {
         Assert.assertTrue(compareInputAttributeValues(attributeName, expectedValues), "The values of the input attribute " + attributeName
                 + " doesn't match to expected values.");
         return this;
     }
 
-    public PrismForm<T> assertInputAttributeValuesMatches(String attributeName, List<String> expectedValues) {
+    public PrismForm<T> assertPropertyInputValues(String attributeName, List<String> expectedValues) {
         Assert.assertTrue(compareInputAttributeValues(attributeName, expectedValues), "The values of the input attribute " + attributeName
                 + " doesn't match to expected values.");
         return this;

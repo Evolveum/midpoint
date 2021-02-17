@@ -6723,7 +6723,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void traced(TracedProcedureCall tracedCall) throws CommonException, PreconditionViolationException {
-        setGlobalTracingOverride(createModelLoggingTracingProfile());
+        traced(createModelLoggingTracingProfile(), tracedCall);
+    }
+
+    protected void traced(TracingProfileType profile, TracedProcedureCall tracedCall)
+            throws CommonException, PreconditionViolationException {
+        setGlobalTracingOverride(profile);
         try {
             tracedCall.execute();
         } finally {

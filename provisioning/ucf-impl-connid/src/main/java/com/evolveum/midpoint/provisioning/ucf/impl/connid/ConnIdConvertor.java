@@ -7,23 +7,23 @@
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType.FETCH_RESULT;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfFetchErrorReportingMethod;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfObjectFound;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfErrorState;
 import com.evolveum.midpoint.util.MiscUtil;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -76,7 +76,7 @@ class ConnIdConvertor {
      *             the returned resource object will contain only attributed with
      *             the non-null values.
      *
-     * @param errorReportingMethod If EXCEPTIONS (the default), any exceptions are thrown as such. But if FETCH_RESULT,
+     * @param ucfErrorReportingMethod If EXCEPTIONS (the default), any exceptions are thrown as such. But if FETCH_RESULT,
      *                             exceptions are represented in fetchResult property of the returned resource object.
      *                             Generally, when called as part of "searchObjectsIterative" in the context of
      *                             a task, we might want to use the latter case to give the task handler a chance to report
@@ -84,9 +84,9 @@ class ConnIdConvertor {
      *
      * @return new mapped ResourceObject instance.
      */
-    @NotNull PrismObject<ShadowType> convertToResourceObject(@NotNull ConnectorObject co,
-            PrismObjectDefinition<ShadowType> objectDefinition, boolean full, boolean caseIgnoreAttributeNames,
-            boolean legacySchema, FetchErrorReportingMethodType errorReportingMethod, OperationResult parentResult) throws SchemaException {
+    @NotNull UcfObjectFound convertToUcfObject(@NotNull ConnectorObject co,
+            @NotNull PrismObjectDefinition<ShadowType> objectDefinition, boolean full, boolean caseIgnoreAttributeNames,
+            boolean legacySchema, UcfFetchErrorReportingMethod ucfErrorReportingMethod, OperationResult parentResult) throws SchemaException {
 
         // This is because of suspicion that this operation sometimes takes a long time.
         // If it will not be the case, we can safely remove subresult construction here.
@@ -97,29 +97,44 @@ class ConnIdConvertor {
                 .addParam("full", full)
                 .addParam("caseIgnoreAttributeNames", caseIgnoreAttributeNames)
                 .addParam("legacySchema", legacySchema)
-                .addArbitraryObjectAsParam("errorReportingMethod", errorReportingMethod)
+                .addArbitraryObjectAsParam("ucfErrorReportingMethod", ucfErrorReportingMethod)
                 .build();
-        ConnIdToMidPointConversion conversion = null;
         try {
-            if (objectDefinition == null) {
-                throw new SchemaException("No definition");
-            }
-            conversion = new ConnIdToMidPointConversion(co, objectDefinition.instantiate(), full,
+            // UID value is not null according to ConnId
+            @NotNull String uidValue = co.getUid().getUidValue();
+
+            ConnIdToMidPointConversion conversion = new ConnIdToMidPointConversion(co, objectDefinition.instantiate(), full,
                     caseIgnoreAttributeNames, legacySchema, this);
-            return conversion.execute();
-        } catch (Throwable t) {
-            String message = "Couldn't convert resource object from ConnID to midPoint: uid=" + co.getUid() + ", name="
-                    + co.getName() + ", class=" + co.getObjectClass() + ": " + t.getMessage();
-            result.recordFatalError(message, t);
-            if (errorReportingMethod == FETCH_RESULT && conversion != null) {
-                return conversion.reportErrorInFetchResult(result);
-            } else {
-                MiscUtil.throwAsSame(t, message);
-                throw t; // just to make compiler happy
+
+            try {
+                conversion.execute();
+                return new UcfObjectFound(conversion.getResourceObject(), uidValue, UcfErrorState.success());
+            } catch (Throwable t) {
+                if (ucfErrorReportingMethod == UcfFetchErrorReportingMethod.UCF_OBJECT) {
+                    @NotNull PrismObject<ShadowType> incompleteResourceObject = conversion.getResourceObject(); // can be empty!
+                    Throwable wrappedException = MiscUtil.createSame(t, createMessage(co, t));
+                    return new UcfObjectFound(incompleteResourceObject, uidValue, UcfErrorState.error(wrappedException));
+                } else {
+                    throw t; // handled just below
+                }
             }
+
+        } catch (Throwable t) {
+            // We have no resource object to return (e.g. because it couldn't be instantiated). So really the only option
+            // is to throw an exception.
+            String message = createMessage(co, t);
+            result.recordFatalError(message, t);
+            MiscUtil.throwAsSame(t, message);
+            throw t; // just to make compiler happy
         } finally {
             result.computeStatusIfUnknown();
         }
+    }
+
+    @NotNull
+    private String createMessage(@NotNull ConnectorObject co, Throwable t) {
+        return "Couldn't convert resource object from ConnID to midPoint: uid=" + co.getUid() + ", name="
+                + co.getName() + ", class=" + co.getObjectClass() + ": " + t.getMessage();
     }
 
     Set<Attribute> convertFromResourceObjectToConnIdAttributes(ResourceAttributeContainer attributesPrism,

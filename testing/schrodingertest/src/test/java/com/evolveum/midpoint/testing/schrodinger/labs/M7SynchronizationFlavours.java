@@ -86,7 +86,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
         owner.selectTabBasic()
                 .form()
-                    .assertInputAttributeValueMatches("name", "X001212");
+                    .assertPropertyInputValue("name", "X001212");
 
         basicPage.listResources()
                 .table()
@@ -153,7 +153,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
         showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
                         .form()
-                        .assertInputAttributeValuesMatches("groups", "Internal Employees", "Essential Documents");
+                        .assertPropertyInputValues("groups", "Internal Employees", "Essential Documents");
 
     }
 
@@ -194,36 +194,36 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
         showUser("X000999")
                 .selectTabBasic()
                     .form()
-                        .assertInputAttributeValueMatches("givenName", "Arnold");
+                        .assertPropertyInputValue("givenName", "Arnold");
         showUser("X000999")
                 .selectTabBasic()
                     .form()
-                        .assertInputAttributeValueMatches("familyName", "Rimmer");
+                        .assertPropertyInputValue("familyName", "Rimmer");
         showUser("X000999")
                 .selectTabBasic()
                     .form()
-                        .assertSelectAttributeValueMatches("administrativeStatus", "Enabled");
+                        .assertPropertySelectValue("administrativeStatus", "Enabled");
 
         FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_2, hrTargetFile);
         Selenide.sleep(20000);
         showUser("X000999")
                 .selectTabBasic()
                     .form()
-                        .assertInputAttributeValueMatches("givenName", "Arnold J.");
+                        .assertPropertyInputValue("givenName", "Arnold J.");
 
         FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_3, hrTargetFile);
         Selenide.sleep(20000);
         showUser("X000999")
                 .selectTabBasic()
                     .form()
-                        .assertSelectAttributeValueMatches("administrativeStatus", "Disabled");
+                        .assertPropertySelectValue("administrativeStatus", "Disabled");
 
         FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_4, hrTargetFile);
         Selenide.sleep(20000);
         showUser("X000999")
                 .selectTabBasic()
                     .form()
-                        .assertSelectAttributeValueMatches("administrativeStatus", "Enabled");
+                        .assertPropertySelectValue("administrativeStatus", "Enabled");
 
     }
 

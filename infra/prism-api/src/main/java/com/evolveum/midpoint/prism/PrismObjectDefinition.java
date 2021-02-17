@@ -33,7 +33,7 @@ public interface PrismObjectDefinition<O extends Objectable> extends PrismContai
     @Override
     PrismObjectDefinition<O> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction);
 
-    PrismObjectDefinition<O> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition);
+    @NotNull PrismObjectDefinition<O> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition);
 
     PrismContainerDefinition<?> getExtensionDefinition();
 

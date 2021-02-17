@@ -14,7 +14,6 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -29,12 +28,13 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ObjectUtils;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Contract;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Methods that would belong to the ResourceObjectShadowType class but cannot go there
@@ -381,6 +381,7 @@ public class ShadowUtil {
      * Returns intent from the shadow. Backwards compatible with older accountType. May also adjust for default
      * intent if necessary.
      */
+    @Contract("null -> null")
     public static String getIntent(ShadowType shadow) {
         if (shadow == null) {
             return null;
@@ -392,6 +393,7 @@ public class ShadowUtil {
         return shadow != null ? getKind(shadow.asObjectable()) : null;
     }
 
+    @Contract("!null -> !null; null -> null")
     public static ShadowKindType getKind(ShadowType shadow) {
         if (shadow == null) {
             return null;
@@ -500,6 +502,10 @@ public class ShadowUtil {
         return isDead(shadow.asObjectable());
     }
 
+    public static boolean isNotDead(PrismObject<ShadowType> shadow) {
+        return !isDead(shadow);
+    }
+
     public static boolean isExists(ShadowType shadow) {
         Boolean exists = shadow.isExists();
         return exists == null || exists;
@@ -594,6 +600,10 @@ public class ShadowUtil {
         return ResourceShadowDiscriminator.equalsIntent(shadow1.getIntent(), shadow2.getIntent());
     }
 
+    public static Object getHumanReadableNameLazily(PrismObject<? extends ShadowType> shadow) {
+        return DebugUtil.lazy(() -> getHumanReadableName(shadow));
+    }
+
     public static String getHumanReadableName(PrismObject<? extends ShadowType> shadow) {
         if (shadow == null) {
             return "null";
@@ -621,7 +631,7 @@ public class ShadowUtil {
             sb.append("[");
         }
         sb.append("]");
-        return shadow.toString(); // TODO probably sb.toString() here
+        return sb.toString();
     }
 
     public static String getHumanReadableName(ShadowType shadowType) {
@@ -644,17 +654,12 @@ public class ShadowUtil {
         return determineShadowName(shadow.asPrismObject());
     }
 
-    public static <T extends ShadowType> PolyString determineShadowName(PrismObject<T> shadow)
-            throws SchemaException {
+    public static <T extends ShadowType> PolyString determineShadowName(PrismObject<T> shadow) throws SchemaException {
         String stringName = determineShadowStringName(shadow);
-        if (stringName == null) {
-            return null;
-        }
-        return new PolyString(stringName);
+        return stringName != null ? PolyString.fromOrig(stringName) : null;
     }
 
-    public static <T extends ShadowType> String determineShadowStringName(PrismObject<T> shadow)
-            throws SchemaException {
+    public static <T extends ShadowType> String determineShadowStringName(PrismObject<T> shadow) throws SchemaException {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
         if (attributesContainer == null) {
             return null;
@@ -702,8 +707,6 @@ public class ShadowUtil {
         }
 
         return value.getValue();
-        // return
-        // attributesContainer.getNamingAttribute().getValue().getValue();
     }
 
     public static ResourceObjectIdentification getResourceObjectIdentification(
@@ -715,6 +718,15 @@ public class ShadowUtil {
     public static boolean matchesAttribute(ItemPath path, QName attributeName) {
         return path.startsWithName(ShadowType.F_ATTRIBUTES) &&
                 path.rest().startsWithName(attributeName);
+    }
+
+    public static boolean hasPrimaryIdentifier(PrismObject<ShadowType> shadow,
+            ObjectClassComplexTypeDefinition objectClassDefinition) {
+        ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
+        return attributesContainer != null &&
+                !attributesContainer
+                        .extractAttributesByDefinitions(objectClassDefinition.getPrimaryIdentifiers())
+                        .isEmpty();
     }
 
     public static boolean hasPrimaryIdentifier(Collection<? extends ResourceAttribute<?>> identifiers,
@@ -852,6 +864,36 @@ public class ShadowUtil {
             sb.append(identifier.getRealValue());
             if (iterator.hasNext()) {
                 sb.append(";");
+            }
+        }
+    }
+
+    public static boolean isKnown(ShadowKindType kind) {
+        return kind != null && kind != ShadowKindType.UNKNOWN;
+    }
+
+    public static boolean isNotKnown(ShadowKindType kind) {
+        return !isKnown(kind);
+    }
+
+    public static boolean isKnown(String intent) {
+        return intent != null && !SchemaConstants.INTENT_UNKNOWN.equals(intent);
+    }
+
+    public static boolean isNotKnown(String intent) {
+        return !isKnown(intent);
+    }
+
+    public static void removeAllAttributesExceptPrimaryIdentifier(PrismObject<ShadowType> shadow,
+            ObjectClassComplexTypeDefinition ocDef) {
+        ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
+        if (attributesContainer != null) {
+            List<ItemName> attributesToDelete = attributesContainer.getAttributes().stream()
+                    .map(Item::getElementName)
+                    .filter(attrName -> !ocDef.isPrimaryIdentifier(attrName))
+                    .collect(Collectors.toList());
+            for (ItemName attrName : attributesToDelete) {
+                attributesContainer.getValue().removeProperty(attrName);
             }
         }
     }

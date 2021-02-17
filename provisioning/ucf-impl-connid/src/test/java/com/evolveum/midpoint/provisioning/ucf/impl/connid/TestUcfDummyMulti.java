@@ -23,7 +23,7 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.ShadowResultHandler;
+import com.evolveum.midpoint.provisioning.ucf.api.ObjectHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -122,15 +122,11 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
         final List<PrismObject<ShadowType>> searchResults = new ArrayList<>();
 
-        ShadowResultHandler handler = new ShadowResultHandler() {
-
-            @Override
-            public boolean handle(PrismObject<ShadowType> shadow) {
-                System.out.println("Search: found: " + shadow);
-                checkUcfShadow(shadow, accountDefinition);
-                searchResults.add(shadow);
-                return true;
-            }
+        ObjectHandler handler = ucfObject -> {
+            displayDumpable("Search: found", ucfObject);
+            checkUcfShadow(ucfObject.getResourceObject(), accountDefinition);
+            searchResults.add(ucfObject.getResourceObject());
+            return true;
         };
 
         OperationResult result = createOperationResult();
@@ -158,14 +154,10 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
         final List<PrismObject<ShadowType>> searchResults = new ArrayList<>();
 
-        final ShadowResultHandler handler = new ShadowResultHandler() {
-
-            @Override
-            public boolean handle(PrismObject<ShadowType> shadow) {
-                checkUcfShadow(shadow, accountDefinition);
-                searchResults.add(shadow);
-                return true;
-            }
+        final ObjectHandler handler = ucfObject -> {
+            checkUcfShadow(ucfObject.getResourceObject(), accountDefinition);
+            searchResults.add(ucfObject.getResourceObject());
+            return true;
         };
 
         dummyResource.setBlockOperations(true);
@@ -223,24 +215,18 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
         OperationResult result1 = createOperationResult();
         final List<PrismObject<ShadowType>> searchResults1 = new ArrayList<>();
-        final ShadowResultHandler handler1 = new ShadowResultHandler() {
-            @Override
-            public boolean handle(PrismObject<ShadowType> shadow) {
-                checkUcfShadow(shadow, accountDefinition);
-                searchResults1.add(shadow);
-                return true;
-            }
+        final ObjectHandler handler1 = ucfObject -> {
+            checkUcfShadow(ucfObject.getResourceObject(), accountDefinition);
+            searchResults1.add(ucfObject.getResourceObject());
+            return true;
         };
 
         OperationResult result2 = createOperationResult();
         final List<PrismObject<ShadowType>> searchResults2 = new ArrayList<>();
-        final ShadowResultHandler handler2 = new ShadowResultHandler() {
-            @Override
-            public boolean handle(PrismObject<ShadowType> shadow) {
-                checkUcfShadow(shadow, accountDefinition);
-                searchResults2.add(shadow);
-                return true;
-            }
+        final ObjectHandler handler2 = ucfObject -> {
+            checkUcfShadow(ucfObject.getResourceObject(), accountDefinition);
+            searchResults2.add(ucfObject.getResourceObject());
+            return true;
         };
 
         dummyResource.setBlockOperations(true);

@@ -502,4 +502,9 @@ public interface ProvisioningService {
      * Temporary and quick hack. TODO fix this
      */
     SystemConfigurationType getSystemConfiguration();
+
+    /**
+     * Provides a classifier to the provisioning service.
+     */
+    void setResourceObjectClassifier(ResourceObjectClassifier classifier);
 }

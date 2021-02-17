@@ -31,4 +31,19 @@ public class ServicePage extends AbstractRolePage {
         return super.selectTabAssignments();
     }
 
+    public ServicePage assertName(String expectedValue) {
+        selectTabBasic().form().assertPropertyInputValue("name", expectedValue);
+        return this;
+    }
+
+    public ServicePage assertDisplayName(String expectedValue) {
+        selectTabBasic().form().assertPropertyInputValue("displayName", expectedValue);
+        return this;
+    }
+
+    public ServicePage assertIdentifier(String expectedValue) {
+        selectTabBasic().form().assertPropertyInputValue("identifier", expectedValue);
+        return this;
+    }
+
 }

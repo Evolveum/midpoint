@@ -515,8 +515,27 @@ public class SqaleRepositoryService implements RepositoryService {
     public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
-        return 0;
-        // TODO
+        Objects.requireNonNull(type, "Object type must not be null.");
+        Objects.requireNonNull(parentResult, "Operation result must not be null.");
+
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + "countObjects")
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type.getName())
+                .addParam("query", query)
+                .build();
+
+        try {
+            var queryContext = SqaleQueryContext.from(type, transformerContext, sqlRepoContext);
+            return sqlQueryExecutor.count(queryContext, query, options);
+        } catch (QueryException | RuntimeException e) {
+            handleGeneralException(e, operationResult);
+            throw new SystemException(e);
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            operationResult.computeStatusIfUnknown();
+        }
     }
 
     @Override

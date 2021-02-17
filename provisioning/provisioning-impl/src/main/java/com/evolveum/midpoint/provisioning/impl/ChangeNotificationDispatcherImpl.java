@@ -60,9 +60,6 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
         this.filterProtectedObjects = filterProtectedObjects;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeNotificationManager#registerNotificationListener(com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener)
-     */
     @Override
     public synchronized void registerNotificationListener(ResourceObjectChangeListener listener) {
         Validate.notNull(listener);

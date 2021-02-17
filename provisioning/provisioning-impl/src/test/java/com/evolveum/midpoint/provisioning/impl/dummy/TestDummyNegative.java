@@ -11,12 +11,18 @@ import static org.identityconnectors.framework.common.objects.OperationalAttribu
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.icf.dummy.resource.*;
+import com.evolveum.midpoint.provisioning.api.LiveSyncEvent;
+import com.evolveum.midpoint.provisioning.api.LiveSyncEventHandler;
+import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -24,16 +30,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import com.evolveum.icf.dummy.resource.BreakMode;
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -60,26 +61,42 @@ public class TestDummyNegative extends AbstractDummyTest {
 
     private static final DummyTestResource RESOURCE_DUMMY_BROKEN_ACCOUNTS = new DummyTestResource(
             TEST_DIR, "resource-dummy-broken-accounts.xml", "202db5cf-f3c2-437c-9354-64054343d37d", "broken-accounts",
-            controller -> {
-                // This gives us a potential to induce exceptions during ConnId->object conversion.
-                controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
-                        ENABLE_DATE_NAME, Long.class, false, false);
-
-                // This is a secondary identifier which gives us a potential to induce exceptions during repo shadow manipulation.
-                controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
-                        ATTR_NUMBER, Integer.class, false, false);
-            }
+            TestDummyNegative::addFragileAttributes
     );
+
+    private static final DummyTestResource RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID = new DummyTestResource(
+            TEST_DIR, "resource-dummy-broken-accounts-external-uid.xml", "6139ea00-fc2a-4a68-b830-3e4012c766ee", "broken-accounts-external-uid",
+            TestDummyNegative::addFragileAttributes
+    );
+
+    private static void addFragileAttributes(DummyResourceContoller controller) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+        // This gives us a potential to induce exceptions during ConnId->object conversion.
+        controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                ENABLE_DATE_NAME, Long.class, false, false);
+
+        // This is a secondary identifier which gives us a potential to induce exceptions during repo shadow manipulation.
+        controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                ATTR_NUMBER, Integer.class, false, false);
+    }
+
     private static final String GOOD_ACCOUNT = "good";
     private static final String INCONVERTIBLE_ACCOUNT = "inconvertible";
     private static final String UNSTORABLE_ACCOUNT = "unstorable";
+
+    private static final String EXTERNAL_UID_PREFIX = "uid:";
+    private static final String GOOD_ACCOUNT_UID = EXTERNAL_UID_PREFIX + GOOD_ACCOUNT;
+    private static final String INCONVERTIBLE_ACCOUNT_UID = EXTERNAL_UID_PREFIX + INCONVERTIBLE_ACCOUNT;
+    private static final String UNSTORABLE_ACCOUNT_UID = EXTERNAL_UID_PREFIX + UNSTORABLE_ACCOUNT;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
         initDummyResource(RESOURCE_DUMMY_BROKEN_ACCOUNTS, initResult);
-        testResourceAssertSuccess(RESOURCE_DUMMY_BROKEN_ACCOUNTS.oid, initTask);
+        testResourceAssertSuccess(RESOURCE_DUMMY_BROKEN_ACCOUNTS, initTask);
+
+        initDummyResource(RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID, initResult);
+        testResourceAssertSuccess(RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID, initTask);
     }
 
     //region Tests for broken schema (in various ways)
@@ -340,16 +357,16 @@ public class TestDummyNegative extends AbstractDummyTest {
     /**
      * Checks the behaviour when getting broken accounts, i.e. accounts that cannot be retrieved
      * because of e.g.
-     * - inability to convert from ConnId to resource object (ShadowType)
+     *
+     * - inability to convert from ConnId to resource object (`ShadowType`)
      * - inability to create or update midPoint shadow
      *
-     * The current behavior is that getObject throws an exception in these cases.
-     * This may or may not be ideal. We can consider changing that (to signalling via fetchResult)
-     * later. But that would mean adapting the clients so that they would check the fetchResult
+     * The current behavior is that `getObject` throws an exception in these cases.
+     * This may or may not be ideal. We can consider changing that (to signalling via `fetchResult`)
+     * later. But that would mean adapting the clients so that they would check the `fetchResult`
      * and use the resulting shadow only if it's OK.
      *
-     * ---
-     * Because the getObject operation requires a shadow to exists, we have to create these objects
+     * Because the `getObject` operation requires a shadow to exists, we have to create these objects
      * in a good shape, retrieve them, and break them afterwards.
      */
     @Test
@@ -369,9 +386,9 @@ public class TestDummyNegative extends AbstractDummyTest {
         SearchResultList<PrismObject<ShadowType>> accounts =
                 provisioningService.searchObjects(ShadowType.class, getAllAccountsQuery(RESOURCE_DUMMY_BROKEN_ACCOUNTS),
                         null, task, result);
-        String goodOid = selectAccount(accounts, GOOD_ACCOUNT).getOid();
-        String inconvertibleOid = selectAccount(accounts, INCONVERTIBLE_ACCOUNT).getOid();
-        String unstorableOid = selectAccount(accounts, UNSTORABLE_ACCOUNT).getOid();
+        String goodOid = selectAccountByName(accounts, GOOD_ACCOUNT).getOid();
+        String inconvertibleOid = selectAccountByName(accounts, INCONVERTIBLE_ACCOUNT).getOid();
+        String unstorableOid = selectAccountByName(accounts, UNSTORABLE_ACCOUNT).getOid();
 
         // break the accounts
         resource.getAccountByUsername(INCONVERTIBLE_ACCOUNT).replaceAttributeValue(ENABLE_DATE_NAME, "WRONG");
@@ -440,20 +457,287 @@ public class TestDummyNegative extends AbstractDummyTest {
         display("objects", objects);
         assertThat(objects.size()).as("objects found").isEqualTo(3);
 
-        // TODO asserts on the result and object content
+        assertSelectedAccountByName(objects, GOOD_ACCOUNT)
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(GOOD_ACCOUNT)
+                .attributes()
+                    .assertSize(3)
+                    .end()
+                .assertSuccessOrNoFetchResult();
+
+        PrismObject<ShadowType> goodAfter = findShadowByPrismName(GOOD_ACCOUNT, RESOURCE_DUMMY_BROKEN_ACCOUNTS.object, result);
+        assertShadow(goodAfter, GOOD_ACCOUNT)
+                .display()
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(GOOD_ACCOUNT)
+                .attributes()
+                    .assertSize(3)
+                    .end();
+
+        assertSelectedAccountByName(objects, INCONVERTIBLE_ACCOUNT)
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT)
+                .attributes()
+                    .assertSize(2) // uid=inconvertible + number=2
+                    .end()
+                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "Couldn't convert resource object", INCONVERTIBLE_ACCOUNT);
+                // (maybe it's not necessary to provide account attributes in the message - reconsider)
+
+        PrismObject<ShadowType> inconvertibleAfter = findShadowByPrismName(INCONVERTIBLE_ACCOUNT,
+                RESOURCE_DUMMY_BROKEN_ACCOUNTS.object, result);
+        assertShadow(inconvertibleAfter, INCONVERTIBLE_ACCOUNT)
+                .display()
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT)
+                .attributes()
+                    .assertSize(2)
+                    .end();
+
+        assertSelectedAccountByName(objects, UNSTORABLE_ACCOUNT)
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT)
+                .attributes()
+                    .assertSize(1) // uid=unstorable
+                    .end()
+                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "Exception when translating", "WRONG");
+                // (maybe it's not necessary to provide the unconvertible value in the message - reconsider)
+
+        PrismObject<ShadowType> unstorableAfter = findShadowByPrismName(UNSTORABLE_ACCOUNT,
+                RESOURCE_DUMMY_BROKEN_ACCOUNTS.object, result);
+        assertShadow(unstorableAfter, UNSTORABLE_ACCOUNT)
+                .display()
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT)
+                .attributes()
+                    .assertSize(1)
+                    .end();
     }
 
-    private PrismObject<ShadowType> selectAccount(SearchResultList<PrismObject<ShadowType>> accounts, String name) {
-        return accounts.stream()
-                .filter(a -> name.equals(a.getName().getOrig()))
-                .findAny()
-                .orElseThrow(() -> new AssertionError("Account '" + name + "' was not found"));
+    @Test
+    public void test260SearchForBrokenAccountsExternalUid() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        cleanupAccounts(RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID, result);
+
+        createAccountExternalUid(GOOD_ACCOUNT, 1, null);
+        createAccountExternalUid(INCONVERTIBLE_ACCOUNT, 2, "WRONG");
+        createAccountExternalUid(UNSTORABLE_ACCOUNT, "WRONG", null);
+
+        when();
+
+        List<PrismObject<ShadowType>> objects = new ArrayList<>();
+
+        ResultHandler<ShadowType> handler = (object, parentResult) -> {
+            objects.add(object);
+            return true;
+        };
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                schemaHelper.getOperationOptionsBuilder()
+                        .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
+                        .build();
+        provisioningService.searchObjectsIterative(ShadowType.class, getAllAccountsQuery(RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID),
+                options, handler, task, result);
+
+        then();
+        display("objects", objects);
+        assertThat(objects.size()).as("objects found").isEqualTo(3);
+
+        assertSelectedAccountByName(objects, GOOD_ACCOUNT)
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
+                .assertName(GOOD_ACCOUNT)
+                .attributes()
+                    .assertSize(3)
+                    .end()
+                .assertSuccessOrNoFetchResult();
+
+        PrismObject<ShadowType> goodAfter = findShadowByPrismName(GOOD_ACCOUNT, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.object, result);
+        assertShadow(goodAfter, GOOD_ACCOUNT)
+                .display()
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
+                .attributes()
+                    .assertSize(3)
+                    .end();
+
+        assertSelectedAccountByName(objects, INCONVERTIBLE_ACCOUNT_UID)
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
+                .assertName(INCONVERTIBLE_ACCOUNT_UID)
+                .attributes()
+                    .assertSize(2) // uid=uid:inconvertible + number=2
+                    .end()
+                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "Couldn't convert resource object", INCONVERTIBLE_ACCOUNT);
+                // (maybe it's not necessary to provide account attributes in the message - reconsider)
+
+        // name is now derived from UID
+        PrismObject<ShadowType> inconvertibleAfter = findShadowByPrismName(INCONVERTIBLE_ACCOUNT_UID,
+                RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.object, result);
+        assertShadow(inconvertibleAfter, INCONVERTIBLE_ACCOUNT)
+                .display()
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
+                .attributes()
+                    .assertSize(2)
+                    .end();
+
+        assertSelectedAccountByName(objects, UNSTORABLE_ACCOUNT_UID)
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
+                .assertName(UNSTORABLE_ACCOUNT_UID)
+                .attributes()
+                    .assertSize(1) // uid=unstorable
+                    .end()
+                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "Exception when translating", "WRONG");
+                // (maybe it's not necessary to provide the unconvertible value in the message - reconsider)
+
+        // name is now derived from UID
+        PrismObject<ShadowType> unstorableAfter = findShadowByPrismName(UNSTORABLE_ACCOUNT_UID,
+                RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.object, result);
+        assertShadow(unstorableAfter, UNSTORABLE_ACCOUNT)
+                .display()
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
+                .attributes()
+                    .assertSize(1)
+                    .end();
+    }
+
+    @Test
+    public void test270LiveSyncBrokenAccountsExternalUid() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        cleanupAccounts(RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID, result);
+        RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.controller.setSyncStyle(DummySyncStyle.SMART);
+
+        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.oid,
+                SchemaConstants.RI_ACCOUNT_OBJECT_CLASS);
+
+        List<LiveSyncEvent> events = new ArrayList<>();
+        LiveSyncEventHandler handler = new LiveSyncEventHandler() {
+            @Override
+            public void allEventsSubmitted(OperationResult result) {
+            }
+
+            @Override
+            public boolean handle(LiveSyncEvent event, OperationResult opResult) {
+                events.add(event);
+                event.acknowledge(true, opResult);
+                return true;
+            }
+        };
+        provisioningService.synchronize(coords, task, null, handler, result);
+        assertThat(events).isEmpty();
+
+        createAccountExternalUid(GOOD_ACCOUNT, 1, null);
+        createAccountExternalUid(INCONVERTIBLE_ACCOUNT, 2, "WRONG");
+        createAccountExternalUid(UNSTORABLE_ACCOUNT, "WRONG", null);
+
+        when();
+
+        provisioningService.synchronize(coords, task, null, handler, result);
+
+        then();
+        display("events", events);
+        assertThat(events.size()).as("events found").isEqualTo(3);
+
+        List<PrismObject<ShadowType>> objects = events.stream()
+                .map(event -> event.getChangeDescription().getShadowedResourceObject())
+                .collect(Collectors.toList());
+
+        assertSelectedAccountByName(objects, GOOD_ACCOUNT)
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
+                .assertName(GOOD_ACCOUNT)
+                .attributes()
+                    .assertSize(3)
+                    .end()
+                .assertSuccessOrNoFetchResult();
+
+        PrismObject<ShadowType> goodAfter = findShadowByPrismName(GOOD_ACCOUNT, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.object, result);
+        assertShadow(goodAfter, GOOD_ACCOUNT)
+                .display()
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
+                .attributes()
+                    .assertSize(3)
+                    .end();
+
+        assertSelectedAccountByName(objects, INCONVERTIBLE_ACCOUNT_UID)
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
+                .assertName(INCONVERTIBLE_ACCOUNT_UID)
+                .attributes()
+                    .assertSize(1) // uid=uid:inconvertible (for some reason number=2 is not there)
+                    .end();
+
+        // name is now derived from UID
+        PrismObject<ShadowType> inconvertibleAfter = findShadowByPrismName(INCONVERTIBLE_ACCOUNT_UID,
+                RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.object, result);
+        assertShadow(inconvertibleAfter, INCONVERTIBLE_ACCOUNT)
+                .display()
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
+                .attributes()
+                    .assertSize(1)
+                    .end();
+
+        assertSelectedAccountByName(objects, UNSTORABLE_ACCOUNT_UID)
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
+                .assertName(UNSTORABLE_ACCOUNT_UID)
+                .attributes()
+                    .assertSize(1) // uid=unstorable
+                    .end();
+
+        // name is now derived from UID
+        PrismObject<ShadowType> unstorableAfter = findShadowByPrismName(UNSTORABLE_ACCOUNT_UID,
+                RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.object, result);
+        assertShadow(unstorableAfter, UNSTORABLE_ACCOUNT)
+                .display()
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
+                .attributes()
+                    .assertSize(1)
+                    .end();
+
+        // The fetch result is not in the shadows. The exception is recorded in events.
     }
 
     private void createAccount(String name, Object number, Object enableDate) throws Exception {
         DummyAccount account = RESOURCE_DUMMY_BROKEN_ACCOUNTS.controller.addAccount(name);
         account.addAttributeValue(ATTR_NUMBER, number);
         account.addAttributeValue(ENABLE_DATE_NAME, enableDate);
+    }
+
+    private void createAccountExternalUid(String name, Object number, Object enableDate) throws Exception {
+        DummyAccount account = new DummyAccount(name);
+        account.setId(EXTERNAL_UID_PREFIX + name);
+        account.addAttributeValue(ATTR_NUMBER, number);
+        account.addAttributeValue(ENABLE_DATE_NAME, enableDate);
+        RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.controller.getDummyResource().addAccount(account);
     }
     //endregion
 }

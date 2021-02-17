@@ -30,7 +30,7 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.provisioning.ucf.api.ShadowResultHandler;
+import com.evolveum.midpoint.provisioning.ucf.api.ObjectHandler;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
@@ -306,15 +306,11 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         final List<PrismObject<ShadowType>> searchResults = new ArrayList<>();
 
-        ShadowResultHandler handler = new ShadowResultHandler() {
-
-            @Override
-            public boolean handle(PrismObject<ShadowType> shadow) {
-                displayDumpable("Search: found", shadow);
-                checkUcfShadow(shadow, accountDefinition);
-                searchResults.add(shadow);
-                return true;
-            }
+        ObjectHandler handler = ucfObject -> {
+            displayDumpable("Search: found", ucfObject);
+            checkUcfShadow(ucfObject.getResourceObject(), accountDefinition);
+            searchResults.add(ucfObject.getResourceObject());
+            return true;
         };
 
         OperationResult result = createOperationResult();

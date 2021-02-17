@@ -118,15 +118,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             return;
         }
 
-        PrismObject<ShadowType> currentShadow = change.getCurrentShadow();
-        PrismObject<ShadowType> applicableShadow;
-        if (currentShadow != null) {
-            applicableShadow = currentShadow;
-        } else {
-            // We need this e.g. in case of delete
-            applicableShadow = change.getOldShadow();
-        }
-        String applicableShadowOid = applicableShadow != null ? applicableShadow.getOid() : null;
+        PrismObject<ShadowType> currentShadow = change.getShadowedResourceObject();
+        String applicableShadowOid = currentShadow != null ? currentShadow.getOid() : null;
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
         SynchronizationEventInformation eventInfo = new SynchronizationEventInformation();
@@ -134,9 +127,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         try {
             PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(subResult);
             SynchronizationContext<?> syncCtx = loadSynchronizationContext(
-                    applicableShadow, currentShadow, change.getObjectDelta(), change.getResource(),
+                    currentShadow, currentShadow, change.getObjectDelta(), change.getResource(),
                     change.getSourceChannel(), change.getItemProcessingIdentifier(), configuration, task, subResult);
-            syncCtx.setUnrelatedChange(change.isUnrelatedChange());
             LOGGER.trace("SYNCHRONIZATION determined policy: {}", syncCtx);
 
             if (!checkSynchronizationPolicy(syncCtx, eventInfo, subResult) || !checkProtected(syncCtx, eventInfo, subResult)) {
@@ -178,7 +170,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
     private <F extends FocusType> void cleanDeadShadow(ResourceObjectShadowChangeDescription change, OperationResult subResult) {
         LOGGER.trace("Cleaning old dead shadows, checking for old links, cleaning them up");
-        String shadowOid = getOidFromChange(change);
+        String shadowOid = change.getShadowOid();
         if (shadowOid == null) {
             LOGGER.trace("No shadow oid, nothing to clean up.");
             return;
@@ -212,13 +204,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
     @Override
     public <F extends FocusType> SynchronizationContext<F> loadSynchronizationContext(PrismObject<ShadowType> applicableShadow,
-            PrismObject<ShadowType> currentShadow, ObjectDelta<ShadowType> resourceObjectDelta,
+            PrismObject<ShadowType> resourceObject, ObjectDelta<ShadowType> resourceObjectDelta,
             PrismObject<ResourceType> resource, String sourceChanel,
             String itemProcessingIdentifier, PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
-        SynchronizationContext<F> syncCtx = new SynchronizationContext<>(applicableShadow, currentShadow, resourceObjectDelta,
+        SynchronizationContext<F> syncCtx = new SynchronizationContext<>(applicableShadow, resourceObject, resourceObjectDelta,
                 resource, sourceChanel, prismContext, expressionFactory, task, itemProcessingIdentifier);
         syncCtx.setSystemConfiguration(configuration);
 
@@ -333,33 +325,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             SynchronizationEventInformation eventInfo, OperationResult result) throws SchemaException {
         Task task = syncCtx.getTask();
 
-        if (syncCtx.isUnrelatedChange()) {
-            PrismObject<ShadowType> applicableShadow = syncCtx.getApplicableShadow();
-            Validate.notNull(applicableShadow, "No current nor old shadow present: ");
-            List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDelta(applicableShadow, prismContext);
-            ShadowType applicableShadowType = applicableShadow.asObjectable();
-            if (applicableShadowType.getIntent() == null || SchemaConstants.INTENT_UNKNOWN.equals(applicableShadowType.getIntent())) {
-                PropertyDelta<String> intentDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_INTENT,
-                        syncCtx.getApplicableShadow().getDefinition(), syncCtx.getIntent());
-                modifications.add(intentDelta);
-            }
-            if (applicableShadowType.getKind() == null || ShadowKindType.UNKNOWN == applicableShadowType.getKind()) {
-                PropertyDelta<ShadowKindType> intentDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_KIND,
-                        syncCtx.getApplicableShadow().getDefinition(), syncCtx.getKind());
-                modifications.add(intentDelta);
-            }
-            if (applicableShadowType.getTag() == null && syncCtx.getTag() != null) {
-                PropertyDelta<String> tagDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_TAG,
-                        syncCtx.getApplicableShadow().getDefinition(), syncCtx.getTag());
-                modifications.add(tagDelta);
-            }
-
-            executeShadowModifications(syncCtx.getApplicableShadow(), modifications, task, result);
-            result.recordSuccess();
-            LOGGER.debug("SYNCHRONIZATION: UNRELATED CHANGE for {}", syncCtx.getApplicableShadow());
-            return false;
-        }
-
         if (!syncCtx.hasApplicablePolicy()) {
             String message = "SYNCHRONIZATION no matching policy for " + syncCtx.getApplicableShadow() + " ("
                     + syncCtx.getApplicableShadow().asObjectable().getObjectClass() + ") " + " on " + syncCtx.getResource()
@@ -446,14 +411,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
     private void validate(ResourceObjectShadowChangeDescription change) {
         Validate.notNull(change, "Resource object shadow change description must not be null.");
-        Validate.isTrue(change.getCurrentShadow() != null || change.getObjectDelta() != null,
-                "Object delta and current shadow are null. At least one must be provided.");
+        Validate.notNull(change.getShadowedResourceObject(), "Current shadow must not be null.");
         Validate.notNull(change.getResource(), "Resource in change must not be null.");
 
         if (consistencyChecks) {
-            if (change.getCurrentShadow() != null) {
-                change.getCurrentShadow().checkConsistence();
-                ShadowUtil.checkConsistence(change.getCurrentShadow(),
+            if (change.getShadowedResourceObject() != null) {
+                change.getShadowedResourceObject().checkConsistence();
+                ShadowUtil.checkConsistence(change.getShadowedResourceObject(),
                         "current shadow in change description");
             }
             if (change.getObjectDelta() != null) {
@@ -480,7 +444,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         LOGGER.trace("Determining situation for resource object shadow.");
 
         try {
-            String shadowOid = getOidFromChange(change);
+            String shadowOid = change.getShadowOid();
             Validate.notEmpty(shadowOid, "Couldn't get resource object shadow oid from change.");
 
             F currentOwner;
@@ -555,22 +519,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         return expectedOwner == null || currentOwnerType == null || expectedOwner.getOid().equals(currentOwnerType.getOid());
     }
 
-    private String getOidFromChange(ResourceObjectShadowChangeDescription change) {
-        if (change.getCurrentShadow() != null && StringUtils.isNotEmpty(change.getCurrentShadow().getOid())) {
-            return change.getCurrentShadow().getOid();
-        }
-        if (change.getOldShadow() != null && StringUtils.isNotEmpty(change.getOldShadow().getOid())) {
-            return change.getOldShadow().getOid();
-        }
-
-        if (change.getObjectDelta() == null || StringUtils.isEmpty(change.getObjectDelta().getOid())) {
-            throw new IllegalArgumentException(
-                    "Oid was not defined in change (not in current, old shadow, delta).");
-        }
-
-        return change.getObjectDelta().getOid();
-    }
-
     /**
      * Tries to match specified focus and shadow. Return true if it matches,
      * false otherwise.
@@ -617,14 +565,14 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             return;
         }
 
-        PrismObject<? extends ShadowType> resourceShadow = change.getCurrentShadow();
+        PrismObject<? extends ShadowType> resourceShadow = change.getShadowedResourceObject();
 
         ObjectDelta<ShadowType> syncDelta = change.getObjectDelta();
         if (resourceShadow == null && syncDelta != null && ChangeType.ADD.equals(syncDelta.getChangeType())) {
             LOGGER.trace("Trying to compute current shadow from change delta add.");
             PrismObject<ShadowType> shadow = syncDelta.computeChangedObject(syncDelta.getObjectToAdd());
             resourceShadow = shadow;
-            change.setCurrentShadow(shadow);
+            change.setShadowedResourceObject(shadow);
         }
         Validate.notNull(resourceShadow, "Current shadow must not be null.");
 
@@ -831,7 +779,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
 
         context.rememberResource(resource);
-        PrismObject<ShadowType> shadow = getShadowFromChange(change);
+        PrismObject<ShadowType> shadow = change.getShadowedResourceObject();
         if (shadow == null) {
             throw new IllegalStateException("No shadow in change: " + change);
         }
@@ -846,7 +794,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         ResourceShadowDiscriminator discriminator = new ResourceShadowDiscriminator(resource.getOid(), kind, intent, shadow.asObjectable().getTag(), tombstone);
         LensProjectionContext projectionContext = context.createProjectionContext(discriminator);
         projectionContext.setResource(resource);
-        projectionContext.setOid(getOidFromChange(change));
+        projectionContext.setOid(change.getShadowOid());
         projectionContext.setSynchronizationSituationDetected(syncCtx.getSituation());
         projectionContext.setShadowExistsInRepo(syncCtx.isShadowExistsInRepo());
 
@@ -902,16 +850,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
     }
 
-    private PrismObject<ShadowType> getShadowFromChange(ResourceObjectShadowChangeDescription change) {
-        if (change.getCurrentShadow() != null) {
-            return change.getCurrentShadow();
-        }
-        if (change.getOldShadow() != null) {
-            return change.getOldShadow();
-        }
-        return null;
-    }
-
     private ShadowKindType getKind(PrismObject<ShadowType> shadow, ShadowKindType objectSynchronizationKind) {
         ShadowKindType shadowKind = shadow.asObjectable().getKind();
         if (shadowKind != null) {
@@ -930,16 +868,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     }
 
     private boolean isTombstone(ResourceObjectShadowChangeDescription change) {
-        PrismObject<? extends ShadowType> shadow = null;
-        if (change.getOldShadow() != null) {
-            shadow = change.getOldShadow(); // FIXME Why we are checking old shadow first?!
-        } else if (change.getCurrentShadow() != null) {
-            shadow = change.getCurrentShadow();
-        }
-        if (shadow != null) {
-            if (shadow.asObjectable().isDead() != null) {
-                return shadow.asObjectable().isDead();
-            }
+        PrismObject<? extends ShadowType> shadow = change.getShadowedResourceObject();
+        if (shadow.asObjectable().isDead() != null) {
+            return shadow.asObjectable().isDead();
         }
         ObjectDelta<? extends ShadowType> objectDelta = change.getObjectDelta();
         return objectDelta != null && objectDelta.isDelete();
@@ -957,7 +888,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      */
     private <F extends FocusType> void saveSyncMetadata(SynchronizationContext<F> syncCtx,
             ResourceObjectShadowChangeDescription change, boolean full, XMLGregorianCalendar now, OperationResult result) {
-        PrismObject<ShadowType> shadow = syncCtx.getCurrentShadow();
+        PrismObject<ShadowType> shadow = syncCtx.getApplicableShadow();
         if (shadow == null) {
             return;
         }
@@ -965,13 +896,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         Task task = syncCtx.getTask();
 
         try {
-            ShadowType shadowType = shadow.asObjectable();
+            ShadowType shadowBean = shadow.asObjectable();
             // new situation description
             List<PropertyDelta<?>> deltas = SynchronizationUtils
                     .createSynchronizationSituationAndDescriptionDelta(shadow, syncCtx.getSituation(),
                             change.getSourceChannel(), full, now, prismContext);
 
-            if (shadowType.getKind() == null || ShadowKindType.UNKNOWN == shadowType.getKind()) {
+            if (ShadowUtil.isNotKnown(shadowBean.getKind())) {
                 PropertyDelta<ShadowKindType> kindDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(),
                         ShadowType.F_KIND, syncCtx.getKind());
                 deltas.add(kindDelta);
@@ -983,13 +914,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 deltas.add(intentDelta);
             }
 
-            if (shadowType.getTag() == null && syncCtx.getTag() != null) {
+            if (shadowBean.getTag() == null && syncCtx.getTag() != null) {
                 PropertyDelta<String> tagDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(),
                         ShadowType.F_TAG, syncCtx.getTag());
                 deltas.add(tagDelta);
             }
 
-            repositoryService.modifyObject(shadowType.getClass(), shadow.getOid(), deltas, result);
+            repositoryService.modifyObject(shadowBean.getClass(), shadow.getOid(), deltas, result);
             ItemDeltaCollectionsUtil.applyTo(deltas, shadow);
             task.recordObjectActionExecuted(shadow, ChangeType.MODIFY, null);
         } catch (ObjectNotFoundException ex) {
@@ -1019,7 +950,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     }
 
     private <F extends FocusType> boolean shouldSaveIntent(SynchronizationContext<F> syncCtx) throws SchemaException {
-        ShadowType shadow = syncCtx.getCurrentShadow().asObjectable();
+        ShadowType shadow = syncCtx.getApplicableShadow().asObjectable();
         if (shadow.getIntent() == null) {
             return true;
         }

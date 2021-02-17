@@ -72,7 +72,6 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
      * @throws IllegalStateException
      *             if there is no definition for the referenced attributed
      */
-    // TODO: rename to getPrimaryIdentifiers
     @Override
     public Collection<? extends ResourceAttributeDefinition> getPrimaryIdentifiers() {
         return getComplexTypeDefinition().getPrimaryIdentifiers();
@@ -345,12 +344,11 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
     }
 
     @Override
-    public <T extends ShadowType> PrismObjectDefinition<T> toShadowDefinition() {
+    public @NotNull <T extends ShadowType> PrismObjectDefinition<T> toShadowDefinition() {
+        //noinspection unchecked
         PrismObjectDefinition<T> origShadowDef =  (PrismObjectDefinition<T>) prismContext.getSchemaRegistry().
             findObjectDefinitionByCompileTimeClass(ShadowType.class);
-        PrismObjectDefinition<T> shadowDefinition =
-            origShadowDef.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES, this);
-        return shadowDefinition;
+        return origShadowDef.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES, this);
     }
 
     @Override

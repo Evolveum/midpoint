@@ -138,9 +138,9 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
                 .selectTabBasic()
                 .form();
 
-        form.assertInputAttributeValueMatches("ouPath", "0300");
-        form.assertSelectAttributeValueMatches("isManager", "True");
-        form.assertInputAttributeValueMatches("empStatus", "A");
+        form.assertPropertyInputValue("ouPath", "0300");
+        form.assertPropertySelectValue("isManager", "True");
+        form.assertPropertyInputValue("empStatus", "A");
 
         form.and()
                 .and()
@@ -164,10 +164,10 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         PrismForm<AccountPage> accountForm = shadow.form();
         Selenide.sleep(1000);
-        accountForm.assertInputAttributeValueMatches("dep", "Human Resources");
+        accountForm.assertPropertyInputValue("dep", "Human Resources");
 
         showShadow(CSV_2_RESOURCE_NAME, "Login", "jsmith");
-        accountForm.assertInputAttributeValueMatches("department", "Human Resources");
+        accountForm.assertPropertyInputValue("department", "Human Resources");
 
         assertShadowExists(CSV_3_RESOURCE_NAME, "Distinguished Name", "cn=John Smith,ou=0300,ou=ExAmPLE,dc=example,dc=com");
     }

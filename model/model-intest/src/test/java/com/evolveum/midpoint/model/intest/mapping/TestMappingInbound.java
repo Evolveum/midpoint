@@ -30,7 +30,6 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -83,8 +82,8 @@ public class TestMappingInbound extends AbstractMappingTest {
     private static final String DUMMY_ACCOUNT_ATTRIBUTE_ROLE_NAME = "roleName";
     private static final String DUMMY_ACCOUNT_ATTRIBUTE_ARCHETYPE_NAME = "archetypeName";
 
-    private static final TestResource ROLE_SIMPLE = new TestResource(TEST_DIR, "role-simple.xml", "dc2b28f4-3aab-4212-8ab7-c4f5fc0c511a");
-    private static final TestResource ARCHETYPE_PIRATE = new TestResource(TEST_DIR, "archetype-pirate.xml", "0bb1d8df-501d-4648-9d36-c8395df95183");
+    private static final TestResource<RoleType> ROLE_SIMPLE = new TestResource<>(TEST_DIR, "role-simple.xml", "dc2b28f4-3aab-4212-8ab7-c4f5fc0c511a");
+    private static final TestResource<ArchetypeType> ARCHETYPE_PIRATE = new TestResource<>(TEST_DIR, "archetype-pirate.xml", "0bb1d8df-501d-4648-9d36-c8395df95183");
 
     private ProtectedStringType mancombLocker;
     private String userLeelooOid;
@@ -149,7 +148,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         importSyncTask();
 
         then();
-        waitForSyncTaskStart();
+        waitForSyncTaskNextRun();
     }
 
     @Test
@@ -837,10 +836,6 @@ public class TestMappingInbound extends AbstractMappingTest {
 
     protected void importSyncTask() throws FileNotFoundException {
         importObjectFromFile(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_FILE);
-    }
-
-    private void waitForSyncTaskStart() throws Exception {
-        waitForTaskStart(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, false, 10000);
     }
 
     private void waitForSyncTaskNextRun() throws Exception {

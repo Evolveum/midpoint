@@ -322,10 +322,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> groupLandlubersShadow = findShadowByName(RESOURCE_DUMMY_GROUP_OBJECTCLASS, GROUP_DUMMY_LANDLUBERS_NAME, getDummyResourceObject(), result);
         PrismObject<ShadowType> groupMapmakersShadow = findShadowByName(RESOURCE_DUMMY_GROUP_OBJECTCLASS, GROUP_DUMMY_MAPMAKERS_NAME, getDummyResourceObject(), result);
         assertShadow(groupMapmakersShadow, "mapmakers shadow")
-                // Group shadows are not well classified here. Mapmakers group was created from midPoint. MidPoint just discovered it.
-                // And as there is no synchronization configuration for this, the kind/intent are not set correctly.
-                // However, associations should work (acceptably) well anyway.
-                .assertKind(ShadowKindType.UNKNOWN);
+                .assertKind(ShadowKindType.ENTITLEMENT)
+                .assertIntent("unknown"); // This is due to missing synchronization section for groups in the dummy resource.
 
         String accountWallyOid = assertUserAfterByUsername(USER_WALLY_NAME)
                 .singleLink()

@@ -8,12 +8,8 @@ package com.evolveum.midpoint.schrodinger.page.role;
 
 import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
-import com.evolveum.midpoint.schrodinger.component.InducementsTab;
 import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
 import com.evolveum.midpoint.schrodinger.page.AbstractRolePage;
-import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
-import com.evolveum.midpoint.schrodinger.page.BasicPage;
-import com.evolveum.midpoint.schrodinger.page.FocusPage;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -35,4 +31,18 @@ public class RolePage extends AbstractRolePage {
         return super.selectTabAssignments();
     }
 
+    public RolePage assertName(String expectedValue) {
+        selectTabBasic().form().assertPropertyInputValue("name", expectedValue);
+        return this;
+    }
+
+    public RolePage assertDisplayName(String expectedValue) {
+        selectTabBasic().form().assertPropertyInputValue("displayName", expectedValue);
+        return this;
+    }
+
+    public RolePage assertIdentifier(String expectedValue) {
+        selectTabBasic().form().assertPropertyInputValue("identifier", expectedValue);
+        return this;
+    }
 }
