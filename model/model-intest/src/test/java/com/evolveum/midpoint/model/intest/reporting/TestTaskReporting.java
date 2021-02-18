@@ -68,7 +68,8 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
             "resource-target.xml", "f1859897-0c10-430e-aefe-7ced49d14a23", "target");
     private static final TestResource<RoleType> ROLE_TARGET = new TestResource<>(TEST_DIR, "role-target.xml", "fdcd5c7a-86c0-4a0e-8b22-dda79183fcf3");
     private static final TestResource<TaskType> TASK_IMPORT = new TestResource<>(TEST_DIR, "task-import.xml", "e06f3f5c-4acc-4c6a-baa3-5c7a954ce4e9");
-    private static final TestResource<TaskType> TASK_IMPORT_RETRY_SAME_OID = new TestResource<>(TEST_DIR, "task-import-retry.xml", TASK_IMPORT.oid);
+    private static final TestResource<TaskType> TASK_IMPORT_RETRY_BY_FILTERING = new TestResource<>(TEST_DIR, "task-import-retry-by-filtering.xml", "e06f3f5c-4acc-4c6a-baa3-5c7a954ce4e9");
+    private static final TestResource<TaskType> TASK_IMPORT_RETRY_BY_FETCHING = new TestResource<>(TEST_DIR, "task-import-retry-by-fetching.xml", "e06f3f5c-4acc-4c6a-baa3-5c7a954ce4e9");
     private static final TestResource<TaskType> TASK_RECONCILIATION = new TestResource<>(TEST_DIR, "task-reconciliation.xml", "566c822c-5db4-4879-a159-3749fef11c7a");
 
     private static final int USERS = 10;
@@ -247,19 +248,19 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
     }
 
     @Test
-    public void test125RetryImportWithAllFailuresEnabled() throws Exception {
+    public void test130RetryImportByFiltering() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         when();
         taskManager.deleteTask(TASK_IMPORT.oid, result);
-        addObject(TASK_IMPORT_RETRY_SAME_OID, task, result);
-        waitForTaskFinish(TASK_IMPORT_RETRY_SAME_OID.oid, builder -> builder.errorOk(true));
+        addObject(TASK_IMPORT_RETRY_BY_FILTERING, task, result);
+        waitForTaskFinish(TASK_IMPORT_RETRY_BY_FILTERING.oid, builder -> builder.errorOk(true));
 
         then();
         stabilize();
-        assertTask(TASK_IMPORT_RETRY_SAME_OID.oid, "import task after")
+        assertTask(TASK_IMPORT_RETRY_BY_FILTERING.oid, "import task after")
                 .display()
                 .assertPartialError()
                 .assertClosed()
@@ -282,7 +283,42 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
     }
 
     @Test
-    public void test130ReconciliationWithAllFailuresEnabled() throws Exception {
+    public void test140RetryImportByFetching() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        taskManager.deleteTask(TASK_IMPORT_RETRY_BY_FILTERING.oid, result);
+        addObject(TASK_IMPORT_RETRY_BY_FETCHING, task, result);
+        waitForTaskFinish(TASK_IMPORT_RETRY_BY_FETCHING.oid, builder -> builder.errorOk(true));
+
+        then();
+        stabilize();
+        assertTask(TASK_IMPORT_RETRY_BY_FETCHING.oid, "import task after")
+                .display()
+                .assertPartialError()
+                .assertClosed()
+                .assertProgress(2)
+                .iterativeTaskInformation()
+                    .display()
+                    .assertSuccessCount(0)
+                    .assertFailureCount(2)
+                    .end()
+                .synchronizationInformation()
+                    .display()
+                    .assertTransition(LINKED, LINKED, LINKED, null, 0, 1, 0) // That record was already linked and remain so.
+                    .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
+                    .assertTransitions(2);
+
+        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
+                .display();
+        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.getResource())
+                .display();
+    }
+
+    @Test
+    public void test200ReconciliationWithAllFailuresEnabled() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();

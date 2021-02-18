@@ -10,6 +10,8 @@ package com.evolveum.midpoint.repo.common.task;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
+import static com.evolveum.midpoint.util.MiscUtil.*;
+
 import static java.util.Objects.requireNonNull;
 
 import java.util.Collection;
@@ -72,7 +74,11 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
      */
     @Nullable protected final WorkBucketType workBucket;
 
-    /** Object type provided when counting and retrieving objects. Set up in {@link #prepareItemSource(OperationResult)}. */
+    /**
+     * Object type provided when counting and retrieving objects. Set up in {@link #prepareItemSource(OperationResult)}.
+     *
+     * Never null after initialization.
+     */
     protected Class<O> objectType;
 
     /** Object query specifying what objects to process. Set up in {@link #prepareItemSource(OperationResult)}. */
@@ -81,18 +87,36 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
     /**
      * Additional filter to be applied to each object received (if not null).
      * Currently used to filter failed objects when FILTER_AFTER_RETRIEVAL mode is selected.
+     *
+     * See {@link AbstractSearchIterativeItemProcessor#process(ItemProcessingRequest, RunningTask, OperationResult)}.
      */
     protected ObjectFilter additionalFilter;
 
-    /** Options to be used during counting and searching. Set up in {@link #prepareItemSource(OperationResult)}. */
+    /**
+     * Pre-processes object received before it is passed to the task handler specific processing.
+     * (Only for non-failed objects.) Currently used to fetch failed objects when FETCH_FAILED_OBJECTS mode is selected.
+     *
+     * See {@link AbstractSearchIterativeItemProcessor#process(ItemProcessingRequest, RunningTask, OperationResult)}.
+     */
+    protected ObjectPreprocessor<O> preprocessor;
+
+    /**
+     * Options to be used during counting and searching. Set up in {@link #prepareItemSource(OperationResult)}.
+     *
+     * Never null after initialization.
+     */
     protected Collection<SelectorOptions<GetOperationOptions>> searchOptions;
 
     /**
      * Whether we want to use repository directly when counting/searching. Set up in {@link #prepareItemSource(OperationResult)}.
      * Can be "built-in" in the task (see {@link #requiresDirectRepositoryAccess}), or requested explicitly by the user.
      * In the latter case the raw authorization is checked.
+     *
+     * Note that this flag is really used only if {@link #modelProcessingAvailable()} is true.
+     *
+     * Never null after initialization.
      */
-    protected boolean useRepository;
+    protected Boolean useRepository;
 
     /**
      * In some situations (e.g. because provisioning service does not allow searches without specifying resource
@@ -112,7 +136,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
         objectType = determineObjectType();
         searchOptions = prepareSearchOptions(opResult);
         useRepository = prepareUseRepositoryFlag(opResult);
-        query = prepareQuery(opResult); // requires useRepository
+        query = prepareQuery(opResult);
 
         logger.trace("{}: searching for {} with options {} (use repo directly: {}) and query:\n{}",
                 getTaskTypeName(), objectType, searchOptions, useRepository, DebugUtil.debugDumpLazily(query));
@@ -191,6 +215,10 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
 
     private ObjectQuery prepareQuery(OperationResult opResult) throws TaskException {
 
+        stateCheck(objectType != null, "uninitialized objectType");
+        stateCheck(searchOptions != null, "uninitialized searchOptions");
+        stateCheck(useRepository != null, "uninitialized useRepository");
+
         try {
             ObjectQuery queryFromHandler = createQuery(opResult); // TODO better name
 
@@ -224,8 +252,16 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
                     new FailedObjectsFilterCreator(selector, this, getPrismContext())
                             .createFilter();
 
-            FailedObjectsSelectionMethodType selectionMethod = getSelectionMethod(selector);
+            FailedObjectsSelectionMethodType selectionMethod = getFailedObjectsSelectionMethod(selector);
             switch (selectionMethod) {
+                case FETCH_FAILED_OBJECTS:
+                    // We will use the narrowed query. The noFetch option ensures that search in provisioning will work.
+                    // It would be nice to check if the query does not refer to attributes that are not cached.
+                    // But it should be done in the provisioning module.
+                    setNoFetchOption();
+                    preprocessor = createShadowFetchingPreprocessor();
+                    logger.trace("{}: shadow-fetching preprocessor was set up", getTaskTypeName());
+
                 case NARROW_QUERY:
                     ObjectQuery failureNarrowedQuery = ObjectQueryUtil.addConjunctions(query, getPrismContext(), failedObjectsFilter);
                     logger.trace("{}: query narrowed to select failed objects only:\n{}", getTaskTypeName(),
@@ -239,23 +275,34 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
                             DebugUtil.debugDumpLazily(failedObjectsFilter));
                     return query;
 
-                case FETCH_FAILED_OBJECTS:
-                    throw new UnsupportedOperationException(selectionMethod + " is not supported yet");
-
                 default:
                     throw new AssertionError(selectionMethod);
             }
         }
     }
 
-    private @NotNull FailedObjectsSelectionMethodType getSelectionMethod(FailedObjectsSelectorType selector) {
+    @NotNull
+    protected ObjectPreprocessor<O> createShadowFetchingPreprocessor() {
+        throw new UnsupportedOperationException("FETCH_FAILED_OBJECTS is not available in this type of tasks. "
+                + "Model processing is required.");
+    }
+
+    private void setNoFetchOption() {
+        stateCheck(searchOptions != null, "uninitialized searchOptions");
+        Collection<SelectorOptions<GetOperationOptions>> noFetch = getSchemaHelper().getOperationOptionsBuilder()
+                .noFetch()
+                .build();
+        searchOptions = GetOperationOptions.merge(getPrismContext(), searchOptions, noFetch);
+    }
+
+    private @NotNull FailedObjectsSelectionMethodType getFailedObjectsSelectionMethod(FailedObjectsSelectorType selector) {
         FailedObjectsSelectionMethodType method = selector.getSelectionMethod();
         if (method != null && method != FailedObjectsSelectionMethodType.DEFAULT) {
             return method;
-        } if (useRepository || !ShadowType.class.equals(requireNonNull(objectType))) {
+        } if (useRepository || !modelProcessingAvailable() || !ShadowType.class.equals(requireNonNull(objectType))) {
             return FailedObjectsSelectionMethodType.NARROW_QUERY;
         } else {
-            return FailedObjectsSelectionMethodType.FILTER_AFTER_RETRIEVAL;
+            return FailedObjectsSelectionMethodType.FETCH_FAILED_OBJECTS;
         }
     }
 
@@ -313,6 +360,10 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
                 createSearchResultHandler(), searchOptions, true, opResult);
     }
 
+    protected boolean modelProcessingAvailable() {
+        return false;
+    }
+
     /**
      * Pre-processing query (e.g. evaluate expressions).
      */
@@ -331,7 +382,8 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
 
     private Collection<SelectorOptions<GetOperationOptions>> prepareSearchOptions(OperationResult opResult) {
         Collection<SelectorOptions<GetOperationOptions>> optionsFromHandler = createSearchOptions(opResult);
-        return updateSearchOptionsWithIterationMethod(optionsFromHandler);
+        Collection<SelectorOptions<GetOperationOptions>> updatedOptions = updateSearchOptionsWithIterationMethod(optionsFromHandler);
+        return emptyIfNull(updatedOptions);
     }
 
     // useful e.g. to specify noFetch options for shadow-related queries
@@ -499,5 +551,9 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
         // This is the default for search-iterative tasks. It is a legacy behavior, and also the most logical:
         // we do not need to stop on error, because there's always possible to re-run the whole task.
         return ErrorHandlingStrategyExecutor.Action.CONTINUE;
+    }
+
+    public Collection<SelectorOptions<GetOperationOptions>> getSearchOptions() {
+        return searchOptions;
     }
 }

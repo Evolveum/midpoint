@@ -2,7 +2,7 @@ package com.evolveum.midpoint.repo.common.task;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedObjectsSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -12,6 +12,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 
@@ -33,22 +36,36 @@ class FailedObjectsFilterCreator {
 
     public ObjectFilter createFilter() {
 
-        S_MatchingRuleEntry entry = prismContext.queryFor(ObjectType.class)
+        S_AtomicFilterExit builder = prismContext.queryFor(ObjectType.class)
                 .exists(ObjectType.F_OPERATION_EXECUTION).block()
-                    .item(OperationExecutionType.F_TASK_REF).ref(getTaskOids())
-                    .and().item(OperationExecutionType.F_STATUS).eq(getStatusList());
+                    .item(OperationExecutionType.F_TASK_REF).ref(getTaskOids());
+
+        builder = addStatusClause(builder, getStatusList());
 
         XMLGregorianCalendar startTime = getTimeFrom();
         if (startTime != null) {
-            entry = entry.and().item(OperationExecutionType.F_TIMESTAMP).ge(startTime);
+            builder = builder.and().item(OperationExecutionType.F_TIMESTAMP).ge(startTime);
         }
 
         XMLGregorianCalendar endTime = getTimeTo();
         if (endTime != null) {
-            entry = entry.and().item(OperationExecutionType.F_TIMESTAMP).le(endTime);
+            builder = builder.and().item(OperationExecutionType.F_TIMESTAMP).le(endTime);
         }
 
-        return entry.endBlock().buildFilter();
+        return builder.endBlock().buildFilter();
+    }
+
+    private S_AtomicFilterExit addStatusClause(S_AtomicFilterExit builder, List<OperationResultStatusType> statusList) {
+        assert !statusList.isEmpty();
+        if (statusList.size() <= 1) {
+            return builder.and().item(OperationExecutionType.F_STATUS).eq(statusList.get(0));
+        } else {
+            builder = builder.and().block().item(OperationExecutionType.F_STATUS).eq(statusList.get(0));
+            for (int i = 1; i < statusList.size(); i++) {
+                builder = builder.or().item(OperationExecutionType.F_STATUS).eq(statusList.get(i));
+            }
+            return builder.endBlock();
+        }
     }
 
     // Returned list must be non empty and should contain no nulls!
@@ -67,14 +84,11 @@ class FailedObjectsFilterCreator {
         return requireNonNull(taskPartExecution.getRootTaskOid(), "no root task OID");
     }
 
-    private Object[] getStatusList() {
+    private List<OperationResultStatusType> getStatusList() {
         if (selector.getStatus().isEmpty()) {
-            return new OperationResultStatusType[] {
-                    OperationResultStatusType.FATAL_ERROR,
-                    OperationResultStatusType.HANDLED_ERROR
-            };
+            return Arrays.asList(OperationResultStatusType.FATAL_ERROR, OperationResultStatusType.PARTIAL_ERROR);
         } else {
-            return selector.getStatus().toArray(OperationResultStatusType[]::new);
+            return selector.getStatus();
         }
     }
 

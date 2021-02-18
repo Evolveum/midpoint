@@ -29428,6 +29428,9 @@
                     <xsd:documentation>
                         What task(s) to look for? Default is: the current task.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="timeFrom" type="xsd:dateTime" minOccurs="0">
@@ -29472,8 +29475,8 @@
             <xsd:enumeration value="default">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Default processing method. When searching for shadows via provisioning,
-                        filterAfterRetrieval will be used. (Or even fetchFailedObjects after it is implemented.)
+                        Default processing method. Normally narrowQuery. But when searching
+                        for shadows via provisioning, fetchFailedObjects is used.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="DEFAULT"/>
@@ -29509,8 +29512,6 @@
                         Failed objects are selected using the repository. Only after that, they are fetched
                         one-by-one via provisioning and processed. This is preferable when there is only
                         a small percentage of failed records.
-
-                        NOT YET IMPLEMENTED.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="FETCH_FAILED_OBJECTS"/>

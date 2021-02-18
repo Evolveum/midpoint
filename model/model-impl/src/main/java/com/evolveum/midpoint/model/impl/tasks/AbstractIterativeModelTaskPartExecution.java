@@ -7,8 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.tasks;
 
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -16,16 +19,13 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeItemProcessor;
-import com.evolveum.midpoint.repo.common.task.AbstractTaskExecution;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskPartExecution;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.repo.common.task.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
@@ -90,11 +90,18 @@ public abstract class AbstractIterativeModelTaskPartExecution<O extends ObjectTy
         }
     }
 
-//    // TODO eliminate "task" parameter
-//    protected final ModelExecuteOptions getExecuteOptionsFromTask(Task task) {
-//        ModelExecuteOptionsType options = task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
-//        return options != null ? ModelExecuteOptions.fromModelExecutionOptionsType(options) : null;
-//    }
+    @Override
+    protected boolean modelProcessingAvailable() {
+        return true;
+    }
+
+    @Override
+    protected @NotNull ObjectPreprocessor<O> createShadowFetchingPreprocessor() {
+        argCheck(ShadowType.class.equals(objectType),
+                "FETCH_FAILED_OBJECTS processing is available only for shadows, not for %s", objectType);
+        //noinspection unchecked
+        return (ObjectPreprocessor<O>) new ShadowFetchingPreprocessor(this);
+    }
 
     @Override
     protected void checkRawAuthorization(Task task, OperationResult result)

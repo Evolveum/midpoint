@@ -11,7 +11,7 @@
     xmlns:ext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
-    <name>import from source (retry failures)</name>
+    <name>import from source (retry failures by filtering)</name>
 
     <extension>
         <ext:kind>account</ext:kind>

@@ -34,26 +34,28 @@ public abstract class AbstractSearchIterativeItemProcessor<
         IP extends AbstractSearchIterativeItemProcessor<O, TH, TE, PE, IP>>
         extends AbstractIterativeItemProcessor<PrismObject<O>, TH, TE, PE, IP> {
 
+    private static final String OP_PREPROCESS_OBJECT = AbstractSearchIterativeItemProcessor.class.getName() + ".preprocessObject";
+
     public AbstractSearchIterativeItemProcessor(PE partExecution) {
         super(partExecution);
     }
 
     @Override
     public boolean process(ItemProcessingRequest<PrismObject<O>> request, RunningTask workerTask,
-            OperationResult parentResult) throws CommonException, PreconditionViolationException {
-        PrismObject<O> object = request.getItem();
+            OperationResult result) throws CommonException, PreconditionViolationException {
 
         if (filteredOutByAdditionalFilter(request)) {
             logger.trace("Request {} filtered out by additional filter", request);
-            parentResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Filtered out by additional filter");
+            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Filtered out by additional filter");
             return true; // continue working
         }
 
-        OperationResultType errorFetchResult = object.asObjectable().getFetchResult();
-        if (errorFetchResult == null) {
-            return processObject(object, request, workerTask, parentResult);
+        PrismObject<O> object = request.getItem();
+        OperationResultType originalFetchResult = object.asObjectable().getFetchResult();
+        if (originalFetchResult == null) {
+            return processWithPreprocessing(request, workerTask, result);
         } else {
-            return processError(object, errorFetchResult, workerTask, parentResult);
+            return processError(object, originalFetchResult, workerTask, result);
         }
     }
 
@@ -63,6 +65,33 @@ public abstract class AbstractSearchIterativeItemProcessor<
                 !partExecution.additionalFilter.match(request.getItem().getValue(), taskHandler.matchingRuleRegistry);
     }
 
+    private boolean processWithPreprocessing(ItemProcessingRequest<PrismObject<O>> request, RunningTask workerTask,
+            OperationResult result) throws CommonException, PreconditionViolationException {
+        PrismObject<O> objectToProcess = preprocessObject(request, workerTask, result);
+        return processObject(objectToProcess, request, workerTask, result);
+    }
+
+    private PrismObject<O> preprocessObject(ItemProcessingRequest<PrismObject<O>> request, RunningTask workerTask,
+            OperationResult parentResult) throws CommonException {
+        if (partExecution.preprocessor == null) {
+            return request.getItem();
+        }
+        OperationResult result = parentResult.createMinorSubresult(OP_PREPROCESS_OBJECT);
+        try {
+            return partExecution.preprocessor.preprocess(request.getItem(), workerTask, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t; // any exceptions thrown are treated in the gatekeeper
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    /**
+     * Processes given object that came as part of a request.
+     *
+     * BEWARE: Object may have been preprocessed, and may be different from the object present in the request.
+     */
     protected abstract boolean processObject(PrismObject<O> object, ItemProcessingRequest<PrismObject<O>> request,
             RunningTask workerTask, OperationResult result)
             throws CommonException, PreconditionViolationException;
