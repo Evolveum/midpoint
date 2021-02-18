@@ -18,10 +18,11 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.RefTableItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleModelMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
-import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetype;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
@@ -78,6 +79,10 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                 path(q -> q.tenantRefTargetType),
                 path(q -> q.tenantRefRelationId)));
         addItemMapping(F_LIFECYCLE_STATE, stringMapper(path(q -> q.lifecycleState)));
+
+        // AssignmentHolderType
+        addItemMapping(F_ARCHETYPE_REF,
+                RefTableItemFilterProcessor.mapper(QReferenceMapping.INSTANCE_ARCHETYPE));
         // version/cid_seq is not mapped for queries or deltas, it's managed by repo explicitly
         // TODO ext mapping can't be done statically
 

@@ -75,7 +75,6 @@ public abstract class RReference implements ObjectReference {
 
     @Override
     public int hashCode() {
-        // TODO: before june 2020 relation field was used here as well, but why not in equals?
         return Objects.hash(targetOid, targetType);
     }
 
