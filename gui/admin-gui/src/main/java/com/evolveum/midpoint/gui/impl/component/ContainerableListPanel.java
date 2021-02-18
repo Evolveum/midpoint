@@ -107,8 +107,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     private static final String ID_BUTTON_REPEATER = "buttonsRepeater";
     private static final String ID_BUTTON = "button";
 
-    private static final String DOT_CLASS = ContainerableListPanel.class.getName() + ".";
-
     private Class<C> defaultType;
 
     private LoadableModel<Search<C>> searchModel;
@@ -174,9 +172,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                     if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())) {
                         search.setFullText(searchByName);
                     } else {
-                        for (PropertySearchItem item : search.getPropertyItems()) {
+                        for (PropertySearchItem<String> item : search.getPropertyItems()) {
                             if (ItemPath.create(ObjectType.F_NAME).equivalent(item.getPath())) {
-                                item.setValue(new SearchValue(searchByName));
+                                item.setValue(new SearchValue<>(searchByName));
                             }
                         }
                     }
@@ -199,8 +197,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return null;
     }
 
-    protected Search createSearch(Class<? extends C> type) {
-        return SearchFactory.createContainerSearch(new ContainerTypeSearchItem<C>(new SearchValue(type, "")), getPageBase());
+    protected Search createSearch(Class<C> type) {
+        return SearchFactory.createContainerSearch(new ContainerTypeSearchItem<>(new SearchValue<>(type, "")), getPageBase());
     }
 
     private void initLayout() {
@@ -253,7 +251,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             }
 
             @Override
-            protected org.apache.wicket.markup.repeater.Item customizeNewRowItem(org.apache.wicket.markup.repeater.Item item, IModel model) {
+            protected org.apache.wicket.markup.repeater.Item<PO> customizeNewRowItem(org.apache.wicket.markup.repeater.Item item, IModel model) {
                 String status = GuiImplUtil.getObjectStatus(model.getObject());
                 if (status != null) {
                     item.add(AttributeModifier.append("class", new IModel<String>() {
@@ -349,14 +347,15 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     public BoxedTablePanel<PO> getTable() {
+        //noinspection unchecked
         return (BoxedTablePanel<PO>) get(ID_ITEMS).get(ID_ITEMS_TABLE);
     }
 
     public Class<C> getType() {
-        return getSearchModel().isLoaded() ? getSearchModel().getObject().getTypeClass() : (Class<C>) getDefaultType();
+        return getSearchModel().isLoaded() ? getSearchModel().getObject().getTypeClass() : getDefaultType();
     }
 
-    protected Class<? extends C> getDefaultType() {
+    protected Class<C> getDefaultType() {
         return defaultType;
     }
 
@@ -433,7 +432,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
                 if (customColumns.indexOf(customColumn) == 0) {
                     // TODO what if a complex path is provided here?
-                    column = createNameColumn(columnDisplayModel, customColumn.getPath() == null ? "" : customColumn.getPath().toString(), null); //TODO check expression
+                    column = createNameColumn(columnDisplayModel, customColumn.getPath() == null ? "" : customColumn.getPath().toString()); //TODO check expression
                 } else {
                     column = createCustomExportableColumn(columnDisplayModel, customColumn, columnPath, expression);
                 }
@@ -514,9 +513,14 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 }
                 ExpressionVariables expressionVariables = new ExpressionVariables();
                 expressionVariables.put(ExpressionConstants.VAR_OBJECT, object, object.getClass());
-                String stringValue = ExpressionUtil.evaluateStringExpression(expressionVariables, getPageBase().getPrismContext(), expression,
+                Collection<String> evaluatedValues = ExpressionUtil.evaluateStringExpression(expressionVariables, getPageBase().getPrismContext(), expression,
                         MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
-                        task, task.getResult()).iterator().next();
+                        task, task.getResult());
+                String stringValue = null;
+                if (evaluatedValues != null) {
+                    stringValue = evaluatedValues.iterator().next(); // TODO: what if more than one value is returned?
+                }
+
                 return Model.of(stringValue);
             } catch (Exception e) {
                 LOGGER.error("Couldn't execute expression for name column");
@@ -592,7 +596,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             }
             others = getViewColumnsTransformed(defaultView.getColumn());
         } else {
-            IColumn<PO, String> nameColumn = createNameColumn(null, null, null);
+            IColumn<PO, String> nameColumn = createNameColumn(null, null);
             if (nameColumn != null) {
                 columns.add(nameColumn);
             }
@@ -613,8 +617,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return (IColumn<PO, String>) ColumnUtils.createIconColumn(getPageBase());
     }
 
-    protected IColumn<PO, String> createNameColumn(IModel<String> columnNameModel, String itemPath,
-            ExpressionType expression) {
+    protected IColumn<PO, String> createNameColumn(IModel<String> columnNameModel, String itemPath) {
         return null;
     }
 

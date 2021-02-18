@@ -41,7 +41,6 @@ import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -107,7 +106,7 @@ public class AuditLogViewerPanel extends BasePanel {
 
             @Override
             protected IColumn<SelectableBean<AuditEventRecordType>, String> createNameColumn(IModel<String> columnNameModel,
-                    String itemPath, ExpressionType expression) {
+                    String itemPath) {
                 return AuditLogViewerPanel.this.createNameColumn();
             }
 

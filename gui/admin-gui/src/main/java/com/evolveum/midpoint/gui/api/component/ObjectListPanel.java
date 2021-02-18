@@ -160,9 +160,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     }
 
     @Override
-    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath, ExpressionType expression) {
+    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath) {
         return new ObjectNameColumn<O>(columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel,
-                itemPath, expression, getPageBase(), StringUtils.isEmpty(itemPath)) {
+                itemPath, null, getPageBase(), StringUtils.isEmpty(itemPath)) {
             private static final long serialVersionUID = 1L;
 
             @Override
