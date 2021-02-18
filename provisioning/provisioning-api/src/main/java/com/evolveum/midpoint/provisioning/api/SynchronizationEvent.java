@@ -20,7 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public interface SynchronizationEvent extends AcknowledgementSink, DebugDumpable, Comparable<SynchronizationEvent> {
 
     /**
-     * BEWARE! Can be null for unfinished changes.
+     * BEWARE! Can be null for erroneous changes that failed in such a crude way that no repo shadow was created.
      */
     ResourceObjectShadowChangeDescription getChangeDescription();
 

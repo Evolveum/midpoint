@@ -141,7 +141,7 @@ public class ResourceObjectFound implements InitializableMixin {
         return "FetchedResourceObject{" +
                 "resourceObject=" + resourceObject +
                 ", primaryIdentifierValue=" + primaryIdentifierValue +
-                ", processingState=" + initializationState +
+                ", initializationState=" + initializationState +
                 '}';
     }
 
@@ -154,7 +154,7 @@ public class ResourceObjectFound implements InitializableMixin {
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "primaryIdentifierValue", String.valueOf(primaryIdentifierValue), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "processingState", String.valueOf(initializationState), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "initializationState", String.valueOf(initializationState), indent + 1);
         return sb.toString();
     }
 

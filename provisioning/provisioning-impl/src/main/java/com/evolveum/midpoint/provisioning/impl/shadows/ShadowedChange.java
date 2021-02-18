@@ -52,6 +52,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabili
 
 import javax.xml.namespace.QName;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -448,6 +450,13 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
     }
 
     public ResourceObjectShadowChangeDescription getShadowChangeDescription() {
+        stateCheck(initializationState.isAfterInitialization(),
+                "Do not ask for shadow change description on uninitialized change! %s", this);
+
+        if (shadowedObject == null) {
+            stateCheck(initializationState.isError(), "Non-error change without shadowed object? %s", this);
+            return null; // This is because in the description the shadowed object must be present. TODO reconsider this.
+        }
         try {
             ResourceObjectShadowChangeDescription shadowChangeDescription = new ResourceObjectShadowChangeDescription();
             if (objectDelta != null) {

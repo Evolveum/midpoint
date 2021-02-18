@@ -86,6 +86,11 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return this;
     }
 
+    public PrismObjectAsserter<O,RA> assertNoOid() {
+        assertNull("OID present in "+desc(), getObject().getOid());
+        return this;
+    }
+
     public PrismObjectAsserter<O,RA> assertOid(String expected) {
         assertEquals("Wrong OID in "+desc(), expected, getObject().getOid());
         return this;

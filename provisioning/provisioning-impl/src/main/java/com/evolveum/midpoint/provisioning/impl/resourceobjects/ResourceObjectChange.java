@@ -325,7 +325,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
 
         debugDumpExtra(sb, indent);
 
-        DebugUtil.debugDumpWithLabel(sb, "processingState", String.valueOf(initializationState), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "initializationState", String.valueOf(initializationState), indent + 1);
         return sb.toString();
     }
 

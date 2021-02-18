@@ -48,6 +48,12 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
     }
 
     @Override
+    public ShadowAsserter<RA> assertNoOid() {
+        super.assertNoOid();
+        return this;
+    }
+
+    @Override
     public ShadowAsserter<RA> assertOid(String expected) {
         super.assertOid(expected);
         return this;

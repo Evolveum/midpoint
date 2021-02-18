@@ -25,6 +25,8 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -82,6 +84,7 @@ public class TestDummyNegative extends AbstractDummyTest {
     private static final String GOOD_ACCOUNT = "good";
     private static final String INCONVERTIBLE_ACCOUNT = "inconvertible";
     private static final String UNSTORABLE_ACCOUNT = "unstorable";
+    private static final String TOTALLY_UNSTORABLE_ACCOUNT = "totally-unstorable" + StringUtils.repeat("-123456789", 30); // too large to be stored in DB
 
     private static final String EXTERNAL_UID_PREFIX = "uid:";
     private static final String GOOD_ACCOUNT_UID = EXTERNAL_UID_PREFIX + GOOD_ACCOUNT;
@@ -437,6 +440,7 @@ public class TestDummyNegative extends AbstractDummyTest {
         createAccount(GOOD_ACCOUNT, 1, null);
         createAccount(INCONVERTIBLE_ACCOUNT, 2, "WRONG");
         createAccount(UNSTORABLE_ACCOUNT, "WRONG", null);
+        createAccount(TOTALLY_UNSTORABLE_ACCOUNT, 4, null);
 
         when();
 
@@ -446,16 +450,13 @@ public class TestDummyNegative extends AbstractDummyTest {
             objects.add(object);
             return true;
         };
-        Collection<SelectorOptions<GetOperationOptions>> options =
-                schemaHelper.getOperationOptionsBuilder()
-                        .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
-                        .build();
+        Collection<SelectorOptions<GetOperationOptions>> options = createNoExceptionOptions();
         provisioningService.searchObjectsIterative(ShadowType.class, getAllAccountsQuery(RESOURCE_DUMMY_BROKEN_ACCOUNTS),
                 options, handler, task, result);
 
         then();
         display("objects", objects);
-        assertThat(objects.size()).as("objects found").isEqualTo(3);
+        assertThat(objects.size()).as("objects found").isEqualTo(4);
 
         assertSelectedAccountByName(objects, GOOD_ACCOUNT)
                 .assertOid()
@@ -502,7 +503,7 @@ public class TestDummyNegative extends AbstractDummyTest {
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT)
                 .attributes()
-                    .assertSize(1) // uid=unstorable
+                    .assertSize(1) // uid=unstorable [name was probably removed when we attempted to save the object?]
                     .end()
                 .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "Exception when translating", "WRONG");
                 // (maybe it's not necessary to provide the unconvertible value in the message - reconsider)
@@ -517,6 +518,21 @@ public class TestDummyNegative extends AbstractDummyTest {
                 .attributes()
                     .assertSize(1)
                     .end();
+
+        assertSelectedAccountByName(objects, TOTALLY_UNSTORABLE_ACCOUNT)
+                .assertNoOid()
+                // Primary identifier value is not here, because it is set as part of object shadowization (which failed)
+                .attributes()
+                    .assertSize(3) // number, name, uid
+                    .end()
+                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "could not execute batch");
+    }
+
+    @NotNull
+    private Collection<SelectorOptions<GetOperationOptions>> createNoExceptionOptions() {
+        return schemaHelper.getOperationOptionsBuilder()
+                .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
+                .build();
     }
 
     @Test
@@ -530,6 +546,7 @@ public class TestDummyNegative extends AbstractDummyTest {
         createAccountExternalUid(GOOD_ACCOUNT, 1, null);
         createAccountExternalUid(INCONVERTIBLE_ACCOUNT, 2, "WRONG");
         createAccountExternalUid(UNSTORABLE_ACCOUNT, "WRONG", null);
+        createAccountExternalUid(TOTALLY_UNSTORABLE_ACCOUNT, 4, null);
 
         when();
 
@@ -539,16 +556,13 @@ public class TestDummyNegative extends AbstractDummyTest {
             objects.add(object);
             return true;
         };
-        Collection<SelectorOptions<GetOperationOptions>> options =
-                schemaHelper.getOperationOptionsBuilder()
-                        .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
-                        .build();
+        Collection<SelectorOptions<GetOperationOptions>> options = createNoExceptionOptions();
         provisioningService.searchObjectsIterative(ShadowType.class, getAllAccountsQuery(RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID),
                 options, handler, task, result);
 
         then();
         display("objects", objects);
-        assertThat(objects.size()).as("objects found").isEqualTo(3);
+        assertThat(objects.size()).as("objects found").isEqualTo(4);
 
         assertSelectedAccountByName(objects, GOOD_ACCOUNT)
                 .assertOid()
@@ -615,6 +629,14 @@ public class TestDummyNegative extends AbstractDummyTest {
                 .attributes()
                     .assertSize(1)
                     .end();
+
+        assertSelectedAccountByName(objects, TOTALLY_UNSTORABLE_ACCOUNT) // it has name, because the name attribute was not removed (why?)
+                .assertNoOid()
+                // Primary identifier value is not here, because it is set as part of object shadowization (which failed)
+                .attributes()
+                    .assertSize(3) // number, name, uid
+                    .end()
+                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "could not execute batch");
     }
 
     @Test
@@ -648,6 +670,7 @@ public class TestDummyNegative extends AbstractDummyTest {
         createAccountExternalUid(GOOD_ACCOUNT, 1, null);
         createAccountExternalUid(INCONVERTIBLE_ACCOUNT, 2, "WRONG");
         createAccountExternalUid(UNSTORABLE_ACCOUNT, "WRONG", null);
+        createAccountExternalUid(TOTALLY_UNSTORABLE_ACCOUNT, 4, null);
 
         when();
 
@@ -655,9 +678,10 @@ public class TestDummyNegative extends AbstractDummyTest {
 
         then();
         display("events", events);
-        assertThat(events.size()).as("events found").isEqualTo(3);
+        assertThat(events.size()).as("events found").isEqualTo(4);
 
         List<PrismObject<ShadowType>> objects = events.stream()
+                .filter(event -> event.getChangeDescription() != null)
                 .map(event -> event.getChangeDescription().getShadowedResourceObject())
                 .collect(Collectors.toList());
 
@@ -724,6 +748,14 @@ public class TestDummyNegative extends AbstractDummyTest {
                     .end();
 
         // The fetch result is not in the shadows. The exception is recorded in events.
+
+        List<LiveSyncEvent> noChangeEvents = events.stream()
+                .filter(event -> event.getChangeDescription() == null)
+                .collect(Collectors.toList());
+        assertThat(noChangeEvents).hasSize(1);
+        LiveSyncEvent failedEvent = noChangeEvents.get(0);
+        displayDumpable("failed event", failedEvent);
+        assertThat(failedEvent.isError()).isTrue();
     }
 
     private void createAccount(String name, Object number, Object enableDate) throws Exception {

@@ -7,24 +7,35 @@
 
 package com.evolveum.midpoint.model.intest.reporting;
 
+import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 
 import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.LINKED;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests reporting of task state, progress, and errors.
@@ -49,6 +60,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
     private static final int IDX_GOOD_ACCOUNT = 0;
     private static final int IDX_MALFORMED_SHADOW = 1;
     private static final int IDX_PROJECTOR_FATAL_ERROR = 2;
+    private static final int IDX_LONG_UID = 3;
 
     private static final String MALFORMED_SHADOW_NAME = formatAccountName(IDX_MALFORMED_SHADOW);
 
@@ -86,15 +98,24 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         assertSuccess(modelService.testResource(RESOURCE_DUMMY_TARGET.oid, initTask));
 
         for (int i = 0; i < USERS; i++) {
-            String name = formatAccountName(i);
-            DummyAccount account = RESOURCE_DUMMY_SOURCE.controller.addAccount(name);
-            account.addAttributeValue(ATTR_NUMBER, i);
-            account.addAttributeValue(ATTR_FAILURE_MODE, getFailureMode(i));
-       }
+            if (i != IDX_LONG_UID) {
+                createAccount(i);
+            } else {
+                // That one will be added later
+            }
+        }
+    }
+
+    private void createAccount(int i) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException, InterruptedException {
+        String name = formatAccountName(i);
+        DummyAccount account = RESOURCE_DUMMY_SOURCE.controller.addAccount(name);
+        account.addAttributeValue(ATTR_NUMBER, i);
+        account.addAttributeValue(ATTR_FAILURE_MODE, getFailureMode(i));
     }
 
     private static String formatAccountName(int i) {
-        return String.format(ACCOUNT_NAME_PATTERN, i);
+        return String.format(ACCOUNT_NAME_PATTERN, i) +
+                (i == IDX_LONG_UID ? StringUtils.repeat("-123456789", 30) : "");
     }
 
     @SuppressWarnings("DuplicateBranchesInSwitch")
@@ -192,16 +213,16 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 .display()
                 .assertPartialError()
                 .assertClosed()
-                .assertProgress(10)
+                .assertProgress(9)
                 .iterativeTaskInformation()
                     .display()
-                    .assertSuccessCount(9)
+                    .assertSuccessCount(8)
                     .assertFailureCount(1)
                     .assertLastFailureObjectName("u-000001")
                     .end()
                 .synchronizationInformation()
                     .display()
-                    .assertTransition(LINKED, LINKED, LINKED, null, 9, 0, 0) // Those 9 records were already linked and remain so.
+                    .assertTransition(LINKED, LINKED, LINKED, null, 8, 0, 0) // Those 9 records were already linked and remain so.
                     .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
                     .assertTransitions(2)
                     .end();
@@ -218,6 +239,8 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         // This enables other kinds of failures (e.g. those in mappings)
         failuresEnabled = true;
 
+        createAccount(IDX_LONG_UID);
+
         when();
         rerunTaskErrorsOk(TASK_IMPORT.oid, result);
 
@@ -230,16 +253,25 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 .assertProgress(10)
                 .iterativeTaskInformation()
                     .display()
-                    .assertSuccessCount(8)
-                    .assertFailureCount(2)
+                    .assertSuccessCount(7)
+                    .assertFailureCount(3)
                     .end()
                 .synchronizationInformation()
                     .display()
-                    .assertTransition(LINKED, LINKED, LINKED, null, 8, 1, 0) // Those 9 records were already linked and remain so.
+                    .assertTransition(LINKED, LINKED, LINKED, null, 7, 1, 0) // Those 9 records were already linked and remain so.
                     .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
-                    .assertTransitions(2);
+                    .assertTransition(null, null, null, null, 0, 1, 0) // Long UID account
+                    .assertTransitions(3)
+                    .end();
 
-        // TODO assert redirected errors in the task
+        List<OperationExecutionType> taskExecRecords = getTask(TASK_IMPORT.oid).asObjectable().getOperationExecution();
+        List<OperationExecutionType> redirected = taskExecRecords.stream()
+                .filter(r -> r.getRealOwner() != null)
+                .collect(Collectors.toList());
+        assertThat(redirected).as("redirected operation execution records").hasSize(1);
+        assertThat(redirected.get(0).getRealOwner().getIdentification())
+                .as("identification")
+                .isEqualTo(formatAccountName(IDX_LONG_UID));
 
         assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
                 .display();
@@ -264,10 +296,10 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 .display()
                 .assertPartialError()
                 .assertClosed()
-                //.assertProgress(2)
+                .assertProgress(10) // From the resource we get all 10 accounts.
                 .iterativeTaskInformation()
                     .display()
-                    //.assertSuccessCount(0)
+                    //.assertSuccessCount(0) // later 7 skipped
                     .assertFailureCount(2)
                     .end()
                 .synchronizationInformation()
@@ -339,14 +371,15 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 .assertProgress(1) // may change in the future
                 .iterativeTaskInformation()
                     .display()
-                    .assertSuccessCount(8)
-                    .assertFailureCount(3) // u-000001 failed once in 2nd part, and once in 3rd part
+                    .assertSuccessCount(7)
+                    .assertFailureCount(4) // u-000001 failed once in 2nd part, and once in 3rd part
                     .assertLastFailureObjectName(MALFORMED_SHADOW_NAME)
                     .end()
                 .synchronizationInformation()
                     .display()
-                    .assertTransition(LINKED, LINKED, LINKED, null, 8, 1, 0) // Those 9 records were already linked and remain so.
+                    .assertTransition(LINKED, LINKED, LINKED, null, 7, 1, 0) // Those 9 records were already linked and remain so.
                     .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
+                    .assertTransition(null, null, null, null, 0, 1, 0) // Long UID account
                     ;
         //.assertTransitions(2);
 
