@@ -10,7 +10,6 @@ package com.evolveum.midpoint.web.session;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
 
 /**
  * @author lazyman
@@ -18,8 +17,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
 public class ConfigurationStorage implements PageStorage {
 
     private static final long serialVersionUID = 1L;
-
-//    private DebugSearchDto debugSearchDto;
 
     private ObjectPaging debugSearchPaging;
 
@@ -34,14 +31,6 @@ public class ConfigurationStorage implements PageStorage {
     public void setSearch(Search search) {
         this.search = search;
     }
-
-//    public void setDebugSearchDto(DebugSearchDto debugSearchDto) {
-//        this.debugSearchDto = debugSearchDto;
-//    }
-//
-//    public DebugSearchDto getDebugSearchDto() {
-//        return debugSearchDto;
-//    }
 
     @Override
     public ObjectPaging getPaging() {
