@@ -84,9 +84,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
         UserPage owner = accountTab.table()
                 .clickOnOwnerByName("X001212");
 
-        owner.selectTabBasic()
-                .form()
-                    .assertPropertyInputValue("name", "X001212");
+        owner.assertName("X001212");
 
         basicPage.listResources()
                 .table()
@@ -192,14 +190,8 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
         FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_1, hrTargetFile);
         Selenide.sleep(20000);
         showUser("X000999")
-                .selectTabBasic()
-                    .form()
-                        .assertPropertyInputValue("givenName", "Arnold");
-        showUser("X000999")
-                .selectTabBasic()
-                    .form()
-                        .assertPropertyInputValue("familyName", "Rimmer");
-        showUser("X000999")
+                .assertGivenName("Arnold")
+                .assertFamilyName("Rimmer")
                 .selectTabBasic()
                     .form()
                         .assertPropertySelectValue("administrativeStatus", "Enabled");
@@ -207,9 +199,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
         FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_2, hrTargetFile);
         Selenide.sleep(20000);
         showUser("X000999")
-                .selectTabBasic()
-                    .form()
-                        .assertPropertyInputValue("givenName", "Arnold J.");
+                .assertGivenName("Arnold J.");
 
         FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_3, hrTargetFile);
         Selenide.sleep(20000);

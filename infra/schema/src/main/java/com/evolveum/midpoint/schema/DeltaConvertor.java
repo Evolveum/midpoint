@@ -405,12 +405,14 @@ public class DeltaConvertor {
     }
 
     private static XNode toXNode(ItemDelta delta, @NotNull PrismValue value, DeltaConversionOptions options) throws SchemaException {
-        return delta.getPrismContext().xnodeSerializer()
+        var ret = delta.getPrismContext().xnodeSerializer()
                 .definition(delta.getDefinition())
                 .options(DeltaConversionOptions.isSerializeReferenceNames(options) ?
                         SerializationOptions.createSerializeReferenceNames() : null)
                 .serialize(value)
                 .getSubnode();
+        ret.freeze();
+        return ret;
     }
 
     public static Collection<ObjectDelta> createObjectDeltas(ObjectDeltaListType deltaList, PrismContext prismContext) throws SchemaException {

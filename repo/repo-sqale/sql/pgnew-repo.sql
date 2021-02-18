@@ -31,7 +31,7 @@ $$;
 CREATE TABLE m_object_oid (
     oid UUID NOT NULL DEFAULT gen_random_uuid(),
 
-    CONSTRAINT m_object_oid_pk PRIMARY KEY (oid)
+    PRIMARY KEY (oid)
 );
 -- endregion
 
@@ -917,7 +917,7 @@ CREATE TABLE m_assignment (
     modifyChannel_id INTEGER,
     modifyTimestamp TIMESTAMPTZ,
 
-    CONSTRAINT m_assignment_pk PRIMARY KEY (owner_oid, cid)
+    PRIMARY KEY (owner_oid, cid)
     -- no need to index owner_oid, it's part of the PK index
 );
 
@@ -955,6 +955,19 @@ CREATE TABLE m_assignment_reference (
 ALTER TABLE IF EXISTS m_assignment_reference
   ADD CONSTRAINT fk_assignment_reference FOREIGN KEY (owner_owner_oid, owner_id) REFERENCES m_assignment;
 */
+-- endregion
+
+-- region other object containers
+CREATE TABLE m_trigger (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    id INTEGER NOT NULL,
+    handlerUri_id INTEGER,
+    timestampValue TIMESTAMPTZ,
+
+    PRIMARY KEY (owner_oid, id)
+);
+
+CREATE INDEX m_trigger_timestampValue_idx ON m_trigger (timestampValue);
 -- endregion
 
 -- region Extension support
@@ -1368,13 +1381,6 @@ CREATE TABLE m_sequence (
   oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
-CREATE TABLE m_trigger (
-  id             INTEGER        NOT NULL,
-  owner_oid UUID NOT NULL,
-  handlerUri_id INTEGER,
-  timestampValue TIMESTAMPTZ,
-  PRIMARY KEY (owner_oid, id)
-);
 CREATE INDEX iAExtensionBoolean
   ON m_assignment_ext_boolean (booleanValue);
 CREATE INDEX iAExtensionDate
@@ -1536,8 +1542,6 @@ CREATE INDEX iSystemConfigurationNameOrig
   ON m_system_configuration (name_orig);
 ALTER TABLE IF EXISTS m_system_configuration
   ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm);
-CREATE INDEX iTriggerTimestamp
-  ON m_trigger (timestampValue);
 ALTER TABLE IF EXISTS m_assignment_ext_boolean
   ADD CONSTRAINT fk_a_ext_boolean_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
 ALTER TABLE IF EXISTS m_assignment_ext_date
@@ -1658,8 +1662,6 @@ ALTER TABLE IF EXISTS m_sequence
   ADD CONSTRAINT fk_sequence FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_system_configuration
   ADD CONSTRAINT fk_system_configuration FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_trigger
-  ADD CONSTRAINT fk_trigger_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
 
 -- Indices for foreign keys; maintained manually
 CREATE INDEX iUserEmployeeTypeOid ON M_USER_EMPLOYEE_TYPE(USER_OID);

@@ -117,9 +117,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                             .expandAll()
                         .showTreeNodeDropDownMenu("Warp Speed Research")
                             .edit()
-                                .selectTabBasic()
-                                    .form()
-                                        .assertPropertyInputValue("Name", "0919");
+                                .assertName("0919");
 
         showUser("kirk").selectTabAssignments()
                 .clickAddAssignemnt("New Organization type assignment with Member relation")

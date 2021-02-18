@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
 import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.uuidMapper;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ARCHETYPE_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.*;
 
 import java.util.Collection;
@@ -20,6 +21,7 @@ import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleModelMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
+import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetype;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
@@ -82,7 +84,10 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         addRelationResolver(AssignmentHolderType.F_ASSIGNMENT,
                 new TableRelationResolver<>(QAssignment.class,
                         joinOn((o, a) -> o.oid.eq(a.ownerOid))));
-        // TODO map trigger
+        addRelationResolver(F_TRIGGER,
+                new TableRelationResolver<>(QTrigger.class,
+                        joinOn((o, t) -> o.oid.eq(t.ownerOid))));
+        // TODO needed? addRelationResolver(F_ARCHETYPE_REF... ref
     }
 
     @Override

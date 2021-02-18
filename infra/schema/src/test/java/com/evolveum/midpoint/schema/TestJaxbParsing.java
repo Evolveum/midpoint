@@ -181,7 +181,7 @@ public class TestJaxbParsing extends AbstractSchemaTest {
         item1.setPath(new ItemPathType(path));
         ProtectedStringType protectedString = new ProtectedStringType();
         protectedString.setEncryptedData(new EncryptedDataType());
-        RawType value = new RawType(((PrismContextImpl) PrismTestUtil.getPrismContext()).getBeanMarshaller().marshall(protectedString), PrismTestUtil.getPrismContext());
+        RawType value = new RawType(((PrismContextImpl) PrismTestUtil.getPrismContext()).getBeanMarshaller().marshall(protectedString).frozen(), PrismTestUtil.getPrismContext());
         item1.getValue().add(value);
 
         String xml = PrismTestUtil.serializeJaxbElementToString(

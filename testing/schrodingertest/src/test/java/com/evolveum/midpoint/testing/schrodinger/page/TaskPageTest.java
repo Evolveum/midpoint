@@ -68,8 +68,8 @@ public class TaskPageTest extends AbstractSchrodingerTest {
                         .selectTabBasic()
                             .form();
 
-        taskForm.assertPropertyInputValue("name", name);
-        taskForm.assertPropertyInputValue("handlerUri", handler);
+        taskForm.assertPropertyInputValue("name", name)
+                .assertPropertyInputValue("handlerUri", handler);
     }
 
     @Test

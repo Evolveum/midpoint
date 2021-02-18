@@ -97,6 +97,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
     protected static OpenDJController openDJController = new OpenDJController();
 
+    @Override
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -641,7 +642,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         //set the replace value
         XNode passPsXnode = prismContext.xnodeSerializer().root(new QName("dummy")).serializeRealValue(passPs).getSubnode();
-        RawType value = new RawType(passPsXnode, prismContext);
+        RawType value = new RawType(passPsXnode.frozen(), prismContext);
         propMod.getValue().add(value);
 
         //set the modification type
