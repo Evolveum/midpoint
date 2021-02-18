@@ -279,11 +279,10 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 clearCache();
                 refreshTable(target);
 
-                target.add((Component) getTable());
+                target.add(getTable());
             }
         };
         refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
-//        refreshIcon.add(AttributeAppender.append("class", "btn-margin-right"));
         buttonsList.add(refreshIcon);
 
         AjaxIconButton playPauseIcon = new AjaxIconButton(buttonId, getRefreshPausePlayButtonModel(),
@@ -306,22 +305,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     protected boolean getNewObjectGenericButtonVisibility() {
         return true;
-    }
-
-    private GuiObjectListViewType resolveSelectedColumn(List<Integer> indexOfColumns, GuiObjectListViewType view) {
-        List<GuiObjectColumnType> newColumns = new ArrayList<>();
-        List<GuiObjectColumnType> oldColumns;
-        if (view.getColumn().isEmpty()) {
-            oldColumns = getDefaultView().getColumn();
-        } else {
-            oldColumns = view.getColumn();
-        }
-        for (Integer index : indexOfColumns) {
-            newColumns.add(oldColumns.get(index - 2).clone());
-        }
-        view.getColumn().clear();
-        view.getColumn().addAll(newColumns);
-        return view;
     }
 
     private IModel<String> getRefreshPausePlayButtonModel() {
@@ -376,12 +359,11 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
         }
 
-        StringBuilder sb = new StringBuilder();
-        sb.append(createStringResource("MainObjectListPanel.newObject").getString());
-        sb.append(" ");
-        sb.append(createStringResource("ObjectTypeLowercase." + getType().getSimpleName()).getString());
+        String sb = createStringResource("MainObjectListPanel.newObject").getString()
+                + " "
+                + createStringResource("ObjectTypeLowercase." + getType().getSimpleName()).getString();
         return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
-                sb.toString());
+                sb);
     }
 
     private boolean isArchetypedCollectionView(CompiledObjectCollectionView view) {
@@ -409,12 +391,10 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     protected DisplayType getNewObjectButtonSpecialDisplayType() {
         String iconCssStyle = WebComponentUtil.createDefaultBlackIcon(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()));
 
-        StringBuilder sb = new StringBuilder();
-        sb.append(createStringResource("MainObjectListPanel.newObject").getString());
-        sb.append(" ");
-        sb.append(createStringResource("ObjectTypeLowercase." + getType().getSimpleName()).getString());
-
-        return WebComponentUtil.createDisplayType(iconCssStyle, "", sb.toString());
+        String sb = createStringResource("MainObjectListPanel.newObject").getString()
+                + " "
+                + createStringResource("ObjectTypeLowercase." + getType().getSimpleName()).getString();
+        return WebComponentUtil.createDisplayType(iconCssStyle, "", sb);
     }
 
     protected CompositedIconBuilder getNewObjectButtonAdditionalIconBuilder(CompiledObjectCollectionView influencingObject, DisplayType additionalButtonDisplayType) {
