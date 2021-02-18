@@ -123,7 +123,7 @@ public class AuditLogViewerPanel extends BasePanel {
 
 
             @Override
-            protected Search createSearch(Class<? extends AuditEventRecordType> type) {
+            protected Search createSearch(Class<AuditEventRecordType> type) {
                 AuditLogStorage storage = (AuditLogStorage) getPageStorage();
                 Search search = SearchFactory.createContainerSearch(new ContainerTypeSearchItem(new SearchValue(type, "")), AuditEventRecordType.F_TIMESTAMP, getPageBase(), true);
                 DateSearchItem timestampItem = (DateSearchItem) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);

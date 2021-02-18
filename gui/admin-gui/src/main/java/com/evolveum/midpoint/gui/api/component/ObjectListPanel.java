@@ -81,7 +81,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     }
 
     @Override
-    protected Search createSearch(Class<? extends O> type) {
+    protected Search createSearch(Class<O> type) {
         return SearchFactory.createSearch(new ContainerTypeSearchItem<O>(new SearchValue(type, "")), isCollectionViewPanelForCompiledView() ? getCollectionNameParameterValue().toString() : null,
                 getFixedSearchItems(), null, getPageBase(), null, true, true, Search.PanelType.DEFAULT);
     }

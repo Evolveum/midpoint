@@ -347,7 +347,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            protected Search createSearch(Class<? extends ObjectType> type) {
+            protected Search createSearch(Class<ObjectType> type) {
                 Search search = null;
                 if (getMemberPanelStorage() != null) {
                     if (getMemberPanelStorage().getRelation() == null) {
