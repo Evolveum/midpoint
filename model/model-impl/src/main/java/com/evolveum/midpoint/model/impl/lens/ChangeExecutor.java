@@ -1365,11 +1365,7 @@ public class ChangeExecutor {
                 result.addReturn("createdAccountOid", oid);
             } else {
                 FocusConstraintsChecker.clearCacheFor(objectToAdd.asObjectable().getName());
-
                 oid = cacheRepositoryService.addObject(objectToAdd, addOpt, result);
-                if (oid == null) {
-                    throw new SystemException("Repository addObject returned null OID while adding " + objectToAdd);
-                }
             }
             if (!change.isImmutable()) {
                 change.setOid(oid);

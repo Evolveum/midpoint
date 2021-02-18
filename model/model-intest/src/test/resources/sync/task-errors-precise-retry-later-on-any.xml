@@ -27,7 +27,8 @@
     <errorHandlingStrategy>
         <entry>
             <situation>
-                <status>partial_error</status>
+                <!-- org.identityconnectors.framework.common.exceptions.ConnectorException: Booom! PowerFail script failed (generic) -->
+                <errorCategory>generic</errorCategory>
             </situation>
             <reaction>
                 <retryLater>
@@ -39,7 +40,10 @@
         </entry>
         <entry>
             <situation>
-                <status>fatal_error</status>
+                <!-- com.evolveum.midpoint.util.exception.ExpressionEvaluationException: Fatally failing on 9-th user: e-000009
+                 in expression in mapping in assigned mapping 'name ->' in role:582af892-2490-4fb1-bc83-368ade2c5eb4(errors-target)
+                  in delta for user:null(e-000009) -->
+                <errorCategory>configuration</errorCategory>
             </situation>
             <reaction>
                 <retryLater>
