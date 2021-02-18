@@ -10,16 +10,22 @@ package com.evolveum.midpoint.repo.common.task;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.Collection;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,6 +78,12 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
     /** Object query specifying what objects to process. Set up in {@link #prepareItemSource(OperationResult)}. */
     protected ObjectQuery query;
 
+    /**
+     * Additional filter to be applied to each object received (if not null).
+     * Currently used to filter failed objects when FILTER_AFTER_RETRIEVAL mode is selected.
+     */
+    protected ObjectFilter additionalFilter;
+
     /** Options to be used during counting and searching. Set up in {@link #prepareItemSource(OperationResult)}. */
     protected Collection<SelectorOptions<GetOperationOptions>> searchOptions;
 
@@ -98,13 +110,12 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException, ObjectAlreadyExistsException {
         objectType = determineObjectType();
-        query = prepareQuery(opResult);
         searchOptions = prepareSearchOptions(opResult);
         useRepository = prepareUseRepositoryFlag(opResult);
+        query = prepareQuery(opResult); // requires useRepository
 
         logger.trace("{}: searching for {} with options {} (use repo directly: {}) and query:\n{}",
                 getTaskTypeName(), objectType, searchOptions, useRepository, DebugUtil.debugDumpLazily(query));
-
     }
 
     @Override
@@ -183,10 +194,12 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
         try {
             ObjectQuery queryFromHandler = createQuery(opResult); // TODO better name
 
-            logger.trace("{}: using a query (before applying work bucket and evaluating expressions):\n{}", getTaskTypeName(),
+            logger.trace("{}: query as defined by task handler:\n{}", getTaskTypeName(),
                     DebugUtil.debugDumpLazily(queryFromHandler));
 
-            ObjectQuery bucketNarrowedQuery = getTaskManager().narrowQueryForWorkBucket(queryFromHandler, objectType,
+            ObjectQuery failureNarrowedQuery = narrowQueryToProcessFailedObjectsOnly(queryFromHandler); // logging is inside
+
+            ObjectQuery bucketNarrowedQuery = getTaskManager().narrowQueryForWorkBucket(failureNarrowedQuery, objectType,
                     createItemDefinitionProvider(), localCoordinatorTask,
                     workBucket, opResult);
 
@@ -198,6 +211,51 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
         } catch (Throwable t) {
             // Most probably we have nothing more to do here.
             throw new TaskException("Couldn't create object query", FATAL_ERROR, PERMANENT_ERROR, t);
+        }
+    }
+
+    @Nullable
+    private ObjectQuery narrowQueryToProcessFailedObjectsOnly(ObjectQuery query) {
+        FailedObjectsSelectorType selector = getTaskContainerRealValue(SchemaConstants.MODEL_EXTENSION_FAILED_OBJECTS_SELECTOR);
+        if (selector == null) {
+            return query;
+        } else {
+            ObjectFilter failedObjectsFilter =
+                    new FailedObjectsFilterCreator(selector, this, getPrismContext())
+                            .createFilter();
+
+            FailedObjectsSelectionMethodType selectionMethod = getSelectionMethod(selector);
+            switch (selectionMethod) {
+                case NARROW_QUERY:
+                    ObjectQuery failureNarrowedQuery = ObjectQueryUtil.addConjunctions(query, getPrismContext(), failedObjectsFilter);
+                    logger.trace("{}: query narrowed to select failed objects only:\n{}", getTaskTypeName(),
+                            DebugUtil.debugDumpLazily(failureNarrowedQuery));
+                    return failureNarrowedQuery;
+
+                case FILTER_AFTER_RETRIEVAL:
+                    additionalFilter = failedObjectsFilter;
+                    logger.trace("{}: will use additional filter to select failed objects only (but executes "
+                                    + "the search with original query):\n{}", getTaskTypeName(),
+                            DebugUtil.debugDumpLazily(failedObjectsFilter));
+                    return query;
+
+                case FETCH_FAILED_OBJECTS:
+                    throw new UnsupportedOperationException(selectionMethod + " is not supported yet");
+
+                default:
+                    throw new AssertionError(selectionMethod);
+            }
+        }
+    }
+
+    private @NotNull FailedObjectsSelectionMethodType getSelectionMethod(FailedObjectsSelectorType selector) {
+        FailedObjectsSelectionMethodType method = selector.getSelectionMethod();
+        if (method != null && method != FailedObjectsSelectionMethodType.DEFAULT) {
+            return method;
+        } if (useRepository || !ShadowType.class.equals(requireNonNull(objectType))) {
+            return FailedObjectsSelectionMethodType.NARROW_QUERY;
+        } else {
+            return FailedObjectsSelectionMethodType.FILTER_AFTER_RETRIEVAL;
         }
     }
 
@@ -272,8 +330,8 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
     }
 
     private Collection<SelectorOptions<GetOperationOptions>> prepareSearchOptions(OperationResult opResult) {
-        Collection<SelectorOptions<GetOperationOptions>> optionsFromTask = createSearchOptions(opResult);
-        return updateSearchOptionsWithIterationMethod(optionsFromTask);
+        Collection<SelectorOptions<GetOperationOptions>> optionsFromHandler = createSearchOptions(opResult);
+        return updateSearchOptionsWithIterationMethod(optionsFromHandler);
     }
 
     // useful e.g. to specify noFetch options for shadow-related queries
@@ -297,6 +355,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
         this.requiresDirectRepositoryAccess = true;
     }
 
+    @NotNull
     protected Class<O> determineObjectType() {
         HandledObjectType handledObjectType = this.getClass().getAnnotation(HandledObjectType.class);
         if (handledObjectType != null) {
@@ -405,6 +464,11 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
 
     private <X> X getTaskPropertyRealValue(ItemName propertyName) {
         return taskExecution.getTaskPropertyRealValue(propertyName);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private <C extends Containerable> C getTaskContainerRealValue(ItemName containerName) {
+        return taskExecution.getTaskContainerRealValue(containerName);
     }
 
     /**

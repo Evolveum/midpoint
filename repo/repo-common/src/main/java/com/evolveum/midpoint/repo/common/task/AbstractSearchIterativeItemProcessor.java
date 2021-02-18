@@ -9,8 +9,10 @@ package com.evolveum.midpoint.repo.common.task;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
@@ -40,6 +42,13 @@ public abstract class AbstractSearchIterativeItemProcessor<
     public boolean process(ItemProcessingRequest<PrismObject<O>> request, RunningTask workerTask,
             OperationResult parentResult) throws CommonException, PreconditionViolationException {
         PrismObject<O> object = request.getItem();
+
+        if (filteredOutByAdditionalFilter(request)) {
+            logger.trace("Request {} filtered out by additional filter", request);
+            parentResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Filtered out by additional filter");
+            return true; // continue working
+        }
+
         OperationResultType errorFetchResult = object.asObjectable().getFetchResult();
         if (errorFetchResult == null) {
             return processObject(object, request, workerTask, parentResult);
@@ -48,11 +57,17 @@ public abstract class AbstractSearchIterativeItemProcessor<
         }
     }
 
+    private boolean filteredOutByAdditionalFilter(ItemProcessingRequest<PrismObject<O>> request)
+            throws SchemaException {
+        return partExecution.additionalFilter != null &&
+                !partExecution.additionalFilter.match(request.getItem().getValue(), taskHandler.matchingRuleRegistry);
+    }
+
     protected abstract boolean processObject(PrismObject<O> object, ItemProcessingRequest<PrismObject<O>> request,
             RunningTask workerTask, OperationResult result)
             throws CommonException, PreconditionViolationException;
 
-    @SuppressWarnings("WeakerAccess")
+    @SuppressWarnings({ "WeakerAccess", "unused" })
     protected boolean processError(PrismObject<O> object, @NotNull OperationResultType errorFetchResult, RunningTask workerTask,
             OperationResult result)
             throws CommonException, PreconditionViolationException {

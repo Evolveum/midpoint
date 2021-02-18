@@ -11,6 +11,7 @@ import java.util.Date;
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -119,7 +120,7 @@ public class DeleteNotUpdatedShadowTaskHandler
         }
 
         @Override
-        protected Class<? extends ShadowType> determineObjectType(Class<? extends ShadowType> configuredType) {
+        protected @NotNull Class<? extends ShadowType> determineObjectType(Class<? extends ShadowType> configuredType) {
             return ShadowType.class;
         }
 

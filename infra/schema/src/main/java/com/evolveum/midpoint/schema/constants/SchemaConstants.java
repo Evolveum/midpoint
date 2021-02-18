@@ -379,6 +379,7 @@ public abstract class SchemaConstants {
     public static final ItemName MODEL_EXTENSION_SEARCH_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "searchOptions");
     public static final ItemName MODEL_EXTENSION_USE_REPOSITORY_DIRECTLY = new ItemName(NS_MODEL_EXTENSION, "useRepositoryDirectly");
     public static final ItemName MODEL_EXTENSION_ITERATION_METHOD = new ItemName(NS_MODEL_EXTENSION, "iterationMethod");
+    public static final ItemName MODEL_EXTENSION_FAILED_OBJECTS_SELECTOR = new ItemName(NS_MODEL_EXTENSION, "failedObjectsSelector");
     public static final ItemName MODEL_EXTENSION_OBJECT_DELTA = new ItemName(NS_MODEL_EXTENSION, "objectDelta");
     public static final ItemName MODEL_EXTENSION_OBJECT_DELTAS = new ItemName(NS_MODEL_EXTENSION, "objectDeltas");
     public static final ItemName MODEL_EXTENSION_WORKER_THREADS = new ItemName(NS_MODEL_EXTENSION, "workerThreads");

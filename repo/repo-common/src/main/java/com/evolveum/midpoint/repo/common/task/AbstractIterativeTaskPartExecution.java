@@ -378,4 +378,8 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         TaskPartitionDefinitionType partDefinition = taskExecution.partDefinition;
         return partDefinition != null && partDefinition.getStage() == ExecutionModeType.SIMULATE;
     }
+
+    public String getRootTaskOid() {
+        return taskExecution.getRootTaskOid();
+    }
 }

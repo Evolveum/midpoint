@@ -66,6 +66,7 @@
             <xsd:element ref="tns:useRepositoryDirectly" minOccurs="0"/>
             <xsd:element ref="tns:objectType" minOccurs="0"/>
             <xsd:element ref="tns:iterationMethod" minOccurs="0"/>
+            <xsd:element ref="tns:failedObjectsSelector" minOccurs="0"/>
             <xsd:element ref="tns:objectDelta" minOccurs="0"/>
             <xsd:element ref="tns:objectDeltas" minOccurs="0"/>
             <xsd:element ref="tns:executeOptions" minOccurs="0"/>
@@ -307,6 +308,21 @@
                 <a:displayName>TaskExtension.iterationMethod</a:displayName>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="failedObjectsSelector" type="c:FailedObjectsSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Narrows the query to select only objects that failed to be processed recently.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>TaskExtension.failedObjectsSelector</a:displayName>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:experimental>true</a:experimental>
+                <a:since>4.3</a:since>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>

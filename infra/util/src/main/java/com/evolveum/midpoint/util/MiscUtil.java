@@ -997,4 +997,16 @@ public class MiscUtil {
             return e.getClass().getSimpleName() + ": " + e.getMessage();
         }
     }
+
+    /**
+     * Like {@link Arrays#asList(Object[])} but if there's a single null value at input, creates
+     * an empty list.
+     */
+    public static <T> List<T> asListTreatingNull(T[] values) {
+        if (values.length == 1 && values[0] == null) {
+            return emptyList();
+        } else {
+            return Arrays.asList(values);
+        }
+    }
 }

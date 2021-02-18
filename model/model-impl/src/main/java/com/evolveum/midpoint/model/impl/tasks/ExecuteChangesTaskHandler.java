@@ -12,6 +12,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import java.util.Collections;
 import javax.annotation.PostConstruct;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -96,7 +97,7 @@ public class ExecuteChangesTaskHandler
         }
 
         @Override
-        protected Class<? extends ObjectType> determineObjectType(Class<? extends ObjectType> configuredType) {
+        protected @NotNull Class<? extends ObjectType> determineObjectType(Class<? extends ObjectType> configuredType) {
             return defaultIfNull(configuredType, UserType.class); // TODO consider changing this
         }
 

@@ -29403,4 +29403,120 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="plannedOperationAttempt" type="tns:PlannedOperationAttemptType"/>
+
+    <xsd:complexType name="FailedObjectsSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects objects that were failed to be processed in previous task run(s).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What states to select. Default are: FATAL_ERROR and PARTIAL_ERROR.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What task(s) to look for? Default is: the current task.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="timeFrom" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What is the earliest time of the record to be considered? Default: no limit here.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="timeTo" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What is the latest time of the record to be considered? Default: if explicit task OID is not specified,
+                        then it is the last start timestamp of the current task root. (Just to avoid cycles in processing;
+                        although maybe we are too cautious here.) If the task is different, then null.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="selectionMethod" type="tns:FailedObjectsSelectionMethodType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How are failed objects selected. Usually there's no need to change from the default.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="failedObjectsSelector" type="tns:FailedObjectsSelectorType"/>
+
+    <xsd:simpleType name="FailedObjectsSelectionMethodType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How are failed objects selected. This is to overcome some technological obstacles in
+                object searching in the provisioning module.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="default">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default processing method. When searching for shadows via provisioning,
+                        filterAfterRetrieval will be used. (Or even fetchFailedObjects after it is implemented.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DEFAULT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="narrowQuery">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Simply narrow the query by adding failed objects filter.
+                        It works with repository but usually not with provisioning.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NARROW_QUERY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="filterAfterRetrieval">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Uses original query to retrieve objects from a resource. Filtering is done afterwards,
+                        i.e. before results are passed to the processing. This is preferable when there is
+                        large percentage of failed records.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FILTER_AFTER_RETRIEVAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="fetchFailedObjects">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Failed objects are selected using the repository. Only after that, they are fetched
+                        one-by-one via provisioning and processed. This is preferable when there is only
+                        a small percentage of failed records.
+
+                        NOT YET IMPLEMENTED.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FETCH_FAILED_OBJECTS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 </xsd:schema>

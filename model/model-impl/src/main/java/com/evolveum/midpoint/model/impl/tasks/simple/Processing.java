@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.tasks.simple;
 
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -41,7 +40,7 @@ public abstract class Processing<O extends ObjectType, EC extends ExecutionConte
      *
      * For handlers that are limited to a specific type this method MUST be overridden.
      */
-    protected Class<? extends O> determineObjectType(Class<? extends O> configuredType) {
+    protected @NotNull Class<? extends O> determineObjectType(Class<? extends O> configuredType) {
         if (configuredType != null) {
             return configuredType;
         } else {

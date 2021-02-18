@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -193,6 +194,10 @@ public abstract class AbstractTaskExecution
     protected <X> X getTaskPropertyRealValue(ItemName propertyName) {
         PrismProperty<X> property = localCoordinatorTask.getExtensionPropertyOrClone(propertyName);
         return property != null ? property.getRealValue() : null;
+    }
+
+    protected <C extends Containerable> C getTaskContainerRealValue(ItemName containerName) {
+        return localCoordinatorTask.getExtensionContainerRealValueOrClone(containerName);
     }
 
     public PrismContext getPrismContext() {

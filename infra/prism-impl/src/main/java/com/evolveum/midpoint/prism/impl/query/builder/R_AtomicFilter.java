@@ -10,6 +10,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Nullable;
 
@@ -249,11 +251,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
     @Override
     public S_AtomicFilterExit ref(PrismReferenceValue... values) {
-        if (values.length == 1 && values[0] == null) {
-            return ref(Collections.emptyList());
-        } else {
-            return ref(Arrays.asList(values));
-        }
+        return ref(MiscUtil.asListTreatingNull(values));
     }
 
     @Override
