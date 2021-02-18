@@ -7,16 +7,23 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
+
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import static com.evolveum.midpoint.repo.common.task.ErrorHandlingStrategyExecutor.Action.*;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,8 +67,10 @@ public class ErrorHandlingStrategyExecutor {
 
     /**
      * Individual entries with some auxiliary information, namely how many times they were matched in the current run.
+     * Sorted by order attribute.
      */
     @NotNull private final List<StrategyEntryInformation> strategyEntryInformationList;
+
     @NotNull private final RepositoryService repositoryService;
 
     @NotNull private final Action defaultAction;
@@ -76,8 +85,17 @@ public class ErrorHandlingStrategyExecutor {
         this.strategyEntryInformationList = getErrorHandlingStrategyEntryList(task).stream()
                 .map(StrategyEntryInformation::new)
                 .collect(Collectors.toList());
+        sortIfPossible(strategyEntryInformationList);
         this.repositoryService = repositoryService;
         this.defaultAction = defaultAction;
+    }
+
+    private void sortIfPossible(List<StrategyEntryInformation> entries) {
+        if (entries.stream().anyMatch(e -> e.getOrder() != null)) {
+            entries.sort(Comparator.comparing(StrategyEntryInformation::getOrder, Comparator.nullsLast(Integer::compare)));
+        } else {
+            // There's no point in risking that the sort will change the ordering of the entries.
+        }
     }
 
     /**
@@ -91,8 +109,11 @@ public class ErrorHandlingStrategyExecutor {
      */
     @NotNull Action determineAction(@NotNull OperationResultStatus status, @NotNull Throwable exception,
             @Nullable String triggerHolderOid, @NotNull OperationResult opResult) {
+        ErrorCategoryType errorCategory = ExceptionUtil.getErrorCategory(exception);
+        LOGGER.debug("Error category: {} for: {}", errorCategory, lazy(() -> MiscUtil.getClassWithMessage(exception)));
+
         for (StrategyEntryInformation entryInformation : strategyEntryInformationList) {
-            if (matches(entryInformation.entry, status, exception)) {
+            if (matches(entryInformation.entry, status, errorCategory)) {
                 return executeReaction(entryInformation, triggerHolderOid, opResult);
             }
         }
@@ -100,13 +121,18 @@ public class ErrorHandlingStrategyExecutor {
     }
 
     private boolean matches(@NotNull TaskErrorHandlingStrategyEntryType entry, @NotNull OperationResultStatus status,
-            @SuppressWarnings("unused") Throwable exception) {
-        if (entry.getSituation() == null || entry.getSituation().getStatus().isEmpty()) {
-            return true;
-        } else {
-            OperationResultStatusType statusBean = status.createStatusType();
-            return entry.getSituation().getStatus().contains(statusBean);
-        }
+            @NotNull ErrorCategoryType category) {
+        TaskErrorSituationSelectorType situation = entry.getSituation();
+        return situation == null ||
+                statusMatches(situation.getStatus(), status) && categoryMatches(situation.getErrorCategory(), category);
+    }
+
+    private boolean statusMatches(List<OperationResultStatusType> filter, OperationResultStatus value) {
+        return filter.isEmpty() || filter.contains(value.createStatusType());
+    }
+
+    private boolean categoryMatches(List<ErrorCategoryType> filter, ErrorCategoryType value) {
+        return filter.isEmpty() || filter.contains(value);
     }
 
     /**
@@ -119,7 +145,7 @@ public class ErrorHandlingStrategyExecutor {
             return SUSPEND;
         }
 
-        TaskErrorReactionType reaction = entry.entry != null ? entry.entry.getReaction() : null;
+        TaskErrorReactionType reaction = entry.entry.getReaction();
         if (reaction == null) {
             return STOP;
         }
@@ -205,8 +231,8 @@ public class ErrorHandlingStrategyExecutor {
     }
 
     private static class StrategyEntryInformation {
-        private final TaskErrorHandlingStrategyEntryType entry; // frozen (due to thread safety)
-        private final AtomicInteger matches = new AtomicInteger();
+        @NotNull private final TaskErrorHandlingStrategyEntryType entry; // frozen (due to thread safety)
+        @NotNull private final AtomicInteger matches = new AtomicInteger();
 
         private StrategyEntryInformation(TaskErrorHandlingStrategyEntryType entry) {
             this.entry = entry.clone();
@@ -229,8 +255,12 @@ public class ErrorHandlingStrategyExecutor {
 
         @Nullable
         private Integer getStopAfter() {
-            return entry != null && entry.getReaction() != null ?
+            return entry.getReaction() != null ?
                     entry.getReaction().getStopAfter() : null;
+        }
+
+        public Integer getOrder() {
+            return entry.getOrder();
         }
     }
 }

@@ -7493,6 +7493,102 @@
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
 
+    <xsd:simpleType name="ErrorCategoryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Categorizes errors. Mirrors ErrorSelectorType structure.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="network">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Network errors (connection refused, timeouts, unreachable network, connection resets, ...).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NETWORK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="security">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Security issues (failed authentication, permission denied, ...).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SECURITY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="policy">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Policy violations. The operation failed because it violates
+                        defined policies (e.g. exclusion policies), it fails data consistency checks,
+                        etc.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="POLICY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="schema">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Schema and data format errors. These are errors that data
+                        not complete, they contain unexpected elements, they do not match
+                        pre-defined schema, etc.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SCHEMA"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="configuration">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Configuration errors. These are caused by misconfiguration of
+                        midPoint, some of its components, the connector or the resource. This also
+                        includes run-time errors that are likely caused by the configuration, such
+                        as generic errors in the expressions.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CONFIGURATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="unsupported">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        "Unsupported operation" issues. These errors are caused by
+                        lack of functionality or support for the operation in connector
+                        or any other part of midPoint. E.g. this may be missing (or disabled)
+                        connector capability.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UNSUPPORTED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="generic">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Generic, system and other non-specific issues. These errors
+                        do not have any substantial definition about their cause. The error
+                        may mean anything.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="GENERIC"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:simpleType name="CriticalityType">
         <xsd:annotation>
             <xsd:documentation>
@@ -29227,6 +29323,14 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="order" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Order in which this entry is to be evaluated. (Related to other entries.) Smaller numbers
+                        go first. Entries with no order go last.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="situation" type="tns:TaskErrorSituationSelectorType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -29262,11 +29366,21 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Operation result status to match. Can be either PARTIAL_ERROR or FATAL_ERROR.
-                        If not specified, any error matches.
+                        If not present, we decide solely on error category. If error categories are not specified,
+                        any error matches.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!-- Maybe better specification e.g. exception class can be added here? -->
+            <xsd:element name="errorCategory" type="tns:ErrorCategoryType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Error category (network, security, policy, ...) to match. Note that some errors are not propagated
+                        to the level where they can be recognized by this selector. So be careful and consider this feature
+                        to be highly experimental.
+                        If not present, we decide solely on the status.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="taskErrorSituationSelector" type="tns:TaskErrorSituationSelectorType"/>

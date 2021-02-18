@@ -745,10 +745,7 @@ public class ResourceTypeUtil {
 
     public static ErrorSelectorType getConnectorErrorCriticality(ResourceType resourceType) {
         ResourceConsistencyType consistency = resourceType.getConsistency();
-        if (consistency == null) {
-            return null;
-        }
-        return consistency.getConnectorErrorCriticality();
+        return consistency != null ? consistency.getConnectorErrorCriticality() : null;
     }
 
     public static void checkNotInMaintenance(PrismObject<ResourceType> resource) throws MaintenanceException {
