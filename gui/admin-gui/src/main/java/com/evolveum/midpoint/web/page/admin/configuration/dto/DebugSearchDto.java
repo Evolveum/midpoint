@@ -29,28 +29,28 @@ public class DebugSearchDto implements Serializable, DebugDumpable {
     private static final long serialVersionUID = 1L;
 
 //    public static final String F_TYPE = "type";
-    public static final String F_RESOURCE = "resource";
-    public static final String F_OID_FILTER = "oidFilter";
-    public static final String F_OBJECT_CLASS = "objectClass";
+//    public static final String F_RESOURCE = "resource";
+//    public static final String F_OID_FILTER = "oidFilter";
+//    public static final String F_OBJECT_CLASS = "objectClass";
     public static final String F_SEARCH = "search";
 
 //    private ObjectTypes type;
-    private ObjectReferenceType resource;
+//    private ObjectReferenceType resource;
     private Search search;
 //    private String oidFilter;
     private QName objectClass;
 
-    public DebugSearchDto(){
-        resetResourceRef();
-    }
+//    public DebugSearchDto(){
+//        resetResourceRef();
+//    }
 
-    public ObjectReferenceType getResource() {
-        return resource;
-    }
-
-    public void setResource(ObjectReferenceType resource) {
-        this.resource = resource;
-    }
+//    public ObjectReferenceType getResource() {
+//        return resource;
+//    }
+//
+//    public void setResource(ObjectReferenceType resource) {
+//        this.resource = resource;
+//    }
 
     public Search getSearch() {
         return search;
@@ -76,15 +76,15 @@ public class DebugSearchDto implements Serializable, DebugDumpable {
 //        this.oidFilter = oidFilter;
 //    }
 
-    public boolean isResourceEmpty() {
-        return getResource() == null || getResource().getOid() == null || getResource().asReferenceValue().isEmpty();
-    }
-
-    public void resetResourceRef(){
-        ObjectReferenceType ref = new ObjectReferenceType();
-        ref.setType(ResourceType.COMPLEX_TYPE);
-        this.resource = ref;
-    }
+//    public boolean isResourceEmpty() {
+//        return getResource() == null || getResource().getOid() == null || getResource().asReferenceValue().isEmpty();
+//    }
+//
+//    public void resetResourceRef(){
+//        ObjectReferenceType ref = new ObjectReferenceType();
+//        ref.setType(ResourceType.COMPLEX_TYPE);
+//        this.resource = ref;
+//    }
 
     @Override
     public String debugDump() {
@@ -97,7 +97,7 @@ public class DebugSearchDto implements Serializable, DebugDumpable {
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("DebugSearchDto\n");
 //        DebugUtil.debugDumpWithLabelLn(sb, "type", type==null?null:type.toString(), indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "resource", resource==null?null:resource.toString(), indent+1);
+//        DebugUtil.debugDumpWithLabelLn(sb, "resource", resource==null?null:resource.toString(), indent+1);
         DebugUtil.debugDumpWithLabel(sb, "objectClass", objectClass==null? null : objectClass.toString(), indent+1);
         DebugUtil.debugDumpWithLabel(sb, "search", search, indent+1);
         return sb.toString();

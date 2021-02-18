@@ -9,6 +9,10 @@ package com.evolveum.midpoint.web.page.admin.configuration.component;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.search.Search;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.Page;
@@ -53,7 +57,7 @@ public class DebugSearchFragment extends Fragment {
     private static final String ID_SEARCH_FORM = "searchForm";
 
     public DebugSearchFragment(String id, String markupId, MarkupContainer markupProvider,
-            IModel<DebugSearchDto> model, IModel<Boolean> showAllItemsModel) {
+            IModel<Search<? extends ObjectType>> model, IModel<Boolean> showAllItemsModel) {
         super(id, markupId, markupProvider, model);
 
         initLayout(showAllItemsModel);
@@ -96,8 +100,7 @@ public class DebugSearchFragment extends Fragment {
     }
 
     private WebMarkupContainer createSearchPanel() {
-        SearchPanel searchPanel = new SearchPanel(ID_SEARCH,
-                new PropertyModel<>(getModel(), DebugSearchDto.F_SEARCH)) {
+        SearchPanel searchPanel = new SearchPanel(ID_SEARCH, getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override

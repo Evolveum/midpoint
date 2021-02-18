@@ -19,27 +19,29 @@ public class ConfigurationStorage implements PageStorage {
 
     private static final long serialVersionUID = 1L;
 
-    private DebugSearchDto debugSearchDto;
+//    private DebugSearchDto debugSearchDto;
 
     private ObjectPaging debugSearchPaging;
 
+    private Search search;
+
     @Override
     public Search getSearch() {
-        return debugSearchDto.getSearch();
+        return search;
     }
 
     @Override
     public void setSearch(Search search) {
-        debugSearchDto.setSearch(search);
+        this.search = search;
     }
 
-    public void setDebugSearchDto(DebugSearchDto debugSearchDto) {
-        this.debugSearchDto = debugSearchDto;
-    }
-
-    public DebugSearchDto getDebugSearchDto() {
-        return debugSearchDto;
-    }
+//    public void setDebugSearchDto(DebugSearchDto debugSearchDto) {
+//        this.debugSearchDto = debugSearchDto;
+//    }
+//
+//    public DebugSearchDto getDebugSearchDto() {
+//        return debugSearchDto;
+//    }
 
     @Override
     public ObjectPaging getPaging() {
@@ -61,7 +63,7 @@ public class ConfigurationStorage implements PageStorage {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("ConfigurationStorage\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "debugSearchDto", debugSearchDto, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "search", search, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "debugSearchPaging", debugSearchPaging, indent+1);
         return sb.toString();
     }

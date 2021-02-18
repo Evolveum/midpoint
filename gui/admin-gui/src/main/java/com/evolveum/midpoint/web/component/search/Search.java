@@ -274,7 +274,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         typeSearchItem.setTypeClass(type);
     }
 
-    public ContainerTypeSearchItem getType() {
+    public ContainerTypeSearchItem<C> getType() {
         return typeSearchItem;
     }
 
@@ -717,12 +717,24 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         this.canConfigure = canConfigure;
     }
 
-    public SearchItem findPropertySearchItem(ItemPath path) {
+    public PropertySearchItem findPropertySearchItem(ItemPath path) {
         if (path == null) {
             return null;
         }
         for (PropertySearchItem searchItem : getPropertyItems()) {
             if (path.equivalent(searchItem.getPath())) {
+                return searchItem;
+            }
+        }
+        return null;
+    }
+
+    public SearchItem findSpecialItem(ItemPath path) {
+        if (path == null) {
+            return null;
+        }
+        for (SearchItem searchItem : getSpecialItems()) {
+            if (path.equivalent(searchItem.getDefinition().getPath())) {
                 return searchItem;
             }
         }

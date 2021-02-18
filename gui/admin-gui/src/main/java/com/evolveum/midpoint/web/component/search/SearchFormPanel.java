@@ -7,14 +7,13 @@
 
 package com.evolveum.midpoint.web.component.search;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -35,7 +34,7 @@ public class SearchFormPanel<C extends Containerable> extends BasePanel<Search<C
         add(searchForm);
         searchForm.setOutputMarkupId(true);
 
-        SearchPanel search = new SearchPanel(ID_SEARCH, getModel()) {
+        SearchPanel<C> search = new SearchPanel<>(ID_SEARCH, getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
