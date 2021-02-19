@@ -3898,13 +3898,9 @@ public class TestDummy extends AbstractBasicDummyTest {
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
 
-        PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
-        assertNotNull("Old shadow missing", oldShadow);
-        assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
-
         assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
-        PrismObject<ShadowType> currentShadow = lastChange.getCurrentShadow();
-        assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
+        PrismObject<ShadowType> currentShadow = lastChange.getShadowedResourceObject();
+        assertNotNull("Current shadow missing", lastChange.getShadowedResourceObject());
         assertTrue("Wrong type of current shadow: " + currentShadow.getClass().getName(),
                 currentShadow.canRepresent(ShadowType.class));
 
@@ -3956,12 +3952,9 @@ public class TestDummy extends AbstractBasicDummyTest {
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
 
-        PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
-        assertSyncOldShadow(oldShadow, getBlackbeardRepoIcfName());
-
         assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
-        PrismObject<ShadowType> currentShadow = lastChange.getCurrentShadow();
-        assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
+        PrismObject<ShadowType> currentShadow = lastChange.getShadowedResourceObject();
+        assertNotNull("Current shadow missing", lastChange.getShadowedResourceObject());
         assertTrue("Wrong type of current shadow: " + currentShadow.getClass().getName(),
                 currentShadow.canRepresent(ShadowType.class));
 
@@ -4116,10 +4109,6 @@ public class TestDummy extends AbstractBasicDummyTest {
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
 
-        PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
-        assertNotNull("Old shadow missing", oldShadow);
-        assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
-
         if (syncStyle == DummySyncStyle.DUMB) {
             assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
         } else {
@@ -4128,8 +4117,8 @@ public class TestDummy extends AbstractBasicDummyTest {
             assertTrue("Delta is not add: " + objectDelta, objectDelta.isAdd());
         }
 
-        ShadowType currentShadowType = lastChange.getCurrentShadow().asObjectable();
-        assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
+        ShadowType currentShadowType = lastChange.getShadowedResourceObject().asObjectable();
+        assertNotNull("Current shadow missing", lastChange.getShadowedResourceObject());
         PrismAsserts.assertClass("current shadow", ShadowType.class, currentShadowType);
 
         ResourceAttributeContainer attributesContainer = ShadowUtil
@@ -4185,12 +4174,9 @@ public class TestDummy extends AbstractBasicDummyTest {
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
 
-        PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
-        assertSyncOldShadow(oldShadow, getDrakeRepoIcfName());
-
         assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
-        PrismObject<ShadowType> currentShadow = lastChange.getCurrentShadow();
-        assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
+        PrismObject<ShadowType> currentShadow = lastChange.getShadowedResourceObject();
+        assertNotNull("Current shadow missing", lastChange.getShadowedResourceObject());
         assertTrue("Wrong type of current shadow: " + currentShadow.getClass().getName(),
                 currentShadow.canRepresent(ShadowType.class));
 
@@ -4244,10 +4230,6 @@ public class TestDummy extends AbstractBasicDummyTest {
             ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
             displayDumpable("The change", lastChange);
 
-            PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
-            assertNotNull("Old shadow missing", oldShadow);
-            assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
-
             if (syncStyle == DummySyncStyle.DUMB) {
                 assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
             } else {
@@ -4256,8 +4238,8 @@ public class TestDummy extends AbstractBasicDummyTest {
                 assertTrue("Delta is not add: " + objectDelta, objectDelta.isAdd());
             }
 
-            ShadowType currentShadowType = lastChange.getCurrentShadow().asObjectable();
-            assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
+            ShadowType currentShadowType = lastChange.getShadowedResourceObject().asObjectable();
+            assertNotNull("Current shadow missing", lastChange.getShadowedResourceObject());
             PrismAsserts.assertClass("current shadow", ShadowType.class, currentShadowType);
 
             ResourceAttributeContainer attributesContainer = ShadowUtil
@@ -4317,21 +4299,18 @@ public class TestDummy extends AbstractBasicDummyTest {
             syncServiceMock
                     .lastNotifyChange()
                     .display()
-                    .oldShadow()
+                    .delta()
+                        .assertChangeType(ChangeType.DELETE)
+                        .assertObjectTypeClass(ShadowType.class)
+                        .end()
+                    .currentShadow()
                         .assertOid(corsairsShadowOid)
+                        .assertTombstone()
                         .attributes()
                             .assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID)
                             .assertValue(SchemaConstants.ICFS_NAME, GROUP_CORSAIRS_NAME)
                             .end()
-                        .end()
-                    .delta()
-                        .assertChangeType(ChangeType.DELETE)
-                        .assertObjectTypeClass(ShadowType.class)
-                        .assertOid(corsairsShadowOid)
-                        .end()
-                    .currentShadow() // questionable
-                        .assertOid(corsairsShadowOid)
-                        .assertTombstone();
+                        .end();
 
             assertRepoShadow(corsairsShadowOid)
                     .assertTombstone();
@@ -4378,20 +4357,13 @@ public class TestDummy extends AbstractBasicDummyTest {
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
 
-        PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
-        assertSyncOldShadow(oldShadow, getDrakeRepoIcfName());
-
         syncServiceMock
                 .lastNotifyChange()
                 .delta()
                     .assertChangeType(ChangeType.DELETE)
                     .assertObjectTypeClass(ShadowType.class)
-                    .assertOid(drakeAccountOid)
                 .end()
-                .oldShadow()
-                    .assertOid(drakeAccountOid)
-                    .end()
-                .currentShadow() // questionable
+                .currentShadow()
                     .assertOid(drakeAccountOid)
                     .assertTombstone();
 

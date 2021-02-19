@@ -1279,10 +1279,7 @@ public class ContextLoader implements ProjectorProcessor {
                         if (resourceType == null) {
                             throw e;
                         } else {
-                            ErrorSelectorType errorSelector = null;
-                            if (resourceType.getConsistency() != null) {
-                                errorSelector = resourceType.getConsistency().getConnectorErrorCriticality();
-                            }
+                            ErrorSelectorType errorSelector = ResourceTypeUtil.getConnectorErrorCriticality(resourceType);
                             if (errorSelector == null) {
                                 if (e instanceof SchemaException) {
                                     // Just continue evaluation. The error is recorded in the result.
@@ -1293,7 +1290,8 @@ public class ContextLoader implements ProjectorProcessor {
                                     throw e;
                                 }
                             } else {
-                                if (CriticalityType.FATAL.equals(ExceptionUtil.getCriticality(errorSelector, e, CriticalityType.FATAL))) {
+                                CriticalityType criticality = ExceptionUtil.getCriticality(errorSelector, e, CriticalityType.FATAL);
+                                if (criticality == CriticalityType.FATAL) {
                                     throw e;
                                 } else {
                                     return;

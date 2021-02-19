@@ -7,7 +7,9 @@
 
 package com.evolveum.midpoint.prism.xnode;
 
+import com.evolveum.midpoint.prism.Copyable;
 import com.evolveum.midpoint.prism.Freezable;
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.util.DebugDumpable;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +20,7 @@ import java.io.Serializable;
 /**
  *
  */
-public interface XNode extends DebugDumpable, Visitable<XNode>, Cloneable, Serializable, Freezable {
+public interface XNode extends DebugDumpable, Visitable<XNode>, Cloneable, Copyable<XNode>, Serializable, Freezable {
 
     boolean isEmpty();
 
@@ -31,9 +33,21 @@ public interface XNode extends DebugDumpable, Visitable<XNode>, Cloneable, Seria
     @NotNull
     XNode clone();
 
+    @Override
+    XNode copy();
+
     Integer getMaxOccurs();
 
     default boolean hasMetadata() {
         return this instanceof MetadataAware && !((MetadataAware) this).getMetadataNodes().isEmpty();
+    }
+
+    default PrismNamespaceContext namespaceContext() {
+        return PrismNamespaceContext.EMPTY;
+    }
+
+    default XNode frozen() {
+        freeze();
+        return this;
     }
 }

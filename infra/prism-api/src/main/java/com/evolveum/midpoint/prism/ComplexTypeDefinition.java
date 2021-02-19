@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -124,6 +125,7 @@ public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionSt
     /**
      * Does a shallow clone of this definition (i.e. item definitions themselves are NOT cloned).
      */
+    @Override
     @NotNull
     ComplexTypeDefinition clone();
 
@@ -148,5 +150,21 @@ public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionSt
         return findItemDefinition(ItemName.fromQName(itemName)) != null;
     }
 
+    @Experimental
+    boolean hasSubstitutions();
+
+    @Experimental
+    Optional<ItemDefinition<?>> substitution(QName name);
+
+    @Experimental
+    default Optional<ItemDefinition<?>> itemOrSubstitution(QName name) {
+        ItemDefinition itemDef = findLocalItemDefinition(name);
+        if(itemDef != null) {
+            return Optional.of(itemDef);
+        }
+        return substitution(name);
+    }
+
+    @Override
     MutableComplexTypeDefinition toMutable();
 }

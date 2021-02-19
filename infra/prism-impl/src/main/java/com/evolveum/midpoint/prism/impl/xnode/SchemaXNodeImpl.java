@@ -9,10 +9,12 @@ package com.evolveum.midpoint.prism.impl.xnode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.MetadataAware;
 import com.evolveum.midpoint.prism.xnode.SchemaXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -26,9 +28,21 @@ import java.util.List;
  */
 public class SchemaXNodeImpl extends XNodeImpl implements SchemaXNode {
 
+
+
     private Element schemaElement;
 
     @NotNull private List<MapXNode> metadataNodes = new ArrayList<>();
+
+
+    @Deprecated
+    public SchemaXNodeImpl() {
+        super();
+    }
+
+    public SchemaXNodeImpl(PrismNamespaceContext local) {
+        super(local);
+    }
 
     public Element getSchemaElement() {
         return schemaElement;
@@ -111,5 +125,13 @@ public class SchemaXNodeImpl extends XNodeImpl implements SchemaXNode {
         SchemaXNodeImpl clone = (SchemaXNodeImpl) super.clone();
         MetadataAware.cloneMetadata(clone, this);
         return clone;
+    }
+
+    @Override
+    public XNode copy() {
+        if(isImmutable()) {
+            return this;
+        }
+        return clone();
     }
 }

@@ -56,6 +56,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      *
      * @return applicable definition
      */
+    @Override
     D getDefinition();
 
     /**
@@ -181,6 +182,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      *
      * @return the path
      */
+    @Override
     @NotNull
     ItemPath getPath();
 
@@ -555,6 +557,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     /**
      * Accepts a visitor that visits each item/value on the way to the structure root.
      */
+    @Override
     void acceptParentVisitor(@NotNull Visitor visitor);
 
     /**
@@ -596,6 +599,10 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
     void applyDefinition(D definition, boolean force) throws SchemaException;
 
+    default Item<?,?> copy() {
+        return clone();
+    }
+
     /**
      * Literal clone.
      */
@@ -609,11 +616,10 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      */
     Item cloneComplex(CloneStrategy strategy);
 
-    static <T extends Item<?,?>> Collection<T> cloneCollection(Collection<T> items) {
+    static <T extends Item<?,?>>  Collection<T> cloneCollection(Collection<T> items) {
         Collection<T> clones = new ArrayList<>(items.size());
         for (T item: items) {
-            //noinspection unchecked
-            clones.add((T) item.clone());
+            clones.add((T) item.copy());
         }
         return clones;
     }

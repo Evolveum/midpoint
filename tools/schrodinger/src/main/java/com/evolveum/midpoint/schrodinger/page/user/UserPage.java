@@ -12,6 +12,8 @@ import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
 import com.evolveum.midpoint.schrodinger.component.user.*;
 import com.evolveum.midpoint.schrodinger.page.FocusPage;
 
+import org.testng.Assert;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -50,5 +52,25 @@ public class UserPage extends FocusPage<UserPage> {
     @Override
     public ProjectionsTab<UserPage> selectTabProjections() {
         return super.selectTabProjections();
+    }
+
+    public UserPage assertName(String expectedValue) {
+        selectTabBasic().form().assertPropertyInputValue("name", expectedValue);
+        return this;
+    }
+
+    public UserPage assertGivenName(String expectedValue) {
+        selectTabBasic().form().assertPropertyInputValue("givenName", expectedValue);
+        return this;
+    }
+
+    public UserPage assertFamilyName(String expectedValue) {
+        selectTabBasic().form().assertPropertyInputValue("familyName", expectedValue);
+        return this;
+    }
+
+    public UserPage assertFullName(String expectedValue) {
+        selectTabBasic().form().assertPropertyInputValue("fullName", expectedValue);
+        return this;
     }
 }

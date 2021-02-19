@@ -258,6 +258,14 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         return result;
     }
 
+    protected OperationResult testResourceAssertSuccess(DummyTestResource resource, Task task) throws ObjectNotFoundException,
+            SchemaException {
+        OperationResult result = provisioningService.testResource(resource.oid, task);
+        assertSuccess(result);
+        resource.object = repositoryService.getObject(ResourceType.class, resource.oid, null, result);
+        return result;
+    }
+
     protected DummyResourceContoller initDummyResource(DummyTestResource resource, OperationResult result) throws Exception {
         DummyResourceContoller controller = initDummyResource(resource.name, resource.file, resource.oid,
                 resource.controllerInitLambda, result);

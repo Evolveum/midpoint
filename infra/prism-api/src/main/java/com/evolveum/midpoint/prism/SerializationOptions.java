@@ -12,6 +12,7 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 /**
  *
  */
+// FIXME: Create explicit default instance
 public class SerializationOptions implements Cloneable {
 
     private boolean serializeCompositeObjects;

@@ -38,8 +38,8 @@ public class QTask extends QObject<MTask> {
             ColumnMetadata.named("executionStatus").ofType(Types.OTHER);
     public static final ColumnMetadata FULL_RESULT =
             ColumnMetadata.named("fullResult").ofType(Types.BINARY);
-    public static final ColumnMetadata HANDLER_URI =
-            ColumnMetadata.named("handlerUri").ofType(Types.VARCHAR).withSize(255);
+    public static final ColumnMetadata HANDLER_URI_ID =
+            ColumnMetadata.named("handlerUri_id").ofType(Types.INTEGER);
     public static final ColumnMetadata LAST_RUN_FINISH_TIMESTAMP =
             ColumnMetadata.named("lastRunFinishTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     public static final ColumnMetadata LAST_RUN_START_TIMESTAMP =
@@ -78,7 +78,7 @@ public class QTask extends QObject<MTask> {
     public final EnumPath<TaskExecutionStatusType> executionStatus =
             createEnum("executionStatus", TaskExecutionStatusType.class, EXECUTION_STATUS);
     public final ArrayPath<byte[], Byte> fullResult = createByteArray("fullResult", FULL_RESULT);
-    public final StringPath handlerUri = createString("handlerUri", HANDLER_URI);
+    public final NumberPath<Integer> handlerUriId = createInteger("handlerUriId", HANDLER_URI_ID);
     public final DateTimePath<Instant> lastRunFinishTimestamp = createInstant("lastRunFinishTimestamp", LAST_RUN_FINISH_TIMESTAMP);
     public final DateTimePath<Instant> lastRunStartTimestamp = createInstant("lastRunStartTimestamp", LAST_RUN_START_TIMESTAMP);
     public final StringPath node = createString("node", NODE);

@@ -15,16 +15,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
  */
 public class MFocus extends MObject {
 
-    public Integer administrativeStatus;
-    public Integer effectiveStatus;
-    public Instant enableTimestamp;
-    public Instant disableTimestamp;
-    public String disableReason;
-    public Instant archiveTimestamp;
-    public Instant validFrom;
-    public Instant validTo;
-    public Instant validityChangeTimestamp;
-    public Integer validityStatus;
     public String costCenter;
     public String emailAddress;
     public byte[] photo;
@@ -36,4 +26,15 @@ public class MFocus extends MObject {
     public String timezone;
     public Instant passwordCreateTimestamp;
     public Instant passwordModifyTimestamp;
+    // activation
+    public Integer administrativeStatus;
+    public Integer effectiveStatus;
+    public Instant enableTimestamp;
+    public Instant disableTimestamp;
+    public String disableReason;
+    public Integer validityStatus;
+    public Instant validFrom;
+    public Instant validTo;
+    public Instant validityChangeTimestamp;
+    public Instant archiveTimestamp;
 }

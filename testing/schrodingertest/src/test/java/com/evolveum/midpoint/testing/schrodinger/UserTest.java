@@ -60,11 +60,9 @@ public class UserTest extends AbstractSchrodingerTest {
                 .updateSearch()
                 .and()
                 .clickByName("jdoe222323")
-                .selectTabBasic()
-                .form()
-                .assertInputAttributeValueMatches("name", "jdoe222323")
-                .assertInputAttributeValueMatches("givenName", "john")
-                .assertInputAttributeValueMatches("familyName", "doe");
+                .assertName("jdoe222323")
+                .assertGivenName("john")
+                .assertFamilyName("doe");
 
     }
 
@@ -94,9 +92,7 @@ public class UserTest extends AbstractSchrodingerTest {
                         .updateSearch()
                     .and()
                     .clickByName(LOCALIZATION_TEST_USER_NAME_ORIG)
-                        .selectTabBasic()
-                            .form()
-                                .assertInputAttributeValueMatches("name", LOCALIZATION_TEST_USER_NAME_DE);
+                        .assertName(LOCALIZATION_TEST_USER_NAME_DE);
     }
 
     @Test

@@ -66,20 +66,6 @@ public class ImportFromResourceTaskPartExecution
                 true);
     }
 
-//    private SynchronizeAccountResultHandler createHandler(@NotNull ResourceType resource,
-//            @Nullable PrismObject<ShadowType> shadowToImport, RunningTask coordinatorTask, TaskPartitionDefinitionType partition,
-//            TaskRunResult runResult, OperationResult opResult) {
-//        SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, objectClass, objectsFilter, "import",
-//                coordinatorTask, changeNotificationDispatcher, partition, taskManager);
-//        handler.setSourceChannel(SchemaConstants.CHANNEL_IMPORT);
-//        handler.setForceAdd(true);
-//        handler.setStopOnError(false);
-//        handler.setContextDesc("from "+resource);
-//        handler.setLogObjectProgress(true);
-//
-//        return handler;
-//    }
-
     @Override
     protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(
             OperationResult opResult) {

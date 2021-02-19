@@ -210,7 +210,7 @@
                 <notAvailableCount>0</notAvailableCount>
             </cache>
             <cache>
-                <name>com.evolveum.midpoint.provisioning.impl.ConstraintsChecker$Cache</name>
+                <name>com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker$Cache</name>
                 <hitCount>0</hitCount>
                 <weakHitCount>0</weakHitCount>
                 <missCount>4</missCount>

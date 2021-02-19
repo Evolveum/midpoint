@@ -23,7 +23,7 @@ public class MUri {
 
     @Override
     public String toString() {
-        return "MQName{" +
+        return "MUri{" +
                 "id=" + id +
                 ", uri='" + uri + '\'' +
                 '}';

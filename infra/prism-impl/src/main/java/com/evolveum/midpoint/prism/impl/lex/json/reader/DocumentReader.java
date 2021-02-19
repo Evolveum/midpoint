@@ -12,6 +12,7 @@ import java.io.IOException;
 import com.fasterxml.jackson.core.JsonToken;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -22,9 +23,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 class DocumentReader {
 
     @NotNull private final JsonReadingContext ctx;
+    private final PrismNamespaceContext nsContext;
 
-    DocumentReader(@NotNull JsonReadingContext ctx) {
+    DocumentReader(@NotNull JsonReadingContext ctx, PrismNamespaceContext context) {
         this.ctx = ctx;
+        this.nsContext = context;
     }
 
     void read(boolean expectingMultipleObjects) throws IOException, SchemaException {
@@ -40,6 +43,6 @@ class DocumentReader {
     }
 
     private void read() throws IOException, SchemaException {
-        new RootObjectReader(ctx).read();
+        new RootObjectReader(ctx, nsContext).read();
     }
 }

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 
 /**
  * TODO
@@ -17,5 +18,5 @@ public interface ResourceObjectAsyncChangeListener {
     /**
      * Called when given change has to be processed.
      */
-    void onChange(ResourceObjectAsyncChange change, OperationResult result);
+    void onChange(ResourceObjectAsyncChange change, Task listenerTask, OperationResult result);
 }

@@ -155,7 +155,7 @@ class ReconciliationTaskThirdPartExecution
             ObjectDelta<ShadowType> shadowDelta = shadow.getPrismContext().deltaFactory().object()
                     .createDeleteDelta(ShadowType.class, shadow.getOid());
             change.setObjectDelta(shadowDelta);
-            change.setCurrentShadow(shadow); // TODO why current shadow?!
+            change.setShadowedResourceObject(shadow);
             ModelImplUtils.clearRequestee(task);
             taskHandler.changeNotificationDispatcher.notifyChange(change, task, result);
         }

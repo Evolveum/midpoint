@@ -12,7 +12,6 @@ import com.evolveum.midpoint.gui.api.component.password.PasswordLimitationsPanel
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 
-import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -30,6 +29,7 @@ public class PasswordPolicyValidationPanel extends BasePanel<List<StringLimitati
     private static final String ID_RESULT_ICON = "resultIcon";
     private static final String ID_INFO_ICON = "infoIcon";
     private static final String ID_POLICY_VALIDATION_POPOVER = "policyValidationPopover";
+    private Model<Boolean> isAfterInitialization = Model.of(false);
 
     public PasswordPolicyValidationPanel(String id, IModel<List<StringLimitationResult>> model) {
         super(id, model);
@@ -43,6 +43,9 @@ public class PasswordPolicyValidationPanel extends BasePanel<List<StringLimitati
 
     private void initLayout() {
         IModel<DisplayType> displayModel = (IModel) () -> {
+            if (!Boolean.TRUE.equals(isAfterInitialization.getObject())){
+                return null;
+            }
             String status = "fa-fw " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_SUCCESS_COLORED + " fa-lg";
             String titleKey = "PasswordPolicyValidationPanel.valid";
             for (StringLimitationResult limitation : getModelObject()) {
@@ -68,6 +71,7 @@ public class PasswordPolicyValidationPanel extends BasePanel<List<StringLimitati
     }
 
     public void refreshValidationPopup(AjaxRequestTarget target){
+        isAfterInitialization.setObject(true);
         target.add(get(ID_RESULT_ICON));
         ((PasswordLimitationsPanel)get(ID_POLICY_VALIDATION_POPOVER)).refreshItems(target);
     }

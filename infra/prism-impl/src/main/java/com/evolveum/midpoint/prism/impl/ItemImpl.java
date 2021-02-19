@@ -158,10 +158,12 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         this.definition = definition;
     }
 
+    @Override
     public boolean isIncomplete() {
         return incomplete;
     }
 
+    @Override
     public void setIncomplete(boolean incomplete) {
         this.incomplete = incomplete;
     }
@@ -178,18 +180,22 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
     }
 
     // Primarily for testing
+    @Override
     public PrismContext getPrismContextLocal() {
         return prismContext;
     }
 
+    @Override
     public void setPrismContext(PrismContext prismContext) {
         this.prismContext = prismContext;
     }
 
+    @Override
     public PrismContainerValue<?> getParent() {
         return parent;
     }
 
+    @Override
     public void setParent(PrismContainerValue<?> parentValue) {
         if (this.parent != null && parentValue != null && this.parent != parentValue) {
             throw new IllegalStateException("Attempt to reset parent of item "+this+" from "+this.parent+" to "+parentValue);
@@ -218,6 +224,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
     /**
      * Type override, also for compatibility.
      */
+    @Override
     public <X> X getRealValue(Class<X> type) {
         V singleValue = getValue();
         if (singleValue == null) {
@@ -238,6 +245,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
     /**
      * Type override, also for compatibility.
      */
+    @Override
     public <X> X[] getRealValuesArray(Class<X> type) {
         //noinspection unchecked
         X[] valuesArray = (X[]) Array.newInstance(type, getValues().size());
@@ -248,6 +256,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         return valuesArray;
     }
 
+    @Override
     @NotNull
     public ItemPath getPath() {
          if (parent == null) {
@@ -299,6 +308,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         }
     }
 
+    @Override
     @NotNull
     public Map<String, Object> getUserData() {
         if (userData == null) {
@@ -311,16 +321,19 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         }
     }
 
+    @Override
     public <T> T getUserData(String key) {
         // TODO make returned data immutable (?)
         return (T) getUserData().get(key);
     }
 
+    @Override
     public void setUserData(String key, Object value) {
         checkMutable();
         getUserData().put(key, value);
     }
 
+    @Override
     @NotNull
     public List<V> getValues() {
         return values;
@@ -337,6 +350,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         }
     }
 
+    @Override
     public boolean addAll(Collection<V> newValues, @NotNull EquivalenceStrategy strategy) throws SchemaException {
         return addAllInternal(newValues, true, strategy);
     }
@@ -563,6 +577,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         }
     }
 
+    @Override
     public ItemDelta<V,D> diff(Item<V,D> other, @NotNull ParameterizedEquivalenceStrategy strategy) {
         List<ItemDelta<V, D>> itemDeltas = new ArrayList<>();
         diffInternal(other, itemDeltas, true, strategy);
@@ -653,6 +668,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
     /**
      * Re-apply PolyString (and possible other) normalizations to the object.
      */
+    @Override
     public void recomputeAllValues() {
         accept(visitable -> {
             if (visitable instanceof PrismPropertyValue<?>) {
@@ -661,10 +677,12 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         });
     }
 
+    @Override
     public void applyDefinition(D definition) throws SchemaException {
         applyDefinition(definition, true);
     }
 
+    @Override
     public void applyDefinition(D definition, boolean force) throws SchemaException {
         checkMutable();                    // TODO consider if there is real change
         if (definition != null) {
@@ -679,6 +697,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         }
     }
 
+    @Override
     public void revive(PrismContext prismContext) throws SchemaException {
         // it is necessary to do e.g. PolyString recomputation even if PrismContext is set
         if (this.prismContext == null) {
@@ -708,27 +727,33 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         // nothing to do by default
     }
 
+    @Override
     public void checkConsistence(boolean requireDefinitions, ConsistencyCheckScope scope) {
         checkConsistenceInternal(this, requireDefinitions, false, scope);
     }
 
+    @Override
     public void checkConsistence(boolean requireDefinitions, boolean prohibitRaw) {
         checkConsistenceInternal(this, requireDefinitions, prohibitRaw, ConsistencyCheckScope.THOROUGH);
     }
 
+    @Override
     public void checkConsistence(boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope) {
         checkConsistenceInternal(this, requireDefinitions, prohibitRaw, scope);
     }
 
+    @Override
     public void checkConsistence() {
         checkConsistenceInternal(this, false, false, ConsistencyCheckScope.THOROUGH);
     }
 
+    @Override
     public void checkConsistence(ConsistencyCheckScope scope) {
         checkConsistenceInternal(this, false, false, scope);
     }
 
 
+    @Override
     public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope) {
         ItemPath path = getPath();
         if (elementName == null) {
@@ -760,19 +785,22 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
 
     protected abstract void checkDefinition(D def);
 
+    @Override
     public void assertDefinitions() throws SchemaException {
         assertDefinitions("");
     }
 
+    @Override
     public void assertDefinitions(String sourceDescription) throws SchemaException {
         assertDefinitions(false, sourceDescription);
     }
 
+    @Override
     public void assertDefinitions(boolean tolarateRawValues, String sourceDescription) throws SchemaException {
         if (tolarateRawValues && isRaw()) {
             return;
         }
-        Checks.checkSchemaNotNull(definition, "No definition in {} in {}", this, sourceDescription);
+        Checks.checkSchemaNotNull(definition, "No definition in %s in %s", this, sourceDescription);
     }
 
     @Override
@@ -808,6 +836,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         return hashCode(DEFAULT_FOR_EQUALS);
     }
 
+    @Override
     public boolean equals(Object obj, @NotNull EquivalenceStrategy strategy) {
         if (!(obj instanceof Item)) {
             return false;
@@ -821,6 +850,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         }
     }
 
+    @Override
     public boolean equals(Object obj, @NotNull ParameterizedEquivalenceStrategy parameterizedEquivalenceStrategy) {
         incrementObjectCompareCounterIfNeeded(obj);
         if (this == obj) {
@@ -856,6 +886,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         return getClass().getSimpleName() + "(" + PrettyPrinter.prettyPrint(getElementName()) + ")";
     }
 
+    @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
@@ -879,6 +910,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         }
     }
 
+    @Override
     public void performFreeze() {
         for (V value : getValues()) {
             value.freeze();
@@ -887,6 +919,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
 
     // Path may contain ambiguous segments (e.g. assignment/targetRef when there are more assignments)
     // Note that the path can contain name segments only (at least for now)
+    @Override
     @NotNull
     public Collection<PrismValue> getAllValues(ItemPath path) {
         return values.stream()
@@ -897,6 +930,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
     @Override
     public abstract Item<V,D> clone();
 
+    @Override
     public Item<V,D> createImmutableClone() {
         Item<V,D> clone = clone();
         clone.freeze();

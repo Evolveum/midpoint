@@ -46,7 +46,7 @@
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.Projector" level="TRACE" />
 
     <!-- asynchronous processing -->
-    <logger name="com.evolveum.midpoint.provisioning.impl.sync.AsyncUpdater" level="TRACE" />
+    <logger name="com.evolveum.midpoint.provisioning.impl.shadows.sync.AsyncUpdater" level="TRACE" />
     <logger name="com.evolveum.midpoint.provisioning.ucf.impl.builtin.async" level="TRACE" />
 
     <!-- "TRACE" is just too much info, "DEBUG" should be enough for the following talkative components ...
@@ -92,11 +92,10 @@
     <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ConnectorManager" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ResourceCache" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.provisioning.impl.ShadowCache" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.provisioning.impl.shadowmanager.ShadowManager" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.provisioning.impl.task" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.provisioning.impl.errorhandling" level="DEBUG" />
-<!--    <logger name="com.evolveum.midpoint.provisioning.impl.sync" level="TRACE" />-->
+    <logger name="com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.provisioning.impl.shadows.task" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.provisioning.impl.shadows.errors" level="DEBUG" />
     <logger name="com.evolveum.midpoint.repo.common.expression" level="DEBUG" />
     <logger name="com.evolveum.midpoint.repo.common.expression.Expression" level="DEBUG" />
      <logger name="com.evolveum.midpoint.model.common.mapping" level="DEBUG" />

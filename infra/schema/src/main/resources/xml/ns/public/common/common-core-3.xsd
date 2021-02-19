@@ -7493,6 +7493,102 @@
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
 
+    <xsd:simpleType name="ErrorCategoryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Categorizes errors. Mirrors ErrorSelectorType structure.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="network">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Network errors (connection refused, timeouts, unreachable network, connection resets, ...).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NETWORK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="security">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Security issues (failed authentication, permission denied, ...).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SECURITY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="policy">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Policy violations. The operation failed because it violates
+                        defined policies (e.g. exclusion policies), it fails data consistency checks,
+                        etc.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="POLICY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="schema">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Schema and data format errors. These are errors that data
+                        not complete, they contain unexpected elements, they do not match
+                        pre-defined schema, etc.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SCHEMA"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="configuration">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Configuration errors. These are caused by misconfiguration of
+                        midPoint, some of its components, the connector or the resource. This also
+                        includes run-time errors that are likely caused by the configuration, such
+                        as generic errors in the expressions.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CONFIGURATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="unsupported">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        "Unsupported operation" issues. These errors are caused by
+                        lack of functionality or support for the operation in connector
+                        or any other part of midPoint. E.g. this may be missing (or disabled)
+                        connector capability.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UNSUPPORTED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="generic">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Generic, system and other non-specific issues. These errors
+                        do not have any substantial definition about their cause. The error
+                        may mean anything.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="GENERIC"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:simpleType name="CriticalityType">
         <xsd:annotation>
             <xsd:documentation>
@@ -18377,11 +18473,34 @@
             <xsd:element name="operationExecutionRecording" type="tns:OperationExecutionRecordingStrategyType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How operationExecution records should be updated.
+                        How operationExecution records should be updated. This is the default to be used
+                        if simpleOperationExecutionRecording or complexOperationExecutionRecording is not set.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
                         <a:displayName>InternalsConfigurationType.operationExecutionRecording</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="simpleOperationExecutionRecording" type="tns:OperationExecutionRecordingStrategyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How simple operationExecution records should be updated.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                        <a:displayName>InternalsConfigurationType.simpleOperationExecutionRecording</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="complexOperationExecutionRecording" type="tns:OperationExecutionRecordingStrategyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How complex operationExecution records should be updated.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                        <a:displayName>InternalsConfigurationType.complexOperationExecutionRecording</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -22749,6 +22868,24 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>CleanupPoliciesType.objectResults</a:displayName>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.3</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="simpleOperationExecutions" type="tns:CleanupPolicyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>CleanupPoliciesType.simpleOperationExecutions</a:displayName>
+                        <a:since>4.3</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="complexOperationExecutions" type="tns:CleanupPolicyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>CleanupPoliciesType.complexOperationExecutions</a:displayName>
+                        <a:since>4.3</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -28581,11 +28718,12 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="redirection" type="tns:OperationExecutionRecordRedirectionType" minOccurs="0">
+            <xsd:element name="realOwner" type="tns:OperationExecutionRecordRealOwnerType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Information about operation execution record redirection: the fact that the record
-                        belongs to object other than its current holder.
+                        Information about operation execution record real owner. It is set only in the case that the record
+                        belongs to object other than its current holder. (The only reason for such redirection is that
+                        real owner has no repository object to attach the record to.)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.3</a:since>
@@ -28686,11 +28824,12 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="OperationExecutionRecordRedirectionType">
+    <xsd:complexType name="OperationExecutionRecordRealOwnerType">
         <xsd:annotation>
             <xsd:documentation>
-                Information about operation execution record redirection: the fact that the record
-                belongs to object other than its current holder.
+                Information about operation execution record real owner. It is created only in the case that the record
+                belongs to object other than its current holder. (The only reason for such redirection is that
+                real owner has no repository object to attach the record to.)
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.3</a:since>
@@ -28699,33 +28838,25 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="redirected" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        True if the operation execution record belongs to object other than the current one.
-                        (Actually this flag exists solely to allow easy query formulation and implementation.
-                        TODO: reconsider it.)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="objectType" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Type of the proper record holder (if known).
+                        Type of the real record owner (if known).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="identification" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Identification of the proper record holder. Free-form, using
+                        Identification of the real record owner. Free-form, using
                         any relevant data that is available. An example: connector object UID.
+                        Should not be null.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="operationExecutionRecordRedirection" type="tns:OperationExecutionRecordRedirectionType"/>
+    <xsd:element name="operationExecutionRecordRealOwner" type="tns:OperationExecutionRecordRealOwnerType"/>
 
     <xsd:complexType name="LocalizableMessageType" abstract="true">
         <xsd:annotation>
@@ -29192,6 +29323,14 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="order" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Order in which this entry is to be evaluated. (Related to other entries.) Smaller numbers
+                        go first. Entries with no order go last.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="situation" type="tns:TaskErrorSituationSelectorType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -29227,11 +29366,21 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Operation result status to match. Can be either PARTIAL_ERROR or FATAL_ERROR.
-                        If not specified, any error matches.
+                        If not present, we decide solely on error category. If error categories are not specified,
+                        any error matches.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!-- Maybe better specification e.g. exception class can be added here? -->
+            <xsd:element name="errorCategory" type="tns:ErrorCategoryType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Error category (network, security, policy, ...) to match. Note that some errors are not propagated
+                        to the level where they can be recognized by this selector. So be careful and consider this feature
+                        to be highly experimental.
+                        If not present, we decide solely on the status.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="taskErrorSituationSelector" type="tns:TaskErrorSituationSelectorType"/>
@@ -29368,4 +29517,121 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="plannedOperationAttempt" type="tns:PlannedOperationAttemptType"/>
+
+    <xsd:complexType name="FailedObjectsSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects objects that were failed to be processed in previous task run(s).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What states to select. Default are: FATAL_ERROR and PARTIAL_ERROR.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What task(s) to look for? Default is: the current task.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="timeFrom" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What is the earliest time of the record to be considered? Default: no limit here.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="timeTo" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What is the latest time of the record to be considered? Default: if explicit task OID is not specified,
+                        then it is the last start timestamp of the current task root. (Just to avoid cycles in processing;
+                        although maybe we are too cautious here.) If the task is different, then null.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="selectionMethod" type="tns:FailedObjectsSelectionMethodType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How are failed objects selected. Usually there's no need to change from the default.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="failedObjectsSelector" type="tns:FailedObjectsSelectorType"/>
+
+    <xsd:simpleType name="FailedObjectsSelectionMethodType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How are failed objects selected. This is to overcome some technological obstacles in
+                object searching in the provisioning module.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="default">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default processing method. Normally narrowQuery. But when searching
+                        for shadows via provisioning, fetchFailedObjects is used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DEFAULT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="narrowQuery">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Simply narrow the query by adding failed objects filter.
+                        It works with repository but usually not with provisioning.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NARROW_QUERY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="filterAfterRetrieval">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Uses original query to retrieve objects from a resource. Filtering is done afterwards,
+                        i.e. before results are passed to the processing. This is preferable when there is
+                        large percentage of failed records.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FILTER_AFTER_RETRIEVAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="fetchFailedObjects">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Failed objects are selected using the repository. Only after that, they are fetched
+                        one-by-one via provisioning and processed. This is preferable when there is only
+                        a small percentage of failed records.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FETCH_FAILED_OBJECTS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 </xsd:schema>

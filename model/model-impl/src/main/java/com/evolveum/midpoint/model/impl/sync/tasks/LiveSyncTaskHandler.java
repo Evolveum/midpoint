@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.repo.common.task.ErrorHandlingStrategyExecut
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -179,9 +181,11 @@ public class LiveSyncTaskHandler
                 CHANGE_BEING_PROCESSED.set(event.getSequentialNumber());
                 try {
                     if (event.isComplete()) {
-                        event.getChangeDescription().setItemProcessingIdentifier(request.getIdentifier()); // hack?
-                        changeNotificationDispatcher.notifyChange(event.getChangeDescription(), workerTask, result);
-                    } else if (event.isSkip()) {
+                        ResourceObjectShadowChangeDescription changeDescription = event.getChangeDescription();
+                        changeDescription.setItemProcessingIdentifier(request.getIdentifier()); // hack?
+                        changeDescription.setSimulate(partExecution.isSimulate());
+                        changeNotificationDispatcher.notifyChange(changeDescription, workerTask, result);
+                    } else if (event.isNotApplicable()) {
                         result.recordNotApplicable();
                     } else {
                         // TODO error criticality

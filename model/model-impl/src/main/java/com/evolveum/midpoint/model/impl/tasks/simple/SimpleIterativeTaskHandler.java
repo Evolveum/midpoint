@@ -116,7 +116,7 @@ public abstract class SimpleIterativeTaskHandler<O extends ObjectType, EC extend
         }
 
         @Override
-        protected Class<O> determineObjectType() {
+        protected @NotNull Class<O> determineObjectType() {
             Class<O> configuredType = getTypeFromTask();
             //noinspection unchecked
             return (Class<O>) processing.determineObjectType(configuredType); // FIXME resolve "<O>" vs "<? extends O>"

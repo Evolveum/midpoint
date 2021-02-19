@@ -23,20 +23,20 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-public class LogicalOperation extends Operation{
+public class LogicalOperation extends Operation {
 
     private static final Trace LOGGER = TraceManager.getTrace(LogicalOperation.class);
 
-     public LogicalOperation(FilterInterpreter interpreter) {
+    LogicalOperation(FilterInterpreter interpreter) {
         super(interpreter);
     }
 
     @Override
-    public <T> Filter interpret(ObjectFilter objectFilter, ConnIdNameMapper icfNameMapper) throws SchemaException{
+    public <T> Filter interpret(ObjectFilter objectFilter, ConnIdNameMapper icfNameMapper) throws SchemaException {
 
-        if (objectFilter instanceof NotFilter){
+        if (objectFilter instanceof NotFilter) {
             NotFilter not = (NotFilter) objectFilter;
-            if (not.getFilter() == null){
+            if (not.getFilter() == null) {
                 LOGGER.debug("Not filter does not contain any condition. Skipping processing not filter.");
                 return null;
             }
@@ -48,10 +48,10 @@ public class LogicalOperation extends Operation{
             NaryLogicalFilter nAry = (NaryLogicalFilter) objectFilter;
             List<? extends ObjectFilter> conditions =  nAry.getConditions();
             if (conditions == null || conditions.isEmpty()){
-                LOGGER.debug("No conditions sepcified for logical filter. Skipping processing logical filter.");
+                LOGGER.debug("No conditions specified for logical filter. Skipping processing logical filter.");
                 return null;
             }
-            if (conditions.size() < 2){
+            if (conditions.size() < 2) {
                 LOGGER.debug("Logical filter contains only one condition. Skipping processing logical filter and process simple operation of type {}.", conditions.get(0).getClass().getSimpleName());
                 return getInterpreter().interpret(conditions.get(0), icfNameMapper);
             }
@@ -75,9 +75,9 @@ public class LogicalOperation extends Operation{
 
     }
 
-    private Filter interpretAnd(Filter andF, List<Filter> filters){
+    private Filter interpretAnd(Filter andF, List<Filter> filters) {
 
-        if (filters.size() == 0){
+        if (filters.size() == 0) {
             return andF;
         }
 
@@ -86,10 +86,9 @@ public class LogicalOperation extends Operation{
         return andF;
     }
 
+    private Filter interpretOr(Filter orF, List<Filter> filters) {
 
-private Filter interpretOr(Filter orF, List<Filter> filters){
-
-        if (filters.size() == 0){
+        if (filters.size() == 0) {
             return orF;
         }
 
@@ -97,5 +96,4 @@ private Filter interpretOr(Filter orF, List<Filter> filters){
         orF = interpretOr(orF, filters.subList(1, filters.size()));
         return orF;
     }
-
 }

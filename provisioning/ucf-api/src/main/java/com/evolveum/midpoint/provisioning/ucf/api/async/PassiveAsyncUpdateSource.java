@@ -9,9 +9,12 @@ package com.evolveum.midpoint.provisioning.ucf.api.async;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * Passive source for asynchronous updates.
  */
+@VisibleForTesting // just to provide mock implementations
 public interface PassiveAsyncUpdateSource extends AsyncUpdateSource {
 
     /**

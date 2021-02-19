@@ -105,7 +105,7 @@ public class StalledTasksWatcher {
             } else {
                 if (isEntryStalled(currentTimestamp, lastProgressEntry)) {
                     if (currentTimestamp - lastProgressEntry.lastNotificationIssuedTimestamp > taskManager.getConfiguration().getStalledTasksRepeatedNotificationInterval() * 1000L) {
-                        LOGGER.error("Task {} seems to be stalled (started {}; progress is still {}, observed since {}){}",
+                        LOGGER.error("Task {} is stalled (started {}; progress is still {}, observed since {}){}",
                                 task,
                                 new Date(lastProgressEntry.lastStartedTimestamp),
                                 lastProgressEntry.measuredProgress,

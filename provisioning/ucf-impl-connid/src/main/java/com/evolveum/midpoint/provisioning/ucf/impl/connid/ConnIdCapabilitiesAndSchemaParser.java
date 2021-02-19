@@ -407,21 +407,19 @@ public class ConnIdCapabilitiesAndSchemaParser {
             // "Flat" ConnId object class names needs to be mapped to QNames
             QName objectClassXsdName = connIdNameMapper.objectClassToQname(new ObjectClass(objectClassInfo.getType()), resourceSchemaNamespace, legacySchema);
 
-            if (!shouldBeGenerated(generateObjectClasses, objectClassXsdName)){
+            if (!shouldBeGenerated(generateObjectClasses, objectClassXsdName)) {
                 LOGGER.trace("Skipping object class {} ({})", objectClassInfo.getType(), objectClassXsdName);
                 continue;
             }
 
             LOGGER.trace("Converting object class {} ({})", objectClassInfo.getType(), objectClassXsdName);
 
-            // ResourceObjectDefinition is a midPpoint way how to represent an
-            // object class.
+            // ResourceObjectDefinition is a midPoint way how to represent an object class.
             // The important thing here is the last "type" parameter
             // (objectClassXsdName). The rest is more-or-less cosmetics.
             MutableObjectClassComplexTypeDefinition ocDef = resourceSchema.toMutable().createObjectClassDefinition(objectClassXsdName);
 
-            // The __ACCOUNT__ objectclass in ConnId is a default account
-            // objectclass. So mark it appropriately.
+            // The __ACCOUNT__ objectclass in ConnId is a default account objectclass. So mark it appropriately.
             if (ObjectClass.ACCOUNT_NAME.equals(objectClassInfo.getType())) {
                 ocDef.setKind(ShadowKindType.ACCOUNT);
                 ocDef.setDefaultInAKind(true);
@@ -475,9 +473,11 @@ public class ConnIdCapabilitiesAndSchemaParser {
                     continue;
                 }
 
-                String processedAttributeName = icfName;
-                if ((Name.NAME.equals(icfName) || Uid.NAME.equals(icfName)) && attributeInfo.getNativeName() != null ) {
+                String processedAttributeName;
+                if ((Name.NAME.equals(icfName) || Uid.NAME.equals(icfName)) && attributeInfo.getNativeName() != null) {
                     processedAttributeName = attributeInfo.getNativeName();
+                } else {
+                    processedAttributeName = icfName;
                 }
 
                 QName attrXsdName = connIdNameMapper.convertAttributeNameToQName(processedAttributeName, ocDef);
@@ -611,8 +611,6 @@ public class ConnIdCapabilitiesAndSchemaParser {
 
             LOGGER.trace("  ... converted object class {}: {}", objectClassInfo.getType(), ocDef);
         }
-
-
 
         ActivationCapabilityType capAct = null;
 

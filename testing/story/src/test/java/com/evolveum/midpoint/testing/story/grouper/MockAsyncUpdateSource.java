@@ -11,7 +11,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateMessageListen
 import com.evolveum.midpoint.provisioning.ucf.api.async.PassiveAsyncUpdateSource;
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update.AsyncUpdateConnectorInstance;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AnyDataAsyncUpdateMessageType;
@@ -40,7 +39,7 @@ public class MockAsyncUpdateSource implements PassiveAsyncUpdateSource {
     }
 
     @Override
-    public boolean getNextUpdate(AsyncUpdateMessageListener listener) throws SchemaException {
+    public boolean getNextUpdate(AsyncUpdateMessageListener listener) {
         AsyncUpdateMessageType message = messages.poll();
         if (message != null) {
             listener.onMessage(message, (processed, result) -> {

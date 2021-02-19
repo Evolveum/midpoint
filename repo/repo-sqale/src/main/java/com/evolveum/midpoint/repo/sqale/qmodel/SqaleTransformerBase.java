@@ -136,15 +136,15 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
     }
 
     /** Returns ID for cached URI (represented by QName) without going ot database. */
-    protected Integer resolveId(QName qName) {
+    protected Integer resolveToId(QName qName) {
         return qName != null
-                ? resolveId(QNameUtil.qNameToUri(transformerContext.normalizeRelation(qName)))
+                ? resolveToId(QNameUtil.qNameToUri(transformerContext.normalizeRelation(qName)))
                 : null;
     }
 
     /** Returns ID for cached URI without going ot database. */
-    protected Integer resolveId(String uri) {
-        return transformerContext.resolveId(uri);
+    protected Integer resolveToId(String uri) {
+        return transformerContext.resolveToId(uri);
     }
 
     /** Returns ID for URI (represented by QName) creating new cache row in DB as needed. */

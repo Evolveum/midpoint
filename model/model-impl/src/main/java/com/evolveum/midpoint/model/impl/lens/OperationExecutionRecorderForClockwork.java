@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionWriter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
@@ -73,7 +74,7 @@ public class OperationExecutionRecorderForClockwork {
 
     <F extends ObjectType> void recordOperationExecutions(LensContext<F> lensContext, Task task, OperationResult parentResult) {
 
-        if (writer.shouldSkipOperationExecutionRecording()) {
+        if (writer.shouldSkipOperationExecutionRecording(OperationExecutionRecordTypeType.SIMPLE)) {
             LOGGER.trace("Skipping operation execution recording (as set in system configuration)");
             return;
         }
@@ -114,10 +115,12 @@ public class OperationExecutionRecorderForClockwork {
     private <F extends ObjectType> void writeShadowDeltas(Context<F> ctx, OperationResult result) {
         for (String shadowOid : ctx.shadowDeltasMap.keySet()) {
             Collection<LensObjectDeltaOperation<?>> deltas = ctx.shadowDeltasMap.get(shadowOid);
-            OperationExecutionType executionToAdd = createExecutionRecord(deltas, ctx);
+            OperationExecutionType recordToAdd = createExecutionRecord(deltas, ctx);
+            OperationExecutionWriter.Request<ShadowType> request =
+                    new OperationExecutionWriter.Request<>(ShadowType.class, shadowOid, recordToAdd,
+                            ctx.getExistingExecutions(shadowOid), ctx.isDeletedOk(shadowOid), ctx.getTaskStartTime());
             try {
-                writer.write(ShadowType.class, shadowOid, executionToAdd,
-                        ctx.getExistingExecutions(shadowOid), ctx.isDeletedOk(shadowOid), result);
+                writer.write(request, result);
             } catch (ObjectNotFoundException e) {
                 LOGGER.debug("Shadow {} no longer exists. Deltas will be recorded to the focus object.", shadowOid, e);
                 ctx.focusDeltas.addAll(deltas);
@@ -143,12 +146,12 @@ public class OperationExecutionRecorderForClockwork {
             return;
         }
 
-        OperationExecutionType executionToAdd = createExecutionRecord(ctx.focusDeltas, ctx);
-
+        OperationExecutionType recordToAdd = createExecutionRecord(ctx.focusDeltas, ctx);
         Class<F> focusType = ctx.getFocusContext().getObjectTypeClass();
+        OperationExecutionWriter.Request<F> request = new OperationExecutionWriter.Request<>(focusType, focusOid,
+                recordToAdd, ctx.getExistingExecutions(focusOid), ctx.isDeletedOk(focusOid), ctx.getTaskStartTime());
         try {
-            writer.write(focusType, focusOid, executionToAdd,
-                    ctx.getExistingExecutions(focusOid), ctx.isDeletedOk(focusOid), result);
+            writer.write(request, result);
         } catch (Throwable t) {
             // Even if the focus does not exist anymore, there is nothing we can do about it.
             // E.g. it is of no use to write operation execution to the synchronization source account.
@@ -329,6 +332,15 @@ public class OperationExecutionRecorderForClockwork {
 
         private boolean isDeletedOk(String oid) {
             return deletedObjects.contains(oid);
+        }
+
+        public XMLGregorianCalendar getTaskStartTime() {
+            if (task instanceof RunningTask) {
+                // FIXME this should be the start time of the root task!
+                return XmlTypeConverter.createXMLGregorianCalendar(task.getLastRunStartTimestamp());
+            } else {
+                return null;
+            }
         }
     }
 

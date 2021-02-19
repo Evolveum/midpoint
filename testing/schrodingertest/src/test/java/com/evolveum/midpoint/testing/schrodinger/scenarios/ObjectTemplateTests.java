@@ -90,7 +90,7 @@ public class ObjectTemplateTests extends AbstractSchrodingerTest {
         showUser("userWithoutFullname2")
                 .selectTabBasic()
                     .form()
-                        .assertInputAttributeValueMatches("Full name", "");
+                        .assertPropertyInputValue("Full name", "");
     }
 
     @Test (dependsOnMethods = {"test00200deleteObjectTemplateCreateUser"})
@@ -188,7 +188,7 @@ public class ObjectTemplateTests extends AbstractSchrodingerTest {
        showUser("employeeAfterObjTemplRemove")
                 .selectTabBasic()
                     .form()
-                    .assertInputAttributeValueMatches("Full name", "");
+                    .assertPropertyInputValue("Full name", "");
     }
 
 }

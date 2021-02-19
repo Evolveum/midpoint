@@ -46,11 +46,15 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationContext.class);
 
-    /** TODO */
+    /**
+     * TODO: this is technically a shadow, but in fact we assume all attributes (etc) are here
+     */
     private final PrismObject<ShadowType> applicableShadow;
 
-    /** TODO */
-    private final PrismObject<ShadowType> currentShadow;
+    /**
+     * TODO: this is practically unused
+     */
+    private final PrismObject<ShadowType> resourceObject;
 
     /**
      * Original delta that triggered this synchronization. (If known.)
@@ -77,8 +81,6 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     private boolean reactionEvaluated = false;
     private SynchronizationReactionType reaction;
 
-    private boolean unrelatedChange = false;
-
     private boolean shadowExistsInRepo = true;
     private boolean forceIntentChange;
 
@@ -89,11 +91,11 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     @Experimental
     private final String itemProcessingIdentifier;
 
-    public SynchronizationContext(PrismObject<ShadowType> applicableShadow, PrismObject<ShadowType> currentShadow,
+    public SynchronizationContext(PrismObject<ShadowType> applicableShadow, PrismObject<ShadowType> resourceObject,
             ObjectDelta<ShadowType> resourceObjectDelta, PrismObject<ResourceType> resource, String channel,
             PrismContext prismContext, ExpressionFactory expressionFactory, Task task, String itemProcessingIdentifier) {
         this.applicableShadow = applicableShadow;
-        this.currentShadow = currentShadow;
+        this.resourceObject = resourceObject;
         this.resourceObjectDelta = resourceObjectDelta;
         this.resource = resource;
         this.channel = channel;
@@ -297,8 +299,8 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return applicableShadow;
     }
 
-    public PrismObject<ShadowType> getCurrentShadow() {
-        return currentShadow;
+    public PrismObject<ShadowType> getResourceObject() {
+        return resourceObject;
     }
 
     public PrismObject<ResourceType> getResource() {
@@ -398,14 +400,6 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         this.reaction = reaction;
     }
 
-    public boolean isUnrelatedChange() {
-        return unrelatedChange;
-    }
-
-    public void setUnrelatedChange(boolean unrelatedChange) {
-        this.unrelatedChange = unrelatedChange;
-    }
-
     public Task getTask() {
         return task;
     }
@@ -459,7 +453,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(SynchronizationContext.class, indent);
         DebugUtil.debugDumpWithLabelLn(sb, "applicableShadow", applicableShadow, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "currentShadow", currentShadow, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "resource", resource, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "systemConfiguration", systemConfiguration, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "channel", channel, indent + 1);
@@ -472,7 +466,6 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         DebugUtil.debugDumpWithLabelToStringLn(sb, "intent", intent, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "tag", tag, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "reaction", reaction, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "unrelatedChange", unrelatedChange, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "shadowExistsInRepo", shadowExistsInRepo, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "forceIntentChange", forceIntentChange, indent + 1);
         return sb.toString();

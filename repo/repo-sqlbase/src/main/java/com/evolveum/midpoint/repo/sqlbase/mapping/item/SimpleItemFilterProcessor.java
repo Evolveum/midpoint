@@ -62,6 +62,6 @@ public class SimpleItemFilterProcessor<T, P extends Path<T>>
 
     @Override
     public Predicate process(PropertyValueFilter<T> filter) throws QueryException {
-        return createBinaryCondition(filter, path, new ValueFilterValues<>(filter));
+        return createBinaryCondition(filter, path, ValueFilterValues.from(filter));
     }
 }

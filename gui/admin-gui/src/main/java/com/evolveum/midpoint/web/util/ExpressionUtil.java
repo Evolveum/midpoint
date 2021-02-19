@@ -387,8 +387,8 @@ public class ExpressionUtil {
     }
 
     private static String getShadowRefNodeOid(MapXNode shadowRefNode) {
-        if (shadowRefNode != null && ((MapXNode) shadowRefNode).containsKey(SHADOW_OID_KEY)) {
-            PrimitiveXNode shadowOidNode = (PrimitiveXNode) ((MapXNode) shadowRefNode).get(SHADOW_OID_KEY);
+        if (shadowRefNode != null && shadowRefNode.containsKey(SHADOW_OID_KEY)) {
+            PrimitiveXNode shadowOidNode = (PrimitiveXNode) shadowRefNode.get(SHADOW_OID_KEY);
             return shadowOidNode != null && shadowOidNode.getValueParser() != null ? shadowOidNode.getValueParser().getStringValue() :
                     (shadowOidNode != null && shadowOidNode.getValue() != null ? (String) shadowOidNode.getValue() : null);
 
@@ -577,7 +577,7 @@ public class ExpressionUtil {
         removeEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
         for (String value : values) {
             PrimitiveXNode<String> newValueNode = prismContext.xnodeFactory().primitive(value);
-            RawType raw = new RawType(newValueNode, prismContext);
+            RawType raw = new RawType(newValueNode.frozen(), prismContext);
             JAXBElement element = new JAXBElement<>(SchemaConstantsGenerated.C_VALUE, RawType.class, raw);
             expression.expressionEvaluator(element);
         }

@@ -17,14 +17,11 @@ public abstract class Operation {
 
     private FilterInterpreter interpreter;
 
-
     public Operation(FilterInterpreter interpreter){
         this.interpreter = interpreter;
     }
 
-    // TODO: HACK: FIXME: this is wrong! it brings ICF concepts (Filter, IcfNameMapper) to non-ICF interface
     public abstract <T> Filter interpret(ObjectFilter objectFilter, ConnIdNameMapper icfNameMapper) throws SchemaException;
-
 
     public FilterInterpreter getInterpreter() {
         return interpreter;

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.google.common.base.MoreObjects;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,13 +39,21 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionRecordTypeType.SIMPLE;
+
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 
 /**
  * Writes provided OperationExecutionType records into objects.
+ * Responsibilities:
+ *
+ * 1. writes provided operation execution record to the specified object
+ * 2. deletes superfluous operation execution records from that object
  */
 @Experimental
 @Component
@@ -61,60 +70,59 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
 
     private static final String OP_WRITE = OperationExecutionWriter.class.getName() + ".write";
 
-    private volatile OperationExecutionRecordingStrategyType recordingStrategy;
+    /** Extracted recorded strategy for simple OpExec records (from system configuration). */
+    private volatile OperationExecutionRecordingStrategyType simpleExecsRecordingStrategy;
 
-    private volatile CleanupPolicyType cleanupPolicy;
+    /** Extracted recorded strategy for complex OpExec records (from system configuration). */
+    private volatile OperationExecutionRecordingStrategyType complexExecsRecordingStrategy;
+
+    /** Extracted cleanup policy for simple OpExec records (from system configuration). */
+    private volatile CleanupPolicyType simpleExecsCleanupPolicy;
+
+    /** Extracted cleanup policy for complex OpExec records (from system configuration). */
+    private volatile CleanupPolicyType complexExecsCleanupPolicy;
 
     /**
      * Writes operation execution record and deletes the one(s) that have to be deleted,
      * according to the current cleanup policy.
-     *
-     * @param objectType Type of the object to write execution record to.
-     * @param oid OID of the object.
-     * @param executionToAdd Operation execution record to be added.
-     * @param existingExecutions Existing execution records, used to generate delete deltas.
-     *        They can be a little bit out-of-date (let us say less than a second), but not much.
-     *        So, therefore, if called from the clockwork, it is OK to use objectNew, assuming the
-     *        object is not that old. If the value is null, existing executions will be fetched anew
-     *        (if cleanup is necessary).
-     * @param deletedOk Is it OK if the holding object was deleted in the meanwhile?
      */
-    public <O extends ObjectType> void write(@NotNull Class<O> objectType, @NotNull String oid,
-            @NotNull OperationExecutionType executionToAdd, @Nullable Collection<OperationExecutionType> existingExecutions,
-            boolean deletedOk, OperationResult parentResult)
+    public <O extends ObjectType> void write(Request<O> request, OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+
+        OperationExecutionRecordTypeType currentRecordType = toNotNull(request.recordToAdd.getRecordType());
 
         OperationResult result = parentResult.subresult(OP_WRITE)
                 .setMinor()
                 .build();
         try {
-            CleaningSpecification cleaningSpec = CleaningSpecification.createFrom(cleanupPolicy);
-            if (cleaningSpec.isKeepNone()) {
-                // Unlike in 4.2 and before, we do not delete old records if we are not going to write anything.
-                LOGGER.trace("Skipping operation execution recording because it's turned off (recordsToKeep is set to 0).");
-                return;
-            }
-
-            if (shouldSkipOperationExecutionRecording()) {
+            if (shouldSkipOperationExecutionRecording(currentRecordType)) {
                 LOGGER.trace("Skipping operation execution recording because it's turned off.");
                 return;
             }
 
-            if (shouldSkipOperationExecutionRecordingWhenSuccess() &&
-                    executionToAdd.getStatus() == OperationResultStatusType.SUCCESS) {
-                LOGGER.trace("Skipping operation execution recording because it's turned off for successful processing.");
-                return;
+            CleaningSpecification cleaningSpec = CleaningSpecification.createFrom(selectCleanupPolicy(currentRecordType));
+
+            boolean addingRecord;
+            if (cleaningSpec.isKeepNone()) {
+                LOGGER.trace("Will skip operation execution recording because it's turned off (recordsToKeep is set to 0).");
+                addingRecord = false;
+            } else if (request.recordToAdd.getStatus() == OperationResultStatusType.SUCCESS &&
+                    shouldSkipOperationExecutionRecordingWhenSuccess(currentRecordType)) {
+                LOGGER.trace("Will skip operation execution recording because it's turned off for successful processing.");
+                addingRecord = false;
+            } else {
+                addingRecord = true;
             }
 
             try {
-                List<OperationExecutionType> executionsToDelete = getExecutionsToDelete(objectType, oid,
-                        existingExecutions, cleaningSpec, result);
-                executeChanges(objectType, oid, executionToAdd, executionsToDelete, result);
+                List<OperationExecutionType> recordsToAdd = addingRecord ? singletonList(request.recordToAdd) : emptyList();
+                List<OperationExecutionType> recordsToDelete = getRecordsToDelete(request, cleaningSpec, addingRecord, result);
+                executeChanges(request, recordsToAdd, recordsToDelete, result);
             } catch (ObjectNotFoundException e) {
-                if (!deletedOk) {
+                if (!request.deletedOk) {
                     throw e;
                 } else {
-                    LOGGER.trace("Object {} deleted but this was expected.", oid);
+                    LOGGER.trace("Object {} deleted but this was expected.", request.oid);
                     result.muteLastSubresultError();
                 }
             }
@@ -127,31 +135,53 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
         }
     }
 
-    private <O extends ObjectType> void executeChanges(Class<O> objectType, String oid, OperationExecutionType executionToAdd,
-            List<OperationExecutionType> executionsToDelete, OperationResult result)
-            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        List<ItemDelta<?, ?>> deltas = prismContext.deltaFor(objectType)
-                .item(ObjectType.F_OPERATION_EXECUTION)
-                .add(executionToAdd)
-                .delete(PrismContainerValue.toPcvList(CloneUtil.cloneCollectionMembers(executionsToDelete)))
-                .asItemDeltas();
-        LOGGER.trace("Operation execution delta:\n{}", DebugUtil.debugDumpLazily(deltas));
-        repositoryService.modifyObject(objectType, oid, deltas, result);
+    private OperationExecutionRecordTypeType toNotNull(OperationExecutionRecordTypeType recordType) {
+        return MoreObjects.firstNonNull(recordType, SIMPLE);
     }
 
-    private <O extends ObjectType> List<OperationExecutionType> getExecutionsToDelete(Class<O> objectType,
-            String oid, @Nullable Collection<OperationExecutionType> existingExecutions,
-            CleaningSpecification cleaningSpecification, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        if (cleaningSpecification.isKeepAll()) {
+    private static String getTaskOid(OperationExecutionType execution) {
+        ObjectReferenceType ref = execution.getTaskRef();
+        return ref != null ? ref.getOid() : null;
+    }
+
+    private CleanupPolicyType selectCleanupPolicy(OperationExecutionRecordTypeType recordType) {
+        return select(recordType, simpleExecsCleanupPolicy, complexExecsCleanupPolicy);
+    }
+
+    private OperationExecutionRecordingStrategyType selectRecordingStrategy(OperationExecutionRecordTypeType recordType) {
+        return select(recordType, simpleExecsRecordingStrategy, complexExecsRecordingStrategy);
+    }
+
+    private <T> T select(OperationExecutionRecordTypeType recordType, T simpleVersion, T complexVersion) {
+        return toNotNull(recordType) == SIMPLE ? simpleVersion : complexVersion;
+    }
+
+    private <O extends ObjectType> void executeChanges(Request<O> request,
+            List<OperationExecutionType> recordsToAdd, List<OperationExecutionType> recordsToDelete, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+        List<ItemDelta<?, ?>> deltas = prismContext.deltaFor(request.objectType)
+                .item(ObjectType.F_OPERATION_EXECUTION)
+                .add(PrismContainerValue.toPcvList(recordsToAdd)) // assuming these are parent-less
+                .delete(PrismContainerValue.toPcvList(CloneUtil.cloneCollectionMembers(recordsToDelete)))
+                .asItemDeltas();
+        LOGGER.trace("Operation execution delta:\n{}", DebugUtil.debugDumpLazily(deltas));
+        repositoryService.modifyObject(request.objectType, request.oid, deltas, result);
+    }
+
+    private <O extends ObjectType> List<OperationExecutionType> getRecordsToDelete(Request<O> request,
+            CleaningSpecification cleaningSpecification, boolean addingRecord, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+
+        if (cleaningSpecification.isKeepAll() && request.getTaskOid() == null) {
             return emptyList();
         } else {
-            Collection<OperationExecutionType> loadedExistingExecutions = existingExecutions != null ?
-                    existingExecutions : loadExistingExecutions(objectType, oid, result);
-            return selectExecutionsToDelete(loadedExistingExecutions, cleaningSpecification);
+            Collection<OperationExecutionType> loadedExistingRecords = request.existingRecords != null ?
+                    request.existingRecords : loadExistingRecords(request.objectType, request.oid, result);
+            return selectRecordsToDelete(request, loadedExistingRecords, cleaningSpecification, addingRecord);
         }
     }
 
-    private <O extends ObjectType> Collection<OperationExecutionType> loadExistingExecutions(Class<O> objectType, String oid,
+    private <O extends ObjectType> Collection<OperationExecutionType> loadExistingRecords(Class<O> objectType, String oid,
             OperationResult result) throws SchemaException, ObjectNotFoundException {
         Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
                 .readOnly()
@@ -162,33 +192,67 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
     }
 
     @NotNull
-    private List<OperationExecutionType> selectExecutionsToDelete(Collection<OperationExecutionType> existingExecutions,
-            CleaningSpecification cleaningSpecification) {
-        List<OperationExecutionType> executionsToDelete = new ArrayList<>();
-        List<OperationExecutionType> executions = new ArrayList<>(existingExecutions);
+    private List<OperationExecutionType> selectRecordsToDelete(Request<?> request,
+            Collection<OperationExecutionType> existingRecords, CleaningSpecification cleaningSpecification,
+            boolean addingRecord) {
 
-        // delete old executions
-        for (Iterator<OperationExecutionType> iterator = executions.iterator(); iterator.hasNext(); ) {
-            OperationExecutionType execution = iterator.next();
-            if (cleaningSpecification.isOld(execution)) {
-                executionsToDelete.add(execution);
+        OperationExecutionRecordTypeType currentRecordType = toNotNull(request.recordToAdd.getRecordType());
+        String taskOid = request.getTaskOid();
+
+        List<OperationExecutionType> recordsToDelete = new ArrayList<>();
+        List<OperationExecutionType> recordsToConsider = new ArrayList<>(existingRecords);
+
+        // Let us continue with matching record type only.
+        recordsToConsider.removeIf(record -> !recordTypeMatches(record, currentRecordType));
+
+        // Delete all records related to the current task (regardless of whether we add something or not)
+        // It is questionable if we should remove task-related records from ALL or from those with matching type.
+        // If the former is preferable, then please move this block of code just above the filtering on record type.
+        for (Iterator<OperationExecutionType> iterator = recordsToConsider.iterator(); iterator.hasNext(); ) {
+            OperationExecutionType record = iterator.next();
+            if (shouldDeleteBecauseOfTheSameTask(record, taskOid, request.deleteTaskRecordsBefore)) {
+                recordsToDelete.add(record);
                 iterator.remove();
             }
         }
 
-        // delete surplus executions
-        // keeping = how much we want to keep FROM EXISTING RECORDS; assuming we are going to add new record
-        int keeping = Math.max(cleaningSpecification.recordsToKeep - 1, 0);
-        if (executions.size() >= keeping) {
-            if (keeping == 0) {
-                executionsToDelete.addAll(executions); // avoid unnecessary sorting
-            } else {
-                executions.sort(Comparator.nullsFirst(Comparator.comparing(e -> XmlTypeConverter.toDate(e.getTimestamp()))));
-                executionsToDelete.addAll(executions.subList(0, executions.size() - keeping));
+        // Delete old records
+        for (Iterator<OperationExecutionType> iterator = recordsToConsider.iterator(); iterator.hasNext(); ) {
+            OperationExecutionType execution = iterator.next();
+            if (cleaningSpecification.isOld(execution)) {
+                recordsToDelete.add(execution);
+                iterator.remove();
             }
         }
 
-        return executionsToDelete;
+        // delete surplus records
+        // keeping = how much we want to keep FROM EXISTING RECORDS
+        int keeping = Math.max(cleaningSpecification.recordsToKeep - (addingRecord ? 1 : 0), 0);
+        if (recordsToConsider.size() >= keeping) {
+            if (keeping == 0) {
+                recordsToDelete.addAll(recordsToConsider); // avoid unnecessary sorting
+            } else {
+                recordsToConsider.sort(Comparator.nullsFirst(Comparator.comparing(e -> XmlTypeConverter.toDate(e.getTimestamp()))));
+                recordsToDelete.addAll(recordsToConsider.subList(0, recordsToConsider.size() - keeping));
+            }
+        }
+
+        return recordsToDelete;
+    }
+
+    private boolean recordTypeMatches(@NotNull OperationExecutionType record,
+            @NotNull OperationExecutionRecordTypeType recordType) {
+        return toNotNull(record.getRecordType()) == recordType;
+    }
+
+    private boolean shouldDeleteBecauseOfTheSameTask(OperationExecutionType execution, String taskOid,
+            XMLGregorianCalendar deleteTaskRecordsBefore) {
+        if (taskOid == null || !taskOid.equals(getTaskOid(execution))) {
+            return false;
+        }
+        return deleteTaskRecordsBefore == null ||
+                execution.getTimestamp() == null ||
+                execution.getTimestamp().compare(deleteTaskRecordsBefore) == DatatypeConstants.LESSER;
     }
 
     @PostConstruct
@@ -203,17 +267,49 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
 
     @Override
     public void update(@Nullable SystemConfigurationType value) {
-        this.recordingStrategy = value != null && value.getInternals() != null ?
-                value.getInternals().getOperationExecutionRecording() : null;
-        this.cleanupPolicy = value != null && value.getCleanupPolicy() != null ?
-                value.getCleanupPolicy().getObjectResults() : null;
+        updateRecordingStrategies(value);
+        updateCleanupPolicies(value);
     }
 
-    public boolean shouldSkipOperationExecutionRecording() {
+    private void updateRecordingStrategies(@Nullable SystemConfigurationType value) {
+        if (value != null && value.getInternals() != null) {
+            simpleExecsRecordingStrategy = value.getInternals().getSimpleOperationExecutionRecording();
+            complexExecsRecordingStrategy = value.getInternals().getComplexOperationExecutionRecording();
+            if (simpleExecsRecordingStrategy == null) {
+                simpleExecsRecordingStrategy = value.getInternals().getOperationExecutionRecording();
+            }
+            if (complexExecsRecordingStrategy == null) {
+                complexExecsRecordingStrategy = value.getInternals().getOperationExecutionRecording();
+            }
+        } else {
+            simpleExecsRecordingStrategy = null;
+            complexExecsRecordingStrategy = null;
+        }
+    }
+
+    private void updateCleanupPolicies(@Nullable SystemConfigurationType value) {
+        if (value != null && value.getCleanupPolicy() != null) {
+            simpleExecsCleanupPolicy = value.getCleanupPolicy().getSimpleOperationExecutions();
+            complexExecsCleanupPolicy = value.getCleanupPolicy().getComplexOperationExecutions();
+            if (simpleExecsCleanupPolicy == null) {
+                simpleExecsCleanupPolicy = value.getCleanupPolicy().getObjectResults();
+            }
+            if (complexExecsCleanupPolicy == null) {
+                complexExecsCleanupPolicy = value.getCleanupPolicy().getObjectResults();
+            }
+        } else {
+            simpleExecsCleanupPolicy = null;
+            complexExecsCleanupPolicy = null;
+        }
+    }
+
+    public boolean shouldSkipOperationExecutionRecording(OperationExecutionRecordTypeType recordType) {
+        OperationExecutionRecordingStrategyType recordingStrategy = selectRecordingStrategy(recordType);
         return recordingStrategy != null && Boolean.TRUE.equals(recordingStrategy.isSkip());
     }
 
-    private boolean shouldSkipOperationExecutionRecordingWhenSuccess() {
+    private boolean shouldSkipOperationExecutionRecordingWhenSuccess(OperationExecutionRecordTypeType recordType) {
+        OperationExecutionRecordingStrategyType recordingStrategy = selectRecordingStrategy(recordType);
         return recordingStrategy != null && Boolean.TRUE.equals(recordingStrategy.isSkipWhenSuccess());
     }
 
@@ -258,6 +354,57 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
         private boolean isOld(OperationExecutionType execution) {
             return deleteBefore > 0 && // to avoid useless conversions
                     XmlTypeConverter.toMillis(execution.getTimestamp()) < deleteBefore;
+        }
+    }
+
+    /**
+     * A request to write an operation execution record.
+     */
+    public static class Request<O extends ObjectType> {
+
+        /** Type of the object to write execution record to. */
+        @NotNull private final Class<O> objectType;
+
+        /** OID of the object. */
+        @NotNull private final String oid;
+
+        /** Operation execution record to be added. */
+        @NotNull private final OperationExecutionType recordToAdd;
+
+        /**
+         * Existing execution records, used to generate delete deltas.
+         * They can be a little bit out-of-date (let us say less than a second), but not much.
+         * So, therefore, if called from the clockwork, it is OK to use objectNew, assuming the
+         * object is not that old. If the value is null, existing execution records will be fetched anew
+         * (if cleanup is necessary).
+         */
+        @Nullable private final Collection<OperationExecutionType> existingRecords;
+
+        /**
+         * Is it OK if the holding object was deleted in the meanwhile? If so, and if the object
+         * does not exist anymore, no exception is thrown, and the error is marked as handled.
+         */
+        private final boolean deletedOk;
+
+        /**
+         * If specified, only the task-related records before this time are deleted. (If null, all are deleted.)
+         * This is used to ensure multi-part tasks keep records from all the parts.
+         */
+        private final XMLGregorianCalendar deleteTaskRecordsBefore;
+
+        public Request(@NotNull Class<O> objectType, @NotNull String oid, @NotNull OperationExecutionType recordToAdd,
+                @Nullable Collection<OperationExecutionType> existingRecords, boolean deletedOk,
+                XMLGregorianCalendar deleteTaskRecordsBefore) {
+            this.objectType = objectType;
+            this.oid = oid;
+            this.recordToAdd = recordToAdd;
+            this.existingRecords = existingRecords;
+            this.deletedOk = deletedOk;
+            this.deleteTaskRecordsBefore = deleteTaskRecordsBefore;
+        }
+
+        private String getTaskOid() {
+            return OperationExecutionWriter.getTaskOid(recordToAdd);
         }
     }
 }

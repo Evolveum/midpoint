@@ -86,6 +86,11 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return this;
     }
 
+    public PrismObjectAsserter<O,RA> assertNoOid() {
+        assertNull("OID present in "+desc(), getObject().getOid());
+        return this;
+    }
+
     public PrismObjectAsserter<O,RA> assertOid(String expected) {
         assertEquals("Wrong OID in "+desc(), expected, getObject().getOid());
         return this;
@@ -503,6 +508,22 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         OperationResultType fetchResult = object.asObjectable().getFetchResult();
         if (fetchResult != null && fetchResult.getStatus() != OperationResultStatusType.SUCCESS) {
             fail("Expected none or success fetch result, got " + fetchResult.getStatus() + ": " + fetchResult.toString());
+        }
+        return this;
+    }
+
+    public PrismObjectAsserter<O,RA> assertFetchResult(OperationResultStatusType status, String... messageFragments) {
+        OperationResultType fetchResult = object.asObjectable().getFetchResult();
+        if (fetchResult == null) {
+            fail("Expected fetch result with status " + status + ", got none");
+        } else if (fetchResult.getStatus() != status) {
+            fail("Expected fetch result with status " + status + ", got " + fetchResult.getStatus() + ": " + fetchResult.toString());
+        } else {
+            for (String messageFragment : messageFragments) {
+                if (fetchResult.getMessage() == null || !fetchResult.getMessage().contains(messageFragment)) {
+                    fail("Expected message to contain '" + messageFragment + "' but it does not: " + fetchResult.getMessage());
+                }
+            }
         }
         return this;
     }

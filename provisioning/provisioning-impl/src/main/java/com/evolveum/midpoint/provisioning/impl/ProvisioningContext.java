@@ -136,7 +136,9 @@ public class ProvisioningContext extends StateReporter {
         this.resource = resource;
     }
 
-    public ResourceType getResource() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    @NotNull public ResourceType getResource()
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
         if (resource == null) {
             if (getResourceOid() == null) {
                 throw new SchemaException("Null resource OID "+getDesc());
@@ -242,20 +244,26 @@ public class ProvisioningContext extends StateReporter {
         }
     }
 
-    public <T extends CapabilityType> ConnectorInstance getConnector(Class<T> operationCapabilityClass, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public <T extends CapabilityType> ConnectorInstance getConnector(Class<T> operationCapabilityClass, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
         if (connectorMap == null) {
             connectorMap = new HashMap<>();
         }
+
         ConnectorInstance connector = connectorMap.get(operationCapabilityClass);
-        if (connector == null) {
-            connector = getConnectorInstance(operationCapabilityClass, parentResult);
-            connectorMap.put(operationCapabilityClass, connector);
+        if (connector != null) {
+            return connector;
         }
-        return connector;
+
+        ConnectorInstance newConnector = getConnectorInstance(operationCapabilityClass, result);
+        connectorMap.put(operationCapabilityClass, newConnector);
+        return newConnector;
     }
 
     public boolean isWildcard() {
-        return (shadowCoordinates == null && originalShadow == null) || (shadowCoordinates != null && shadowCoordinates.isWildcard());
+        return shadowCoordinates == null && originalShadow == null ||
+                shadowCoordinates != null && shadowCoordinates.isWildcard();
     }
 
     /**

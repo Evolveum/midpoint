@@ -57,7 +57,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
     private static final File ARCHETYPE_ORG_GROUP_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-group.xml");
     private static final File ARCHETYPE_ORG_GROUP_LIST_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-group-list.xml");
     private static final File KIRK_USER_TIBERIUS_FILE = new File("./src/test/resources/labs/objects/users/kirk-tiberius-user.xml");
-    private static final File PICARD_USER_TIBERIUS_FILE = new File("./src/test/resources/labs/M10/users/kirk-tiberius-user.xml");
+    private static final File PICARD_USER_TIBERIUS_FILE = new File("./src/test/resources/labs/M10/users/picard-user.xml");
     private static final File INTERNAL_EMPLOYEE_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-internal-employee.xml");
     private static final File ORG_EXAMPLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/org-example.xml");
     private static final File ORG_WARP_SPEED_RESEARCH_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/warp-speed-research.xml");
@@ -216,17 +216,13 @@ public class M10ObjectTemplate extends AbstractLabTest{
                         .isSuccess();
 
         showUser("X001212")
-                .selectTabBasic()
-                    .form()
-                        .assertInputAttributeValueMatches("fullName", "John Smith");
+                .assertFullName("John Smith");
 
         FileUtils.copyFile(HR_SOURCE_FILE_10_1, hrTargetFile);
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
 
         showUser("X000998")
-                .selectTabBasic()
-                .form()
-                .assertInputAttributeValueMatches("fullName", "David Lister");
+                .assertFullName("David Lister");
 
         TaskPage task = basicPage.newTask();
         task.setHandlerUriForNewTask("Recompute task");
@@ -242,9 +238,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
                     .isInfo();
 
         showUser("kirk")
-                .selectTabBasic()
-                .form()
-                .assertInputAttributeValueMatches("fullName", "Jim Tiberius Kirk");
+                .assertFullName("Jim Tiberius Kirk");
     }
 
     @Test(dependsOnMethods = {"mod10test01SimpleObjectTemplate"})
@@ -295,7 +289,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
         UserPage user = showUser("X000998");
         user.selectTabBasic()
                 .form()
-                    .assertSelectAttributeValueMatches("administrativeStatus", "Disabled");
+                    .assertPropertySelectValue("administrativeStatus", "Disabled");
         user.selectTabAssignments()
                 .assertAssignmentsWithRelationExist("Member", "Inactive Employees", "Internal Employee");
 
@@ -305,7 +299,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
         user = showUser("X000998");
         user.selectTabBasic()
                 .form()
-                .assertSelectAttributeValueMatches("administrativeStatus", "Disabled");
+                .assertPropertySelectValue("administrativeStatus", "Disabled");
         user.selectTabAssignments()
                 .assertAssignmentsWithRelationExist("Member", "Former Employees");
 
@@ -315,7 +309,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
         user = showUser("X000998");
         user.selectTabBasic()
                 .form()
-                .assertSelectAttributeValueMatches("administrativeStatus", "Enabled");
+                .assertPropertySelectValue("administrativeStatus", "Enabled");
         showUser("X000998")
                 .selectTabAssignments()
                 .assertAssignmentsWithRelationExist("Member", "Java Development",
@@ -407,16 +401,16 @@ public class M10ObjectTemplate extends AbstractLabTest{
         new UserPage().selectTabProjections()
                 .table()
                     .clickByName("cn=Alice Black,ou=0212,ou=0200,ou=ExAmPLE,dc=example,dc=com")
-                        .assertInputAttributeValueMatches("manager", "X000390");
+                        .assertPropertyInputValue("manager", "X000390");
         showUser("X000390").selectTabProjections()
                 .table()
                     .clickByName("cn=John Wicks,ou=0212,ou=0200,ou=ExAmPLE,dc=example,dc=com")
-                        .assertInputAttributeValueMatches("manager", "X000035");
+                        .assertPropertyInputValue("manager", "X000035");
         showUser("X000035").selectTabProjections()
                 .table()
                     .clickByName("cn=James Bradley,ou=0200,ou=ExAmPLE,dc=example,dc=com")
                         .showEmptyAttributes("Attributes")
-                        .assertInputAttributeValueMatches("manager", "");
+                        .assertPropertyInputValue("manager", "");
 
         showUser("kirk")
                 .selectTabAssignments()
@@ -425,11 +419,11 @@ public class M10ObjectTemplate extends AbstractLabTest{
                 .table()
                     .clickByName("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com")
                         .showEmptyAttributes("Attributes")
-                        .assertInputAttributeValueMatches("manager", "");
+                        .assertPropertyInputValue("manager", "");
 
         showUser("picard")
                 .selectTabAssignments()
-                    .clickAddAssignemnt("New Organization type assignment with manager relation")
+                    .clickAddAssignemnt("New Organization type assignment with Manager relation")
                         .selectType("Org")
                             .table()
                                 .search()
@@ -453,7 +447,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
         showUser("kirk").selectTabProjections()
                 .table()
                     .clickByName("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com")
-                        .assertInputAttributeValueMatches("manager", "picard");
+                        .assertPropertyInputValue("manager", "picard");
 
         showUser("picard").selectTabAssignments()
                 .table()
@@ -468,9 +462,9 @@ public class M10ObjectTemplate extends AbstractLabTest{
         showUser("kirk").selectTabProjections()
                 .table()
                     .clickByName("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com")
-                        .assertInputAttributeValueMatches("manager", "picard");
+                        .assertPropertyInputValue("manager", "picard");
 
-        importObject(CSV_3_RESOURCE_FILE_10_4);
+        importObject(CSV_3_RESOURCE_FILE_10_4, true);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
 
@@ -483,7 +477,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
                 .table()
                     .clickByName("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com")
                         .showEmptyAttributes("Attributes")
-                        .assertInputAttributeValueMatches("manager", "");
+                        .assertPropertyInputValue("manager", "");
     }
 
     @Test(dependsOnMethods = {"mod10test03LookupTablesAndAttributeOverrides"})

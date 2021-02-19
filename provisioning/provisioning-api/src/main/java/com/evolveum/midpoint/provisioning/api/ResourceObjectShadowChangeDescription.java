@@ -12,10 +12,13 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import java.io.Serializable;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Describes a change of a specific resource object together with definitions of the source and possibly
@@ -31,38 +34,37 @@ import java.io.Serializable;
 public class ResourceObjectShadowChangeDescription implements DebugDumpable, Serializable {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Current "shadowed" resource object. I.e. it is the resource object combined with its repository shadow
+     * in a specific way. (Please see the shadows package in provisioning-impl.)
+     *
+     * It describes the state after the change.
+     *
+     * Must not be null. If the resource has no read capability, it should be constructed using cached attributes.
+     * If the object was deleted, this must be the last state. (Usually, a dead shadow is presented here.)
+     *
+     * It must exist in repo. The only exception is when the object delta is delete.
+     */
+    private PrismObject<ShadowType> shadowedResourceObject;
+
+    /**
+     * Delta describing change - if known.
+     * If present, it must have an OID. There are a lot of consistency checks in the code that watch this.
+     */
     private ObjectDelta<ShadowType> objectDelta;
 
     /**
-     * Current "shadowized" resource object.
+     * Via what channel did we learn about this change?
      */
-    private PrismObject<ShadowType> currentShadow;
-
-    /**
-     * Repository shadow as it existed before it was updated (as a result of the detected change).
-     * In general it is useful only when {@link #currentShadow} is null or it has null OID. TODO!!!
-     */
-    private PrismObject<ShadowType> oldShadow;
-
     private String sourceChannel;
+
+    /** Related resource. Must be present. */
     private PrismObject<ResourceType> resource;
 
-    /**
-     * If set to true then this change is not related to the primary goal of
-     * the running task. E.g. it may be a change in entitlement that is discovered
-     * when reading an account. Or it may be ordinary creation of a new shadow during
-     * search.
-     *
-     * On the other hand, related change is a change in the object that is being processed.
-     * E.g. discovering that the object is missing, or a conflicting object already exists.
-     *
-     * It is expected that reactions to the unrelated changes will be lighter, faster,
-     * with lower overhead and without ambition to provide full synchronization.
-     */
-    private boolean unrelatedChange = false;
-
+    /** Is this a simulated operation? TODO reconsider this flag here. */
     private boolean simulate = false;
 
+    /** We want to just clean - i.e. unlink - a dead shadow. TODO reconsider using custom interface for this. */
     private boolean cleanDeadShadow = false;
 
     /**
@@ -71,6 +73,7 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
      * to any related or unrelated processing like the one induced by discovery, error handling or similar
      * activities.
      */
+    @Experimental
     private String itemProcessingIdentifier;
 
     public ObjectDelta<ShadowType> getObjectDelta() {
@@ -81,20 +84,12 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
         this.objectDelta = objectDelta;
     }
 
-    public PrismObject<ShadowType> getCurrentShadow() {
-        return currentShadow;
+    public PrismObject<ShadowType> getShadowedResourceObject() {
+        return shadowedResourceObject;
     }
 
-    public void setCurrentShadow(PrismObject<ShadowType> currentShadow) {
-        this.currentShadow = currentShadow;
-    }
-
-    public PrismObject<ShadowType> getOldShadow() {
-        return oldShadow;
-    }
-
-    public void setOldShadow(PrismObject<ShadowType> oldShadow) {
-        this.oldShadow = oldShadow;
+    public void setShadowedResourceObject(PrismObject<ShadowType> shadowedResourceObject) {
+        this.shadowedResourceObject = shadowedResourceObject;
     }
 
     public String getSourceChannel() {
@@ -111,14 +106,6 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
 
     public void setResource(PrismObject<ResourceType> resource) {
         this.resource = resource;
-    }
-
-    public boolean isUnrelatedChange() {
-        return unrelatedChange;
-    }
-
-    public void setUnrelatedChange(boolean unrelatedChange) {
-        this.unrelatedChange = unrelatedChange;
     }
 
     public boolean isSimulate() {
@@ -146,54 +133,29 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
     }
 
     public void checkConsistence() {
-        if (resource == null) {
-            throw new IllegalArgumentException("No resource in "+this.getClass().getSimpleName());
-        }
+        stateCheck(resource != null, "No resource");
         resource.checkConsistence();
-        if (sourceChannel == null) {
-            throw new IllegalArgumentException("No sourceChannel in "+this.getClass().getSimpleName());
-        }
-        if (objectDelta == null && currentShadow == null) {
-            throw new IllegalArgumentException("Either objectDelta or currentShadow must be set in "+this.getClass().getSimpleName());
-        }
-        if (objectDelta != null && objectDelta.getOid() == null) {
-            throw new IllegalArgumentException("Delta OID not set in "+this.getClass().getSimpleName());
-        }
+        stateCheck(sourceChannel != null, "No source channel");
         if (objectDelta != null) {
             objectDelta.checkConsistence();
         }
-        if (currentShadow != null && currentShadow.getOid() == null) {
-            throw new IllegalArgumentException("Current shadow OID not set in "+this.getClass().getSimpleName());
-        }
-        if (currentShadow != null) {
-            ShadowUtil.checkConsistence(currentShadow,"current shadow in change notification");
-        }
-        if (oldShadow != null) {
-            ShadowUtil.checkConsistence(oldShadow,"old shadow in change notification");
-        }
+        stateCheck(shadowedResourceObject != null, "No shadowed resource object present");
+        stateCheck(shadowedResourceObject.getOid() != null, "Shadowed resource object without OID");
+        ShadowUtil.checkConsistence(shadowedResourceObject,"shadowed resource object in change notification");
     }
 
     public boolean isProtected() {
-        if ((ShadowUtil.isProtected(currentShadow))
-                || (ShadowUtil.isProtected(oldShadow))) {
-            return true;
-        }
-        if (objectDelta != null && objectDelta.isAdd() && ShadowUtil.isProtected(objectDelta.getObjectToAdd())) {
-            return true;
-        }
-        return false;
+        return ShadowUtil.isProtected(shadowedResourceObject);
     }
 
     @Override
     public String toString() {
         return "ResourceObjectShadowChangeDescription("
                 + "objectDelta=" + objectDelta
-                + ", currentShadow=" + SchemaDebugUtil.prettyPrint(currentShadow)
-                + ", oldShadow=" + SchemaDebugUtil.prettyPrint(oldShadow)
+                + ", currentShadow=" + SchemaDebugUtil.prettyPrint(shadowedResourceObject)
                 + ", sourceChannel=" + sourceChannel
                 + ", resource=" + resource
                 + ", processing=" + itemProcessingIdentifier
-                + (unrelatedChange ? " UNRELATED" : "")
                 + (simulate ? " SIMULATE" : "")
                 + (cleanDeadShadow ? " CLEAN DEAD SHADOW" : "")
                 + ")";
@@ -228,28 +190,16 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
         sb.append("\n");
         SchemaDebugUtil.indentDebugDump(sb, indent+1);
 
-        sb.append("oldShadow:");
-        if (oldShadow == null) {
-            sb.append(" null");
-        } else {
-            sb.append("\n");
-            sb.append(oldShadow.debugDump(indent+2));
-        }
-
         sb.append("\n");
         SchemaDebugUtil.indentDebugDump(sb, indent+1);
 
         sb.append("currentShadow:");
-        if (currentShadow == null) {
+        if (shadowedResourceObject == null) {
             sb.append(" null\n");
         } else {
             sb.append("\n");
-            sb.append(currentShadow.debugDump(indent+2));
+            sb.append(shadowedResourceObject.debugDump(indent+2));
         }
-
-        sb.append("\n");
-        SchemaDebugUtil.indentDebugDump(sb, indent+1);
-        sb.append("unrelatedChange: ").append(unrelatedChange);
 
         sb.append("\n");
         SchemaDebugUtil.indentDebugDump(sb, indent+1);
@@ -266,4 +216,11 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
         return sb.toString();
     }
 
+    public String getShadowOid() {
+        return shadowedResourceObject.getOid();
+    }
+
+    public boolean isDelete() {
+        return ObjectDelta.isDelete(objectDelta);
+    }
 }

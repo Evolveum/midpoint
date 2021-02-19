@@ -106,6 +106,10 @@ public interface ItemPath extends ShortDumpable, Serializable {
         return path == null || path.isEmpty();
     }
 
+    static boolean isNotEmpty(ItemPath path) {
+        return !isEmpty(path);
+    }
+
     /**
      * Returns path size i.e. the number of components.
      */

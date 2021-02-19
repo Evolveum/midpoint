@@ -93,6 +93,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl
     PrismPropertyValueImpl() {
     }
 
+    @Override
     public void setValue(T value) {
         checkMutable();
         this.value = value;
@@ -100,6 +101,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl
         checkValue();
     }
 
+    @Override
     public T getValue() {
         if (rawElement != null) {
             ItemDefinition def = null;
@@ -137,16 +139,18 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl
                 }
             }
             if (rawElement != null) {
-                return (T) RawType.create(rawElement, getPrismContext());
+                return (T) RawType.create(rawElement.frozen(), getPrismContext());
             }
         }
         return value;
     }
 
+    @Override
     public XNodeImpl getRawElement() {
         return rawElement;
     }
 
+    @Override
     public void setRawElement(XNode rawElement) {
         this.rawElement = (XNodeImpl) rawElement;
     }
@@ -156,11 +160,13 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl
         return rawElement != null;
     }
 
+    @Override
     @Nullable
     public ExpressionWrapper getExpression() {
         return expression;
     }
 
+    @Override
     public void setExpression(@Nullable ExpressionWrapper expression) {
         this.expression = expression;
     }
@@ -482,6 +488,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl
         return debugDump(indent, false);
     }
 
+    @Override
     public String debugDump(int indent, boolean detailedDump) {
         detailedDump = detailedDump || DebugUtil.isDetailedDebugDump();
         StringBuilder sb = new StringBuilder();
@@ -613,6 +620,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl
      *
      * @return Created JAXBElement.
      */
+    @Override
     public JAXBElement<T> toJaxbElement() {
         Itemable parent = getParent();
         if (parent == null) {

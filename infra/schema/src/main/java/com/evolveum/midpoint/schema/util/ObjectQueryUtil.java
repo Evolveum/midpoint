@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
@@ -585,6 +586,46 @@ public class ObjectQueryUtil {
             }
         }
         return rv;
+    }
+
+    public static ObjectQuery addConjunctions(ObjectQuery query, PrismContext prismContext,
+            ObjectFilter... newConjunctionMembers) {
+        return addConjunctions(query, prismContext, MiscUtil.asListTreatingNull(newConjunctionMembers));
+    }
+
+    public static ObjectQuery addConjunctions(ObjectQuery query, PrismContext prismContext,
+            Collection<ObjectFilter> newConjunctionMembers) {
+
+        if (newConjunctionMembers.isEmpty()) {
+            return query;
+        }
+        List<ObjectFilter> allConjunctionMembers = mergeConjunctions(query, newConjunctionMembers);
+
+        ObjectFilter updatedFilter;
+        if (allConjunctionMembers.size() == 1) {
+            updatedFilter = allConjunctionMembers.get(0);
+        } else if (allConjunctionMembers.size() > 1) {
+            updatedFilter = prismContext.queryFactory().createAnd(allConjunctionMembers);
+        } else {
+            throw new AssertionError();
+        }
+
+        ObjectQuery updatedQuery = query != null ? query.clone() : prismContext.queryFactory().createQuery();
+        updatedQuery.setFilter(updatedFilter);
+        return updatedQuery;
+    }
+
+    // We intentionally copy new members even if there's no existing filter (to decouple from the original list)
+    @NotNull
+    private static List<ObjectFilter> mergeConjunctions(ObjectQuery query, Collection<ObjectFilter> newConjunctionMembers) {
+        List<ObjectFilter> allConjunctionMembers = new ArrayList<>(newConjunctionMembers.size() + 1);
+
+        ObjectFilter existingFilter = query != null ? query.getFilter() : null;
+        if (existingFilter != null) {
+            allConjunctionMembers.add(existingFilter);
+        }
+        allConjunctionMembers.addAll(newConjunctionMembers);
+        return allConjunctionMembers;
     }
 
     /**

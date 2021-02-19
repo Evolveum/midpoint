@@ -1,8 +1,8 @@
 ---
 '@ns': "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
 user:
-  oid: "c0c010c0-d34d-b33f-f00d-111111113333"
   '@ns': "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
+  oid: "c0c010c0-d34d-b33f-f00d-111111113333"
   name: "will"
   extension:
     '@ns': "http://midpoint.evolveum.com/xml/ns/test/extension"

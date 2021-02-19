@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.util;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,52 +42,60 @@ public class OperationExecutionRecorderForTasks {
     private static final Trace LOGGER = TraceManager.getTrace(OperationExecutionRecorderForTasks.class);
 
     /**
-     * The task need not to be the specific worker LAT. It could be any task that has the correct root task OID filled-in.
+     * Writes an operation execution record.
      *
-     * Precondition: result has already computed status.
+     * @param target Where to write the record to.
+     * @param task Related task. It could be any task that has the correct root task OID filled-in.
+     * @param result Combined use: (1) This is the result that we want to write to the object (i.e. it must have
+     * already computed status and message. (2) This is the result we use for our own writing operations.
+     * We hope these two usages are not in conflict. If so, they will need to be split.
      *
-     * TODO implement redirection also for (rightfully) deleted objects?
+     * TODO implement redirection also for (rightfully) deleted objects? Currently deleteOk=true means no exception
+     *  is propagated from the writer. Overall, it is questionable if we want to write such information at all.
      *
      * TODO move redirection to the writer level?
      */
-    public void recordOperationExecution(Target target, Throwable e, RunningTask task, OperationResult result) {
-
-        OperationExecutionType executionToAdd = createExecutionRecord(e, task, result);
+    public void recordOperationExecution(Target target, RunningTask task, OperationResult result) {
+        OperationExecutionType recordToAdd = createExecutionRecord(task, result);
         if (target.canWriteToObject()) {
-            recordOperationExecutionDirectly(target, executionToAdd, task, result);
+            recordOperationExecutionToOwner(target, recordToAdd, task, result);
         } else {
-            recordRedirectedOperationExecution(target, executionToAdd, task, result);
+            recordOperationExecutionToBackupHolder(target, recordToAdd, task, result);
         }
     }
 
-    private void recordOperationExecutionDirectly(Target target, OperationExecutionType executionToAdd,
+    private void recordOperationExecutionToOwner(Target target, OperationExecutionType recordToAdd,
             RunningTask task, OperationResult result) {
-        ObjectType objectable = target.targetObject.asObjectable();
+        ObjectType owner = target.ownerObject.asObjectable();
         try {
-            writer.write(objectable.getClass(), objectable.getOid(), executionToAdd, objectable.getOperationExecution(), true, result);
+            OperationExecutionWriter.Request<? extends ObjectType> request =
+                    new OperationExecutionWriter.Request<>(owner.getClass(), owner.getOid(), recordToAdd,
+                            owner.getOperationExecution(), true, getTaskStartTime(task));
+            writer.write(request, result);
         } catch (Exception e) {
-            LOGGER.warn("Couldn't write operation execution for {} in {}, trying backup object", objectable, task, e);
-            recordRedirectedOperationExecution(target, executionToAdd, task, result);
+            LOGGER.warn("Couldn't write operation execution for {} in {}, trying backup holder", owner, task, e);
+            recordOperationExecutionToBackupHolder(target, recordToAdd, task, result);
         }
     }
 
-    private void recordRedirectedOperationExecution(Target target, OperationExecutionType executionToAdd, RunningTask task,
+    private void recordOperationExecutionToBackupHolder(Target target, OperationExecutionType recordToAdd, RunningTask task,
             OperationResult result) {
-        executionToAdd.beginRedirection()
-                .redirected(true)
-                .identification(target.getTargetIdentification())
-                .objectType(target.targetType);
+        recordToAdd.beginRealOwner()
+                .identification(target.getOwnerIdentification())
+                .objectType(target.ownerType);
         try {
-            writer.write(target.backupObjectClass, target.backupObjectOid, executionToAdd, null, false, result);
+            OperationExecutionWriter.Request<? extends ObjectType> request =
+                    new OperationExecutionWriter.Request<>(target.backupHolderClass, target.backupHolderOid, recordToAdd,
+                            null, false, getTaskStartTime(task));
+            writer.write(request, result);
         } catch (Exception e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Error while writing operation execution for {} into {} in {}", e,
-                    target.targetIdentification, target.backupObjectOid, task);
+            LoggingUtils.logUnexpectedException(LOGGER,
+                    "Error while writing operation execution for {} into backup holder {} in {}", e,
+                    target.ownerIdentification, target.backupHolderOid, task);
         }
     }
 
-    // TODO ignoring e?
-    private <O extends ObjectType> OperationExecutionType createExecutionRecord(Throwable e, RunningTask task,
-            OperationResult result) {
+    private OperationExecutionType createExecutionRecord(RunningTask task, OperationResult result) {
         OperationExecutionType operation = new OperationExecutionType(prismContext);
         operation.setRecordType(OperationExecutionRecordTypeType.COMPLEX);
         operation.setTaskRef(ObjectTypeUtil.createObjectRef(task.getRootTaskOid(), ObjectTypes.TASK));
@@ -98,44 +107,62 @@ public class OperationExecutionRecorderForTasks {
         return operation;
     }
 
+    private XMLGregorianCalendar getTaskStartTime(RunningTask task) {
+        // FIXME this should be root task start time!
+        return XmlTypeConverter.createXMLGregorianCalendar(task.getLastRunStartTimestamp());
+    }
+
     /**
-     * Specification where to write operation execution record.
+     * Specification of where to write operation execution record.
      */
     public static class Target {
 
-        /** The primary target i.e. the object (shadow, user, ...) that was processed (if it exists). */
-        private final PrismObject<? extends ObjectType> targetObject;
+        /**
+         * The real owner i.e. the object (shadow, user, ...) that was processed.
+         * Can be null if that object no longer exists in repository.
+         */
+        private final PrismObject<? extends ObjectType> ownerObject;
 
-        /** Type of the primary target. Needed mainly if it's null. */
-        private final QName targetType;
+        /**
+         * Owner type. Needed only if {@link #ownerObject} is null.
+         */
+        private final QName ownerType;
 
-        /** Identification of the primary target, e.g. account UID. Needed mainly if the target object is null. */
-        private final String targetIdentification;
+        /**
+         * Alternative identification of the owner. Needed only if {@link #ownerObject} is null.
+         * An example: account UID; but can be basically any relevant free-form string.
+         */
+        private final String ownerIdentification;
 
-        /** OID of the backup object, to which the record is to be written. Usually task OID. */
-        private final String backupObjectOid;
+        /**
+         * OID of the backup object, to which the record is to be written when the real owner does not exist
+         * or if it cannot be written to. Usually it is the task OID.
+         */
+        private final String backupHolderOid;
 
-        /** Class of the backup object. Usually TaskType. */
-        private final Class<? extends ObjectType> backupObjectClass;
+        /**
+         * Type of the backup holder. Usually it is TaskType.
+         */
+        private final Class<? extends ObjectType> backupHolderClass;
 
-        public Target(PrismObject<? extends ObjectType> targetObject, QName targetType, String targetIdentification,
-                String backupObjectOid, Class<? extends ObjectType> backupObjectClass) {
-            this.targetObject = targetObject;
-            this.targetType = targetType;
-            this.targetIdentification = targetIdentification;
-            this.backupObjectOid = backupObjectOid;
-            this.backupObjectClass = backupObjectClass;
+        public Target(PrismObject<? extends ObjectType> ownerObject, QName ownerType, String ownerIdentification,
+                String backupHolderOid, Class<? extends ObjectType> backupHolderClass) {
+            this.ownerObject = ownerObject;
+            this.ownerType = ownerType;
+            this.ownerIdentification = ownerIdentification;
+            this.backupHolderOid = backupHolderOid;
+            this.backupHolderClass = backupHolderClass;
         }
 
         private boolean canWriteToObject() {
-            return targetObject != null && targetObject.getOid() != null;
+            return ownerObject != null && ownerObject.getOid() != null;
         }
 
-        public String getTargetIdentification() {
-            if (targetIdentification != null) {
-                return targetIdentification;
-            } else if (targetObject != null) {
-                return PolyString.getOrig(targetObject.asObjectable().getName());
+        public String getOwnerIdentification() {
+            if (ownerIdentification != null) {
+                return ownerIdentification;
+            } else if (ownerObject != null) {
+                return PolyString.getOrig(ownerObject.asObjectable().getName());
             } else {
                 return null;
             }

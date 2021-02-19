@@ -60,6 +60,7 @@ public class TestFundamentals extends AbstractPrismTest {
         QName typeQName = new QName("abcdef");
         MapXNodeImpl mapXNode = new MapXNodeImpl();
         mapXNode.setTypeQName(typeQName);
+        mapXNode.freeze();
         RawType rawType = new RawType(mapXNode, PrismTestUtil.getPrismContext());
 
         // WHEN

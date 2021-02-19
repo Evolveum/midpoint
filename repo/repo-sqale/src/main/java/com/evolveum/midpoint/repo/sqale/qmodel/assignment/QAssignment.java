@@ -7,9 +7,14 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
 import java.sql.Types;
+import java.time.Instant;
 
+import com.querydsl.core.types.dsl.ArrayPath;
+import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
+import com.querydsl.sql.PrimaryKey;
 
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
@@ -26,16 +31,22 @@ public class QAssignment extends FlexibleRelationalPathBase<MAssignment> {
 
     public static final ColumnMetadata OWNER_OID =
             ColumnMetadata.named("owner_oid").ofType(UuidPath.UUID_TYPE);
-    public static final ColumnMetadata ID =
+    public static final ColumnMetadata CID =
             ColumnMetadata.named("cid").ofType(Types.INTEGER);
-
-    public static final ColumnMetadata CREATOR_REF_TARGET_OID =
-            ColumnMetadata.named("creatorRef_targetOid").ofType(UuidPath.UUID_TYPE);
-    public static final ColumnMetadata CREATOR_REF_TARGET_TYPE =
-            ColumnMetadata.named("creatorRef_targetType").ofType(Types.INTEGER);
-    public static final ColumnMetadata CREATOR_REF_RELATION_ID =
-            ColumnMetadata.named("creatorRef_relation_id").ofType(Types.INTEGER);
-
+    public static final ColumnMetadata OWNER_TYPE =
+            ColumnMetadata.named("owner_type").ofType(Types.INTEGER);
+    public static final ColumnMetadata ASSIGNMENT_OWNER =
+            ColumnMetadata.named("assignmentOwner").ofType(Types.INTEGER);
+    public static final ColumnMetadata LIFECYCLE_STATE =
+            ColumnMetadata.named("lifecycleState").ofType(Types.VARCHAR).withSize(255);
+    public static final ColumnMetadata ORDER_VALUE =
+            ColumnMetadata.named("orderValue").ofType(Types.INTEGER);
+    public static final ColumnMetadata ORG_REF_TARGET_OID =
+            ColumnMetadata.named("orgRef_targetOid").ofType(UuidPath.UUID_TYPE);
+    public static final ColumnMetadata ORG_REF_TARGET_TYPE =
+            ColumnMetadata.named("orgRef_targetType").ofType(Types.INTEGER);
+    public static final ColumnMetadata ORG_REF_RELATION_ID =
+            ColumnMetadata.named("orgRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata TARGET_REF_TARGET_OID =
             ColumnMetadata.named("targetRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata TARGET_REF_TARGET_TYPE =
@@ -48,52 +59,78 @@ public class QAssignment extends FlexibleRelationalPathBase<MAssignment> {
             ColumnMetadata.named("tenantRef_targetType").ofType(Types.INTEGER);
     public static final ColumnMetadata TENANT_REF_RELATION_ID =
             ColumnMetadata.named("tenantRef_relation_id").ofType(Types.INTEGER);
+    public static final ColumnMetadata EXT_ID =
+            ColumnMetadata.named("extId").ofType(Types.INTEGER);
+    // TODO UUID or not? our control or outside?
+    public static final ColumnMetadata EXT_OID =
+            ColumnMetadata.named("extOid").ofType(Types.VARCHAR).withSize(36);
+    public static final ColumnMetadata EXT =
+            ColumnMetadata.named("ext").ofType(Types.BINARY);
+    // construction columns
+    public static final ColumnMetadata RESOURCE_REF_TARGET_OID =
+            ColumnMetadata.named("resourceRef_targetOid").ofType(UuidPath.UUID_TYPE);
+    public static final ColumnMetadata RESOURCE_REF_TARGET_TYPE =
+            ColumnMetadata.named("resourceRef_targetType").ofType(Types.INTEGER);
+    public static final ColumnMetadata RESOURCE_REF_RELATION_ID =
+            ColumnMetadata.named("resourceRef_relation_id").ofType(Types.INTEGER);
+    // activation columns
+    public static final ColumnMetadata ADMINISTRATIVE_STATUS =
+            ColumnMetadata.named("administrativeStatus").ofType(Types.INTEGER);
+    public static final ColumnMetadata EFFECTIVE_STATUS =
+            ColumnMetadata.named("effectiveStatus").ofType(Types.INTEGER);
+    public static final ColumnMetadata ENABLE_TIMESTAMP =
+            ColumnMetadata.named("enableTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata DISABLE_TIMESTAMP =
+            ColumnMetadata.named("disableTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata DISABLE_REASON =
+            ColumnMetadata.named("disableReason").ofType(Types.VARCHAR).withSize(255);
+    public static final ColumnMetadata VALIDITY_STATUS =
+            ColumnMetadata.named("validityStatus").ofType(Types.INTEGER);
+    public static final ColumnMetadata VALID_FROM =
+            ColumnMetadata.named("validFrom").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata VALID_TO =
+            ColumnMetadata.named("validTo").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata VALIDITY_CHANGE_TIMESTAMP =
+            ColumnMetadata.named("validityChangeTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata ARCHIVE_TIMESTAMP =
+            ColumnMetadata.named("archiveTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    // metadata columns
+    public static final ColumnMetadata CREATOR_REF_TARGET_OID =
+            ColumnMetadata.named("creatorRef_targetOid").ofType(UuidPath.UUID_TYPE);
+    public static final ColumnMetadata CREATOR_REF_TARGET_TYPE =
+            ColumnMetadata.named("creatorRef_targetType").ofType(Types.INTEGER);
+    public static final ColumnMetadata CREATOR_REF_RELATION_ID =
+            ColumnMetadata.named("creatorRef_relation_id").ofType(Types.INTEGER);
+    public static final ColumnMetadata CREATE_CHANNEL_ID =
+            ColumnMetadata.named("createChannel_id").ofType(Types.INTEGER);
+    public static final ColumnMetadata CREATE_TIMESTAMP =
+            ColumnMetadata.named("createTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata MODIFIER_REF_TARGET_OID =
+            ColumnMetadata.named("modifierRef_targetOid").ofType(UuidPath.UUID_TYPE);
+    public static final ColumnMetadata MODIFIER_REF_TARGET_TYPE =
+            ColumnMetadata.named("modifierRef_targetType").ofType(Types.INTEGER);
+    public static final ColumnMetadata MODIFIER_REF_RELATION_ID =
+            ColumnMetadata.named("modifierRef_relation_id").ofType(Types.INTEGER);
+    public static final ColumnMetadata MODIFY_CHANNEL_ID =
+            ColumnMetadata.named("modifyChannel_id").ofType(Types.INTEGER);
+    public static final ColumnMetadata MODIFY_TIMESTAMP =
+            ColumnMetadata.named("modifyTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
 
-    /*
-    owner_type INTEGER NOT NULL,
-    administrativeStatus INTEGER,
-    archiveTimestamp TIMESTAMPTZ,
-    disableReason VARCHAR(255),
-    disableTimestamp TIMESTAMPTZ,
-    effectiveStatus INTEGER,
-    enableTimestamp TIMESTAMPTZ,
-    validFrom TIMESTAMPTZ,
-    validTo TIMESTAMPTZ,
-    validityChangeTimestamp TIMESTAMPTZ,
-    validityStatus INTEGER,
-    assignmentOwner INTEGER,
-    createChannel VARCHAR(255),
-    createTimestamp TIMESTAMPTZ,
-    creatorRef_targetOid UUID,
-    creatorRef_targetType INTEGER, -- soft-references m_objtype
-    creatorRef_relation_id INTEGER, -- soft-references m_uri
-    lifecycleState VARCHAR(255),
-    modifierRef_targetOid UUID,
-    modifierRef_targetType INTEGER, -- soft-references m_objtype
-    modifierRef_relation_id INTEGER, -- soft-references m_uri
-    modifyChannel VARCHAR(255),
-    modifyTimestamp TIMESTAMPTZ,
-    orderValue INTEGER,
-    orgRef_targetOid UUID,
-    orgRef_targetType INTEGER, -- soft-references m_objtype
-    orgRef_relation_id INTEGER, -- soft-references m_uri
-    resourceRef_targetOid UUID,
-    resourceRef_targetType INTEGER, -- soft-references m_objtype
-    resourceRef_relation_id INTEGER, -- soft-references m_uri
-    targetRef_targetOid UUID,
-    targetRef_targetType INTEGER, -- soft-references m_objtype
-    targetRef_relation_id INTEGER, -- soft-references m_uri
-    tenantRef_targetOid UUID,
-    tenantRef_targetType INTEGER, -- soft-references m_objtype
-    tenantRef_relation_id INTEGER, -- soft-references m_uri
-    extId INTEGER, -- TODO what is this?
-    extOid VARCHAR(36), -- is this UUID too?
-    ext JSONB,
-     */
-    // TODO the rest
+    // attributes
 
-    public UuidPath ownerOid = createUuid("ownerOid", OWNER_OID);
-    public NumberPath<Integer> cid = createInteger("cid", ID);
+    public final UuidPath ownerOid = createUuid("ownerOid", OWNER_OID);
+    public final NumberPath<Integer> cid = createInteger("cid", CID);
+    public final NumberPath<Integer> ownerType = createInteger("ownerType", OWNER_TYPE);
+    public final NumberPath<Integer> assignmentOwner =
+            createInteger("assignmentOwner", ASSIGNMENT_OWNER);
+    public final StringPath lifecycleState = createString("lifecycleState", LIFECYCLE_STATE);
+    public final NumberPath<Integer> orderValue = createInteger("orderValue", ORDER_VALUE);
+    public final UuidPath orgRefTargetOid =
+            createUuid("orgRefTargetOid", ORG_REF_TARGET_OID);
+    public final NumberPath<Integer> orgRefTargetType =
+            createInteger("orgRefTargetType", ORG_REF_TARGET_TYPE);
+    public final NumberPath<Integer> orgRefRelationId =
+            createInteger("orgRefRelationId", ORG_REF_RELATION_ID);
     public final UuidPath targetRefTargetOid =
             createUuid("targetRefTargetOid", TARGET_REF_TARGET_OID);
     public final NumberPath<Integer> targetRefTargetType =
@@ -106,6 +143,57 @@ public class QAssignment extends FlexibleRelationalPathBase<MAssignment> {
             createInteger("tenantRefTargetType", TENANT_REF_TARGET_TYPE);
     public final NumberPath<Integer> tenantRefRelationId =
             createInteger("tenantRefRelationId", TENANT_REF_RELATION_ID);
+    public final NumberPath<Integer> extId = createInteger("extId", EXT_ID);
+    public final StringPath extOid = createString("extOid", EXT_OID);
+    public final ArrayPath<byte[], Byte> ext = createByteArray("ext", EXT); // TODO is byte[] the right type?
+    // construction attributes
+    public final UuidPath resourceRefTargetOid =
+            createUuid("resourceRefTargetOid", RESOURCE_REF_TARGET_OID);
+    public final NumberPath<Integer> resourceRefTargetType =
+            createInteger("resourceRefTargetType", RESOURCE_REF_TARGET_TYPE);
+    public final NumberPath<Integer> resourceRefRelationId =
+            createInteger("resourceRefRelationId", RESOURCE_REF_RELATION_ID);
+    // activation attributes
+    public final NumberPath<Integer> administrativeStatus =
+            createInteger("administrativeStatus", ADMINISTRATIVE_STATUS);
+    public final NumberPath<Integer> effectiveStatus =
+            createInteger("effectiveStatus", EFFECTIVE_STATUS);
+    public final DateTimePath<Instant> enableTimestamp =
+            createInstant("enableTimestamp", ENABLE_TIMESTAMP);
+    public final DateTimePath<Instant> disableTimestamp =
+            createInstant("disableTimestamp", DISABLE_TIMESTAMP);
+    public final StringPath disableReason = createString("disableReason", DISABLE_REASON);
+    public final NumberPath<Integer> validityStatus =
+            createInteger("validityStatus", VALIDITY_STATUS);
+    public final DateTimePath<Instant> validFrom = createInstant("validFrom", VALID_FROM);
+    public final DateTimePath<Instant> validTo = createInstant("validTo", VALID_TO);
+    public final DateTimePath<Instant> validityChangeTimestamp =
+            createInstant("validityChangeTimestamp", VALIDITY_CHANGE_TIMESTAMP);
+    public final DateTimePath<Instant> archiveTimestamp =
+            createInstant("archiveTimestamp", ARCHIVE_TIMESTAMP);
+    // metadata attributes
+    public final UuidPath creatorRefTargetOid =
+            createUuid("creatorRefTargetOid", CREATOR_REF_TARGET_OID);
+    public final NumberPath<Integer> creatorRefTargetType =
+            createInteger("creatorRefTargetType", CREATOR_REF_TARGET_TYPE);
+    public final NumberPath<Integer> creatorRefRelationId =
+            createInteger("creatorRefRelationId", CREATOR_REF_RELATION_ID);
+    public final NumberPath<Integer> createChannelId =
+            createInteger("createChannelId", CREATE_CHANNEL_ID);
+    public final DateTimePath<Instant> createTimestamp =
+            createInstant("createTimestamp", CREATE_TIMESTAMP);
+    public final UuidPath modifierRefTargetOid =
+            createUuid("modifierRefTargetOid", MODIFIER_REF_TARGET_OID);
+    public final NumberPath<Integer> modifierRefTargetType =
+            createInteger("modifierRefTargetType", MODIFIER_REF_TARGET_TYPE);
+    public final NumberPath<Integer> modifierRefRelationId =
+            createInteger("modifierRefRelationId", MODIFIER_REF_RELATION_ID);
+    public final NumberPath<Integer> modifyChannelId =
+            createInteger("modifyChannelId", MODIFY_CHANNEL_ID);
+    public final DateTimePath<Instant> modifyTimestamp =
+            createInstant("modifyTimestamp", MODIFY_TIMESTAMP);
+
+    public final PrimaryKey<MAssignment> id = createPrimaryKey(ownerOid, cid);
 
     public QAssignment(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

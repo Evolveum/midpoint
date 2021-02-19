@@ -16,7 +16,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.RefFilter;
 
 public interface S_ConditionEntry {
-    S_MatchingRuleEntry eq(Object... values);
+    S_MatchingRuleEntry eq(Object... values); // beware, repository can handle only a single value in eq
     <T> S_MatchingRuleEntry eq(PrismProperty<T> property);            // TODO implement something like itemAs(property) to copy the property definition, path, and values into filter
     S_RightHandItemEntry eq();
     S_MatchingRuleEntry eqPoly(String orig, String norm);

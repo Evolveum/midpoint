@@ -19,13 +19,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
-import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -33,7 +29,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.QNameUtil;
 
 /**
- * Common supertype for mapping items/attributes between schema (prism) classes and query types.
+ * Common supertype for mapping items/attributes between schema (prism) classes and tables.
  * See {@link #addItemMapping(QName, ItemSqlMapper)} for details about mapping mechanism.
  * See {@link #addDetailFetchMapper(ItemName, SqlDetailFetchMapper)} for more about mapping
  * related to-many detail tables.
@@ -55,22 +51,19 @@ import com.evolveum.midpoint.util.QNameUtil;
  * @param <R> row type related to the {@link Q}
  */
 public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<R>, R>
-        implements QueryModelMapping {
+        extends QueryModelMapping<S, Q, R> {
 
     private final String tableName;
     private final String defaultAliasName;
-    private final Class<S> schemaType;
-    private final Class<Q> queryType;
 
     /**
      * Extension columns, key = propertyName which may differ from ColumnMetadata.getName().
      */
     private final Map<String, ColumnMetadata> extensionColumns = new LinkedHashMap<>();
 
-    private final Map<QName, ItemSqlMapper> itemFilterProcessorMapping = new LinkedHashMap<>();
-    private final Map<QName, ItemRelationResolver<Q>> itemRelationResolvers = new HashMap<>();
     private final Map<QName, SqlDetailFetchMapper<R, ?, ?, ?>> detailFetchMappers = new HashMap<>();
 
+    /** Instantiated lazily as needed, see {@link #defaultAlias()}. */
     private Q defaultAlias;
 
     /**
@@ -87,51 +80,9 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull String defaultAliasName,
             @NotNull Class<S> schemaType,
             @NotNull Class<Q> queryType) {
+        super(schemaType, queryType);
         this.tableName = tableName;
         this.defaultAliasName = defaultAliasName;
-        this.schemaType = schemaType;
-        this.queryType = queryType;
-    }
-
-    /**
-     * Adds information how item (attribute) from schema type is mapped to query,
-     * especially for condition creating purposes.
-     * This is not usable for complex item path resolution,
-     * see {@link #addRelationResolver(ItemName, ItemRelationResolver)} for that purpose.
-     * <p>
-     * The {@link ItemSqlMapper} works as a factory for {@link FilterProcessor} that can process
-     * {@link ObjectFilter} related to the {@link ItemName} specified as the first parameter.
-     * It is not possible to use filter processor directly because at the time of mapping
-     * specification we don't have the actual query path representing the entity or the column.
-     * These paths are non-static properties of query class instances.
-     * <p>
-     * The {@link ItemSqlMapper} also provides so called "primary mapping" to a column for ORDER BY
-     * part of the filter.
-     * But there can be additional column mappings specified as for some types (e.g. poly-strings)
-     * there may be other than 1-to-1 mapping.
-     * <p>
-     * Construction of the {@link ItemSqlMapper} is typically simplified by static methods
-     * {@code #mapper()} provided on various {@code *ItemFilterProcessor} classes.
-     * This works as a "processor factory factory" and makes table mapping specification simpler.
-     *
-     * @param itemName item name from schema type (see {@code F_*} constants on schema types)
-     * @param itemMapper mapper wrapping the information about column mappings working also
-     * as a factory for {@link FilterProcessor}
-     */
-    public final void addItemMapping(QName itemName, ItemSqlMapper itemMapper) {
-        itemFilterProcessorMapping.put(itemName, itemMapper);
-    }
-
-    /**
-     * Adds information how {@link ItemName} (attribute) from schema type is to be resolved
-     * when it appears as a component of a complex (non-single) {@link ItemPath}.
-     * This is in contrast with "item mapping" that is used for single (or last) component
-     * of the item path and helps with query interpretation.
-     */
-    public final void addRelationResolver(
-            @NotNull ItemName itemName,
-            @NotNull ItemRelationResolver<Q> itemRelationResolver) {
-        itemRelationResolvers.put(itemName, itemRelationResolver);
     }
 
     /**
@@ -184,44 +135,12 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
         return itemMapper(itemName).itemPrimaryPath(context.path());
     }
 
-    @Override
-    public final @NotNull ItemSqlMapper itemMapper(QName itemName) throws QueryException {
-        ItemSqlMapper itemMapping = QNameUtil.getByQName(itemFilterProcessorMapping, itemName);
-        if (itemMapping == null) {
-            throw new QueryException("Missing item mapping for " + itemName
-                    + " in mapping " + getClass().getSimpleName());
-        }
-        return itemMapping;
-    }
-
-    @Override
-    public final @NotNull ItemRelationResolver<?> relationResolver(ItemName itemName)
-            throws QueryException {
-        ItemRelationResolver<Q> resolver = QNameUtil.getByQName(itemRelationResolvers, itemName);
-        if (resolver == null) {
-            throw new QueryException("Missing relation resolver for " + itemName
-                    + " in mapping " + getClass().getSimpleName());
-        }
-        return resolver;
-    }
-
     public String tableName() {
         return tableName;
     }
 
     public String defaultAliasName() {
         return defaultAliasName;
-    }
-
-    /**
-     * This refers to midPoint schema, not DB schema.
-     */
-    public Class<S> schemaType() {
-        return schemaType;
-    }
-
-    public Class<Q> queryType() {
-        return queryType;
     }
 
     /**
@@ -246,6 +165,11 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
      */
     protected abstract Q newAliasInstance(String alias);
 
+    /**
+     * Returns default alias - use only once per query, e.g. not for two different joins.
+     * Also, don't cache it yourself, always use this method which ensures that the alias has
+     * all the extension columns configured properly.
+     */
     public synchronized Q defaultAlias() {
         if (defaultAlias == null) {
             defaultAlias = newAlias(defaultAliasName);
@@ -258,7 +182,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
      */
     public SqlTransformer<S, Q, R> createTransformer(
             SqlTransformerContext sqlTransformerContext) {
-        throw new UnsupportedOperationException("Bean transformer not supported for " + queryType);
+        throw new UnsupportedOperationException("Bean transformer not supported for " + queryType());
     }
 
     /**
@@ -315,18 +239,18 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
         return expressions.toArray(new Path[0]);
     }
 
-    @Override
-    public String toString() {
-        return "QueryModelMapping{" +
-                "tableName='" + tableName + '\'' +
-                ", defaultAliasName='" + defaultAliasName + '\'' +
-                ", schemaType=" + schemaType +
-                ", queryType=" + queryType +
-                '}';
-    }
-
     public R newRowObject() {
         throw new UnsupportedOperationException(
-                "Row bean creation not implemented for query type " + queryType.getName());
+                "Row bean creation not implemented for query type " + queryType().getName());
+    }
+
+    @Override
+    public String toString() {
+        return "QueryTableMapping{" +
+                "tableName='" + tableName + '\'' +
+                ", defaultAliasName='" + defaultAliasName + '\'' +
+                ", schemaType=" + schemaType() +
+                ", queryType=" + queryType() +
+                '}';
     }
 }

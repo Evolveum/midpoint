@@ -237,7 +237,7 @@ public class DummyPrismObjectDefinition implements PrismObjectDefinition<Objecta
     }
 
     @Override
-    public PrismObjectDefinition<Objectable> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
+    public @NotNull PrismObjectDefinition<Objectable> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
         throw new UnsupportedOperationException();
     }
 

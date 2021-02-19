@@ -17,15 +17,21 @@ import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
+import com.evolveum.midpoint.provisioning.util.InitializationState;
+
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.*;
-import com.evolveum.midpoint.provisioning.impl.adoption.AdoptedExternalChange;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowedExternalChange;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExternalResourceObjectChange;
-import com.evolveum.midpoint.provisioning.impl.sync.ChangeProcessingBeans;
+import com.evolveum.midpoint.provisioning.impl.shadows.sync.ChangeProcessingBeans;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -40,10 +46,11 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceEventListenerImpl.class);
 
-    @Autowired private ShadowCache shadowCache;
+    @Autowired private ShadowsFacade shadowsFacade;
     @Autowired private ChangeProcessingBeans changeProcessingBeans;
     @Autowired private ProvisioningContextFactory provisioningContextFactory;
     @Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
+    @Autowired private ResourceObjectConverter resourceObjectConverter;
 
     private final AtomicInteger currentSequenceNumber = new AtomicInteger(0);
 
@@ -86,37 +93,46 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 
         Object primaryIdentifierRealValue = getPrimaryIdentifierRealValue(anyShadow, eventDescription);
         Collection<ResourceAttribute<?>> identifiers = emptyIfNull(ShadowUtil.getAllIdentifiers(anyShadow));
+        if (identifiers.isEmpty()) {
+            throw new SchemaException("No identifiers");
+        }
+
+        ObjectClassComplexTypeDefinition objectClassDefinition = ctx.getObjectClassDefinition().getObjectClassDefinition();
 
         ExternalResourceObjectChange resourceObjectChange = new ExternalResourceObjectChange(
                 currentSequenceNumber.getAndIncrement(),
-                primaryIdentifierRealValue, identifiers,
+                primaryIdentifierRealValue, objectClassDefinition, identifiers,
                 getResourceObject(eventDescription),
-                eventDescription.getObjectDelta());
-        resourceObjectChange.preprocess(ctx);
+                eventDescription.getObjectDelta(), ctx, resourceObjectConverter);
+        resourceObjectChange.initialize(task, result);
 
-        AdoptedExternalChange adoptedChange = new AdoptedExternalChange(resourceObjectChange, false, changeProcessingBeans);
-        adoptedChange.preprocess(result);
+        ShadowedExternalChange adoptedChange = new ShadowedExternalChange(resourceObjectChange, changeProcessingBeans);
+        adoptedChange.initialize(task, result);
 
-        if (adoptedChange.isPreprocessed()) {
+        InitializationState initializationState = adoptedChange.getInitializationState();
+        initializationState.checkAfterInitialization();
+        if (initializationState.isOk()) {
             ResourceObjectShadowChangeDescription shadowChangeDescription = adoptedChange.getShadowChangeDescription();
             changeNotificationDispatcher.notifyChange(shadowChangeDescription, task, result);
-        } else if (adoptedChange.getProcessingState().getExceptionEncountered() != null) {
-            // Currently we do very simple error handling: throw any exception to the client!
-            Throwable t = adoptedChange.getProcessingState().getExceptionEncountered();
-            if (t instanceof CommonException) {
-                throw (CommonException) t;
-            } else if (t instanceof RuntimeException) {
-                throw (RuntimeException) t;
-            } else if (t instanceof Error) {
-                throw (Error) t;
-            } else {
-                throw new SystemException(t);
-            }
-        } else if (adoptedChange.getProcessingState().isSkipFurtherProcessing()) {
-            LOGGER.debug("Change is not applicable:\n{}", adoptedChange.debugDumpLazily());
-            result.recordNotApplicable();
         } else {
-            throw new AssertionError();
+            Throwable t = initializationState.getExceptionEncountered();
+            if (t != null) {
+                // Currently we do very simple error handling: throw any exception to the client!
+                if (t instanceof CommonException) {
+                    throw (CommonException) t;
+                } else if (t instanceof RuntimeException) {
+                    throw (RuntimeException) t;
+                } else if (t instanceof Error) {
+                    throw (Error) t;
+                } else {
+                    throw new SystemException(t);
+                }
+            } else if (initializationState.isNotApplicable()) {
+                LOGGER.debug("Change is not applicable:\n{}", adoptedChange.debugDumpLazily());
+                result.recordNotApplicable();
+            } else {
+                throw new AssertionError();
+            }
         }
     }
 
@@ -141,15 +157,15 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
     private void applyDefinitions(ResourceEventDescription eventDescription,
             OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         if (eventDescription.getResourceObject() != null) {
-            shadowCache.applyDefinition(eventDescription.getResourceObject(), parentResult);
+            shadowsFacade.applyDefinition(eventDescription.getResourceObject(), parentResult);
         }
 
         if (eventDescription.getOldRepoShadow() != null){
-            shadowCache.applyDefinition(eventDescription.getOldRepoShadow(), parentResult);
+            shadowsFacade.applyDefinition(eventDescription.getOldRepoShadow(), parentResult);
         }
 
         if (eventDescription.getObjectDelta() != null) {
-            shadowCache.applyDefinition(eventDescription.getObjectDelta(), null, parentResult);
+            shadowsFacade.applyDefinition(eventDescription.getObjectDelta(), null, parentResult);
         }
     }
 

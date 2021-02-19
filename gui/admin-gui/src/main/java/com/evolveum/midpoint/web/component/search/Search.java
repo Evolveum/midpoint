@@ -495,6 +495,11 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             if (refValue.isEmpty()) {
                 return null;
             }
+            List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) definition).getTargetTypeName());
+            if (supportedTargets.size() == 1 && QNameUtil.match(supportedTargets.iterator().next(), refValue.getTargetType())  && refValue.getOid() == null
+                    && refValue.getObject() == null && refValue.getRelation() == null && refValue.getFilter() == null) {
+                return null;
+            }
             RefFilter refFilter = (RefFilter) ctx.queryFor(ObjectType.class)
                     .item(path, definition).ref(refValue.clone())
                     .buildFilter();

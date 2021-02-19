@@ -6,10 +6,11 @@
  */
 package com.evolveum.midpoint.prism.impl.lex.dom;
 
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.SerializationContext;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.impl.PrismContextImpl;
-import com.evolveum.midpoint.prism.impl.marshaller.ItemPathHolder;
+import com.evolveum.midpoint.prism.impl.marshaller.ItemPathSerialization;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -19,6 +20,7 @@ import com.evolveum.midpoint.prism.impl.xnode.PrimitiveXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.SchemaXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.xnode.IncompleteMarkerXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
@@ -35,6 +37,7 @@ import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -242,14 +245,21 @@ class DomWriter {
         // We cannot correctly serialize without a type. But this is needed sometimes. So just default to string.
         String stringValue = xprim.getStringValue();
         if (stringValue != null) {
+            // FIXME: DOMUtil.allNamespaceDeclarations does not return default namespace if document is constructed
+            PrismNamespaceContext currentNs = PrismNamespaceContext.from(DOMUtil.allNamespaceDeclarations(parentElement));
+            PrismNamespaceContext relevantNs = PrismNamespaceContext.from(xprim.getRelevantNamespaceDeclarations());
+            Element element;
             if (asAttribute) {
                 DOMUtil.setAttributeValue(parentElement, elementOrAttributeName.getLocalPart(), stringValue);
-                DOMUtil.setNamespaceDeclarations(parentElement, xprim.getRelevantNamespaceDeclarations());
+                element = parentElement;
             } else {
-                Element element = createAndAppendChild(elementOrAttributeName, parentElement);
+                element = createAndAppendChild(elementOrAttributeName, parentElement);
                 appendCommentIfPresent(element, xprim);
                 DOMUtil.setElementTextContent(element, stringValue);
-                DOMUtil.setNamespaceDeclarations(element, xprim.getRelevantNamespaceDeclarations());
+            }
+            PrismNamespaceContext rebased = relevantNs.rebasedOn(currentNs);
+            if(!rebased.isLocalEmpty()) {
+                DOMUtil.setNamespaceDeclarations(element, rebased.localPrefixes());
             }
         }
     }
@@ -314,8 +324,14 @@ class DomWriter {
         }
 
         if (itemPathType != null) {
-            Element element = ItemPathHolder.serializeToElement(itemPathType.getItemPath(), elementName, document);
-            parent.appendChild(element);
+            Map<String, String> availableNamespaces = DOMUtil.getAllNonDefaultNamespaceDeclarations(parent);
+            PrismNamespaceContext localNs = PrismNamespaceContext.from(availableNamespaces);
+
+            ItemPathSerialization ctx = ItemPathSerialization.serialize(UniformItemPath.from(itemPathType.getItemPath()), localNs, true);
+
+            Element element = createAndAppendChild(elementName, parent);
+            DOMUtil.setNamespaceDeclarations(element,ctx.undeclaredPrefixes());
+            element.setTextContent(ctx.getXPathWithoutDeclarations());
             return element;
         } else {
             return null;

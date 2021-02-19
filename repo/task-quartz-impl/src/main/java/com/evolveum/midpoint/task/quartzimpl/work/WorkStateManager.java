@@ -20,6 +20,7 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.VersionPrecondition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -760,27 +761,9 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
         WorkBucketContentHandler handler = handlerFactory.getHandler(workBucket.getContent());
         List<ObjectFilter> conjunctionMembers = new ArrayList<>(
                 handler.createSpecificFilters(workBucket, bucketsConfig, type, itemDefinitionProvider));
-        if (conjunctionMembers.isEmpty()) {
-            return query;
-        }
-        ObjectFilter existingFilter = query != null ? query.getFilter() : null;
-        if (existingFilter != null) {
-            conjunctionMembers.add(existingFilter);
-        }
-        ObjectFilter updatedFilter;
-        if (conjunctionMembers.isEmpty()) {
-            updatedFilter = null;
-        } else if (conjunctionMembers.size() == 1) {
-            updatedFilter = conjunctionMembers.get(0);
-        } else {
-            updatedFilter = prismContext.queryFactory().createAnd(conjunctionMembers);
-        }
 
-        ObjectQuery updatedQuery = query != null ? query.clone() : prismContext.queryFactory().createQuery();
-        updatedQuery.setFilter(updatedFilter);
-
-        // TODO update sorting criteria
-        return updatedQuery;
+        // TODO update sorting criteria?
+        return ObjectQueryUtil.addConjunctions(query, prismContext, conjunctionMembers);
     }
 
     private void executeInitialDelayForMultiNode(Context ctx) throws InterruptedException {

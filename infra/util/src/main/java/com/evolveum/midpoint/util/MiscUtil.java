@@ -36,6 +36,7 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.google.common.base.Strings;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -952,5 +953,60 @@ public class MiscUtil {
 
     public static String getSimpleClassName(Object o) {
         return o != null ? o.getClass().getSimpleName() : null;
+    }
+
+    public static <T> T requireNonNull(T value, Supplier<String> messageSupplier) throws SchemaException {
+        if (value != null) {
+            return value;
+        } else {
+            throw new SchemaException(messageSupplier.get());
+        }
+    }
+
+    public static void checkCollectionImmutable(Collection<?> collection) {
+        try {
+            collection.add(null);
+            throw new IllegalStateException("Collection is mutable");
+        } catch (UnsupportedOperationException e) {
+            // This is expected.
+        }
+    }
+
+    public static void schemaCheck(boolean condition, String template, Object... arguments) throws SchemaException {
+        if (!condition) {
+            throw new SchemaException(Strings.lenientFormat(template, arguments));
+        }
+    }
+
+    public static void stateCheck(boolean condition, String template, Object... arguments) {
+        if (!condition) {
+            throw new IllegalStateException(Strings.lenientFormat(template, arguments));
+        }
+    }
+
+    public static void argCheck(boolean condition, String template, Object... arguments) {
+        if (!condition) {
+            throw new IllegalArgumentException(Strings.lenientFormat(template, arguments));
+        }
+    }
+
+    public static String getClassWithMessage(Throwable e) {
+        if (e == null) {
+            return null;
+        } else {
+            return e.getClass().getSimpleName() + ": " + e.getMessage();
+        }
+    }
+
+    /**
+     * Like {@link Arrays#asList(Object[])} but if there's a single null value at input, creates
+     * an empty list.
+     */
+    public static <T> List<T> asListTreatingNull(T[] values) {
+        if (values.length == 1 && values[0] == null) {
+            return emptyList();
+        } else {
+            return Arrays.asList(values);
+        }
     }
 }

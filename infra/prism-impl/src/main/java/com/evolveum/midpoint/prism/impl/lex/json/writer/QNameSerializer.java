@@ -20,7 +20,7 @@ public class QNameSerializer extends JsonSerializer<QName> {
 
     @Override
     public void serialize(QName value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
-        jgen.writeString(QNameUtil.qNameToUri(value, false));
+        jgen.writeString(QNameUtil.qNameToUri(value, true));
     }
 
     @Override

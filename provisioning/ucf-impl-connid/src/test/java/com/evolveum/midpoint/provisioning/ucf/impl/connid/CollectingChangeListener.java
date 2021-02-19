@@ -11,9 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfLiveSyncChange;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfLiveSyncChangeListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -30,13 +28,6 @@ class CollectingChangeListener implements UcfLiveSyncChangeListener {
     public boolean onChange(UcfLiveSyncChange change, OperationResult result) {
         changes.add(change);
         return true;
-    }
-
-    @Override
-    public boolean onError(int localSequentialNumber, @NotNull Object primaryIdentifierRealValue,
-            @NotNull PrismProperty<?> token, @NotNull Throwable exception, @NotNull OperationResult result) {
-        // Should we test also this path?
-        return false;
     }
 
     public List<UcfLiveSyncChange> getChanges() {

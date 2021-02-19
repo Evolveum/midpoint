@@ -85,7 +85,7 @@ public class AssignedResourceObjectConstruction<AH extends AssignmentHolderType>
         if (refinedObjectClassDefinition == null) {
             if (intent != null) {
                 throw new SchemaException(
-                        "No " + kind + " type '" + intent + "' found in "
+                        "No " + kind + " type with intent '" + intent + "' found in "
                                 + resource + " as specified in construction in " + getSource());
             } else {
                 throw new SchemaException("No default " + kind + " type found in " + resource

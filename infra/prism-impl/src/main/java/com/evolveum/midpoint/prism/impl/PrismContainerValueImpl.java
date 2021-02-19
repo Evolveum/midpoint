@@ -1704,6 +1704,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
         return id;
     }
 
+    // BEWARE!! Assumes the container has no parent! Otherwise item.getPath() provides wrong values.
     public void removeItems(List<? extends ItemPath> itemsToRemove) {
         for (ItemPath itemToRemove : itemsToRemove) {
             Item item = findItem(itemToRemove);        // reduce to "removeItem" after fixing that method implementation

@@ -97,6 +97,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
     protected static OpenDJController openDJController = new OpenDJController();
 
+    @Override
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -554,12 +555,9 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
         // Determine object class from the schema
 
-        ShadowResultHandler handler = new ShadowResultHandler() {
-            @Override
-            public boolean handle(PrismObject<ShadowType> object) {
-                display("Search: found: " + object);
-                return true;
-            }
+        ObjectHandler handler = ucfObject -> {
+            displayDumpable("Search: found", ucfObject);
+            return true;
         };
 
         OperationResult result = createOperationResult();
@@ -644,7 +642,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         //set the replace value
         XNode passPsXnode = prismContext.xnodeSerializer().root(new QName("dummy")).serializeRealValue(passPs).getSubnode();
-        RawType value = new RawType(passPsXnode, prismContext);
+        RawType value = new RawType(passPsXnode.frozen(), prismContext);
         propMod.getValue().add(value);
 
         //set the modification type

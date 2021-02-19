@@ -196,9 +196,7 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
                         .updateSearch()
                     .and()
                     .clickByName(ScenariosCommons.TEST_USER_DON_NAME)
-                        .selectTabBasic()
-                            .form()
-                                .assertInputAttributeValueMatches("givenName","Donato");
+                        .assertGivenName("Donato");
     }
 
     @Test (priority = 5, dependsOnMethods = {LINKED_USER_ACCOUNT_MODIFIED})

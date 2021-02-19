@@ -103,7 +103,7 @@ public class Amqp091AsyncUpdateSource implements ActiveAsyncUpdateSource {
                         byte[] body = message.getBody();
                         LOGGER.info("Received a message on {}", consumerTag);   // todo debug
                         LOGGER.info("Message is:\n{}", new String(body, StandardCharsets.UTF_8)); // todo trace
-                        boolean successful = listener.onMessage(createAsyncUpdateMessage(message), (processed, result) -> {
+                        listener.onMessage(createAsyncUpdateMessage(message), (processed, result) -> {
                             if (processed) {
                                 try {
                                     activeChannel.basicAck(message.getEnvelope().getDeliveryTag(), false);
@@ -119,9 +119,6 @@ public class Amqp091AsyncUpdateSource implements ActiveAsyncUpdateSource {
                                 }
                             }
                         });
-                        if (!successful) {
-                            rejectMessage(message); // TODO ok?!
-                        }
                         AMQP.BasicProperties properties = message.getProperties();
                         if (properties.getHeaders() != null) {
                             boolean last = Boolean.TRUE.equals(properties.getHeaders().get(HEADER_LAST_MESSAGE));
@@ -130,7 +127,7 @@ public class Amqp091AsyncUpdateSource implements ActiveAsyncUpdateSource {
                                 stopInternal(true);
                             }
                         }
-                    } catch (RuntimeException | SchemaException e) {
+                    } catch (RuntimeException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Got exception while processing message", e);
                         rejectMessage(message);
                     } finally {

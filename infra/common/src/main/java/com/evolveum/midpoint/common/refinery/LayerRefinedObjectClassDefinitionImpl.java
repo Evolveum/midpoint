@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -91,6 +92,7 @@ public final class LayerRefinedObjectClassDefinitionImpl implements LayerRefined
         return refinedObjectClassDefinition.getSchemaMigrations();
     }
 
+    @Override
     public boolean isEmphasized() {
         return refinedObjectClassDefinition.isEmphasized();
     }
@@ -353,6 +355,7 @@ public final class LayerRefinedObjectClassDefinitionImpl implements LayerRefined
         return refinedObjectClassDefinition.getPasswordPolicy();
     }
 
+    @Override
     public ObjectReferenceType getSecurityPolicyRef() {
         return refinedObjectClassDefinition.getSecurityPolicyRef();
     }
@@ -591,6 +594,7 @@ public final class LayerRefinedObjectClassDefinitionImpl implements LayerRefined
     /**
      * Return a human readable name of this class suitable for logs.
      */
+    @Override
     public String getDebugDumpClassName() {
         return "LRObjectClassDef";
     }
@@ -742,5 +746,15 @@ public final class LayerRefinedObjectClassDefinitionImpl implements LayerRefined
     public void freeze() {
         getAttributeDefinitions();
         this.immutable = true;
+    }
+
+    @Override
+    public Optional<ItemDefinition<?>> substitution(QName name) {
+        return Optional.empty();
+    }
+
+    @Override
+    public boolean hasSubstitutions() {
+        return false;
     }
 }

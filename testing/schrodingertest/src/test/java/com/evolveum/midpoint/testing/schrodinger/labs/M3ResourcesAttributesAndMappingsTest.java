@@ -14,7 +14,6 @@ import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceConfigurationTab;
 import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
-import com.evolveum.midpoint.schrodinger.page.resource.ResourceWizardPage;
 import com.evolveum.midpoint.schrodinger.page.resource.SchemaStepSchemaTab;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 
@@ -65,10 +64,10 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
                     .clickEditResourceConfiguration()
                     .form();
         // Unique attribute name should be login
-        configTab.assertInputAttributeValueMatches(UNIQUE_ATTRIBUTE_NAME, CSV_1_UNIQUE_ATTRIBUTE_NAME);
+        configTab.assertPropertyInputValue(UNIQUE_ATTRIBUTE_NAME, CSV_1_UNIQUE_ATTRIBUTE_NAME);
 
         // Password attribute name should be password
-        configTab.assertInputAttributeValueMatches(PASSWORD_ATTRIBUTE_NAME, CSV_1_PASSWORD_ATTRIBUTE_NAME);
+        configTab.assertPropertyInputValue(PASSWORD_ATTRIBUTE_NAME, CSV_1_PASSWORD_ATTRIBUTE_NAME);
 
         SchemaStepSchemaTab schemaStepSchemaTab = basicPage.listResources()
                 .table()
@@ -151,7 +150,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
                 .form();
 
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-        accountForm.assertInputAttributeValueMatches("fname", "Jim T.");
+        accountForm.assertPropertyInputValue("fname", "Jim T.");
 
         showUser("kirk")
                     .selectTabProjections()

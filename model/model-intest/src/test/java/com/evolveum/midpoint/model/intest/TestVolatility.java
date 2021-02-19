@@ -92,7 +92,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         importSyncTask();
 
         then();
-        waitForSyncTaskStart();
+        waitForSyncTaskNextRun();
     }
 
     @Test
@@ -380,10 +380,6 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
 
     protected void importSyncTask() throws FileNotFoundException {
         importObjectFromFile(TASK_LIVE_SYNC_DUMMY_HR_FILENAME);
-    }
-
-    protected void waitForSyncTaskStart() throws Exception {
-        waitForTaskStart(TASK_LIVE_SYNC_DUMMY_HR_OID, false, 10000);
     }
 
     protected void waitForSyncTaskNextRun() throws Exception {
