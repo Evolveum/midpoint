@@ -12,8 +12,7 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Enumeration of various types of reference entities (subtypes of {@link QReference}).
@@ -28,27 +27,35 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public enum ReferenceType {
 
     ARCHETYPE(QReferenceMapping.INSTANCE_ARCHETYPE,
-            AssignmentHolderType.class, AssignmentHolderType.F_ARCHETYPE_REF);
+            AssignmentHolderType.class, AssignmentHolderType.F_ARCHETYPE_REF),
 
-    /*
-    OBJECT_PARENT_ORG(ObjectType .class, ObjectType.F_PARENT_ORG_REF),
+    CREATE_APPROVER(QReferenceMapping.INSTANCE_CREATE_APPROVER,
+            ObjectType.class, MetadataType.F_CREATE_APPROVER_REF),
 
-    USER_ACCOUNT(FocusType .class, FocusType.F_LINK_REF),                   // 1
+    DELEGATED(QReferenceMapping.INSTANCE_DELEGATED,
+            FocusType.class, FocusType.F_DELEGATED_REF),
 
-    RESOURCE_BUSINESS_CONFIGURATION_APPROVER(ResourceType .class, ResourceBusinessConfigurationType.F_APPROVER_REF),    // 2
+    INCLUDE(QReferenceMapping.INSTANCE_INCLUDE,
+            ObjectTemplateType.class, ObjectTemplateType.F_INCLUDE_REF),
 
-    CREATE_APPROVER(ObjectType .class, MetadataType.F_CREATE_APPROVER_REF), // 5
+    MODIFY_APPROVER(QReferenceMapping.INSTANCE_MODIFY_APPROVER,
+            ObjectType.class, MetadataType.F_MODIFY_APPROVER_REF),
 
-    MODIFY_APPROVER(ObjectType .class, MetadataType.F_MODIFY_APPROVER_REF), // 6
+    OBJECT_PARENT_ORG(QReferenceMapping.INSTANCE_OBJECT_PARENT_ORG,
+            ObjectType.class, ObjectType.F_PARENT_ORG_REF),
 
-    INCLUDE(ObjectTemplateType .class, ObjectTemplateType.F_INCLUDE_REF),           // 7
+    PERSONA(QReferenceMapping.INSTANCE_PERSONA,
+            FocusType.class, FocusType.F_PERSONA_REF),
 
-    ROLE_MEMBER(AssignmentHolderType .class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF),        // 8
+    RESOURCE_BUSINESS_CONFIGURATION_APPROVER(
+            QReferenceMapping.INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER,
+            ResourceType.class, ResourceBusinessConfigurationType.F_APPROVER_REF),
 
-    DELEGATED(FocusType .class, FocusType.F_DELEGATED_REF),                // 9
+    ROLE_MEMBER(QReferenceMapping.INSTANCE_ROLE_MEMBER,
+            AssignmentHolderType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF),
 
-    PERSONA(FocusType .class, FocusType.F_PERSONA_REF),                    // 10
-    */
+    USER_ACCOUNT(QReferenceMapping.INSTANCE_USER_ACCOUNT,
+            FocusType.class, FocusType.F_LINK_REF);
 
     private final QReferenceMapping qReferenceMapping;
     private final Class<? extends ObjectType> schemaType;
