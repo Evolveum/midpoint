@@ -72,14 +72,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
         add(details);
 
         ListView<PrismContainerValueWrapper<C>> itemDetailsView = new ListView<>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEMS_DETAILS,
-                new IModel<>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public List<PrismContainerValueWrapper<C>> getObject() {
-                        return detailsPanelItemsList;
-                    }
-                }) {
+                () -> detailsPanelItemsList) {
 
             private static final long serialVersionUID = 1L;
 
