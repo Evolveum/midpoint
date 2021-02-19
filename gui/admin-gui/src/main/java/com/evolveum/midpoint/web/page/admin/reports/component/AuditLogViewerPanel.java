@@ -42,6 +42,8 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -105,8 +107,7 @@ public class AuditLogViewerPanel extends BasePanel {
             }
 
             @Override
-            protected IColumn<SelectableBean<AuditEventRecordType>, String> createNameColumn(IModel<String> columnNameModel,
-                    String itemPath) {
+            protected IColumn<SelectableBean<AuditEventRecordType>, String> createNameColumn(IModel<String> displayModel, String itemPath, ExpressionType expression) {
                 return AuditLogViewerPanel.this.createNameColumn();
             }
 
@@ -191,7 +192,15 @@ public class AuditLogViewerPanel extends BasePanel {
                 return provider;
             }
 
-            @Override
+                    @Override
+                    protected AuditEventRecordType getRowRealValue(SelectableBean<AuditEventRecordType> rowModelObject) {
+                        if (rowModelObject == null) {
+                            return null;
+                        }
+                        return rowModelObject.getValue();
+                    }
+
+                    @Override
             protected List<Component> createToolbarButtonsList(String idButton) {
                 List<Component> buttonsList = new ArrayList<>();
                 CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(idButton) {

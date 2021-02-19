@@ -156,7 +156,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
             }
 
             @Override
-            protected IColumn createNameColumn(IModel columnNameModel, String itemPath) {
+            protected IColumn createNameColumn(IModel<String> displayModel, String itemPath, ExpressionType expression) {
                 return CaseWorkItemsPanel.this.createNameColumn();
             }
 
@@ -164,7 +164,15 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
             protected String getStorageKey() {
                 return SessionStorage.KEY_WORK_ITEMS;
             }
-        };
+
+                    @Override
+                    protected CaseWorkItemType getRowRealValue(PrismContainerValueWrapper<CaseWorkItemType> rowModelObject) {
+                        if (rowModelObject == null) {
+                            return null;
+                        }
+                        return rowModelObject.getRealValue();
+                    }
+                };
         workItemsPanel.setOutputMarkupId(true);
         add(workItemsPanel);
     }
@@ -177,7 +185,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
     }
 
     private IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String> createIconColumn(){
-        return new IconColumn<PrismContainerValueWrapper<CaseWorkItemType>>(Model.of("")) {
+        return new IconColumn<>(Model.of("")) {
 
             private static final long serialVersionUID = 1L;
 

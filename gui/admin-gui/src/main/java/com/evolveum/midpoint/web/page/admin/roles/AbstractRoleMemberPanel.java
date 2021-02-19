@@ -316,16 +316,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            protected IColumn<SelectableBean<ObjectType>, String> createIconColumn() {
-                return ColumnUtils.createIconColumn(pageBase);
-            }
-
-            @Override
-            protected List<IColumn<SelectableBean<ObjectType>, String>> createDefaultColumns() {
-                return (List) createMembersColumns();
-            }
-
-            @Override
             protected List<InlineMenuItem> createInlineMenu() {
                 return createRowActions();
             }

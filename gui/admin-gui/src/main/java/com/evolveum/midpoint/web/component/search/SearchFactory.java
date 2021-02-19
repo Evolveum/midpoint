@@ -360,7 +360,7 @@ public class SearchFactory {
 
         Class<C> typeClass = objectDef.getCompileTimeClass();
         while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(typeClass)) {
-            List<ItemPath> paths = CollectionUtils.isEmpty(availableItemPath) ? SEARCHABLE_OBJECTS.get(typeClass) : availableItemPath;
+            List<ItemPath> paths = CollectionUtils.isEmpty(availableItemPath) ? getAvailableSearchableItems(typeClass) : availableItemPath;
             if (paths != null) {
                 for (ItemPath path : paths) {
                     ItemDefinition def = objectDef.findItemDefinition(path);
@@ -379,6 +379,10 @@ public class SearchFactory {
         }
 
         return definitions;
+    }
+
+    public static List<ItemPath> getAvailableSearchableItems(Class<?> typeClass) {
+        return SEARCHABLE_OBJECTS.get(typeClass);
     }
 
     private static <T extends ObjectType> boolean isFullTextSearchEnabled(ModelServiceLocator modelServiceLocator, Class<T> type) {

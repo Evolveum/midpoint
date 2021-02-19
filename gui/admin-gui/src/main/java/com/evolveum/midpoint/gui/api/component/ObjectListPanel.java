@@ -16,6 +16,10 @@ import java.util.function.Supplier;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -163,9 +167,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     }
 
     @Override
-    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath) {
-        return new ObjectNameColumn<>(columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel,
-                itemPath, null, getPageBase(), StringUtils.isEmpty(itemPath)) {
+    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> displayModel, String itemPath, ExpressionType expression) {
+        return new ObjectNameColumn<>(displayModel == null ? createStringResource("ObjectType.name") : displayModel,
+                itemPath, expression, getPageBase(), StringUtils.isEmpty(itemPath)) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -192,5 +196,18 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         return new ContainerTypeSearchItem<>(new SearchValue<>(objectType.getClassDefinition(),
                 "ObjectType." + objectType.getTypeQName().getLocalPart()),
                 allowedValues);
+    }
+
+    @Override
+    protected O getRowRealValue(SelectableBean<O> rowModelObject) {
+        if (rowModelObject == null) {
+            return null;
+        }
+        return rowModelObject.getValue();
+    }
+
+    @Override
+    protected IColumn<SelectableBean<O>, String> createIconColumn() {
+        return ColumnUtils.createIconColumn(getPageBase());
     }
 }

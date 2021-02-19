@@ -359,4 +359,14 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     protected IColumn<PrismContainerValueWrapper<C>, String> createCheckboxColumn() {
         return null;
     }
+
+    @Override
+    protected C getRowRealValue(PrismContainerValueWrapper<C> rowModelObject) {
+        if (rowModelObject == null) {
+            return null;
+        }
+
+        return rowModelObject.getRealValue();
+    }
+
 }
