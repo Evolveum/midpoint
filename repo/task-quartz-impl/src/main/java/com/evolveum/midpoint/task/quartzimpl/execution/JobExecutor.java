@@ -461,7 +461,7 @@ public class JobExecutor implements InterruptableJob {
             LOGGER.info("Recovering resilient task {}", task);
             return true;
         } else if (task.getThreadStopAction() == ThreadStopActionType.RESCHEDULE) {
-            if (task.getRecurrenceStatus() == TaskRecurrence.RECURRING && task.isLooselyBound()) {
+            if (task.isRecurring() && task.isLooselyBound()) {
                 LOGGER.info("Recovering resilient task with RESCHEDULE thread stop action - exiting the execution, the task will be rescheduled; task = {}", task);
                 return false;
             } else {
@@ -503,7 +503,7 @@ public class JobExecutor implements InterruptableJob {
             LOGGER.info("Node going down: Rescheduling resilient task to run immediately; task = {}", task);
             taskManagerImpl.scheduleRunnableTaskNow(task, executionResult);
         } else if (task.getThreadStopAction() == ThreadStopActionType.RESCHEDULE) {
-            if (task.getRecurrenceStatus() == TaskRecurrence.RECURRING && task.isLooselyBound()) {
+            if (task.isRecurring() && task.isLooselyBound()) {
                 // nothing to do, task will be automatically started by Quartz on next trigger fire time
             } else {
                 taskManagerImpl.scheduleRunnableTaskNow(task, executionResult);     // for tightly-bound tasks we do not know next schedule time, so we run them immediately

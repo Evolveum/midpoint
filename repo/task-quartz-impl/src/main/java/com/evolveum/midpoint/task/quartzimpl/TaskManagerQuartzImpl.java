@@ -642,7 +642,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     // todo: better name for this method
 
     @Override
-    public void pauseTask(Task task, TaskWaitingReason reason, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+    public void pauseTask(Task task, TaskWaitingReasonType reason, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "pauseTask");
         result.addArbitraryObjectAsParam("task", task);
@@ -703,7 +703,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
             return;
         }
 
-        TaskUnpauseActionType action = getUnpauseAction(task);
+        TaskUnpauseActionType action = getUnpauseAction((TaskQuartzImpl) task);
         switch (action) {
             case EXECUTE_IMMEDIATELY:
                 LOGGER.trace("Unpausing task using 'executeImmediately' action (scheduling it now): {}", task);
@@ -731,7 +731,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     }
 
     @NotNull
-    private TaskUnpauseActionType getUnpauseAction(Task task) {
+    private TaskUnpauseActionType getUnpauseAction(TaskQuartzImpl task) {
         if (task.getUnpauseAction() != null) {
             return task.getUnpauseAction();
         } else if (task.isSingle()) {
@@ -778,7 +778,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
                 return;
             }
             clearTaskOperationResult(task, parentResult);           // see a note on scheduleTaskNow
-            if (task.getStateBeforeSuspend() == TaskExecutionStateType.WAITING) {
+            if (((TaskQuartzImpl) task).getStateBeforeSuspend() == TaskExecutionStateType.WAITING) {
                 List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
                         .item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStateType.WAITING)
                         .item(TaskType.F_STATE_BEFORE_SUSPEND).replace()
@@ -2152,7 +2152,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     private void clearTaskOperationResult(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         OperationResult emptyTaskResult = new OperationResult("run");
         emptyTaskResult.setStatus(OperationResultStatus.IN_PROGRESS);
-        task.setResultImmediate(emptyTaskResult, parentResult);
+        ((TaskQuartzImpl) task).setResultImmediate(emptyTaskResult, parentResult);
     }
 
     public void scheduleRunnableTaskNow(Task task, OperationResult parentResult) {
@@ -2183,7 +2183,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     public void closeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
         try {
             OperationResult taskResult = updateTaskResult(task, parentResult);
-            task.close(taskResult, true, parentResult);
+            ((TaskQuartzImpl) task).close(taskResult, true, parentResult);
         } finally {
             if (task.isPersistent()) {
                 executionManager.removeTaskFromQuartz(task.getOid(), parentResult);
@@ -2200,7 +2200,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     void closeTaskWithoutSavingState(Task task, OperationResult parentResult) {
         try {
             OperationResult taskResult = updateTaskResult(task, parentResult);
-            task.close(taskResult, false, parentResult);
+            ((TaskQuartzImpl) task).close(taskResult, false, parentResult);
         } catch (ObjectNotFoundException | SchemaException e) {
             throw new SystemException(e);       // shouldn't occur
         }
@@ -2248,13 +2248,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     // currently finds only persistent tasks
     @Override
     @NotNull
-    public Task getTaskByIdentifier(String identifier, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+    public TaskQuartzImpl getTaskByIdentifier(String identifier, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 
         OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "getTaskByIdentifier");
         result.addParam("identifier", identifier);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
 
-        Task task = createTaskInstance(getTaskTypeByIdentifier(identifier, null, result), result);
+        TaskQuartzImpl task = createTaskInstance(getTaskTypeByIdentifier(identifier, null, result), result);
         result.computeStatus();
         return task;
     }
@@ -2317,8 +2317,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         }
     }
 
-    List<Task> resolveTasksFromTaskTypes(List<PrismObject<TaskType>> taskPrisms, OperationResult result) throws SchemaException {
-        List<Task> tasks = new ArrayList<>(taskPrisms.size());
+    List<TaskQuartzImpl> resolveTasksFromTaskTypes(List<PrismObject<TaskType>> taskPrisms, OperationResult result) throws SchemaException {
+        List<TaskQuartzImpl> tasks = new ArrayList<>(taskPrisms.size());
         for (PrismObject<TaskType> taskPrism : taskPrisms) {
             tasks.add(createTaskInstance(taskPrism, result));
         }
@@ -2579,7 +2579,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     //region Task housekeeping
     public void checkWaitingTasks(OperationResult result) throws SchemaException {
         int count = 0;
-        List<Task> tasks = listWaitingTasks(TaskWaitingReason.OTHER_TASKS, result);
+        List<? extends Task> tasks = listWaitingTasks(TaskWaitingReasonType.OTHER_TASKS, result);
         for (Task task : tasks) {
             try {
                 ((InternalTaskInterface) task).checkDependencies(result);
@@ -2592,15 +2592,15 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     }
 
     @SuppressWarnings("SameParameterValue")
-    private List<Task> listWaitingTasks(TaskWaitingReason reason, OperationResult result) throws SchemaException {
+    private List<? extends Task> listWaitingTasks(TaskWaitingReasonType reason, OperationResult result) throws SchemaException {
         S_AtomicFilterEntry q = prismContext.queryFor(TaskType.class);
         q = q.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStateType.WAITING).and();
         if (reason != null) {
-            q = q.item(TaskType.F_WAITING_REASON).eq(reason.toTaskType()).and();
+            q = q.item(TaskType.F_WAITING_REASON).eq(reason).and();
         }
         ObjectQuery query = q.all().build();
         List<PrismObject<TaskType>> prisms = repositoryService.searchObjects(TaskType.class, query, null, result);
-        List<Task> tasks = resolveTasksFromTaskTypes(prisms, result);
+        List<? extends Task> tasks = resolveTasksFromTaskTypes(prisms, result);
 
         result.recordSuccessIfUnknown();
         return tasks;
@@ -2613,8 +2613,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         }
     }
 
-    Collection<Task> getTransientSubtasks(String identifier) {
-        List<Task> retval = new ArrayList<>();
+    Collection<TaskQuartzImpl> getTransientSubtasks(String identifier) {
+        List<TaskQuartzImpl> retval = new ArrayList<>();
         RunningTaskQuartzImpl runningInstance = locallyRunningTaskInstancesMap.get(identifier);
         if (runningInstance != null) {
             for (RunningTaskQuartzImpl subtask : runningInstance.getLightweightAsynchronousSubtasks()) {

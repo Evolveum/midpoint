@@ -259,8 +259,6 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         // Test for no presence of handlers
         //AssertJUnit.assertNull("Handler is still present", task1.getHandlerUri());
         AssertJUnit.assertNotNull("Handler is gone", task1.getHandlerUri());
-        AssertJUnit.assertTrue("Other handlers are still present",
-                task1.getOtherHandlersUriStack() == null || task1.getOtherHandlersUriStack().getUriStackEntry().isEmpty());
 
         // Test whether handler has really run
         AssertJUnit.assertTrue("Handler1 has not run", singleHandler1.hasRun());
@@ -397,8 +395,6 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         // Test for no presence of handlers
 
         AssertJUnit.assertNotNull("Handler is gone", task.getHandlerUri());
-        AssertJUnit.assertTrue("Other handlers are still present",
-                task.getOtherHandlersUriStack() == null || task.getOtherHandlersUriStack().getUriStackEntry().isEmpty());
 
         // Test if all three handlers were run
 
@@ -541,8 +537,6 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         // Test for no presence of handlers
 
         AssertJUnit.assertNotNull("Handler is gone", task.getHandlerUri());
-        AssertJUnit.assertTrue("Other handlers are still present",
-                task.getOtherHandlersUriStack() == null || task.getOtherHandlersUriStack().getUriStackEntry().isEmpty());
 
         // Test if all three handlers were run
 
@@ -736,7 +730,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
     public void test016WaitForSubtasks() throws Exception {
         final OperationResult result = createOperationResult();
 
-        Task rootTask = taskManager.createTaskInstance(addObjectFromFile(taskFilename()), result);
+        TaskQuartzImpl rootTask = taskManager.createTaskInstance(addObjectFromFile(taskFilename()), result);
         Task firstChildTask = taskManager.createTaskInstance(addObjectFromFile(taskFilename("-child-1")), result);
 
         Task firstReloaded = taskManager.getTaskByIdentifier(firstChildTask.getTaskIdentifier(), result);
@@ -745,14 +739,14 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         Task secondChildTask = rootTask.createSubtask();
         secondChildTask.setName("Second child");
         secondChildTask.setOwner(rootTask.getOwner());
-        secondChildTask.pushHandlerUri(SINGLE_TASK_HANDLER_URI, new ScheduleType(), null);
+        secondChildTask.setHandlerUri(SINGLE_TASK_HANDLER_URI);
         secondChildTask.setInitialExecutionState(TaskExecutionStateType.SUSPENDED);           // will resume it after root starts waiting for tasks
         taskManager.switchToBackground(secondChildTask, result);
 
         Task firstPrerequisiteTask = taskManager.createTaskInstance(
                 addObjectFromFile(taskFilename("-prerequisite-1")), result);
 
-        List<Task> prerequisites = rootTask.listPrerequisiteTasks(result);
+        List<? extends Task> prerequisites = rootTask.listPrerequisiteTasks(result);
         assertEquals("Wrong # of prerequisite tasks", 1, prerequisites.size());
         assertEquals("Wrong OID of prerequisite task", firstPrerequisiteTask.getOid(), prerequisites.get(0).getOid());
 
@@ -760,15 +754,12 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         secondPrerequisiteTask.setName("Second prerequisite");
         secondPrerequisiteTask.setOwner(rootTask.getOwner());
         secondPrerequisiteTask.addDependent(rootTask.getTaskIdentifier());
-        secondPrerequisiteTask.pushHandlerUri(TaskConstants.NOOP_TASK_HANDLER_URI, new ScheduleType(), null);
+        secondPrerequisiteTask.setHandlerUri(TaskConstants.NOOP_TASK_HANDLER_URI);
         secondPrerequisiteTask.setExtensionPropertyValue(SchemaConstants.NOOP_DELAY_QNAME, 1500);
         secondPrerequisiteTask.setExtensionPropertyValue(SchemaConstants.NOOP_STEPS_QNAME, 1);
         secondPrerequisiteTask.setInitialExecutionState(TaskExecutionStateType.SUSPENDED);           // will resume it after root starts waiting for tasks
         secondPrerequisiteTask.addDependent(rootTask.getTaskIdentifier());
         taskManager.switchToBackground(secondPrerequisiteTask, result);
-
-        logger.info("Starting waiting for child/prerequisite tasks");
-        rootTask.startWaitingForTasksImmediate(result);
 
         firstChildTask.refresh(result);
         assertEquals("Parent is not set correctly on 1st child task", rootTask.getTaskIdentifier(), firstChildTask.getParent());
@@ -887,8 +878,6 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         // Test for no presence of handlers
 
         AssertJUnit.assertNotNull("Handler is gone", task.getHandlerUri());
-        AssertJUnit.assertTrue("Other handlers are still present",
-                task.getOtherHandlersUriStack() == null || task.getOtherHandlersUriStack().getUriStackEntry().isEmpty());
 
         // Test if "outer" handler has run as well
 
@@ -936,7 +925,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         taskManager.resumeTask(childTask1, result);
         taskManager.resumeTask(childTask2, result);
-        parentTask.startWaitingForTasksImmediate(result);
+        // TODO waiting for tasks
 
         logger.info("Deleting task {} and its subtasks", parentTask);
 

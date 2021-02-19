@@ -494,11 +494,10 @@ public interface TaskManager {
 
     /**
      * Puts a runnable/running task into WAITING state.
-     *
-     * @param task a runnable/running task
+     *  @param task a runnable/running task
      * @param reason the reason for waiting, which is stored into the repository
      */
-    void pauseTask(Task task, TaskWaitingReason reason, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    void pauseTask(Task task, TaskWaitingReasonType reason, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     /**
      * Puts a WAITING task back into RUNNABLE state.

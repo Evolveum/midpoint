@@ -17,6 +17,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 import org.apache.commons.lang.Validate;
@@ -69,49 +70,6 @@ public class MockSingleTaskHandler implements TaskHandler {
 
         hasRun = true;
         executions++;
-
-        if ("L1".equals(id)) {
-            PrismProperty<Boolean> l1flag = task.getExtensionPropertyOrClone(L1_FLAG_QNAME);
-
-            if (l1flag == null || !l1flag.getRealValue()) {
-
-                LOGGER.info("L1 handler, first run - scheduling L2 handler");
-                ScheduleType l2Schedule = new ScheduleType();
-                l2Schedule.setInterval(2);
-                task.pushHandlerUri(AbstractTaskManagerTest.L2_TASK_HANDLER_URI, l2Schedule, TaskBinding.TIGHT, createExtensionDelta(l1FlagDefinition, true,
-                        taskManager.getPrismContext()));
-                try {
-                    task.flushPendingModifications(opResult);
-                } catch(Exception e) {
-                    throw new SystemException("Cannot schedule L2 handler", e);
-                }
-                runResult.setRunResultStatus(TaskRunResultStatus.RESTART_REQUESTED);
-            } else {
-                LOGGER.info("L1 handler, not the first run (progress = " + task.getProgress() + ", l1Flag = " + l1flag.getRealValue() + "), exiting.");
-            }
-        } else if ("L2".equals(id)) {
-            if (task.getProgress() == 5) {
-                LOGGER.info("L2 handler, fourth run - scheduling L3 handler");
-                task.pushHandlerUri(AbstractTaskManagerTest.L3_TASK_HANDLER_URI, new ScheduleType(), null);
-                try {
-                    task.flushPendingModifications(opResult);
-                } catch(Exception e) {
-                    throw new SystemException("Cannot schedule L3 handler", e);
-                }
-                runResult.setRunResultStatus(TaskRunResultStatus.RESTART_REQUESTED);
-            } else if (task.getProgress() < 5) {
-                LOGGER.info("L2 handler, progress = " + task.getProgress() + ", continuing.");
-            } else if (task.getProgress() > 5) {
-                LOGGER.info("L2 handler, progress too big, i.e. " + task.getProgress() + ", exiting.");
-                try {
-                    task.finishHandler(opResult);
-                } catch (Exception e) {
-                    throw new SystemException("Cannot finish L2 handler", e);
-                }
-            }
-        } else if ("L3".equals(id)) {
-            LOGGER.info("L3 handler, simply exiting. Progress = " + task.getProgress());
-        }
 
         LOGGER.info("MockSingle.run stopping");
         return runResult;

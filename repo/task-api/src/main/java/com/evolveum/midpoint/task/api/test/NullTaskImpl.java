@@ -58,12 +58,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void makeWaiting() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void makeRunnable() {
+    public TaskSchedulingStateType getSchedulingState() {
         throw new UnsupportedOperationException();
     }
 
@@ -73,7 +68,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public TaskPersistenceStatus getPersistenceStatus() {
+    public @NotNull TaskPersistenceStatus getPersistenceStatus() {
         throw new UnsupportedOperationException();
     }
 
@@ -88,17 +83,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public TaskRecurrence getRecurrenceStatus() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isSingle() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isRecurring() {
+    public TaskRecurrenceType getRecurrence() {
         throw new UnsupportedOperationException();
     }
 
@@ -118,27 +103,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public TaskBinding getBinding() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isTightlyBound() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isLooselyBound() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setBinding(TaskBinding value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setBindingImmediate(TaskBinding value, OperationResult parentResult) {
+    public TaskBindingType getBinding() {
         throw new UnsupportedOperationException();
     }
 
@@ -149,16 +114,6 @@ public class NullTaskImpl implements Task {
 
     @Override
     public void setHandlerUri(String value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setHandlerUriImmediate(String value, OperationResult parentResult) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public UriStack getOtherHandlersUriStack() {
         throw new UnsupportedOperationException();
     }
 
@@ -184,11 +139,6 @@ public class NullTaskImpl implements Task {
 
     @Override
     public void setChannel(String channelUri) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setChannelImmediate(String channelUri, OperationResult parentResult) {
         throw new UnsupportedOperationException();
     }
 
@@ -220,7 +170,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, OperationResult parentResult) {
+    public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, OperationResult result) {
         throw new UnsupportedOperationException();
     }
 
@@ -240,11 +190,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void setObjectTransient(PrismObject object) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String getObjectOid() {
         throw new UnsupportedOperationException();
     }
@@ -255,17 +200,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void setResultTransient(OperationResult result) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void setResult(OperationResult result) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setResultImmediate(OperationResult result, OperationResult parentResult) {
         throw new UnsupportedOperationException();
     }
 
@@ -280,7 +215,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public Long getNextRunStartTime(OperationResult parentResult) {
+    public Long getNextRunStartTime(OperationResult result) {
         throw new UnsupportedOperationException();
     }
 
@@ -305,7 +240,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getExtensionItemOrClone(ItemName propertyName) {
+    public <IV extends PrismValue,ID extends ItemDefinition<?>> Item<IV,ID> getExtensionItemOrClone(ItemName propertyName) {
         throw new UnsupportedOperationException();
     }
 
@@ -325,7 +260,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void setExtensionPropertyImmediate(PrismProperty<?> property, OperationResult parentResult) {
+    public void setExtensionPropertyImmediate(PrismProperty<?> property, OperationResult result) {
         throw new UnsupportedOperationException();
     }
 
@@ -340,22 +275,12 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public <T> void setExtensionPropertyValueTransient(QName propertyName, T value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public <T extends Containerable> void setExtensionContainerValue(QName containerName, T value) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void setExtensionItem(Item item) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void modifyExtension(ItemDelta itemDelta) {
+    public void setExtensionItem(Item<?, ?> item) {
         throw new UnsupportedOperationException();
     }
 
@@ -372,10 +297,6 @@ public class NullTaskImpl implements Task {
     @Override
     public void setProgressImmediate(Long progress, OperationResult parentResult) {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setProgressTransient(Long value) {
     }
 
     @NotNull
@@ -397,7 +318,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void refresh(OperationResult parentResult) {
+    public void refresh(OperationResult result) {
         throw new UnsupportedOperationException();
     }
 
@@ -418,16 +339,6 @@ public class NullTaskImpl implements Task {
 
     @Override
     public String getCategory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void makeRecurringSimple(int interval) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void makeRecurringCron(String cronLikeSpecification) {
         throw new UnsupportedOperationException();
     }
 
@@ -453,11 +364,6 @@ public class NullTaskImpl implements Task {
 
     @Override
     public ThreadStopActionType getThreadStopAction() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isResilient() {
         throw new UnsupportedOperationException();
     }
 
@@ -493,11 +399,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public boolean hasExtension() {
-        return false;
-    }
-
-    @Override
     public <T> PrismProperty<T> getExtensionPropertyOrClone(ItemName propertyName) {
         return null;
     }
@@ -518,7 +419,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void setDescriptionImmediate(String value, OperationResult parentResult) {
+    public void setDescriptionImmediate(String value, OperationResult result) {
         throw new UnsupportedOperationException();
     }
 
@@ -543,11 +444,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void makeRecurring(ScheduleType schedule) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void makeSingle(ScheduleType schedule) {
         throw new UnsupportedOperationException();
     }
@@ -563,23 +459,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding,
-                               Collection<ItemDelta<?,?>> extensionDeltas) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, ItemDelta<?,?> delta) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void finishHandler(OperationResult parentResult) {
+    public void finishHandler(OperationResult result) {
         throw new UnsupportedOperationException();
     }
 
@@ -595,17 +475,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void startWaitingForTasksImmediate(OperationResult result) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public List<String> getDependents() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void deleteDependent(String value) {
         throw new UnsupportedOperationException();
     }
 
@@ -620,7 +490,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public TaskWaitingReason getWaitingReason() {
+    public TaskWaitingReasonType getWaitingReason() {
         throw new UnsupportedOperationException();
     }
 
@@ -630,22 +500,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void makeWaiting(TaskWaitingReason reason) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void makeWaiting(TaskWaitingReason reason, TaskUnpauseActionType unpauseAction) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Long getCompletionTimestamp() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setObjectRefImmediate(ObjectReferenceType value, OperationResult parentResult) {
         throw new UnsupportedOperationException();
     }
 
@@ -656,11 +511,6 @@ public class NullTaskImpl implements Task {
 
     @Override
     public List<Task> listSubtasksDeeply(boolean persistentOnly, OperationResult result) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Collection<ItemDelta<?,?>> getPendingModifications() {
         throw new UnsupportedOperationException();
     }
 
@@ -677,11 +527,6 @@ public class NullTaskImpl implements Task {
 
     @Override
     public void setExpectedTotal(Long value) {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public void setExpectedTotalImmediate(Long value, OperationResult parentResult) {
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
@@ -782,11 +627,7 @@ public class NullTaskImpl implements Task {
     @Override public void modify(ItemDelta<?, ?> delta) {
     }
 
-    @Override public void modify(Collection<ItemDelta<?, ?>> deltas) {
-
-    }
-
-    @Override public void modifyAndFlush(ItemDelta<?, ?> delta, OperationResult parentResult) {
+    public void modifyAndFlush(ItemDelta<?, ?> delta, OperationResult result) {
     }
 
     @Override
@@ -818,10 +659,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void close(OperationResult taskResult, boolean saveState, OperationResult parentResult) {
-    }
-
-    @Override
     public TaskWorkManagementType getWorkManagement() {
         return null;
     }
@@ -832,27 +669,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public TaskUnpauseActionType getUnpauseAction() {
-        return null;
-    }
-
-    @Override
-    public TaskExecutionStateType getStateBeforeSuspend() {
-        return null;
-    }
-
-    @Override
-    public boolean isPartitionedMaster() {
-        return false;
-    }
-
-    @Override
     public TaskKindType getKind() {
-        return null;
-    }
-
-    @Override
-    public String getExecutionGroup() {
         return null;
     }
 
@@ -862,7 +679,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public ObjectReferenceType getSelfReference() {
+    public @NotNull ObjectReferenceType getSelfReference() {
         return null;
     }
 
@@ -872,22 +689,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public Collection<? extends TriggerType> getTriggers() {
-        return null;
-    }
-
-    @Override
-    public Collection<? extends AssignmentType> getAssignments() {
-        return null;
-    }
-
-    @Override
-    public Collection<Task> getPathToRootTask(OperationResult parentResult) throws SchemaException {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String getTaskTreeId(OperationResult result) throws SchemaException {
+    public List<Task> getPathToRootTask(OperationResult result) throws SchemaException {
         throw new UnsupportedOperationException();
     }
 
@@ -903,11 +705,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public String getOperationResultHandlingStrategyName() {
-        return null;
-    }
-
-    @Override
     public void setExecutionConstraints(TaskExecutionConstraintsType value) {
     }
 
@@ -918,10 +715,6 @@ public class NullTaskImpl implements Task {
 
     @Override
     public void setExecutionEnvironment(TaskExecutionEnvironmentType value) {
-    }
-
-    @Override
-    public void setExecutionEnvironmentTransient(TaskExecutionEnvironmentType value) {
     }
 
     @Override
@@ -951,5 +744,10 @@ public class NullTaskImpl implements Task {
 
     @Override
     public void setTracingProfile(TracingProfileType tracingProfile) {
+    }
+
+    @Override
+    public boolean hasAssignments() {
+        return false;
     }
 }

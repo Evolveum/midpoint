@@ -35,8 +35,7 @@ public class TaskDebugUtil {
                 .append(", p:").append(task.getProgress())
                 .append(", n:").append(task.getNode())
                 .append("]").append("\n");
-        List<Task> subtasks = task.listSubtasks(result);
-        for (Task subtask : subtasks) {
+        for (Task subtask : task.listSubtasks(result)) {
             dumpTaskTree(sb, indent + 1, subtask, result);
         }
     }

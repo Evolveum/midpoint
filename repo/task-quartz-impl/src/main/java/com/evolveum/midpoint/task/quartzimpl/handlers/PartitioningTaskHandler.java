@@ -15,7 +15,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskPartitionsDefinition.TaskPartitionDefinition;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.util.template.StringSubstitutorUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -51,7 +53,9 @@ public class PartitioningTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask masterTask, TaskPartitionDefinitionType partition) {
+    public TaskRunResult run(RunningTask masterTaskUntyped, TaskPartitionDefinitionType partition) {
+
+        RunningTaskQuartzImpl masterTask = (RunningTaskQuartzImpl) masterTaskUntyped;
 
         OperationResult opResult = new OperationResult(PartitioningTaskHandler.class.getName()+".run");
         TaskRunResult runResult = new TaskRunResult();
@@ -61,7 +65,7 @@ public class PartitioningTaskHandler implements TaskHandler {
         try {
             setOrCheckTaskKind(masterTask, opResult);
 
-            List<Task> subtasks = checkSubtasksClosed(masterTask, opResult, runResult);
+            List<TaskQuartzImpl> subtasks = checkSubtasksClosed(masterTask, opResult, runResult);
 
             boolean subtasksPresent;
             TaskPartitionsDefinition partitionsDefinition = partitionsDefinitionSupplier.apply(masterTask);
@@ -104,7 +108,8 @@ public class PartitioningTaskHandler implements TaskHandler {
                     .item(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_TASK_KIND)
                     .replace(TaskKindType.PARTITIONED_MASTER)
                     .asItemDelta();
-            masterTask.modifyAndFlush(itemDelta, opResult);
+            masterTask.modify(itemDelta);
+            masterTask.flushPendingModifications(opResult);
         } else if (taskKind != TaskKindType.PARTITIONED_MASTER) {
             throw new IllegalStateException("Partitioned task has incompatible task kind: " + masterTask.getWorkManagement() + " in " + masterTask);
         }
@@ -113,7 +118,7 @@ public class PartitioningTaskHandler implements TaskHandler {
     /**
      * Just a basic check of the subtasks - in the future, we could check them completely.
      */
-    private void checkSubtasksCorrect(List<Task> subtasks, TaskPartitionsDefinition partitionsDefinition, Task masterTask,
+    private void checkSubtasksCorrect(List<? extends Task> subtasks, TaskPartitionsDefinition partitionsDefinition, Task masterTask,
             OperationResult opResult, TaskRunResult runResult) throws ExitHandlerException {
         int expectedCount = partitionsDefinition.getCount(masterTask);
         if (subtasks.size() != expectedCount) {
@@ -126,18 +131,18 @@ public class PartitioningTaskHandler implements TaskHandler {
         }
     }
 
-    private void createAndStartSubtasks(TaskPartitionsDefinition partitionsDefinition, Task masterTask,
+    private void createAndStartSubtasks(TaskPartitionsDefinition partitionsDefinition, TaskQuartzImpl masterTask,
             OperationResult opResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         List<Task> subtasksCreated;
         try {
             subtasksCreated = createSubtasks(partitionsDefinition, masterTask, opResult);
         } catch (Throwable t) {
-            List<Task> subtasksToRollback = masterTask.listSubtasks(opResult);
+            List<TaskQuartzImpl> subtasksToRollback = masterTask.listSubtasks(opResult);
             taskManager.suspendAndDeleteTasks(TaskUtil.tasksToOids(subtasksToRollback), TaskManager.DO_NOT_WAIT, true,
                     opResult);
             throw t;
         }
-        masterTask.makeWaiting(TaskWaitingReason.OTHER_TASKS, TaskUnpauseActionType.RESCHEDULE);  // i.e. close for single-run tasks
+        masterTask.makeWaiting(TaskWaitingReasonType.OTHER_TASKS, TaskUnpauseActionType.RESCHEDULE);  // i.e. close for single-run tasks
         masterTask.flushPendingModifications(opResult);
         List<Task> subtasksToResume = subtasksCreated.stream()
                 .filter(t -> t.getExecutionState() == TaskExecutionStateType.SUSPENDED)
@@ -146,10 +151,10 @@ public class PartitioningTaskHandler implements TaskHandler {
         LOGGER.info("Partitioned subtasks were successfully created and started for master {}", masterTask);
     }
 
-    private List<Task> checkSubtasksClosed(Task masterTask, OperationResult opResult, TaskRunResult runResult)
+    private List<TaskQuartzImpl> checkSubtasksClosed(TaskQuartzImpl masterTask, OperationResult opResult, TaskRunResult runResult)
             throws SchemaException, ExitHandlerException {
-        List<Task> subtasks = masterTask.listSubtasks(opResult);
-        List<Task> subtasksNotClosed = subtasks.stream()
+        List<TaskQuartzImpl> subtasks = masterTask.listSubtasks(opResult);
+        List<TaskQuartzImpl> subtasksNotClosed = subtasks.stream()
                 .filter(w -> w.getExecutionState() != TaskExecutionStateType.CLOSED)
                 .collect(Collectors.toList());
         if (!subtasksNotClosed.isEmpty()) {
@@ -161,16 +166,16 @@ public class PartitioningTaskHandler implements TaskHandler {
         return subtasks;
     }
 
-    private void scheduleSubtasksNow(List<Task> subtasks, Task masterTask, OperationResult opResult) throws SchemaException,
+    private void scheduleSubtasksNow(List<TaskQuartzImpl> subtasks, TaskQuartzImpl masterTask, OperationResult opResult) throws SchemaException,
             ObjectAlreadyExistsException, ObjectNotFoundException {
-        masterTask.makeWaiting(TaskWaitingReason.OTHER_TASKS, TaskUnpauseActionType.RESCHEDULE);  // i.e. close for single-run tasks
+        masterTask.makeWaiting(TaskWaitingReasonType.OTHER_TASKS, TaskUnpauseActionType.RESCHEDULE);  // i.e. close for single-run tasks
         masterTask.flushPendingModifications(opResult);
 
         Set<String> dependents = getDependentTasksIdentifiers(subtasks);
         // first set dependents to waiting, and only after that start runnables
-        for (Task subtask : subtasks) {
+        for (TaskQuartzImpl subtask : subtasks) {
             if (dependents.contains(subtask.getTaskIdentifier())) {
-                subtask.makeWaiting(TaskWaitingReason.OTHER_TASKS, TaskUnpauseActionType.EXECUTE_IMMEDIATELY);
+                subtask.makeWaiting(TaskWaitingReasonType.OTHER_TASKS, TaskUnpauseActionType.EXECUTE_IMMEDIATELY);
                 subtask.flushPendingModifications(opResult);
             }
         }
@@ -181,7 +186,7 @@ public class PartitioningTaskHandler implements TaskHandler {
         }
     }
 
-    private Set<String> getDependentTasksIdentifiers(List<Task> subtasks) {
+    private Set<String> getDependentTasksIdentifiers(List<? extends Task> subtasks) {
         Set<String> rv = new HashSet<>();
         for (Task subtask : subtasks) {
             rv.addAll(subtask.getDependents());
@@ -217,7 +222,7 @@ public class PartitioningTaskHandler implements TaskHandler {
                 Task dependent = subtasks.get(dependentIndex - 1);
                 subtask.addDependent(dependent.getTaskIdentifier());
                 if (dependent.getExecutionState() == TaskExecutionStateType.SUSPENDED) {
-                    dependent.makeWaiting(TaskWaitingReason.OTHER_TASKS, TaskUnpauseActionType.EXECUTE_IMMEDIATELY);
+                    ((TaskQuartzImpl) dependent).makeWaiting(TaskWaitingReasonType.OTHER_TASKS, TaskUnpauseActionType.EXECUTE_IMMEDIATELY);
                     dependent.flushPendingModifications(opResult);
                 }
             }

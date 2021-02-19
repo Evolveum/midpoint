@@ -39,7 +39,7 @@ public class TaskUtil {
     public static final long ALREADY_PASSED = -2L;
     public static final long NOW = 0L;
 
-    public static List<String> tasksToOids(List<Task> tasks) {
+    public static List<String> tasksToOids(List<? extends Task> tasks) {
         return tasks.stream().map(Task::getOid).collect(Collectors.toList());
     }
 
@@ -75,9 +75,6 @@ public class TaskUtil {
 
     private static Boolean findExtensionItemValue(Task task, QName path) throws SchemaException {
         Validate.notNull(task, "Task must not be null.");
-        if (!task.hasExtension()) {
-            return null;
-        }
         PrismProperty<Boolean> item = task.getExtensionPropertyOrClone(ItemName.fromQName(path));
         if (item == null || item.isEmpty()) {
             return null;

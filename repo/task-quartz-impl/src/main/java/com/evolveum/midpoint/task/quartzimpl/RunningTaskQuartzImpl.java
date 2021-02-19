@@ -295,7 +295,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     @Override
     public boolean isAsynchronous() {
         return getPersistenceStatus() == TaskPersistenceStatus.PERSISTENT
-                || isLightweightAsynchronousTask();     // note: if it has lightweight task handler, it must be transient
+                || isLightweightAsynchronousTask(); // note: if it has lightweight task handler, it must be transient
     }
 
     /**

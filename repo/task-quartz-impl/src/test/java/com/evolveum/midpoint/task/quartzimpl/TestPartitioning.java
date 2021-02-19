@@ -74,7 +74,7 @@ public class TestPartitioning extends AbstractTaskManagerTest {
             waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
 
             TaskQuartzImpl masterTask = taskManager.getTaskPlain(masterTaskOid, result);
-            List<Task> partitions = masterTask.listSubtasks(result);
+            List<? extends Task> partitions = masterTask.listSubtasks(result);
 
             displayDumpable("master task", masterTask);
             displayValue("partition tasks", partitions);

@@ -618,7 +618,6 @@ public class Clockwork {
 
         // other parameters
         reconTask.setName("Recomputing users after changing role " + role.asObjectable().getName());
-        reconTask.setBinding(TaskBinding.LOOSE);
         reconTask.setInitialExecutionState(TaskExecutionStateType.RUNNABLE);
         reconTask.setHandlerUri(RecomputeTaskHandler.HANDLER_URI); // FIXME
         reconTask.setCategory(TaskCategory.RECOMPUTATION);

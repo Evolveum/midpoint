@@ -18,7 +18,7 @@
     <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d30016</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
     <executionStatus>waiting</executionStatus>
-    <waitingReason>other</waitingReason>        <!-- we change this to 'otherTasks' programatically after children and prerequisites are created -->
+    <waitingReason>otherTasks</waitingReason>        <!-- we change this to 'otherTasks' programatically after children and prerequisites are created -->
 
     <handlerUri>http://midpoint.evolveum.com/test/wait-for-subtasks-task-handler</handlerUri>
     <recurrence>single</recurrence>

@@ -118,7 +118,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             waitForTaskProgress(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
 
             TaskQuartzImpl coordinatorTask = taskManager.getTaskPlain(coordinatorTaskOid(), result);
-            List<Task> workers = coordinatorTask.listSubtasks(result);
+            List<? extends Task> workers = coordinatorTask.listSubtasks(result);
             assertEquals("Wrong # of workers", 1, workers.size());
 
             displayDumpable("coordinator task", coordinatorTask);
@@ -180,7 +180,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             waitForTaskProgress(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
 
             TaskQuartzImpl coordinatorTask = taskManager.getTaskPlain(coordinatorTaskOid(), result);
-            List<Task> workers = coordinatorTask.listSubtasks(result);
+            List<TaskQuartzImpl> workers = coordinatorTask.listSubtasks(result);
             assertEquals("Wrong # of workers", 1, workers.size());
 
             displayDumpable("coordinator task", coordinatorTask);
@@ -220,7 +220,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             coordinatorTask = taskManager.getTaskPlain(coordinatorTaskOid(), result);
             workers = coordinatorTask.listSubtasks(result);
             assertEquals("Wrong # of workers", 1, workers.size());
-            Task worker = workers.get(0);
+            TaskQuartzImpl worker = workers.get(0);
 
             assertTrue("tasks were not stopped", stopped);
 
@@ -328,7 +328,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
 
             TaskQuartzImpl masterTask = taskManager.getTaskPlain(masterTaskOid, result);
-            List<Task> subtasks = masterTask.listSubtasks(result);
+            List<? extends Task> subtasks = masterTask.listSubtasks(result);
 
             displayDumpable("master task", masterTask);
             displayValue("subtasks", subtasks);
@@ -377,7 +377,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
 
             TaskQuartzImpl masterTask = taskManager.getTaskPlain(masterTaskOid, result);
-            List<Task> subtasks = masterTask.listSubtasks(result);
+            List<? extends Task> subtasks = masterTask.listSubtasks(result);
 
             displayDumpable("master task", masterTask);
             displayValue("subtasks", subtasks);
@@ -394,7 +394,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             waitForTaskCloseCheckingSubtasks(second.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
             second = taskManager.getTaskPlain(second.getOid(), result);
             displayDumpable("Second task after completion", second);
-            List<Task> secondSubtasks = second.listSubtasks(result);
+            List<? extends Task> secondSubtasks = second.listSubtasks(result);
             displayValue("Subtasks of second task after completion", secondSubtasks);
             assertEquals("Wrong # of second task's subtasks", 3, secondSubtasks.size());
 
@@ -407,7 +407,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             waitForTaskCloseCheckingSubtasks(third.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
             third = taskManager.getTaskPlain(third.getOid(), result);
             displayDumpable("Third task after completion", third);
-            List<Task> thirdSubtasks = third.listSubtasks(result);
+            List<? extends Task> thirdSubtasks = third.listSubtasks(result);
             displayValue("Subtasks of third task after completion", thirdSubtasks);
             assertEquals("Wrong # of third task's subtasks", 2, thirdSubtasks.size());
 
@@ -440,7 +440,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
 
             TaskQuartzImpl masterTask = taskManager.getTaskPlain(masterTaskOid, result);
-            List<Task> subtasks = masterTask.listSubtasks(result);
+            List<? extends Task> subtasks = masterTask.listSubtasks(result);
 
             displayDumpable("master task", masterTask);
             displayValue("subtasks", subtasks);
@@ -457,14 +457,14 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             waitForTaskCloseCheckingSubtasks(second.getOid(), result, 30000L, DEFAULT_SLEEP_INTERVAL);
             second = taskManager.getTaskPlain(second.getOid(), result);
             displayDumpable("Second task after completion", second);
-            List<Task> secondSubtasks = second.listSubtasks(result);
+            List<? extends Task> secondSubtasks = second.listSubtasks(result);
             displayValue("Subtasks of second task after completion", secondSubtasks);
             assertEquals("Wrong # of second task's subtasks", 3, secondSubtasks.size());
 
             waitForTaskCloseCheckingSubtasks(third.getOid(), result, 20000L, DEFAULT_SLEEP_INTERVAL);
             third = taskManager.getTaskPlain(third.getOid(), result);
             displayDumpable("Third task after completion", third);
-            List<Task> thirdSubtasks = third.listSubtasks(result);
+            List<? extends Task> thirdSubtasks = third.listSubtasks(result);
             displayValue("Subtasks of third task after completion", thirdSubtasks);
             assertEquals("Wrong # of third task's subtasks", 2, thirdSubtasks.size());
 

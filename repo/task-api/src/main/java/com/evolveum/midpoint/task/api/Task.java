@@ -29,7 +29,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Task instance - a logical unit of work that is either done synchronously, asynchronously, it is deferred, scheduled, etc.
+ * Task instance - a logical unit of work.
+ *
+ * It is executed either synchronously or asynchronously.
+ * When running asynchronously, it can be scheduled, suspended, or resumed.
  *
  * The classes that implement this interface hold a "java" task state. They represent the in-memory task data structure.
  * The instances must be able to serialize the state to the repository object (TaskType) when needed.
@@ -39,26 +42,25 @@ import org.jetbrains.annotations.Nullable;
  *
  * API for modifying task properties works like this:
  *
- * - A getter (get<property-name>) reads data from the in-memory representation of a task.
- * - A setter (set<property-name>) writes data to the in-memory representation, and prepares a PropertyDelta to be
- *   written into repository later (of course, only for persistent tasks).
+ * - A getter (getItemName) reads data from the in-memory representation of a task.
+ * - A setter (setItemName) writes data to the in-memory representation, and (for persistent tasks)
+ * prepares a delta to be written into repository later.
  *
- * PropertyDeltas should be then written by calling flushPendingModifications method.
+ * The deltas should be then written by calling {@link #flushPendingModifications(OperationResult)} method.
  *
  * In case you want to write property change into the repository immediately, you have to use
- * set<property-name>Immediate method. In that case, the property change does not go into
+ * setItemNameImmediate method. In that case, the change does not go into
  * the list of pending modifications, but it is instantly written into the repository
  * (so the method uses OperationResult as parameter, and can throw relevant exceptions as well).
  *
  * @author Radovan Semancik
  * @author Pavol Mederly
- *
  */
 public interface Task extends DebugDumpable, StatisticsCollector, SynchronizationInformationCollector {
 
     String DOT_INTERFACE = Task.class.getName() + ".";
 
-    // =================================================================== Basic information (ID, owner)
+    //region Basic information (ID, owner, name, description)
 
     /**
      * Returns task (lightweight) identifier. This is an unique identification of any task,
@@ -66,35 +68,30 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      * to identify all tasks, e.g. for the purposes of auditing and logging.
      *
      * Task identifier is assigned automatically when the task is created. It is immutable.
-     *
-     * @return task (lightweight) identifier
      */
     String getTaskIdentifier();
 
     /**
      * Returns task OID.
      *
-     * Only persistent tasks have OID. This returns null if the task is not persistent.
-     *
-     * @return task OID
-     *
+     * Only persistent tasks have OID. So this method returns null if the task is not persistent.
      */
     String getOid();
 
     /**
-     * Returns user that owns this task. It usually means the user that started the task
+     * Returns object that owns this task. It usually means the user that started the task
      * or a system used that is used to execute the task. The owner will be used to
      * determine access rights of the task, will be used for auditing, etc.
-     *
-     * @return task owner
      */
     PrismObject<? extends FocusType> getOwner();
+
+    /** Returns a reference to the task owner. (Cloned if the task is running.) */
+    ObjectReferenceType getOwnerRef();
 
     /**
      * Sets the task owner.
      *
-     * BEWARE: sets the owner only for in-memory information. So do not call this method for persistent tasks!
-     * (until fixed)
+     * Precondition: Task is transient.
      */
     void setOwner(PrismObject<? extends FocusType> owner);
 
@@ -117,7 +114,7 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      * Sets the human-readable name of the task, immediately into repository.
      */
     @SuppressWarnings("unused")
-    void setNameImmediate(PolyStringType value, OperationResult parentResult)
+    void setNameImmediate(PolyStringType value, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
     /**
@@ -134,69 +131,30 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      * Sets task description, immediately storing it into the repo.
      */
     @SuppressWarnings("unused")
-    void setDescriptionImmediate(String value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    void setDescriptionImmediate(String value, OperationResult result) throws ObjectNotFoundException, SchemaException;
+    //endregion
+
+    //region Execution and scheduling state
 
     /**
-     * Gets the policy rule defined for the task (for running task the returned value is a clone).
-     */
-    PolicyRuleType getPolicyRule();
-
-    // =================================================================== Execution status
-
-    /**
-     * Returns execution status.
-     *
-     * @see TaskExecutionStateType
-     *
-     * @return execution status.
+     * Returns high-level execution state.
      */
     TaskExecutionStateType getExecutionState();
 
     /**
-     * Status-changing method. It changes task's execution status to WAITING.
-     * Currently use only on transient tasks, on suspended tasks or from within task handler.
+     * Returns low-level scheduling state.
      */
-    void makeWaiting();
+    TaskSchedulingStateType getSchedulingState();
 
     /**
-     * Changes exec status to WAITING, with a given waiting reason.
-     * Currently use only on transient tasks or from within task handler.
-     */
-    void makeWaiting(TaskWaitingReason reason);
-
-    void makeWaiting(TaskWaitingReason reason, TaskUnpauseActionType unpauseAction);
-
-    /**
-     * Status-changing method. It changes task's execution status to RUNNABLE.
-     * Currently use ONLY on transient tasks.
-     */
-    @SuppressWarnings("unused")
-    void makeRunnable();
-
-    /**
-     * Sets task execution status. Can be used only for transient tasks (for safety reasons).
-     * However, it is better to use specific state-changing methods (makeWaiting, makeRunnable, ...).
-     *
-     * @see TaskExecutionStateType
-     *
-     * @param value new task execution status.
-     */
-    void setInitialExecutionState(TaskExecutionStateType value);
-
-    /**
-     * Returns true if the task is closed.
+     * Returns true if the task is closed. (Refers to the scheduling state.)
      */
     boolean isClosed();
 
     /**
-     * Returns the completion timestamp - time when the task was closed (or null if it is not closed).
-     */
-    Long getCompletionTimestamp();
-
-    /**
      * Returns the task waiting reason for a WAITING task.
      */
-    TaskWaitingReason getWaitingReason();
+    TaskWaitingReasonType getWaitingReason();
 
     /**
      * Returns the node the task is currently executing at, based on repository information.
@@ -204,18 +162,24 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      */
     String getNode();
 
+    /**
+     * Returns the node as really observed. This is a transient information that has to be requested explicitly.
+     */
     String getNodeAsObserved();
 
-    // =================================================================== Persistence and asynchrony
+    /**
+     * Sets initial task execution state. It will be used when the task is made persistent.
+     *
+     * Precondition: Task is transient.
+     */
+    void setInitialExecutionState(TaskExecutionStateType value);
+    //endregion
 
+    //region Persistence and asynchrony
     /**
      * Returns task persistence status.
-     *
-     * @see TaskPersistenceStatus
-     *
-     * @return task persistence status.
      */
-    TaskPersistenceStatus getPersistenceStatus();
+    @NotNull TaskPersistenceStatus getPersistenceStatus();
 
     /**
      * Returns true if task is transient (i.e. not stored in repository).
@@ -241,91 +205,57 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      * @return true if the task is asynchronous.
      */
     boolean isAsynchronous();
+    //endregion
 
-    // ============================================================================================ Scheduling
-
+    //region Scheduling and binding
     /**
      * Returns task recurrence status.
-     *
-     * @return task recurrence status
      */
-    TaskRecurrence getRecurrenceStatus();
-
-    /**
-     * Checks whether the task is single-run.
-     */
-    boolean isSingle();
+    TaskRecurrenceType getRecurrence();
 
     /**
      * Checks whether the task is a cyclic (recurrent) one.
      */
-    boolean isRecurring();
+    default boolean isRecurring() {
+        return getRecurrence() == TaskRecurrenceType.RECURRING;
+    }
 
-    /**
-     * Makes a task recurring, with a given schedule.
-     */
-    @SuppressWarnings("unused")
-    void makeRecurring(ScheduleType schedule);
+    /** Checks whether the task is single-run. */
+    default boolean isSingle() {
+        return !isRecurring();
+    }
 
-    /**
-     * Makes a task recurring, running in a fixed time intervals.
-     * @param interval interval to run the task (in seconds)
-     */
-    @SuppressWarnings("unused")
-    void makeRecurringSimple(int interval);
-
-    /**
-     * Makes a task recurring, running according to a cron-like schedule.
-     * @param cronLikeSpecification schedule specification
-     */
-    @SuppressWarnings("unused")
-    void makeRecurringCron(String cronLikeSpecification);
-
-    /**
-     * Makes a task single-run, with no particular schedule.
-     */
+    /** Makes a task single-run, with no particular schedule. */
     void makeSingle();
 
-    /**
-     * Makes a task single-run, with a given schedule.
-     */
+    /** Makes a task single-run, with a given schedule. */
     void makeSingle(ScheduleType schedule);
 
+    /** Returns task execution constraints */
     TaskExecutionConstraintsType getExecutionConstraints();
 
+    /** Sets task execution constraints. */
     void setExecutionConstraints(TaskExecutionConstraintsType value);
 
+    /** Sets the execution group name (i.e. executionConstraints/group). */
     String getGroup();
 
+    /** Returns names of all groups (primary plus all secondary ones). */
     @NotNull
     Collection<String> getGroups();
 
+    /** Returns all groups (primary plus all secondary ones) along with task count limits. */
     @NotNull
     Map<String, Integer> getGroupsWithLimits();
 
-    /**
-     * Returns the schedule.
-     */
+    /** Returns the schedule. */
     ScheduleType getSchedule();
 
+    /** Returns the schedule interval. */
     Integer getScheduleInterval();
 
+    /** Returns true if the schedule interval is set. */
     boolean hasScheduleInterval();
-
-    /**
-     * Returns the time when the task last run was started (or null if the task was never started).
-     */
-    Long getLastRunStartTimestamp();
-
-    /**
-     * Returns the time when the task last run was finished (or null if the task was not finished yet).
-     */
-    Long getLastRunFinishTimestamp();
-
-    /**
-     * Returns the time when the task should start again.
-     */
-    Long getNextRunStartTime(OperationResult parentResult);
 
     /**
      * Returns thread stop action (what happens when the task thread is stopped e.g. because of node going down).
@@ -338,116 +268,58 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
     void setThreadStopAction(ThreadStopActionType value);
 
     /**
-     * Resilient tasks are those that survive node shutdown.
-     * I.e. their ThreadStopAction is either 'restart' or 'reschedule'.
+     * Returns the time when the task last run was started (or null if the task was never started).
+     * This is set only for asynchronously executing tasks. And it is set also for the current execution.
      */
-    @SuppressWarnings("unused")
-    boolean isResilient();
+    Long getLastRunStartTimestamp();
 
-    // ============================================================================================ Binding
+    /**
+     * Returns the time when the task last run was finished (or null if the task was not finished yet).
+     * This is set only for asynchronously executing tasks.
+     */
+    Long getLastRunFinishTimestamp();
+
+    /**
+     * Returns the time when the task should start again.
+     * This is transient property, present only if explicitly requested.
+     */
+    Long getNextRunStartTime(OperationResult result);
+
+    /**
+     * Returns the completion timestamp - time when the task was closed (or null if it is not closed).
+     */
+    Long getCompletionTimestamp();
 
     /**
      * Returns task binding.
      */
-    TaskBinding getBinding();
-
-    /**
-     * Returns true if the task is tightly bound.
-     */
-    boolean isTightlyBound();
+    TaskBindingType getBinding();
 
     /**
      * Returns true if the task is loosely bound.
      */
-    boolean isLooselyBound();
+    default boolean isLooselyBound() {
+        return getBinding() == TaskBindingType.LOOSE;
+    }
+    //endregion
+
+    //region Handler URI, category, archetype
 
     /**
-     * Sets the binding for this task.
-     */
-    void setBinding(TaskBinding value);
-
-    /**
-     * Sets the binding (immediately through to the repo).
-     */
-    void setBindingImmediate(TaskBinding value, OperationResult parentResult)
-        throws ObjectNotFoundException, SchemaException;
-
-
-    // ============================================================================================ Handler(s)
-
-    /**
-     * Returns handler URI.
-     *
-     * Handler URI indirectly specifies which class is responsible to handle the task. The handler will execute
+     * Returns handler URI. It indirectly specifies which class is responsible to handle the task. The handler will execute
      * reaction to a task lifecycle events such as executing the task, task heartbeat, etc.
-     *
-     * @return handler URI
      */
     String getHandlerUri();
 
     /**
      * Sets handler URI.
-     *
-     * Handler URI indirectly specifies which class is responsible to handle the task. The handler will execute
-     * reaction to a task lifecycle events such as executing the task, task heartbeat, etc.
-     *
-     * @param value new handler URI
      */
     void setHandlerUri(String value);
 
     /**
-     * Sets handler URI, also immediately in the repository.
+     * Closes the task as the current handler finished. TODO reconsider this method (it was useful in older ages)
      */
-    @SuppressWarnings("unused")
-    void setHandlerUriImmediate(String value, OperationResult parentResult) throws ObjectNotFoundException,    SchemaException;
-
-    /**
-     * Returns the stack of other handlers URIs.
-     *
-     * The idea is that a task may have a chain of handlers, forming a stack. After a handler at the top
-     * of the stack finishes its processing, TaskManager will remove it from the stack and invoke
-     * the then-current handler. After that finishes, the next handler will be called, and so on,
-     * until the stack is empty.
-     */
-    UriStack getOtherHandlersUriStack();
-
-    /**
-     * Pushes a new handler URI onto the stack of handlers. This means that the provided handler URI becomes the
-     * current one. Current one becomes the first one on the stack of other handlers, etc.
-     *
-     * So the newly added handler will be started FIRST.
-     *
-     * Care must be taken not to interfere with the execution of a task handler. It is recommended to call this
-     * method when it is sure that no handler is executing.
-     *
-     * Alongwith URI, other information are set, namely schedule, binding, and parameters that will be put into
-     * task extension when the handler URI will be invoked.
-     *
-     * @param uri Handler URI to be put onto the stack.
-     * @param schedule Schedule to be used to run the handler.
-     * @param binding Binding to be used to run the handler.
-     * @param extensionDeltas The feature is EXPERIMENTAL, do not use if not absolutely necessary.
-     */
-    void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, Collection<ItemDelta<?,?>> extensionDeltas);
-
-    /**
-     * Same as above, with one extension delta (not a collection of them).
-     * @param delta EXPERIMENTAL, do not use if not absolutely necessary.
-     */
-    void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, ItemDelta<?,?> delta);
-
-    /**
-     * Same as above, with no extension deltas.
-     */
-    void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding);
-
-    /**
-     * Removes current handler from the handlers stack. Closes task if that was the last handler.
-     *
-     * USE WITH CARE. Normally, this is used implicitly in the task execution routine and there's no need for you
-     * to call this from your code.
-     */
-    void finishHandler(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    void finishHandler(OperationResult result) throws ObjectNotFoundException, SchemaException;
 
     /**
      * Task category is a user-oriented term, hinting on what 'kind' of task is the one being considered
@@ -482,10 +354,9 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      */
     @Experimental
     void addArchetypeInformationIfMissing(String archetypeOid);
+    //endregion
 
-    // ============================================================================================ Task extension.
-    // -------------------------------------------------------------------------------- Task extension - GET
-
+    //region Task extension ("get" operations)
     /**
      * Returns task extension.
      *
@@ -496,53 +367,52 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      *
      * To maintain thread safety, for RunningTask this method returns extension clone.
      * (So don't use the return value to modify the task extension if not sure whether the task is running.)
-     *
-     * @return task extension
      */
     PrismContainer<? extends ExtensionType> getExtensionOrClone();
-    @NotNull PrismContainer<? extends ExtensionType> getOrCreateExtension() throws SchemaException;
-    PrismContainer<? extends ExtensionType> getExtensionClone();
-
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    boolean hasExtension();
 
     /**
-     * Returns specified property from the extension
-     * @return null if extension or property does not exist.
+     * Gets or creates an extension. Just like {@link PrismObject#getOrCreateExtension()}.
+     * Cloned if the task is running.
+     */
+    @NotNull PrismContainer<? extends ExtensionType> getOrCreateExtension() throws SchemaException;
+
+    /** Gets extension clone, or null if there is no extension. */
+    PrismContainer<? extends ExtensionType> getExtensionClone();
+
+    /**
+     * Returns specified property from the extension; or null if extension or property does not exist.
+     * Cloned if task is running.
      */
     <T> PrismProperty<T> getExtensionPropertyOrClone(ItemName propertyName);
 
     /**
      * Returns specified single-valued property real value from the extension
-     * @return null if extension or property does not exist.
+     * (null if extension or property does not exist).
      */
     <T> T getExtensionPropertyRealValue(ItemName propertyName);
 
     /**
      * Returns specified single-valued container real value from the extension
      * To ensure thread safety, in the case of running tasks the returned value is a clone of the live one.
-     *
-     * @return null if extension or container does not exist.
+     * Returns null if extension or container does not exist.
      */
     <T extends Containerable> T getExtensionContainerRealValueOrClone(ItemName containerName);
 
     /**
-     * Returns specified reference from the extension.
-     * @return null if extension or reference does not exist.
+     * Returns specified reference from the extension. Cloned if running task.
+     * Null if extension or reference does not exist.
      */
     @SuppressWarnings("unused")
     PrismReference getExtensionReferenceOrClone(ItemName name);
 
     /**
-     * Returns specified item (property, reference or container) from the extension.
-     * @return null if extension or item does not exist
-     *
-     * To maintain thread safety, for running tasks returns a clone of the original item.
+     * Returns specified item (property, reference or container) from the extension. Cloned if running task.
+     * Null if extension or item does not exist.
      */
-    <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getExtensionItemOrClone(ItemName itemName);
+    <IV extends PrismValue,ID extends ItemDefinition<?>> Item<IV,ID> getExtensionItemOrClone(ItemName itemName);
+    //endregion
 
-    // -------------------------------------------------------------------------- Task extension - SET (replace values)
-
+    //region Task extension ("set" operations)
     /**
      * Sets a property in the extension - replaces existing value(s), if any, by the one(s) provided.
      */
@@ -551,7 +421,8 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
     /**
      * "Immediate" version of the above method.
      */
-    void setExtensionPropertyImmediate(PrismProperty<?> property, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    void setExtensionPropertyImmediate(PrismProperty<?> property, OperationResult result)
+            throws ObjectNotFoundException, SchemaException;
 
     /**
      * Sets (i.e., replaces) the value of the given property in task extension.
@@ -559,14 +430,6 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      * @param value value of the property
      */
     <T> void setExtensionPropertyValue(QName propertyName, T value) throws SchemaException;
-
-    /**
-     * Sets (i.e., replaces) the value of the given property in task extension - without writing to repo.
-     * @param propertyName name of the property
-     * @param value value of the property
-     */
-    @SuppressWarnings("unused")
-    <T> void setExtensionPropertyValueTransient(QName propertyName, T value) throws SchemaException;
 
     /**
      * Sets a reference in the extension - replaces existing value(s), if any, by the one(s) provided.
@@ -590,9 +453,9 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      * Puts generic item into extension.
      */
     @SuppressWarnings("unused")
-    void setExtensionItem(Item item) throws SchemaException;
-
-    // ---------------------------------------------------------------------------- Task extension - ADD (add values)
+    void setExtensionItem(Item<?, ?> item) throws SchemaException;
+    //endregion
+    //region Task extension (adding and deleting items)
 
     /**
      * Adds value(s) to a given extension property.
@@ -607,24 +470,14 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
     @SuppressWarnings("unused")
     void addExtensionReference(PrismReference reference) throws SchemaException;
 
-    // ---------------------------------------------------------------------- Task extension - DELETE (delete values)
-
     /**
      * Removes specified VALUES of this extension property (not all of its values).
      */
     @SuppressWarnings("unused")
     void deleteExtensionProperty(PrismProperty<?> property) throws SchemaException;
+    //endregion
 
-    // --------------------------------------------------------------------------- Task extension - OTHER
-
-    /**
-     * Modifies task extension using given delta.
-     */
-    void modifyExtension(ItemDelta itemDelta) throws SchemaException;
-
-
-    // ============================================================================================ Task object
-
+    //region Associated object
     /**
      * Returns object that the task is associated with.
      *
@@ -632,14 +485,11 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      * with the resource definition object that it imports from. Similarly for synchronization and reconciliation
      * tasks (cycles). User approval and modification task may be associated with that user.
      *
-     * This is an optional property.
-     *
-     * The object will only be returned if the task really contains an object without OID (e.g. unfinished
-     * account shadow). In all other cases this method may return null. Use getObjectRefOrClone instead.
-     *
-     * Optional. May return null.
+     * If the task contains a reference without full object, the object is fetched from the repository.
+     * (Authorizations are *not* checked.)
      */
-    <T extends ObjectType> PrismObject<T> getObject(Class<T> type, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    <T extends ObjectType> PrismObject<T> getObject(Class<T> type, OperationResult result)
+            throws ObjectNotFoundException, SchemaException;
 
     /**
      * Returns reference to the object that the task is associated with.
@@ -651,6 +501,13 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
     ObjectReferenceType getObjectRefOrClone();
 
     /**
+     * Returns OID of the object that the task is associated with.
+     *
+     * Convenience method. This will get the OID from the objectRef.
+     */
+    String getObjectOid();
+
+    /**
      * Sets the object reference.
      */
     void setObjectRef(ObjectReferenceType objectRef);
@@ -659,55 +516,30 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      * Sets the object reference.
      */
     void setObjectRef(String oid, QName type);
+    //endregion
 
-    /**
-     * "Immediate" version of the previous method.
-     */
-    @SuppressWarnings("unused")
-    void setObjectRefImmediate(ObjectReferenceType value, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
-
-    /**
-     * Sets the "task object" in the in-memory task representation (i.e. not in the repo).
-     */
-    void setObjectTransient(PrismObject object);
-
-    /**
-     * Returns OID of the object that the task is associated with.
-     *
-     * Convenience method. This will get the OID from the objectRef.
-     */
-    String getObjectOid();
-
-    // ====================================================================================== Task result and progress
+    //region Task result and progress
 
     /**
      * Returns a top-level OperationResult stored in the task.
      * Beware of thread safety. This is a live object!
-     * @return task operation result.
      */
     OperationResult getResult();
 
-    void setResultTransient(OperationResult result);
-
     /**
      * Returns the status of top-level OperationResult stored in the task.
+     * If "live" operation result is present, the status it taken from it.
+     * Otherwise, resultStatus from task prism is fetched.
      *
-     * @return task operation result status
+     * TODO reconsider this method
      */
     OperationResultStatusType getResultStatus();
 
     /**
      * Sets the top-level OperationResult stored in the task.
+     * Use with care!
      */
     void setResult(OperationResult result);
-
-    /**
-     * "Immediate" version of above method.
-     */
-
-    void setResultImmediate(OperationResult result, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException;
 
     /**
      * Returns task progress, as reported by task handler.
@@ -720,13 +552,23 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
     void setProgress(Long value);
 
     /**
-     * "Immediate" version of the above method.
+     * "Immediate" version of {@link #setProgress(Long)}.
+     *
+     * BEWARE: this method can take quite a long time to execute, if invoked in a cycle.
      */
+    @Deprecated
     void setProgressImmediate(Long progress, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
-    void setProgressTransient(Long value);
-
+    /**
+     * Returns operation statistics from the task prism object (i.e. not the live ones).
+     * Clones if running task.
+     */
     OperationStatsType getStoredOperationStats();
+
+    /**
+     * Gets information from the current task and - for running task - its transient subtasks (aka worker threads).
+     */
+    OperationStatsType getAggregatedLiveOperationStats();
 
     /**
      * Returns expected total progress.
@@ -738,14 +580,9 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      * Stores expected total progress of the task, storing it persistently if needed.
      */
     void setExpectedTotal(Long value);
+    //endregion
 
-    /**
-     * "Immediate" version of the above method.
-     */
-    void setExpectedTotalImmediate(Long value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
-
-    // ===================================================================== Working with subtasks and dependent tasks
-
+    //region Subtasks and dependent tasks
     /**
      * Creates a transient subtask.
      *
@@ -767,12 +604,12 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      * Lists the (direct) subtasks of a given task.
      */
     @NotNull
-    default List<Task> listSubtasks(OperationResult parentResult) throws SchemaException {
+    default List<? extends Task> listSubtasks(OperationResult parentResult) throws SchemaException {
         return listSubtasks(false, parentResult);
     }
 
     @NotNull
-    List<Task> listSubtasks(boolean persistentOnly, OperationResult parentResult) throws SchemaException;
+    List<? extends Task> listSubtasks(boolean persistentOnly, OperationResult parentResult) throws SchemaException;
 
     /**
      * List all the subtasks of a given task, i.e. whole task tree rooted at the current task.
@@ -782,10 +619,16 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
         return listSubtasksDeeply(false, result);
     }
 
+    /**
+     * Lists all tasks in subtasks tree.
+     *
+     * @param persistentOnly If true, transient subtasks (i.e. lightweight asynchronous tasks) are ignored.
+     */
     List<Task> listSubtasksDeeply(boolean persistentOnly, OperationResult result) throws SchemaException;
 
     /**
      * Lists all explicit dependents, i.e. tasks that wait for the completion of this tasks (that depend on it).
+     *
      * Implicit dependents, i.e. task's parent, grandparent, etc are NOT listed here.
      */
     List<Task> listDependents(OperationResult result) throws SchemaException, ObjectNotFoundException;
@@ -802,12 +645,6 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
     void addDependent(String taskIdentifier);
 
     /**
-     * Deletes a task from the list of dependents of this task.
-     */
-    @SuppressWarnings("unused")
-    void deleteDependent(String taskIdentifier);
-
-    /**
      * List all prerequisite tasks for the current tasks, i.e. tasks that must complete before this one can proceed.
      * If A is on the list of prerequisites of B (THIS), it means that B is on list of dependents of A (i.e.
      * B waits for A to complete).
@@ -815,70 +652,16 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      * Again, implicit prerequisites (children) are not listed here.
      */
 
-    List<Task> listPrerequisiteTasks(OperationResult parentResult) throws SchemaException;
+    List<? extends Task> listPrerequisiteTasks(OperationResult parentResult) throws SchemaException;
+    //endregion
 
-    /**
-     * Starts "passive" waiting for other tasks.
-     *
-     * Precondition: The task must already be in WAITING state.
-     * Postcondition: If there are any tasks to wait for, task remains in WAITING/OTHER_TASKS state.
-     * However, if there are no tasks to wait for, task is either unpaused (if there is any handler) or closed (if there is not).
-     *
-     * Passive waiting consists of putting the task into WAITING/OTHER_TASKS state. Unpausing it is the responsibility
-     * of task manager - it does it when any of prerequisite tasks closes. At that moment, task manager checks all
-     * dependent tasks (explicit or implicit) of the closing task, and unpauses these, which can be unpaused.
-     */
-    void startWaitingForTasksImmediate(OperationResult result) throws SchemaException, ObjectNotFoundException;
-
-    // ====================================================================================== Supplementary information
-
-    /**
-     * Returns change channel URI.
-     */
-    String getChannel();
-
-    /**
-     * Sets change channel URI.
-     */
-    void setChannel(String channelUri);
-
-    /**
-     * Sets change channel URI.
-     */
-    @SuppressWarnings("unused")
-    void setChannelImmediate(String channelUri, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
-
-    /**
-     * Gets the requestee OID - typically an identification of account owner (for notifications).
-     * Serves for communication between model and provisioning.
-     * It is a temporary feature - will be removed in midPoint 2.3.
-     */
-
-    PrismObject<UserType> getRequestee();
-
-    void setRequesteeTransient(PrismObject<UserType> user);
-
-    // not thread-safe!
-    LensContextType getModelOperationContext();
-
-    void setModelOperationContext(LensContextType modelOperationContext) throws SchemaException;
-
-    // not thread-safe!
-    TaskExecutionEnvironmentType getExecutionEnvironment();
-
-    void setExecutionEnvironment(TaskExecutionEnvironmentType value);
-
-    @SuppressWarnings("unused")
-    void setExecutionEnvironmentTransient(TaskExecutionEnvironmentType value);
-
-    // not thread-safe! use returned object only for reading
-    TaskErrorHandlingStrategyType getErrorHandlingStrategy();
-
-    // ====================================================================================== Other methods
+    //region Task object as a whole
 
     /**
      * Returns backing task prism object.
-     * AVOID use of this method if possible.
+     *
+     * *AVOID* use of this method if possible:
+     *
      * - for regular tasks it has to update operation result in the prism object (might be costly)
      * - for running tasks it provides a clone of the actual prism object (even more costly and leads to lost changes
      *   if the returned value is changed)
@@ -901,6 +684,16 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
     PrismObject<TaskType> getClonedTaskObject();
 
     /**
+     * Returns a reference to the task prism.
+     *
+     * Precondition: Task must be persistent.
+     */
+    @NotNull ObjectReferenceType getSelfReference();
+
+    /** Returns the version of underlying prism object. */
+    String getVersion();
+
+    /**
      * Re-reads the task state from the persistent storage.
      *
      * The task state may be synchronized with the repository all the time. But the specified timing is implementation-specific.
@@ -908,18 +701,21 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      *
      * This has no effect on transient tasks.
      */
-    void refresh(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    void refresh(OperationResult result) throws ObjectNotFoundException, SchemaException;
 
     /**
      * Changes in-memory representation immediately and schedules a corresponding batched modification.
      */
     void modify(ItemDelta<?, ?> delta) throws SchemaException;
-    void modify(Collection<ItemDelta<?, ?>> deltas) throws SchemaException;
 
     /**
-     * Changes in-memory and in-repo representations immediately.
+     * Applies given collection of deltas.
      */
-    void modifyAndFlush(ItemDelta<?, ?> delta, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
+    default void modify(Collection<ItemDelta<?, ?>> deltas) throws SchemaException {
+        for (ItemDelta<?, ?> delta : deltas) {
+            modify(delta);
+        }
+    }
 
     /**
      * Saves modifications done against the in-memory version of the task into the repository.
@@ -927,78 +723,92 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
     void flushPendingModifications(OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException, ObjectAlreadyExistsException;
 
-    /**
-     * Returns a list of pending modifications for this task.
-     */
-    @SuppressWarnings("unused")
-    Collection<ItemDelta<?,?>> getPendingModifications();
+    //endregion
 
-    // TODO move into RunningTask?
-    void close(OperationResult taskResult, boolean saveState, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
-
-    // not thread-safe!
+    //region Work management
+    /** Gets work management information. NOT THREAD SAFE! */
     TaskWorkManagementType getWorkManagement();
 
-    // not thread-safe!
+    /** Gets task work state. NOT THREAD SAFE! */
     TaskWorkStateType getWorkState();
 
+    /** Gets task kind (related to work management) */
     TaskKindType getKind();
 
-    TaskUnpauseActionType getUnpauseAction();
-
-    TaskExecutionStateType getStateBeforeSuspend();
-
-    @SuppressWarnings("unused")
-    boolean isPartitionedMaster();
-
-    String getExecutionGroup();
-
-    /**
-     * Gets information from the current task and - for running task - its transient subtasks (aka worker threads).
-     */
-    OperationStatsType getAggregatedLiveOperationStats();
-
-    ObjectReferenceType getSelfReference();
-
-    String getVersion();
-
-    /**
-     * NEVER modify objects returned in multithreaded environments!
-     */
-    Collection<? extends TriggerType> getTriggers();
-
-    /**
-     * NEVER modify objects returned in multithreaded environments!
-     */
-    Collection<? extends AssignmentType> getAssignments();
-
-    Collection<Task> getPathToRootTask(OperationResult parentResult) throws SchemaException;
-
-    String getTaskTreeId(OperationResult result) throws SchemaException;
-
-    default boolean hasAssignments() {
-        return !getAssignments().isEmpty();
-    }
-
-    ObjectReferenceType getOwnerRef();
-
-    // Returns immutable collection of caching profiles
-    @NotNull
-    Collection<String> getCachingProfiles();
-
-    String getOperationResultHandlingStrategyName();
-
+    /** Returns true if the task is a scavenger (workManagement/scavenger). */
     boolean isScavenger();
+    //endregion
 
-    @NotNull
-    Collection<TracingRootType> getTracingRequestedFor();
+    //region Task tree related methods
+    /**
+     * Returns the path from this task to the task tree root. (Starts with this task, ends with the root.)
+     */
+    List<Task> getPathToRootTask(OperationResult result) throws SchemaException;
+    //endregion
 
+    //region Tracing
+    /**
+     * Get points for which the tracing is requested (within this task).
+     */
+    @Experimental
+    @NotNull Collection<TracingRootType> getTracingRequestedFor();
+
+    /** Requests (future) tracing for given tracing point - for this task. */
+    @Experimental
     void addTracingRequest(TracingRootType point);
 
+    /** Removes all tracing requests for this task. */
+    @Experimental
     void removeTracingRequests();
 
-    // Not thread safe.
+    /** Returns (reference to tracing profile) that was defined for the tracing started by this task. NOT THREAD SAFE! */
+    @Experimental
     TracingProfileType getTracingProfile();
 
+    /** Sets the profile to be used for future tracing within this task. */
+    @Experimental
     void setTracingProfile(TracingProfileType tracingProfile);
+
+    //endregion
+
+    //region Other task items
+    /** Returns channel URI associated with this task. */
+    String getChannel();
+
+    /** Sets channel URI. */
+    void setChannel(String channelUri);
+
+    /**
+     * Gets the requestee OID - typically an identification of account owner (for notifications).
+     * Serves for communication between model and provisioning.
+     * It is a temporary feature - will be removed in midPoint 2.3.
+     */
+    PrismObject<UserType> getRequestee();
+
+    void setRequesteeTransient(PrismObject<UserType> user);
+
+    /** Gets model operation context stored in task. NOT THREAD SAFE! */
+    LensContextType getModelOperationContext();
+
+    /** Sets model operation context. */
+    void setModelOperationContext(LensContextType modelOperationContext) throws SchemaException;
+
+    /** Gets the execution environment configuration. Cloned if running task. */
+    TaskExecutionEnvironmentType getExecutionEnvironment();
+
+    /** Returns an immutable collection of caching profiles. (From execution environment.) */
+    @NotNull Collection<String> getCachingProfiles();
+
+    /** Sets the execution environment configuration. */
+    void setExecutionEnvironment(TaskExecutionEnvironmentType value);
+
+    /** Gets error handling strategy. NOT THREAD SAFE! Use only for reading. */
+    TaskErrorHandlingStrategyType getErrorHandlingStrategy();
+
+    /** Returns true if the task has any assignments. */
+    boolean hasAssignments();
+
+    /** Gets the policy rule defined for the task (for running task the returned value is a clone). */
+    PolicyRuleType getPolicyRule();
+    //endregion
 }

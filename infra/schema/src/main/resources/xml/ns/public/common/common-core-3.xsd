@@ -2756,7 +2756,7 @@
                                 (It is currently not possible to use it for filtering or sorting.)
                             </xsd:documentation>
                             <xsd:appinfo>
-                <a:displayName>TaskType.nodeAsObserved</a:displayName>
+                                <a:displayName>TaskType.nodeAsObserved</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2767,7 +2767,7 @@
                                 Used mainly for the GUI.
                             </xsd:documentation>
                             <xsd:appinfo>
-                <a:displayName>TaskType.category</a:displayName>
+                                <a:displayName>TaskType.category</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2890,7 +2890,7 @@
                                 is specific to particular task handler.
                             </xsd:documentation>
                             <xsd:appinfo>
-                <a:displayName>TaskType.progress</a:displayName>
+                                <a:displayName>TaskType.progress</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

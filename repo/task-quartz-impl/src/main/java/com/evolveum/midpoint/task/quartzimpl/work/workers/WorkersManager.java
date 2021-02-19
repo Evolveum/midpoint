@@ -319,7 +319,7 @@ public class WorkersManager {
 
         /** Objects created by this constructor should be used only for matching and comparisons. */
         WorkerKey(Task worker) {
-            this(worker.getExecutionGroup(), PolyString.getOrig(worker.getName()), isScavenger(worker));
+            this(worker.getGroup(), PolyString.getOrig(worker.getName()), isScavenger(worker));
         }
 
         @Override
@@ -430,7 +430,7 @@ public class WorkersManager {
     private void deleteWorkersAndWorkState(Task rootTask, boolean deleteWorkers, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         TaskKindType kind = rootTask.getKind();
-        List<Task> subtasks = rootTask.listSubtasks(true, result);
+        List<? extends Task> subtasks = rootTask.listSubtasks(true, result);
         if (deleteWorkers && kind == TaskKindType.COORDINATOR) {
             taskManager.suspendAndDeleteTasks(TaskUtil.tasksToOids(subtasks), TaskManager.DO_NOT_WAIT, true, result);
         } else {

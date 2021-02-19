@@ -295,7 +295,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
         OperationResult result = new OperationResult("getTotalItemsProcessed");
         try {
             Task coordinatorTask = taskManager.getTaskPlain(coordinatorTaskOid, result);
-            List<Task> tasks = coordinatorTask.listSubtasks(result);
+            List<? extends Task> tasks = coordinatorTask.listSubtasks(result);
             int total = 0;
             for (Task task : tasks) {
                 OperationStatsType opStat = task.getStoredOperationStats();
