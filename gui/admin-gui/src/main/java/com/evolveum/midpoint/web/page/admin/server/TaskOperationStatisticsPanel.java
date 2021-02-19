@@ -7,6 +7,8 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -120,6 +122,7 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
         };
 
         table.setOutputMarkupId(true);
+        table.add(new VisibleBehaviour(() -> syncInfoModel.getObject() != null));
         add(table);
     }
 
