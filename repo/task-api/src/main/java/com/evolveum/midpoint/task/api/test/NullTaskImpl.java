@@ -53,7 +53,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public TaskExecutionStatus getExecutionStatus() {
+    public TaskExecutionStateType getExecutionState() {
         throw new UnsupportedOperationException();
     }
 
@@ -68,7 +68,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void setInitialExecutionStatus(TaskExecutionStatus value) {
+    public void setInitialExecutionState(TaskExecutionStateType value) {
         throw new UnsupportedOperationException();
     }
 
@@ -837,7 +837,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public TaskExecutionStatusType getStateBeforeSuspend() {
+    public TaskExecutionStateType getStateBeforeSuspend() {
         return null;
     }
 

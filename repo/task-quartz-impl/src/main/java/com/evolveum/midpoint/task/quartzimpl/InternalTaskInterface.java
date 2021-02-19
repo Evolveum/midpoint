@@ -11,14 +11,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskWaitingReason;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,10 +37,10 @@ public interface InternalTaskInterface extends Task {
 
     void setOid(String oid);
 
-    void setExecutionStatusImmediate(TaskExecutionStatus value, OperationResult parentResult)
+    void setExecutionStatusImmediate(TaskExecutionStateType value, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException;
 
-    void setExecutionStatusImmediate(TaskExecutionStatus value, TaskExecutionStatusType previousValue,
+    void setExecutionStatusImmediate(TaskExecutionStateType value, TaskExecutionStateType previousValue,
             OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, PreconditionViolationException;
 

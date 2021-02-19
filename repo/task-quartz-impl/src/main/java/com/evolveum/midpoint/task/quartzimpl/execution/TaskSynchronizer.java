@@ -15,6 +15,8 @@ import java.util.Set;
 
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.quartzimpl.InternalTaskInterface;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
+
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -25,7 +27,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
@@ -195,10 +196,10 @@ class TaskSynchronizer {
             JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTask(task);
             TriggerKey standardTriggerKey = TaskQuartzImplUtil.createTriggerKeyForTask(task);
 
-            TaskExecutionStatus executionStatus = task.getExecutionStatus();
-            boolean waitingOrClosedOrSuspended = executionStatus == TaskExecutionStatus.WAITING
-                    || executionStatus == TaskExecutionStatus.CLOSED
-                    || executionStatus == TaskExecutionStatus.SUSPENDED;
+            TaskExecutionStateType executionStatus = task.getExecutionState();
+            boolean waitingOrClosedOrSuspended = executionStatus == TaskExecutionStateType.WAITING
+                    || executionStatus == TaskExecutionStateType.CLOSED
+                    || executionStatus == TaskExecutionStateType.SUSPENDED;
 
             if (!scheduler.checkExists(jobKey) && !waitingOrClosedOrSuspended) {
                 String m1 = "Quartz job does not exist for a task, adding it. Task = " + task;
@@ -214,7 +215,7 @@ class TaskSynchronizer {
             boolean standardTriggerExists = triggers.stream().anyMatch(t -> t.getKey().equals(standardTriggerKey));
             if (waitingOrClosedOrSuspended) {
                 for (Trigger trigger : triggers) {
-                    if (executionStatus == TaskExecutionStatus.CLOSED || !trigger.getKey().equals(standardTriggerKey)) {
+                    if (executionStatus == TaskExecutionStateType.CLOSED || !trigger.getKey().equals(standardTriggerKey)) {
                         String m1 = "Removing Quartz trigger " + trigger.getKey() + " for WAITING/CLOSED/SUSPENDED task " + task;
                         message.append("[").append(m1).append("] ");
                         LOGGER.trace(" - {}", m1);
@@ -230,7 +231,7 @@ class TaskSynchronizer {
                         // 2) If a trigger has wrong parameters, this will be corrected on task resume/unpause.
                     }
                 }
-            } else if (executionStatus == TaskExecutionStatus.RUNNABLE) {
+            } else if (executionStatus == TaskExecutionStateType.RUNNABLE) {
                 Trigger triggerToBe;
                 try {
                     triggerToBe = TaskQuartzImplUtil.createTriggerForTask(task);

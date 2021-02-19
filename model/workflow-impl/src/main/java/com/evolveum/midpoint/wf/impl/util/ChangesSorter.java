@@ -21,7 +21,7 @@ import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -79,9 +79,9 @@ public class ChangesSorter {
                     }
                     executionTask = rootTaskHolder.task;
                 }
-                if (executionTask == null || executionTask.getExecutionStatus() == TaskExecutionStatusType.WAITING) {
+                if (executionTask == null || executionTask.getExecutionStatus() == TaskExecutionStateType.WAITING) {
                     recordResultingChanges(rv.getWaitingToBeApplied(), actx, prismContext);
-                } else if (executionTask.getExecutionStatus() == TaskExecutionStatusType.RUNNABLE) {
+                } else if (executionTask.getExecutionStatus() == TaskExecutionStateType.RUNNABLE) {
                     recordResultingChanges(rv.getBeingApplied(), actx, prismContext);
                 } else {
                     // note: the task might be suspended here

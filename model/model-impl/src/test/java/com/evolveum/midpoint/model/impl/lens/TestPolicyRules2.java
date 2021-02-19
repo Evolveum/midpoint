@@ -393,7 +393,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
         TaskType approvalTask = prismContext.createObjectable(TaskType.class)
                 .name("approval task")
                 .category(TaskCategory.WORKFLOW)
-                .executionStatus(TaskExecutionStatusType.WAITING)
+                .executionStatus(TaskExecutionStateType.WAITING)
                 .ownerRef(userAdministrator.getOid(), UserType.COMPLEX_TYPE)
                 .objectRef(USER_JACK_OID, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT);
         String approvalTaskOid = taskManager.addTask(approvalTask.asPrismObject(), result);
@@ -402,7 +402,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
         ObjectQuery query = prismContext.queryFor(TaskType.class)
                 .item(TaskType.F_OBJECT_REF).ref(USER_JACK_OID)
                 .and().item(TaskType.F_CATEGORY).eq(TaskCategory.WORKFLOW)
-                .and().item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.WAITING)
+                .and().item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStateType.WAITING)
                 .build();
         SearchResultList<PrismObject<TaskType>> tasks = modelService
                 .searchObjects(TaskType.class, query, null, task, result);

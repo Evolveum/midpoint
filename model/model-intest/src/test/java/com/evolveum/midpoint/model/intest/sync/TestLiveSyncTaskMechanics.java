@@ -43,7 +43,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -469,7 +468,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         Task taskAfter = taskManager.getTaskWithResult(TASK_BATCHED_IMPRECISE.oid, result);
         displayTaskWithOperationStats("Task after", taskAfter);
         assertFailure(taskAfter.getResult());
-        assertEquals("Wrong task state", TaskExecutionStatus.CLOSED, taskAfter.getExecutionStatus());
+        assertEquals("Wrong task state", TaskExecutionStateType.CLOSED, taskAfter.getExecutionState());
     }
 
     /**
@@ -1213,7 +1212,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         assertTask(TASK_ERRORS_PRECISE_RETRY_LATER_MAX_4.oid, "after")
                 .display()
                 .assertToken(11) // won't assert progress because of multithreaded case
-                .assertExecutionStatus(TaskExecutionStatusType.SUSPENDED);
+                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED);
 
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_ERRORS_SOURCE_PRECISE.oid, null, task, result);
         PrismObject<ResourceType> targetResource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_ERRORS_TARGET.oid, null, task, result);

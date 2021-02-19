@@ -22,7 +22,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import org.jetbrains.annotations.Nullable;
 
@@ -207,7 +207,7 @@ public class ClusterManager {
                     LOGGER.warn("Node {} is down, marking it as such", node);
                     List<ItemDelta<?, ?>> modifications = taskManager.getPrismContext().deltaFor(NodeType.class)
                             .item(NodeType.F_RUNNING).replace(false)
-                            .item(NodeType.F_OPERATIONAL_STATUS).replace(NodeOperationalStatusType.DOWN)
+                            .item(NodeType.F_OPERATIONAL_STATUS).replace(NodeOperationalStateType.DOWN)
                             .asItemDeltas();
                     try {
                         getRepositoryService().modifyObject(NodeType.class, node.getOid(), modifications, result);
@@ -227,13 +227,13 @@ public class ClusterManager {
     }
 
     private boolean shouldBeMarkedAsDown(NodeType node) {
-        return node.getOperationalStatus() == NodeOperationalStatusType.UP && (node.getLastCheckInTime() == null ||
+        return node.getOperationalStatus() == NodeOperationalStateType.UP && (node.getLastCheckInTime() == null ||
                 System.currentTimeMillis() - node.getLastCheckInTime().toGregorianCalendar().getTimeInMillis()
                         > taskManager.getConfiguration().getNodeAlivenessTimeout() * 1000L);
     }
 
     private boolean startingForTooLong(NodeType node) {
-        return node.getOperationalStatus() == NodeOperationalStatusType.STARTING && (node.getLastCheckInTime() == null ||
+        return node.getOperationalStatus() == NodeOperationalStateType.STARTING && (node.getLastCheckInTime() == null ||
                 System.currentTimeMillis() - node.getLastCheckInTime().toGregorianCalendar().getTimeInMillis()
                         > taskManager.getConfiguration().getNodeStartupTimeout() * 1000L);
     }

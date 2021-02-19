@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 
 import static com.evolveum.midpoint.model.api.util.ReferenceResolver.Source.MODEL;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType.RUNNABLE;
 
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 

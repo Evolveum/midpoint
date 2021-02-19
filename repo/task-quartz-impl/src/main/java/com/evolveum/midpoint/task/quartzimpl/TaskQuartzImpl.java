@@ -165,7 +165,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     static TaskQuartzImpl createNew(@NotNull TaskManagerQuartzImpl taskManager, String operationName) {
         TaskType taskBean = new TaskType(taskManager.getPrismContext())
                 .taskIdentifier(taskManager.generateTaskIdentifier().toString())
-                .executionStatus(TaskExecutionStatusType.RUNNABLE)
+                .executionStatus(TaskExecutionStateType.RUNNABLE)
                 .recurrence(TaskRecurrenceType.SINGLE)
                 .progress(0L)
                 .result(createTaskResult(operationName));
@@ -947,7 +947,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public void checkDependentTasksOnClose(OperationResult result) throws SchemaException, ObjectNotFoundException {
-        if (getExecutionStatus() != TaskExecutionStatus.CLOSED) {
+        if (getExecutionState() != TaskExecutionStateType.CLOSED) {
             return;
         }
         for (Task dependent : listDependents(result)) {
@@ -962,7 +962,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     @Override
     public void checkDependencies(OperationResult result) throws SchemaException, ObjectNotFoundException {
 
-        if (getExecutionStatus() != TaskExecutionStatus.WAITING || getWaitingReason() != TaskWaitingReason.OTHER_TASKS) {
+        if (getExecutionState() != TaskExecutionStateType.WAITING || getWaitingReason() != TaskWaitingReason.OTHER_TASKS) {
             return;
         }
 
@@ -973,7 +973,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
         for (Task dependency : dependencies) {
             if (!dependency.isClosed()) {
-                LOGGER.trace("Dependency {} of {} is not closed (status = {})", dependency, this, dependency.getExecutionStatus());
+                LOGGER.trace("Dependency {} of {} is not closed (status = {})", dependency, this, dependency.getExecutionState());
                 return;
             }
         }
@@ -1073,34 +1073,34 @@ public class TaskQuartzImpl implements InternalTaskInterface {
      */
 
     @Override
-    public TaskExecutionStatus getExecutionStatus() {
-        return TaskExecutionStatus.fromTaskType(getProperty(TaskType.F_EXECUTION_STATUS));
+    public TaskExecutionStateType getExecutionState() {
+        return getProperty(TaskType.F_EXECUTION_STATUS);
     }
 
-    public void setExecutionStatus(@NotNull TaskExecutionStatus value) {
-        setProperty(TaskType.F_EXECUTION_STATUS, value.toTaskType());
+    public void setExecutionStatus(@NotNull TaskExecutionStateType value) {
+        setProperty(TaskType.F_EXECUTION_STATUS, value);
     }
 
     @Override
-    public void setInitialExecutionStatus(@NotNull TaskExecutionStatus value) {
+    public void setInitialExecutionState(@NotNull TaskExecutionStateType value) {
         if (isPersistent()) {
             throw new IllegalStateException("Initial execution state can be set only on transient tasks.");
         }
-        setProperty(TaskType.F_EXECUTION_STATUS, value.toTaskType());
+        setProperty(TaskType.F_EXECUTION_STATUS, value);
     }
 
-    private void setExecutionStatusTransient(@NotNull TaskExecutionStatus executionStatus) {
-        setPropertyTransient(TaskType.F_EXECUTION_STATUS, executionStatus.toTaskType());
+    private void setExecutionStatusTransient(@NotNull TaskExecutionStateType executionStatus) {
+        setPropertyTransient(TaskType.F_EXECUTION_STATUS, executionStatus);
     }
 
     @Override
-    public void setExecutionStatusImmediate(TaskExecutionStatus value, OperationResult result)
+    public void setExecutionStatusImmediate(TaskExecutionStateType value, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
-        setPropertyImmediate(TaskType.F_EXECUTION_STATUS, value.toTaskType(), result);
+        setPropertyImmediate(TaskType.F_EXECUTION_STATUS, value, result);
     }
 
     @Override
-    public void setExecutionStatusImmediate(TaskExecutionStatus value, TaskExecutionStatusType previousValue,
+    public void setExecutionStatusImmediate(TaskExecutionStateType value, TaskExecutionStateType previousValue,
             OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, PreconditionViolationException {
         try {
@@ -1111,9 +1111,9 @@ public class TaskQuartzImpl implements InternalTaskInterface {
         }
     }
 
-    private PropertyDelta<?> setExecutionStatusAndPrepareDelta(TaskExecutionStatus value) {
+    private PropertyDelta<?> setExecutionStatusAndPrepareDelta(TaskExecutionStateType value) {
         setExecutionStatusTransient(value);
-        return createPropertyDeltaIfPersistent(TaskType.F_EXECUTION_STATUS, value.toTaskType());
+        return createPropertyDeltaIfPersistent(TaskType.F_EXECUTION_STATUS, value);
     }
 
     @Override
@@ -1121,12 +1121,12 @@ public class TaskQuartzImpl implements InternalTaskInterface {
         if (!isTransient()) {
             throw new IllegalStateException("makeRunnable can be invoked only on transient tasks; task = " + this);
         }
-        setExecutionStatus(TaskExecutionStatus.RUNNABLE);
+        setExecutionStatus(TaskExecutionStateType.RUNNABLE);
     }
 
     @Override
     public void makeWaiting() {
-        setExecutionStatus(TaskExecutionStatus.WAITING);
+        setExecutionStatus(TaskExecutionStateType.WAITING);
     }
 
     @Override
@@ -1142,7 +1142,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     public boolean isClosed() {
-        return getExecutionStatus() == TaskExecutionStatus.CLOSED;
+        return getExecutionState() == TaskExecutionStateType.CLOSED;
     }
 
     /*
@@ -1175,9 +1175,9 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     // "safe" method
     @Override
     public void startWaitingForTasksImmediate(OperationResult result) throws SchemaException, ObjectNotFoundException {
-        if (getExecutionStatus() != TaskExecutionStatus.WAITING) {
+        if (getExecutionState() != TaskExecutionStateType.WAITING) {
             throw new IllegalStateException(
-                    "Task that has to start waiting for tasks should be in WAITING state (it is in " + getExecutionStatus()
+                    "Task that has to start waiting for tasks should be in WAITING state (it is in " + getExecutionState()
                             + " now)");
         }
         setWaitingReasonImmediate(TaskWaitingReason.OTHER_TASKS, result);
@@ -2423,7 +2423,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
             // result status was set in task during the previous call
             addIgnoreNull(deltas, createPropertyDeltaIfPersistent(TaskType.F_RESULT_STATUS, taskResult.getStatus() != null ? taskResult.getStatus().createStatusType() : null));
         }
-        addIgnoreNull(deltas, setExecutionStatusAndPrepareDelta(TaskExecutionStatus.CLOSED));
+        addIgnoreNull(deltas, setExecutionStatusAndPrepareDelta(TaskExecutionStateType.CLOSED));
         addIgnoreNull(deltas, setCompletionTimestampAndPrepareDelta(System.currentTimeMillis()));
         Duration cleanupAfterCompletion = taskPrism.asObjectable().getCleanupAfterCompletion();
         if (cleanupAfterCompletion != null) {
@@ -2474,7 +2474,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     @Override
-    public TaskExecutionStatusType getStateBeforeSuspend() {
+    public TaskExecutionStateType getStateBeforeSuspend() {
         return getProperty(TaskType.F_STATE_BEFORE_SUSPEND);
     }
 

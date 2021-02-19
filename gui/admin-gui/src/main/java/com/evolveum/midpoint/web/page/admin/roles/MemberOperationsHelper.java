@@ -34,7 +34,6 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -388,7 +387,7 @@ public class MemberOperationsHelper {
         operationalTask.setOwner(owner.getFocus().asPrismObject());
 
         operationalTask.setBinding(TaskBinding.LOOSE);
-        operationalTask.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);
+        operationalTask.setInitialExecutionState(TaskExecutionStateType.RUNNABLE);
         operationalTask.setThreadStopAction(ThreadStopActionType.RESTART);
         ScheduleType schedule = new ScheduleType();
         schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);

@@ -634,7 +634,7 @@ public final class WebComponentUtil {
 
         task.setBinding(TaskBindingType.LOOSE);
         task.setCategory(category);
-        task.setExecutionStatus(TaskExecutionStatusType.RUNNABLE);
+        task.setExecutionStatus(TaskExecutionStateType.RUNNABLE);
         task.setRecurrence(TaskRecurrenceType.SINGLE);
         task.setThreadStopAction(ThreadStopActionType.RESTART);
         task.setHandlerUri(pageBase.getTaskService().getHandlerUriForCategory(category));
@@ -683,7 +683,7 @@ public final class WebComponentUtil {
     }
 
     public static boolean isRunnableTask(TaskType task) {
-        return task != null && TaskExecutionStatusType.RUNNABLE == task.getExecutionStatus();
+        return task != null && TaskExecutionStateType.RUNNABLE == task.getExecutionStatus();
     }
 
     public static boolean isRunningTask(TaskType task) {
@@ -691,15 +691,15 @@ public final class WebComponentUtil {
     }
 
     public static boolean isWaitingTask(TaskType task) {
-        return task != null && TaskExecutionStatusType.WAITING == task.getExecutionStatus();
+        return task != null && TaskExecutionStateType.WAITING == task.getExecutionStatus();
     }
 
     public static boolean isSuspendedTask(TaskType task) {
-        return task != null && TaskExecutionStatusType.SUSPENDED == task.getExecutionStatus();
+        return task != null && TaskExecutionStateType.SUSPENDED == task.getExecutionStatus();
     }
 
     public static boolean isClosedTask(TaskType task) {
-        return task != null && TaskExecutionStatusType.CLOSED == task.getExecutionStatus();
+        return task != null && TaskExecutionStateType.CLOSED == task.getExecutionStatus();
     }
 
     public static boolean isRecurringTask(TaskType task) {

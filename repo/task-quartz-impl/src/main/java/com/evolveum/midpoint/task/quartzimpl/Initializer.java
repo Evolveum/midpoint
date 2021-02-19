@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStateType;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -17,7 +18,6 @@ import com.evolveum.midpoint.task.quartzimpl.execution.JobStarter;
 import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
 /**
@@ -76,7 +76,7 @@ public class Initializer {
         JobStarter.setTaskManagerQuartzImpl(taskManager);        // the same here
 
         taskManager.getExecutionManager().initializeLocalScheduler();
-        if (taskManager.getLocalNodeErrorStatus() == NodeErrorStatusType.OK) {
+        if (taskManager.getLocalNodeErrorStatus() == NodeErrorStateType.OK) {
             taskManager.getExecutionManager().setLocalExecutionLimitations(node);
         } else {
             taskManager.getExecutionManager().shutdownLocalSchedulerChecked();

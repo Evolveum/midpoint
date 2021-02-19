@@ -441,7 +441,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
             boolean isDead;
             try {
                 PrismObject<TaskType> worker = repositoryService.getObject(TaskType.class, workerOid, null, result);
-                isDead = worker.asObjectable().getExecutionStatus() == TaskExecutionStatusType.CLOSED;
+                isDead = worker.asObjectable().getExecutionStatus() == TaskExecutionStateType.CLOSED;
             } catch (ObjectNotFoundException e) {
                 isDead = true;
             } catch (SchemaException e) {

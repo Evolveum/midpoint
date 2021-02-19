@@ -68,7 +68,7 @@ public class WorkersManager {
         int startingShouldBeWorkersCount = shouldBeWorkers.size();
 
         currentWorkers.sort(Comparator.comparing(t -> {
-            if (t.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+            if (t.getExecutionState() == TaskExecutionStateType.RUNNABLE) {
                 if (t.getNodeAsObserved() != null) {
                     return 0;
                 } else if (t.getNode() != null) {
@@ -76,9 +76,9 @@ public class WorkersManager {
                 } else {
                     return 2;
                 }
-            } else if (t.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
+            } else if (t.getExecutionState() == TaskExecutionStateType.SUSPENDED) {
                 return 3;
-            } else if (t.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
+            } else if (t.getExecutionState() == TaskExecutionStateType.CLOSED) {
                 return 4;
             } else {
                 return 5;
@@ -115,7 +115,7 @@ public class WorkersManager {
         int count = 0;
         List<Task> workers = new ArrayList<>(coordinatorTask.listSubtasks(true, result));
         for (Task worker : workers) {
-            if (worker.getExecutionStatus() != TaskExecutionStatus.CLOSED) {
+            if (worker.getExecutionState() != TaskExecutionStateType.CLOSED) {
                 LOGGER.info("Closing worker because the work is done: {}", worker);
                 taskManager.suspendAndCloseTaskQuietly(worker, TaskManager.DO_NOT_WAIT, result);
                 count++;
@@ -179,7 +179,7 @@ public class WorkersManager {
     private int closeExecutingWorkers(List<Task> currentWorkers, OperationResult result) {
         int count = 0;
         for (Task worker : new ArrayList<>(currentWorkers)) {
-            if (worker.getExecutionStatus() == TaskExecutionStatus.RUNNABLE && worker.getNodeAsObserved() != null) {
+            if (worker.getExecutionState() == TaskExecutionStateType.RUNNABLE && worker.getNodeAsObserved() != null) {
                 LOGGER.info("Suspending misplaced worker task {}", worker);
                 taskManager.suspendAndCloseTaskQuietly(worker, TaskManager.DO_NOT_WAIT, result);
                 currentWorkers.remove(worker);
@@ -215,7 +215,7 @@ public class WorkersManager {
                 shouldBeIterator.remove();
                 moved++;
             } else {
-                if (worker.getExecutionStatus() != TaskExecutionStatus.CLOSED) {
+                if (worker.getExecutionState() != TaskExecutionStateType.CLOSED) {
                     LOGGER.info("Closing superfluous worker task {}", worker);
                     taskManager.suspendAndCloseTaskQuietly(worker, TaskManager.DO_NOT_WAIT, result);
                     closed++;
@@ -235,23 +235,23 @@ public class WorkersManager {
             OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException {
 
-        TaskExecutionStatusType workerExecutionStatus;
-        if (coordinatorTask.getExecutionStatus() == null) {
+        TaskExecutionStateType workerExecutionStatus;
+        if (coordinatorTask.getExecutionState() == null) {
             throw new IllegalStateException("Null executionStatus of " + coordinatorTask);
         }
-        switch (coordinatorTask.getExecutionStatus()) {
+        switch (coordinatorTask.getExecutionState()) {
             case WAITING:
-                workerExecutionStatus = TaskExecutionStatusType.RUNNABLE;
+                workerExecutionStatus = TaskExecutionStateType.RUNNABLE;
                 break;
             case SUSPENDED:
             case RUNNABLE:
-                workerExecutionStatus = TaskExecutionStatusType.SUSPENDED;
+                workerExecutionStatus = TaskExecutionStateType.SUSPENDED;
                 break;
             case CLOSED:
-                workerExecutionStatus = TaskExecutionStatusType.CLOSED;
+                workerExecutionStatus = TaskExecutionStateType.CLOSED;
                 break;             // not very useful
             default:
-                throw new IllegalStateException("Unsupported executionStatus of " + coordinatorTask + ": " + coordinatorTask.getExecutionStatus());
+                throw new IllegalStateException("Unsupported executionStatus of " + coordinatorTask + ": " + coordinatorTask.getExecutionState());
         }
 
         int count = 0;
@@ -409,7 +409,7 @@ public class WorkersManager {
         } else {
             SearchResultList<PrismObject<NodeType>> nodes = taskManager.searchObjects(NodeType.class, null, null, opResult);
             return nodes.stream()
-                    .filter(n -> n.asObjectable().getExecutionStatus() == NodeExecutionStatusType.RUNNING)
+                    .filter(n -> n.asObjectable().getExecutionState() == NodeExecutionStateType.RUNNING)
                     .map(n -> n.asObjectable().getNodeIdentifier())
                     .collect(Collectors.toSet());
         }

@@ -72,7 +72,7 @@ public class NodeRegistrar implements Cache {
     private final ClusterManager clusterManager;
     private long lastDiscovery;
 
-    private volatile NodeOperationalStatusType operationalStatus = NodeOperationalStatusType.STARTING;
+    private volatile NodeOperationalStateType operationalStatus = NodeOperationalStateType.STARTING;
 
     private static final long DISCOVERY_RETRY = 10000L;
 
@@ -178,10 +178,10 @@ public class NodeRegistrar implements Cache {
             nodeToBe.setOid(oid);
             setCachedLocalNodeObject(nodeToBe.asPrismObject());
         } catch (ObjectAlreadyExistsException e) {
-            taskManager.setNodeErrorStatus(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
+            taskManager.setNodeErrorStatus(NodeErrorStateType.NODE_REGISTRATION_FAILED);
             throw new TaskManagerInitializationException("Cannot register this node, because it already exists (this should not happen, as nodes with such a name were just removed)", e);
         } catch (SchemaException e) {
-            taskManager.setNodeErrorStatus(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
+            taskManager.setNodeErrorStatus(NodeErrorStateType.NODE_REGISTRATION_FAILED);
             throw new TaskManagerInitializationException("Cannot register this node because of schema exception", e);
         }
 
@@ -336,7 +336,7 @@ public class NodeRegistrar implements Cache {
         String nodeOid = getLocalNodeObjectOid();
         LOGGER.trace("Registering this node shutdown (name {}, oid {})", taskManager.getNodeId(), nodeOid);
         try {
-            setLocalNodeOperationalStatus(NodeOperationalStatusType.DOWN);
+            setLocalNodeOperationalStatus(NodeOperationalStateType.DOWN);
             List<ItemDelta<?, ?>> modifications = getPrismContext().deltaFor(NodeType.class)
                     .item(NodeType.F_RUNNING).replace(false)
                     .item(NodeType.F_OPERATIONAL_STATUS).replace(operationalStatus)
@@ -397,18 +397,18 @@ public class NodeRegistrar implements Cache {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot update registration of this node (name {}, oid {}), because it "
                             + "does not exist in repository. It is probably caused by cluster misconfiguration (other "
                             + "node rewriting the Node object?) Stopping the scheduler.", e, nodeName, nodeOid);
-            if (taskManager.getLocalNodeErrorStatus() == NodeErrorStatusType.OK) {
-                registerNodeError(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
+            if (taskManager.getLocalNodeErrorStatus() == NodeErrorStateType.OK) {
+                registerNodeError(NodeErrorStateType.NODE_REGISTRATION_FAILED);
             }
         } catch (ObjectAlreadyExistsException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot update registration of this node (name {}, oid {}).", e, nodeName, nodeOid);
-            if (taskManager.getLocalNodeErrorStatus() == NodeErrorStatusType.OK) {
-                registerNodeError(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
+            if (taskManager.getLocalNodeErrorStatus() == NodeErrorStateType.OK) {
+                registerNodeError(NodeErrorStateType.NODE_REGISTRATION_FAILED);
             }
         } catch (SchemaException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot update registration of this node (name {}, oid {}) due to schema exception. Stopping the scheduler.", e, nodeName, nodeOid);
-            if (taskManager.getLocalNodeErrorStatus() == NodeErrorStatusType.OK) {
-                registerNodeError(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
+            if (taskManager.getLocalNodeErrorStatus() == NodeErrorStateType.OK) {
+                registerNodeError(NodeErrorStateType.NODE_REGISTRATION_FAILED);
             }
         }
     }
@@ -438,18 +438,18 @@ public class NodeRegistrar implements Cache {
                         "another node record with the name '{}' exists. It seems that in this cluster " +
                         "there are two or more nodes with the same name '{}'. Stopping the scheduler " +
                         "to minimize the damage.", e, oid, myName, myName);
-                registerNodeError(NodeErrorStatusType.DUPLICATE_NODE_ID_OR_NAME);
+                registerNodeError(NodeErrorStateType.DUPLICATE_NODE_ID_OR_NAME);
             } else {
                 LoggingUtils.logException(LOGGER, "The record of this node cannot be read (OID {} not found). It  " +
                         "seems it was deleted in the meantime. Please check the reason. Stopping the scheduler " +
                         "to minimize the damage.", e, oid, myName, myName);
                 // actually we could re-register the node, but it is safer (and easier for now :) to stop the node instead
-                registerNodeError(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
+                registerNodeError(NodeErrorStateType.NODE_REGISTRATION_FAILED);
             }
             return null;
         } catch (SchemaException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot check the record of this node (OID = {}) because of schema exception. Stopping the scheduler.", e, oid);
-            registerNodeError(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
+            registerNodeError(NodeErrorStateType.NODE_REGISTRATION_FAILED);
             return null;
         }
 
@@ -460,7 +460,7 @@ public class NodeRegistrar implements Cache {
             LOGGER.error("Internal node identifier has been overwritten in the repository. " +
                     "Probably somebody has overwritten it in the meantime, i.e. another node with the name of '" +
                     cachedLocalNodeObject.asObjectable().getName() + "' is running. Stopping the scheduler.");
-            registerNodeError(NodeErrorStatusType.DUPLICATE_NODE_ID_OR_NAME);
+            registerNodeError(NodeErrorStateType.DUPLICATE_NODE_ID_OR_NAME);
             return null;
         }
         return nodeInRepo.asObjectable();
@@ -497,17 +497,17 @@ public class NodeRegistrar implements Cache {
             LOGGER.error("This node is a non-clustered one, mixed with other nodes. In this system, there are " +
                     nonClustered.size() + " non-clustered nodes (" + nonClustered + ") and " +
                     clustered.size() + " clustered ones (" + clustered + "). Stopping this node.");
-            registerNodeError(NodeErrorStatusType.NON_CLUSTERED_NODE_WITH_OTHERS);
+            registerNodeError(NodeErrorStateType.NON_CLUSTERED_NODE_WITH_OTHERS);
         }
 
     }
 
     boolean isUpAndAlive(NodeType n) {
-        return n.getOperationalStatus() == NodeOperationalStatusType.UP && isCheckingIn(n);
+        return n.getOperationalStatus() == NodeOperationalStateType.UP && isCheckingIn(n);
     }
 
     boolean isCheckingIn(NodeType n) {
-        return n.getOperationalStatus() != NodeOperationalStatusType.DOWN && n.getLastCheckInTime() != null &&
+        return n.getOperationalStatus() != NodeOperationalStateType.DOWN && n.getLastCheckInTime() != null &&
                 System.currentTimeMillis() - n.getLastCheckInTime().toGregorianCalendar().getTimeInMillis()
                         <= taskManager.getConfiguration().getNodeTimeout() * 1000L;
     }
@@ -531,7 +531,7 @@ public class NodeRegistrar implements Cache {
      *
      * @param status Error status to be set.
      */
-    private void registerNodeError(NodeErrorStatusType status) {
+    private void registerNodeError(NodeErrorStateType status) {
         taskManager.setNodeErrorStatus(status);
         if (taskManager.getServiceThreadsActivationState()) {
             taskManager.getExecutionManager().stopSchedulerAndTasksLocally(0L, new OperationResult("nodeError"));
@@ -713,13 +713,13 @@ public class NodeRegistrar implements Cache {
         }
     }
 
-    private void setLocalNodeOperationalStatus(NodeOperationalStatusType newState) {
+    private void setLocalNodeOperationalStatus(NodeOperationalStateType newState) {
         LOGGER.debug("Setting local node operational state to {}", newState);
         operationalStatus = newState;
     }
 
     void registerNodeUp(OperationResult result) {
-        setLocalNodeOperationalStatus(NodeOperationalStatusType.UP);
+        setLocalNodeOperationalStatus(NodeOperationalStateType.UP);
         updateNodeObject(result);
     }
 

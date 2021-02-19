@@ -15,7 +15,7 @@ import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
@@ -89,7 +89,7 @@ public class TaskUtil {
     }
 
     public static String createScheduledToRunAgain(TaskType task, List<Object> localizationObject) {
-        boolean runnable = TaskExecutionStatus.fromTaskType(task.getExecutionStatus()) == TaskExecutionStatus.RUNNABLE;
+        boolean runnable = task.getExecutionStatus() == TaskExecutionStateType.RUNNABLE || task.getExecutionStatus() == TaskExecutionStateType.RUNNING; // TODO switch to scheduling state
         Long scheduledAfter = getScheduledToStartAgain(task);
         Long retryAfter = runnable ? getRetryAfter(task) : null;
 
@@ -135,7 +135,7 @@ public class TaskUtil {
     public static Long getScheduledToStartAgain(TaskType task) {
         long current = System.currentTimeMillis();
 
-        if (task.getNodeAsObserved() != null && (task.getExecutionStatus() != TaskExecutionStatusType.SUSPENDED)) {
+        if (task.getNodeAsObserved() != null && (task.getExecutionStatus() != TaskExecutionStateType.SUSPENDED)) {
 
             if (TaskRecurrenceType.RECURRING != task.getRecurrence()) {
                 return null;

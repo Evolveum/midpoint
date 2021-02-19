@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -228,12 +227,12 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             displayDumpable("coordinator task after suspend-when-waiting", coordinatorTask);
             displayDumpable("worker task after suspend-when-waiting", worker);
 
-            assertEquals("Wrong execution status of coordinator", TaskExecutionStatus.SUSPENDED,
-                    coordinatorTask.getExecutionStatus());
+            assertEquals("Wrong execution status of coordinator", TaskExecutionStateType.SUSPENDED,
+                    coordinatorTask.getExecutionState());
             // in very slow environments the coordinator could be started in the meanwhile, so here the state could be WAITING
             //assertEquals("Wrong state-before-suspend of coordinator", TaskExecutionStatusType.RUNNABLE,
             //        coordinatorTask.getStateBeforeSuspend());
-            assertEquals("Wrong execution status of worker", TaskExecutionStatus.CLOSED, worker.getExecutionStatus());
+            assertEquals("Wrong execution status of worker", TaskExecutionStateType.CLOSED, worker.getExecutionState());
             //noinspection SimplifiedTestNGAssertion
             assertEquals("Wrong state-before-suspend of worker", null, worker.getStateBeforeSuspend());
 
@@ -251,8 +250,8 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             displayDumpable("coordinator task after resume-from-suspend-when-waiting", coordinatorTask);
             displayDumpable("worker task after resume-from-suspend-when-waiting", worker);
 
-            assertEquals("Wrong execution status of coordinator", TaskExecutionStatus.RUNNABLE,
-                    coordinatorTask.getExecutionStatus());
+            assertEquals("Wrong execution status of coordinator", TaskExecutionStateType.RUNNABLE,
+                    coordinatorTask.getExecutionState());
             //noinspection SimplifiedTestNGAssertion
             assertEquals("Wrong state-before-suspend of coordinator", null, coordinatorTask.getStateBeforeSuspend());
             //noinspection SimplifiedTestNGAssertion
@@ -273,13 +272,13 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             displayDumpable("coordinator task after suspend-when-running", coordinatorTask);
             displayDumpable("worker task after suspend-when-running", worker);
 
-            assertEquals("Wrong execution status of coordinator", TaskExecutionStatus.SUSPENDED,
-                    coordinatorTask.getExecutionStatus());
+            assertEquals("Wrong execution status of coordinator", TaskExecutionStateType.SUSPENDED,
+                    coordinatorTask.getExecutionState());
             // in theory, the execution could be 'after' at this time; so this assertion might fail
             //assertEquals("Wrong state-before-suspend of coordinator", TaskExecutionStatusType.WAITING,
             //        coordinatorTask.getStateBeforeSuspend());
-            assertEquals("Wrong execution status of worker", TaskExecutionStatus.SUSPENDED, worker.getExecutionStatus());
-            assertEquals("Wrong state-before-suspend of worker", TaskExecutionStatusType.RUNNABLE,
+            assertEquals("Wrong execution status of worker", TaskExecutionStateType.SUSPENDED, worker.getExecutionState());
+            assertEquals("Wrong state-before-suspend of worker", TaskExecutionStateType.RUNNABLE,
                     worker.getStateBeforeSuspend());
 
             assertTrue("tasks were not stopped", stopped);

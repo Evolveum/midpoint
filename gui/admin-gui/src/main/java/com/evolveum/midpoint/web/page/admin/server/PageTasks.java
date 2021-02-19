@@ -13,6 +13,8 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -32,7 +34,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
@@ -41,12 +42,8 @@ import com.evolveum.midpoint.web.component.data.column.ObjectReferenceColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionState;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @PageDescriptor(
         urls = {
@@ -143,7 +140,7 @@ public class PageTasks extends PageAdmin {
                     public Date getObject() {
                         Date date = getCurrentRuntime(rowModel);
                         SelectableBean<TaskType> task = rowModel.getObject();
-                        if (getRawExecutionStatus(task.getValue()) == TaskExecutionStatus.CLOSED && date != null) {
+                        if (task.getValue().getExecutionStatus() == TaskExecutionStateType.CLOSED && date != null) {
                             ((DateLabelComponent) item.get(componentId)).setBefore(createStringResource("pageTasks.task.closedAt").getString() + " ");
                         } else if (date != null) {
                             ((DateLabelComponent) item.get(componentId))
@@ -161,7 +158,7 @@ public class PageTasks extends PageAdmin {
                 Date date = getCurrentRuntime(rowModel);
                 String displayValue = "";
                 if (date != null) {
-                    if (getRawExecutionStatus(task.getValue()) == TaskExecutionStatus.CLOSED) {
+                    if (task.getValue().getExecutionStatus() == TaskExecutionStateType.CLOSED) {
                         displayValue =
                                 createStringResource("pageTasks.task.closedAt").getString() +
                                         WebComponentUtil.getShortDateTimeFormattedValue(date, PageTasks.this);
@@ -205,7 +202,7 @@ public class PageTasks extends PageAdmin {
     private Date getCurrentRuntime(IModel<SelectableBean<TaskType>> taskModel) {
         TaskType task = taskModel.getObject().getValue();
 
-        if (getRawExecutionStatus(task) == TaskExecutionStatus.CLOSED) {
+        if (task.getExecutionStatus() == TaskExecutionStateType.CLOSED) {
 
             Long time = getCompletionTimestamp(task);
             if (time == null) {
@@ -223,7 +220,7 @@ public class PageTasks extends PageAdmin {
 
     private String createScheduledToRunAgain(IModel<SelectableBean<TaskType>> taskModel) {
         TaskType task = taskModel.getObject().getValue();
-        boolean runnable = getRawExecutionStatus(task) == TaskExecutionStatus.RUNNABLE;
+        boolean runnable = task.getExecutionStatus() == TaskExecutionStateType.RUNNABLE; // TODO or running
         Long scheduledAfter = getScheduledToStartAgain(taskModel.getObject());
         Long retryAfter = runnable ? getRetryAfter(task) : null;
 
@@ -264,7 +261,7 @@ public class PageTasks extends PageAdmin {
     public Long getScheduledToStartAgain(SelectableBean<TaskType> taskBean) {
         long current = System.currentTimeMillis();
 
-        if (getExecution(taskBean.getValue()) == TaskDtoExecutionStatus.RUNNING) {
+        if (getExecution(taskBean.getValue()) == TaskDtoExecutionState.RUNNING) {
 
             if (TaskRecurrenceType.RECURRING != taskBean.getValue().getRecurrence()) {
                 return null;
@@ -300,13 +297,8 @@ public class PageTasks extends PageAdmin {
         return xgc2long(taskType.getNextRunStartTimestamp());
     }
 
-    public TaskDtoExecutionStatus getExecution(TaskType taskType) {
-        return TaskDtoExecutionStatus.fromTaskExecutionStatus(taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);
-    }
-
-    //TODO why?
-    public TaskExecutionStatus getRawExecutionStatus(TaskType taskType) {
-        return TaskExecutionStatus.fromTaskType(taskType.getExecutionStatus());
+    public TaskDtoExecutionState getExecution(TaskType taskType) {
+        return TaskDtoExecutionState.fromTaskExecutionStatus(taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);
     }
 
     private Long xgc2long(XMLGregorianCalendar gc) {

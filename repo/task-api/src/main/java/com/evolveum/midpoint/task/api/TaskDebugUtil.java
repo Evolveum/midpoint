@@ -30,7 +30,7 @@ public class TaskDebugUtil {
     private static void dumpTaskTree(StringBuilder sb, int indent, Task task, OperationResult result) throws SchemaException {
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(task)
-                .append(" [es:").append(task.getExecutionStatus())
+                .append(" [es:").append(task.getExecutionState())
                 .append(", rs:").append(task.getResultStatus())
                 .append(", p:").append(task.getProgress())
                 .append(", n:").append(task.getNode())

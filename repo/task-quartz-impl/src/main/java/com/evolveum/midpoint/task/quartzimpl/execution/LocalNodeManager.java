@@ -16,6 +16,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStateType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.quartz.*;
@@ -36,8 +37,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.sql.ScriptRunner;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
 /**
@@ -328,16 +328,16 @@ public class LocalNodeManager {
         }
     }
 
-    NodeExecutionStatusType getLocalNodeExecutionStatus() {
+    NodeExecutionStateType getLocalNodeExecutionStatus() {
 
-        if (taskManager.getLocalNodeErrorStatus() != NodeErrorStatusType.OK) {
-            return NodeExecutionStatusType.ERROR;
+        if (taskManager.getLocalNodeErrorStatus() != NodeErrorStateType.OK) {
+            return NodeExecutionStateType.ERROR;
         } else {
             Boolean quartzRunning = isQuartzSchedulerRunning();
             if (quartzRunning == null) {      // this should not occur if error status is OK
-                return NodeExecutionStatusType.COMMUNICATION_ERROR;
+                return NodeExecutionStateType.COMMUNICATION_ERROR;
             } else {
-                return quartzRunning ? NodeExecutionStatusType.RUNNING : NodeExecutionStatusType.PAUSED;
+                return quartzRunning ? NodeExecutionStateType.RUNNING : NodeExecutionStateType.PAUSED;
             }
         }
     }

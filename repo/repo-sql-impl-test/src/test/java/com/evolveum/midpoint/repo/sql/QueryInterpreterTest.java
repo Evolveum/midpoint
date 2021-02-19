@@ -405,7 +405,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
              *  ### task: Equal (executionStatus, WAITING)
              */
             ObjectQuery query = prismContext.queryFor(TaskType.class)
-                    .item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.WAITING)
+                    .item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStateType.WAITING)
                     .build();
             String real = getInterpretedQuery(session, TaskType.class, query);
 

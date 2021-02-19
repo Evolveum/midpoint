@@ -8,27 +8,29 @@
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 
 /**
  * @author lazyman
  */
-@JaxbType(type = TaskExecutionStatusType.class)
-public enum RTaskExecutionStatus implements SchemaEnum<TaskExecutionStatusType> {
+@JaxbType(type = TaskExecutionStateType.class)
+public enum RTaskExecutionStatus implements SchemaEnum<TaskExecutionStateType> {
 
-    RUNNABLE(TaskExecutionStatusType.RUNNABLE),
-    WAITING(TaskExecutionStatusType.WAITING),
-    SUSPENDED(TaskExecutionStatusType.SUSPENDED),
-    CLOSED(TaskExecutionStatusType.CLOSED);
+    RUNNABLE(TaskExecutionStateType.RUNNABLE),
+    WAITING(TaskExecutionStateType.WAITING),
+    SUSPENDED(TaskExecutionStateType.SUSPENDED),
+    CLOSED(TaskExecutionStateType.CLOSED),
+    RUNNING(TaskExecutionStateType.RUNNING),
+    SUSPENDING(TaskExecutionStateType.SUSPENDING);
 
-    private TaskExecutionStatusType status;
+    private TaskExecutionStateType status;
 
-    RTaskExecutionStatus(TaskExecutionStatusType status) {
+    RTaskExecutionStatus(TaskExecutionStateType status) {
         this.status = status;
     }
 
     @Override
-    public TaskExecutionStatusType getSchemaValue() {
+    public TaskExecutionStateType getSchemaValue() {
         return status;
     }
 }

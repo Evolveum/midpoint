@@ -140,7 +140,7 @@ public class PartitioningTaskHandler implements TaskHandler {
         masterTask.makeWaiting(TaskWaitingReason.OTHER_TASKS, TaskUnpauseActionType.RESCHEDULE);  // i.e. close for single-run tasks
         masterTask.flushPendingModifications(opResult);
         List<Task> subtasksToResume = subtasksCreated.stream()
-                .filter(t -> t.getExecutionStatus() == TaskExecutionStatus.SUSPENDED)
+                .filter(t -> t.getExecutionState() == TaskExecutionStateType.SUSPENDED)
                 .collect(Collectors.toList());
         taskManager.resumeTasks(TaskUtil.tasksToOids(subtasksToResume), opResult);
         LOGGER.info("Partitioned subtasks were successfully created and started for master {}", masterTask);
@@ -150,7 +150,7 @@ public class PartitioningTaskHandler implements TaskHandler {
             throws SchemaException, ExitHandlerException {
         List<Task> subtasks = masterTask.listSubtasks(opResult);
         List<Task> subtasksNotClosed = subtasks.stream()
-                .filter(w -> w.getExecutionStatus() != TaskExecutionStatus.CLOSED)
+                .filter(w -> w.getExecutionState() != TaskExecutionStateType.CLOSED)
                 .collect(Collectors.toList());
         if (!subtasksNotClosed.isEmpty()) {
             LOGGER.warn("Couldn't (re)create/restart subtasks tasks because the following ones are not closed yet: {}", subtasksNotClosed);
@@ -216,7 +216,7 @@ public class PartitioningTaskHandler implements TaskHandler {
             for (Integer dependentIndex : dependents) {
                 Task dependent = subtasks.get(dependentIndex - 1);
                 subtask.addDependent(dependent.getTaskIdentifier());
-                if (dependent.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
+                if (dependent.getExecutionState() == TaskExecutionStateType.SUSPENDED) {
                     dependent.makeWaiting(TaskWaitingReason.OTHER_TASKS, TaskUnpauseActionType.EXECUTE_IMMEDIATELY);
                     dependent.flushPendingModifications(opResult);
                 }
@@ -279,7 +279,7 @@ public class PartitioningTaskHandler implements TaskHandler {
         subtask.setHandlerUri(handlerUri);
         subtask.setWorkManagement(workManagement);
 
-        subtask.setExecutionStatus(TaskExecutionStatusType.SUSPENDED);
+        subtask.setExecutionStatus(TaskExecutionStateType.SUSPENDED);
         subtask.setOwnerRef(CloneUtil.clone(masterTask.getOwnerRef()));
         subtask.setCategory(masterTask.getCategory());
         subtask.setObjectRef(CloneUtil.clone(masterTask.getObjectRefOrClone()));

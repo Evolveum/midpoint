@@ -160,7 +160,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
      * Error status for this node.
      * Local Quartz scheduler is not allowed to be started if this status is not "OK".
      */
-    private NodeErrorStatusType nodeErrorStatus = NodeErrorStatusType.OK;
+    private NodeErrorStateType nodeErrorStatus = NodeErrorStateType.OK;
 
     private final Set<TaskListener> taskListeners = new HashSet<>();
 
@@ -356,7 +356,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     }
 
     public boolean isInErrorState() {
-        return nodeErrorStatus != NodeErrorStatusType.OK;
+        return nodeErrorStatus != NodeErrorStateType.OK;
     }
     //endregion
 
@@ -468,11 +468,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
             TaskQuartzImpl root = getTaskPlain(rootTaskOid, result);
             List<Task> subtasks = root.listSubtasksDeeply(true, parentResult);
             List<String> oidsToResume = new ArrayList<>(subtasks.size() + 1);
-            if (root.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
+            if (root.getExecutionState() == TaskExecutionStateType.SUSPENDED) {
                 oidsToResume.add(rootTaskOid);
             }
             for (Task subtask : subtasks) {
-                if (subtask.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
+                if (subtask.getExecutionState() == TaskExecutionStateType.SUSPENDED) {
                     oidsToResume.add(subtask.getOid());
                 }
             }
@@ -525,9 +525,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         result.addParam("coordinatorOid", coordinatorOid);
         try {
             TaskQuartzImpl coordinatorTask = getTaskPlain(coordinatorOid, result);
-            TaskExecutionStatus status = coordinatorTask.getExecutionStatus();
-            switch (status) {
+            TaskExecutionStateType state = coordinatorTask.getExecutionState();
+            switch (state) {
                 case CLOSED:
+                case RUNNING: //todo scheduling state?
                 case RUNNABLE:
                     // hoping that the task handler will do what is needed (i.e. recreate or restart workers)
                     scheduleTaskNow(coordinatorTask, result);
@@ -548,7 +549,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
                     result.recordFatalError(msg2);
                     break;
                 default:
-                    throw new IllegalStateException("Coordinator " + coordinatorTask + " is in unsupported state: " + status);
+                    throw new IllegalStateException("Coordinator " + coordinatorTask + " is in unsupported state: " + state);
             }
         } catch (Throwable t) {
             result.recordFatalError("Couldn't resume coordinator and its workers", t);
@@ -607,11 +608,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
             // this should not occur; so we can treat it in such a brutal way
             throw new IllegalArgumentException("Only persistent tasks can be suspended/closed (for now); task " + task + " is transient.");
         } else {
-            if (task.getExecutionStatus() == TaskExecutionStatus.WAITING || task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+            if (task.getExecutionState() == TaskExecutionStateType.WAITING || // todo scheduling state?
+                    task.getExecutionState() == TaskExecutionStateType.RUNNING ||
+                    task.getExecutionState() == TaskExecutionStateType.RUNNABLE) {
                 try {
                     List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
-                            .item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStatusType.SUSPENDED)
-                            .item(TaskType.F_STATE_BEFORE_SUSPEND).replace(task.getExecutionStatus().toTaskType())
+                            .item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStateType.SUSPENDED)
+                            .item(TaskType.F_STATE_BEFORE_SUSPEND).replace(task.getExecutionState())
                             .asItemDeltas();
                     ((InternalTaskInterface) task).applyDeltasImmediate(itemDeltas, result);
                 } catch (ObjectAlreadyExistsException e) {
@@ -644,14 +647,14 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "pauseTask");
         result.addArbitraryObjectAsParam("task", task);
 
-        if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
-            String message = "Attempted to pause a task that is not in the RUNNABLE state (task = " + task + ", state = " + task.getExecutionStatus();
+        if (task.getExecutionState() != TaskExecutionStateType.RUNNABLE && task.getExecutionState() != TaskExecutionStateType.RUNNING) {
+            String message = "Attempted to pause a task that is not in the RUNNABLE/RUNNING state (task = " + task + ", state = " + task.getExecutionState();
             LOGGER.error(message);
             result.recordFatalError(message);
             return;
         }
         try {
-            ((InternalTaskInterface) task).setExecutionStatusImmediate(TaskExecutionStatus.WAITING, result);
+            ((InternalTaskInterface) task).setExecutionStatusImmediate(TaskExecutionStateType.WAITING, result);
             ((InternalTaskInterface) task).setWaitingReasonImmediate(reason, result);
         } catch (ObjectNotFoundException e) {
             String message = "A task cannot be paused, because it does not exist; task = " + task;
@@ -686,8 +689,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         //
         // Therefore scheduleWaitingTaskNow and makeWaitingTaskRunnable must make sure the task is (still) waiting.
         // The closeTask method is OK even if the task has become suspended in the meanwhile.
-        if (task.getExecutionStatus() != TaskExecutionStatus.WAITING) {
-            String message = "Attempted to unpause a task that is not in the WAITING state (task = " + task + ", state = " + task.getExecutionStatus();
+        if (task.getExecutionState() != TaskExecutionStateType.WAITING) {
+            String message = "Attempted to unpause a task that is not in the WAITING state (task = " + task + ", state = " + task.getExecutionState();
             LOGGER.error(message);
             result.recordFatalError(message);
             return;
@@ -765,25 +768,25 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         result.addArbitraryObjectAsParam("task", task);
         try {
 
-            if (task.getExecutionStatus() != TaskExecutionStatus.SUSPENDED &&
-                    !(task.getExecutionStatus() == TaskExecutionStatus.CLOSED && task.isRecurring())) {
+            if (task.getExecutionState() != TaskExecutionStateType.SUSPENDED &&
+                    !(task.getExecutionState() == TaskExecutionStateType.CLOSED && task.isRecurring())) {
                 String message =
                         "Attempted to resume a task that is not in the SUSPENDED state (or CLOSED for recurring tasks) (task = "
-                                + task + ", state = " + task.getExecutionStatus();
+                                + task + ", state = " + task.getExecutionState();
                 LOGGER.error(message);
                 result.recordFatalError(message);
                 return;
             }
             clearTaskOperationResult(task, parentResult);           // see a note on scheduleTaskNow
-            if (task.getStateBeforeSuspend() == TaskExecutionStatusType.WAITING) {
+            if (task.getStateBeforeSuspend() == TaskExecutionStateType.WAITING) {
                 List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
-                        .item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStatusType.WAITING)
+                        .item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStateType.WAITING)
                         .item(TaskType.F_STATE_BEFORE_SUSPEND).replace()
                         .asItemDeltas();
                 ((InternalTaskInterface) task).applyDeltasImmediate(itemDeltas, result);
             } else {
                 List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
-                        .item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStatusType.RUNNABLE)
+                        .item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStateType.RUNNABLE)
                         .item(TaskType.F_STATE_BEFORE_SUSPEND).replace()
                         .asItemDeltas();
                 ((InternalTaskInterface) task).applyDeltasImmediate(itemDeltas, result);
@@ -804,7 +807,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
             throws ObjectNotFoundException, SchemaException, PreconditionViolationException {
 
         try {
-            ((InternalTaskInterface) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNABLE, TaskExecutionStatusType.WAITING, result);
+            // todo
+            ((InternalTaskInterface) task).setExecutionStatusImmediate(TaskExecutionStateType.RUNNABLE, TaskExecutionStateType.WAITING, result);
         } catch (ObjectNotFoundException e) {
             String message = "A task cannot be made runnable, because it does not exist; task = " + task;
             LoggingUtils.logException(LOGGER, message, e);
@@ -1038,7 +1042,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
         List<Task> tasksToBeSuspended = new ArrayList<>();
         for (Task task : tasksToBeDeleted) {
-            if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+            if (task.getExecutionState() == TaskExecutionStateType.RUNNABLE || task.getExecutionState() == TaskExecutionStateType.RUNNING) { // todo
                 tasksToBeSuspended.add(task);
             }
         }
@@ -1080,7 +1084,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
         List<Task> tasksToBeSuspended = new ArrayList<>();
         for (Task task : tasksToBeDeleted) {
-            if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+            if (task.getExecutionState() == TaskExecutionStateType.RUNNABLE || task.getExecutionState() == TaskExecutionStateType.RUNNING) { // todo
                 tasksToBeSuspended.add(task);
             }
         }
@@ -1196,8 +1200,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
             if (task.lightweightHandlerStartRequested()) {
                 throw new IllegalStateException("Handler for the lightweight task " + task + " has already been started.");
             }
-            if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
-                throw new IllegalStateException("Handler for lightweight task " + task + " couldn't be started because the task's state is " + task.getExecutionStatus());
+            if (task.getExecutionState() != TaskExecutionStateType.RUNNABLE && task.getExecutionState() != TaskExecutionStateType.RUNNING) {
+                throw new IllegalStateException("Handler for lightweight task " + task + " couldn't be started because the task's state is " + task.getExecutionState());
             }
 
             Runnable r = () -> {
@@ -1613,13 +1617,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
                 NodeType nodeRuntimeInfo = clusterStatusInformation.findNodeById(returnedNode.getNodeIdentifier());
                 if (nodeRuntimeInfo != null) {
-                    returnedNode.setExecutionStatus(nodeRuntimeInfo.getExecutionStatus());
-                    returnedNode.setErrorStatus(nodeRuntimeInfo.getErrorStatus());
+                    returnedNode.setExecutionState(nodeRuntimeInfo.getExecutionState());
+                    returnedNode.setErrorState(nodeRuntimeInfo.getErrorState());
                     returnedNode.setConnectionResult(nodeRuntimeInfo.getConnectionResult());
                 } else {
                     // node is in repo, but no information on it is present in CSI
                     // (should not occur except for some temporary conditions, because CSI contains info on all nodes from repo)
-                    returnedNode.setExecutionStatus(NodeExecutionStatusType.COMMUNICATION_ERROR);
+                    returnedNode.setExecutionState(NodeExecutionStateType.COMMUNICATION_ERROR);
                     OperationResult r = new OperationResult("connect");
                     r.recordFatalError("Node not known at this moment");
                     returnedNode.setConnectionResult(r.createOperationResultType());
@@ -1980,11 +1984,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         return schemaHelper;
     }
 
-    public NodeErrorStatusType getLocalNodeErrorStatus() {
+    public NodeErrorStateType getLocalNodeErrorStatus() {
         return nodeErrorStatus;
     }
 
-    public void setNodeErrorStatus(NodeErrorStatusType nodeErrorStatus) {
+    public void setNodeErrorStatus(NodeErrorStateType nodeErrorStatus) {
         this.nodeErrorStatus = nodeErrorStatus;
     }
 
@@ -2132,14 +2136,14 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         if (task.isClosed()) {
             clearTaskOperationResult(task, parentResult);
             executionManager.reRunClosedTask(task, parentResult);
-        } else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+        } else if (task.getExecutionState() == TaskExecutionStateType.RUNNABLE || task.getExecutionState() == TaskExecutionStateType.RUNNING) { // todo
             clearTaskOperationResult(task, parentResult);
             scheduleRunnableTaskNow(task, parentResult);
-        } else if (task.getExecutionStatus() == TaskExecutionStatus.WAITING) {
+        } else if (task.getExecutionState() == TaskExecutionStateType.WAITING) {
             clearTaskOperationResult(task, parentResult);
             scheduleWaitingTaskNow(task, parentResult);
         } else {
-            String message = "Task " + task + " cannot be run now, because it is not in RUNNABLE nor CLOSED state. State is " + task.getExecutionStatus();
+            String message = "Task " + task + " cannot be run now, because it is not in RUNNABLE nor CLOSED state. State is " + task.getExecutionState();
             parentResult.createSubresult(DOT_INTERFACE + "scheduleTaskNow").recordFatalError(message);
             LOGGER.error(message);
         }
@@ -2337,7 +2341,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
                     timeBoundary.positiveDuration);
 
             ObjectQuery obsoleteTasksQuery = prismContext.queryFor(TaskType.class)
-                    .item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.CLOSED)
+                    .item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStateType.CLOSED)
                     .and().item(TaskType.F_COMPLETION_TIMESTAMP).le(deleteTasksClosedUpTo)
                     .and().item(TaskType.F_PARENT).isNull()
                     .build();
@@ -2590,7 +2594,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     @SuppressWarnings("SameParameterValue")
     private List<Task> listWaitingTasks(TaskWaitingReason reason, OperationResult result) throws SchemaException {
         S_AtomicFilterEntry q = prismContext.queryFor(TaskType.class);
-        q = q.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.WAITING).and();
+        q = q.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStateType.WAITING).and();
         if (reason != null) {
             q = q.item(TaskType.F_WAITING_REASON).eq(reason.toTaskType()).and();
         }

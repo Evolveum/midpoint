@@ -177,7 +177,8 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
         // beware: Do not touch task prism here, because this method can be called asynchronously
         List<RunningTaskQuartzImpl> retval = new ArrayList<>();
         for (RunningTaskQuartzImpl subtask : getLightweightAsynchronousSubtasks()) {
-            if (subtask.getExecutionStatus() == TaskExecutionStatus.RUNNABLE && subtask.lightweightHandlerStartRequested()) {
+            if ((subtask.getExecutionState() == TaskExecutionStateType.RUNNABLE || subtask.getExecutionState() == TaskExecutionStateType.RUNNING) // TODO scheduling state? Or just RUNNING?
+                            && subtask.lightweightHandlerStartRequested()) {
                 retval.add(subtask);
             }
         }
@@ -188,11 +189,13 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     public void deleteLightweightAsynchronousSubtasks() {
         synchronized (lightweightAsynchronousSubtasks) {
             List<? extends RunningTask> livingSubtasks = lightweightAsynchronousSubtasks.values().stream()
-                    .filter(t -> t.getExecutionStatus() == TaskExecutionStatus.RUNNABLE || t.getExecutionStatus() == TaskExecutionStatus.WAITING)
+                    .filter(t -> t.getExecutionState() == TaskExecutionStateType.RUNNABLE ||
+                            t.getExecutionState() == TaskExecutionStateType.RUNNING ||
+                            t.getExecutionState() == TaskExecutionStateType.WAITING) // todo scheduling state?
                     .collect(Collectors.toList());
             if (!livingSubtasks.isEmpty()) {
-                LOGGER.error("Task {} has {} runnable or waiting lightweight subtasks: {}", this, livingSubtasks.size(), livingSubtasks);
-                throw new IllegalStateException("There are runnable or waiting subtasks in the parent task");
+                LOGGER.error("Task {} has {} runnable/running or waiting lightweight subtasks: {}", this, livingSubtasks.size(), livingSubtasks);
+                throw new IllegalStateException("There are runnable/running or waiting subtasks in the parent task");
             }
             lightweightAsynchronousSubtasks.clear();
         }

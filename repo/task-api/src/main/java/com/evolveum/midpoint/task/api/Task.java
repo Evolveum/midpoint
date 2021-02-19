@@ -146,11 +146,11 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
     /**
      * Returns execution status.
      *
-     * @see TaskExecutionStatus
+     * @see TaskExecutionStateType
      *
      * @return execution status.
      */
-    TaskExecutionStatus getExecutionStatus();
+    TaskExecutionStateType getExecutionState();
 
     /**
      * Status-changing method. It changes task's execution status to WAITING.
@@ -177,11 +177,11 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      * Sets task execution status. Can be used only for transient tasks (for safety reasons).
      * However, it is better to use specific state-changing methods (makeWaiting, makeRunnable, ...).
      *
-     * @see TaskExecutionStatus
+     * @see TaskExecutionStateType
      *
      * @param value new task execution status.
      */
-    void setInitialExecutionStatus(TaskExecutionStatus value);
+    void setInitialExecutionState(TaskExecutionStateType value);
 
     /**
      * Returns true if the task is closed.
@@ -946,7 +946,7 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
 
     TaskUnpauseActionType getUnpauseAction();
 
-    TaskExecutionStatusType getStateBeforeSuspend();
+    TaskExecutionStateType getStateBeforeSuspend();
 
     @SuppressWarnings("unused")
     boolean isPartitionedMaster();

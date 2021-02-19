@@ -18,7 +18,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import java.util.*;
@@ -131,7 +131,7 @@ public class StalledTasksWatcher {
 
     public Long getStalledSinceForTask(TaskType taskType) {
         ProgressInformation lastProgressEntry = lastProgressMap.get(taskType.getTaskIdentifier());
-        if (taskType.getExecutionStatus() != TaskExecutionStatusType.RUNNABLE ||
+        if (taskType.getExecutionStatus() != TaskExecutionStateType.RUNNABLE ||
                 hasEntryChanged(lastProgressEntry, TaskQuartzImplUtil.xmlGCtoMillis(taskType.getLastRunStartTimestamp()),
                     taskType.getProgress() != null ? taskType.getProgress() : 0L)) {
             return null;

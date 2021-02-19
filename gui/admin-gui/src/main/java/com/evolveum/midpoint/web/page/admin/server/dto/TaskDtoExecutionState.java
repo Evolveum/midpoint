@@ -7,17 +7,19 @@
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 
 /**
- * Adds "RUNNING" state to the TaskExecutionStatus (meaning the task is currently executing at a node).
- * And also "SUSPENDING" if it is running, but marked as suspended.
+ * TODO TODO TODO update this doc
  *
- * @see TaskExecutionStatus
- * @author Pavol Mederly
+ * Original description:
+ *  Adds "RUNNING" state to the TaskExecutionStatus (meaning the task is currently executing at a node).
+ *  And also "SUSPENDING" if it is running, but marked as suspended.
+ *
+ * New meaning:
+ *  Probably not needed any more. The RUNNING_OR_RUNNABLE is needed to query for the task state, and should not be here.
  */
-public enum TaskDtoExecutionStatus {
+public enum TaskDtoExecutionState {
 
     RUNNING_OR_RUNNABLE,
     RUNNING,
@@ -27,19 +29,22 @@ public enum TaskDtoExecutionStatus {
     SUSPENDING,
     CLOSED;
 
-    public static TaskDtoExecutionStatus fromTaskExecutionStatus(TaskExecutionStatusType executionStatus, boolean running) {
+    // TODO fix
+    public static TaskDtoExecutionState fromTaskExecutionStatus(TaskExecutionStateType executionStatus, boolean running) {
         if (running) {
-            if (executionStatus == TaskExecutionStatusType.SUSPENDED) {
-                return SUSPENDING;
+            if (executionStatus == TaskExecutionStateType.SUSPENDED) {
+                return SUSPENDING; // todo remove when no longer needed
             } else {
-                return TaskDtoExecutionStatus.RUNNING;
+                return TaskDtoExecutionState.RUNNING;
             }
         } else {
             if (executionStatus != null) {
                 switch (executionStatus) {
                     case RUNNABLE: return RUNNABLE;
+                    case RUNNING: return RUNNING;
                     case WAITING: return WAITING;
                     case SUSPENDED: return SUSPENDED;
+                    case SUSPENDING: return SUSPENDING;
                     case CLOSED: return CLOSED;
                     default: throw new IllegalArgumentException("executionStatus = " + executionStatus);
                 }

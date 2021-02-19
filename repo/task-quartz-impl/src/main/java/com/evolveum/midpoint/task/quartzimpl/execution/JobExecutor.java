@@ -93,8 +93,8 @@ public class JobExecutor implements InterruptableJob {
             return;
         }
 
-        if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
-            LOGGER.warn("Task is not in RUNNABLE state (its state is {}), exiting its execution and removing its Quartz trigger. Task = {}", task.getExecutionStatus(), task);
+        if (task.getExecutionState() != TaskExecutionStateType.RUNNABLE) {
+            LOGGER.warn("Task is not in RUNNABLE state (its state is {}), exiting its execution and removing its Quartz trigger. Task = {}", task.getExecutionState(), task);
             try {
                 context.getScheduler().unscheduleJob(context.getTrigger().getKey());
             } catch (SchedulerException e) {
@@ -438,7 +438,7 @@ public class JobExecutor implements InterruptableJob {
 
         // at this moment, there should be no executing child tasks... we just clean-up all runnables that had not started
         for (RunningTaskQuartzImpl subtask : task.getLightweightAsynchronousSubtasks()) {
-            if (subtask.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+            if (subtask.getExecutionState() == TaskExecutionStateType.RUNNABLE) {
                 if (subtask.getLightweightHandlerFuture() == null) {
                     LOGGER.trace("Lightweight task handler for subtask {} has not started yet; closing the task.", subtask);
                     closeTask(subtask, result);
@@ -488,8 +488,8 @@ public class JobExecutor implements InterruptableJob {
             return;
         }
 
-        if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
-            LOGGER.trace("processTaskStop: task execution status is not RUNNABLE (it is " + task.getExecutionStatus() + "), so ThreadStopAction does not apply; task = " + task);
+        if (task.getExecutionState() != TaskExecutionStateType.RUNNABLE) {
+            LOGGER.trace("processTaskStop: task execution status is not RUNNABLE (it is " + task.getExecutionState() + "), so ThreadStopAction does not apply; task = " + task);
             return;
         }
 
@@ -659,8 +659,8 @@ mainCycle:
                     return;            // The task object in repo is gone. Therefore this task should not run any more.
                 }
 
-                if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
-                    LOGGER.info("Task not in the RUNNABLE state, exiting the execution routing. State = {}, Task = {}", task.getExecutionStatus(), task);
+                if (task.getExecutionState() != TaskExecutionStateType.RUNNABLE) {
+                    LOGGER.info("Task not in the RUNNABLE state, exiting the execution routing. State = {}, Task = {}", task.getExecutionState(), task);
                     break;
                 }
 
@@ -700,8 +700,8 @@ mainCycle:
                     return;            // The task object in repo is gone. Therefore this task should not run any more. Therefore commit seppuku
                 }
 
-                if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
-                    LOGGER.info("Task not in the RUNNABLE state, exiting the execution routine. State = {}, Task = {}", task.getExecutionStatus(), task);
+                if (task.getExecutionState() != TaskExecutionStateType.RUNNABLE) {
+                    LOGGER.info("Task not in the RUNNABLE state, exiting the execution routine. State = {}, Task = {}", task.getExecutionState(), task);
                     break;
                 }
 

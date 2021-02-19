@@ -58,7 +58,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
             // todo consider checking that the subtask is really a worker (workStateConfiguration.taskKind)
             if (clean) {
                 List<Task> notClosedNorSuspended = workers.stream()
-                        .filter(w -> w.getExecutionStatus() != TaskExecutionStatus.CLOSED && w.getExecutionStatus() != TaskExecutionStatus.SUSPENDED)
+                        .filter(w -> w.getExecutionState() != TaskExecutionStateType.CLOSED && w.getExecutionState() != TaskExecutionStateType.SUSPENDED)
                         .collect(Collectors.toList());
                 if (!notClosedNorSuspended.isEmpty()) {
                     LOGGER.warn("Couldn't (re)create worker tasks because the work is done but the following ones are not closed nor suspended: {}", notClosedNorSuspended);
@@ -68,7 +68,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
                 }
             } else {
                 List<Task> notClosed = workers.stream()
-                        .filter(w -> w.getExecutionStatus() == TaskExecutionStatus.CLOSED)
+                        .filter(w -> w.getExecutionState() == TaskExecutionStateType.CLOSED)
                         .collect(Collectors.toList());
                 if (!notClosed.isEmpty()) {
                     LOGGER.warn("Couldn't (re)create worker tasks because the work is not done and the following ones are not closed yet: {}", notClosed);

@@ -136,8 +136,8 @@ public class TestImport extends AbstractStoryTest {
         long start = System.currentTimeMillis();
         for (;;) {
             PrismObject<TaskType> importTask = getTask(TASK_IMPORT_OID);
-            TaskExecutionStatusType executionStatus = importTask.asObjectable().getExecutionStatus();
-            if (executionStatus != TaskExecutionStatusType.RUNNABLE) {
+            TaskExecutionStateType executionStatus = importTask.asObjectable().getExecutionStatus();
+            if (executionStatus != TaskExecutionStateType.RUNNABLE) {
                 System.out.println("Task is not running any more; status = " + executionStatus);
                 break;
             }

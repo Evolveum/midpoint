@@ -2192,7 +2192,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="operationalStatus" type="tns:NodeOperationalStatusType" minOccurs="0">
+                    <xsd:element name="operationalStatus" type="tns:NodeOperationalStateType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Basic node operational state: whether it is up (e.g. should be accepting REST/JMX queries),
@@ -2200,6 +2200,8 @@
                                 Does NOT indicate anything about the scheduler status.
 
                                 Supersedes "running" property.
+
+                                TODO rename to operationalState.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.1</a:since>
@@ -2235,16 +2237,16 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="executionStatus" type="tns:NodeExecutionStatusType">
+                    <xsd:element name="executionState" type="tns:NodeExecutionStateType">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Actual node status from the point of executing tasks.
+                                Actual node state from the point of executing tasks.
                                 This field is TRANSIENT. It must only be used in runtime. It should
                                 never be stored in the repository.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="errorStatus" type="tns:NodeErrorStatusType">
+                    <xsd:element name="errorState" type="tns:NodeErrorStateType">
                         <xsd:annotation>
                             <xsd:documentation>
                                 More detailed characterization of the error state.
@@ -2356,12 +2358,12 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:simpleType name="NodeOperationalStatusType">
+    <xsd:simpleType name="NodeOperationalStateType">
         <xsd:annotation>
             <xsd:documentation>
                 Basic node operational state: whether it is up (e.g. accepting REST/JMX queries),
                 or it is down (known to be turned off or just not checking-in for a longer time), or starting.
-                Does NOT indicate anything about the scheduler status.
+                Does NOT indicate anything about the scheduler state.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -2410,10 +2412,10 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:simpleType name="NodeExecutionStatusType">
+    <xsd:simpleType name="NodeExecutionStateType">
         <xsd:annotation>
             <xsd:documentation>
-                Node status from the user's point of view.
+                Node state from the user's point of view.
                 TODO decide what to do with this data type.
             </xsd:documentation>
         </xsd:annotation>
@@ -2447,7 +2449,7 @@
                         Note that other nodes can declare a node as turned off after not checking in for
                         "nodeAlivenessTimeout" seconds (default is 900).
 
-                        This status is available only for remote nodes, of course.
+                        This state is available only for remote nodes, of course.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="NOT_CHECKING_IN"/>
@@ -2481,7 +2483,7 @@
             <xsd:enumeration value="error">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Node error (see NodeErrorStatus for more details).
+                        Node error (see NodeErrorStateType for more details).
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ERROR"/>
@@ -2491,7 +2493,7 @@
             <xsd:enumeration value="communicationError">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Status unknown due to communication error.
+                        State unknown due to communication error.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="COMMUNICATION_ERROR"/>
@@ -2501,11 +2503,11 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:simpleType name="NodeErrorStatusType">
+    <xsd:simpleType name="NodeErrorStateType">
         <xsd:annotation>
             <xsd:documentation>
-                Status of this node w.r.t. error conditions.
-                Generally speaking, if NodeErrorStatus != OK, tasks cannot be scheduled on this node.
+                State of this node w.r.t. error conditions.
+                Generally speaking, if node errorState != OK, tasks cannot be scheduled on this node.
                 This is a dynamic information, not stored in the repository.
             </xsd:documentation>
         </xsd:annotation>
@@ -2625,16 +2627,24 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="channel" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="channel" type="xsd:anyURI" minOccurs="0" />
                     <xsd:element name="parent" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Parent task, used to implement task hierarchies. A task can have a number of
-                                children (subtasks) that carry out some of the work. For example, a parent task
-                                can contain a complex model operation, and its subtasks contain individual
-                                approvals and/or elementary model operations. If null, this task is a "root-level"
-                                task that has no parent.
-                                Task identifier (not OID) is used here.
+                                <p>
+                                Parent task. This property is used to implement task hierarchies. A task can have
+                                a number of children (subtasks) that carry out some of the work. A typical example
+                                is when multi-node tasks are used: There is a parent task representing the whole operation
+                                (e.g. import from resource), and its children - worker tasks - that acquire buckets
+                                of work and carrying them out. The parent waits for the children to finish and then
+                                finishes itself.
+                                </p>
+                                <p>
+                                If this property is null, this task is a "root-level" task that has no parent.
+                                </p>
+                                <p>
+                                Note that the task identifier (not OID) is used here.
+                                </p>
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -2668,21 +2678,40 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="executionStatus" type="tns:TaskExecutionStatusType" minOccurs="0">
+                    <xsd:element name="executionStatus" type="tns:TaskExecutionStateType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Execution status provides information about the task overall high-level execution state.
                                 It tells whether the task is running/runnable, waits for something or is done.
+                                This state is to be displayed to the user.
+
+                                TODO rename to executionState
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>TaskType.executionStatus</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="schedulingState" type="tns:TaskSchedulingStateType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Scheduling state informs about the state of the task regarding its scheduling.
+                                It is generally the same as execution state, but can differ from it e.g. when
+                                task trees are involved: When a task tree is executing, the root task is technically
+                                waiting for the children (so scheduling state is WAITING) but from the high level point
+                                of view it is executing (so execution state is RUNNING).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>TaskType.schedulingState</a:displayName>
+                                <a:since>4.3</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="waitingReason" type="tns:TaskWaitingReasonType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                What is this task waiting for?
+                                If the task is waiting (i.e. schedulingState = WAITING), what is this task waiting for?
+                                Must be null if the task is not waiting for anything.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -2699,10 +2728,10 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="stateBeforeSuspend" type="tns:TaskExecutionStatusType" minOccurs="0">
+                    <xsd:element name="stateBeforeSuspend" type="tns:TaskSchedulingStateType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                What was the task state before it was suspended? It could be either runnable or waiting.
+                                What was the task scheduling state before it was suspended? It could be either runnable or waiting.
                                 This is important because we want to restore the correct state on resume.
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -2773,7 +2802,7 @@
                                 It is put here for ease of use - mainly filtering, displaying, and so on.
                             </xsd:documentation>
                             <xsd:appinfo>
-                <a:displayName>TaskType.resultStatus</a:displayName>
+                                <a:displayName>TaskType.resultStatus</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2787,7 +2816,7 @@
                                 for synchronization and reconciliation tasks (cycles).
                             </xsd:documentation>
                             <xsd:appinfo>
-                <a:displayName>TaskType.objectRef</a:displayName>
+                                <a:displayName>TaskType.objectRef</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -3504,21 +3533,38 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:simpleType name="TaskExecutionStatusType">
+    <xsd:simpleType name="TaskExecutionStateType">
         <xsd:annotation>
             <xsd:documentation>
-                Execution status provides information about the task overall high-level execution state. It tells
-                whether the task is running/runnable, waits for something or is done.
+                Execution state provides information about the task overall high-level execution state. It tells
+                whether the task is running, runnable, suspended, waits for something or is done.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="running">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The task is running.
+
+                        If this is a child-less task, it means that there is a thread on one of the nodes
+                        that executes this task. (An exception is when a node crashes. Then previously running
+                        tasks are left in "running" state - until the state is updated by some of the remaining nodes.)
+
+                        For tasks with children, the RUNNING state means that either this task is executing in a thread,
+                        or any of its children (transitively) is running. This is to ensure that user sees the task states
+                        consistently.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RUNNING"/>
+                        <a:since>4.3</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="runnable">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The task is running or is ready to be executed. This state implies that the task is being
-                        actively executed by IDM nodes, e.g. there is a thread on one of the IDM nodes that executes the
-                        task, or the system needs to allocate such thread, or the task is prepared to be started
-                        when a defined time arrives.
+                        The task is ready to be executed by the scheduler. It just waits either for the defined time to come,
+                        or for available thread or node to execute the task.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="RUNNABLE"/>
@@ -3528,11 +3574,9 @@
             <xsd:enumeration value="waiting">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The IDM system is waiting while the task is being executed on an external node (e.g. external
-                        workflow engine) or is waiting for some kind of external signal (e.g. approval in internal
-                        workflow). The task may be running on external node or be blocked on IDM node. One way or another,
-                        there is no point in allocating a thread to run this task. Other task properties provide more
-                        information about the actual "business" state of the task.
+                        The task is waiting, typically for some other task. Note that this DOES NOT cover parent tasks waiting
+                        for their running children. Such parents are in RUNNING state as well. Also, if all children are suspended,
+                        then the parent is suspended as well.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="WAITING"/>
@@ -3542,9 +3586,73 @@
             <xsd:enumeration value="suspended">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The task has been suspended. It waits until an instruction to resume it arrives.
-                        After that, it will (usually) go to the RUNNABLE state again. Or, it can be closed
-                        in the suspended state as well.
+                        The task has been suspended. It waits until resumed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SUSPENDED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="suspending">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Task suspension was requested and is in progress.
+                        When the task really stops, the status will be switched to SUSPENDED.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SUSPENDING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="closed">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The task is done. No other changes or progress will happen. The task in this state is considered
+                        immutable and the only things that can happen to it is a delete by a cleanup code.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLOSED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="TaskSchedulingStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Scheduling state informs about the state of the task regarding its scheduling.
+                It is generally related to the execution state, but can differ.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="ready">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The task is running or is ready to run. Being ready means that it waits only for the scheduler
+                        to start it: e.g. when the scheduled time comes, or when a thread becomes available, and so on.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="READY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="waiting">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Something prevents the task from execution. Typically it is dependent on other task(s)
+                        so it must wait for their completion before it becomes runnable.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WAITING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="suspended">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The task has been suspended. It waits until resumed (usually by system administrator).
+                        After resume it goes to specified state - see stateBeforeSuspend property.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="SUSPENDED"/>
@@ -3554,8 +3662,8 @@
             <xsd:enumeration value="closed">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The task is done. No other changes or progress will happen. The task in this state is considered
-                        immutable and the only things that can happen to it is a delete by a cleanup code.
+                        The task is done. It is not going to be scheduled again. (Unless it is revived
+                        by system administrator.)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="CLOSED"/>
@@ -4267,10 +4375,7 @@
      <xsd:simpleType name="ExecutionModeType">
         <xsd:annotation>
             <xsd:documentation>
-                An enumeration that indicates the activation status of a particular entity.
-                The activation status determines whether the entity is active (enabled)
-                or inactive (disabled, archived, etc.). Please see documentation of individual
-                enumeration values for more details.
+                TODO
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
@@ -7704,7 +7809,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 The state of the resource how the administrator want it to be. Overrides the real
-                availability status.
+                availability state.
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>

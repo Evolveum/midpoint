@@ -11,7 +11,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionState;
 
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 
@@ -264,11 +264,11 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null) {
                     TaskType task = rowModel.getObject().getValue();
                     if (task.getOid() == null) {
-                        if (TaskExecutionStatusType.RUNNABLE == task.getExecutionStatus()) {
-                            return getPageBase().createStringResource(TaskDtoExecutionStatus.RUNNING);
+                        if (TaskExecutionStateType.RUNNABLE == task.getExecutionStatus()) {
+                            return getPageBase().createStringResource(TaskDtoExecutionState.RUNNING);
                         }
                     }
-                    TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(task.getExecutionStatus(), task.getNodeAsObserved() != null);
+                    TaskDtoExecutionState status = TaskDtoExecutionState.fromTaskExecutionStatus(task.getExecutionStatus(), task.getNodeAsObserved() != null);
                     if (status != null) {
                         return getPageBase().createStringResource(status);
                     }

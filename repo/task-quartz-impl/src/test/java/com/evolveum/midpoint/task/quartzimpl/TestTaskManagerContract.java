@@ -50,7 +50,6 @@ import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskConstants;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor;
 import com.evolveum.midpoint.test.Checker;
@@ -230,7 +229,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         System.out.println("getObject returned: " + po.debugDump());
 
         // .. it should be closed
-        AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task1.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStateType.CLOSED, task1.getExecutionState());
 
         assertNotNull(task1.getCompletionTimestamp());
         List<TriggerType> triggers = task1.getUpdatedTaskObject().asObjectable().getTrigger();
@@ -313,7 +312,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         System.out.println(t.debugDump());
 
         // .. it should be running
-        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStateType.RUNNABLE, task.getExecutionState());
 
         // .. and claimed
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
@@ -377,7 +376,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         System.out.println(ObjectTypeUtil.dump(o.getValue().getValue()));
 
         // .. it should be closed
-        AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStateType.CLOSED, task.getExecutionState());
 
         // .. and released
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
@@ -430,7 +429,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         System.out.println(t.debugDump());
 
         // .. it should be running
-        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStateType.RUNNABLE, task.getExecutionState());
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
@@ -470,7 +469,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         TaskType t = repositoryService.getObject(TaskType.class, taskOid(), null, result).getValue().getValue();
         System.out.println(ObjectTypeUtil.dump(t));
 
-        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStateType.RUNNABLE, task.getExecutionState());
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
@@ -513,7 +512,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         System.out.println(ObjectTypeUtil.dump(o.getValue().getValue()));
 
         // .. it should be closed
-        AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStateType.CLOSED, task.getExecutionState());
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
@@ -577,7 +576,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         AssertJUnit.assertNotNull(task);
         System.out.println(task.debugDump());
 
-        AssertJUnit.assertEquals("Task is not running", TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
+        AssertJUnit.assertEquals("Task is not running", TaskExecutionStateType.RUNNABLE, task.getExecutionState());
 
         // Now suspend the task
 
@@ -587,7 +586,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         System.out.println("After suspend and refresh: " + task.debugDump());
 
         AssertJUnit.assertTrue("Task is not stopped", stopped);
-        AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
+        AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStateType.SUSPENDED, task.getExecutionState());
 
         AssertJUnit.assertNotNull("Task last start time is null", task.getLastRunStartTimestamp());
         assertFalse("Task last start time is 0", task.getLastRunStartTimestamp() == 0);
@@ -620,7 +619,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         System.out.println("After refresh: " + task.debugDump());
 
-        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStateType.RUNNABLE, task.getExecutionState());
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());        // task cycle is 1000 ms, so it should be released now
 
         AssertJUnit.assertNotNull("LastRunStartTimestamp is null", task.getLastRunStartTimestamp());
@@ -637,7 +636,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         AssertJUnit.assertTrue("Task is not stopped", stopped);
 
-        AssertJUnit.assertEquals(TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStateType.SUSPENDED, task.getExecutionState());
 
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
         assertFalse(task.getLastRunStartTimestamp() == 0);
@@ -661,7 +660,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         System.out.println("After refresh: " + task.debugDump());
 
-        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStateType.RUNNABLE, task.getExecutionState());
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
@@ -675,7 +674,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         assertFalse("Task is stopped (it should be running for now)", stopped);
 
-        AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
+        AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStateType.SUSPENDED, task.getExecutionState());
 
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
         assertFalse(task.getLastRunStartTimestamp() == 0);
@@ -690,7 +689,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         AssertJUnit.assertTrue("Task is not stopped", stopped);
 
-        AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
+        AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStateType.SUSPENDED, task.getExecutionState());
 
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
         assertFalse(task.getLastRunStartTimestamp() == 0);
@@ -747,7 +746,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         secondChildTask.setName("Second child");
         secondChildTask.setOwner(rootTask.getOwner());
         secondChildTask.pushHandlerUri(SINGLE_TASK_HANDLER_URI, new ScheduleType(), null);
-        secondChildTask.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);           // will resume it after root starts waiting for tasks
+        secondChildTask.setInitialExecutionState(TaskExecutionStateType.SUSPENDED);           // will resume it after root starts waiting for tasks
         taskManager.switchToBackground(secondChildTask, result);
 
         Task firstPrerequisiteTask = taskManager.createTaskInstance(
@@ -764,7 +763,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         secondPrerequisiteTask.pushHandlerUri(TaskConstants.NOOP_TASK_HANDLER_URI, new ScheduleType(), null);
         secondPrerequisiteTask.setExtensionPropertyValue(SchemaConstants.NOOP_DELAY_QNAME, 1500);
         secondPrerequisiteTask.setExtensionPropertyValue(SchemaConstants.NOOP_STEPS_QNAME, 1);
-        secondPrerequisiteTask.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);           // will resume it after root starts waiting for tasks
+        secondPrerequisiteTask.setInitialExecutionState(TaskExecutionStateType.SUSPENDED);           // will resume it after root starts waiting for tasks
         secondPrerequisiteTask.addDependent(rootTask.getTaskIdentifier());
         taskManager.switchToBackground(secondPrerequisiteTask, result);
 
@@ -801,10 +800,10 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         firstPrerequisiteTask.refresh(result);
         secondPrerequisiteTask.refresh(result);
 
-        assertEquals("1st child task should be closed", TaskExecutionStatus.CLOSED, firstChildTask.getExecutionStatus());
-        assertEquals("2nd child task should be closed", TaskExecutionStatus.CLOSED, secondChildTask.getExecutionStatus());
-        assertEquals("1st prerequisite task should be closed", TaskExecutionStatus.CLOSED, firstPrerequisiteTask.getExecutionStatus());
-        assertEquals("2nd prerequisite task should be closed", TaskExecutionStatus.CLOSED, secondPrerequisiteTask.getExecutionStatus());
+        assertEquals("1st child task should be closed", TaskExecutionStateType.CLOSED, firstChildTask.getExecutionState());
+        assertEquals("2nd child task should be closed", TaskExecutionStateType.CLOSED, secondChildTask.getExecutionState());
+        assertEquals("1st prerequisite task should be closed", TaskExecutionStateType.CLOSED, firstPrerequisiteTask.getExecutionState());
+        assertEquals("2nd prerequisite task should be closed", TaskExecutionStateType.CLOSED, secondPrerequisiteTask.getExecutionState());
     }
 
     @Test
@@ -827,7 +826,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         final OperationResult result = createOperationResult();
 
         Task task = taskManager.createTaskInstance();
-        task.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);
+        task.setInitialExecutionState(TaskExecutionStateType.SUSPENDED);
         PrismObject<UserType> owner2 = repositoryService.getObject(UserType.class, TASK_OWNER2_OID, null, result);
         task.setOwner(owner2);
         AssertJUnit.assertEquals("Task result for new task is not correct", OperationResultStatus.UNKNOWN, task.getResult().getStatus());
@@ -870,7 +869,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         System.out.println(ObjectTypeUtil.dump(o.getValue().getValue()));
 
         // .. it should be closed
-        AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStateType.CLOSED, task.getExecutionState());
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
@@ -902,7 +901,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         addObjectFromFile(taskFilename());
 
-        ObjectFilter filter1 = prismContext.queryFor(TaskType.class).item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.WAITING).buildFilter();
+        ObjectFilter filter1 = prismContext.queryFor(TaskType.class).item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStateType.WAITING).buildFilter();
         ObjectFilter filter2 = prismContext.queryFor(TaskType.class).item(TaskType.F_WAITING_REASON).eq(TaskWaitingReasonType.OTHER).buildFilter();
         ObjectFilter filter3 = prismContext.queryFactory().createAnd(filter1, filter2);
 
@@ -923,9 +922,9 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         PrismObject<TaskType> childTask1Prism = addObjectFromFile(taskFilename("-child1"));
         PrismObject<TaskType> childTask2Prism = addObjectFromFile(taskFilename("-child2"));
 
-        AssertJUnit.assertEquals(TaskExecutionStatusType.WAITING, parentTaskPrism.asObjectable().getExecutionStatus());
-        AssertJUnit.assertEquals(TaskExecutionStatusType.SUSPENDED, childTask1Prism.asObjectable().getExecutionStatus());
-        AssertJUnit.assertEquals(TaskExecutionStatusType.SUSPENDED, childTask2Prism.asObjectable().getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStateType.WAITING, parentTaskPrism.asObjectable().getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStateType.SUSPENDED, childTask1Prism.asObjectable().getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStateType.SUSPENDED, childTask2Prism.asObjectable().getExecutionStatus());
 
         Task parentTask = taskManager.createTaskInstance(parentTaskPrism, result);
         Task childTask1 = taskManager.createTaskInstance(childTask1Prism, result);
@@ -984,7 +983,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         task.refresh(result);
         System.out.println("After initial wait: " + task.debugDump());
 
-        assertEquals("task is not RUNNABLE", TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
+        assertEquals("task is not RUNNABLE", TaskExecutionStateType.RUNNABLE, task.getExecutionState());
         assertNull("task was started", task.getLastRunStartTimestamp());
         assertEquals("task was achieved some progress", 0L, task.getProgress());
 
@@ -997,7 +996,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         task.refresh(result);
         System.out.println("After refresh: " + task.debugDump());
 
-        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStateType.RUNNABLE, task.getExecutionState());
         AssertJUnit.assertNotNull("LastRunStartTimestamp is null", task.getLastRunStartTimestamp());
         assertFalse("LastRunStartTimestamp is 0", task.getLastRunStartTimestamp() == 0);
         AssertJUnit.assertNotNull(task.getLastRunFinishTimestamp());
@@ -1009,7 +1008,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         boolean stopped = taskManager.suspendTaskQuietly(task, 10000L, result);
         task.refresh(result);
         AssertJUnit.assertTrue("Task is not stopped", stopped);
-        AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
+        AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStateType.SUSPENDED, task.getExecutionState());
     }
 
     @Test
@@ -1031,7 +1030,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         Collection<? extends RunningTask> subtasks = parallelTaskHandler.getLastTaskExecuted().getLightweightAsynchronousSubtasks();
         assertEquals("Wrong number of subtasks", MockParallelTaskHandler.NUM_SUBTASKS, subtasks.size());
         for (RunningTask subtask : subtasks) {
-            assertEquals("Wrong subtask state", TaskExecutionStatus.CLOSED, subtask.getExecutionStatus());
+            assertEquals("Wrong subtask state", TaskExecutionStateType.CLOSED, subtask.getExecutionState());
             MockParallelTaskHandler.MyLightweightTaskHandler handler = (MockParallelTaskHandler.MyLightweightTaskHandler) subtask.getLightweightTaskHandler();
             assertTrue("Handler has not run", handler.hasRun());
             assertTrue("Handler has not exited", handler.hasExited());
@@ -1051,7 +1050,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
                     stats.getIterativeTaskInformation().getTotalSuccessCount() : null;
             System.out.println((System.currentTimeMillis() - start) + ": subtasks: " + task.getSubtaskRef().size() +
                     ", progress = " + task.getProgress() + ", objects = " + totalSuccessCount);
-            if (task.getExecutionStatus() != TaskExecutionStatusType.RUNNABLE) {
+            if (task.getExecutionStatus() != TaskExecutionStateType.RUNNABLE) {
                 System.out.println("Done. Status = " + task.getExecutionStatus());
                 break;
             }
@@ -1074,7 +1073,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         task.refresh(result);
         System.out.println("After refresh (task was started; and it should run now): " + task.debugDump());
 
-        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStateType.RUNNABLE, task.getExecutionState());
 
         // check the thread
         List<JobExecutionContext> jobExecutionContexts = taskManager.getExecutionManager().getQuartzScheduler().getCurrentlyExecutingJobs();
@@ -1096,12 +1095,12 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         boolean stopped = taskManager.suspendTaskQuietly(task, 10000L, result);
         task.refresh(result);
         AssertJUnit.assertTrue("Task is not stopped", stopped);
-        AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
+        AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStateType.SUSPENDED, task.getExecutionState());
 
         Collection<? extends RunningTask> subtasks = parallelTaskHandler.getLastTaskExecuted().getLightweightAsynchronousSubtasks();
         assertEquals("Wrong number of subtasks", MockParallelTaskHandler.NUM_SUBTASKS, subtasks.size());
         for (RunningTask subtask : subtasks) {
-            assertEquals("Wrong subtask state", TaskExecutionStatus.CLOSED, subtask.getExecutionStatus());
+            assertEquals("Wrong subtask state", TaskExecutionStateType.CLOSED, subtask.getExecutionState());
             MockParallelTaskHandler.MyLightweightTaskHandler handler = (MockParallelTaskHandler.MyLightweightTaskHandler) subtask.getLightweightTaskHandler();
             assertTrue("Handler has not run", handler.hasRun());
             assertTrue("Handler has not exited", handler.hasExited());
@@ -1334,9 +1333,9 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
             return;
         }
 
-        logger.info("Check leftovers: Task " + oid + " state: " + t.getExecutionStatus());
+        logger.info("Check leftovers: Task " + oid + " state: " + t.getExecutionState());
 
-        if (t.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+        if (t.getExecutionState() == TaskExecutionStateType.RUNNABLE) {
             logger.info("Leftover task: {}", t);
             leftovers.add(t.getOid());
         }

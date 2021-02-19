@@ -34,7 +34,6 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
@@ -166,7 +165,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
         waitFor("Waiting for task to close", () -> {
             Task task = taskManager.getTaskWithResult(taskOid, result);
             IntegrationTestTools.display("Task while waiting for it to close", task);
-            return task.getExecutionStatus() == TaskExecutionStatus.CLOSED;
+            return task.getExecutionState() == TaskExecutionStateType.CLOSED;
         }, timeoutInterval, sleepInterval);
     }
 
@@ -176,7 +175,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
         waitFor("Waiting for task to become runnable", () -> {
             Task task = taskManager.getTaskWithResult(taskOid, result);
             IntegrationTestTools.display("Task while waiting for it to become runnable", task);
-            return task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE;
+            return task.getExecutionState() == TaskExecutionStateType.RUNNABLE || task.getExecutionState() == TaskExecutionStateType.RUNNING; // todo scheduled state
         }, timeoutInterval, sleepInterval);
     }
 
@@ -186,7 +185,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
         waitFor("Waiting for task manager to execute the task", () -> {
             Task task = taskManager.getTaskWithResult(taskOid, result);
             displayValue("Task tree while waiting", TaskDebugUtil.dumpTaskTree(task, result));
-            if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
+            if (task.getExecutionState() == TaskExecutionStateType.CLOSED) {
                 display("Task is closed, finishing waiting: " + task);
                 return true;
             }

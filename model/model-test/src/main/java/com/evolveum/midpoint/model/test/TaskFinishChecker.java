@@ -9,15 +9,14 @@ package com.evolveum.midpoint.model.test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.Checker;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 
 import java.util.function.Consumer;
 
@@ -73,7 +72,7 @@ public class TaskFinishChecker implements Checker {
         if (verbose) {
             display("Task", freshTask);
         }
-        if (freshTask.getExecutionStatus() == TaskExecutionStatus.WAITING) {
+        if (freshTask.getExecutionState() == TaskExecutionStateType.WAITING) { // todo switch to scheduling state
             return false;
         } else if (isError(result, checkSubresult)) {
             if (errorOk) {
@@ -90,8 +89,8 @@ public class TaskFinishChecker implements Checker {
 
     private boolean executionStatusIsDone() {
         return !shouldCheckAlsoExecutionStatus() ||
-                freshTask.getExecutionStatus() == TaskExecutionStatus.CLOSED ||
-                freshTask.getExecutionStatus() == TaskExecutionStatus.SUSPENDED;
+                freshTask.getExecutionState() == TaskExecutionStateType.CLOSED ||
+                freshTask.getExecutionState() == TaskExecutionStateType.SUSPENDED;
     }
 
     private boolean shouldCheckAlsoExecutionStatus() {

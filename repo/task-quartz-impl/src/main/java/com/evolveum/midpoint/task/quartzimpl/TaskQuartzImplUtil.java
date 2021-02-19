@@ -20,10 +20,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
+
 import org.quartz.*;
 
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 
@@ -59,7 +60,7 @@ public class TaskQuartzImplUtil {
 
     public static Trigger createTriggerForTask(Task task) throws ParseException {
 
-        if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
+        if (task.getExecutionState() != TaskExecutionStateType.RUNNABLE) {
             return null;            // no triggers for such tasks
         }
 

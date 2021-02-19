@@ -9,13 +9,13 @@ package com.evolveum.midpoint.repo.sqale.qmodel.task;
 import java.sql.Types;
 import java.time.Instant;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonType;
 
 /**
@@ -75,8 +75,8 @@ public class QTask extends QObject<MTask> {
     public final NumberPath<Integer> binding = createInteger("binding", BINDING);
     public final StringPath category = createString("category", CATEGORY);
     public final DateTimePath<Instant> completionTimestamp = createInstant("completionTimestamp", COMPLETION_TIMESTAMP);
-    public final EnumPath<TaskExecutionStatusType> executionStatus =
-            createEnum("executionStatus", TaskExecutionStatusType.class, EXECUTION_STATUS);
+    public final EnumPath<TaskExecutionStateType> executionStatus =
+            createEnum("executionStatus", TaskExecutionStateType.class, EXECUTION_STATUS);
     public final ArrayPath<byte[], Byte> fullResult = createByteArray("fullResult", FULL_RESULT);
     public final NumberPath<Integer> handlerUriId = createInteger("handlerUriId", HANDLER_URI_ID);
     public final DateTimePath<Instant> lastRunFinishTimestamp = createInstant("lastRunFinishTimestamp", LAST_RUN_FINISH_TIMESTAMP);

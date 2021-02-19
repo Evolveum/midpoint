@@ -10,7 +10,7 @@ import java.time.Instant;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonType;
 
 /**
@@ -21,7 +21,7 @@ public class MTask extends MObject {
     public Integer binding;
     public String category;
     public Instant completionTimestamp;
-    public TaskExecutionStatusType executionStatus;
+    public TaskExecutionStateType executionStatus;
     public byte[] fullResult;
     public Integer handlerUriId;
     public Instant lastRunFinishTimestamp;

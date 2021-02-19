@@ -578,8 +578,8 @@ public class ExecutionManager {
             return null;
         }
         NodeType node = localNode.clone().asObjectable();
-        node.setExecutionStatus(localNodeManager.getLocalNodeExecutionStatus());
-        node.setErrorStatus(taskManager.getLocalNodeErrorStatus());
+        node.setExecutionState(localNodeManager.getLocalNodeExecutionStatus());
+        node.setErrorState(taskManager.getLocalNodeErrorStatus());
         return node;
     }
 
@@ -590,7 +590,7 @@ public class ExecutionManager {
     public void reRunClosedTask(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "reRunClosedTask");
 
-        if (task.getExecutionStatus() != TaskExecutionStatus.CLOSED) {
+        if (task.getExecutionState() != TaskExecutionStateType.CLOSED) {
             String message = "Task " + task + " cannot be re-run, because it is not in CLOSED state.";
             result.recordFatalError(message);
             LOGGER.error(message);
@@ -605,7 +605,7 @@ public class ExecutionManager {
         }
         taskSynchronizer.synchronizeTask(task, result);        // this should remove any triggers
         ((InternalTaskInterface) task).setRecreateQuartzTrigger(true);
-        ((InternalTaskInterface) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNABLE, result);  // this will create the trigger
+        ((InternalTaskInterface) task).setExecutionStatusImmediate(TaskExecutionStateType.RUNNABLE, result);  // this will create the trigger
         result.recordSuccess();
 
         // note that if scheduling (not executes before/after) prevents the task from running, it will not run!
@@ -614,7 +614,7 @@ public class ExecutionManager {
     public void scheduleRunnableTaskNow(Task task, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "scheduleRunnableTaskNow");
 
-        if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
+        if (task.getExecutionState() != TaskExecutionStateType.RUNNABLE) {
             String message = "Task " + task + " cannot be scheduled, because it is not in RUNNABLE state.";
             result.recordFatalError(message);
             LOGGER.error(message);
@@ -639,7 +639,7 @@ public class ExecutionManager {
     public void scheduleWaitingTaskNow(Task task, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "scheduleWaitingTaskNow");
 
-        if (task.getExecutionStatus() != TaskExecutionStatus.WAITING) {
+        if (task.getExecutionState() != TaskExecutionStateType.WAITING) {
             String message = "Task " + task + " cannot be scheduled as waiting task, because it is not in WAITING state.";
             result.recordFatalError(message);
             LOGGER.error(message);
@@ -650,7 +650,7 @@ public class ExecutionManager {
             if (!quartzScheduler.checkExists(TaskQuartzImplUtil.createJobKeyForTask(task))) {
                 quartzScheduler.addJob(TaskQuartzImplUtil.createJobDetailForTask(task), false);
             }
-            ((InternalTaskInterface) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNABLE, TaskExecutionStatusType.WAITING, parentResult);
+            ((InternalTaskInterface) task).setExecutionStatusImmediate(TaskExecutionStateType.RUNNABLE, TaskExecutionStateType.WAITING, parentResult);
         } catch (SchedulerException | ObjectNotFoundException | SchemaException | PreconditionViolationException e) {
             String message = "Waiting task " + task + " cannot be scheduled: " + e.getMessage();
             result.recordFatalError(message, e);
@@ -796,7 +796,7 @@ public class ExecutionManager {
     }
 
     private void addTaskInfo(StringBuilder output, RunningTask localTask, Thread thread) {
-        output.append("Execution state: ").append(localTask.getExecutionStatus()).append("\n");
+        output.append("Execution state: ").append(localTask.getExecutionState()).append("\n");
         output.append("Progress: ").append(localTask.getProgress());
         if (localTask.getExpectedTotal() != null) {
             output.append(" of ").append(localTask.getExpectedTotal());

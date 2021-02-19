@@ -19,7 +19,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import org.quartz.Scheduler;
 import org.quartz.core.jmx.QuartzSchedulerMBean;
@@ -66,7 +66,7 @@ public class JmxConnector {
                 LoggingUtils
                         .logUnexpectedException(LOGGER, "Cannot connect to the remote node {} at {}", e, nodeIdentifier, address);
                 result.recordWarning("Cannot connect to the remote node " + nodeIdentifier + " at " + address + ": " + e.getMessage(), e);
-                nodeInfo.setExecutionStatus(NodeExecutionStatusType.COMMUNICATION_ERROR);
+                nodeInfo.setExecutionState(NodeExecutionStateType.COMMUNICATION_ERROR);
                 nodeInfo.setConnectionResult(result.createOperationResultType());
                 info.addNodeInfo(nodeInfo);
                 return;
@@ -95,11 +95,11 @@ public class JmxConnector {
                 LOGGER.trace(" - scheduler found = " + (mbeanProxy != null) + ", running = " + running + ", shutdown = " + down);
 
                 if (down) {
-                    nodeInfo.setExecutionStatus(NodeExecutionStatusType.ERROR);         // this is a mark of error situation (we expect that during ordinary shutdown the node quickly goes down so there is little probability of getting this status on that occasion)
+                    nodeInfo.setExecutionState(NodeExecutionStateType.ERROR);         // this is a mark of error situation (we expect that during ordinary shutdown the node quickly goes down so there is little probability of getting this status on that occasion)
                 } else if (running) {
-                    nodeInfo.setExecutionStatus(NodeExecutionStatusType.RUNNING);
+                    nodeInfo.setExecutionState(NodeExecutionStateType.RUNNING);
                 } else {
-                    nodeInfo.setExecutionStatus(NodeExecutionStatusType.PAUSED);
+                    nodeInfo.setExecutionState(NodeExecutionStateType.PAUSED);
                 }
 
                 List<ClusterStatusInformation.TaskInfo> taskInfoList = new ArrayList<>();
@@ -113,13 +113,13 @@ public class JmxConnector {
                 }
 
                 if (result.isUnknown()) {
-                    result.recordStatus(OperationResultStatus.SUCCESS, "Node " + nodeIdentifier + ": status = " + nodeInfo.getExecutionStatus() + ", # of running tasks: " + taskInfoList.size());
+                    result.recordStatus(OperationResultStatus.SUCCESS, "Node " + nodeIdentifier + ": status = " + nodeInfo.getExecutionState() + ", # of running tasks: " + taskInfoList.size());
                 }
                 info.addNodeAndTaskInfo(nodeInfo, taskInfoList);
             } catch (Exception e) {   // unfortunately, mbeanProxy.getCurrentlyExecutingJobs is declared to throw an Exception
                 LoggingUtils.logUnexpectedException(LOGGER, "Cannot get information from the remote node {} at {}", e, nodeIdentifier, address);
                 result.recordWarning("Cannot get information from the remote node " + nodeIdentifier + " at " + address + ": " + e.getMessage(), e);
-                nodeInfo.setExecutionStatus(NodeExecutionStatusType.COMMUNICATION_ERROR);
+                nodeInfo.setExecutionState(NodeExecutionStateType.COMMUNICATION_ERROR);
                 nodeInfo.setConnectionResult(result.createOperationResultType());
                 info.addNodeInfo(nodeInfo);
             }
