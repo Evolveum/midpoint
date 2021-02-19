@@ -90,6 +90,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+//TODO: should be really reviewed
 public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extends BasePanel<R> {
 
     private static final long serialVersionUID = 1L;
@@ -261,7 +262,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
         PageBase pageBase = getPageBase();
         //TODO QName defines a relation value which will be used for new member creation
-        MainObjectListPanel<ObjectType> childrenListPanel = new MainObjectListPanel<ObjectType>(
+        MainObjectListPanel<ObjectType> childrenListPanel = new MainObjectListPanel<>(
                 ID_MEMBER_TABLE, defaultObjectTypeClass, getSearchOptions()) {
 
             private static final long serialVersionUID = 1L;

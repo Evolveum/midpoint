@@ -61,11 +61,6 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     private List<T> availableData;
     private ObjectQuery query;
 
-    /**
-     * After this amount of time cached size will be removed from cache and replaced by new value
-     * (time in seconds).
-     */
-    private int cacheCleanupThreshold = 60;
     private boolean exportSize = false;
     private long exportLimit = -1;
 
@@ -91,11 +86,6 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     protected ModelService getModel() {
         MidPointApplication application = MidPointApplication.get();
         return application.getModel();
-    }
-
-    protected RepositoryService getRepositoryService() {
-        MidPointApplication application = MidPointApplication.get();
-        return application.getRepositoryService();
     }
 
     protected TaskManager getTaskManager() {
@@ -126,29 +116,14 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return application.getRelationRegistry();
     }
 
-    protected TaskService getTaskService() {
-        MidPointApplication application = MidPointApplication.get();
-        return application.getTaskService();
-    }
-
     protected ModelInteractionService getModelInteractionService() {
         MidPointApplication application = MidPointApplication.get();
         return application.getModelInteractionService();
     }
 
-    protected WorkflowService getWorkflowService() {
-        MidPointApplication application = MidPointApplication.get();
-        return application.getWorkflowService();
-    }
-
     protected ModelAuditService getAuditService() {
         MidPointApplication application = MidPointApplication.get();
         return application.getAuditService();
-    }
-
-    protected WorkflowManager getWorkflowManager() {
-        MidPointApplication application = MidPointApplication.get();
-        return application.getWorkflowManager();
     }
 
     public List<T> getAvailableData() {
@@ -191,12 +166,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
      * @return By defaults it returns true.
      */
     public IModel<Boolean> isSizeAvailableModel() {
-        return new IModel<Boolean>() {
-            @Override
-            public Boolean getObject() {
-                return true;
-            }
-        };
+        return (IModel<Boolean>) () -> true;
     }
 
     protected boolean checkOrderingSettings() {
@@ -267,15 +237,6 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         getAvailableData().clear();
     }
 
-    public int getCacheCleanupThreshold() {
-        return cacheCleanupThreshold;
-    }
-
-    public void setCacheCleanupThreshold(int cacheCleanupThreshold) {
-        Validate.isTrue(cacheCleanupThreshold > 0, "Cache cleanup threshold must be bigger than zero.");
-        this.cacheCleanupThreshold = cacheCleanupThreshold;
-    }
-
     @Override
     public Iterator<? extends T> iterator(long first, long count) {
         Iterator<? extends T> iterator = internalIterator(first, count);
@@ -309,6 +270,11 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         CachedSize cachedSize = getCachedSize(cache);
         if (cachedSize != null) {
             long timestamp = cachedSize.getTimestamp();
+            /*
+              After this amount of time cached size will be removed from cache and replaced by new value
+              (time in seconds).
+             */
+            int cacheCleanupThreshold = 60;
             if (System.currentTimeMillis() - timestamp > cacheCleanupThreshold * 1000) {
                 //recreate
                 size = internalSize();
@@ -389,10 +355,6 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         } catch (Exception ex) {
             LOGGER.error("Unable to get default export size limit, ", ex);
         }
-    }
-
-    public boolean isExportSize() {
-        return exportSize;
     }
 
     public void setExportSize(boolean exportSize) {

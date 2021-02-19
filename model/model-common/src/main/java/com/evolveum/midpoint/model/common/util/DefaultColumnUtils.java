@@ -13,38 +13,31 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
-
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.task.api.TaskUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Column related utilities shared by reporting and GUI.
  */
 public class DefaultColumnUtils {
-
-    private static final Trace LOGGER = TraceManager.getTrace(DefaultColumnUtils.class);
 
     // Maps need to preserve iteration order (like LinkedHashMap)
     private static final Map<Class<? extends Containerable>, List<ColumnWrapper>> COLUMNS_DEF;
@@ -228,7 +221,7 @@ public class DefaultColumnUtils {
 
     public static  String processSpecialColumn(
             ItemPath itemPath, PrismContainer<? extends Containerable> object, LocalizationService localization) {
-        @Nullable Class type = object.getCompileTimeClass();
+        @Nullable Class<? extends Containerable> type = object.getCompileTimeClass();
         if (type == null || itemPath == null) {
             return null;
         }
@@ -276,18 +269,16 @@ public class DefaultColumnUtils {
     }
 
     public static boolean isSpecialColumn(ItemPath itemPath, PrismContainer<? extends Containerable> object) {
-        @Nullable Class type = object.getCompileTimeClass();
+        @Nullable Class<? extends Containerable> type = object.getCompileTimeClass();
         if (type == null || itemPath == null) {
             return false;
         }
         if (type.isAssignableFrom(TaskType.class)) {
-            if (itemPath.equivalent(TaskType.F_COMPLETION_TIMESTAMP)
+            return itemPath.equivalent(TaskType.F_COMPLETION_TIMESTAMP)
                     || itemPath.equivalent(TaskType.F_SCHEDULE)
                     || itemPath.equivalent(ItemPath.create(TaskType.F_OPERATION_STATS, OperationStatsType.F_ITERATIVE_TASK_INFORMATION,
                     IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT))
-                    || itemPath.equivalent(TaskType.F_PROGRESS)) {
-                return true;
-            }
+                    || itemPath.equivalent(TaskType.F_PROGRESS);
         } else if (type.isAssignableFrom(AuditEventRecordType.class)) {
             for (AuditEventRecordCustomColumnPropertyType customColumn : ((AuditEventRecordType)object.getValue().asContainerable()).getCustomColumnProperty()) {
                 if (customColumn.getName().equals(itemPath.toString())) {

@@ -93,7 +93,7 @@ public class PageAttorneySelection extends PageBase {
         add(mainForm);
 
 
-        ObjectListPanel<UserType> table = new ObjectListPanel<UserType>(ID_TABLE, UserType.class, Collections.emptyList()) {
+        ObjectListPanel<UserType> table = new ObjectListPanel<>(ID_TABLE, UserType.class, Collections.emptyList()) {
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
@@ -107,7 +107,7 @@ public class PageAttorneySelection extends PageBase {
 
             @Override
             protected IColumn<SelectableBean<UserType>, String> createNameColumn(IModel<String> displayModel, String itemPath, ExpressionType expression) {
-                return new ObjectNameColumn<UserType>(createStringResource("ObjectType.name")) {
+                return new ObjectNameColumn<>(createStringResource("ObjectType.name")) {
 
                     private static final long serialVersionUID = 1L;
 

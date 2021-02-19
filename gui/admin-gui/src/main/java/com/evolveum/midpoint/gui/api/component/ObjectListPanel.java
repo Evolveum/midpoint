@@ -8,10 +8,7 @@ package com.evolveum.midpoint.gui.api.component;
 
 import static java.util.Collections.singleton;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.function.Supplier;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -128,10 +125,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
             @Override
             protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
                 List<ObjectOrdering> customOrdering = createCustomOrdering();
-                if (customOrdering != null) {
-                    return customOrdering;
-                }
-                return super.createObjectOrderings(sortParam);
+                return Objects.requireNonNullElseGet(customOrdering, () -> super.createObjectOrderings(sortParam));
             }
 
             @Override

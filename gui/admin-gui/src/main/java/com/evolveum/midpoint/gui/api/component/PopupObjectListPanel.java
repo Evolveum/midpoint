@@ -10,46 +10,25 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.data.column.*;
-
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
-import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectListPanel<O> {
     private static final long serialVersionUID = 1L;
-
-    private static final Trace LOGGER = TraceManager.getTrace(PopupObjectListPanel.class);
 
     private boolean multiselect;
 
@@ -70,7 +49,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     @Override
     protected IColumn<SelectableBean<O>, String> createCheckboxColumn() {
         if (isMultiselect()) {
-            return new CheckBoxHeaderColumn<SelectableBean<O>>() {
+            return new CheckBoxHeaderColumn<>() {
                 private static final long serialVersionUID = 1L;
 
                 @Override
@@ -107,9 +86,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 
     @Override
     protected List<IColumn<SelectableBean<O>, String>> createDefaultColumns() {
-        List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
-        columns.addAll(ColumnUtils.getDefaultColumns(getType(), getPageBase()));
-        return columns;
+        return new ArrayList<>(ColumnUtils.getDefaultColumns(getType(), getPageBase()));
     }
 
     protected void onSelectPerformed(AjaxRequestTarget target, O object) {

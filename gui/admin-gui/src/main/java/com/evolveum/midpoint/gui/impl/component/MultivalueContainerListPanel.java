@@ -9,49 +9,44 @@ package com.evolveum.midpoint.gui.impl.component;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
-import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
-
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMainPanel;
-import com.evolveum.midpoint.web.component.search.*;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
+import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMainPanel;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 
 /**
  * @author skublik
@@ -69,7 +64,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     @Override
     protected Search createSearch(Class<C> type) {
         PrismContainerDefinition<C> containerDefinition = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(getType());
-        return SearchFactory.createContainerSearch(new ContainerTypeSearchItem<C>(new SearchValue(type, containerDefinition.getDisplayName())),
+        return SearchFactory.createContainerSearch(new ContainerTypeSearchItem<>(new SearchValue<>(type, containerDefinition.getDisplayName())),
                 null, initSearchableItems(containerDefinition), getPageBase(), false);
     }
 
@@ -83,8 +78,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
     @Override
     protected ISelectableDataProvider<C, PrismContainerValueWrapper<C>> createProvider() {
-        MultivalueContainerListDataProvider<C> containersProvider = new MultivalueContainerListDataProvider<C>(this, getSearchModel(), loadValuesModel()) {
-            private static final long serialVersionUID = 1L;
+        return new MultivalueContainerListDataProvider<>(MultivalueContainerListPanel.this, getSearchModel(), loadValuesModel()) {
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
@@ -102,7 +96,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
                 return MultivalueContainerListPanel.this.getPageStorage();
             }
         };
-        return containersProvider;
     }
 
     @Override
@@ -166,42 +159,16 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", createStringResource("MainObjectListPanel.newObject").getString());
     }
 
-    private ObjectQuery getQuery(LoadableModel<Search> searchModel) {
-        ObjectQuery query = null;
-        if (searchModel != null) {
-            Search search = searchModel.getObject();
-            if (search != null) {
-                query = search.createObjectQuery(getPageBase());
-            }
-        }
-        return query;
-    }
-
     protected List<PrismContainerValueWrapper<C>> postSearch(List<PrismContainerValueWrapper<C>> items){
         return items;
     }
-
-//    private ObjectQuery createProviderQuery(LoadableModel<Search> searchModel) {
-//        ObjectQuery searchQuery = isSearchVisible() ? getQuery(searchModel) : null;
-//
-//        ObjectQuery customQuery = createQuery();
-//
-//        if (searchQuery != null && searchQuery.getFilter() != null) {
-//            if (customQuery != null && customQuery.getFilter() != null) {
-//                return getPrismContext().queryFactory().createQuery(getPrismContext().queryFactory().createAnd(customQuery.getFilter(), searchQuery.getFilter()));
-//            }
-//            return searchQuery;
-//
-//        }
-//        return customQuery;
-//    }
 
     protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc){
     }
 
     public List<PrismContainerValueWrapper<C>> getSelectedItems() {
         BoxedTablePanel<PrismContainerValueWrapper<C>> itemsTable = getTable();
-        ISelectableDataProvider<C, PrismContainerValueWrapper<C>> itemsProvider = (ISelectableDataProvider<C, PrismContainerValueWrapper<C>>) itemsTable.
+        @SuppressWarnings("unchecked") ISelectableDataProvider<C, PrismContainerValueWrapper<C>> itemsProvider = (ISelectableDataProvider<C, PrismContainerValueWrapper<C>>) itemsTable.
                 getDataTable().getDataProvider();
         return itemsProvider.getSelectedObjects();
     }
@@ -214,14 +181,12 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     }
 
     public List<PrismContainerValueWrapper<C>> getPerformedSelectedItems(IModel<PrismContainerValueWrapper<C>> rowModel) {
-        List<PrismContainerValueWrapper<C>> performedItems = new ArrayList<PrismContainerValueWrapper<C>>();
+        List<PrismContainerValueWrapper<C>> performedItems = new ArrayList<>();
         List<PrismContainerValueWrapper<C>> listItems = getSelectedItems();
         if((listItems!= null && !listItems.isEmpty()) || rowModel != null) {
             if(rowModel == null) {
                 performedItems.addAll(listItems);
-                listItems.forEach(itemConfigurationTypeContainerValueWrapper -> {
-                    itemConfigurationTypeContainerValueWrapper.setSelected(false);
-                });
+                listItems.forEach(itemConfigurationTypeContainerValueWrapper -> itemConfigurationTypeContainerValueWrapper.setSelected(false));
             } else {
                 performedItems.add(rowModel.getObject());
                 rowModel.getObject().setSelected(false);
@@ -282,7 +247,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     }
 
     public ColumnMenuAction<PrismContainerValueWrapper<C>> createDeleteColumnAction() {
-        return new ColumnMenuAction<PrismContainerValueWrapper<C>>() {
+        return new ColumnMenuAction<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -299,7 +264,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     }
 
     public ColumnMenuAction<PrismContainerValueWrapper<C>> createEditColumnAction() {
-        return new ColumnMenuAction<PrismContainerValueWrapper<C>>() {
+        return new ColumnMenuAction<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -317,8 +282,8 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         }
         toDelete.forEach(value -> {
             if (value.getStatus() == ValueStatus.ADDED) {
-                PrismContainerWrapper<C> wrapper = (PrismContainerWrapper<C>) (getContainerModel() != null ?
-                        getContainerModel().getObject() : null);
+                PrismContainerWrapper<C> wrapper = getContainerModel() != null ?
+                        getContainerModel().getObject() : null;
                 if (wrapper != null) {
                     wrapper.getValues().remove(value);
                 }
@@ -338,7 +303,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     }
 
     protected IModel<String> createStyleClassModelForNewObjectIcon() {
-        return new IModel<String>() {
+        return new IModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override

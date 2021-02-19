@@ -14,7 +14,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -30,17 +29,8 @@ import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -54,9 +44,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
-import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * @author katkav
@@ -107,7 +95,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         }
 
         ObjectReferenceType ref = collectionView.getCollection().getCollectionRef();
-        return Arrays.asList(ref);
+        return Collections.singletonList(ref);
     }
 
     protected List<MultiFunctinalButtonDto> loadButtonDescriptions() {
@@ -178,7 +166,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 return getNewObjectGenericButtonVisibility();
             }
         };
-        createNewObjectButton.add(new VisibleBehaviour(() -> isCreateNewObjectEnabled()));
+        createNewObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectEnabled));
         createNewObjectButton.add(AttributeAppender.append("class", "btn-margin-right"));
         buttonsList.add(createNewObjectButton);
 
@@ -381,11 +369,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             return false;
         }
 
-        if (!QNameUtil.match(ArchetypeType.COMPLEX_TYPE, collectionRef.getType())) {
-            return false;
-        }
-
-        return true;
+        return QNameUtil.match(ArchetypeType.COMPLEX_TYPE, collectionRef.getType());
     }
 
     protected DisplayType getNewObjectButtonSpecialDisplayType() {

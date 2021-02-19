@@ -71,8 +71,8 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 
         add(details);
 
-        ListView<PrismContainerValueWrapper<C>> itemDetailsView = new ListView<PrismContainerValueWrapper<C>>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEMS_DETAILS,
-                new IModel<List<PrismContainerValueWrapper<C>>>() {
+        ListView<PrismContainerValueWrapper<C>> itemDetailsView = new ListView<>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEMS_DETAILS,
+                new IModel<>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -97,7 +97,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
         details.add(itemDetailsView);
 
         WebMarkupContainer buttonsContainer = new WebMarkupContainer(ID_BUTTONS_PANEL);
-        buttonsContainer.add(new VisibleBehaviour(() -> isButtonPanelVisible()));
+        buttonsContainer.add(new VisibleBehaviour(this::isButtonPanelVisible));
         details.add(buttonsContainer);
 
         AjaxButton doneButton = new AjaxButton(ID_DONE_BUTTON,
