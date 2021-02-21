@@ -206,7 +206,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
 
     public int executeCount(Connection conn) {
         return (int) sqlQuery.clone(conn)
-                .select(root())
+                // select not needed here, it would only initialize projection unnecessarily
                 .fetchCount();
     }
 

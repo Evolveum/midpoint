@@ -159,7 +159,7 @@ public class RootXNodeImpl extends XNodeImpl implements RootXNode {
     public MapXNodeImpl toMapXNode() {
         MapXNodeImpl map = new MapXNodeImpl(namespaceContext());
         map.put(rootElementName, subnode);
-        if (subnode.getTypeQName() == null) {
+        if (subnode.getTypeQName() == null && !subnode.isImmutable()) {
             subnode.setTypeQName(getTypeQName());
         }
         return map;

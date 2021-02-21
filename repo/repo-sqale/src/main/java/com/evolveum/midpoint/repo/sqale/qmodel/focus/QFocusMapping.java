@@ -16,6 +16,7 @@ import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.TimestampItemFilterProcessor;
@@ -81,6 +82,10 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
                         TimestampItemFilterProcessor.mapper(path(q -> q.validityChangeTimestamp)))
                 .addItemMapping(ActivationType.F_ARCHIVE_TIMESTAMP,
                         TimestampItemFilterProcessor.mapper(path(q -> q.archiveTimestamp)));
+
+        addRefMapping(F_DELEGATED_REF, QReferenceMapping.INSTANCE_DELEGATED);
+        addRefMapping(F_PERSONA_REF, QReferenceMapping.INSTANCE_PERSONA);
+        addRefMapping(F_LINK_REF, QReferenceMapping.INSTANCE_USER_ACCOUNT);
     }
 
     @Override

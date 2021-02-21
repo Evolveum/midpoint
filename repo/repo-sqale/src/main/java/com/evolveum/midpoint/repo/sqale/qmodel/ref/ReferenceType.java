@@ -35,6 +35,7 @@ public enum ReferenceType {
     DELEGATED(QReferenceMapping.INSTANCE_DELEGATED,
             FocusType.class, FocusType.F_DELEGATED_REF),
 
+    // TODO map in QObjectTemplate when it exists
     INCLUDE(QReferenceMapping.INSTANCE_INCLUDE,
             ObjectTemplateType.class, ObjectTemplateType.F_INCLUDE_REF),
 
@@ -47,6 +48,7 @@ public enum ReferenceType {
     PERSONA(QReferenceMapping.INSTANCE_PERSONA,
             FocusType.class, FocusType.F_PERSONA_REF),
 
+    // TODO map in QResource when it exists
     RESOURCE_BUSINESS_CONFIGURATION_APPROVER(
             QReferenceMapping.INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER,
             ResourceType.class, ResourceBusinessConfigurationType.F_APPROVER_REF),
@@ -61,7 +63,7 @@ public enum ReferenceType {
     private final Class<? extends ObjectType> schemaType;
     private final QName itemName;
 
-    <T extends QReference> ReferenceType(
+    ReferenceType(
             @NotNull QReferenceMapping qReferenceMapping,
             @NotNull Class<? extends ObjectType> schemaType,
             @NotNull QName itemName) {
