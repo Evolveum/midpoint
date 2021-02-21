@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (c) 2018-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -96,6 +96,10 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
                 return MultivalueContainerListPanel.this.getPageStorage();
             }
         };
+    }
+
+    protected ObjectQuery getCustomizeContentQuery() {
+        return null;
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -22,7 +22,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -50,7 +49,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -75,7 +73,6 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.*;
-import com.evolveum.midpoint.web.component.util.ContainerListDataProvider;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -722,41 +719,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return null;
     }
 
-    //TODO: make this abstract.. it seems default impl isn't used anywhere
-    protected ISelectableDataProvider<C, PO> createProvider() {
-        ContainerListDataProvider<C> provider = new ContainerListDataProvider<>(this,
-                getSearchModel(), createOptions()) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected PageStorage getPageStorage() {
-                return ContainerableListPanel.this.getPageStorage();
-            }
-
-            @Override
-            protected ObjectQuery getCustomizeContentQuery() {
-                return ContainerableListPanel.this.getCustomizeContentQuery();
-            }
-
-            @NotNull
-            @Override
-            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-                List<ObjectOrdering> customOrdering = createCustomOrdering();
-                return Objects.requireNonNullElseGet(customOrdering, () -> super.createObjectOrderings(sortParam));
-            }
-
-            @Override
-            public boolean isOrderingDisabled() {
-                CompiledObjectCollectionView guiObjectListViewType = getObjectCollectionView();
-                if (guiObjectListViewType != null && guiObjectListViewType.isDisableSorting() != null) {
-                    return guiObjectListViewType.isDisableSorting();
-                }
-                return false;
-            }
-        };
-        setDefaultSorting(provider);
-        return (ISelectableDataProvider<C, PO>) provider;
-    }
+    protected abstract ISelectableDataProvider<C, PO> createProvider();
 
     public int getSelectedObjectsCount(){
         List<PO> selectedList = getSelectedObjects();
@@ -795,10 +758,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected List<C> getPreselectedObjectList(){
-        return null;
-    }
-
-    protected List<ObjectOrdering> createCustomOrdering() {
         return null;
     }
 
@@ -986,14 +945,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     public void clearCache() {
         WebComponentUtil.clearProviderCache(getDataProvider());
-    }
-
-    protected ObjectQuery getCustomizeContentQuery() {
-        return null;
-    }
-
-    protected void setDefaultSorting(BaseSortableDataProvider provider){
-        //should be overrided if needed
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
