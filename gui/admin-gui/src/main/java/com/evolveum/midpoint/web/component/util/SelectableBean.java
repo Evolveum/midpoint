@@ -6,13 +6,12 @@
  */
 package com.evolveum.midpoint.web.component.util;
 
+import java.io.Serializable;
+
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-
-import java.io.Serializable;
 
 public interface SelectableBean<T extends Serializable> extends Serializable, DebugDumpable {
 

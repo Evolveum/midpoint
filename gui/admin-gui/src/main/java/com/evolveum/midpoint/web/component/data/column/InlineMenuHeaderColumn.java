@@ -13,6 +13,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -24,7 +25,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class InlineMenuHeaderColumn<T extends InlineMenuable> extends InlineMenuColumn<T> {
+public class InlineMenuHeaderColumn<T> extends AbstractColumn<T, String> {
 
     private IModel<List<InlineMenuItem>> menuItems;
 
