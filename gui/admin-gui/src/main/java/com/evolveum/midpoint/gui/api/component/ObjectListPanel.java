@@ -121,13 +121,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
                 return bean;
             }
 
-            @NotNull
-            @Override
-            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-                List<ObjectOrdering> customOrdering = createCustomOrdering();
-                return Objects.requireNonNullElseGet(customOrdering, () -> super.createObjectOrderings(sortParam));
-            }
-
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
                 return ObjectListPanel.this.getCustomizeContentQuery();
@@ -141,10 +134,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     }
 
     protected ObjectQuery getCustomizeContentQuery() {
-        return null;
-    }
-
-    protected List<ObjectOrdering> createCustomOrdering() {
         return null;
     }
 

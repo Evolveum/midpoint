@@ -66,7 +66,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -433,7 +432,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 IModel<String> columnDisplayModel = createColumnDisplayModel(customColumn);
                 if (customColumns.indexOf(customColumn) == 0) {
                     // TODO what if a complex path is provided here?
-                    column = createNameColumn(columnDisplayModel, customColumn.getPath() == null ? "" : customColumn.getPath().toString(), expression); //TODO check expression
+                    column = createNameColumn(columnDisplayModel, customColumn.getPath() == null ? "" : customColumn.getPath().toString(), expression);
                 } else {
                     column = createCustomExportableColumn(columnDisplayModel, customColumn, columnPath, expression);
                 }
