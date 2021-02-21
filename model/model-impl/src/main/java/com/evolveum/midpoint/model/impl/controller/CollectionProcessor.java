@@ -311,7 +311,7 @@ public class CollectionProcessor {
     }
 
     private void compileObjectCollectionView(CompiledObjectCollectionView existingView, CollectionRefSpecificationType baseCollectionSpec,
-            ObjectCollectionType objectCollectionType, Class<? extends Containerable> targetTypeClass, Task task, OperationResult result)
+            @NotNull ObjectCollectionType objectCollectionType, Class<? extends Containerable> targetTypeClass, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
 
@@ -334,6 +334,11 @@ public class CollectionProcessor {
                 QName targetTypeQName = existingView.getContainerType();
                 targetTypeClass = ObjectTypes.getObjectTypeClass(targetTypeQName);
             }
+        }
+
+        // Used for help text in search panel
+        if (objectCollectionType.getDescription() != null) {
+            existingView.setObjectCollectionDescription(objectCollectionType.getDescription());
         }
 
         // Do this before we compile main filer. We want domain specification from the first (lowest, most specific) collection in the
