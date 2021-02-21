@@ -74,13 +74,6 @@ public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
                 return storage;
             }
 
-            @Override
-            public SelectableBean<CaseType> createDataObjectWrapper(CaseType obj) {
-                SelectableBean<CaseType> bean = super.createDataObjectWrapper(obj);
-
-                return bean;
-            }
-
             @NotNull
             @Override
             protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {

@@ -104,12 +104,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
             }
 
             @Override
-            public SelectableBean<O> createDataObjectWrapper(O obj) {
-                SelectableBean<O> bean = super.createDataObjectWrapper(obj);
-                return bean;
-            }
-
-            @Override
             protected ObjectQuery getCustomizeContentQuery() {
                 return ObjectListPanel.this.getCustomizeContentQuery();
             }
