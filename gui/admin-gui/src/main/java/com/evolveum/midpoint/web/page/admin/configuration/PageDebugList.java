@@ -319,16 +319,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
         columns.add(column);
 
-        InlineMenuHeaderColumn<DebugObjectItem> menuColumn = new InlineMenuHeaderColumn<>(initInlineMenu()) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<DebugObjectItem>> cellItem, String componentId, IModel<DebugObjectItem> rowModel) {
-                // we don't need row inline menu
-                cellItem.add(new Label(componentId));
-            }
-
-        };
-        columns.add(menuColumn);
+        columns.add(new InlineMenuHeaderColumn(initInlineMenu()));
 
         return columns;
     }

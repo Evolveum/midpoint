@@ -6,32 +6,26 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import static java.util.Collections.singleton;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.function.Supplier;
-
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -39,6 +33,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.ContainerTypeSearchItem;
@@ -48,6 +43,7 @@ import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -110,14 +106,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
             @Override
             public SelectableBean<O> createDataObjectWrapper(O obj) {
                 SelectableBean<O> bean = super.createDataObjectWrapper(obj);
-
-                List<InlineMenuItem> inlineMenu = createInlineMenu();
-                if (inlineMenu != null) {
-                    bean.getMenuItems().addAll(inlineMenu);
-                }
-                if (obj.getOid() != null) {
-                    addCustomActions(bean.getMenuItems(), () -> singleton(obj));
-                }
                 return bean;
             }
 

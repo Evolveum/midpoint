@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class DebugObjectItem extends Selectable implements InlineMenuable {
+public class DebugObjectItem extends Selectable {
 
     public static final String F_OID = "oid";
     public static final String F_NAME = "name";
@@ -116,8 +116,4 @@ public class DebugObjectItem extends Selectable implements InlineMenuable {
         this.status = status;
     }
 
-    @Override
-    public List<InlineMenuItem> getMenuItems() {
-        return new ArrayList<>();
-    }
 }

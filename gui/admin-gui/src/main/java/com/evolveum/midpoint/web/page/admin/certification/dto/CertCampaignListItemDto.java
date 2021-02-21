@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -28,7 +28,7 @@ import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 /**
  * @author mederly
  */
-public class CertCampaignListItemDto extends Selectable implements InlineMenuable {
+public class CertCampaignListItemDto extends Selectable {
 
     public static final String F_NAME = "name";
     public static final String F_DESCRIPTION = "description";
@@ -40,20 +40,12 @@ public class CertCampaignListItemDto extends Selectable implements InlineMenuabl
     public static final String F_ESCALATION_LEVEL_NUMBER = "escalationLevelNumber";
 
     @NotNull private final AccessCertificationCampaignType campaign;           // TODO replace by elementary items
-    private List<InlineMenuItem> menuItems;
+
     private String deadlineAsString;
 
     CertCampaignListItemDto(@NotNull AccessCertificationCampaignType campaign, PageBase page) {
         this.campaign = campaign;
         deadlineAsString = computeDeadlineAsString(page);
-    }
-
-    @Override
-    public List<InlineMenuItem> getMenuItems() {
-        if (menuItems == null) {
-            menuItems = new ArrayList<>();
-        }
-        return menuItems;
     }
 
     public String getName() {

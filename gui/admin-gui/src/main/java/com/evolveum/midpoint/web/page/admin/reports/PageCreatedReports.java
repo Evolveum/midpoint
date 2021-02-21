@@ -181,10 +181,6 @@ public class PageCreatedReports extends PageAdmin {
                     public SelectableBean<ReportDataType> createDataObjectWrapper(ReportDataType obj) {
                         SelectableBean<ReportDataType> bean = super.createDataObjectWrapper(obj);
 
-                        List<InlineMenuItem> inlineMenu = initInlineMenu();
-                        if (inlineMenu != null) {
-                            bean.getMenuItems().addAll(inlineMenu);
-                        }
                         return bean;
                     }
 

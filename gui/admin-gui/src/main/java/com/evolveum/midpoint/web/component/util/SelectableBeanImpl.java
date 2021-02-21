@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -46,8 +46,6 @@ public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> im
      */
     private OperationResult result;
 
-    private List<InlineMenuItem> menuItems;
-
     public SelectableBeanImpl() {
     }
 
@@ -89,13 +87,6 @@ public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> im
 
     public void setNodes(List<String> nodes) {
         this.nodes = nodes;
-    }
-
-    public List<InlineMenuItem> getMenuItems() {
-        if (menuItems == null) {
-            menuItems = new ArrayList<>();
-        }
-        return menuItems;
     }
 
     @Override
@@ -153,7 +144,6 @@ public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> im
         sb.append("SelectableBean\n");
         DebugUtil.debugDumpWithLabelLn(sb, "value", value==null?null:value.toString(), indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "result", result==null?null:result.toString(), indent+1);
-        DebugUtil.debugDumpWithLabel(sb, "menuItems", menuItems, indent+1);
         return sb.toString();
     }
 

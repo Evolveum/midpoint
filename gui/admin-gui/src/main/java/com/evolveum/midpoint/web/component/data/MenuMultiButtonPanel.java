@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -14,7 +14,6 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -59,8 +58,8 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
         add(inlineMenu);
 
         inlineMenu.add(new VisibleBehaviour(() -> {
-            List<InlineMenuItem> menuItems = getModelObject() == null || !(getModelObject() instanceof InlineMenuable) ?
-                    menuItemsModel.getObject() : ((InlineMenuable)getModelObject()).getMenuItems();
+
+            List<InlineMenuItem> menuItems = menuItemsModel.getObject();
             for (InlineMenuItem menuItem : menuItems) {
                 if (!(menuItem instanceof ButtonInlineMenuItem)){
                     return true;

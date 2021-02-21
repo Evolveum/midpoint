@@ -78,10 +78,6 @@ public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
             public SelectableBean<CaseType> createDataObjectWrapper(CaseType obj) {
                 SelectableBean<CaseType> bean = super.createDataObjectWrapper(obj);
 
-                List<InlineMenuItem> inlineMenu = createInlineMenu();
-                if (inlineMenu != null) {
-                    bean.getMenuItems().addAll(inlineMenu);
-                }
                 return bean;
             }
 
