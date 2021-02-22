@@ -13,7 +13,6 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -33,6 +32,7 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
@@ -41,11 +41,8 @@ import com.evolveum.midpoint.web.component.data.column.ObjectReferenceColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @PageDescriptor(
@@ -67,10 +64,6 @@ public class PageTasks extends PageAdmin {
     public static final String SELECTED_CATEGORY = "category";
 
     public static final long WAIT_FOR_TASK_STOP = 2000L;
-
-    public static final long RUNS_CONTINUALLY = -1L;
-    public static final long ALREADY_PASSED = -2L;
-    public static final long NOW = 0L;
 
     public PageTasks() {
         this(null);
@@ -118,7 +111,7 @@ public class PageTasks extends PageAdmin {
     }
 
     private void addCustomColumns(List<IColumn<SelectableBean<TaskType>, String>> columns) {
-        columns.add(2, new ObjectReferenceColumn<SelectableBean<TaskType>>(createStringResource("pageTasks.task.objectRef"), SelectableBeanImpl.F_VALUE + "." + TaskType.F_OBJECT_REF.getLocalPart()) {
+        columns.add(2, new ObjectReferenceColumn<>(createStringResource("pageTasks.task.objectRef"), SelectableBeanImpl.F_VALUE + "." + TaskType.F_OBJECT_REF.getLocalPart()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -129,14 +122,14 @@ public class PageTasks extends PageAdmin {
             }
         });
         columns.add(3, new PropertyColumn<>(createStringResource("pageTasks.task.executingAt"), SelectableBeanImpl.F_VALUE + "." + TaskType.F_NODE_AS_OBSERVED.getLocalPart()));
-        columns.add(4, new AbstractExportableColumn<SelectableBean<TaskType>, String>(createStringResource("pageTasks.task.currentRunTime"), TaskType.F_COMPLETION_TIMESTAMP.getLocalPart()) {
+        columns.add(4, new AbstractExportableColumn<>(createStringResource("pageTasks.task.currentRunTime"), TaskType.F_COMPLETION_TIMESTAMP.getLocalPart()) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(final Item<ICellPopulator<SelectableBean<TaskType>>> item, final String componentId,
                     final IModel<SelectableBean<TaskType>> rowModel) {
 
-                DateLabelComponent dateLabel = new DateLabelComponent(componentId, new IModel<Date>() {
+                DateLabelComponent dateLabel = new DateLabelComponent(componentId, new IModel<>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -172,7 +165,7 @@ public class PageTasks extends PageAdmin {
                 return Model.of(displayValue);
             }
         });
-        columns.add(5, new AbstractExportableColumn<SelectableBean<TaskType>, String>(createStringResource("pageTasks.task.scheduledToRunAgain")) {
+        columns.add(5, new AbstractExportableColumn<>(createStringResource("pageTasks.task.scheduledToRunAgain")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -222,86 +215,11 @@ public class PageTasks extends PageAdmin {
     }
 
     private String createScheduledToRunAgain(IModel<SelectableBean<TaskType>> taskModel) {
-        TaskType task = taskModel.getObject().getValue();
-        boolean runnable = getRawExecutionStatus(task) == TaskExecutionStatus.RUNNABLE;
-        Long scheduledAfter = getScheduledToStartAgain(taskModel.getObject());
-        Long retryAfter = runnable ? getRetryAfter(task) : null;
+        List<Object> localizationObjects = new ArrayList<>();
+        String key = TaskUtil.createScheduledToRunAgain(taskModel.getObject().getValue(), localizationObjects);
 
-        if (scheduledAfter == null) {
-            if (retryAfter == null || retryAfter <= 0) {
-                return "";
-            }
-        } else if (scheduledAfter == NOW) { // TODO what about retryTime?
-            return getString(runnable ? "pageTasks.now" : "pageTasks.nowForNotRunningTasks");
-        } else if (scheduledAfter == RUNS_CONTINUALLY) {    // retryTime is probably null here
-            return getString("pageTasks.runsContinually");
-        } else if (scheduledAfter == ALREADY_PASSED && retryAfter == null) {
-            return getString(runnable ? "pageTasks.alreadyPassed" : "pageTasks.alreadyPassedForNotRunningTasks");
-        }
-
-        long displayTime;
-        boolean displayAsRetry;
-        if (retryAfter != null && retryAfter > 0 && (scheduledAfter == null || scheduledAfter < 0
-                || retryAfter < scheduledAfter)) {
-            displayTime = retryAfter;
-            displayAsRetry = true;
-        } else {
-            displayTime = scheduledAfter;
-            displayAsRetry = false;
-        }
-
-        String key;
-        if (runnable) {
-            key = displayAsRetry ? "pageTasks.retryIn" : "pageTasks.in";
-        } else {
-            key = "pageTasks.inForNotRunningTasks";
-        }
-
-        return PageBase.createStringResourceStatic(this, key, DurationFormatUtils.formatDurationWords(displayTime, true, true))
+        return PageBase.createStringResourceStatic(this, key, localizationObjects.isEmpty() ? null : localizationObjects.toArray())
                 .getString();
-    }
-
-    public Long getScheduledToStartAgain(SelectableBean<TaskType> taskBean) {
-        long current = System.currentTimeMillis();
-
-        if (getExecution(taskBean.getValue()) == TaskDtoExecutionStatus.RUNNING) {
-
-            if (TaskRecurrenceType.RECURRING != taskBean.getValue().getRecurrence()) {
-                return null;
-            } else if (TaskBindingType.TIGHT == taskBean.getValue().getBinding()) {
-                return RUNS_CONTINUALLY;             // runs continually; todo provide some information also in this case
-            }
-        }
-
-        Long nextRunStartTimeLong = getNextRunStartTimeLong(taskBean.getValue());
-        if (nextRunStartTimeLong == null || nextRunStartTimeLong == 0) {
-            return null;
-        }
-
-        if (nextRunStartTimeLong > current + 1000) {
-            return nextRunStartTimeLong - System.currentTimeMillis();
-        } else if (nextRunStartTimeLong < current - 60000) {
-            return ALREADY_PASSED;
-        } else {
-            return NOW;
-        }
-    }
-
-    public Long getRetryAfter(TaskType taskType) {
-        Long retryAt = getNextRetryTimeLong(taskType);
-        return retryAt != null ? retryAt - System.currentTimeMillis() : null;
-    }
-
-    public Long getNextRetryTimeLong(TaskType taskType) {
-        return xgc2long(taskType.getNextRetryTimestamp());
-    }
-
-    public Long getNextRunStartTimeLong(TaskType taskType) {
-        return xgc2long(taskType.getNextRunStartTimestamp());
-    }
-
-    public TaskDtoExecutionStatus getExecution(TaskType taskType) {
-        return TaskDtoExecutionStatus.fromTaskExecutionStatus(taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);
     }
 
     //TODO why?

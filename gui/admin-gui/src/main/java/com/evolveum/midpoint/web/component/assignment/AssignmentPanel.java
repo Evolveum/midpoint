@@ -138,11 +138,6 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                     }
 
                     @Override
-                    protected IColumn<PrismContainerValueWrapper<AssignmentType>, String> createIconColumn() {
-                        return null;
-                    }
-
-                    @Override
                     protected IColumn<PrismContainerValueWrapper<AssignmentType>, String> createCheckboxColumn() {
                         return null;
                     }

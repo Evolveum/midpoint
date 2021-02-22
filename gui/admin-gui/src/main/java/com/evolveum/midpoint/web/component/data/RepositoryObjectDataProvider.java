@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.data;
 import java.io.Serializable;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.web.component.search.Search;
 
@@ -72,6 +73,7 @@ public class RepositoryObjectDataProvider<O extends ObjectType>
             query.setPaging(paging);
 
             Collection<SelectorOptions<GetOperationOptions>> options = getOptions();
+            Class<O> type = getSearchModel().getObject().isOidSearchMode() ? (Class<O>) ObjectType.class : getType();
             List<? extends PrismObject<? extends ObjectType>> list = getModel().searchObjects(getType(), query, options,
                     getPageBase().createSimpleTask(OPERATION_SEARCH_OBJECTS), result);
             for (PrismObject<? extends ObjectType> object : list) {

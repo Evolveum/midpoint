@@ -76,12 +76,10 @@ public enum MObjectTypeMapping {
     private final Class<? extends QObject<?>> queryType;
     private final Class<? extends ObjectType> schemaType;
 
-    // 'MObjectTypeMapping(int,
-    // java.lang.Class<com.evolveum.midpoint.repo.sqale.qmodel.object.QObject<?>>,
-    // java.lang.Class<com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType>)' in 'com.evolveum.midpoint.repo.sqale.MObjectTypeMapping'
-    // cannot be applied to '(int, null,
-    // java.lang.Class<com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType>)'
-    MObjectTypeMapping(int code, Class<? extends QObject<?>> queryType, Class<? extends ObjectType> schemaType) {
+    MObjectTypeMapping(
+            int code,
+            Class<? extends QObject<?>> queryType,
+            Class<? extends ObjectType> schemaType) {
         this.code = code;
         this.queryType = queryType;
         this.schemaType = schemaType;
@@ -89,6 +87,7 @@ public enum MObjectTypeMapping {
 
     // DB code -> enum conversion
     public static final Map<Integer, MObjectTypeMapping> CODE_TO_ENUM = new HashMap<>();
+
     // schema type QName -> enum conversion
     public static final Map<Class<? extends ObjectType>, MObjectTypeMapping> SCHEMA_TYPE_TO_ENUM =
             new HashMap<>();

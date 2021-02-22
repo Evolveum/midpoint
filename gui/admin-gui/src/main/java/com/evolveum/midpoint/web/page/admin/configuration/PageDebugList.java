@@ -12,7 +12,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.IteratorUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -34,7 +33,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -43,7 +41,6 @@ import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -75,7 +72,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAc
 import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDownloadBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugConfDialogDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
 import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.session.ConfigurationStorage;
@@ -84,6 +80,8 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lazyman
@@ -101,45 +99,40 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
 
     private static final String OPERATION_LAXATIVE_DELETE = DOT_CLASS + "laxativeDelete";
-
-    private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "loadResources";
-    private static final String OPERATION_LOAD_RESOURCE_OBJECT = DOT_CLASS + "loadResourceObject";
     private static final String OPERATION_DELETE_SHADOWS = DOT_CLASS + "deleteShadows";
-    private static final String OPERATION_LOAD_OBJECT_BY_OID = DOT_CLASS + "searchObjectByOid";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
     private static final String ID_TABLE_HEADER = "tableHeader";
 
     // search form model;
-    private final LoadableModel<DebugSearchDto> searchModel;
+    private final LoadableModel<Search<? extends ObjectType>> searchModel;
     // todo make this persistent (in user session)
     private final IModel<Boolean> showAllItemsModel = Model.of(true);
     // confirmation dialog model
     private final IModel<DebugConfDialogDto> confDialogModel;
-    private ContainerTypeSearchItem<? extends ObjectType> defaultType;
-    private boolean usedOidFilter = false;
+
 
     public PageDebugList() {
-        defaultType =
-                new ContainerTypeSearchItem<ObjectType>(
-                        new SearchValue(SystemConfigurationType.class, "ObjectType." + SystemConfigurationType.COMPLEX_TYPE.getLocalPart()),
-                        getAllowedTypes());
-        defaultType.setVisible(true);
+
         searchModel = new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected DebugSearchDto load() {
+            protected Search<? extends ObjectType> load() {
                 ConfigurationStorage storage = getSessionStorage().getConfiguration();
+                Search search = storage.getSearch();
 
-                DebugSearchDto dto = storage.getDebugSearchDto();
-                if (dto == null) {
-                    dto = new DebugSearchDto();
-                    setupSearchDto(dto, getTypeItem());
+                if (search == null) {
+                    ContainerTypeSearchItem<? extends ObjectType> defaultType =
+                            new ContainerTypeSearchItem(
+                                    new SearchValue<Class>(SystemConfigurationType.class, "ObjectType." + SystemConfigurationType.COMPLEX_TYPE.getLocalPart()),
+                                    getAllowedTypes());
+                    defaultType.setVisible(true);
+                    search = SearchFactory.createSearch(defaultType, PageDebugList.this, true);
+                    configureSearch(search);
                 }
-
-                return dto;
+                return search;
             }
         };
 
@@ -170,8 +163,8 @@ public class PageDebugList extends PageAdminConfiguration {
         Form<?> main = new MidpointForm<>(ID_MAIN_FORM);
         add(main);
 
-        RepositoryObjectDataProvider<?> provider = new RepositoryObjectDataProvider<>(
-                this, new PropertyModel<>(searchModel, DebugSearchDto.F_SEARCH)) {
+        RepositoryObjectDataProvider<? extends ObjectType> provider = new RepositoryObjectDataProvider<>(
+                this, (IModel) searchModel) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -326,26 +319,18 @@ public class PageDebugList extends PageAdminConfiguration {
 
         columns.add(column);
 
-        InlineMenuHeaderColumn<DebugObjectItem> menuColumn = new InlineMenuHeaderColumn<>(initInlineMenu()) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<DebugObjectItem>> cellItem, String componentId, IModel<DebugObjectItem> rowModel) {
-                // we don't need row inline menu
-                cellItem.add(new Label(componentId));
-            }
-
-        };
-        columns.add(menuColumn);
+        columns.add(new InlineMenuHeaderColumn(initInlineMenu()));
 
         return columns;
     }
 
-    private Class<ObjectType> getType() {
-        return searchModel.isLoaded() ? searchModel.getObject().getSearch().getTypeClass() : (Class<ObjectType>) defaultType.getTypeClass();
+    @NotNull
+    private Class<? extends ObjectType> getType() {
+        return searchModel.isLoaded() ? searchModel.getObject().getTypeClass() : SystemConfigurationType.class;
     }
 
     private ContainerTypeSearchItem<? extends ObjectType> getTypeItem() {
-        return searchModel.isLoaded() ? searchModel.getObject().getSearch().getType() : defaultType;
+        return searchModel.isLoaded() ? searchModel.getObject().getType() : null;
     }
 
     private List<InlineMenuItem> initInlineMenu() {
@@ -401,7 +386,6 @@ public class PageDebugList extends PageAdminConfiguration {
 
                     @Override
                     public IModel<Boolean> getVisible() {
-                        DebugSearchDto dto = searchModel.getObject();
                         return Model.of(ShadowType.class.equals(getType()));
                     }
 
@@ -422,8 +406,6 @@ public class PageDebugList extends PageAdminConfiguration {
                 };
             }
         });
-
-//        headerMenuItems.add(new InlineMenuItem());
 
         headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteSelected"), true) {
             private static final long serialVersionUID = 1L;
@@ -475,7 +457,6 @@ public class PageDebugList extends PageAdminConfiguration {
 
                     @Override
                     public IModel<Boolean> getVisible() {
-                        DebugSearchDto dto = searchModel.getObject();
                         return Model.of(ShadowType.class.equals(getType()));
                     }
                 });
@@ -512,64 +493,40 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private void listObjectsPerformed(AjaxRequestTarget target) {
-        DebugSearchDto dto = searchModel.getObject();
-        Search search = dto.getSearch();
-        if (StringUtils.isNotEmpty(search.getOid())) {
-            OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT_BY_OID);
-            Task task = createSimpleTask(OPERATION_LOAD_OBJECT_BY_OID);
-            PrismObject<ObjectType> objectToDisplay = WebModelServiceUtils.loadObject(ObjectType.class, search.getOid(), PageDebugList.this,
-                    task, result);
-            if (objectToDisplay != null && objectToDisplay.getCompileTimeClass() != null) {
-                ContainerTypeSearchItem oldType = searchModel.getObject().getSearch().getType();
-                oldType.setType(new SearchValue<>(objectToDisplay.getCompileTimeClass(),
-                        "ObjectType." + ObjectTypes.getObjectType(objectToDisplay.getCompileTimeClass()).getTypeQName().getLocalPart()));
-                setupSearchDto(dto, oldType);
-            }
+        Table table = getListTable();
+        if (searchModel.getObject().isTypeChanged()) {
+            Search search = SearchFactory.createSearch(getTypeItem(), PageDebugList.this, true);
+            searchModel.setObject(search); //TODO: this is veeery ugly, available definitions should refresh when the type changed
+            configureSearch(search);
+            table.getDataTable().getColumns().clear();
+            //noinspection unchecked
+            table.getDataTable().getColumns().addAll(createColumns());
         }
 
         // save object type category to session storage, used by back button
         ConfigurationStorage storage = getSessionStorage().getConfiguration();
-        storage.setDebugSearchDto(dto);
+        storage.setSearch(searchModel.getObject());
 
-        Table table = getListTable();
-        if (searchModel.getObject().getSearch().isTypeChanged()) {
-            setupSearchDto(dto, getTypeItem());
-            table.getDataTable().getColumns().clear();
-            table.getDataTable().getColumns().addAll(createColumns());
-        }
         target.add((Component) table);
         target.add(getFeedbackPanel());
     }
 
-    private void setupSearchDto(DebugSearchDto dto, ContainerTypeSearchItem<? extends ObjectType> type) {
-        Search search = dto.getSearch();
-        if (search == null || (search.isTypeChanged() && !search.isOidSearchMode())) {
-
-            search = SearchFactory.createSearch(type, this, true);
+    private void configureSearch(@NotNull Search search) {
+        if (search.isTypeChanged() && !search.isOidSearchMode()) {
             search.setCanConfigure(true);
             if (ShadowType.class.equals(getType())) {
-                search.addSpecialItem(createResourceRefSearchItem(dto, search));
-                search.addSpecialItem(createObjectClassSearchItem(dto, search));
+                search.addSpecialItem(createObjectClassSearchItem(search));
+                search.addSpecialItem(createResourceRefSearchItem(search));
             }
             search.searchWasReload();
         }
-        dto.setSearch(search);
     }
 
-    private PropertySearchItem createObjectClassSearchItem(DebugSearchDto dto, Search search) {
+    private PropertySearchItem createObjectClassSearchItem(Search search) {
         PrismPropertyDefinition resourceRefDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ShadowType.class)
                 .findPropertyDefinition(ShadowType.F_OBJECT_CLASS);
-        ObjectClassSearchItem item = new ObjectClassSearchItem(search, new SearchItemDefinition(ShadowType.F_OBJECT_CLASS, resourceRefDef, null),
-                new PropertyModel(searchModel, DebugSearchDto.F_SEARCH + "." + Search.F_SPECIAL_ITEMS)) {
-            @Override
-            public void setValue(DisplayableValue<QName> value) {
-                if (value == null || value.getValue() == null) {
-                    dto.resetResourceRef();
-                } else {
-                    dto.setObjectClass(value.getValue());
-                }
-                super.setValue(value);
-            }
+        return new ObjectClassSearchItem(search, new SearchItemDefinition(ShadowType.F_OBJECT_CLASS, resourceRefDef, null),
+                new PropertyModel(searchModel, Search.F_SPECIAL_ITEMS)) {
 
             @Override
             protected boolean canRemoveSearchItem() {
@@ -578,7 +535,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
             @Override
             public boolean isEnabled() {
-                return !dto.isResourceEmpty();
+                return resourceReferenceIsNotEmpty();
             }
 
             @Override
@@ -586,13 +543,9 @@ public class PageDebugList extends PageAdminConfiguration {
                 return isEnabled();
             }
         };
-        if (dto.getObjectClass() != null) {
-            item.setValue(new SearchValue<>(dto.getObjectClass()));
-        }
-        return item;
     }
 
-    private PropertySearchItem createResourceRefSearchItem(DebugSearchDto dto, Search search) {
+    private PropertySearchItem createResourceRefSearchItem(Search search) {
         PrismReferenceDefinition resourceRefDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ShadowType.class)
                 .findReferenceDefinition(ShadowType.F_RESOURCE_REF);
         PropertySearchItem<ObjectReferenceType> item = new PropertySearchItem<>(search, new SearchItemDefinition(ShadowType.F_RESOURCE_REF, resourceRefDef, null)) {
@@ -601,18 +554,9 @@ public class PageDebugList extends PageAdminConfiguration {
                 return false;
             }
         };
-        item.setValue(new SearchValue<>(dto.getResource()) {
-            @Override
-            public ObjectReferenceType getValue() {
-                return dto.getResource();
-            }
-
-            @Override
-            public void setValue(ObjectReferenceType value) {
-                dto.setResource(value);
-                super.setValue(value);
-            }
-        });
+        ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setType(ResourceType.COMPLEX_TYPE);
+        item.setValue(new SearchValue<>(ref));
         return item;
     }
 
@@ -654,9 +598,8 @@ public class PageDebugList extends PageAdminConfiguration {
                         return createStringResource("pageDebugList.message.deleteObjectConfirm",
                                 selectedItem.getName()).getString();
                     case DELETE_RESOURCE_SHADOWS:
-                        DebugSearchDto search = searchModel.getObject();
                         return createStringResource("pageDebugList.messsage.deleteAllResourceShadows",
-                                WebComponentUtil.getReferencedObjectDisplayNamesAndNames(search.getResource(), false)
+                                WebComponentUtil.getReferencedObjectDisplayNamesAndNames(getResourceRefFromSearch(), false)
                         ).getString();
                 }
 
@@ -851,15 +794,15 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private void deleteAllShadowsOnResource(AjaxRequestTarget target) {
-        DebugSearchDto dto = searchModel.getObject();
-        if (dto.isResourceEmpty()) {
+        ObjectReferenceType resourceRef = getResourceRefFromSearch();
+        if (resourceRef == null || resourceRef.getOid() == null) {
             error(getString("pageDebugList.message.resourceNotSelected"));
             target.add(getFeedbackPanel());
             return;
         }
 
         LOGGER.debug("Displaying delete all shadows on resource {} confirmation dialog",
-                WebComponentUtil.getReferencedObjectDisplayNamesAndNames(dto.getResource(), false));
+                WebComponentUtil.getReferencedObjectDisplayNamesAndNames(resourceRef, false));
 
         DebugConfDialogDto dialogDto = new DebugConfDialogDto(
                 DebugConfDialogDto.Operation.DELETE_RESOURCE_SHADOWS, null, null);
@@ -868,16 +811,37 @@ public class PageDebugList extends PageAdminConfiguration {
         showMainPopup(getDeleteConfirmationPanel(), target);
     }
 
+    private boolean resourceReferenceIsNotEmpty() {
+        ObjectReferenceType resourceRef = getResourceRefFromSearch();
+        if (resourceRef == null) {
+            return false;
+        }
+
+        return resourceRef.getOid() != null;
+    }
+
+    private ObjectReferenceType getResourceRefFromSearch() {
+        Search search = searchModel.getObject();
+        SearchItem searchItem = search.findSpecialItem(ShadowType.F_RESOURCE_REF);
+        if (searchItem instanceof PropertySearchItem) {
+            DisplayableValue<ObjectReferenceType> displayableValue = ((PropertySearchItem) searchItem).getValue();
+            if (displayableValue != null) {
+                return displayableValue.getValue();
+            }
+        }
+        return null;
+    }
+
     private void exportAllShadowsOnResource(AjaxRequestTarget target) {
-        DebugSearchDto dto = searchModel.getObject();
-        if (dto.isResourceEmpty()) {
+        ObjectReferenceType resourceRef = getResourceRefFromSearch();
+        if (resourceRef == null || resourceRef.asReferenceValue().isEmpty()) {
             error(getString("pageDebugList.message.resourceNotSelected"));
             target.add(getFeedbackPanel());
             return;
         }
 
         ObjectQuery objectQuery = getPrismContext().queryFor(ShadowType.class)
-                .item(ShadowType.F_RESOURCE_REF).ref(dto.getResource().getOid())
+                .item(ShadowType.F_RESOURCE_REF).ref(resourceRef.getOid())
                 .build();
         initDownload(target, getType(), objectQuery);
     }
@@ -905,8 +869,14 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private void deleteAllShadowsOnResourceConfirmed(AjaxRequestTarget target) {
-        DebugSearchDto dto = searchModel.getObject();
-        String resourceOid = dto.getResource().getOid();
+        ObjectReferenceType resourceRef = getResourceRefFromSearch();
+
+        String resourceName = WebComponentUtil.getReferencedObjectDisplayNamesAndNames(resourceRef, false);
+        if (resourceRef == null) {
+            warn(getString("pageDebugList.messsage.deleteAllShadows.noResource", resourceName));
+            return;
+        }
+        String resourceOid = resourceRef.getOid(); //TODO NPE
 
         LOGGER.debug("Deleting shadows on resource {}", resourceOid);
 
@@ -914,15 +884,14 @@ public class PageDebugList extends PageAdminConfiguration {
         String taskOid = null;
         try {
             ObjectQuery objectQuery = getPrismContext().queryFor(ShadowType.class)
-                    .item(ShadowType.F_RESOURCE_REF).ref(dto.getResource().getOid())
+                    .item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
                     .build();
 
             QName type = ShadowType.COMPLEX_TYPE;
 
-            String resourceName = WebComponentUtil.getReferencedObjectDisplayNamesAndNames(dto.getResource(), false);
+
             taskOid = deleteObjectsAsync(type, objectQuery, true,
                     "Delete shadows on " + resourceName, result);
-
             info(getString("pageDebugList.messsage.deleteAllShadowsStarted", resourceName));
         } catch (Exception ex) {
             result.recomputeStatus();

@@ -6,15 +6,29 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.ResourceModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -23,15 +37,6 @@ import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
-import org.apache.wicket.Component;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.*;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.*;
 
 /**
  * @author semancik
@@ -81,7 +86,7 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
             @Override
             protected List<IColumn<SelectableBean<TaskType>, String>> createDefaultColumns() {
                 List<IColumn<SelectableBean<TaskType>, String>> columns = super.createDefaultColumns();
-                columns.add(2, new EnumPropertyColumn<SelectableBean<TaskType>>(createStringResource("SubtasksPanel.label.kind"), createTaskKindExpression()) {
+                columns.add(2, new EnumPropertyColumn<>(createStringResource("SubtasksPanel.label.kind"), createTaskKindExpression()) {
 
                     @Override
                     protected String translate(Enum<?> en) {
@@ -105,7 +110,7 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
         TaskTablePanel workerThreadsTable = new TaskTablePanel(ID_WORKER_THREADS_TABLE, null) {
 
             @Override
-            protected ISelectableDataProvider createProvider() {
+            protected ISelectableDataProvider<TaskType, SelectableBean<TaskType>> createProvider() {
                 return new SelectableListDataProvider<>(TaskSubtasksAndThreadsTabPanel.this, createWorkersModel());
             }
 
@@ -129,10 +134,9 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
 
         GetOperationOptionsBuilder getOperationOptionsBuilder = getSchemaHelper().getOperationOptionsBuilder();
         getOperationOptionsBuilder = getOperationOptionsBuilder.resolveNames();
-        Collection<SelectorOptions<GetOperationOptions>> searchOptions = getOperationOptionsBuilder
+        return getOperationOptionsBuilder
                 .items(propertiesToGet.toArray(new Object[0])).retrieve()
                 .build();
-        return searchOptions;
     }
 
     private IModel<List<TaskType>> createWorkersModel() {
@@ -166,7 +170,7 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
 
     @Override
     public Collection<Component> getComponentsToUpdate() {
-        return Collections.<Component>singleton(this);
+        return Collections.singleton(this);
     }
 
 }

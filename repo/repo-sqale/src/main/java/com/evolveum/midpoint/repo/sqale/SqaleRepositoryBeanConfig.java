@@ -13,6 +13,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
@@ -70,12 +71,12 @@ public class SqaleRepositoryBeanConfig {
 
     @Bean
     public SqaleRepositoryConfiguration sqaleRepositoryConfiguration(
-            MidpointConfiguration midpointConfiguration) throws RepositoryServiceFactoryException {
+            Environment env,
+            MidpointConfiguration midpointConfiguration) {
 
-        return new SqaleRepositoryConfiguration(
+        return new SqaleRepositoryConfiguration(env,
                 midpointConfiguration.getConfiguration(
-                        MidpointConfiguration.REPOSITORY_CONFIGURATION))
-                .validate();
+                        MidpointConfiguration.REPOSITORY_CONFIGURATION));
     }
 
     @Bean

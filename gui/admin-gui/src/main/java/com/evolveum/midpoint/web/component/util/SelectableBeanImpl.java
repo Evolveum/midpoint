@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,18 +8,14 @@
 package com.evolveum.midpoint.web.component.util;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 /**
@@ -45,8 +41,6 @@ public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> im
      * Result of object retrieval (or attempt of object retrieval). It case that it is not error the result is optional.
      */
     private OperationResult result;
-
-    private List<InlineMenuItem> menuItems;
 
     public SelectableBeanImpl() {
     }
@@ -89,13 +83,6 @@ public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> im
 
     public void setNodes(List<String> nodes) {
         this.nodes = nodes;
-    }
-
-    public List<InlineMenuItem> getMenuItems() {
-        if (menuItems == null) {
-            menuItems = new ArrayList<>();
-        }
-        return menuItems;
     }
 
     @Override
@@ -153,7 +140,6 @@ public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> im
         sb.append("SelectableBean\n");
         DebugUtil.debugDumpWithLabelLn(sb, "value", value==null?null:value.toString(), indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "result", result==null?null:result.toString(), indent+1);
-        DebugUtil.debugDumpWithLabel(sb, "menuItems", menuItems, indent+1);
         return sb.toString();
     }
 

@@ -53,6 +53,8 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     private Collection<SelectorOptions<GetOperationOptions>> options;
     private Collection<SelectorOptions<GetOperationOptions>> domainOptions;
 
+    private String objectCollectionDescription;
+
     // Only used to construct "default" view definition. May be not needed later on.
     public CompiledObjectCollectionView() {
         super();
@@ -230,6 +232,14 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         return domainOptions;
     }
 
+    public String getObjectCollectionDescription() {
+        return objectCollectionDescription;
+    }
+
+    public void setObjectCollectionDescription(String objectCollectionDescription) {
+        this.objectCollectionDescription = objectCollectionDescription;
+    }
+
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(CompiledObjectCollectionView.class, indent);
@@ -247,6 +257,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         DebugUtil.debugDumpWithLabel(sb, "domainFilter", domainFilter, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "displayOrder", displayOrder, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "refreshInterval", refreshInterval, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "objectCollectionDescription", objectCollectionDescription, indent + 1);
         return sb.toString();
     }
 

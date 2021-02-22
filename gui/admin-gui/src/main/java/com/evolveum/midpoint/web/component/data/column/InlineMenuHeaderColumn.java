@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,6 +12,10 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import org.apache.wicket.Component;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -21,7 +25,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class InlineMenuHeaderColumn<T extends InlineMenuable> extends InlineMenuColumn<T> {
+public class InlineMenuHeaderColumn<T> extends AbstractColumn<T, String> {
 
     private IModel<List<InlineMenuItem>> menuItems;
 
@@ -32,7 +36,6 @@ public class InlineMenuHeaderColumn<T extends InlineMenuable> extends InlineMenu
 
     @Override
     public Component getHeader(String componentId) {
-//        InlineMenu inlineMenu = new com.evolveum.midpoint.web.component.menu.cog.InlineMenu(componentId, menuItems);
         DropdownButtonDto model = new DropdownButtonDto(null, null, null, menuItems.getObject());
         DropdownButtonPanel inlineMenu = new DropdownButtonPanel(componentId, model) {
             private static final long serialVersionUID = 1L;
@@ -45,6 +48,11 @@ public class InlineMenuHeaderColumn<T extends InlineMenuable> extends InlineMenu
         inlineMenu.setOutputMarkupPlaceholderTag(true);
         inlineMenu.setOutputMarkupId(true);
         return inlineMenu;
+    }
+
+    @Override
+    public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId, IModel<T> rowModel) {
+        cellItem.add(new Label(componentId)); //this is hack, TODO: implement header vs. row inline menu visibility correctly
     }
 
     @Override

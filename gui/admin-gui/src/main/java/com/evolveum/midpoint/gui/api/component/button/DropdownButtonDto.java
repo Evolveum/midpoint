@@ -9,10 +9,9 @@ package com.evolveum.midpoint.gui.api.component.button;
 import java.io.Serializable;
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 
-public class DropdownButtonDto implements Serializable, InlineMenuable{
+public class DropdownButtonDto implements Serializable {
 
     /**
      *
@@ -55,8 +54,6 @@ public class DropdownButtonDto implements Serializable, InlineMenuable{
         this.label = label;
     }
 
-
-    @Override
     public List<InlineMenuItem> getMenuItems() {
         return items;
     }

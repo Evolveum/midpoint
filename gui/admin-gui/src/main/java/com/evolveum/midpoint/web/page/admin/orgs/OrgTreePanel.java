@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018 Evolveum and contributors
+ * Copyright (c) 2015-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.GuiFeature;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -147,12 +148,6 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
         treeHeader.add(treeMenu);
 
         ISortableTreeProvider provider = new OrgTreeProvider(this, getModel(), preselecteOrgsList) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected List<InlineMenuItem> createInlineMenuItems(TreeSelectableBean<OrgType> org) {
-                return createTreeChildrenMenuInternal(org, serviceLocator.getCompiledGuiProfile());
-            }
 
             @Override
             protected ObjectFilter getCustomFilter(){
@@ -220,6 +215,11 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
                     protected void onUpdateCheckbox(AjaxRequestTarget target) {
                         selected = getModel();
                         onOrgTreeCheckBoxSelectionPerformed(target, selected);
+                    }
+
+                    @Override
+                    protected IModel<List<InlineMenuItem>> createInlineMenuItemsModel() {
+                        return new ReadOnlyModel<>(() -> createTreeChildrenMenuInternal(model.getObject(), serviceLocator.getCompiledGuiProfile()));
                     }
                 };
                 contentPannels.add(contentPannel);

@@ -166,7 +166,7 @@ public class PageCreatedReports extends PageAdmin {
             }
 
             @Override
-            protected ISelectableDataProvider createProvider() {
+            protected ISelectableDataProvider<ReportDataType, SelectableBean<ReportDataType>> createProvider() {
                 PageStorage storage = getObjectListPanel().getPageStorage();
                 SelectableBeanObjectDataProvider<ReportDataType> provider = new SelectableBeanObjectDataProvider<ReportDataType>(
                         getPageBase(), getSearchModel(), null) {
@@ -175,17 +175,6 @@ public class PageCreatedReports extends PageAdmin {
                     @Override
                     protected PageStorage getPageStorage() {
                         return storage;
-                    }
-
-                    @Override
-                    public SelectableBean<ReportDataType> createDataObjectWrapper(ReportDataType obj) {
-                        SelectableBean<ReportDataType> bean = super.createDataObjectWrapper(obj);
-
-                        List<InlineMenuItem> inlineMenu = initInlineMenu();
-                        if (inlineMenu != null) {
-                            bean.getMenuItems().addAll(inlineMenu);
-                        }
-                        return bean;
                     }
 
                     @NotNull

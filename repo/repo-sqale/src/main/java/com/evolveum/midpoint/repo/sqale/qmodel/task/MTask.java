@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.task;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
@@ -27,10 +28,10 @@ public class MTask extends MObject {
     public Instant lastRunFinishTimestamp;
     public Instant lastRunStartTimestamp;
     public String node;
-    public String objectRefTargetOid;
+    public UUID objectRefTargetOid;
     public Integer objectRefTargetType;
     public Integer objectRefRelationId;
-    public String ownerRefTargetOid;
+    public UUID ownerRefTargetOid;
     public Integer ownerRefTargetType;
     public Integer ownerRefRelationId;
     public String parent;
