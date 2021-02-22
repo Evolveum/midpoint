@@ -13,6 +13,7 @@ import com.evolveum.axiom.lang.impl.AxiomStatementRule.Lookup;
 import com.evolveum.axiom.api.stream.AxiomBuilderStreamTarget.ItemBuilder;
 import com.evolveum.axiom.api.stream.AxiomBuilderStreamTarget.ValueBuilder;
 import com.evolveum.axiom.reactor.Dependency;
+import com.evolveum.concepts.SourceLocation;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
@@ -30,7 +31,6 @@ import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
-import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 
