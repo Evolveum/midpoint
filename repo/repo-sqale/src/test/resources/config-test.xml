@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<configuration>
+    <midpoint>
+        <global>
+            <extensionDir>./src/test/resources/schema</extensionDir>
+        </global>
+        <repository>
+            <!-- TODO switch to sqale, of course -->
+            <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory</repositoryServiceFactoryClass>
+
+            <port>5438</port>
+            <dropIfExists>true</dropIfExists>
+
+            <performanceStatisticsLevel>10</performanceStatisticsLevel>
+            <performanceStatisticsFile>./target/performance.log</performanceStatisticsFile>
+
+            <!-- this is here for custom column creation in audit, audit uses default repo conf -->
+            <createMissingCustomColumns>true</createMissingCustomColumns>
+        </repository>
+        <audit>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
+                <customColumn>
+                    <columnName>cus_foo</columnName>
+                    <eventRecordPropertyName>foo</eventRecordPropertyName>
+                </customColumn>
+                <customColumn>
+                    <columnName>cus_bar</columnName>
+                    <eventRecordPropertyName>bar</eventRecordPropertyName>
+                </customColumn>
+            </auditService>
+        </audit>
+        <icf>
+            <scanClasspath>true</scanClasspath>
+            <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>
+            <scanDirectory>/var/tmp</scanDirectory>
+        </icf>
+        <keystore>
+            <keyStorePath>${midpoint.home}/keystore-test.jceks</keyStorePath>
+            <keyStorePassword>changeit</keyStorePassword>
+            <encryptionKeyAlias>default</encryptionKeyAlias>
+        </keystore>
+    </midpoint>
+</configuration>
