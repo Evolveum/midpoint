@@ -3656,7 +3656,7 @@ public final class WebComponentUtil {
         if (obj == null) {
             return null;
         }
-        DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(obj, pageBase);
+        DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(obj.asPrismObject(), pageBase);
 
         if (displayType == null) {
             displayType = WebComponentUtil.createDisplayType(createDefaultIcon(obj.asPrismObject()),
@@ -4009,8 +4009,16 @@ public final class WebComponentUtil {
     }
 
     public static <O extends ObjectType> DisplayType getArchetypePolicyDisplayType(O object, PageBase pageBase) {
+        if (object == null) {
+            return null;
+        }
+
+        return getArchetypePolicyDisplayType(object.asPrismObject(), pageBase);
+    }
+
+    public static <O extends ObjectType> DisplayType getArchetypePolicyDisplayType(PrismObject<O> object, PageBase pageBase) {
         if (object != null) {
-            ArchetypePolicyType archetypePolicy = WebComponentUtil.getArchetypeSpecification(object.asPrismObject(), pageBase);
+            ArchetypePolicyType archetypePolicy = WebComponentUtil.getArchetypeSpecification(object, pageBase);
             if (archetypePolicy != null) {
                 return archetypePolicy.getDisplay();
             }

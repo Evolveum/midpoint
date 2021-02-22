@@ -94,10 +94,19 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
             }
 
             @Override
+            protected void postProcessWrapper(PrismContainerValueWrapper<C> valueWrapper) {
+                MultivalueContainerListPanel.this.postProcessWrapper(valueWrapper);
+            }
+
+            @Override
             protected PageStorage getPageStorage() {
                 return MultivalueContainerListPanel.this.getPageStorage();
             }
         };
+    }
+
+    protected void postProcessWrapper(PrismContainerValueWrapper<C> valueWrapper) {
+
     }
 
     protected ObjectQuery getCustomizeContentQuery() {

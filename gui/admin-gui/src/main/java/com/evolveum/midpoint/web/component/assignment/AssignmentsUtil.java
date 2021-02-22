@@ -13,6 +13,8 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismObject;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -267,6 +269,11 @@ public class AssignmentsUtil {
 
         ObjectReferenceType targetRef = assignment.getTargetRef();
         if (isNotEmptyRef(targetRef)) {
+            PrismObject<? extends ObjectType> targetObject = targetRef.getObject();
+            if (targetObject != null) {
+                return WebComponentUtil.getEffectiveName(targetObject, OrgType.F_DISPLAY_NAME);
+            }
+
             if (pageBase == null) {
                 PolyStringType targetName = targetRef.getTargetName();
                 if (targetName != null) {
