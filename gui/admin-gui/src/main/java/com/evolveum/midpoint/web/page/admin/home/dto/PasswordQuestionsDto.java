@@ -7,64 +7,49 @@
 package com.evolveum.midpoint.web.page.admin.home.dto;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionDefinitionType;
 
 public class PasswordQuestionsDto implements Serializable{
 
-    public static final String F_MY_QUESTIONS_ANSWERS = "questionAnswers";
-    public static final String F_MY_QUESTIONS_ANSWER = "passwAnswer";
-    public static final String F_MY_QUESTIONS_QUESTIONITSELF = "passwQuestion";
-
-    private String passwQuestion;
-    private String passwAnswer;
-
-    private List<SecurityQuestionAnswerDTO> questionAnswers;
+    private List<SecurityQuestionAnswerDTO> userQuestionAnswers;
+    private List<SecurityQuestionAnswerDTO> actualQuestionAnswers = new ArrayList<>();
+    private final String focusOid;
 
     private PrismContainer credentials;
 
-    /*public PasswordQuestionsDto(String passwQuestion){
-        this.passwQuestion = passwQuestion;
-    }*/
-    public PasswordQuestionsDto(){
-
+    public PasswordQuestionsDto(String focusOid){
+        this.focusOid = focusOid;
     }
 
-    public PasswordQuestionsDto(String passwQuestion, String passAnswer){
-        this.passwQuestion = passwQuestion;
-        this.passwAnswer = passAnswer;
+    public String getFocusOid() {
+        return focusOid;
     }
 
-    public String getPwdQuestion() {
-        return passwQuestion;
-    }
-    public void setPwdQuestion(String pwdQuestion) {
-        this.passwQuestion = pwdQuestion;
-    }
-    public String getPwdAnswer() {
-        return passwAnswer;
-    }
-    public void setPwdAnswer(String pwdAnswer) {
-        this.passwAnswer = pwdAnswer;
+    public PrismContainer getCredentials() {
+        return credentials;
     }
 
-       public PrismContainer getCredentials() {
-            return credentials;
-        }
+    public void setCredentials(PrismContainer credentials) {
+        this.credentials = credentials;
+    }
 
-        public void setCredentials(PrismContainer credentials) {
-            this.credentials = credentials;
-        }
+    public List<SecurityQuestionAnswerDTO> getUserQuestionAnswers() {
+        return userQuestionAnswers;
+    }
 
-        public List<SecurityQuestionAnswerDTO> getSecurityAnswers() {
-            return questionAnswers;
-        }
+    public void setUserQuestionAnswers(List<SecurityQuestionAnswerDTO> userQuestionAnswers) {
+        this.userQuestionAnswers = userQuestionAnswers;
+    }
 
-        public void setSecurityAnswers(List<SecurityQuestionAnswerDTO> securityAnswers) {
-            this.questionAnswers = securityAnswers;
-        }
+    public List<SecurityQuestionAnswerDTO> getActualQuestionAnswers() {
+        return actualQuestionAnswers;
+    }
 
-
-
+    public void setActualQuestionAnswers(List<SecurityQuestionAnswerDTO> actualQuestionAnswers) {
+        this.actualQuestionAnswers = actualQuestionAnswers;
+    }
 }

@@ -27,17 +27,17 @@ public class SecurityQuestionAnswerDTO implements Serializable {
         this.passwQuestionIdentifier = passwQuestion;
         this.passwAnswer = passAnswer;
     }
-    public SecurityQuestionAnswerDTO(String passwQuestion, String passAnswer,String questionitself){
+    public SecurityQuestionAnswerDTO(String passwQuestion, String passAnswer, String questionitself){
         this.passwQuestionIdentifier = passwQuestion;
         this.passwAnswer = passAnswer;
         this.questionItself=questionitself;
     }
 
-    public String getPwdQuestion() {
+    public String getPwdQuestionIdentifier() {
         return passwQuestionIdentifier;
     }
-    public void setPwdQuestion(String pwdQuestion) {
-        this.passwQuestionIdentifier = pwdQuestion;
+    public void setPwdQuestionIdentifier(String passwQuestionIdentifier) {
+        this.passwQuestionIdentifier = passwQuestionIdentifier;
     }
     public String getPwdAnswer() {
         return passwAnswer;
@@ -46,10 +46,10 @@ public class SecurityQuestionAnswerDTO implements Serializable {
         this.passwAnswer = pwdAnswer;
     }
 
-    public String getQuestionItself() {
+    public String getPwdQuestion() {
         return questionItself;
     }
-    public void setQuestionItself(String questionItself) {
+    public void setPwdQuestion(String questionItself) {
         this.questionItself = questionItself;
     }
 

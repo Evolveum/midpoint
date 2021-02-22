@@ -14,6 +14,8 @@ import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -68,6 +70,7 @@ public class PageSecurityQuestions extends PageBase {
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loaduser";
     private static final String OPERATION_LOAD_QUESTION_POLICY = DOT_CLASS + "LOAD Question Policy";
     private static final String ID_PASSWORD_QUESTIONS_PANEL = "pwdQuestionsPanel";
+    private static final String ID_QUESTION_ANSWER_PANEL = "questionAnswerPanel";
     private static final String OPERATION_RESET_PASSWORD = DOT_CLASS + "resetPassword";
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_BACK = "back";
@@ -115,7 +118,7 @@ public class PageSecurityQuestions extends PageBase {
         questionNumber = secQuestionsPolicy != null ? secQuestionsPolicy.getQuestionNumber() : 1;
         questionList = secQuestionsPolicy != null ? secQuestionsPolicy.getQuestion() : new ArrayList<>();
 
-        List<SecurityQuestionAnswerDTO> userQuestionAnswerList = questions.getSecurityAnswers();
+        List<SecurityQuestionAnswerDTO> userQuestionAnswerList = questions.getUserQuestionAnswers();
 
         if (userQuestionAnswerList == null) {
             getSession().error(getString("pageForgetPassword.message.ContactAdminQuestionsNotSet"));
@@ -133,13 +136,19 @@ public class PageSecurityQuestions extends PageBase {
             for (SecurityQuestionAnswerDTO questionAnswer : userQuestionAnswerList) {
 
                 // if the question is in the policy check
-                if (questionAnswer.getPwdQuestion().equalsIgnoreCase(question.getIdentifier())) {
-
-                    SecurityQuestionAnswerDTO a = new SecurityQuestionAnswerDTO(questionAnswer.getPwdQuestion(), "",
-                            questionAnswer.getQuestionItself());
-                    a = checkIfQuestionIsValid(a, questionList);
+                if (questionAnswer.getPwdQuestionIdentifier().equalsIgnoreCase(question.getIdentifier())) {
+                    LoadableModel<SecurityQuestionAnswerDTO> model = new LoadableModel<SecurityQuestionAnswerDTO>() {
+                        @Override
+                        protected SecurityQuestionAnswerDTO load() {
+                            SecurityQuestionAnswerDTO a = new SecurityQuestionAnswerDTO(questionAnswer.getPwdQuestionIdentifier(), "",
+                                    questionAnswer.getPwdQuestion());
+                            a = checkIfQuestionIsValid(a, questionList);
+                            return a;
+                        }
+                    };
                     MyPasswordQuestionsPanel panel = new MyPasswordQuestionsPanel(
-                            ID_PASSWORD_QUESTIONS_PANEL + panelNumber, a);
+                            ID_QUESTION_ANSWER_PANEL, model);
+                    panel.getBaseFormComponent().setRequired(true);
                     pqPanels.add(panel);
                     panelNumber++;
                 }
@@ -235,16 +244,16 @@ public class PageSecurityQuestions extends PageBase {
 
         int correctAnswers = 0;
         for (MyPasswordQuestionsPanel type : pqPanels) {
-            List<SecurityQuestionAnswerDTO> userQuestionList = questions.getSecurityAnswers();
+            List<SecurityQuestionAnswerDTO> userQuestionList = questions.getUserQuestionAnswers();
             if (userQuestionList != null) {
                 for (SecurityQuestionAnswerDTO securityQuestionAnswerDTO : userQuestionList) {
                     // TODO do this in a proper way, what is this.
                     String results = StringEscapeUtils.unescapeHtml4(
-                            type.get(MyPasswordQuestionsPanel.F_QUESTION).getDefaultModelObjectAsString());
+                            type.get(MyPasswordQuestionsPanel.ID_QUESTION).getDefaultModelObjectAsString());
                     if (getQuestionIdentifierFromQuestion(results).trim().equalsIgnoreCase(
-                            securityQuestionAnswerDTO.getPwdQuestion().trim())) {
+                            securityQuestionAnswerDTO.getPwdQuestionIdentifier().trim())) {
 
-                        if (((TextField<String>) type.get(MyPasswordQuestionsPanel.F_ANSWER)).getModelObject()
+                        if (((TextField<String>) type.get(MyPasswordQuestionsPanel.ID_ANSWER)).getModelObject()
                                 .equalsIgnoreCase(securityQuestionAnswerDTO.getPwdAnswer())) {
                             correctAnswers++;
                         }
@@ -288,8 +297,8 @@ public class PageSecurityQuestions extends PageBase {
         if (user == null) {
             throw new RestartResponseException(PageLogin.class);        // TODO
         }
-        questions = new PasswordQuestionsDto();
-        questions.setSecurityAnswers(createUsersSecurityQuestionsList(user));
+        questions = new PasswordQuestionsDto(userOid);
+        questions.setUserQuestionAnswers(createUsersSecurityQuestionsList(user));
     }
 
     private List<SecurityQuestionAnswerDTO> createUsersSecurityQuestionsList(PrismObject<UserType> user) {
@@ -336,8 +345,8 @@ public class PageSecurityQuestions extends PageBase {
 
         for (SecurityQuestionDefinitionType securityQuestionDefinitionType : securityQuestionList) {
             if (securityQuestionDefinitionType.getIdentifier().trim()
-                    .equalsIgnoreCase(questionIdentifier.getPwdQuestion().trim())) {
-                questionIdentifier.setQuestionItself(securityQuestionDefinitionType.getQuestionText());
+                    .equalsIgnoreCase(questionIdentifier.getPwdQuestionIdentifier().trim())) {
+                questionIdentifier.setPwdQuestion(securityQuestionDefinitionType.getQuestionText());
                 return questionIdentifier;
             }
         }
