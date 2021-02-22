@@ -72,7 +72,7 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
             result.setMessage(getString("PageResetPassword.reset.successful"));
             setResponsePage(PageLogin.class);
 
-            MyPasswordsDto passwords = getModelObject();
+            MyPasswordsDto passwords = getPasswordDto();
             PrismObject<? extends FocusType> focus = passwords.getFocus();
             if (focus == null) {
                 SecurityContextHolder.getContext().setAuthentication(null);
@@ -111,13 +111,13 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
     }
 
     @Override
-    protected boolean shouldLoadAccounts(MyPasswordsDto dto) {
+    protected boolean shouldLoadAccounts() {
         return false;
     }
 
     @Override
     protected List<PasswordAccountDto> getSelectedAccountsList() {
-        List<PasswordAccountDto> accounts = getModelObject().getAccounts();
+        List<PasswordAccountDto> accounts = getPasswordDto().getAccounts();
         if (accounts.isEmpty()) {
             return Collections.emptyList();
         }
