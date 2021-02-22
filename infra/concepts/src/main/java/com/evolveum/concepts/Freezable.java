@@ -6,6 +6,8 @@
  */
 package com.evolveum.concepts;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.google.common.base.Preconditions;
 
 public interface Freezable extends MutationBehaviourAware<Freezable> {
@@ -23,7 +25,7 @@ public interface Freezable extends MutationBehaviourAware<Freezable> {
      *
      * @return This (for fluent API)
      */
-    Freezable freeze();
+    @NotNull Freezable freeze();
 
     /**
      * Checks if object is not frozen

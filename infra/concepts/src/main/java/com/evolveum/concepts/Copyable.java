@@ -6,15 +6,18 @@
  */
 package com.evolveum.concepts;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 public interface Copyable<T extends Copyable<T>> {
 
 
-    T copy();
+    @NotNull T copy();
 
     interface Strategy {
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
-        default <T> T copy(T object) {
+        @Nullable default <T> T copy(T object) {
             if (object instanceof StrategyAware) {
                 return (T) ((StrategyAware<?>) object).copy(this);
             }
@@ -25,14 +28,14 @@ public interface Copyable<T extends Copyable<T>> {
             return copyUnaware(object);
         }
 
-        <T extends Copyable<T>> T copyCopyable(T object);
+        @Nullable <T extends Copyable<T>> T copyCopyable(T object);
 
-        <T> T copyUnaware(T object);
+        @Nullable <T> T copyUnaware(T object);
     }
 
     interface StrategyAware<T extends StrategyAware<T>> extends Copyable<T> {
 
-        T copy(Copyable.Strategy strategy);
+        @NotNull T copy(Copyable.Strategy strategy);
 
     }
 
