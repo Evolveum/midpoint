@@ -141,6 +141,14 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      */
     TaskExecutionStateType getExecutionState();
 
+    default boolean isRunnable() {
+        return getExecutionState() == TaskExecutionStateType.RUNNABLE;
+    }
+
+    default boolean isRunning() {
+        return getExecutionState() == TaskExecutionStateType.RUNNING;
+    }
+
     /**
      * Returns low-level scheduling state.
      */
@@ -149,7 +157,21 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
     /**
      * Returns true if the task is closed. (Refers to the scheduling state.)
      */
-    boolean isClosed();
+    default boolean isClosed() {
+        return getSchedulingState() == TaskSchedulingStateType.CLOSED;
+    }
+
+    default boolean isReady() {
+        return getSchedulingState() == TaskSchedulingStateType.READY;
+    }
+
+    default boolean isWaiting() {
+        return getSchedulingState() == TaskSchedulingStateType.WAITING;
+    }
+
+    default boolean isSuspended() {
+        return getSchedulingState() == TaskSchedulingStateType.SUSPENDED;
+    }
 
     /**
      * Returns the task waiting reason for a WAITING task.
@@ -315,11 +337,6 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      * Sets handler URI.
      */
     void setHandlerUri(String value);
-
-    /**
-     * Closes the task as the current handler finished. TODO reconsider this method (it was useful in older ages)
-     */
-    void finishHandler(OperationResult result) throws ObjectNotFoundException, SchemaException;
 
     /**
      * Task category is a user-oriented term, hinting on what 'kind' of task is the one being considered
@@ -615,16 +632,14 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      * List all the subtasks of a given task, i.e. whole task tree rooted at the current task.
      * Current task is not contained in the returned list.
      */
-    default List<Task> listSubtasksDeeply(OperationResult result) throws SchemaException {
-        return listSubtasksDeeply(false, result);
-    }
+    List<? extends Task> listSubtasksDeeply(OperationResult result) throws SchemaException;
 
     /**
      * Lists all tasks in subtasks tree.
      *
      * @param persistentOnly If true, transient subtasks (i.e. lightweight asynchronous tasks) are ignored.
      */
-    List<Task> listSubtasksDeeply(boolean persistentOnly, OperationResult result) throws SchemaException;
+    List<? extends Task> listSubtasksDeeply(boolean persistentOnly, OperationResult result) throws SchemaException;
 
     /**
      * Lists all explicit dependents, i.e. tasks that wait for the completion of this tasks (that depend on it).

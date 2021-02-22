@@ -59,7 +59,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
             // todo consider checking that the subtask is really a worker (workStateConfiguration.taskKind)
             if (clean) {
                 List<Task> notClosedNorSuspended = workers.stream()
-                        .filter(w -> w.getExecutionState() != TaskExecutionStateType.CLOSED && w.getExecutionState() != TaskExecutionStateType.SUSPENDED)
+                        .filter(w -> !w.isClosed() && !w.isSuspended())
                         .collect(Collectors.toList());
                 if (!notClosedNorSuspended.isEmpty()) {
                     LOGGER.warn("Couldn't (re)create worker tasks because the work is done but the following ones are not closed nor suspended: {}", notClosedNorSuspended);
@@ -69,7 +69,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
                 }
             } else {
                 List<? extends Task> notClosed = workers.stream()
-                        .filter(w -> w.getExecutionState() == TaskExecutionStateType.CLOSED)
+                        .filter(w -> !w.isClosed())
                         .collect(Collectors.toList());
                 if (!notClosed.isEmpty()) {
                     LOGGER.warn("Couldn't (re)create worker tasks because the work is not done and the following ones are not closed yet: {}", notClosed);
@@ -84,6 +84,8 @@ public class WorkersCreationTaskHandler implements TaskHandler {
             WorkersReconciliationOptions options = new WorkersReconciliationOptions();
             options.setDontCloseWorkersWhenWorkDone(true);
             taskManager.reconcileWorkers(task.getOid(), options, opResult);
+
+            // TODO what if the task was suspended in the meanwhile?
             ((TaskQuartzImpl) task).makeWaiting(TaskWaitingReasonType.OTHER_TASKS, TaskUnpauseActionType.RESCHEDULE);  // i.e. close for single-run tasks
             task.flushPendingModifications(opResult);
             taskManager.resumeTasks(TaskUtil.tasksToOids(task.listSubtasks(true, opResult)), opResult);

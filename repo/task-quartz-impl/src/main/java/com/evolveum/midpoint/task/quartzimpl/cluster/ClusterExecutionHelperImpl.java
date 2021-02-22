@@ -56,9 +56,9 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper {
     @Autowired private RepositoryService repositoryService;
     @Autowired private Protector protector;
 
-    @Autowired private MidpointXmlProvider xmlProvider;
-    @Autowired private MidpointJsonProvider jsonProvider;
-    @Autowired private MidpointYamlProvider yamlProvider;
+    @Autowired private MidpointXmlProvider<?> xmlProvider;
+    @Autowired private MidpointJsonProvider<?> jsonProvider;
+    @Autowired private MidpointYamlProvider<?> yamlProvider;
 
     private static final String DOT_CLASS = ClusterExecutionHelperImpl.class.getName() + ".";
 
@@ -243,5 +243,4 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper {
             return null;
         }
     }
-
 }

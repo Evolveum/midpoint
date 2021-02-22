@@ -2728,14 +2728,24 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="stateBeforeSuspend" type="tns:TaskSchedulingStateType" minOccurs="0">
+                    <xsd:element name="stateBeforeSuspend" type="tns:TaskExecutionStateType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                What was the task execution state before it was suspended?
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.8</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="schedulingStateBeforeSuspend" type="tns:TaskSchedulingStateType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 What was the task scheduling state before it was suspended? It could be either runnable or waiting.
                                 This is important because we want to restore the correct state on resume.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:since>3.8</a:since>
+                                <a:since>4.3</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

@@ -10,7 +10,6 @@ package com.evolveum.midpoint.task.quartzimpl;
 import ch.qos.logback.classic.Level;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
@@ -102,7 +101,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 
     private Level originalProfilingLevel;
 
-    RunningTaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, @NotNull PrismObject<TaskType> taskPrism,
+    public RunningTaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, @NotNull PrismObject<TaskType> taskPrism,
             @NotNull String rootTaskOid) {
         super(taskManager, taskPrism);
         this.rootTaskOid = rootTaskOid;
@@ -133,7 +132,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 
     @Override
     public RunningTask createSubtask(LightweightTaskHandler handler) {
-        RunningTaskQuartzImpl sub = taskManager.createRunningTask(createSubtask(), rootTaskOid);
+        RunningTaskQuartzImpl sub = beans.taskInstantiator.toRunningTaskInstance(createSubtask(), rootTaskOid);
         sub.setLightweightTaskHandler(handler);
         assert sub.getTaskIdentifier() != null;
         synchronized (lightweightAsynchronousSubtasks) {
@@ -168,34 +167,28 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     @Override
     public Collection<? extends RunningTaskQuartzImpl> getLightweightAsynchronousSubtasks() {
         synchronized (lightweightAsynchronousSubtasks) {
-            return Collections.unmodifiableList(new ArrayList<>(lightweightAsynchronousSubtasks.values()));
+            return List.copyOf(lightweightAsynchronousSubtasks.values());
         }
     }
 
     @Override
     public Collection<? extends RunningTaskQuartzImpl> getRunningLightweightAsynchronousSubtasks() {
-        // beware: Do not touch task prism here, because this method can be called asynchronously
-        List<RunningTaskQuartzImpl> retval = new ArrayList<>();
-        for (RunningTaskQuartzImpl subtask : getLightweightAsynchronousSubtasks()) {
-            if ((subtask.getExecutionState() == TaskExecutionStateType.RUNNABLE || subtask.getExecutionState() == TaskExecutionStateType.RUNNING) // TODO scheduling state? Or just RUNNING?
-                            && subtask.lightweightHandlerStartRequested()) {
-                retval.add(subtask);
-            }
-        }
-        return Collections.unmodifiableList(retval);
+        // beware: Do not touch task prism here, because of thread safety
+        return getLightweightAsynchronousSubtasks().stream()
+                .filter(subtask -> subtask.isRunning() &&
+                        subtask.lightweightHandlerStartRequested())
+                .collect(Collectors.toUnmodifiableList());
     }
 
     @Override
     public void deleteLightweightAsynchronousSubtasks() {
         synchronized (lightweightAsynchronousSubtasks) {
             List<? extends RunningTask> livingSubtasks = lightweightAsynchronousSubtasks.values().stream()
-                    .filter(t -> t.getExecutionState() == TaskExecutionStateType.RUNNABLE ||
-                            t.getExecutionState() == TaskExecutionStateType.RUNNING ||
-                            t.getExecutionState() == TaskExecutionStateType.WAITING) // todo scheduling state?
+                    .filter(t -> t.isRunnable() || t.isRunning())
                     .collect(Collectors.toList());
             if (!livingSubtasks.isEmpty()) {
-                LOGGER.error("Task {} has {} runnable/running or waiting lightweight subtasks: {}", this, livingSubtasks.size(), livingSubtasks);
-                throw new IllegalStateException("There are runnable/running or waiting subtasks in the parent task");
+                LOGGER.error("Task {} has {} runnable/running lightweight subtasks: {}", this, livingSubtasks.size(), livingSubtasks);
+                throw new IllegalStateException("There are runnable/running subtasks in the parent task");
             }
             lightweightAsynchronousSubtasks.clear();
         }
@@ -209,7 +202,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     // just a shortcut
     @Override
     public void startLightweightHandler() {
-        taskManager.startLightweightTask(this);
+        beans.lightweightTaskManager.startLightweightTask(this);
     }
 
     public void setLightweightHandlerExecuting(boolean lightweightHandlerExecuting) {
@@ -315,24 +308,23 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 
     @Override
     public void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy, boolean initialExecution) {
-        SqlPerformanceMonitorsCollection sqlPerformanceMonitors = taskManager.getSqlPerformanceMonitorsCollection();
         if (initialExecution && strategy.isStartFromZero()) {
             statistics.startCollectingOperationStatsFromZero(strategy.isMaintainIterationStatistics(),
                     strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics(),
-                    sqlPerformanceMonitors);
+                    beans.sqlPerformanceMonitorsCollection);
             setProgress(0L);
             storeOperationStats();
         } else {
             OperationStatsType stored = getStoredOperationStats();
             statistics.startCollectingOperationStatsFromStoredValues(stored, strategy.isMaintainIterationStatistics(),
                     strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics(),
-                    initialExecution, sqlPerformanceMonitors);
+                    initialExecution, beans.sqlPerformanceMonitorsCollection);
         }
     }
 
     void startCollectingLowLevelStatistics() {
-        if (taskManager.getSqlPerformanceMonitorsCollection() != null) {
-            statistics.startCollectingLowLevelStatistics(taskManager.getSqlPerformanceMonitorsCollection());
+        if (beans.sqlPerformanceMonitorsCollection != null) {
+            statistics.startCollectingLowLevelStatistics(beans.sqlPerformanceMonitorsCollection);
         }
     }
 
@@ -396,7 +388,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
             LOGGER.info("Starting tracing for object number {} (interval is {})", this.objectsSeen, interval);
 
             TracingProfileType tracingProfile =
-                    tracingProfileConfigured != null ? tracingProfileConfigured : taskManager.getTracer().getDefaultProfile();
+                    tracingProfileConfigured != null ? tracingProfileConfigured : beans.tracer.getDefaultProfile();
             Collection<TracingRootType> points = pointsConfigured.isEmpty() ? singleton(defaultTracingRoot) : pointsConfigured;
 
             points.forEach(this::addTracingRequest);

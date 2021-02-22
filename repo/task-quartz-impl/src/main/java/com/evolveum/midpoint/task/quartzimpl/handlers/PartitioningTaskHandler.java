@@ -145,7 +145,7 @@ public class PartitioningTaskHandler implements TaskHandler {
         masterTask.makeWaiting(TaskWaitingReasonType.OTHER_TASKS, TaskUnpauseActionType.RESCHEDULE);  // i.e. close for single-run tasks
         masterTask.flushPendingModifications(opResult);
         List<Task> subtasksToResume = subtasksCreated.stream()
-                .filter(t -> t.getExecutionState() == TaskExecutionStateType.SUSPENDED)
+                .filter(Task::isSuspended)
                 .collect(Collectors.toList());
         taskManager.resumeTasks(TaskUtil.tasksToOids(subtasksToResume), opResult);
         LOGGER.info("Partitioned subtasks were successfully created and started for master {}", masterTask);
@@ -155,7 +155,7 @@ public class PartitioningTaskHandler implements TaskHandler {
             throws SchemaException, ExitHandlerException {
         List<TaskQuartzImpl> subtasks = masterTask.listSubtasks(opResult);
         List<TaskQuartzImpl> subtasksNotClosed = subtasks.stream()
-                .filter(w -> w.getExecutionState() != TaskExecutionStateType.CLOSED)
+                .filter(w -> !w.isClosed())
                 .collect(Collectors.toList());
         if (!subtasksNotClosed.isEmpty()) {
             LOGGER.warn("Couldn't (re)create/restart subtasks tasks because the following ones are not closed yet: {}", subtasksNotClosed);
@@ -221,7 +221,7 @@ public class PartitioningTaskHandler implements TaskHandler {
             for (Integer dependentIndex : dependents) {
                 Task dependent = subtasks.get(dependentIndex - 1);
                 subtask.addDependent(dependent.getTaskIdentifier());
-                if (dependent.getExecutionState() == TaskExecutionStateType.SUSPENDED) {
+                if (dependent.isSuspended()) {
                     ((TaskQuartzImpl) dependent).makeWaiting(TaskWaitingReasonType.OTHER_TASKS, TaskUnpauseActionType.EXECUTE_IMMEDIATELY);
                     dependent.flushPendingModifications(opResult);
                 }
@@ -285,6 +285,7 @@ public class PartitioningTaskHandler implements TaskHandler {
         subtask.setWorkManagement(workManagement);
 
         subtask.setExecutionStatus(TaskExecutionStateType.SUSPENDED);
+        subtask.setSchedulingState(TaskSchedulingStateType.SUSPENDED);
         subtask.setOwnerRef(CloneUtil.clone(masterTask.getOwnerRef()));
         subtask.setCategory(masterTask.getCategory());
         subtask.setObjectRef(CloneUtil.clone(masterTask.getObjectRefOrClone()));

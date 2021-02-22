@@ -243,7 +243,7 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
                 task.refresh(waitResult);
                 OperationResult result = task.getResult();
                 if (verbose) { display("Check result", result); }
-                return task.getExecutionState() == TaskExecutionStateType.CLOSED;
+                return task.isClosed();
             }
 
             @Override

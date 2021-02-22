@@ -17,6 +17,11 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
 
+import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
+import com.evolveum.midpoint.task.quartzimpl.tasks.TaskStateManager;
+
+import com.evolveum.midpoint.test.TestResource;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeSuite;
@@ -72,6 +77,8 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
 
     @Autowired protected RepositoryService repositoryService;
     @Autowired protected TaskManagerQuartzImpl taskManager;
+    @Autowired protected TaskStateManager taskStateManager;
+    @Autowired protected LocalScheduler localScheduler;
     @Autowired protected PrismContext prismContext;
     @Autowired protected SchemaHelper schemaHelper;
 
@@ -129,9 +136,16 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
         addObjectFromFile(USER_ADMINISTRATOR_FILE.getPath());
     }
 
+    <T extends ObjectType> PrismObject<T> add(TestResource<T> testResource, OperationResult result) throws Exception {
+        return addObjectFromFile(testResource.file.getAbsolutePath(), result);
+    }
+
     <T extends ObjectType> PrismObject<T> addObjectFromFile(String filePath) throws Exception {
+        return addObjectFromFile(filePath, createOperationResult("addObjectFromFile"));
+    }
+
+    <T extends ObjectType> PrismObject<T> addObjectFromFile(String filePath, OperationResult result) throws Exception {
         PrismObject<T> object = PrismTestUtil.parseObject(new File(filePath));
-        OperationResult result = createOperationResult("addObjectFromFile");
         try {
             add(object, result);
         } catch (ObjectAlreadyExistsException e) {
@@ -165,17 +179,39 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
         waitFor("Waiting for task to close", () -> {
             Task task = taskManager.getTaskWithResult(taskOid, result);
             IntegrationTestTools.display("Task while waiting for it to close", task);
-            return task.getExecutionState() == TaskExecutionStateType.CLOSED;
+            return task.getSchedulingState() == TaskSchedulingStateType.CLOSED;
+        }, timeoutInterval, sleepInterval);
+    }
+
+    void waitForTaskCloseOrDelete(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval)
+            throws CommonException {
+        waitFor("Waiting for task to close", () -> {
+            try {
+                Task task = taskManager.getTaskWithResult(taskOid, result);
+                IntegrationTestTools.display("Task while waiting for it to close", task);
+                return task.getSchedulingState() == TaskSchedulingStateType.CLOSED;
+            } catch (ObjectNotFoundException e) {
+                return true;
+            }
         }, timeoutInterval, sleepInterval);
     }
 
     @SuppressWarnings("SameParameterValue")
-    void waitForTaskRunnable(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval) throws
+    void waitForTaskReady(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval) throws
             CommonException {
         waitFor("Waiting for task to become runnable", () -> {
             Task task = taskManager.getTaskWithResult(taskOid, result);
-            IntegrationTestTools.display("Task while waiting for it to become runnable", task);
-            return task.getExecutionState() == TaskExecutionStateType.RUNNABLE || task.getExecutionState() == TaskExecutionStateType.RUNNING; // todo scheduled state
+            IntegrationTestTools.display("Task while waiting for it to become ready", task);
+            return task.isReady();
+        }, timeoutInterval, sleepInterval);
+    }
+
+    void waitForTaskWaiting(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval) throws
+            CommonException {
+        waitFor("Waiting for task to become waiting", () -> {
+            Task task = taskManager.getTaskWithResult(taskOid, result);
+            IntegrationTestTools.display("Task while waiting for it to become waiting", task);
+            return task.isWaiting();
         }, timeoutInterval, sleepInterval);
     }
 
@@ -185,11 +221,11 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
         waitFor("Waiting for task manager to execute the task", () -> {
             Task task = taskManager.getTaskWithResult(taskOid, result);
             displayValue("Task tree while waiting", TaskDebugUtil.dumpTaskTree(task, result));
-            if (task.getExecutionState() == TaskExecutionStateType.CLOSED) {
+            if (task.isClosed()) {
                 display("Task is closed, finishing waiting: " + task);
                 return true;
             }
-            List<Task> subtasks = task.listSubtasksDeeply(result);
+            List<? extends Task> subtasks = task.listSubtasksDeeply(result);
             for (Task subtask : subtasks) {
                 if (subtask.getResultStatus() == OperationResultStatusType.FATAL_ERROR
                         || subtask.getResultStatus() == OperationResultStatusType.PARTIAL_ERROR) {

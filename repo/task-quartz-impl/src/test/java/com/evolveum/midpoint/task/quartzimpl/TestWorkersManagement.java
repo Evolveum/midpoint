@@ -186,7 +186,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             displayDumpable("coordinator task", coordinatorTask);
             displayDumpable("worker task", workers.get(0));
 
-            waitForTaskClose(workers.get(0).getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+            waitForTaskCloseOrDelete(workers.get(0).getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
             assertEquals("Wrong # of items processed", 4, workBucketsTaskHandler.getItemsProcessed());
             // TODO some asserts here
@@ -207,7 +207,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             displayDumpable("coordinator task after re-run", coordinatorTask);
             displayDumpable("worker task after re-run", workers.get(0));
 
-            waitForTaskClose(workers.get(0).getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+            waitForTaskCloseOrDelete(workers.get(0).getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
             assertEquals("Wrong # of items processed", 8, workBucketsTaskHandler.getItemsProcessed());
 
@@ -300,7 +300,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             displayBucketOpStatistics("coordinator", coordinatorTask);
             displayBucketOpStatistics("worker", worker);
 
-            waitForTaskClose(worker.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+            waitForTaskCloseOrDelete(worker.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
             // brittle - might fail
             assertEquals("Wrong # of items processed", 12, workBucketsTaskHandler.getItemsProcessed());

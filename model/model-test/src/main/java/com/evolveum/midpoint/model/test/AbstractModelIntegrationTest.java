@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -3515,7 +3517,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             triggered.set(true);
 
             aggregateResult.getSubresults().clear();
-            List<Task> subtasks = freshRootTask.listSubtasksDeeply(waitResult);
+            List<? extends Task> subtasks = freshRootTask.listSubtasksDeeply(waitResult);
             for (Task subtask : subtasks) {
                 try {
                     subtask.refresh(waitResult);        // quick hack to get operation results
@@ -3743,7 +3745,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".suspendTask");
         Task task = taskManager.getTaskWithResult(taskOid, result);
         logger.info("Suspending task {}", taskOid);
-        return taskManager.suspendTaskQuietly(task, waitTime, result);
+        try {
+            return taskManager.suspendTask(task, waitTime, result);
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(logger, "Couldn't suspend task {}", e, task);
+            return false;
+        }
     }
 
     /**

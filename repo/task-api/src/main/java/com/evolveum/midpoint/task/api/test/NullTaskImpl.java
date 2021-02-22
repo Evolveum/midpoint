@@ -458,14 +458,14 @@ public class NullTaskImpl implements Task {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public void finishHandler(OperationResult result) {
-        throw new UnsupportedOperationException();
-    }
-
     @NotNull
     @Override
     public List<Task> listSubtasks(boolean persistentOnly, OperationResult parentResult) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<? extends Task> listSubtasksDeeply(OperationResult result) throws SchemaException {
         throw new UnsupportedOperationException();
     }
 
@@ -491,11 +491,6 @@ public class NullTaskImpl implements Task {
 
     @Override
     public TaskWaitingReasonType getWaitingReason() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isClosed() {
         throw new UnsupportedOperationException();
     }
 

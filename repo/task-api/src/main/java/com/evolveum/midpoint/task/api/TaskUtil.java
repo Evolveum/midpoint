@@ -14,10 +14,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.commons.lang3.Validate;
@@ -86,7 +83,7 @@ public class TaskUtil {
     }
 
     public static String createScheduledToRunAgain(TaskType task, List<Object> localizationObject) {
-        boolean runnable = task.getExecutionStatus() == TaskExecutionStateType.RUNNABLE || task.getExecutionStatus() == TaskExecutionStateType.RUNNING; // TODO switch to scheduling state
+        boolean runnable = task.getSchedulingState() == TaskSchedulingStateType.READY;
         Long scheduledAfter = getScheduledToStartAgain(task);
         Long retryAfter = runnable ? getRetryAfter(task) : null;
 
@@ -132,12 +129,12 @@ public class TaskUtil {
     public static Long getScheduledToStartAgain(TaskType task) {
         long current = System.currentTimeMillis();
 
-        if (task.getNodeAsObserved() != null && (task.getExecutionStatus() != TaskExecutionStateType.SUSPENDED)) {
+        if (task.getNodeAsObserved() != null && (task.getSchedulingState() != TaskSchedulingStateType.SUSPENDED)) {
 
             if (TaskRecurrenceType.RECURRING != task.getRecurrence()) {
                 return null;
             } else if (TaskBindingType.TIGHT == task.getBinding()) {
-                return RUNS_CONTINUALLY;             // runs continually; todo provide some information also in this case
+                return RUNS_CONTINUALLY; // runs continually; todo provide some information also in this case
             }
         }
 

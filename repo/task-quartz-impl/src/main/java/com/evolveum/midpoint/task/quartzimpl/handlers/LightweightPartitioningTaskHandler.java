@@ -13,6 +13,7 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.Validate;
@@ -33,9 +34,8 @@ import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.task.quartzimpl.InternalTaskInterface;
 import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.execution.HandlerExecutor;
+import com.evolveum.midpoint.task.quartzimpl.run.HandlerExecutor;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -152,8 +152,7 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
         //noinspection unchecked
         ContainerDelta<TaskWorkStateType> containerDelta = (ContainerDelta<TaskWorkStateType>) prismContext
                 .deltaFor(TaskType.class).item(TaskType.F_WORK_STATE).replace().asItemDelta();
-        ((InternalTaskInterface) runningTask).applyDeltasImmediate(MiscUtil.createCollection(containerDelta), parentResult);
-
+        ((TaskQuartzImpl) runningTask).applyDeltasImmediate(MiscUtil.createCollection(containerDelta), parentResult);
     }
 
     private boolean canContinue(RunningTask task, TaskRunResult runResult) {

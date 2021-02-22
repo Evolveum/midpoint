@@ -1568,8 +1568,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
         securityContextManager.setUserProfileService(focusProfileService);
 
-        taskManager.postInit(result);
-
         // Initialize provisioning
         provisioning.postInit(result);
 

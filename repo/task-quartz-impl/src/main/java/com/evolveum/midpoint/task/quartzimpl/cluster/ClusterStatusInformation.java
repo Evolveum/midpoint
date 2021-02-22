@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.task.quartzimpl.cluster;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchedulerInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -17,16 +19,22 @@ import java.util.*;
 /**
  * Provides information about tasks currently executing at particular nodes in the cluster.
  *
- * @author Pavol Mederly
+ * TODO finish review of this class
  */
-public class ClusterStatusInformation implements Serializable {
+public class ClusterStatusInformation implements Serializable, DebugDumpable {
 
     private static final long serialVersionUID = -2955916510215061664L;
 
-    private long timestamp = System.currentTimeMillis();
+    private static final long ALLOWED_CLUSTER_STATE_INFORMATION_AGE = 1500L;
 
-    public boolean isFresh(long allowance) {
-        return System.currentTimeMillis() - timestamp <= allowance;
+    private final long timestamp = System.currentTimeMillis();
+
+    public static boolean isFresh(ClusterStatusInformation info) {
+        return info != null && info.isFresh();
+    }
+
+    public boolean isFresh() {
+        return System.currentTimeMillis() - timestamp <= ALLOWED_CLUSTER_STATE_INFORMATION_AGE;
     }
 
     public static class TaskInfo implements Serializable {
@@ -129,13 +137,13 @@ public class ClusterStatusInformation implements Serializable {
         return null;
     }
 
-    public String dump() {
-        StringBuffer retval = new StringBuffer();
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.debugDumpLabelLn(sb, getClass().getSimpleName(), indent);
         for (Map.Entry<NodeType,List<TaskInfo>> nodeListEntry : tasks.entrySet()) {
-            retval.append(nodeListEntry.getKey().toString());
-            retval.append(": ");
-            retval.append(nodeListEntry.getValue().toString());
+            DebugUtil.debugDumpWithLabelLn(sb, nodeListEntry.getKey().toString(), nodeListEntry.getValue().toString(), indent+1);
         }
-        return retval.toString();
+        return sb.toString();
     }
 }

@@ -81,7 +81,7 @@ public class TestPartitioning extends AbstractTaskManagerTest {
 
             assertEquals("Wrong # of partitions", 3, partitions.size());
 
-            waitForTaskRunnable(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+            waitForTaskReady(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
             assertEquals("Wrong # of handler executions", 3, singleHandler1.getExecutions());
 
@@ -90,7 +90,7 @@ public class TestPartitioning extends AbstractTaskManagerTest {
 
             // THEN
             waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 2);
-            waitForTaskRunnable(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+            waitForTaskReady(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
             masterTask = taskManager.getTaskPlain(masterTaskOid, result);
             partitions = masterTask.listSubtasks(result);

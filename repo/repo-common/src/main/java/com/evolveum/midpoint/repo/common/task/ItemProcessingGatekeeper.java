@@ -341,7 +341,7 @@ class ItemProcessingGatekeeper<I> {
     }
 
     private Tracer getTracer() {
-        return getTaskHandler().getTaskManager().getTracer();
+        return getTaskHandler().getTracer();
     }
 
     private AbstractTaskHandler<?, ?> getTaskHandler() {
@@ -405,11 +405,7 @@ class ItemProcessingGatekeeper<I> {
     }
 
     private CacheConfigurationManager getCacheConfigurationManager() {
-        return getTaskManager().getCacheConfigurationManager();
-    }
-
-    private TaskManager getTaskManager() {
-        return getTaskHandler().getTaskManager();
+        return getTaskHandler().getCacheConfigurationManager();
     }
 
     private String getTaskOperationPrefix() {

@@ -12,6 +12,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
@@ -19,13 +20,17 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.Cache;
+import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.TaskConstants;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
+import com.evolveum.midpoint.task.quartzimpl.LocalNodeState;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.execution.LocalExecutionManager;
+import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.NetworkUtil;
@@ -42,7 +47,11 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.Query;
@@ -56,8 +65,11 @@ import java.net.UnknownHostException;
 import java.util.*;
 
 /**
- * Takes care about node registration in repository.
+ * Takes care about registration of the local node in repository.
+ *
+ * TODO finish review of this class
  */
+@Component
 public class NodeRegistrar implements Cache {
 
     private static final Trace LOGGER = TraceManager.getTrace(NodeRegistrar.class);
@@ -68,8 +80,20 @@ public class NodeRegistrar implements Cache {
 
     private static final String OP_REFRESH_CACHED_LOCAL_NODE_OBJECT = NodeRegistrar.class.getName() + ".refreshCachedLocalNodeObject";
 
-    private final TaskManagerQuartzImpl taskManager;
-    private final ClusterManager clusterManager;
+    @Autowired private TaskManagerQuartzImpl taskManager;
+    @Autowired private TaskManagerConfiguration configuration;
+    @Autowired private ClusterManager clusterManager;
+    @Autowired private LocalNodeState localNodeState;
+    @Autowired private LocalizationService localizationService;
+    @Autowired private Protector protector;
+    @Autowired private LocalExecutionManager localExecutionManager;
+    @Autowired private LocalScheduler localScheduler;
+    @Autowired private CacheRegistry cacheRegistry;
+    @Autowired private RepositoryService repositoryService;
+    @Autowired private PrismContext prismContext;
+
+    private String webContextPath;
+
     private long lastDiscovery;
 
     private volatile NodeOperationalStateType operationalStatus = NodeOperationalStateType.STARTING;
@@ -91,19 +115,15 @@ public class NodeRegistrar implements Cache {
     private String discoveredUrlScheme;
     private Integer discoveredHttpPort;
 
-    NodeRegistrar(TaskManagerQuartzImpl taskManager, ClusterManager clusterManager) {
-        this.taskManager = taskManager;
-        this.clusterManager = clusterManager;
-
+    @PostConstruct
+    public void initialize() {
         discoverUrlSchemeAndPort();
+        cacheRegistry.registerCache(this);
     }
 
-    void postConstruct() {
-        taskManager.getCacheRegistry().registerCache(this);
-    }
-
+    @PreDestroy
     void preDestroy() {
-        taskManager.getCacheRegistry().unregisterCache(this);
+        cacheRegistry.unregisterCache(this);
     }
 
     /**
@@ -113,8 +133,6 @@ public class NodeRegistrar implements Cache {
      * @param result Node prism to be used for periodic re-registrations.
      */
     NodeType createOrUpdateNodeInRepo(OperationResult result) throws TaskManagerInitializationException {
-
-        TaskManagerConfiguration configuration = taskManager.getConfiguration();
 
         NodeType nodeToBe = createLocalNodeObject(configuration);
         LOGGER.info("Registering this node in the repository as {} at {}", nodeToBe.getNodeIdentifier(), nodeToBe.getHostname());
@@ -147,7 +165,7 @@ public class NodeRegistrar implements Cache {
             ObjectDelta<NodeType> nodeDelta = nodeInRepo.diff(nodeToBe.asPrismObject(), EquivalenceStrategy.DATA);
             LOGGER.debug("Applying delta to existing node object:\n{}", nodeDelta.debugDumpLazily());
             try {
-                getRepositoryService().modifyObject(NodeType.class, nodeInRepo.getOid(), nodeDelta.getModifications(), result);
+                repositoryService.modifyObject(NodeType.class, nodeInRepo.getOid(), nodeDelta.getModifications(), result);
                 LOGGER.debug("Node was successfully updated in the repository.");
                 nodeToBe.setOid(nodeInRepo.getOid());
                 setCachedLocalNodeObject(nodeToBe.asPrismObject());
@@ -166,7 +184,7 @@ public class NodeRegistrar implements Cache {
         for (PrismObject<NodeType> n : nodesInRepo) {
             LOGGER.debug("Removing existing NodeType with oid = {}, name = {}", n.getOid(), n.getName());
             try {
-                getRepositoryService().deleteObject(NodeType.class, n.getOid(), result);
+                repositoryService.deleteObject(NodeType.class, n.getOid(), result);
             } catch (ObjectNotFoundException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Cannot remove NodeType with oid = {}, name = {}, because it does not exist.", e, n.getOid(), n.getElementName());
                 // continue, because the error is not that severe (we hope so)
@@ -174,14 +192,14 @@ public class NodeRegistrar implements Cache {
         }
 
         try {
-            String oid = getRepositoryService().addObject(nodeToBe.asPrismObject(), null, result);
+            String oid = repositoryService.addObject(nodeToBe.asPrismObject(), null, result);
             nodeToBe.setOid(oid);
             setCachedLocalNodeObject(nodeToBe.asPrismObject());
         } catch (ObjectAlreadyExistsException e) {
-            taskManager.setNodeErrorStatus(NodeErrorStateType.NODE_REGISTRATION_FAILED);
+            localNodeState.setErrorState(NodeErrorStateType.NODE_REGISTRATION_FAILED);
             throw new TaskManagerInitializationException("Cannot register this node, because it already exists (this should not happen, as nodes with such a name were just removed)", e);
         } catch (SchemaException e) {
-            taskManager.setNodeErrorStatus(NodeErrorStateType.NODE_REGISTRATION_FAILED);
+            localNodeState.setErrorState(NodeErrorStateType.NODE_REGISTRATION_FAILED);
             throw new TaskManagerInitializationException("Cannot register this node because of schema exception", e);
         }
 
@@ -201,7 +219,7 @@ public class NodeRegistrar implements Cache {
     @NotNull
     private NodeType createLocalNodeObject(TaskManagerConfiguration configuration) {
         XMLGregorianCalendar currentTime = getCurrentTime();
-        NodeType node = getPrismContext().createKnownObjectable(NodeType.class);
+        NodeType node = prismContext.createKnownObjectable(NodeType.class);
         String nodeId = configuration.getNodeId();
         node.setNodeIdentifier(nodeId);
         node.setName(new PolyStringType(nodeId));
@@ -298,7 +316,7 @@ public class NodeRegistrar implements Cache {
         ProtectedStringType secret;
         try {
             String plain = RandomStringUtils.randomAlphanumeric(SECRET_LENGTH);
-            secret = taskManager.getProtector().encryptString(plain);
+            secret = protector.encryptString(plain);
         } catch (EncryptionException e) {
             throw new SystemException("Couldn't encrypt node secret: " + e.getMessage(), e);
         }
@@ -307,7 +325,6 @@ public class NodeRegistrar implements Cache {
 
     private BuildInformationType getBuildInformation() {
         BuildInformationType info = new BuildInformationType();
-        LocalizationService localizationService = taskManager.getLocalizationService();
         info.setVersion(localizationService.translate(LocalizableMessageBuilder.buildKey("midpoint.system.version"), Locale.getDefault()));
         info.setRevision(localizationService.translate(LocalizableMessageBuilder.buildKey("midpoint.system.build"), Locale.getDefault()));
         return info;
@@ -332,17 +349,17 @@ public class NodeRegistrar implements Cache {
      * Registers the node going down (sets running attribute to false).
      */
     void recordNodeShutdown(OperationResult result) {
-        String nodeName = taskManager.getNodeId();
+        String nodeName = configuration.getNodeId();
         String nodeOid = getLocalNodeObjectOid();
-        LOGGER.trace("Registering this node shutdown (name {}, oid {})", taskManager.getNodeId(), nodeOid);
+        LOGGER.trace("Registering this node shutdown (name {}, oid {})", nodeName, nodeOid);
         try {
             setLocalNodeOperationalStatus(NodeOperationalStateType.DOWN);
-            List<ItemDelta<?, ?>> modifications = getPrismContext().deltaFor(NodeType.class)
+            List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(NodeType.class)
                     .item(NodeType.F_RUNNING).replace(false)
                     .item(NodeType.F_OPERATIONAL_STATUS).replace(operationalStatus)
                     .item(NodeType.F_LAST_CHECK_IN_TIME).replace(getCurrentTime())
                     .asItemDeltas();
-            getRepositoryService().modifyObject(NodeType.class, nodeOid, modifications, result);
+            repositoryService.modifyObject(NodeType.class, nodeOid, modifications, result);
             LOGGER.trace("Node shutdown successfully registered.");
         } catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Cannot register shutdown of this node (name {}, oid {}), because it does not exist.", e, nodeName, nodeOid);
@@ -359,7 +376,7 @@ public class NodeRegistrar implements Cache {
      */
     void updateNodeObject(OperationResult result) {
         String nodeOid = getLocalNodeObjectOid();
-        String nodeName = taskManager.getNodeId();
+        String nodeName = configuration.getNodeId();
         try {
             refreshCachedLocalNodeObject(nodeOid, result);
             LOGGER.trace("Updating this node registration:\n{}", cachedLocalNodeObject.debugDumpLazily());
@@ -367,7 +384,7 @@ public class NodeRegistrar implements Cache {
             XMLGregorianCalendar currentTime = getCurrentTime();
             String myUrl = getMyUrl();
             LOGGER.debug("My intra-cluster communication URL is '{}'", myUrl);
-            List<ItemDelta<?, ?>> modifications = getPrismContext().deltaFor(NodeType.class)
+            List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(NodeType.class)
                     .item(NodeType.F_HOSTNAME).replace(getMyHostname())
                     .item(NodeType.F_IP_ADDRESS).replaceRealValues(getMyIpAddresses())
                     .item(NodeType.F_LAST_CHECK_IN_TIME).replace(currentTime)
@@ -376,13 +393,13 @@ public class NodeRegistrar implements Cache {
                     .asItemDeltas();
             if (shouldRenewSecret(cachedLocalNodeObject.asObjectable())) {
                 LOGGER.info("Renewing node secret for the current node");
-                modifications.addAll(getPrismContext().deltaFor(NodeType.class)
+                modifications.addAll(prismContext.deltaFor(NodeType.class)
                         .item(NodeType.F_SECRET).replace(generateNodeSecret())
                         .item(NodeType.F_SECRET_UPDATE_TIMESTAMP).replace(currentTime)
                         .asItemDeltas());
             }
             if (myUrl != null) {    // i.e. if known (might not be known during startup)
-                modifications.add(getPrismContext().deltaFor(NodeType.class)
+                modifications.add(prismContext.deltaFor(NodeType.class)
                         .item(NodeType.F_URL).replace(myUrl)
                         .asItemDelta());
                 String oldUrl = cachedLocalNodeObject.asObjectable().getUrl();
@@ -390,32 +407,32 @@ public class NodeRegistrar implements Cache {
                     LOGGER.info("Changing node URL from {} to {}", oldUrl, myUrl);
                 }
             }
-            getRepositoryService().modifyObject(NodeType.class, nodeOid, modifications, result);
+            repositoryService.modifyObject(NodeType.class, nodeOid, modifications, result);
             LOGGER.trace("Node registration successfully updated.");
             refreshCachedLocalNodeObject(nodeOid, result);
         } catch (ObjectNotFoundException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot update registration of this node (name {}, oid {}), because it "
                             + "does not exist in repository. It is probably caused by cluster misconfiguration (other "
                             + "node rewriting the Node object?) Stopping the scheduler.", e, nodeName, nodeOid);
-            if (taskManager.getLocalNodeErrorStatus() == NodeErrorStateType.OK) {
-                registerNodeError(NodeErrorStateType.NODE_REGISTRATION_FAILED);
+            if (localNodeState.getErrorState() == NodeErrorStateType.OK) {
+                registerNodeError(NodeErrorStateType.NODE_REGISTRATION_FAILED, result);
             }
         } catch (ObjectAlreadyExistsException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot update registration of this node (name {}, oid {}).", e, nodeName, nodeOid);
-            if (taskManager.getLocalNodeErrorStatus() == NodeErrorStateType.OK) {
-                registerNodeError(NodeErrorStateType.NODE_REGISTRATION_FAILED);
+            if (localNodeState.getErrorState() == NodeErrorStateType.OK) {
+                registerNodeError(NodeErrorStateType.NODE_REGISTRATION_FAILED, result);
             }
         } catch (SchemaException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot update registration of this node (name {}, oid {}) due to schema exception. Stopping the scheduler.", e, nodeName, nodeOid);
-            if (taskManager.getLocalNodeErrorStatus() == NodeErrorStateType.OK) {
-                registerNodeError(NodeErrorStateType.NODE_REGISTRATION_FAILED);
+            if (localNodeState.getErrorState() == NodeErrorStateType.OK) {
+                registerNodeError(NodeErrorStateType.NODE_REGISTRATION_FAILED, result);
             }
         }
     }
 
     private void refreshCachedLocalNodeObject(String nodeOid, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
-        setCachedLocalNodeObject(getRepositoryService().getObject(NodeType.class, nodeOid, null, result));
+        setCachedLocalNodeObject(repositoryService.getObject(NodeType.class, nodeOid, null, result));
     }
 
     /**
@@ -426,30 +443,30 @@ public class NodeRegistrar implements Cache {
     NodeType verifyNodeObject(OperationResult result) {
         PrismObject<NodeType> nodeInRepo;
         String oid = getLocalNodeObjectOid();
-        String myName = taskManager.getNodeId();
+        String myName = configuration.getNodeId();
         LOGGER.trace("Verifying node record with OID {}", oid);
 
         // first, let us check the record of this node - whether it exists and whether the internalNodeIdentifier is OK
         try {
-            nodeInRepo = getRepositoryService().getObject(NodeType.class, oid, null, result);
+            nodeInRepo = repositoryService.getObject(NodeType.class, oid, null, result);
         } catch (ObjectNotFoundException e) {
             if (doesNodeExist(result, myName)) {
                 LoggingUtils.logException(LOGGER, "The record of this node cannot be read (OID {} not found), but " +
                         "another node record with the name '{}' exists. It seems that in this cluster " +
                         "there are two or more nodes with the same name '{}'. Stopping the scheduler " +
                         "to minimize the damage.", e, oid, myName, myName);
-                registerNodeError(NodeErrorStateType.DUPLICATE_NODE_ID_OR_NAME);
+                registerNodeError(NodeErrorStateType.DUPLICATE_NODE_ID_OR_NAME, result);
             } else {
                 LoggingUtils.logException(LOGGER, "The record of this node cannot be read (OID {} not found). It  " +
                         "seems it was deleted in the meantime. Please check the reason. Stopping the scheduler " +
                         "to minimize the damage.", e, oid, myName, myName);
                 // actually we could re-register the node, but it is safer (and easier for now :) to stop the node instead
-                registerNodeError(NodeErrorStateType.NODE_REGISTRATION_FAILED);
+                registerNodeError(NodeErrorStateType.NODE_REGISTRATION_FAILED, result);
             }
             return null;
         } catch (SchemaException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot check the record of this node (OID = {}) because of schema exception. Stopping the scheduler.", e, oid);
-            registerNodeError(NodeErrorStateType.NODE_REGISTRATION_FAILED);
+            registerNodeError(NodeErrorStateType.NODE_REGISTRATION_FAILED, result);
             return null;
         }
 
@@ -460,7 +477,7 @@ public class NodeRegistrar implements Cache {
             LOGGER.error("Internal node identifier has been overwritten in the repository. " +
                     "Probably somebody has overwritten it in the meantime, i.e. another node with the name of '" +
                     cachedLocalNodeObject.asObjectable().getName() + "' is running. Stopping the scheduler.");
-            registerNodeError(NodeErrorStateType.DUPLICATE_NODE_ID_OR_NAME);
+            registerNodeError(NodeErrorStateType.DUPLICATE_NODE_ID_OR_NAME, result);
             return null;
         }
         return nodeInRepo.asObjectable();
@@ -493,11 +510,11 @@ public class NodeRegistrar implements Cache {
 
         int all = clustered.size() + nonClustered.size();
 
-        if (!taskManager.getConfiguration().isClustered() && all > 1) {
+        if (!configuration.isClustered() && all > 1) {
             LOGGER.error("This node is a non-clustered one, mixed with other nodes. In this system, there are " +
                     nonClustered.size() + " non-clustered nodes (" + nonClustered + ") and " +
                     clustered.size() + " clustered ones (" + clustered + "). Stopping this node.");
-            registerNodeError(NodeErrorStateType.NON_CLUSTERED_NODE_WITH_OTHERS);
+            registerNodeError(NodeErrorStateType.NON_CLUSTERED_NODE_WITH_OTHERS, result);
         }
 
     }
@@ -509,7 +526,7 @@ public class NodeRegistrar implements Cache {
     boolean isCheckingIn(NodeType n) {
         return n.getOperationalStatus() != NodeOperationalStateType.DOWN && n.getLastCheckInTime() != null &&
                 System.currentTimeMillis() - n.getLastCheckInTime().toGregorianCalendar().getTimeInMillis()
-                        <= taskManager.getConfiguration().getNodeTimeout() * 1000L;
+                        <= configuration.getNodeTimeout() * 1000L;
     }
 
     private boolean doesNodeExist(OperationResult result, String myName) {
@@ -522,8 +539,8 @@ public class NodeRegistrar implements Cache {
     }
 
     private List<PrismObject<NodeType>> findNodesWithGivenName(OperationResult result, String name) throws SchemaException {
-        ObjectQuery q = ObjectQueryUtil.createOrigNameQuery(name, getPrismContext());
-        return getRepositoryService().searchObjects(NodeType.class, q, null, result);
+        ObjectQuery q = ObjectQueryUtil.createOrigNameQuery(name, prismContext);
+        return repositoryService.searchObjects(NodeType.class, q, null, result);
     }
 
     /**
@@ -531,21 +548,23 @@ public class NodeRegistrar implements Cache {
      *
      * @param status Error status to be set.
      */
-    private void registerNodeError(NodeErrorStateType status) {
-        taskManager.setNodeErrorStatus(status);
-        if (taskManager.getServiceThreadsActivationState()) {
-            taskManager.getExecutionManager().stopSchedulerAndTasksLocally(0L, new OperationResult("nodeError"));
+    private void registerNodeError(NodeErrorStateType status, OperationResult result) {
+        localNodeState.setErrorState(status);
+        try {
+            localExecutionManager.stopSchedulerAndTasks(0L, result);
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop the scheduler, continuing with processing the node error", e);
         }
-        taskManager.getExecutionManager().shutdownLocalSchedulerChecked();
+        localScheduler.shutdownScheduler();
         LOGGER.warn("Scheduler stopped, please check your cluster configuration as soon as possible; kind of error = " + status);
     }
 
     @NotNull
     private String getMyHostname() {
-        if (taskManager.getConfiguration().getHostName() != null) {
-            return taskManager.getConfiguration().getHostName();
-        } else if (taskManager.getConfiguration().getJmxHostName() != null) {
-            return taskManager.getConfiguration().getJmxHostName();
+        if (configuration.getHostName() != null) {
+            return configuration.getHostName();
+        } else if (configuration.getJmxHostName() != null) {
+            return configuration.getJmxHostName();
         } else {
             try {
                 String hostName = NetworkUtil.getLocalHostNameFromOperatingSystem();
@@ -565,7 +584,7 @@ public class NodeRegistrar implements Cache {
     }
 
     private Integer getMyHttpPort() {
-        Integer portOverride = taskManager.getConfiguration().getHttpPort();
+        Integer portOverride = configuration.getHttpPort();
         return portOverride != null ? portOverride : getDiscoveredHttpPort();
     }
 
@@ -585,12 +604,14 @@ public class NodeRegistrar implements Cache {
 
     private String getMyUrl() {
         NodeType localNode = cachedLocalNodeObject != null ? cachedLocalNodeObject.asObjectable() : null;
-        String path = taskManager.getWebContextPath();
+        String path = webContextPath;
         if (localNode != null && localNode.getUrlOverride() != null) {
             return localNode.getUrlOverride();
-        } else if (taskManager.getIntraClusterHttpUrlPattern() != null) {
-            String url = taskManager.getIntraClusterHttpUrlPattern()
-                    .replace("$host", getMyHostname());
+        }
+
+        String intraClusterHttpUrlPattern = taskManager.getIntraClusterHttpUrlPattern();
+        if (intraClusterHttpUrlPattern != null) {
+            String url = intraClusterHttpUrlPattern.replace("$host", getMyHostname());
             if (url.contains("$port")) {
                 Integer port = getMyHttpPort();
                 if (port == null) {
@@ -628,11 +649,11 @@ public class NodeRegistrar implements Cache {
         Enumeration<NetworkInterface> nets;
         try {
             nets = NetworkInterface.getNetworkInterfaces();
-            for (NetworkInterface netint : Collections.list(nets)) {
-                for (InetAddress inetAddress: Collections.list(netint.getInetAddresses())) {
+            for (NetworkInterface netInt : Collections.list(nets)) {
+                for (InetAddress inetAddress: Collections.list(netInt.getInetAddresses())) {
                     String hostAddress = inetAddress.getHostAddress();
                     String normalizedAddress = normalizeAddress(hostAddress);
-                    if (!isLocalAddress(normalizedAddress) || taskManager.isLocalNodeClusteringEnabled()) {
+                    if (!isLocalAddress(normalizedAddress) || configuration.isLocalNodeClusteringEnabled()) {
                         addresses.add(normalizedAddress);
                     }
                 }
@@ -667,7 +688,7 @@ public class NodeRegistrar implements Cache {
         return false;
     }
 
-    PrismObject<NodeType> getCachedLocalNodeObject() {
+    public PrismObject<NodeType> getCachedLocalNodeObject() {
         return cachedLocalNodeObject;
     }
 
@@ -680,19 +701,11 @@ public class NodeRegistrar implements Cache {
     }
 
     boolean isCurrentNode(PrismObject<NodeType> node) {
-        return taskManager.getNodeId().equals(node.asObjectable().getNodeIdentifier());
+        return configuration.getNodeId().equals(node.asObjectable().getNodeIdentifier());
     }
 
     boolean isCurrentNode(String nodeIdentifier) {
-        return nodeIdentifier == null || taskManager.getNodeId().equals(nodeIdentifier);
-    }
-
-    private RepositoryService getRepositoryService() {
-        return taskManager.getRepositoryService();
-    }
-
-    private PrismContext getPrismContext() {
-        return taskManager.getPrismContext();
+        return nodeIdentifier == null || configuration.getNodeId().equals(nodeIdentifier);
     }
 
     void deleteNode(String nodeOid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
@@ -705,7 +718,7 @@ public class NodeRegistrar implements Cache {
             result.recordFatalError("Node " + nodeOid + " cannot be deleted, because it is currently up.");
         } else {
             try {
-                taskManager.getRepositoryService().deleteObject(NodeType.class, nodePrism.getOid(), result);
+                repositoryService.deleteObject(NodeType.class, nodePrism.getOid(), result);
                 result.recordSuccess();
             } catch (ObjectNotFoundException e) {
                 throw new SystemException("Unexpected ObjectNotFoundException when deleting a node", e);
@@ -743,6 +756,11 @@ public class NodeRegistrar implements Cache {
         }
     }
 
+    public void setWebContextPath(String path) {
+        LOGGER.debug("setting webContextPath to '{}'", path);
+        webContextPath = path;
+    }
+
     private void refreshCachedLocalNodeObject(String oid) {
         OperationResult result = new OperationResult(OP_REFRESH_CACHED_LOCAL_NODE_OBJECT);
         try {
@@ -754,7 +772,7 @@ public class NodeRegistrar implements Cache {
 
     @Override
     public @NotNull Collection<SingleCacheStateInformationType> getStateInformation() {
-        return Collections.singleton(new SingleCacheStateInformationType(taskManager.getPrismContext())
+        return Collections.singleton(new SingleCacheStateInformationType(prismContext)
                 .name(NodeRegistrar.class.getName())
                 .size(cachedLocalNodeObject != null ? 1 : 0));
     }

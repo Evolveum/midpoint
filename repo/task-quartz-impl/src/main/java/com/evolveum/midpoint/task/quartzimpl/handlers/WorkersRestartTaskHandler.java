@@ -57,7 +57,7 @@ public class WorkersRestartTaskHandler implements TaskHandler {
         try {
             List<? extends Task> workers = task.listSubtasks(true, opResult);
             List<Task> workersNotClosed = workers.stream()
-                    .filter(w -> w.getExecutionState() != TaskExecutionStateType.CLOSED)
+                    .filter(w -> !w.isClosed())
                     .collect(Collectors.toList());
             // todo consider checking that the subtask is really a worker (workStateConfiguration.taskKind)
             if (!workersNotClosed.isEmpty()) {

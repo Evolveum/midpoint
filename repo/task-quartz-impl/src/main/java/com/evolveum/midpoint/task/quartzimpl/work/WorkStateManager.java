@@ -24,9 +24,9 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.quartzimpl.InternalTaskInterface;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.statistics.WorkBucketStatisticsCollector;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy.GetBucketResult;
@@ -441,7 +441,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
             boolean isDead;
             try {
                 PrismObject<TaskType> worker = repositoryService.getObject(TaskType.class, workerOid, null, result);
-                isDead = worker.asObjectable().getExecutionStatus() == TaskExecutionStateType.CLOSED;
+                isDead = worker.asObjectable().getSchedulingState() == TaskSchedulingStateType.CLOSED;
             } catch (ObjectNotFoundException e) {
                 isDead = true;
             } catch (SchemaException e) {
@@ -551,7 +551,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
         } catch (PreconditionViolationException e) {
             throw new IllegalStateException("Unexpected concurrent modification of work bucket " + bucket + " in " + ctx.coordinatorTask, e);
         }
-        ((InternalTaskInterface) ctx.coordinatorTask).applyModificationsTransient(modifications);
+        ((TaskQuartzImpl) ctx.coordinatorTask).applyModificationsTransient(modifications);
         compressCompletedBuckets(ctx.coordinatorTask, result);
         deleteBucketFromWorker(ctx, sequentialNumber, result);
         ctx.register(COMPLETE_WORK_BUCKET);
@@ -583,8 +583,8 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
         }
         Collection<ItemDelta<?, ?>> modifications = bucketStateChangeDeltas(bucket, WorkBucketStateType.COMPLETE);
         repositoryService.modifyObject(TaskType.class, ctx.workerTask.getOid(), modifications, null, result);
-        ((InternalTaskInterface) ctx.workerTask).applyModificationsTransient(modifications);
-        ((InternalTaskInterface) ctx.workerTask).applyDeltasImmediate(modifications, result);
+        ((TaskQuartzImpl) ctx.workerTask).applyModificationsTransient(modifications);
+        ((TaskQuartzImpl) ctx.workerTask).applyDeltasImmediate(modifications, result);
         compressCompletedBuckets(ctx.workerTask, result);
         ctx.register(COMPLETE_WORK_BUCKET);
     }

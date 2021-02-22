@@ -31,6 +31,7 @@ public class TaskDebugUtil {
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(task)
                 .append(" [es:").append(task.getExecutionState())
+                .append(", ss:").append(task.getSchedulingState())
                 .append(", rs:").append(task.getResultStatus())
                 .append(", p:").append(task.getProgress())
                 .append(", n:").append(task.getNode())

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="91919191-76e0-59e2-86d6-55665566a110"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+
+    <name>Testing task group limit 2</name>
+
+    <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3a110</taskIdentifier>
+    <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>
+
+    <executionStatus>runnable</executionStatus>
+
+    <handlerUri>http://midpoint.evolveum.com/test/long-task-handler</handlerUri>
+    <recurrence>single</recurrence>
+
+    <executionConstraints>
+        <group>expensive</group>
+        <groupTaskLimit>1</groupTaskLimit>
+        <retryAfter>PT2S</retryAfter>
+    </executionConstraints>
+</task>
