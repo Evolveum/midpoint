@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -478,13 +480,20 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
             @Override
             protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-                LOGGER.trace("Create name for AssignmentType: " + rowModel.getObject().getRealValue());
-                String name = AssignmentsUtil.getName(rowModel.getObject(), getParentPage());
-                LOGGER.trace("Name for AssignmentType: " + name);
-                if (StringUtils.isBlank(name)) {
-                    return createStringResource("AssignmentPanel.noName");
-                }
-                return Model.of(name);
+                return new LoadableModel<String>() {
+                    @Override
+                    protected String load() {
+                        LOGGER.trace("Create name for AssignmentType: " + rowModel.getObject().getRealValue());
+                        String name = AssignmentsUtil.getName(rowModel.getObject(), getParentPage());
+                        LOGGER.trace("Name for AssignmentType: " + name);
+                        if (StringUtils.isBlank(name)) {
+                            return createStringResource("AssignmentPanel.noName").getString();
+                        }
+
+                        return name;
+                    }
+                };
+
             }
 
             @Override
