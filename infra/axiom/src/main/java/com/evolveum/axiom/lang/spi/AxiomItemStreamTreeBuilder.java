@@ -12,7 +12,7 @@ import java.util.Optional;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.stream.AxiomItemStream;
-import com.evolveum.axiom.concepts.SourceLocation;
+import com.evolveum.concepts.SourceLocation;
 import com.google.common.base.Preconditions;
 
 

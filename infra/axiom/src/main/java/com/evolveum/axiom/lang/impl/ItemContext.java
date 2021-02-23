@@ -19,11 +19,11 @@ import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
-import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.api.stream.AxiomBuilderStreamTarget.ItemBuilder;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.reactor.Dependency;
+import com.evolveum.concepts.SourceLocation;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Collections2;
 

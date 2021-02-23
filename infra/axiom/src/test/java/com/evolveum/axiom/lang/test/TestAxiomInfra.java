@@ -15,12 +15,12 @@ import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.api.stream.AxiomItemTarget;
-import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.antlr.AntlrDecoderContext;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
+import com.evolveum.concepts.SourceLocation;
 
 public class TestAxiomInfra extends AbstractReactorTest {
 
