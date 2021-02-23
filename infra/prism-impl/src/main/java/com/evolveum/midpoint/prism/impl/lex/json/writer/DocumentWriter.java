@@ -42,15 +42,18 @@ class DocumentWriter {
 
     @NotNull private final JsonGenerator generator;
 
-    private XNodeDefinition.Root schema;
+    private final XNodeDefinition.Root schema;
 
-    private XNodeDefinition metadataDef;
+    private final XNodeDefinition metadataDef;
+
+    private final PrismNamespaceContext staticNamespaces;
 
     DocumentWriter(WritingContext<?> ctx, XNodeDefinition.Root schema) {
         this.ctx = ctx;
         this.generator = ctx.generator;
         this.schema = schema;
         this.metadataDef = schema.metadataDef();
+        this.staticNamespaces = schema.staticNamespaceContext().inherited();
     }
 
     void writeListAsSeparateDocuments(@NotNull ListXNodeImpl root) throws IOException {
@@ -66,11 +69,10 @@ class DocumentWriter {
     }
 
     public void write(XNodeImpl xnode) throws IOException {
-        // FIXME: Use actual namespace context
         if (xnode instanceof RootXNodeImpl) {
-            write(((RootXNodeImpl) xnode).toMapXNode(), PrismNamespaceContext.EMPTY, false, schema);
+            write(((RootXNodeImpl) xnode).toMapXNode(), staticNamespaces, false, schema);
         } else {
-            write(xnode, PrismNamespaceContext.EMPTY, false, schema);
+            write(xnode, staticNamespaces, false, schema);
         }
     }
 
