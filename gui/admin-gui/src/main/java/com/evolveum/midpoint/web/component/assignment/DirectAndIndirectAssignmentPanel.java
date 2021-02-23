@@ -92,7 +92,7 @@ public class DirectAndIndirectAssignmentPanel extends AssignmentPanel {
                             DirectAndIndirectAssignmentPanel.this.getPageBase());
                     if (CollectionUtils.isNotEmpty(targetObjectList) && targetObjectList.size() == 1) {
                         ObjectType targetObject = targetObjectList.get(0);
-                        DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(targetObject, DirectAndIndirectAssignmentPanel.this.getPageBase());
+                        DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(targetObject.asPrismObject(), DirectAndIndirectAssignmentPanel.this.getPageBase());
                         if (displayType != null) {
                             String disabledStyle;
                             if (targetObject instanceof FocusType) {

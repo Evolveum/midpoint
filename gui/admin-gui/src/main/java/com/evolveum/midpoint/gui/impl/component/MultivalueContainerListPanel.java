@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.component;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -92,10 +94,19 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
             }
 
             @Override
+            protected void postProcessWrapper(PrismContainerValueWrapper<C> valueWrapper) {
+                MultivalueContainerListPanel.this.postProcessWrapper(valueWrapper);
+            }
+
+            @Override
             protected PageStorage getPageStorage() {
                 return MultivalueContainerListPanel.this.getPageStorage();
             }
         };
+    }
+
+    protected void postProcessWrapper(PrismContainerValueWrapper<C> valueWrapper) {
+
     }
 
     protected ObjectQuery getCustomizeContentQuery() {
@@ -106,7 +117,12 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> bar = new ArrayList<>();
         MultiCompositedButtonPanel newObjectIcon =
-                new MultiCompositedButtonPanel(idButton, createNewButtonDescription()) {
+                new MultiCompositedButtonPanel(idButton, new LoadableModel<List<MultiFunctinalButtonDto>>(false) {
+                    @Override
+                    protected List<MultiFunctinalButtonDto> load() {
+                        return createNewButtonDescription();
+                    }
+                }) {
                     private static final long serialVersionUID = 1L;
 
                     @Override

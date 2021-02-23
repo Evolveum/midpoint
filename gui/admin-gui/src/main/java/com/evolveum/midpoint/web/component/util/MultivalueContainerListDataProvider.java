@@ -72,11 +72,17 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
                     throw new ArrayIndexOutOfBoundsException("Trying to get item on index " + i
                             + " but list size is " + list.size());
                 }
-                getAvailableData().add(list.get(WebComponentUtil.safeLongToInteger(i)));
+                PrismContainerValueWrapper<C> valueWrapper = list.get(WebComponentUtil.safeLongToInteger(i));
+                postProcessWrapper(valueWrapper);
+                getAvailableData().add(valueWrapper);
             }
         }
 
         return getAvailableData().iterator();
+    }
+
+    protected void postProcessWrapper(PrismContainerValueWrapper<C> valueWrapper) {
+        // nothig to do, use when e.g. references needs to be resolved, etc..
     }
 
     @SuppressWarnings("unchecked")

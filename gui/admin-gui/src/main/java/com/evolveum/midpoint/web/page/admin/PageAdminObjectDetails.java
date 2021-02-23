@@ -195,7 +195,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             return null;
         }
 
-        AssignmentHolderType assignmentHolderObj = (AssignmentHolderType) getObjectWrapper().getObject().asObjectable();
+        PrismObject<O> assignmentHolderObj = getObjectWrapper().getObject();
         DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(assignmentHolderObj, PageAdminObjectDetails.this);
         if (displayType == null || displayType.getLabel() == null) {
             return null;
