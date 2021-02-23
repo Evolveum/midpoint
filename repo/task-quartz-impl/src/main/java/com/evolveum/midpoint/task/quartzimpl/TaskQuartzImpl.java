@@ -1080,13 +1080,17 @@ public class TaskQuartzImpl implements Task {
         stateCheck(isTransient(), "setOwner method can be called only on transient tasks!");
 
         synchronized (prismAccess) {
-            PrismReference ownerRef;
-            try {
-                ownerRef = taskPrism.findOrCreateReference(TaskType.F_OWNER_REF);
-            } catch (SchemaException e) {
-                throw new IllegalStateException("Internal schema error: " + e.getMessage(), e);
+            if (owner == null) {
+                taskPrism.getValue().removeReference(TaskType.F_OWNER_REF);
+            } else {
+                try {
+                    taskPrism.findOrCreateReference(TaskType.F_OWNER_REF)
+                            .getValue()
+                            .setObject(owner);
+                } catch (SchemaException e) {
+                    throw new IllegalStateException("Internal schema error: " + e.getMessage(), e);
+                }
             }
-            ownerRef.getValue().setObject(owner);
         }
     }
 
