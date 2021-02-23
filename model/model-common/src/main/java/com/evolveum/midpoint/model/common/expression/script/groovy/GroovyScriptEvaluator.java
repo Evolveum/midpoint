@@ -1,16 +1,20 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common.expression.script.groovy;
 
-
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 
+import groovy.lang.Binding;
+import groovy.lang.GString;
+import groovy.lang.GroovyClassLoader;
+import groovy.lang.Script;
+import groovy.transform.CompileStatic;
 import org.apache.commons.lang3.BooleanUtils;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.MultipleCompilationErrorsException;
@@ -32,16 +36,9 @@ import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
-import groovy.lang.Binding;
-import groovy.lang.GString;
-import groovy.lang.GroovyClassLoader;
-import groovy.lang.Script;
-import groovy.transform.CompileStatic;
-
 /**
  * Expression evaluator that is using Groovy scripting engine.
  *
- * @author Radovan Semancik
  * "Sandboxing" based on type checking inspired by work of Cédric Champeau (http://melix.github.io/blog/2015/03/sandboxing.html)
  */
 public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<GroovyClassLoader, Class<?>> {
@@ -93,9 +90,9 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
             return;
         }
         if (!scriptExpressionProfile.hasRestrictions() && scriptExpressionProfile.getDecision() != AccessDecision.ALLOW) {
-            throw new SecurityViolationException("Script intepreter for language "+getLanguageName()
-            +" is not allowed in expression profile "+context.getExpressionProfile().getIdentifier()
-            +"; script execution prohibited in "+context.getContextDescription());
+            throw new SecurityViolationException("Script interpreter for language " + getLanguageName()
+                    + " is not allowed in expression profile " + context.getExpressionProfile().getIdentifier()
+                    + "; script execution prohibited in " + context.getContextDescription());
         }
     }
 
@@ -108,13 +105,12 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
             if (sandboxErrorMessage == null) {
                 throw new ExpressionEvaluationException("Compilation error in " + context.getContextDescription() + ": " + e.getMessage(), e);
             } else {
-                throw new SecurityViolationException("Denied access to functionality of script " + context.getContextDescription() + ": "+sandboxErrorMessage, e);
+                throw new SecurityViolationException("Denied access to functionality of script " + context.getContextDescription() + ": " + sandboxErrorMessage, e);
             }
         } catch (Throwable e) {
             throw new ExpressionEvaluationException("Unexpected error during compilation of script in " + context.getContextDescription() + ": " + e.getMessage(), e);
         }
     }
-
 
     private GroovyClassLoader getGroovyLoader(ScriptExpressionEvaluationContext context) throws SecurityViolationException {
         GroovyClassLoader groovyClassLoader = getScriptCache().getInterpreter(context.getExpressionProfile());
@@ -140,7 +136,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
         }
         if (!BooleanUtils.isTrue(scriptExpressionProfile.isTypeChecking())) {
             if (scriptExpressionProfile.hasRestrictions()) {
-                throw new SecurityViolationException("Requested to apply restrictions to groovy script, but the script is not set to type checking mode, in "+context.getContextDescription());
+                throw new SecurityViolationException("Requested to apply restrictions to groovy script, but the script is not set to type checking mode, in " + context.getContextDescription());
             }
             return;
         }
@@ -163,7 +159,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
             if (!(error instanceof SyntaxErrorMessage)) {
                 continue;
             }
-            SyntaxException cause = ((SyntaxErrorMessage)error).getCause();
+            SyntaxException cause = ((SyntaxErrorMessage) error).getCause();
 
             if (cause == null) {
                 continue;
@@ -186,7 +182,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
     protected Object evaluateScript(Class<?> compiledScriptClass, ScriptExpressionEvaluationContext context) throws Exception {
 
         if (!Script.class.isAssignableFrom(compiledScriptClass)) {
-            throw new ExpressionEvaluationException("Expected groovy script class, but got "+compiledScriptClass);
+            throw new ExpressionEvaluationException("Expected groovy script class, but got " + compiledScriptClass);
         }
 
         Binding binding = new Binding(prepareScriptVariablesValueMap(context));
@@ -200,7 +196,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
         }
 
         if (resultObject instanceof GString) {
-            resultObject = ((GString)resultObject).toString();
+            resultObject = ((GString) resultObject).toString();
         }
 
         return resultObject;
