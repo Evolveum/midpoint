@@ -17,6 +17,9 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.ex.ElementNotFound;
 import com.codeborne.selenide.testng.BrowserPerClass;
 import com.codeborne.selenide.testng.annotations.Report;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -62,8 +65,6 @@ import com.evolveum.midpoint.testing.schrodinger.reports.SchrodingerTextReport;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.boot.MidPointSpringApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -380,22 +381,31 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
                     .build();
 
             PrismObject object = prismContext.parseObject(file);
-            if (object.asObjectable() instanceof UserType) {
+            if (object == null) {
+                return;
+            }
+            if (object.isOfType(UserType.class)) {
                 service.users().add((UserType) object.asObjectable()).post();
-                return;
-            } else if (object.asObjectable() instanceof RoleType) {
+            } else if (object.isOfType(RoleType.class)) {
                 service.roles().add((RoleType) object.asObjectable()).post();
-                return;
+            }else if (object.isOfType(OrgType.class)) {
+                service.orgs().add((OrgType) object.asObjectable()).post();
+            }else if (object.isOfType(ArchetypeType.class)) {
+//                service.archetypes().add((ArchetypeType) object.asObjectable()).post();
+            }else if (object.isOfType(LookupTableType.class)) {
+//                service.lookupTables().add((LookupTableType) object.asObjectable()).post();
+            }else if (object.isOfType(ObjectTemplateType.class)) {
+                service.objectTemplates().add((ObjectTemplateType) object.asObjectable()).post();
+            }else if (object.isOfType(ResourceType.class)) {
+                service.resources().add((ResourceType) object.asObjectable()).post();
+            }else if (object.isOfType(SystemConfigurationType.class)) {
+                service.systemConfigurations().add((SystemConfigurationType) object.asObjectable()).post();
+            } else if (object.isOfType(TaskType.class)) {
+                service.tasks().add((TaskType) object.asObjectable()).post();
+            } else if (object.isOfType(ValuePolicyType.class)) {
+                service.valuePolicies().add((ValuePolicyType) object.asObjectable()).post();
             }
         } catch (CommonException | SchemaException | IOException ex) {
-        }
-        try {
-            RepoAddOptions options = null;
-            if (overwrite) {
-                options = RepoAddOptions.createOverwrite();
-            }
-            repoAddObjectsFromFile(file, null, options, result);
-        } catch (SchemaException | ObjectAlreadyExistsException | EncryptionException | IOException ex) {
             LOG.error("Unable to add object, {}", result.getUserFriendlyMessage(), ex);
         }
     }
