@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -20,6 +22,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+
+import org.apache.wicket.model.PropertyModel;
 
 /**
  * @author katka
@@ -58,7 +62,7 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
     @Override
     protected Panel createLink(String id, IModel<PrismPropertyValueWrapper<T>> object) {
         AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(id,
-                new ItemRealValueModel(object)) {
+                new ReadOnlyModel(() -> getHumanReadableLinkName(object))) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -71,5 +75,18 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
     }
 
     protected void onClick(AjaxRequestTarget target, PrismContainerValueWrapper<?> rowModel) {
+    }
+
+    private String getHumanReadableLinkName(IModel<PrismPropertyValueWrapper<T>> object) {
+        if (object == null) {
+            return null;
+        }
+
+        PrismPropertyValueWrapper<T> valueWrapper = object.getObject();
+        if (valueWrapper == null) {
+            return null;
+        }
+
+        return valueWrapper.toShortString();
     }
 }

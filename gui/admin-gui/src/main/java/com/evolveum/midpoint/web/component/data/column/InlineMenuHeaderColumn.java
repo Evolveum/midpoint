@@ -7,36 +7,34 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import java.util.List;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
-import java.io.Serializable;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 
 /**
  * @author lazyman
  */
 public class InlineMenuHeaderColumn<T> extends AbstractColumn<T, String> {
 
-    private IModel<List<InlineMenuItem>> menuItems;
+    private List<InlineMenuItem> menuItems;
 
     public InlineMenuHeaderColumn(List<InlineMenuItem> menuItems) {
         super(null);
-        this.menuItems = new Model((Serializable) menuItems);
+        this.menuItems = menuItems;
     }
 
     @Override
     public Component getHeader(String componentId) {
-        DropdownButtonDto model = new DropdownButtonDto(null, null, null, menuItems.getObject());
+        DropdownButtonDto model = new DropdownButtonDto(null, null, null, menuItems);
         DropdownButtonPanel inlineMenu = new DropdownButtonPanel(componentId, model) {
             private static final long serialVersionUID = 1L;
 

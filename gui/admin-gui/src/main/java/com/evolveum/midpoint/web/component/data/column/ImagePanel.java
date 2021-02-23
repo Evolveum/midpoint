@@ -32,8 +32,6 @@ public class ImagePanel extends BasePanel<DisplayType> {
     private static final String ID_IMAGE = "image";
     private static final String ID_IMAGE_SRC = "imageSrc";
 
-//    private DisplayType iconDisplayData;
-
     public ImagePanel(String id, IModel<String> iconClassModel, IModel<String> titleModel) {
         super(id, new Model<>());
         DisplayType iconDisplayData = new DisplayType();
@@ -46,11 +44,6 @@ public class ImagePanel extends BasePanel<DisplayType> {
 
         getModel().setObject(iconDisplayData);
     }
-//
-//    public ImagePanel(String id, DisplayType iconDisplayData){
-//        super(id);
-//        this.iconDisplayData = iconDisplayData == null ? new DisplayType() : iconDisplayData;
-//    }
 
     public ImagePanel(String id, IModel<DisplayType> model) {
         super(id, model);
@@ -67,13 +60,6 @@ public class ImagePanel extends BasePanel<DisplayType> {
         image.add(AttributeModifier.replace("class", new PropertyModel<>(getModel(), "icon.cssClass")));
         image.add(AttributeModifier.replace("title", new PropertyModel<>(getModel(), "tooltip.orig")));
         image.add(AttributeAppender.append("style", new ReadOnlyModel<>(() -> StringUtils.isNotBlank(getColor()) ? "color: " + getColor() + ";" : "")));
-//        image.add(AttributeModifier.replace("class", iconDisplayData.getIcon() != null ? iconDisplayData.getIcon().getCssClass() : ""));
-//        if (iconDisplayData.getTooltip() != null && StringUtils.isNotEmpty(iconDisplayData.getTooltip().getOrig())) {
-//            image.add(AttributeModifier.replace("title", iconDisplayData.getTooltip().getOrig()));
-//        }
-//        if (iconDisplayData.getIcon() != null && StringUtils.isNotEmpty(iconDisplayData.getIcon().getColor())){
-//            image.add(AttributeAppender.append("style", "color: " + iconDisplayData.getIcon().getColor() + ";"));
-//        }
         image.setOutputMarkupId(true);
         image.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getIcon() != null && StringUtils.isNotEmpty(getModelObject().getIcon().getCssClass())));
         add(image);

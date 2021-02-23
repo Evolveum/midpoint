@@ -20,20 +20,9 @@ import java.util.*;
  */
 public class DropDownMultiChoice<T> extends ListMultipleChoice<T> {
 
-    public static final String FUNC_BUTTON_TEXT = "buttonText";
-    public static final String FUNC_BUTTON_TITLE = "buttonTitle";
-
     public static final String PROP_BUTTON_CLASS = "buttonClass";
-    public static final String PROP_BUTTON_WIDTH = "buttonWidth";
-    public static final String PROP_BUTTON_CONTAINER = "buttonContainer";
 
     private IModel<Map<String, String>> options;
-
-    public DropDownMultiChoice(String id, IModel<? extends List<T>> model,
-                               IModel<? extends List<? extends T>> choices, IModel<Map<String, String>> options) {
-        super(id, model, choices);
-        this.options = options;
-    }
 
     public DropDownMultiChoice(String id, IModel<List<T>> object, IModel<List<T>> choices,
                                IChoiceRenderer<T> renderer, IModel<Map<String, String>> options) {

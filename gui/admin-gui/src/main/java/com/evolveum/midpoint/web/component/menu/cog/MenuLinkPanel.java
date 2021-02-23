@@ -6,41 +6,40 @@
  */
 package com.evolveum.midpoint.web.component.menu.cog;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.link.AbstractLink;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
-import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * @author lazyman
  */
-public class MenuLinkPanel extends Panel {
+public class MenuLinkPanel extends BasePanel<InlineMenuItem> {
 
     private static final String ID_MENU_ITEM_LINK = "menuItemLink";
     private static final String ID_MENU_ITEM_LABEL = "menuItemLabel";
 
     public MenuLinkPanel(String id, IModel<InlineMenuItem> item) {
-        super(id);
-
-        initLayout(item);
+        super(id, item);
     }
 
-    private void initLayout(IModel<InlineMenuItem> item) {
-        InlineMenuItem dto = item.getObject();
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
+
+    private void initLayout() {
+        InlineMenuItem dto = getModelObject();
 
         AbstractLink a;
         if (dto.isSubmit()) {
@@ -48,7 +47,7 @@ public class MenuLinkPanel extends Panel {
 
                 @Override
                 protected void onSubmit(AjaxRequestTarget target) {
-                    MenuLinkPanel.this.onSubmit(target, dto.getAction(), item);
+                    MenuLinkPanel.this.onSubmit(target, dto.getAction(), getModel());
                 }
 
                 @Override
@@ -67,7 +66,7 @@ public class MenuLinkPanel extends Panel {
 
                 @Override
                 public void onClick(AjaxRequestTarget target) {
-                    MenuLinkPanel.this.onClick(target, dto.getAction(), item);
+                    MenuLinkPanel.this.onClick(target, dto.getAction(), MenuLinkPanel.this.getModel());
                 }
 
                 @Override
@@ -83,10 +82,7 @@ public class MenuLinkPanel extends Panel {
 
             @Override
             public boolean isVisible() {
-                if (dto.getAction() == null) {
-                    return false;
-                }
-                return true;
+                return dto.getAction() != null;
             }
         });
 

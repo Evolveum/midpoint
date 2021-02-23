@@ -9,7 +9,9 @@ package com.evolveum.midpoint.web.page.admin.server;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionConstraintsType;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -32,9 +34,6 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
 
 public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
@@ -65,6 +64,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
         createScheduleTab(tabs, parentTaskPage);
         createWorkManagementTab(tabs, parentTaskPage);
         createExecutionConstraintsTab(tabs, parentTaskPage);
+        createErrorHandlingStrategyTab(tabs, parentTaskPage);
 //        createCleanupPoliciesTab(tabs, parentTaskPage);
         createSubtasksTab(tabs, parentTaskPage);
         createOperationStatisticsPanel(tabs, parentTaskPage);
@@ -77,7 +77,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
     }
 
     private void createBasicPanel(List<ITab> tabs, PageTask parentPage) {
-        ObjectTabVisibleBehavior<TaskType> basicTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+        ObjectTabVisibleBehavior<TaskType> basicTabVisibility = new ObjectTabVisibleBehavior<>
                 (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_BASIC_URL, parentPage) {
 
             private static final long serialVersionUID = 1L;
@@ -103,7 +103,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
     }
 
     private void createScheduleTab(List<ITab> tabs, PageTask parentPage) {
-        ObjectTabVisibleBehavior<TaskType> scheduleTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+        ObjectTabVisibleBehavior<TaskType> scheduleTabVisibility = new ObjectTabVisibleBehavior<>
                 (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_SCHEDULE_URL, parentPage) {
 
             private static final long serialVersionUID = 1L;
@@ -131,7 +131,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
     }
 
     private void createWorkManagementTab(List<ITab> tabs, PageTask parentPage) {
-        ObjectTabVisibleBehavior<TaskType> workManagementTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+        ObjectTabVisibleBehavior<TaskType> workManagementTabVisibility = new ObjectTabVisibleBehavior<>
                 (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_WORK_MANAGEMENT_URL, parentPage) {
 
             private static final long serialVersionUID = 1L;
@@ -162,7 +162,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
         });
     }
 
-    public void createExecutionConstraintsTab(List<ITab> tabs, PageTask parentPage) {
+    private void createExecutionConstraintsTab(List<ITab> tabs, PageTask parentPage) {
 
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.executionConstraints.title")) {
 
@@ -173,6 +173,27 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
         });
     }
 
+    private void createErrorHandlingStrategyTab(List<ITab> tabs, PageTask parentPage) {
+        tabs.add(new PanelTab(parentPage.createStringResource("pageTask.errorHandlingStrategy.title")) {
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return new SingleContainerPanel<TaskExecutionConstraintsType>(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_ERROR_HANDLING_STRATEGY), TaskErrorHandlingStrategyType.COMPLEX_TYPE);
+            }
+
+            @Override
+            public boolean isVisible() {
+                TaskType task = getTask();
+                return isSynchronizationTask(task) && WebModelServiceUtils.isEnableExperimentalFeature(parentPage);
+            }
+        });
+    }
+
+    private boolean isSynchronizationTask(TaskType task) {
+        return WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value()) ||
+                WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.REPORT_RECONCILIATION.value()) ||
+                WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
+    }
 
 //    private void createCleanupPoliciesTab(List<ITab> tabs, PageTask parentPage) {
 //        ObjectTabVisibleBehavior<TaskType> cleanupPoliciesTabVisibility = new ObjectTabVisibleBehavior<TaskType>
@@ -200,7 +221,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 //    }
 
     private void createSubtasksTab(List<ITab> tabs, PageTask parentPage) {
-        ObjectTabVisibleBehavior<TaskType> subtasksTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+        ObjectTabVisibleBehavior<TaskType> subtasksTabVisibility = new ObjectTabVisibleBehavior<>
                 (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_SUBTASKS_URL, parentPage) {
 
             private static final long serialVersionUID = 1L;
@@ -222,7 +243,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
     }
 
     private void createOperationStatisticsPanel(List<ITab> tabs, PageTask parentPage) {
-        ObjectTabVisibleBehavior<TaskType> operationStatsAndInternalPerfTabsVisibility = new ObjectTabVisibleBehavior<TaskType>
+        ObjectTabVisibleBehavior<TaskType> operationStatsAndInternalPerfTabsVisibility = new ObjectTabVisibleBehavior<>
                 (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_OPERATION_STATISTICS_URL, parentPage) {
 
             private static final long serialVersionUID = 1L;
@@ -244,7 +265,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
     }
 
     private void createEnvironmentalPerformanceTab(List<ITab> tabs, PageTask parentPage) {
-        ObjectTabVisibleBehavior<TaskType> envPerfTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+        ObjectTabVisibleBehavior<TaskType> envPerfTabVisibility = new ObjectTabVisibleBehavior<>
                 (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_ENVIRONMENTAL_PERFORMANCE_URL, parentPage) {
 
             private static final long serialVersionUID = 1L;
@@ -266,7 +287,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
     }
 
     private void createOperationTab(List<ITab> tabs, PageTask parentPage) {
-        ObjectTabVisibleBehavior<TaskType> operationTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+        ObjectTabVisibleBehavior<TaskType> operationTabVisibility = new ObjectTabVisibleBehavior<>
                 (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_OPERATION_URL, parentPage) {
 
             private static final long serialVersionUID = 1L;
@@ -287,7 +308,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
     }
 
     private void createInternalPerformanceTab(List<ITab> tabs, PageTask parentPage) {
-        ObjectTabVisibleBehavior<TaskType> internalPerfTabsVisibility = new ObjectTabVisibleBehavior<TaskType>
+        ObjectTabVisibleBehavior<TaskType> internalPerfTabsVisibility = new ObjectTabVisibleBehavior<>
                 (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_INTERNAL_PERFORMANCE_URL, parentPage) {
 
             private static final long serialVersionUID = 1L;
@@ -308,7 +329,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
     }
 
     private void createResultTab(List<ITab> tabs, PageTask parentPage) {
-        ObjectTabVisibleBehavior<TaskType> resultTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+        ObjectTabVisibleBehavior<TaskType> resultTabVisibility = new ObjectTabVisibleBehavior<>
                 (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_RESULT_URL, parentPage) {
 
             private static final long serialVersionUID = 1L;
@@ -329,7 +350,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
     }
 
     private void createErrorsTab(List<ITab> tabs, PageTask parentPage) {
-        ObjectTabVisibleBehavior<TaskType> errorsTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+        ObjectTabVisibleBehavior<TaskType> errorsTabVisibility = new ObjectTabVisibleBehavior<>
                 (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_ERRORS_URL, parentPage) {
 
             private static final long serialVersionUID = 1L;
