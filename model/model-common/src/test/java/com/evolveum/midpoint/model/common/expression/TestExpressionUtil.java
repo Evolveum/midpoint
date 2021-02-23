@@ -29,7 +29,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.model.common.AbstractModelCommonTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -170,18 +170,18 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
     private <T> T resolvePath(String path, final String exprShortDesc)
             throws SchemaException, ObjectNotFoundException, IOException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        ExpressionVariables variables = createVariables();
+        VariablesMap variables = createVariables();
         return resolvePath(path, variables, exprShortDesc);
     }
 
     private <T> T resolvePathOdo(String path, final String exprShortDesc)
             throws SchemaException, ObjectNotFoundException, IOException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        ExpressionVariables variables = createVariablesOdo();
+        VariablesMap variables = createVariablesOdo();
         return resolvePath(path, variables, exprShortDesc);
     }
 
-    private <T> T resolvePath(String path, ExpressionVariables variables, String exprShortDesc)
+    private <T> T resolvePath(String path, VariablesMap variables, String exprShortDesc)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = createOperationResult();
@@ -200,16 +200,16 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
         return (T) resolved;
     }
 
-    private ExpressionVariables createVariables() throws SchemaException, IOException {
-        ExpressionVariables variables = new ExpressionVariables();
+    private VariablesMap createVariables() throws SchemaException, IOException {
+        VariablesMap variables = new VariablesMap();
         PrismObject<UserType> user = createUser();
         variables.addVariableDefinition(ExpressionConstants.VAR_USER, user, user.getDefinition());
         variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, user, user.getDefinition());
         return variables;
     }
 
-    private ExpressionVariables createVariablesOdo() throws SchemaException, IOException {
-        ExpressionVariables variables = new ExpressionVariables();
+    private VariablesMap createVariablesOdo() throws SchemaException, IOException {
+        VariablesMap variables = new VariablesMap();
         PrismObject<UserType> userOld = createUser();
         ObjectDelta<UserType> delta = PrismTestUtil.getPrismContext().deltaFactory().object().createModificationReplaceProperty(UserType.class,
                 userOld.getOid(), UserType.F_FULL_NAME,

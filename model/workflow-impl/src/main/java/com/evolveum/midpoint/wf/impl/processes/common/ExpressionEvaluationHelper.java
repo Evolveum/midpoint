@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -48,7 +49,7 @@ public class ExpressionEvaluationHelper {
     @Autowired private PrismContext prismContext;
 
     List<ObjectReferenceType> evaluateRefExpressions(List<ExpressionType> expressions,
-            ExpressionVariables variables, String contextDescription,
+            VariablesMap variables, String contextDescription,
             Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         List<ObjectReferenceType> retval = new ArrayList<>();
         for (ExpressionType expression : expressions) {
@@ -57,7 +58,7 @@ public class ExpressionEvaluationHelper {
         return retval;
     }
 
-    private List<ObjectReferenceType> evaluateRefExpression(ExpressionType expressionType, ExpressionVariables variables,
+    private List<ObjectReferenceType> evaluateRefExpression(ExpressionType expressionType, VariablesMap variables,
             String contextDescription, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         return evaluateExpression(expressionType, variables, contextDescription, ObjectReferenceType.class,
@@ -66,7 +67,7 @@ public class ExpressionEvaluationHelper {
 
     @SuppressWarnings("unchecked")
     @NotNull
-    public <T> List<T> evaluateExpression(ExpressionType expressionType, ExpressionVariables variables,
+    public <T> List<T> evaluateExpression(ExpressionType expressionType, VariablesMap variables,
             String contextDescription, Class<T> clazz, QName typeName,
             boolean multiValued, Function<Object, Object> additionalConvertor, Task task,
             OperationResult result)
@@ -104,18 +105,18 @@ public class ExpressionEvaluationHelper {
         return list;
     }
 
-    public boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
+    public boolean evaluateBooleanExpression(ExpressionType expressionType, VariablesMap VariablesMap,
             String contextDescription, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        Collection<Boolean> values = evaluateExpression(expressionType, expressionVariables, contextDescription,
+        Collection<Boolean> values = evaluateExpression(expressionType, VariablesMap, contextDescription,
                 Boolean.class, DOMUtil.XSD_BOOLEAN, false, null, task, result);
         return MiscUtil.getSingleValue(values, false, contextDescription);
     }
 
-    public String evaluateStringExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
+    public String evaluateStringExpression(ExpressionType expressionType, VariablesMap VariablesMap,
             String contextDescription, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        Collection<String> values = evaluateExpression(expressionType, expressionVariables, contextDescription,
+        Collection<String> values = evaluateExpression(expressionType, VariablesMap, contextDescription,
                 String.class, DOMUtil.XSD_STRING, false, null, task, result);
         return MiscUtil.getSingleValue(values, null, contextDescription);
     }

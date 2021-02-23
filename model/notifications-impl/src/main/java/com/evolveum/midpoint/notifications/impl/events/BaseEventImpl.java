@@ -176,7 +176,7 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
         this.requestee = requestee;
     }
 
-    public void createExpressionVariables(VariablesMap variables, OperationResult result) {
+    public void createVariablesMap(VariablesMap variables, OperationResult result) {
         variables.put(ExpressionConstants.VAR_EVENT, this, Event.class);
         variables.put(ExpressionConstants.VAR_REQUESTER, resolveTypedObject(requester, false, result));
         variables.put(ExpressionConstants.VAR_REQUESTEE, resolveTypedObject(requestee, true, result));

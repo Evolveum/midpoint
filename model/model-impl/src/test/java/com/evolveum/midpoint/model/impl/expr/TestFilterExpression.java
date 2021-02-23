@@ -31,7 +31,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -228,7 +228,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
             pval = prismContext.itemFactory().createPropertyValue(input);
         }
 
-        ExpressionVariables variables = createVariables(
+        VariablesMap variables = createVariables(
                 ExpressionConstants.VAR_INPUT, pval, PrimitiveType.STRING);
 
         // WHEN

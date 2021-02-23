@@ -9,20 +9,7 @@ package com.evolveum.midpoint.model.impl.controller;
 import static com.evolveum.midpoint.model.api.util.DashboardUtils.*;
 
 import java.util.*;
-
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditResultHandler;
-import com.evolveum.midpoint.model.api.util.DashboardUtils;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.schema.*;
-
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -30,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.CollectionStats;
@@ -39,25 +27,30 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
+import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author skublik
@@ -90,7 +83,7 @@ public class DashboardServiceImpl implements DashboardService {
         DashboardWidget data = new DashboardWidget();
         getNumberMessage(widget, data, task, result);
         data.setWidget(widget);
-        if(data.getDisplay() == null) {
+        if (data.getDisplay() == null) {
             data.setDisplay(widget.getDisplay());
         }
         LOGGER.debug("Widget Data: {}", data);
@@ -171,7 +164,7 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     public DashboardWidgetSourceTypeType getSourceType(DashboardWidgetType widget) {
-        if(isSourceTypeOfDataNull(widget)) {
+        if (isSourceTypeOfDataNull(widget)) {
             return null;
         }
         return widget.getData().getSourceType();
@@ -182,21 +175,21 @@ public class DashboardServiceImpl implements DashboardService {
         DashboardWidgetSourceTypeType sourceType = getSourceType(widget);
         DashboardWidgetPresentationType presentation = widget.getPresentation();
         switch (sourceType) {
-        case OBJECT_COLLECTION:
-            if(!isDataFieldsOfPresentationNullOrEmpty(presentation)) {
-                return generateNumberMessageForCollection(widget, data, task, result);
-            }
-            break;
-        case AUDIT_SEARCH:
-            if(!isDataFieldsOfPresentationNullOrEmpty(presentation)) {
-                return generateNumberMessageForAuditSearch(widget, data, task, result);
-            }
-            break;
-        case OBJECT:
-            if(!isDataFieldsOfPresentationNullOrEmpty(presentation)) {
-                return generateNumberMessageForObject(widget, data, task, result);
-            }
-            break;
+            case OBJECT_COLLECTION:
+                if (!isDataFieldsOfPresentationNullOrEmpty(presentation)) {
+                    return generateNumberMessageForCollection(widget, data, task, result);
+                }
+                break;
+            case AUDIT_SEARCH:
+                if (!isDataFieldsOfPresentationNullOrEmpty(presentation)) {
+                    return generateNumberMessageForAuditSearch(widget, data, task, result);
+                }
+                break;
+            case OBJECT:
+                if (!isDataFieldsOfPresentationNullOrEmpty(presentation)) {
+                    return generateNumberMessageForObject(widget, data, task, result);
+                }
+                break;
         }
         return null;
     }
@@ -204,7 +197,7 @@ public class DashboardServiceImpl implements DashboardService {
     private String generateNumberMessageForObject(DashboardWidgetType widget, DashboardWidget data, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ObjectType object = getObjectFromObjectRef(widget, task, result);
-        if(object == null) {
+        if (object == null) {
             return null;
         }
         return generateNumberMessage(widget, createVariables(object.asPrismObject(), null, null), data);
@@ -214,7 +207,7 @@ public class DashboardServiceImpl implements DashboardService {
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ObjectCollectionType collection = getObjectCollectionType(widget, task, result);
         CollectionRefSpecificationType collectionRef = getCollectionRefSpecificationType(widget, task, result);
-        if(collection == null && collectionRef.getFilter() == null) {
+        if (collection == null && collectionRef.getFilter() == null) {
             return null;
         }
         AuditSearchType auditSearch = collection != null ? collection.getAuditSearch() : null;
@@ -293,7 +286,7 @@ public class DashboardServiceImpl implements DashboardService {
             query = prismContext.queryFor(AuditEventRecordType.class).build();
         } else {
             query = prismContext.queryFactory().createQuery();
-            ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(objectFilter, new ExpressionVariables(), MiscSchemaUtil.getExpressionProfile(),
+            ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(objectFilter, new VariablesMap(), MiscSchemaUtil.getExpressionProfile(),
                     expressionFactory, prismContext, "collection filter", task, result);
             query.setFilter(evaluatedFilter);
         }
@@ -367,7 +360,7 @@ public class DashboardServiceImpl implements DashboardService {
     private String generateNumberMessageForCollection(DashboardWidgetType widget, DashboardWidget data, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException {
         CollectionRefSpecificationType collectionSpec = getCollectionRefSpecificationType(widget, task, result);
-        if(collectionSpec != null) {
+        if (collectionSpec != null) {
 
             CompiledObjectCollectionView compiledCollection = modelInteractionService.compileObjectCollectionView(
                     collectionSpec, null, task, task.getResult());
@@ -385,22 +378,22 @@ public class DashboardServiceImpl implements DashboardService {
                         valueCollection.asPrismObject(), compiledCollection, null, task, task.getResult());
             }
             Collection<String> policySituations = new ArrayList<>();
-            for(EvaluatedPolicyRule evalPolicyRule : evalPolicyRules) {
-                if(!evalPolicyRule.getAllTriggers().isEmpty()) {
+            for (EvaluatedPolicyRule evalPolicyRule : evalPolicyRules) {
+                if (!evalPolicyRule.getAllTriggers().isEmpty()) {
                     policySituations.add(evalPolicyRule.getPolicySituation());
                 }
             }
             return generateNumberMessage(widget, createVariables(null, statType, policySituations), data);
 
-        }  else {
+        } else {
             LOGGER.error("CollectionRefSpecificationType is null in widget " + widget.getIdentifier());
         }
         return null;
     }
 
-    private static ExpressionVariables createVariables(PrismObject<? extends ObjectType> object,
+    private static VariablesMap createVariables(PrismObject<? extends ObjectType> object,
             IntegerStatType statType, Collection<String> policySituations) {
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         if (statType != null || policySituations != null) {
             VariablesMap variablesMap = new VariablesMap();
             if (statType != null) {
@@ -420,46 +413,46 @@ public class DashboardServiceImpl implements DashboardService {
         return variables;
     }
 
-    private static IntegerStatType generateIntegerStat(Integer value, Integer domainValue){
+    private static IntegerStatType generateIntegerStat(Integer value, Integer domainValue) {
         IntegerStatType statType = new IntegerStatType();
         statType.setValue(value);
         statType.setDomain(domainValue);
         return statType;
     }
 
-    private String generateNumberMessage(DashboardWidgetType widget, ExpressionVariables variables, DashboardWidget data) {
+    private String generateNumberMessage(DashboardWidgetType widget, VariablesMap variables, DashboardWidget data) {
         Map<DashboardWidgetDataFieldTypeType, String> numberMessagesParts = new HashMap<>();
         widget.getPresentation().getDataField().forEach(dataField -> {
-            switch(dataField.getFieldType()) {
+            switch (dataField.getFieldType()) {
 
-            case VALUE:
-                Task task = taskManager.createTaskInstance("Search domain collection");
-                try {
-                String valueMessage = getStringExpressionMessage(variables,
-                        dataField.getExpression(), "Get value message", task, task.getResult());
-                if(valueMessage != null) {
-                    numberMessagesParts.put(DashboardWidgetDataFieldTypeType.VALUE, valueMessage);
-                }
-                } catch (Exception e) {
-                    LOGGER.error(e.getMessage(), e);
-                }
-                break;
+                case VALUE:
+                    Task task = taskManager.createTaskInstance("Search domain collection");
+                    try {
+                        String valueMessage = getStringExpressionMessage(variables,
+                                dataField.getExpression(), "Get value message", task, task.getResult());
+                        if (valueMessage != null) {
+                            numberMessagesParts.put(DashboardWidgetDataFieldTypeType.VALUE, valueMessage);
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error(e.getMessage(), e);
+                    }
+                    break;
 
-            case UNIT:
-                task = taskManager.createTaskInstance("Get unit");
-                String unit = getStringExpressionMessage(new ExpressionVariables(), dataField.getExpression(), "Unit",
-                        task, task.getResult());
-                numberMessagesParts.put(DashboardWidgetDataFieldTypeType.UNIT, unit);
-                break;
+                case UNIT:
+                    task = taskManager.createTaskInstance("Get unit");
+                    String unit = getStringExpressionMessage(new VariablesMap(), dataField.getExpression(), "Unit",
+                            task, task.getResult());
+                    numberMessagesParts.put(DashboardWidgetDataFieldTypeType.UNIT, unit);
+                    break;
             }
         });
-        if(!numberMessagesParts.containsKey(DashboardWidgetDataFieldTypeType.VALUE)) {
+        if (!numberMessagesParts.containsKey(DashboardWidgetDataFieldTypeType.VALUE)) {
             LOGGER.error("Value message is not generate from widget " + widget.getIdentifier());
             return null;
         }
         StringBuilder sb = new StringBuilder();
         sb.append(numberMessagesParts.get(DashboardWidgetDataFieldTypeType.VALUE));
-        if(numberMessagesParts.containsKey(DashboardWidgetDataFieldTypeType.UNIT)) {
+        if (numberMessagesParts.containsKey(DashboardWidgetDataFieldTypeType.UNIT)) {
             sb.append(" ").append(numberMessagesParts.get(DashboardWidgetDataFieldTypeType.UNIT));
         }
 
@@ -472,7 +465,7 @@ public class DashboardServiceImpl implements DashboardService {
         return sb.toString();
     }
 
-    private void evaluateVariation(DashboardWidgetType widget, ExpressionVariables variables, DashboardWidget data) {
+    private void evaluateVariation(DashboardWidgetType widget, VariablesMap variables, DashboardWidget data) {
         if (widget.getPresentation() != null) {
             if (widget.getPresentation().getVariation() != null) {
                 for (DashboardWidgetVariationType variation : widget.getPresentation().getVariation()) {
@@ -489,10 +482,10 @@ public class DashboardServiceImpl implements DashboardService {
                         LOGGER.error("Couldn't evaluate condition " + variation.toString(), e);
                     }
                 }
-            }  else {
+            } else {
                 LOGGER.error("Variation of presentation is not found in widget " + widget.getIdentifier());
             }
-        }  else {
+        } else {
             LOGGER.error("Presentation is not found in widget " + widget.getIdentifier());
         }
     }
@@ -513,10 +506,10 @@ public class DashboardServiceImpl implements DashboardService {
         CompiledObjectCollectionView compiledCollection = modelInteractionService.compileObjectCollectionView(
                 collectionConfig, type, task, task.getResult());
 
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         ObjectFilter filter = ExpressionUtil.evaluateFilterExpressions(compiledCollection.getFilter(), variables, MiscSchemaUtil.getExpressionProfile(),
                 expressionFactory, prismContext, "collection filter", task, result);
-        if (filter == null ) {
+        if (filter == null) {
             LOGGER.error("Couldn't find filter");
             throw new ConfigurationException("Couldn't find filter");
         }
@@ -560,10 +553,10 @@ public class DashboardServiceImpl implements DashboardService {
         CompiledObjectCollectionView compiledCollection = modelInteractionService.compileObjectCollectionView(
                 collectionConfig, AuditEventRecordType.class, task, task.getResult());
 
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         ObjectFilter filter = ExpressionUtil.evaluateFilterExpressions(compiledCollection.getFilter(), variables, MiscSchemaUtil.getExpressionProfile(),
                 expressionFactory, prismContext, "collection filter", task, result);
-        if (filter == null ) {
+        if (filter == null) {
             LOGGER.error("Couldn't find filter");
             throw new ConfigurationException("Couldn't find filter");
         }
@@ -597,7 +590,7 @@ public class DashboardServiceImpl implements DashboardService {
             return null;
         }
         ObjectReferenceType ref = widget.getData().getCollection().getCollectionRef();
-        return objectResolver.resolve(ref, ObjectCollectionType.class, null, "resolving collection from "+widget, task, result);
+        return objectResolver.resolve(ref, ObjectCollectionType.class, null, "resolving collection from " + widget, task, result);
     }
 
     @Override
@@ -610,22 +603,22 @@ public class DashboardServiceImpl implements DashboardService {
 
     private ObjectType getObjectFromObjectRef(DashboardWidgetType widget, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        if(isDataNull(widget)) {
+        if (isDataNull(widget)) {
             return null;
         }
         ObjectReferenceType ref = widget.getData().getObjectRef();
-        if(ref == null) {
+        if (ref == null) {
             LOGGER.error("ObjectRef of data is not found in widget " + widget.getIdentifier());
             return null;
         }
-        ObjectType object = objectResolver.resolve(ref, ObjectType.class, null, "resolving data object reference in "+widget, task, result);
-        if(object == null) {
+        ObjectType object = objectResolver.resolve(ref, ObjectType.class, null, "resolving data object reference in " + widget, task, result);
+        if (object == null) {
             LOGGER.error("Object from ObjectRef " + ref + " is null in widget " + widget.getIdentifier());
         }
         return object;
     }
 
-    private String getStringExpressionMessage(ExpressionVariables variables,
+    private String getStringExpressionMessage(VariablesMap variables,
             ExpressionType expression, String shortDes, Task task, OperationResult result) {
         if (expression != null) {
             Collection<String> contentTypeList = null;

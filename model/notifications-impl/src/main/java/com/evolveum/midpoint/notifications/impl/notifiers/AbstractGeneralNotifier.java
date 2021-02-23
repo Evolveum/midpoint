@@ -30,7 +30,7 @@ import com.evolveum.midpoint.notifications.impl.formatters.ValueFormatter;
 import com.evolveum.midpoint.notifications.impl.handlers.AggregatedEventHandler;
 import com.evolveum.midpoint.notifications.impl.handlers.BaseHandler;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -86,7 +86,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
                         applies = true;
                         reportNotificationStart(event);
                         try {
-                            ExpressionVariables variables = getDefaultVariables(event, result);
+                            VariablesMap variables = getDefaultVariables(event, result);
                             for (String transportName : notifierConfiguration.getTransport()) {
                                 messagesSent += prepareAndSend(event, notifierConfiguration, variables, transportName, task, result);
                             }
@@ -107,7 +107,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         }
     }
 
-    private int prepareAndSend(E event, N notifierConfig, ExpressionVariables variables, String transportName,
+    private int prepareAndSend(E event, N notifierConfig, VariablesMap variables, String transportName,
             Task task, OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.subresult(OP_PREPARE_AND_SEND)
                 .setMinor()
@@ -242,7 +242,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         return DEFAULT_LOGGER;              // in case a subclass does not provide its own logger
     }
 
-    private List<String> getRecipientsAddresses(E event, N generalNotifierType, ExpressionVariables variables,
+    private List<String> getRecipientsAddresses(E event, N generalNotifierType, VariablesMap variables,
             UserType defaultRecipient, String transportName, Transport transport, Task task, OperationResult result) {
         List<String> addresses = new ArrayList<>();
         if (!generalNotifierType.getRecipientExpression().isEmpty()) {
@@ -269,7 +269,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     }
 
     @NotNull
-    private List<String> getCcBccAddresses(List<ExpressionType> expressions, ExpressionVariables variables,
+    private List<String> getCcBccAddresses(List<ExpressionType> expressions, VariablesMap variables,
             String shortDesc, Task task, OperationResult result) {
         List<String> addresses = new ArrayList<>();
         for (ExpressionType expressionType : expressions) {
@@ -281,22 +281,22 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         return addresses;
     }
 
-    private String getSubjectFromExpression(E event, N generalNotifierType, ExpressionVariables variables,
+    private String getSubjectFromExpression(E event, N generalNotifierType, VariablesMap variables,
             Task task, OperationResult result) {
         return getStringFromExpression(event, variables, task, result, generalNotifierType.getSubjectExpression(), "subject", false);
     }
 
-    private String getFromFromExpression(E event, N generalNotifierType, ExpressionVariables variables,
+    private String getFromFromExpression(E event, N generalNotifierType, VariablesMap variables,
             Task task, OperationResult result) {
         return getStringFromExpression(event, variables, task, result, generalNotifierType.getFromExpression(), "from", true);
     }
 
-    private String getContentTypeFromExpression(E event, N generalNotifierType, ExpressionVariables variables,
+    private String getContentTypeFromExpression(E event, N generalNotifierType, VariablesMap variables,
             Task task, OperationResult result) {
         return getStringFromExpression(event, variables, task, result, generalNotifierType.getContentTypeExpression(), "contentType", true);
     }
 
-    private String getStringFromExpression(E event, ExpressionVariables variables,
+    private String getStringFromExpression(E event, VariablesMap variables,
             Task task, OperationResult result, ExpressionType expression, String expressionTypeName, boolean canBeNull) {
         if (expression != null) {
             List<String> contentTypeList = evaluateExpressionChecked(expression, variables, expressionTypeName + " expression",
@@ -314,7 +314,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         }
     }
 
-    private String getBodyFromExpression(E event, @NotNull ExpressionType bodyExpression, ExpressionVariables variables,
+    private String getBodyFromExpression(E event, @NotNull ExpressionType bodyExpression, VariablesMap variables,
             Task task, OperationResult result) {
         List<String> bodyList = evaluateExpressionChecked(bodyExpression, variables,
                 "body expression", task, result);
@@ -330,7 +330,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         }
     }
 
-    private List<NotificationMessageAttachmentType> getAttachmentsFromExpression(E event, N generalNotifierType, ExpressionVariables variables,
+    private List<NotificationMessageAttachmentType> getAttachmentsFromExpression(E event, N generalNotifierType, VariablesMap variables,
             Task task, OperationResult result) {
         if (generalNotifierType.getAttachmentExpression() != null) {
             List<NotificationMessageAttachmentType> attachment = evaluateNotificationMessageAttachmentTypeExpressionChecked(generalNotifierType.getAttachmentExpression(), variables, "contentType expression",

@@ -32,7 +32,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -230,8 +230,8 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         }
     }
 
-    ExpressionVariables getAssignmentEvaluationVariables() {
-        ExpressionVariables variables = new ExpressionVariables();
+    VariablesMap getAssignmentEvaluationVariables() {
+        VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_LOGIN_MODE, loginMode, Boolean.class);
         // e.g. AssignmentEvaluator itself, model context, etc (when needed)
         return variables;

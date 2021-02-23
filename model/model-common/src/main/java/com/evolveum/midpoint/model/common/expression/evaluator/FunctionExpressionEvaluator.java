@@ -10,26 +10,29 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
-
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.*;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Calls specified custom function expression. It is something like a macro: Arguments for the function call
@@ -64,7 +67,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
         ObjectReferenceType functionLibraryRef = expressionEvaluatorBean.getLibraryRef();
         if (functionLibraryRef == null) {
-            throw new SchemaException("No functions library defined in "+context.getContextDescription());
+            throw new SchemaException("No functions library defined in " + context.getContextDescription());
         }
 
         OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE);
@@ -151,7 +154,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
     }
 
     private boolean compareParameters(List<ExpressionParameterType> functionParams, List<ExpressionParameterType> filteredExpressionParameters) {
-        for (ExpressionParameterType  functionParam: functionParams ) {
+        for (ExpressionParameterType functionParam : functionParams) {
             boolean found = false;
             for (ExpressionParameterType filteredExpressionParam : filteredExpressionParameters) {
                 if (filteredExpressionParam.getName().equals(functionParam.getName())) {
@@ -189,7 +192,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
             ExpressionEvaluationContext context, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
             SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         ExpressionEvaluationContext functionContext = context.shallowClone();
-        ExpressionVariables functionVariables = new ExpressionVariables();
+        VariablesMap functionVariables = new VariablesMap();
 
         for (ExpressionParameterType param : expressionEvaluatorBean.getParameter()) {
             ExpressionType parameterExpressionBean = param.getExpression();

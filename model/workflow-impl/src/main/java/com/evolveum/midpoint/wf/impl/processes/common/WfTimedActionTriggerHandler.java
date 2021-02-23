@@ -12,7 +12,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -226,7 +226,7 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         List<ObjectReferenceType> rv = CloneUtil.cloneCollectionMembers(delegateAction.getApproverRef());
         if (!delegateAction.getApproverExpression().isEmpty()) {
-            ExpressionVariables variables = stageComputeHelper.getDefaultVariables(aCase, aCase.getApprovalContext(), getChannel(opTask), result);
+            VariablesMap variables = stageComputeHelper.getDefaultVariables(aCase, aCase.getApprovalContext(), getChannel(opTask), result);
             variables.put(ExpressionConstants.VAR_WORK_ITEM, workItem, CaseWorkItemType.class);
             rv.addAll(evaluationHelper.evaluateRefExpressions(delegateAction.getApproverExpression(),
                     variables, "computing delegates", opTask, result));

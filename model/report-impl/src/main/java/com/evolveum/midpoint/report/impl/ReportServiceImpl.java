@@ -42,7 +42,7 @@ import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaHelper;
@@ -123,7 +123,7 @@ public class ReportServiceImpl implements ReportService {
             ObjectFilter subFilter = ((TypeFilter) filter).getFilter();
             ObjectQuery q = prismContext.queryFactory().createQuery(subFilter);
 
-            ExpressionVariables variables = new ExpressionVariables();
+            VariablesMap variables = new VariablesMap();
             variables.putAll(parameters);
 
             q = ExpressionUtil.evaluateQueryExpressions(q, variables, expressionProfile, expressionFactory, prismContext,
@@ -197,7 +197,7 @@ public class ReportServiceImpl implements ReportService {
     public Collection<PrismContainerValue<? extends Containerable>> evaluateScript(PrismObject<ReportType> report, String script, VariablesMap parameters, Task task, OperationResult result)
                     throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         variables.putAll(parameters);
 
         TypedValue<VariablesMap> auditParams = getConvertedParams(parameters);
@@ -251,7 +251,7 @@ public class ReportServiceImpl implements ReportService {
     public Object evaluate(PrismObject<ReportType> report, String script, VariablesMap parameters, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         variables.addVariableDefinitions(parameters);
 
         // special variable for audit report
@@ -290,7 +290,7 @@ public class ReportServiceImpl implements ReportService {
         Collection<AuditEventRecord> results = new ArrayList<>();
 
         TypedValue<VariablesMap> auditParams = getConvertedParams(parameters);
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         variables.put("auditParams", auditParams);
 
         ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();

@@ -7,12 +7,12 @@
 
 package com.evolveum.midpoint.model.impl.spec.expressions;
 
-import static com.evolveum.midpoint.model.impl.spec.expressions.TestExpressionSpec.VariablesStyle.DELTA;
-import static com.evolveum.midpoint.model.impl.spec.expressions.TestExpressionSpec.VariablesStyle.NO_DELTA;
-
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+
+import static com.evolveum.midpoint.model.impl.spec.expressions.TestExpressionSpec.VariablesStyle.DELTA;
+import static com.evolveum.midpoint.model.impl.spec.expressions.TestExpressionSpec.VariablesStyle.NO_DELTA;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,10 +20,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-
-import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -33,15 +29,20 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.repo.common.expression.*;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.PredefinedTestMethodTracing;
 import com.evolveum.midpoint.test.asserter.prism.PrismValueDeltaSetTripleAsserter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -98,7 +99,7 @@ public class TestExpressionSpec extends AbstractModelImplementationIntegrationTe
                 .assertEmptyMinus()
                 .assertEmptyPlus()
                 .zeroSet()
-                    .assertSinglePropertyValue("JACK");
+                .assertSinglePropertyValue("JACK");
 
         assertScriptExecutionIncrement(1);
     }
@@ -120,11 +121,11 @@ public class TestExpressionSpec extends AbstractModelImplementationIntegrationTe
         assertOutputTriple(outputTriple)
                 .assertEmptyZero()
                 .plusSet()
-                    .assertSinglePropertyValue("JACKIE")
-                    .end()
+                .assertSinglePropertyValue("JACKIE")
+                .end()
                 .minusSet()
-                    .assertSinglePropertyValue("JACK")
-                    .end();
+                .assertSinglePropertyValue("JACK")
+                .end();
 
         assertScriptExecutionIncrement(2);
     }
@@ -147,11 +148,11 @@ public class TestExpressionSpec extends AbstractModelImplementationIntegrationTe
         assertOutputTriple(outputTriple)
                 .assertEmptyZero()
                 .plusSet()
-                    .assertSinglePropertyValue("JACKIE")
-                    .end()
+                .assertSinglePropertyValue("JACKIE")
+                .end()
                 .minusSet()
-                    .assertSinglePropertyValue("JACK")
-                    .end();
+                .assertSinglePropertyValue("JACK")
+                .end();
 
         assertScriptExecutionIncrement(2);
     }
@@ -159,7 +160,7 @@ public class TestExpressionSpec extends AbstractModelImplementationIntegrationTe
     private PrismValueDeltaSetTriple<PrismPropertyValue<String>> evaluate(File expressionFile, Collection<Source<?, ?>> sources,
             VariablesStyle variablesStyle) throws Exception {
         ExpressionType expression = parseExpression(expressionFile);
-        ExpressionVariables variables = prepareVariables(variablesStyle);
+        VariablesMap variables = prepareVariables(variablesStyle);
         Task task = getTestTask();
         ExpressionEvaluationContext expressionContext =
                 new ExpressionEvaluationContext(sources, variables, getTestNameShort(), task);
@@ -167,7 +168,7 @@ public class TestExpressionSpec extends AbstractModelImplementationIntegrationTe
         return evaluatePropertyExpression(expression, PrimitiveType.STRING, expressionContext, task.getResult());
     }
 
-    private ExpressionVariables prepareVariables(VariablesStyle variablesStyle) throws SchemaException {
+    private VariablesMap prepareVariables(VariablesStyle variablesStyle) throws SchemaException {
         switch (variablesStyle) {
             case NO_DELTA:
                 return prepareBasicVariablesNoDelta();
@@ -204,7 +205,7 @@ public class TestExpressionSpec extends AbstractModelImplementationIntegrationTe
                 .assertEmptyMinus()
                 .assertEmptyPlus()
                 .zeroSet()
-                    .assertSinglePropertyValue("Cpt. Jack Sparrow");
+                .assertSinglePropertyValue("Cpt. Jack Sparrow");
 
         assertScriptExecutionIncrement(1);
     }
@@ -213,8 +214,8 @@ public class TestExpressionSpec extends AbstractModelImplementationIntegrationTe
         return PrismTestUtil.parseAtomicValue(file, ExpressionType.COMPLEX_TYPE);
     }
 
-    private ExpressionVariables prepareBasicVariablesNoDelta() {
-        ExpressionVariables variables = new ExpressionVariables();
+    private VariablesMap prepareBasicVariablesNoDelta() {
+        VariablesMap variables = new VariablesMap();
 
         variables.put(VAR_FOO, "fooValue", String.class);
         variables.put(VAR_BAR, "barValue", String.class);
@@ -222,8 +223,8 @@ public class TestExpressionSpec extends AbstractModelImplementationIntegrationTe
         return variables;
     }
 
-    private ExpressionVariables prepareBasicVariablesWithDelta() throws SchemaException {
-        ExpressionVariables variables = new ExpressionVariables();
+    private VariablesMap prepareBasicVariablesWithDelta() throws SchemaException {
+        VariablesMap variables = new VariablesMap();
 
         variables.put(VAR_FOO, "fooValue", String.class);
 

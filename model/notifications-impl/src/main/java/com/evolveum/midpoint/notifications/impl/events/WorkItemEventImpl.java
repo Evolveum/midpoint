@@ -104,8 +104,8 @@ public class WorkItemEventImpl extends WorkflowEventImpl implements WorkItemEven
     }
 
     @Override
-    public void createExpressionVariables(VariablesMap variables, OperationResult result) {
-        super.createExpressionVariables(variables, result);
+    public void createVariablesMap(VariablesMap variables, OperationResult result) {
+        super.createVariablesMap(variables, result);
         variables.put(ExpressionConstants.VAR_ASSIGNEE, resolveTypedObject(assignee, false, result));
         variables.put(ExpressionConstants.VAR_WORK_ITEM, workItem, CaseWorkItemType.class);
     }

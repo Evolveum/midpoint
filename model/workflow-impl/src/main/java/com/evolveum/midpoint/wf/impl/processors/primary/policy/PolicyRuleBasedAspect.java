@@ -7,6 +7,21 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary.policy;
 
+import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
+import static com.evolveum.midpoint.schema.util.LocalizationUtil.createLocalizableMessageType;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createDisplayInformation;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
@@ -16,7 +31,6 @@ import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -35,22 +49,8 @@ import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpStartInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
-import static com.evolveum.midpoint.schema.util.LocalizationUtil.createLocalizableMessageType;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createDisplayInformation;
 
 /**
- *
  * @author mederly
  */
 @Component
@@ -107,8 +107,8 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
     List<EvaluatedPolicyRule> selectTriggeredApprovalActionRules(Collection<? extends EvaluatedPolicyRule> rules) {
         return rules.stream()
-                    .filter(r -> r.isTriggered() && r.containsEnabledAction(ApprovalPolicyActionType.class))
-                    .collect(Collectors.toList());
+                .filter(r -> r.isTriggered() && r.containsEnabledAction(ApprovalPolicyActionType.class))
+                .collect(Collectors.toList());
     }
 
     ApprovalSchemaType getSchemaFromAction(@NotNull ApprovalPolicyActionType approvalAction) {
@@ -140,13 +140,13 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
         return name;
     }
 
-    // corresponds with ConstraintEvaluationHelper.createExpressionVariables
+    // corresponds with ConstraintEvaluationHelper.createVariablesMap
     private LocalizableMessage processNameFromApprovalActions(ApprovalSchemaBuilder.Result schemaBuilderResult,
             @Nullable EvaluatedAssignment<?> evaluatedAssignment, ModelInvocationContext<?> ctx, OperationResult result) {
         if (schemaBuilderResult.approvalDisplayName == null) {
             return null;
         }
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         ObjectType focusType = ctx.getFocusObjectNewOrOld();
         variables.put(ExpressionConstants.VAR_OBJECT, focusType, focusType.asPrismObject().getDefinition());
         variables.put(ExpressionConstants.VAR_OBJECT_DISPLAY_INFORMATION,
@@ -172,7 +172,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
         try {
             localizableMessageType = modelInteractionService
                     .createLocalizableMessageType(schemaBuilderResult.approvalDisplayName, variables, ctx.task, result);
-        } catch (CommonException|RuntimeException e) {
+        } catch (CommonException | RuntimeException e) {
             throw new SystemException("Couldn't create localizable message for approval display name: " + e.getMessage(), e);
         }
         return LocalizationUtil.toLocalizableMessage(localizableMessageType);

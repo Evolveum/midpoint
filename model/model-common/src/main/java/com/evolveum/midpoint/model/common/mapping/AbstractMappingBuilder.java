@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.repo.common.expression.VariableProducer;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -47,7 +46,7 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingImpl.class);
 
-    private final ExpressionVariables variables = new ExpressionVariables();
+    private final VariablesMap variables = new VariablesMap();
     private MBT mappingBean;
     private MappingKindType mappingKind;
     private ItemPath implicitSourcePath; // for tracing purposes
@@ -79,7 +78,7 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
     public abstract AbstractMappingImpl<V, D, MBT> build();
 
     //region Plain setters
-    public RT variablesFrom(ExpressionVariables val) {
+    public RT variablesFrom(VariablesMap val) {
         variables.addVariableDefinitions(val);
         return typedThis();
     }
@@ -344,7 +343,7 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
         return beans;
     }
 
-    public ExpressionVariables getVariables() {
+    public VariablesMap getVariables() {
         return variables;
     }
 

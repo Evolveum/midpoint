@@ -49,12 +49,12 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -445,7 +445,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     private SearchItem createRelationItem(Search search) {
         return new SpecialSearchItem(search) {
             @Override
-            public ObjectFilter createFilter(PageBase pageBase, ExpressionVariables variables) {
+            public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
                 R object = getParentVariables(variables);
                 if (object == null) {
                     return null;
@@ -552,7 +552,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         };
     }
 
-    private R getParentVariables(ExpressionVariables variables) {
+    private R getParentVariables(VariablesMap variables) {
         try {
             return (R) variables.getValue(ExpressionConstants.VAR_PARENT_OBJECT, AbstractRoleType.class);
         } catch (SchemaException e) {
@@ -564,7 +564,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     private SearchItem createScopeItem(Search search) {
         return new SpecialSearchItem(search) {
             @Override
-            public ObjectFilter createFilter(PageBase pageBase, ExpressionVariables variables) {
+            public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
                 R object = getParentVariables(variables);
                 if (object == null) {
                     return null;
@@ -614,7 +614,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     private SearchItem createIndirectItem(Search search) {
         return new SpecialSearchItem(search) {
             @Override
-            public ObjectFilter createFilter(PageBase pageBase, ExpressionVariables variables) {
+            public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
                 R object = getParentVariables(variables);
                 if (object == null) {
                     return null;
@@ -712,7 +712,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            public ObjectFilter createFilter(PageBase pageBase, ExpressionVariables variables) {
+            public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
                 R object = getParentVariables(variables);
                 if (object == null) {
                     return null;
@@ -816,7 +816,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            public ObjectFilter createFilter(PageBase pageBase, ExpressionVariables variables) {
+            public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
                 R object = getParentVariables(variables);
                 if (object == null) {
                     return null;

@@ -24,8 +24,8 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -40,17 +40,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author semancik
- *
  */
 public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<SelectableBean<O>, String>
-        implements IExportableColumn<SelectableBean<O>, String>{
+        implements IExportableColumn<SelectableBean<O>, String> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectNameColumn.class);
 
-    private ExpressionType expression;
-    private PageBase pageBase;
-    private String itemPath;
+    private final ExpressionType expression;
+    private final PageBase pageBase;
+    private final String itemPath;
 
     public ObjectNameColumn(IModel<String> displayModel) {
         this(displayModel, null, null, null, true);
@@ -65,7 +64,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 
     @Override
     public void populateItem(final Item<ICellPopulator<SelectableBean<O>>> cellItem, String componentId,
-                             final IModel<SelectableBean<O>> rowModel) {
+            final IModel<SelectableBean<O>> rowModel) {
 
         IModel<String> labelModel = createLabelModel(cellItem, rowModel);
 
@@ -141,13 +140,13 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
         Task task = pageBase.createSimpleTask("evaluate column expression");
         try {
 
-            com.evolveum.midpoint.prism.Item<?,?> item = value.asPrismObject().findItem(ItemPath.create(itemPath));
-            ExpressionVariables expressionVariables = new ExpressionVariables();
-            expressionVariables.put(ExpressionConstants.VAR_OBJECT, value, value.getClass());
+            com.evolveum.midpoint.prism.Item<?, ?> item = value.asPrismObject().findItem(ItemPath.create(itemPath));
+            VariablesMap variablesMap = new VariablesMap();
+            variablesMap.put(ExpressionConstants.VAR_OBJECT, value, value.getClass());
             if (item != null) {
-                expressionVariables.put(ExpressionConstants.VAR_INPUT, item, item.getDefinition().getTypeClass());
+                variablesMap.put(ExpressionConstants.VAR_INPUT, item, item.getDefinition().getTypeClass());
             }
-            Collection<String> evaluatedValues = ExpressionUtil.evaluateStringExpression(expressionVariables, pageBase.getPrismContext(), expression,
+            Collection<String> evaluatedValues = ExpressionUtil.evaluateStringExpression(variablesMap, pageBase.getPrismContext(), expression,
                     MiscSchemaUtil.getExpressionProfile(), pageBase.getExpressionFactory(), "evaluate column expression",
                     task, task.getResult());
             if (evaluatedValues != null) {

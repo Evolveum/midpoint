@@ -38,7 +38,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -137,7 +137,7 @@ public class TestScriptCaching extends AbstractUnitTest
 
         ScriptExpression scriptExpression = createScriptExpression(scriptType, outputDefinition);
 
-        ExpressionVariables variables = ExpressionVariables.create(getPrismContext(),
+        VariablesMap variables = VariablesMap.create(getPrismContext(),
                 "foo", "FOO", PrimitiveType.STRING,
                 "bar", "BAR", PrimitiveType.STRING
         );

@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -136,7 +136,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
      * @param context Caller-specified context of the whole expression evaluation.
      */
     @NotNull
-    protected abstract List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination,
+    protected abstract List<V> transformSingleValue(VariablesMap variables, PlusMinusZero valueDestination,
             boolean useNew, ExpressionEvaluationContext context, String contextDescription, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException;

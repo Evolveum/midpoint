@@ -17,7 +17,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -421,8 +421,8 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         return enabledActions;
     }
 
-    private <AH extends AssignmentHolderType> ExpressionVariables createExpressionVariables(PolicyRuleEvaluationContext<AH> rctx, PrismObject<AH> object) {
-        ExpressionVariables var = new ExpressionVariables();
+    private <AH extends AssignmentHolderType> VariablesMap createVariablesMap(PolicyRuleEvaluationContext<AH> rctx, PrismObject<AH> object) {
+        VariablesMap var = new VariablesMap();
         var.put(ExpressionConstants.VAR_USER, object, object.getDefinition());
         var.put(ExpressionConstants.VAR_FOCUS, object, object.getDefinition());
         var.put(ExpressionConstants.VAR_OBJECT, object, object.getDefinition());
@@ -482,7 +482,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         LOGGER.trace("Actions defined for policy rule: {}", allActions);
         for (PolicyActionType action : allActions) {
             if (action.getCondition() != null) {
-                ExpressionVariables variables = createExpressionVariables(rctx, object);
+                VariablesMap variables = createVariablesMap(rctx, object);
                 if (!LensUtil.evaluateBoolean(action.getCondition(), variables, "condition in action " + action.getName() + " (" + action.getClass().getSimpleName() + ")", expressionFactory, prismContext, task, result)) {
                     LOGGER.trace("Skipping action {} ({}) because the condition evaluated to false", action.getName(), action.getClass().getSimpleName());
                     continue;
