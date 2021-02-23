@@ -13,9 +13,11 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 
 public class DropdownButtonDto implements Serializable {
 
-    /**
-     *
-     */
+    public static final String F_INFO = "info";
+    public static final String F_ICON = "icon";
+    public static final String F_LABEL = "label";
+    public static final String F_ITEMS = "items";
+
     private static final long serialVersionUID = 1L;
     private String info;
     private String icon;

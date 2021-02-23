@@ -40,10 +40,6 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
         initLayout();
     }
 
-    public int getNumberOfButtons() {
-        return numberOfButtons;
-    }
-
     private void initLayout() {
         RepeatingView buttons = new RepeatingView(ID_BUTTONS);
         add(buttons);

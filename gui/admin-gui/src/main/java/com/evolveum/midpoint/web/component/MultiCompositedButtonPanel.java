@@ -12,7 +12,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -31,13 +34,13 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<MultiFun
 
     private static final String ID_BUTTON_PANEL = "additionalButton";
 
+    private static final String ID_COMPOSITED_BUTTON = "compositedButton";
+    private static final String ID_DEFAULT_BUTTON = "defaultButton";
+
     private static final String DEFAULT_BUTTON_STYLE = "btn btn-default btn-sm buttons-panel-marging";
 
-    private final List<MultiFunctinalButtonDto> buttonDtos;
-
-    public MultiCompositedButtonPanel(String id, List<MultiFunctinalButtonDto> buttonDtos) {
-        super(id);
-        this.buttonDtos = buttonDtos;
+    public MultiCompositedButtonPanel(String id, IModel<List<MultiFunctinalButtonDto>> model) {
+        super(id, model);
     }
 
     @Override
@@ -47,17 +50,15 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<MultiFun
     }
 
     private void initLayout() {
-        DisplayType defaultObjectButtonDisplayType = fixDisplayTypeIfNeeded(getDefaultObjectButtonDisplayType());
-        DisplayType mainButtonDisplayType = fixDisplayTypeIfNeeded(getMainButtonDisplayType());
-        RepeatingView buttonsPanel = new RepeatingView(ID_BUTTON_PANEL);
-        add(buttonsPanel);
+        ListView<MultiFunctinalButtonDto> buttonsPanel = new ListView<MultiFunctinalButtonDto>(ID_BUTTON_PANEL, getModel()) {
 
-        if (additionalButtonsExist()) {
-            buttonDtos.forEach(additionalButtonObject -> {
+            @Override
+            protected void populateItem(ListItem<MultiFunctinalButtonDto> item) {
+                MultiFunctinalButtonDto additionalButtonObject = item.getModelObject();
                 DisplayType additionalButtonDisplayType = fixDisplayTypeIfNeeded(additionalButtonObject.getAdditionalButtonDisplayType()); //getAdditionalButtonDisplayType(additionalButtonObject)
                 additionalButtonObject.setAdditionalButtonDisplayType(additionalButtonDisplayType);
 
-                AjaxCompositedIconButton additionalButton = new AjaxCompositedIconButton(buttonsPanel.newChildId(), getCompositedIcon(additionalButtonObject),
+                AjaxCompositedIconButton additionalButton = new AjaxCompositedIconButton(ID_COMPOSITED_BUTTON, getCompositedIcon(additionalButtonObject),
                         Model.of(WebComponentUtil.getDisplayTypeTitle(additionalButtonDisplayType))) {
 
                     private static final long serialVersionUID = 1L;
@@ -68,15 +69,21 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<MultiFun
                     }
                 };
                 additionalButton.add(AttributeAppender.append("class", DEFAULT_BUTTON_STYLE));
-                buttonsPanel.add(additionalButton);
-            });
-        }
+                item.add(additionalButton);
+            }
+        };
+        buttonsPanel.add(new VisibleBehaviour(() -> getModelObject() != null));
+        add(buttonsPanel);
+
+        DisplayType defaultObjectButtonDisplayType = fixDisplayTypeIfNeeded(getDefaultObjectButtonDisplayType());
+        DisplayType mainButtonDisplayType = fixDisplayTypeIfNeeded(getMainButtonDisplayType());
+
         //we set main button icon class if no other is defined
         if (StringUtils.isEmpty(defaultObjectButtonDisplayType.getIcon().getCssClass())) {
             defaultObjectButtonDisplayType.getIcon().setCssClass(mainButtonDisplayType.getIcon().getCssClass());
         }
 
-        AjaxCompositedIconButton defaultButton = new AjaxCompositedIconButton(buttonsPanel.newChildId(),
+        AjaxCompositedIconButton defaultButton = new AjaxCompositedIconButton(ID_DEFAULT_BUTTON,
                 getAdditionalIconBuilder(defaultObjectButtonDisplayType).build(),
                 Model.of(WebComponentUtil.getDisplayTypeTitle(defaultObjectButtonDisplayType))) {
 
@@ -89,7 +96,7 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<MultiFun
         };
         defaultButton.add(AttributeAppender.append("class", DEFAULT_BUTTON_STYLE));
         defaultButton.add(new VisibleBehaviour(this::isDefaultButtonVisible));
-        buttonsPanel.add(defaultButton);
+        add(defaultButton);
 
     }
 
@@ -134,9 +141,9 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<MultiFun
     protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews) {
     }
 
-    protected boolean additionalButtonsExist() {
-        return CollectionUtils.isNotEmpty(buttonDtos);
-    }
+//    protected boolean additionalButtonsExist() {
+//        return CollectionUtils.isNotEmpty(buttonDtos);
+//    }
 
     protected boolean isDefaultButtonVisible() {
         return true;

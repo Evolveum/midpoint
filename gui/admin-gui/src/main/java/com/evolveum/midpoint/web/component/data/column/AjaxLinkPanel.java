@@ -38,18 +38,8 @@ public class AjaxLinkPanel extends Panel {
             }
 
         };
-        Label label;
-        if(labelModel.getObject() instanceof QName) {
-            label = new Label(ID_LABEL, new IModel<String>() {
+        Label label = new Label(ID_LABEL, labelModel);
 
-                @Override
-                public String getObject() {
-                    return ((QName) labelModel.getObject()).getLocalPart();
-                }
-            });
-        } else {
-            label = new Label(ID_LABEL, labelModel);
-        }
         link.add(label);
         link.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;

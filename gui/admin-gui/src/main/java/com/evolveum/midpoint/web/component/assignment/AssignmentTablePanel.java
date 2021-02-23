@@ -6,17 +6,10 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -34,24 +27,15 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author shood
@@ -100,7 +84,6 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
         Label label = new Label(ID_HEADER, getLabel());
         assignments.add(label);
 
-//        InlineMenu assignmentMenu = new InlineMenu(ID_MENU, new Model((Serializable) createAssignmentMenu()));
         DropdownButtonDto model = new DropdownButtonDto(null, null, null, createAssignmentMenu());
         DropdownButtonPanel assignmentMenu = new DropdownButtonPanel(ID_MENU, model) {
             private static final long serialVersionUID = 1L;
