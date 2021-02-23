@@ -16,10 +16,10 @@
         <version>4.3-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.evolveum.axiom</groupId>
-    <artifactId>axiom</artifactId>
+    <groupId>com.evolveum.concepts</groupId>
+    <artifactId>concepts</artifactId>
 
-    <name>Axiom</name>
+    <name>Concepts</name>
 
     <properties>
         <maven.test.skip>true</maven.test.skip>
@@ -27,21 +27,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.evolveum.concepts</groupId>
-            <artifactId>concepts</artifactId>
-            <version>4.3-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.antlr</groupId>
-            <artifactId>antlr4-runtime</artifactId>
         </dependency>
         <!--  test dependencies -->
         <dependency>

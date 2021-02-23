@@ -21,6 +21,7 @@
     <name>midPoint Infrastructure</name>
 
     <modules>
+        <module>concepts</module>
         <module>axiom</module>
         <module>util</module>
         <module>schema</module>
