@@ -343,7 +343,9 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
                     ValuePolicyType policyType = getModelObject().getPasswordPolicies().get(policyOid);
                     PrismObject<? extends ObjectType> object = rowModel.getObject().getObject();
-                    return getPasswordPanel().getLimitationsForActualPassword(policyType, object);
+                    List<StringLimitationResult> limitations = getPasswordPanel().getLimitationsForActualPassword(policyType, object);
+                    limitationsByPolicyOid.put(policyOid, limitations);
+                    return limitations;
                 };
                 PasswordPolicyValidationPanel validationPanel = new PasswordPolicyValidationPanel(componentId, limitationsModel);
                 validationPanel.add(new VisibleEnableBehaviour() {
@@ -375,7 +377,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                         }
 
                         for (ProgressReportActivityDto progressActivity : getModelObject().getProgress().getProgressReportActivities()) {
-                            if (progressActivity.getStatus() != null && rowModel.getObject().isMidpoint()
+                            if (rowModel.getObject().isSelected() && progressActivity.getStatus() != null && rowModel.getObject().isMidpoint()
                                     && (ProgressInformation.ActivityType.FOCUS_OPERATION.equals(progressActivity.getActivityType())
                                     || (ProgressInformation.ActivityType.PROJECTOR.equals(progressActivity.getActivityType())
                                     && !OperationResultStatusType.SUCCESS.equals(progressActivity.getStatus())))) {
@@ -405,7 +407,20 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                     protected DisplayType getDisplayForEmptyResult(){
                         String policyOid = rowModel.getObject().getPasswordValuePolicyOid();
                         if (StringUtils.isNotEmpty(policyOid) && ChangePasswordPanel.this.getModelObject().getPasswordPolicies().containsKey(policyOid)) {
-                            return WebComponentUtil.createDisplayType("fa-fw fa fa-times-circle text-muted fa-lg", "", createStringResource("ChangePasswordPanel.result.validationError").getString());
+                            if (limitationsByPolicyOid.get(policyOid) != null) {
+                                var ref = new Object() {
+                                    boolean result = true;
+                                };
+                                limitationsByPolicyOid.get(policyOid).forEach((limit) -> {
+                                    if (ref.result && !limit.isSuccess()) {
+                                        ref.result = false;
+                                    }
+                                });
+                                if (!ref.result && rowModel.getObject().isSelected()) {
+                                    return WebComponentUtil.createDisplayType("fa-fw fa fa-times-circle text-muted fa-lg", "",
+                                            createStringResource("ChangePasswordPanel.result.validationError").getString());
+                                }
+                            }
                         }
                         return null;
                     }
