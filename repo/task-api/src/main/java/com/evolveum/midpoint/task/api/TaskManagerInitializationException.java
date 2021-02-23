@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.task.api;
 
-/**
- * @author Pavol Mederly
- */
 public class TaskManagerInitializationException extends TaskManagerException {
     public TaskManagerInitializationException() {
         super();

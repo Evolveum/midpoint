@@ -6,11 +6,11 @@
  */
 package com.evolveum.midpoint.task.quartzimpl.execution.remote;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
 import com.evolveum.midpoint.task.api.ClusterExecutionOptions;
 import com.evolveum.midpoint.task.api.TaskConstants;
-import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -19,23 +19,23 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchedulerInformationType;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import javax.ws.rs.core.Response;
 
 /**
  * Manages remote nodes using REST.
  */
+@Component
 public class RestConnector {
 
     private static final Trace LOGGER = TraceManager.getTrace(RestConnector.class);
 
-    private TaskManagerQuartzImpl taskManager;
-
-    public RestConnector(TaskManagerQuartzImpl taskManager) {
-        this.taskManager = taskManager;
-    }
+    @Autowired private ClusterExecutionHelper clusterExecutionHelper;
+    @Autowired private PrismContext prismContext;
 
     public void addNodeStatus(ClusterStatusInformation info, NodeType nodeInfo, OperationResult result) throws SchemaException {
-        ClusterExecutionHelper clusterExecutionHelper = taskManager.getClusterExecutionHelper();
         clusterExecutionHelper.execute(nodeInfo, (client, actualNode, result1) -> {
             client.path(TaskConstants.GET_LOCAL_SCHEDULER_INFORMATION_REST_PATH);
             Response response = client.get();
@@ -48,7 +48,7 @@ public class RestConnector {
                             .extractResult(response, SchedulerInformationType.class);
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Received from {}:\n{}", nodeInfo.getNodeIdentifier(),
-                                taskManager.getPrismContext().xmlSerializer().serializeRealValue(schedulerInfo));
+                                prismContext.xmlSerializer().serializeRealValue(schedulerInfo));
                     }
                     info.addNodeAndTaskInfo(schedulerInfo);
                 } catch (SchemaException e) {
@@ -63,7 +63,6 @@ public class RestConnector {
     }
 
     public void stopRemoteScheduler(NodeType node, OperationResult result) throws SchemaException {
-        ClusterExecutionHelper clusterExecutionHelper = taskManager.getClusterExecutionHelper();
         clusterExecutionHelper.execute(node, (client, actualNode, result1) -> {
             client.path(TaskConstants.STOP_LOCAL_SCHEDULER_REST_PATH);
             Response response = client.post(null);
@@ -80,7 +79,6 @@ public class RestConnector {
     }
 
     public void startRemoteScheduler(NodeType node, OperationResult result) throws SchemaException {
-        ClusterExecutionHelper clusterExecutionHelper = taskManager.getClusterExecutionHelper();
         clusterExecutionHelper.execute(node, (client, actualNode, result1) -> {
             client.path(TaskConstants.START_LOCAL_SCHEDULER_REST_PATH);
             Response response = client.post(null);
@@ -96,8 +94,7 @@ public class RestConnector {
         }, new ClusterExecutionOptions().tryAllNodes(), "start scheduler", result);
     }
 
-    public void stopRemoteTask(String oid, NodeType node, OperationResult result) throws SchemaException {
-        ClusterExecutionHelper clusterExecutionHelper = taskManager.getClusterExecutionHelper();
+    public void stopRemoteTaskRun(String oid, NodeType node, OperationResult result) throws SchemaException {
         clusterExecutionHelper.execute(node, (client, actualNode, result1) -> {
             client.path(TaskConstants.STOP_LOCAL_TASK_REST_PATH_PREFIX + oid + TaskConstants.STOP_LOCAL_TASK_REST_PATH_SUFFIX);
             Response response = client.post(null);

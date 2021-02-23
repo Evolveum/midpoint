@@ -119,7 +119,7 @@ public class PageNodes extends PageAdmin {
         List<IColumn<SelectableBean<NodeType>, String>> columns = new ArrayList<>();
 
         columns.add(new EnumPropertyColumn<SelectableBean<NodeType>>(createStringResource("pageTasks.node.executionStatus"),
-                SelectableBeanImpl.F_VALUE + "." + NodeType.F_EXECUTION_STATUS) {
+                SelectableBeanImpl.F_VALUE + "." + NodeType.F_EXECUTION_STATE) {
 
             @SuppressWarnings("rawtypes")
             @Override
@@ -186,9 +186,9 @@ public class PageNodes extends PageAdmin {
                     if (node.getConnectionResult() != null && node.getConnectionResult().getStatus() != OperationResultStatusType.SUCCESS &&
                             StringUtils.isNotEmpty(node.getConnectionResult().getMessage())) {
                         statusMessage = node.getConnectionResult().getMessage();
-                    } else if (node.getErrorStatus() != null && node.getErrorStatus() != NodeErrorStatusType.OK) {
-                        statusMessage = node.getErrorStatus().toString();         // TODO: explain and localize this
-                    } else if (node.getExecutionStatus() == NodeExecutionStatusType.ERROR) {      // error status not specified
+                    } else if (node.getErrorState() != null && node.getErrorState() != NodeErrorStateType.OK) {
+                        statusMessage = node.getErrorState().toString();         // TODO: explain and localize this
+                    } else if (node.getExecutionState() == NodeExecutionStateType.ERROR) {      // error status not specified
                         statusMessage = "Unspecified error (or the node is just starting or shutting down)";
                     } else {
                         statusMessage = "";

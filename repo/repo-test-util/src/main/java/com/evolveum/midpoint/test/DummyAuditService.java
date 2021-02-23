@@ -66,7 +66,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
     }
 
     @Override
-    public synchronized void audit(AuditEventRecord record, Task task) {
+    public synchronized void audit(AuditEventRecord record, Task task, OperationResult result) {
         if (enabled) {
             records.add(record.clone());
         }

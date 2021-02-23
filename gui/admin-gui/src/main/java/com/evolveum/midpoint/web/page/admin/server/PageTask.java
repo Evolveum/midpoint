@@ -518,11 +518,12 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     private void savePerformed(AjaxRequestTarget target, boolean run) {
         PrismObjectWrapper<TaskType> taskWrapper = getObjectWrapper();
         try {
-            PrismPropertyWrapper<TaskExecutionStatusType> executionStatus = taskWrapper.findProperty(ItemPath.create(TaskType.F_EXECUTION_STATUS));
+            // TODO MID-6783
+            PrismPropertyWrapper<TaskExecutionStateType> executionStatus = taskWrapper.findProperty(ItemPath.create(TaskType.F_EXECUTION_STATUS));
             if (run) {
-                executionStatus.getValue().setRealValue(TaskExecutionStatusType.RUNNABLE);
+                executionStatus.getValue().setRealValue(TaskExecutionStateType.RUNNABLE);
             } else {
-                executionStatus.getValue().setRealValue(TaskExecutionStatusType.SUSPENDED);
+                executionStatus.getValue().setRealValue(TaskExecutionStateType.SUSPENDED);
             }
 
             setupOwner(taskWrapper);

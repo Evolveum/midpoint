@@ -13,6 +13,7 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.Validate;
@@ -33,9 +34,8 @@ import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.task.quartzimpl.InternalTaskInterface;
 import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.execution.HandlerExecutor;
+import com.evolveum.midpoint.task.quartzimpl.run.HandlerExecutor;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -152,8 +152,7 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
         //noinspection unchecked
         ContainerDelta<TaskWorkStateType> containerDelta = (ContainerDelta<TaskWorkStateType>) prismContext
                 .deltaFor(TaskType.class).item(TaskType.F_WORK_STATE).replace().asItemDelta();
-        ((InternalTaskInterface) runningTask).applyDeltasImmediate(MiscUtil.createCollection(containerDelta), parentResult);
-
+        ((TaskQuartzImpl) runningTask).applyDeltasImmediate(MiscUtil.createCollection(containerDelta), parentResult);
     }
 
     private boolean canContinue(RunningTask task, TaskRunResult runResult) {
@@ -164,11 +163,6 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
         } else if (runResult.getRunResultStatus() == TaskRunResultStatus.TEMPORARY_ERROR) {
             LOGGER.trace("Task encountered temporary error, continuing with the execution cycle. Task = {}", task);
             return false;
-        } else if (runResult.getRunResultStatus() == TaskRunResultStatus.RESTART_REQUESTED) {
-            // in case of RESTART_REQUESTED we have to get (new) current handler and restart it
-            // this is implemented by pushHandler and by Quartz
-            LOGGER.trace("Task returned RESTART_REQUESTED state, exiting the execution cycle. Task = {}", task);
-            return false;
         } else if (runResult.getRunResultStatus() == TaskRunResultStatus.PERMANENT_ERROR) {
             LOGGER.info("Task encountered permanent error, suspending the task. Task = {}", task);
             return false;
@@ -177,9 +171,6 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
             return true;
         } else if (runResult.getRunResultStatus() == TaskRunResultStatus.IS_WAITING) {
             LOGGER.trace("Task switched to waiting state, exiting the execution cycle. Task = {}", task);
-            return true;
-        } else if (runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED_HANDLER) {
-            LOGGER.trace("Task handler finished with FINISHED_HANDLER, calling task.finishHandler() and exiting the execution cycle. Task = {}", task);
             return true;
         } else {
             throw new IllegalStateException("Invalid value for Task's runResultStatus: " + runResult.getRunResultStatus() + " for task " + task);

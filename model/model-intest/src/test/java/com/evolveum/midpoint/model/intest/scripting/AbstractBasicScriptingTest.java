@@ -1204,7 +1204,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
         // cleaning up the tasks
 
-        Thread.sleep(5000L);            // cleanup is set to 1 second after completion
+        Thread.sleep(5000L); // cleanup is set to 1 second after completion
 
         importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
 
@@ -1275,7 +1275,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         assertEquals("Unexpected # of items in output", 1, output.getFinalOutput().getData().size());
 
         PrismObject<TaskType> taskAfter = getObject(TaskType.class, taskToResumeOid);
-        assertNotSame("Task is still suspended", taskAfter.asObjectable().getExecutionStatus(), TaskExecutionStatusType.SUSPENDED);
+        assertNotSame("Task is still suspended", taskAfter.asObjectable().getExecutionStatus(), TaskExecutionStateType.SUSPENDED);
     }
 
     /**

@@ -366,7 +366,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
         }
 
         @Override
-        public synchronized void onTaskStart(Task task) {
+        public synchronized void onTaskStart(Task task, OperationResult result) {
             if (!CaseOperationExecutionTaskHandler.HANDLER_URI.equals(task.getHandlerUri())) {
                 return;
             }
@@ -396,7 +396,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
         }
 
         @Override
-        public synchronized void onTaskFinish(Task task, TaskRunResult runResult) {
+        public synchronized void onTaskFinish(Task task, TaskRunResult runResult, OperationResult result) {
             if (!CaseOperationExecutionTaskHandler.HANDLER_URI.equals(task.getHandlerUri())) {
                 return;
             }
@@ -406,12 +406,12 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
         }
 
         @Override
-        public void onTaskThreadStart(Task task, boolean isRecovering) {
+        public void onTaskThreadStart(Task task, boolean isRecovering, OperationResult result) {
             // ignoring
         }
 
         @Override
-        public void onTaskThreadFinish(Task task) {
+        public void onTaskThreadFinish(Task task, OperationResult result) {
             // ignoring
         }
     }

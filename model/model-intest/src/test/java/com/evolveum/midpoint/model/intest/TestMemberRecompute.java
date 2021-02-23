@@ -39,13 +39,14 @@ import static org.assertj.core.api.Assertions.assertThat;
  * See also https://wiki.evolveum.com/display/midPoint/Linked+objects.
  *
  * There are two kinds of organizations here:
+ *
  *  - departments:
- *    - orgs are managed directly in midPoint
- *    - members (users-dcs-xxxx, users-cc-xxxx) are recomputed by default, and using direct iterative bulk action task
+ *    * orgs are managed directly in midPoint
+ *    * members (users-dcs-xxxx, users-cc-xxxx) are recomputed by default, and using direct iterative bulk action task
  *  - clubs:
- *    - orgs are managed by reconciliation from special "clubs" resource, although members are managed by midPoint
- *    - members (alice, bob, chuck) are NOT recomputed by default
- *    - recompute is done using delayed triggers, and is requested e.g. when synchronizing clubs from "clubs" resource
+ *    * orgs are managed by reconciliation from special "clubs" resource, although members are managed by midPoint
+ *    * members (alice, bob, chuck) are NOT recomputed by default
+ *    * recompute is done using delayed triggers, and is requested e.g. when synchronizing clubs from "clubs" resource
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

@@ -79,10 +79,9 @@ public class BaseGcpScenarioBean implements GcpScenarioBean {
     }
 
     @Override
-    public StartInstruction prepareJobCreationInstruction(GeneralChangeProcessorScenarioType scenarioType, LensContext<?> context, CaseType rootCase, Task taskFromModel, OperationResult result) throws SchemaException {
-
+    public StartInstruction prepareJobCreationInstruction(GeneralChangeProcessorScenarioType scenarioType, LensContext<?> context, CaseType rootCase, Task taskFromModel, OperationResult result) {
         StartInstruction instruction = StartInstruction.create(generalChangeProcessor, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value()); // todo reconsider the archetype
-        instruction.setRequesterRef(taskFromModel.getOwner());
+        instruction.setRequesterRef(taskFromModel.getOwner(result));
         instruction.setName("Workflow-monitoring task");
         return instruction;
     }

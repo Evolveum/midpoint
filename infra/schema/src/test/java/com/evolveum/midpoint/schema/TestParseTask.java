@@ -13,9 +13,6 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getSchemaRegistry;
 
 import java.io.File;
-import java.io.IOException;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.testng.annotations.Test;
@@ -99,11 +96,11 @@ public class TestParseTask extends AbstractSchemaTest {
         assertPropertyValue(task, "taskIdentifier", "44444444-4444-4444-4444-000000001111");
         assertPropertyDefinition(task, "taskIdentifier", DOMUtil.XSD_STRING, 0, 1);
 
-        assertPropertyDefinition(task, "executionStatus", JAXBUtil.getTypeQName(TaskExecutionStatusType.class), 1, 1);
-        PrismProperty<TaskExecutionStatusType> executionStatusProperty = task.findProperty(TaskType.F_EXECUTION_STATUS);
-        PrismPropertyValue<TaskExecutionStatusType> executionStatusValue = executionStatusProperty.getValue();
-        TaskExecutionStatusType executionStatus = executionStatusValue.getValue();
-        assertEquals("Wrong execution status", TaskExecutionStatusType.RUNNABLE, executionStatus);
+        assertPropertyDefinition(task, "executionStatus", JAXBUtil.getTypeQName(TaskExecutionStateType.class), 1, 1);
+        PrismProperty<TaskExecutionStateType> executionStatusProperty = task.findProperty(TaskType.F_EXECUTION_STATUS);
+        PrismPropertyValue<TaskExecutionStateType> executionStatusValue = executionStatusProperty.getValue();
+        TaskExecutionStateType executionStatus = executionStatusValue.getValue();
+        assertEquals("Wrong execution status", TaskExecutionStateType.RUNNABLE, executionStatus);
 
         // TODO: more tests
 

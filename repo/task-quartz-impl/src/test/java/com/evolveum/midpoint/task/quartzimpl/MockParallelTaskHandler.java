@@ -6,35 +6,25 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-
-import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.LightweightTaskHandler;
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /**
- * @author Pavol Mederly
- *
+ * Task handler that uses LATs (threads).
  */
 public class MockParallelTaskHandler implements TaskHandler {
 
@@ -42,28 +32,25 @@ public class MockParallelTaskHandler implements TaskHandler {
     public static final int NUM_SUBTASKS = 500;
     public static final String NS_EXT = "http://myself.me/schemas/whatever";
     public static final ItemName DURATION_QNAME = new ItemName(NS_EXT, "duration", "m");
-    private final PrismPropertyDefinition durationDefinition;
 
     private TaskManagerQuartzImpl taskManager;
 
-    // a bit of hack - to reach in-memory version of last task executed
+    /** In-memory version of last task executed */
     private RunningTask lastTaskExecuted;
 
-    private String id;
+    private final String id;
 
     MockParallelTaskHandler(String id, TaskManagerQuartzImpl taskManager) {
         this.id = id;
         this.taskManager = taskManager;
-        durationDefinition = taskManager.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(DURATION_QNAME);
-        Validate.notNull(durationDefinition, "durationDefinition property is unknown");
     }
 
     private boolean hasRun = false;
 
-    public class MyLightweightTaskHandler implements LightweightTaskHandler {
+    public static class MyLightweightTaskHandler implements LightweightTaskHandler {
         private boolean hasRun = false;
         private boolean hasExited = false;
-        private long duration;
+        private final long duration;
         private static final long STEP = 100;
 
         public MyLightweightTaskHandler(Integer duration) {
@@ -77,12 +64,17 @@ public class MockParallelTaskHandler implements TaskHandler {
             long end = System.currentTimeMillis() + duration;
             RunningTask parentTask = task.getParentForLightweightAsynchronousTask();
             parentTask.setOperationStatsUpdateInterval(1000L);
-            while (System.currentTimeMillis() < end) {
+
+            // temporarily disabled
+            //assertTrue("Subtask is not in Running LAT list of parent", isAmongRunningChildren(task, parentTask));
+
+            while (System.currentTimeMillis() < end && task.canRun()) {
                 // hoping to get ConcurrentModificationException when setting operation result here (MID-5113)
                 task.getParentForLightweightAsynchronousTask().getUpdatedOrClonedTaskObject();
                 long started = System.currentTimeMillis();
                 task.recordIterativeOperationStart("o1", null, UserType.COMPLEX_TYPE, "oid1");
                 try {
+                    //noinspection BusyWait
                     Thread.sleep(STEP);
                     task.recordIterativeOperationEnd("o1", null, UserType.COMPLEX_TYPE, "oid1", started, null);
                     //noinspection SynchronizationOnLocalVariableOrMethodParameter
@@ -106,6 +98,13 @@ public class MockParallelTaskHandler implements TaskHandler {
         }
     }
 
+    private static boolean isAmongRunningChildren(RunningTask task, RunningTask parentTask) {
+        Set<String> runningChildren = parentTask.getRunningLightweightAsynchronousSubtasks().stream()
+                .map(Task::getTaskIdentifier)
+                .collect(Collectors.toSet());
+        return runningChildren.contains(task.getTaskIdentifier());
+    }
+
     @Override
     public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
         LOGGER.info("MockParallelTaskHandler.run starting (id = " + id + ")");
@@ -113,17 +112,13 @@ public class MockParallelTaskHandler implements TaskHandler {
         OperationResult opResult = new OperationResult(MockParallelTaskHandler.class.getName()+".run");
         TaskRunResult runResult = new TaskRunResult();
 
-        PrismProperty<Integer> duration = task.getExtensionPropertyOrClone(DURATION_QNAME);
-        Integer durationValue = null;
-        if (duration != null) {
-            durationValue = duration.getRealValue();
-        }
-        LOGGER.info("Duration value = {}", durationValue);
+        Integer duration = task.getExtensionPropertyRealValue(DURATION_QNAME);
+        LOGGER.info("Duration value = {}", duration);
         System.out.println("task result is " + task.getResult());
 
         // we create and start some subtasks
         for (int i = 0; i < NUM_SUBTASKS; i++) {
-            MyLightweightTaskHandler handler = new MyLightweightTaskHandler(durationValue);
+            MyLightweightTaskHandler handler = new MyLightweightTaskHandler(duration);
             RunningTaskQuartzImpl subtask = (RunningTaskQuartzImpl) task.createSubtask(handler);
             subtask.resetIterativeTaskInformation(null);
             assertTrue("Subtask is not transient", subtask.isTransient());
@@ -131,13 +126,16 @@ public class MockParallelTaskHandler implements TaskHandler {
             assertTrue("Subtask is not a LAT", subtask.isLightweightAsynchronousTask());
             assertEquals("Subtask has a wrong lightweight handler", handler, subtask.getLightweightTaskHandler());
             assertTrue("Subtask is not in LAT list of parent", task.getLightweightAsynchronousSubtasks().contains(subtask));
-            assertFalse("Subtask is in Running LAT list of parent", task.getRunningLightweightAsynchronousSubtasks().contains(subtask));
+            assertFalse("Subtask is in Running LAT list of parent", isAmongRunningChildren(subtask, task));
             assertFalse("Subtask is marked as already started", subtask.lightweightHandlerStartRequested());
 
             subtask.startLightweightHandler();
-            assertTrue("Subtask is not in Running LAT list of parent", task.getRunningLightweightAsynchronousSubtasks().contains(subtask));
             assertTrue("Subtask is not marked as already started", subtask.lightweightHandlerStartRequested());
         }
+
+        System.out.println("Waiting for threads to finish...");
+        taskManager.waitForTransientChildren(task, opResult);
+        System.out.println("... done");
 
         opResult.recordSuccess();
 
@@ -161,10 +159,12 @@ public class MockParallelTaskHandler implements TaskHandler {
     public void refreshStatus(Task task) {
     }
 
+    @SuppressWarnings("unused")
     public boolean hasRun() {
         return hasRun;
     }
 
+    @SuppressWarnings("unused")
     public void resetHasRun() {
         hasRun = false;
     }

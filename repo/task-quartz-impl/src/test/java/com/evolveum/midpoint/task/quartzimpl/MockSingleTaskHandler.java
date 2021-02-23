@@ -6,49 +6,35 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
-import org.apache.commons.lang.Validate;
-
-import static com.evolveum.midpoint.task.quartzimpl.TaskTestUtil.createExtensionDelta;
-
 /**
  * @author Radovan Semancik
- *
  */
 public class MockSingleTaskHandler implements TaskHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(MockSingleTaskHandler.class);
     private static final String NS_EXT = "http://myself.me/schemas/whatever";
-    private static final ItemName L1_FLAG_QNAME = new ItemName(NS_EXT, "l1Flag", "m");
 
     private TaskManagerQuartzImpl taskManager;
 
-    private String id;
-
-    private PrismPropertyDefinition l1FlagDefinition;
+    private final String id;
 
     MockSingleTaskHandler(String id, TaskManagerQuartzImpl taskManager) {
         this.id = id;
         this.taskManager = taskManager;
-
-        l1FlagDefinition = taskManager.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(L1_FLAG_QNAME);
-        Validate.notNull(l1FlagDefinition, "l1Flag property is unknown");
     }
 
     private boolean hasRun = false;
     private int executions = 0;
+
+    private long delay;
 
     @Override
     public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
@@ -62,6 +48,10 @@ public class MockSingleTaskHandler implements TaskHandler {
         // TODO
         task.incrementProgressAndStoreStatsIfNeeded();
 
+        if (delay > 0) {
+            sleep(task, delay);
+        }
+
         opResult.recordSuccess();
 
         // This "run" is finished. But the task goes on ...
@@ -70,57 +60,27 @@ public class MockSingleTaskHandler implements TaskHandler {
         hasRun = true;
         executions++;
 
-        if ("L1".equals(id)) {
-            PrismProperty<Boolean> l1flag = task.getExtensionPropertyOrClone(L1_FLAG_QNAME);
-
-            if (l1flag == null || !l1flag.getRealValue()) {
-
-                LOGGER.info("L1 handler, first run - scheduling L2 handler");
-                ScheduleType l2Schedule = new ScheduleType();
-                l2Schedule.setInterval(2);
-                task.pushHandlerUri(AbstractTaskManagerTest.L2_TASK_HANDLER_URI, l2Schedule, TaskBinding.TIGHT, createExtensionDelta(l1FlagDefinition, true,
-                        taskManager.getPrismContext()));
-                try {
-                    task.flushPendingModifications(opResult);
-                } catch(Exception e) {
-                    throw new SystemException("Cannot schedule L2 handler", e);
-                }
-                runResult.setRunResultStatus(TaskRunResultStatus.RESTART_REQUESTED);
-            } else {
-                LOGGER.info("L1 handler, not the first run (progress = " + task.getProgress() + ", l1Flag = " + l1flag.getRealValue() + "), exiting.");
-            }
-        } else if ("L2".equals(id)) {
-            if (task.getProgress() == 5) {
-                LOGGER.info("L2 handler, fourth run - scheduling L3 handler");
-                task.pushHandlerUri(AbstractTaskManagerTest.L3_TASK_HANDLER_URI, new ScheduleType(), null);
-                try {
-                    task.flushPendingModifications(opResult);
-                } catch(Exception e) {
-                    throw new SystemException("Cannot schedule L3 handler", e);
-                }
-                runResult.setRunResultStatus(TaskRunResultStatus.RESTART_REQUESTED);
-            } else if (task.getProgress() < 5) {
-                LOGGER.info("L2 handler, progress = " + task.getProgress() + ", continuing.");
-            } else if (task.getProgress() > 5) {
-                LOGGER.info("L2 handler, progress too big, i.e. " + task.getProgress() + ", exiting.");
-                try {
-                    task.finishHandler(opResult);
-                } catch (Exception e) {
-                    throw new SystemException("Cannot finish L2 handler", e);
-                }
-            }
-        } else if ("L3".equals(id)) {
-            LOGGER.info("L3 handler, simply exiting. Progress = " + task.getProgress());
-        }
-
         LOGGER.info("MockSingle.run stopping");
         return runResult;
+    }
+
+    private void sleep(RunningTask task, long delay) {
+        LOGGER.trace("Sleeping for {} msec", delay);
+        long end = System.currentTimeMillis() + delay;
+        while (task.canRun() && System.currentTimeMillis() < end) {
+            try {
+                //noinspection BusyWait
+                Thread.sleep(100);
+            } catch (InterruptedException ignored) {
+            }
+        }
     }
 
     @Override
     public Long heartbeat(Task task) {
         return null;
     }
+
     @Override
     public void refreshStatus(Task task) {
     }
@@ -137,6 +97,7 @@ public class MockSingleTaskHandler implements TaskHandler {
         return executions;
     }
 
+    @SuppressWarnings("unused")
     public void resetExecutions() {
         executions = 0;
     }
@@ -157,5 +118,9 @@ public class MockSingleTaskHandler implements TaskHandler {
     @Override
     public String getArchetypeOid() {
         return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
+    }
+
+    public void setDelay(long delay) {
+        this.delay = delay;
     }
 }

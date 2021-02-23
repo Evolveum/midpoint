@@ -62,6 +62,8 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
     @Override
     public void initSystem() throws Exception {
+        OperationResult result = createOperationResult();
+
         PrismObject<UserType> initiator = createUser("initiator");
         initiatorOid = initiator.getOid();
         PrismObject<UserType> attorney = createUser("attorney");
@@ -100,7 +102,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record1.addResourceOid("res-oid-2");
         record1.addResourceOid("res-oid-3");
         record1.getCustomColumnProperty().put("foo", "foo-val");
-        auditService.audit(record1, NullTaskImpl.INSTANCE);
+        auditService.audit(record1, NullTaskImpl.INSTANCE, result);
         record1EventIdentifier = record1.getEventIdentifier();
 
         AuditEventRecord record2 = new AuditEventRecord();
@@ -125,7 +127,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record2.getCustomColumnProperty().put("foo", "foo-value-2");
         record2.getCustomColumnProperty().put("bar", "bar-val");
         record2.setTaskOid("task_oid2");
-        auditService.audit(record2, NullTaskImpl.INSTANCE);
+        auditService.audit(record2, NullTaskImpl.INSTANCE, result);
 
         AuditEventRecord record3 = new AuditEventRecord();
         record3.setParameter("3");
@@ -141,7 +143,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record3.setChannel(CHANNEL_REST_URI);
         record3.setTaskIdentifier("task-identifier");
         record3.setTaskOid("task-oid");
-        auditService.audit(record3, NullTaskImpl.INSTANCE);
+        auditService.audit(record3, NullTaskImpl.INSTANCE, result);
     }
 
     @NotNull

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sql;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -36,6 +38,8 @@ public class AuditTest extends BaseSQLRepoTest {
 
     @Test
     public void test100AuditSimple() throws QueryException {
+        OperationResult result = createOperationResult();
+
         when();
         AuditEventRecord record = new AuditEventRecord();
         record.addPropertyValue("prop1", "val1.1");
@@ -53,7 +57,7 @@ public class AuditTest extends BaseSQLRepoTest {
         record.addReferenceValue("ref2", refVal2);
         record.addReferenceValue("ref3", refVal3);
         logger.info("Adding audit record {}", record);
-        auditService.audit(record, new NullTaskImpl());
+        auditService.audit(record, new NullTaskImpl(), result);
 
         then();
         System.out.println("Record written:\n" + record.debugDump());
@@ -81,11 +85,13 @@ public class AuditTest extends BaseSQLRepoTest {
 
     @Test
     public void test110AuditSecond() throws QueryException {
+        OperationResult result = createOperationResult();
+
         when();
         AuditEventRecord record = new AuditEventRecord();
         record.addPropertyValue("prop", "val");
         logger.info("Adding audit record {}", record);
-        auditService.audit(record, new NullTaskImpl());
+        auditService.audit(record, new NullTaskImpl(), result);
 
         then();
         System.out.println("Record written:\n" + record.debugDump());
@@ -120,7 +126,7 @@ public class AuditTest extends BaseSQLRepoTest {
                         UserType.class, "1234", UserType.F_LINK_REF, "124"));
         record.addDelta(delta);
 
-        auditService.audit(record, new NullTaskImpl());
+        auditService.audit(record, new NullTaskImpl(), createOperationResult());
     }
 
     private PolyString poly(String orig) {

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.notifications.impl;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -159,8 +161,9 @@ public class AccountOperationListener implements ResourceOperationListener {
             event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, user.asObjectable()));
         }   // otherwise, appropriate messages were already logged
 
-        if (task != null && task.getOwner() != null) {
-            event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner()));
+        PrismObject<? extends FocusType> taskOwner = task != null ? task.getOwner(result) : null;
+        if (taskOwner != null) {
+            event.setRequester(new SimpleObjectRefImpl(notificationsUtil, taskOwner));
         } else {
             LOGGER.warn("No owner for task {}, therefore no requester will be set for event {}", task, event.getId());
         }

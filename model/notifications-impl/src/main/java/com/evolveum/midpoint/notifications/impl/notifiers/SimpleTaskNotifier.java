@@ -9,6 +9,8 @@ package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import java.util.Date;
 
+import com.evolveum.midpoint.prism.PrismObject;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -71,8 +73,9 @@ public class SimpleTaskNotifier extends AbstractGeneralNotifier<TaskEvent, Simpl
         body.append("\n");
         body.append("Notification created on: ").append(new Date()).append("\n\n");
 
-        if (task.getOwner() != null) {
-            FocusType owner = task.getOwner().asObjectable();
+        PrismObject<? extends FocusType> taskOwner = task.getOwner(opResult);
+        if (taskOwner != null) {
+            FocusType owner = taskOwner.asObjectable();
             body.append("Task owner: ");
             if (owner instanceof UserType) {
                 body.append(((UserType)owner).getFullName()).append(" (").append(owner.getName()).append(")");

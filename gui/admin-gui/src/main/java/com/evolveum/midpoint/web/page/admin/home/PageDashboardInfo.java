@@ -110,7 +110,7 @@ public class PageDashboardInfo extends PageDashboard {
 
     private Component createTaskInfoBoxPanel(OperationResult result, Task task) {
         return new BasicInfoBoxPanel(ID_INFO_BOX_TASKS, getObjectInfoBoxTypeModel(TaskType.class,
-                Arrays.asList(TaskType.F_EXECUTION_STATUS), TaskExecutionStatusType.RUNNABLE, "object-task-bg",
+                Arrays.asList(TaskType.F_EXECUTION_STATUS), TaskExecutionStateType.RUNNABLE, "object-task-bg",
                 GuiStyleConstants.CLASS_OBJECT_TASK_ICON, "PageDashboard.infobox.tasks", result, task),
                 PageTasks.class);
     }
