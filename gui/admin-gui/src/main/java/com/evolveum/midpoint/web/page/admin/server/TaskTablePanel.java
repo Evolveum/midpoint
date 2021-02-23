@@ -263,11 +263,6 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
             public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
                 if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null) {
                     TaskType task = rowModel.getObject().getValue();
-                    if (task.getOid() == null) {
-                        if (TaskExecutionStateType.RUNNABLE == task.getExecutionStatus()) {
-                            return getPageBase().createStringResource(TaskDtoExecutionState.RUNNING);
-                        }
-                    }
                     TaskDtoExecutionState status = TaskDtoExecutionState.fromTaskExecutionStatus(task.getExecutionStatus(), task.getNodeAsObserved() != null);
                     if (status != null) {
                         return getPageBase().createStringResource(status);

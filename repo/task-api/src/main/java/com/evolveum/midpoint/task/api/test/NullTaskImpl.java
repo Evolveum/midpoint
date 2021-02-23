@@ -63,7 +63,12 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void setInitialExecutionState(TaskExecutionStateType value) {
+    public void setInitialExecutionAndScheduledState(TaskExecutionStateType executionState, TaskSchedulingStateType schedulingState) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setInitiallyWaitingForPrerequisites() {
         throw new UnsupportedOperationException();
     }
 

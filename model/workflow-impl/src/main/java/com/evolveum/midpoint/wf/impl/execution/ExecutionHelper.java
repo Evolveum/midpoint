@@ -233,7 +233,7 @@ public class ExecutionHelper {
         task.setObjectRef(ObjectTypeUtil.createObjectRef(aCase, prismContext));
         task.setHandlerUri(CaseOperationExecutionTaskHandler.HANDLER_URI);
         if (waiting) {
-            task.setInitialExecutionState(TaskExecutionStateType.WAITING);
+            task.setInitiallyWaitingForPrerequisites();
         }
         task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_APPROVAL_TASK.value());
         setExecutionConstraints(task, aCase, result);

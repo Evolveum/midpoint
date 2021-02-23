@@ -227,8 +227,8 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             displayDumpable("coordinator task after suspend-when-waiting", coordinatorTask);
             displayDumpable("worker task after suspend-when-waiting", worker);
 
-            assertEquals("Wrong execution status of coordinator", TaskExecutionStateType.SUSPENDED,
-                    coordinatorTask.getExecutionState());
+            assertEquals("Wrong scheduling state of coordinator", TaskSchedulingStateType.SUSPENDED,
+                    coordinatorTask.getSchedulingState());
             // in very slow environments the coordinator could be started in the meanwhile, so here the state could be WAITING
             //assertEquals("Wrong state-before-suspend of coordinator", TaskExecutionStatusType.RUNNABLE,
             //        coordinatorTask.getStateBeforeSuspend());
@@ -250,8 +250,8 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             displayDumpable("coordinator task after resume-from-suspend-when-waiting", coordinatorTask);
             displayDumpable("worker task after resume-from-suspend-when-waiting", worker);
 
-            assertEquals("Wrong execution status of coordinator", TaskExecutionStateType.RUNNABLE,
-                    coordinatorTask.getExecutionState());
+            assertEquals("Wrong scheduling state of coordinator", TaskSchedulingStateType.READY,
+                    coordinatorTask.getSchedulingState());
             //noinspection SimplifiedTestNGAssertion
             assertEquals("Wrong state-before-suspend of coordinator", null, coordinatorTask.getStateBeforeSuspend());
             //noinspection SimplifiedTestNGAssertion
@@ -272,12 +272,12 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             displayDumpable("coordinator task after suspend-when-running", coordinatorTask);
             displayDumpable("worker task after suspend-when-running", worker);
 
-            assertEquals("Wrong execution status of coordinator", TaskExecutionStateType.SUSPENDED,
-                    coordinatorTask.getExecutionState());
+            assertEquals("Wrong scheduling status of coordinator", TaskSchedulingStateType.SUSPENDED,
+                    coordinatorTask.getSchedulingState());
             // in theory, the execution could be 'after' at this time; so this assertion might fail
             //assertEquals("Wrong state-before-suspend of coordinator", TaskExecutionStatusType.WAITING,
             //        coordinatorTask.getStateBeforeSuspend());
-            assertEquals("Wrong execution status of worker", TaskExecutionStateType.SUSPENDED, worker.getExecutionState());
+            assertEquals("Wrong scheduling state of worker", TaskSchedulingStateType.SUSPENDED, worker.getSchedulingState());
             assertEquals("Wrong state-before-suspend of worker", TaskExecutionStateType.RUNNABLE,
                     worker.getStateBeforeSuspend());
 

@@ -220,7 +220,7 @@ public class PageTasks extends PageAdmin {
 
     private String createScheduledToRunAgain(IModel<SelectableBean<TaskType>> taskModel) {
         TaskType task = taskModel.getObject().getValue();
-        boolean runnable = task.getExecutionStatus() == TaskExecutionStateType.RUNNABLE; // TODO or running
+        boolean runnable = task.getSchedulingState() == TaskSchedulingStateType.READY; // TODO MID-6783
         Long scheduledAfter = getScheduledToStartAgain(taskModel.getObject());
         Long retryAfter = runnable ? getRetryAfter(task) : null;
 

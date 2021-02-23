@@ -1212,7 +1212,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         assertTask(TASK_ERRORS_PRECISE_RETRY_LATER_MAX_4.oid, "after")
                 .display()
                 .assertToken(11) // won't assert progress because of multithreaded case
-                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED);
+                .assertSchedulingState(TaskSchedulingStateType.SUSPENDED);
 
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_ERRORS_SOURCE_PRECISE.oid, null, task, result);
         PrismObject<ResourceType> targetResource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_ERRORS_TARGET.oid, null, task, result);

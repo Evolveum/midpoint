@@ -515,7 +515,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
 
         task.refresh(result);
         assertFalse("Task is stopped (it should be running for now)", stopped);
-        assertEquals("Task is not suspended", TaskExecutionStateType.SUSPENDED, task.getExecutionState()); // TODO SUSPENDING?
+        assertEquals("Task is not suspended", TaskSchedulingStateType.SUSPENDED, task.getSchedulingState());
         assertSuspended(task);
 
         assertNotNull(task.getLastRunStartTimestamp());
@@ -606,7 +606,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         OperationResult result = createOperationResult();
 
         Task task = taskManager.createTaskInstance();
-        task.setInitialExecutionState(TaskExecutionStateType.SUSPENDED);
+        task.setInitiallySuspended();
         PrismObject<UserType> owner2 = repositoryService.getObject(UserType.class, TASK_OWNER2_OID, null, result);
         task.setOwner(owner2);
         assertEquals("Task result for new task is not correct", OperationResultStatus.UNKNOWN, task.getResult().getStatus());
@@ -732,7 +732,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         // check the task HAS NOT started
         task.refresh(result);
 
-        assertEquals("task is not RUNNABLE", TaskExecutionStateType.RUNNABLE, task.getExecutionState());
+        assertEquals("task is not READY", TaskSchedulingStateType.READY, task.getSchedulingState());
         assertNull("task was started", task.getLastRunStartTimestamp());
         assertEquals("task was achieved some progress", 0L, task.getProgress());
 
@@ -1093,7 +1093,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
     }
 
     private void assertSuspended(TaskQuartzImpl task) {
-        assertEquals("Task is not suspended (execution state)", TaskExecutionStateType.SUSPENDED, task.getExecutionState());
+        assertEquals("Task is not suspended (execution state)", TaskExecutionStateType.SUSPENDED, task.getExecutionState()); // todo or suspending?
         assertEquals("Task is not suspended (scheduling state)", TaskSchedulingStateType.SUSPENDED, task.getSchedulingState());
     }
 }

@@ -163,21 +163,22 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      */
     TaskSchedulingStateType getSchedulingState();
 
-    /**
-     * Returns true if the task is closed. (Refers to the scheduling state.)
-     */
+    /** Returns true if the task is closed. (Refers to the scheduling state.) */
     default boolean isClosed() {
         return getSchedulingState() == TaskSchedulingStateType.CLOSED;
     }
 
+    /** Returns true if the task is ready. (Refers to the scheduling state.) */
     default boolean isReady() {
         return getSchedulingState() == TaskSchedulingStateType.READY;
     }
 
+    /** Returns true if the task is waiting. (BEWARE: Refers to the scheduling state.) */
     default boolean isWaiting() {
         return getSchedulingState() == TaskSchedulingStateType.WAITING;
     }
 
+    /** Returns true if the task is suspended. (BEWARE: Refers to the scheduling state.) */
     default boolean isSuspended() {
         return getSchedulingState() == TaskSchedulingStateType.SUSPENDED;
     }
@@ -199,11 +200,31 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
     String getNodeAsObserved();
 
     /**
-     * Sets initial task execution state. It will be used when the task is made persistent.
+     * Sets initial task execution and scheduled state. It will be used when the task is made persistent.
      *
      * Precondition: Task is transient.
      */
-    void setInitialExecutionState(TaskExecutionStateType value);
+    void setInitialExecutionAndScheduledState(TaskExecutionStateType executionState, TaskSchedulingStateType schedulingState);
+
+    /**
+     * Sets the initial task execution and scheduling state to allow the task to run.
+     */
+    default void setInitiallyRunnable() {
+        setInitialExecutionAndScheduledState(TaskExecutionStateType.RUNNABLE, TaskSchedulingStateType.READY);
+    }
+
+    /**
+     * Sets the initial task execution and scheduling state to make task suspended.
+     */
+    default void setInitiallySuspended() {
+        setInitialExecutionAndScheduledState(TaskExecutionStateType.SUSPENDED, TaskSchedulingStateType.SUSPENDED);
+    }
+
+    /**
+     * Sets the initial task execution and scheduling state to make task waiting (for prerequisite tasks).
+     */
+    void setInitiallyWaitingForPrerequisites();
+
     //endregion
 
     //region Persistence and asynchrony

@@ -454,7 +454,7 @@ public class ProgressPanel extends BasePanel {
             task.setChannel(SchemaConstants.CHANNEL_USER_URI);
             task.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
             task.setName("Execute changes");
-            task.setInitialExecutionState(TaskExecutionStateType.RUNNABLE);
+            task.setInitiallyRunnable();
 
             PrismObject<TaskType> taskType = task.getUpdatedTaskObject();
             AssignmentType archetypeAssignment = new AssignmentType();

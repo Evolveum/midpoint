@@ -385,7 +385,7 @@ public class MemberOperationsHelper {
         MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
         operationalTask.setOwner(owner.getFocus().asPrismObject());
 
-        operationalTask.setInitialExecutionState(TaskExecutionStateType.RUNNABLE);
+        operationalTask.setInitiallyRunnable();
         operationalTask.setThreadStopAction(ThreadStopActionType.RESTART);
         ScheduleType schedule = new ScheduleType();
         schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);

@@ -667,38 +667,40 @@ public final class WebComponentUtil {
 
     public static boolean canSuspendTask(TaskType task, PageBase pageBase) {
         return pageBase.isAuthorized(ModelAuthorizationAction.SUSPEND_TASK, task.asPrismObject())
-                && (isRunnableTask(task) || isRunningTask(task) || isWaitingTask(task))
-                && !isWorkflowTask(task);
+                && (isRunnableTask(task) || isRunningTask(task) || isWaitingTask(task));
     }
 
     public static boolean canResumeTask(TaskType task, PageBase pageBase) {
         return pageBase.isAuthorized(ModelAuthorizationAction.RESUME_TASK, task.asPrismObject())
-                && (isSuspendedTask(task) || (isClosedTask(task) && isRecurringTask(task)))
-                && !isWorkflowTask(task);
+                && (isSuspendedTask(task) || (isClosedTask(task) && isRecurringTask(task)));
     }
 
     public static boolean canRunNowTask(TaskType task, PageBase pageBase) {
         return pageBase.isAuthorized(ModelAuthorizationAction.RUN_TASK_IMMEDIATELY, task.asPrismObject())
-                && !isRunningTask(task) && (isRunnableTask(task) || (isClosedTask(task) && !isRecurringTask(task)))
-                && !isWorkflowTask(task);
+                && !isRunningTask(task) && (isRunnableTask(task) || (isClosedTask(task) && !isRecurringTask(task)));
     }
 
+    /** Checks user-visible state, not the technical (scheduling) state. So RUNNABLE means the task is not actually running. */
     public static boolean isRunnableTask(TaskType task) {
         return task != null && TaskExecutionStateType.RUNNABLE == task.getExecutionStatus();
     }
 
+    // Or we can test execution state for RUNNING value.
     public static boolean isRunningTask(TaskType task) {
         return task != null && task.getNodeAsObserved() != null;
     }
 
+    /** Checks user-visible state, not the technical (scheduling) state. */
     public static boolean isWaitingTask(TaskType task) {
         return task != null && TaskExecutionStateType.WAITING == task.getExecutionStatus();
     }
 
+    /** Checks user-visible state, not the technical (scheduling) state. */
     public static boolean isSuspendedTask(TaskType task) {
         return task != null && TaskExecutionStateType.SUSPENDED == task.getExecutionStatus();
     }
 
+    /** Checks user-visible state, not the technical (scheduling) state. But for closed tasks, these are equivalent. */
     public static boolean isClosedTask(TaskType task) {
         return task != null && TaskExecutionStateType.CLOSED == task.getExecutionStatus();
     }
@@ -707,6 +709,10 @@ public final class WebComponentUtil {
         return task != null && TaskRecurrenceType.RECURRING == task.getRecurrence();
     }
 
+    // We no longer need to treat workflow-related tasks in a different way.
+    // Approvals are carried out via cases. So the only workflow-related tasks are those that execute
+    // approved operations. And they can be treated exactly like all the other tasks.
+    @Deprecated
     public static boolean isWorkflowTask(TaskType task) {
         return task != null && TaskCategory.WORKFLOW.equals(task.getCategory());
     }

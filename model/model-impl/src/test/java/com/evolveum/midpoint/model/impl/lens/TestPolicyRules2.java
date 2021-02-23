@@ -394,6 +394,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
                 .name("approval task")
                 .category(TaskCategory.WORKFLOW)
                 .executionStatus(TaskExecutionStateType.WAITING)
+                .schedulingState(TaskSchedulingStateType.WAITING)
                 .ownerRef(userAdministrator.getOid(), UserType.COMPLEX_TYPE)
                 .objectRef(USER_JACK_OID, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT);
         String approvalTaskOid = taskManager.addTask(approvalTask.asPrismObject(), result);

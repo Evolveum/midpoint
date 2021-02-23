@@ -3527,11 +3527,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
             Task failedTask = null;
             for (Task subtask : subtasks) {
-                if (subtask.getExecutionState() == TaskExecutionStateType.RUNNABLE || subtask.getExecutionState() == TaskExecutionStateType.RUNNING) { // todo switch to scheduling state
-                    display("Found runnable/running subtasks during waiting => continuing waiting: " + description, subtask);
+                if (subtask.getSchedulingState() == TaskSchedulingStateType.READY) {
+                    display("Found ready subtasks during waiting => continuing waiting: " + description, subtask);
                     return false;
                 }
-                if (subtask.getExecutionState() == TaskExecutionStateType.WAITING) { // todo switch to scheduling state
+                if (subtask.getSchedulingState() == TaskSchedulingStateType.WAITING) {
                     display("Found waiting subtasks during waiting => continuing waiting: " + description, subtask);
                     return false;
                 }
@@ -3557,7 +3557,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 display("Found 'error' subtask operation result during waiting => done waiting: " + description, failedTask);
                 return true;
             }
-            if (freshRootTask.getExecutionState() == TaskExecutionStateType.WAITING) { // todo switch to scheduling state
+            if (freshRootTask.getSchedulingState() == TaskSchedulingStateType.WAITING) {
                 display("Found WAITING root task during wait for next finished run => continuing waiting: " + description);
                 return false;
             }
@@ -3717,13 +3717,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
         Task task = taskManager.getTaskWithResult(taskOid, result);
         logger.info("Restarting task {}", taskOid);
-        if (task.getExecutionState() == TaskExecutionStateType.SUSPENDED) {
+        if (task.getSchedulingState() == TaskSchedulingStateType.SUSPENDED) {
             logger.debug("Task {} is suspended, resuming it", task);
             taskManager.resumeTask(task, result);
-        } else if (task.getExecutionState() == TaskExecutionStateType.CLOSED) {
+        } else if (task.getSchedulingState() == TaskSchedulingStateType.CLOSED) {
             logger.debug("Task {} is closed, scheduling it to run now", task);
             taskManager.scheduleTasksNow(singleton(taskOid), result);
-        } else if (task.getExecutionState() == TaskExecutionStateType.RUNNABLE) { // todo switch to scheduling state
+        } else if (task.getSchedulingState() == TaskSchedulingStateType.READY) {
             if (taskManager.getLocallyRunningTaskByIdentifier(task.getTaskIdentifier()) != null) {
                 // Task is really executing. Let's wait until it finishes; hopefully it won't start again (TODO)
                 logger.debug("Task {} is running, waiting while it finishes before restarting", task);
@@ -3780,10 +3780,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return waitForTaskFinish(taskOid, true, startTime, DEFAULT_TASK_WAIT_TIMEOUT, true);
     }
 
-    protected void assertTaskExecutionStatus(String taskOid, TaskExecutionStateType expectedExecutionStatus) throws ObjectNotFoundException, SchemaException {
+    protected void assertTaskExecutionStatus(String taskOid, TaskExecutionStateType expectedExecutionStatus)
+            throws ObjectNotFoundException, SchemaException {
         final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".assertTaskExecutionStatus");
         Task task = taskManager.getTaskPlain(taskOid, result);
         assertEquals("Wrong executionStatus in " + task, expectedExecutionStatus, task.getExecutionState());
+    }
+
+    protected void assertTaskSchedulingState(String taskOid, TaskSchedulingStateType expectedState)
+            throws ObjectNotFoundException, SchemaException {
+        final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".assertTaskSchedulingState");
+        Task task = taskManager.getTaskPlain(taskOid, result);
+        assertEquals("Wrong schedulingState in " + task, expectedState, task.getSchedulingState());
     }
 
     protected String getSecurityContextUserOid() {

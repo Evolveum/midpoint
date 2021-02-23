@@ -1389,6 +1389,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
                 .targetRef(ARCHETYPE_TASK_RECONCILIATION_OID, ArchetypeType.COMPLEX_TYPE)
                 .<TaskType>end()
                 .executionStatus(TaskExecutionStateType.SUSPENDED)
+                .schedulingState(TaskSchedulingStateType.SUSPENDED)
                 .recurrence(TaskRecurrenceType.SINGLE)
                 .asPrismObject();
 

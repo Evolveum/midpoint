@@ -47,12 +47,12 @@ class TaskTabsVisibility implements Serializable {
     private boolean errorsVisible;
 
     public boolean computeBasicVisible(PageTask parentPage, TaskType task) {
-        basicVisible = !WebComponentUtil.isWorkflowTask(task);
+        basicVisible = true;
         return basicVisible;
     }
 
     public boolean computeSchedulingVisible(PageTask parentPage, TaskType task) {
-        schedulingVisible = !WebComponentUtil.isWorkflowTask(task);
+        schedulingVisible = true;
         return schedulingVisible;
     }
 
@@ -130,21 +130,18 @@ class TaskTabsVisibility implements Serializable {
         }
         operationVisible = parentPage.isEditingFocus()
                 && isTaskItemReadable(taskWrapper, TaskType.F_MODEL_OPERATION_CONTEXT)
-                && lensContext != null && !lensContext.isEmpty()
-                && !WebComponentUtil.isWorkflowTask(taskWrapper.getObject().asObjectable());
+                && lensContext != null && !lensContext.isEmpty();
         return operationVisible;
     }
 
     public boolean computeResultVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
         resultVisible = parentPage.isEditingFocus()
-                && isTaskItemReadable(taskWrapper, TaskType.F_RESULT)
-                && !WebComponentUtil.isWorkflowTask(taskWrapper.getObject().asObjectable());
+                && isTaskItemReadable(taskWrapper, TaskType.F_RESULT);
         return resultVisible;
     }
 
     public boolean computeErrorsVisible(PageTask parentPage, TaskType task) {
-        errorsVisible = parentPage.isEditingFocus()
-                && !WebComponentUtil.isWorkflowTask(task);
+        errorsVisible = parentPage.isEditingFocus();
         return errorsVisible;
     }
 

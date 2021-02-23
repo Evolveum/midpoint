@@ -1688,6 +1688,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         newTask.setTaskIdentifier(null);
         newTask.setOwnerRef(createObjectRef(principal.getFocus(), prismContext));
         newTask.setExecutionStatus(RUNNABLE);
+        newTask.setSchedulingState(TaskSchedulingStateType.READY);
         newTask.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
         if (deltas.isEmpty()) {
             throw new IllegalArgumentException("No deltas to execute");

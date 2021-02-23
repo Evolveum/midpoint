@@ -841,11 +841,21 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void setInitialExecutionState(@NotNull TaskExecutionStateType value) {
-        if (isPersistent()) {
-            throw new IllegalStateException("Initial execution state can be set only on transient tasks.");
+    public void setInitialExecutionAndScheduledState(TaskExecutionStateType executionState,
+            TaskSchedulingStateType schedulingState) {
+        stateCheck(isTransient(), "Initial execution/scheduling state can be set only on transient tasks.");
+        synchronized (prismAccess) { // maybe not really necessary
+            setProperty(TaskType.F_EXECUTION_STATUS, executionState);
+            setProperty(TaskType.F_SCHEDULING_STATE, schedulingState);
         }
-        setProperty(TaskType.F_EXECUTION_STATUS, value);
+    }
+
+    @Override
+    public void setInitiallyWaitingForPrerequisites() {
+        synchronized (prismAccess) { // maybe not really necessary
+            setInitialExecutionAndScheduledState(TaskExecutionStateType.WAITING, TaskSchedulingStateType.WAITING);
+            setWaitingReason(TaskWaitingReasonType.OTHER_TASKS);
+        }
     }
 
     /** Quartz should be updated by the caller. */

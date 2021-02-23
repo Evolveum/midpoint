@@ -190,6 +190,11 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return this;
     }
 
+    public TaskAsserter<RA> assertSchedulingState(TaskSchedulingStateType state) {
+        assertEquals("Wrong scheduling state", state, getTaskBean().getSchedulingState());
+        return this;
+    }
+
     private TaskType getTaskBean() {
         return getObject().asObjectable();
     }

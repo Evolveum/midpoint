@@ -29,7 +29,7 @@ public enum TaskDtoExecutionState {
     SUSPENDING,
     CLOSED;
 
-    // TODO fix
+    // TODO MID-6783
     public static TaskDtoExecutionState fromTaskExecutionStatus(TaskExecutionStateType executionStatus, boolean running) {
         if (running) {
             if (executionStatus == TaskExecutionStateType.SUSPENDED) {
