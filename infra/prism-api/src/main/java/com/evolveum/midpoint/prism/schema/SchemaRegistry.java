@@ -34,6 +34,9 @@ public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, Gl
      */
     DynamicNamespacePrefixMapper getNamespacePrefixMapper();
 
+
+    PrismNamespaceContext staticNamespaceContext();
+
     void registerInvalidationListener(InvalidationListener listener);
 
     String getDefaultNamespace();
@@ -226,7 +229,4 @@ public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, Gl
         void invalidate();
     }
 
-    default PrismNamespaceContext globalNamespaceContext() {
-        return PrismNamespaceContext.EMPTY; // FIXME later
-    }
 }

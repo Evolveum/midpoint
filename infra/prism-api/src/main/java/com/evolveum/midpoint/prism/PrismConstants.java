@@ -108,8 +108,10 @@ public class PrismConstants {
     public static final QName A_SCHEMA_MIGRATION_ELEMENT = new QName(NS_ANNOTATION, "element");
     public static final QName A_SCHEMA_MIGRATION_VERSION = new QName(NS_ANNOTATION, "version");
     public static final QName A_SCHEMA_MIGRATION_OPERATION = new QName(NS_ANNOTATION, "operation");
+    public static final QName A_DEFAULT_PREFIX = new QName(NS_ANNOTATION, "defaultPrefix");
 
     public static final QName SCHEMA_DOCUMENTATION = new QName(W3C_XML_SCHEMA_NS_URI, "documentation");
+    public static final QName SCHEMA_ANNOTATION = new QName(W3C_XML_SCHEMA_NS_URI, "annotation");
     public static final QName SCHEMA_APP_INFO = new QName(W3C_XML_SCHEMA_NS_URI, "appinfo");
 
     public static final QName A_MAX_OCCURS = new QName(NS_ANNOTATION, "maxOccurs");
