@@ -83,9 +83,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     private static final Trace LOGGER = TraceManager.getTrace(TaskTablePanel.class);
 
     private static final String DOT_CLASS = TaskTablePanel.class.getName() + ".";
-    public static final String OPERATION_SUSPEND_TASKS = DOT_CLASS + "suspendTasks";
     public static final String OPERATION_SUSPEND_TASK = DOT_CLASS + "suspendTask";
-    public static final String OPERATION_RESUME_TASKS = DOT_CLASS + "resumeTasks";
     public static final String OPERATION_RESUME_TASK = DOT_CLASS + "resumeTask";
     public static final String OPERATION_DELETE_TASKS = DOT_CLASS + "deleteTasks";
     public static final String OPERATION_RECONCILE_WORKERS = DOT_CLASS + "reconcileWorkers";
@@ -204,7 +202,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     private IColumn<SelectableBean<TaskType>, String> createTaskCategoryColumn() {
-        return new AbstractExportableColumn<SelectableBean<TaskType>, String>(createStringResource("pageTasks.task.category"), TaskType.F_CATEGORY.getLocalPart()) {
+        return new AbstractExportableColumn<>(createStringResource("pageTasks.task.category"), TaskType.F_CATEGORY.getLocalPart()) {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> item, String componentId,
@@ -229,7 +227,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         columns.add(createProgressColumn());
         columns.add(createErrorsColumn());
 
-        columns.add(new IconColumn<SelectableBean<TaskType>>(createStringResource("pageTasks.task.status"), TaskType.F_RESULT_STATUS.getLocalPart()) {
+        columns.add(new IconColumn<>(createStringResource("pageTasks.task.status"), TaskType.F_RESULT_STATUS.getLocalPart()) {
 
             @Override
             protected DisplayType getIconDisplayType(final IModel<SelectableBean<TaskType>> rowModel) {
@@ -257,7 +255,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     private AbstractExportableColumn<SelectableBean<TaskType>, String> createTaskExecutionStatusColumn() {
-        return new AbstractExportableColumn<SelectableBean<TaskType>, String>(createStringResource("pageTasks.task.execution")) {
+        return new AbstractExportableColumn<>(createStringResource("pageTasks.task.execution")) {
 
             @Override
             public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
@@ -274,7 +272,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     private AbstractExportableColumn<SelectableBean<TaskType>, String> createProgressColumn() {
-        return new AbstractExportableColumn<SelectableBean<TaskType>, String>(createStringResource("pageTasks.task.progress")) {
+        return new AbstractExportableColumn<>(createStringResource("pageTasks.task.progress")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId, final IModel<SelectableBean<TaskType>> rowModel) {
@@ -303,7 +301,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     private AbstractColumn<SelectableBean<TaskType>, String> createErrorsColumn() {
-        return new AbstractColumn<SelectableBean<TaskType>, String>(createStringResource("pageTasks.task.errors")) {
+        return new AbstractColumn<>(createStringResource("pageTasks.task.errors")) {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId, IModel<SelectableBean<TaskType>> rowModel) {
                 TaskType task = rowModel.getObject().getValue();

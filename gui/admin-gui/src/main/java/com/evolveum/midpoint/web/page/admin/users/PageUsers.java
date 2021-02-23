@@ -105,7 +105,7 @@ public class PageUsers extends PageAdmin {
 
     public PageUsers(PageParameters params) {
         super(params);
-        executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
+        executeOptionsModel = new LoadableModel<>(false) {
 
             @Override
             protected ExecuteChangeOptionsDto load() {
@@ -125,7 +125,7 @@ public class PageUsers extends PageAdmin {
         Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
 
-        MainObjectListPanel<UserType> table = new MainObjectListPanel<UserType>(ID_TABLE, UserType.class) {
+        MainObjectListPanel<UserType> table = new MainObjectListPanel<>(ID_TABLE, UserType.class) {
             @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, UserType user) {
                 PageParameters parameters = new PageParameters();
@@ -322,7 +322,7 @@ public class PageUsers extends PageAdmin {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         OperationResult result = new OperationResult(OPERATION_LOAD_MERGE_CONFIGURATION);
-                        List<MergeConfigurationType> mergeConfiguration = null;
+                        List<MergeConfigurationType> mergeConfiguration;
                         try {
                             mergeConfiguration = getModelInteractionService().getMergeConfiguration(result);
                         } catch (ObjectNotFoundException | SchemaException ex){
@@ -403,7 +403,7 @@ public class PageUsers extends PageAdmin {
         supportedTypes.add(UserType.COMPLEX_TYPE);
         ObjectFilter filter = getPrismContext().queryFactory().createInOid(selectedUser.getOid());
         ObjectFilter notFilter = getPrismContext().queryFactory().createNot(filter);
-        ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<UserType>(
+        ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<>(
                 getMainPopupBodyId(), UserType.class,
                 supportedTypes, false, PageUsers.this, notFilter) {
             private static final long serialVersionUID = 1L;
@@ -571,7 +571,4 @@ public class PageUsers extends PageAdmin {
 
     }
 
-    protected ObjectFilter getUsersViewFilter(){
-        return null;
-    }
 }

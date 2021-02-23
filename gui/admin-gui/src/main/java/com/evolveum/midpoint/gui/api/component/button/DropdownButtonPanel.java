@@ -13,6 +13,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -41,43 +42,48 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
 
 
     public DropdownButtonPanel(String id, DropdownButtonDto model) {
-        super(id);
-        initLayout(model);
+        super(id, Model.of(model));
     }
 
-    private void initLayout(DropdownButtonDto dropdownButtonDto) {
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
+
+    private void initLayout() {
         WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_BUTTON_CONTAINER);
         buttonContainer.setOutputMarkupId(true);
         buttonContainer.add(AttributeAppender.append("class", getSpecialButtonClass()));
         add(buttonContainer);
 
-        Label info = new Label(ID_INFO, dropdownButtonDto.getInfo());
+        Label info = new Label(ID_INFO, new PropertyModel<>(getModel(), DropdownButtonDto.F_INFO));
         info.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
             @Override
             public boolean isVisible() {
-                return dropdownButtonDto.getInfo() != null;
+                return getModelObject() != null && getModelObject().getInfo() != null;
             }
         });
         buttonContainer.add(info);
 
-        Label label = new Label(ID_LABEL, dropdownButtonDto.getLabel());
+        Label label = new Label(ID_LABEL, new PropertyModel<>(getModel(), DropdownButtonDto.F_LABEL));
         label.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
             @Override
             public boolean isVisible() {
-                return dropdownButtonDto.getLabel() != null;
+                return getModelObject() != null && getModelObject().getLabel() != null;
             }
         });
         buttonContainer.add(label);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
-        icon.add(AttributeModifier.append("class", dropdownButtonDto.getIcon()));
+        icon.add(AttributeModifier.append("class", new PropertyModel<>(getModel(), DropdownButtonDto.F_ICON)));
         icon.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
             @Override
             public boolean isVisible() {
-                return dropdownButtonDto.getIcon() != null;
+                return getModelObject() != null && getModelObject().getIcon() != null;
             }
         });
         buttonContainer.add(icon);
@@ -97,8 +103,7 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
         dropdownMenuContainer.add(AttributeAppender.append("class", getSpecialDropdownMenuClass()));
         add(dropdownMenuContainer);
 
-        ListView<InlineMenuItem> li = new ListView<InlineMenuItem>(ID_MENU_ITEM, Model.ofList(dropdownButtonDto.getMenuItems())) {
-            private static final long serialVersionUID = 1L;
+        ListView<InlineMenuItem> li = new ListView<>(ID_MENU_ITEM, new PropertyModel<>(getModel(), DropdownButtonDto.F_ITEMS)) {
 
             @Override
             protected void populateItem(ListItem<InlineMenuItem> item) {
@@ -118,10 +123,10 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
     }
 
     private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
-            MenuLinkPanel menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, menuItem.getModel());
-             menuItemBody.add(new VisibleBehaviour(() -> menuItem.getModelObject().getVisible().getObject()));
-            menuItemBody.setRenderBodyOnly(true);
-            menuItem.add(menuItemBody);
+        MenuLinkPanel menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, menuItem.getModel());
+        menuItemBody.setRenderBodyOnly(true);
+        menuItem.add(menuItemBody);
+        menuItem.add(new VisibleBehaviour(() -> menuItem.getModelObject().getVisible().getObject()));
     }
 
     protected String getSpecialButtonClass() {

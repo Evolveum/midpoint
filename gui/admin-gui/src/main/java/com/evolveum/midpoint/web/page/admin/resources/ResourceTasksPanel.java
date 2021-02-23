@@ -9,18 +9,6 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -35,18 +23,29 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.page.admin.server.PageTask;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class ResourceTasksPanel extends Panel implements Popupable {
@@ -70,12 +69,6 @@ public class ResourceTasksPanel extends Panel implements Popupable {
             SystemObjectsType.ARCHETYPE_IMPORT_TASK.value(),
             SystemObjectsType.ARCHETYPE_ASYNC_UPDATE_TASK.value() };
 
-    public ResourceTasksPanel(String id, ListModel<TaskType> tasks, PageBase pageBase) {
-        super(id);
-        this.pageBase = pageBase;
-
-        initLayout(tasks);
-    }
 
     public ResourceTasksPanel(String id, final IModel<PrismObject<ResourceType>> resourceModel, PageBase pageBase) {
         super(id);
@@ -104,7 +97,7 @@ public class ResourceTasksPanel extends Panel implements Popupable {
 
     private void initLayout(final ListModel<TaskType> tasks) {
         final MainObjectListPanel<TaskType> tasksPanel =
-                new MainObjectListPanel<TaskType>(ID_TASKS_TABLE, TaskType.class, null) {
+                new MainObjectListPanel<>(ID_TASKS_TABLE, TaskType.class, null) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -113,7 +106,7 @@ public class ResourceTasksPanel extends Panel implements Popupable {
                     }
 
                     @Override
-                    protected ISelectableDataProvider createProvider() {
+                    protected ISelectableDataProvider<TaskType, SelectableBean<TaskType>> createProvider() {
                         return new SelectableListDataProvider<>(pageBase, tasks);
                     }
 

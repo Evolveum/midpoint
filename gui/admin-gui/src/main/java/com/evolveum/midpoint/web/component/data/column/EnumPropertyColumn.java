@@ -21,13 +21,9 @@ public class EnumPropertyColumn<T> extends PropertyColumn<T, String> {
         super(displayModel, propertyExpression);
     }
 
-    public EnumPropertyColumn(IModel<String> displayModel, String sortProperty, String propertyExpression) {
-        super(displayModel, sortProperty, propertyExpression);
-    }
-
     @Override
     public IModel<Object> getDataModel(final IModel<T> rowModel) {
-        return new LoadableModel<Object>(false) {
+        return new LoadableModel<>(false) {
 
             @Override
             protected String load() {

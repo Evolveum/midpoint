@@ -148,11 +148,11 @@ public class PasswordPanel extends InputPanel {
         password1.add(AttributeAppender.append("onfocus", "initPasswordValidation({\n"
                 + "container: $('#progress-bar-container'),\n"
                 + "hierarchy: {\n"
-                + "    '0': ['progress-bar-danger', '" + getPageBase().createStringResource("PasswordPanel.strength.veryWeak").getString() + "'],\n"
-                + "    '25': ['progress-bar-danger', '" + getPageBase().createStringResource("PasswordPanel.strength.weak").getString() + "'],\n"
-                + "    '50': ['progress-bar-warning', '" + getPageBase().createStringResource("PasswordPanel.strength.good").getString() + "'],\n"
-                + "    '75': ['progress-bar-success', '" + getPageBase().createStringResource("PasswordPanel.strength.strong").getString() + "'],\n"
-                + "    '100': ['progress-bar-success', '" + getPageBase().createStringResource("PasswordPanel.strength.veryStrong").getString() + "']\n"
+                + "    '0': ['progress-bar-danger', '" + PageBase.createStringResourceStatic(null, "PasswordPanel.strength.veryWeak").getString() + "'],\n"
+                + "    '25': ['progress-bar-danger', '" + getPageBase().createStringResourceStatic(null, "PasswordPanel.strength.weak").getString() + "'],\n"
+                + "    '50': ['progress-bar-warning', '" + getPageBase().createStringResourceStatic(null, "PasswordPanel.strength.good").getString() + "'],\n"
+                + "    '75': ['progress-bar-success', '" + getPageBase().createStringResourceStatic(null, "PasswordPanel.strength.strong").getString() + "'],\n"
+                + "    '100': ['progress-bar-success', '" + getPageBase().createStringResourceStatic(null, "PasswordPanel.strength.veryStrong").getString() + "']\n"
                 + "}\n"
                 + "})"));
         password1.setRequired(false);

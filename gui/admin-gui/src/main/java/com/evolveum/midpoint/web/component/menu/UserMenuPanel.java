@@ -8,20 +8,14 @@ package com.evolveum.midpoint.web.component.menu;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
 import org.springframework.security.core.Authentication;
@@ -29,25 +23,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.home.PageMyPasswordQuestions;
-import com.evolveum.midpoint.web.page.admin.home.dto.PasswordQuestionsDto;
-import com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author lazyman
@@ -111,25 +96,6 @@ public class UserMenuPanel extends BasePanel<UserMenuPanel> {
 
         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
         form.add(csrfField);
-
-        AjaxButton editPasswordQ = new AjaxButton(ID_PASSWORD_QUESTIONS,
-                createStringResource("UserMenuPanel.editPasswordQuestions")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                PageMyPasswordQuestions myPasswordQuestions = new PageMyPasswordQuestions(Model.of(getPasswordQuestions()));
-                setResponsePage(myPasswordQuestions);
-            }
-
-        };
-        editPasswordQ.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return hasQuestions() || (CollectionUtils.isNotEmpty(getSecurityQuestions()));
-            }
-        });
-        add(editPasswordQ);
-
     }
 
     private IModel<AbstractResource> loadJpegPhotoModel() {
@@ -197,71 +163,5 @@ public class UserMenuPanel extends BasePanel<UserMenuPanel> {
 
         QName type = WebComponentUtil.classToQName(getPageBase().getPrismContext(), WebModelServiceUtils.getLoggedInFocus().getClass());
         return type.getLocalPart();
-    }
-
-    private PasswordQuestionsDto getPasswordQuestions() {
-        PasswordQuestionsDto dto = new PasswordQuestionsDto();
-        dto.setSecurityAnswers(createUsersSecurityQuestionsList());
-        return dto;
-    }
-
-    public List<SecurityQuestionAnswerDTO> createUsersSecurityQuestionsList() {
-        GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
-        if (principal == null) {
-            return null;
-        }
-
-        FocusType focus = principal.getFocus();
-        CredentialsType credentialsType = focus.getCredentials();
-        if (credentialsType == null) {
-            return null;
-        }
-
-        SecurityQuestionsCredentialsType credentialsPolicyType = credentialsType.getSecurityQuestions();
-        if (credentialsPolicyType == null) {
-            return null;
-        }
-        List<SecurityQuestionAnswerType> secQuestAnsList = credentialsPolicyType.getQuestionAnswer();
-
-        if (secQuestAnsList != null) {
-            List<SecurityQuestionAnswerDTO> secQuestAnswListDTO = new ArrayList<>();
-            for (SecurityQuestionAnswerType securityQuestionAnswerType : secQuestAnsList) {
-                Protector protector = ((PageBase) getPage()).getPrismContext().getDefaultProtector();
-                if (securityQuestionAnswerType.getQuestionAnswer() != null && securityQuestionAnswerType.getQuestionAnswer().getEncryptedDataType() != null) {
-                    try {
-                        String decoded = protector.decryptString(securityQuestionAnswerType.getQuestionAnswer());
-                        secQuestAnswListDTO.add(new SecurityQuestionAnswerDTO(securityQuestionAnswerType
-                                .getQuestionIdentifier(), decoded));
-                    } catch (EncryptionException e) {
-                        // TODO do we need to thrown exception here?
-                        LOGGER.error("Could not get security questions. Error: " + e.getMessage(), e);
-                    }
-                }
-            }
-
-            return secQuestAnswListDTO;
-        } else {
-            return null;
-        }
-    }
-
-    private List<SecurityQuestionDefinitionType> getSecurityQuestions() {
-            GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
-
-            CredentialsPolicyType credentialsPolicyType = principal.getApplicableSecurityPolicy().getCredentials();
-            if (credentialsPolicyType == null) {
-                return Collections.emptyList();
-            }
-            SecurityQuestionsCredentialsPolicyType securityQuestionsPolicy = credentialsPolicyType.getSecurityQuestions();
-            if (securityQuestionsPolicy == null) {
-                return Collections.emptyList();
-            }
-
-            return securityQuestionsPolicy.getQuestion();
-    }
-
-    private boolean hasQuestions() {
-        PasswordQuestionsDto passwordQuestionsDto = getPasswordQuestions();
-        return passwordQuestionsDto.getPwdQuestion() != null && !passwordQuestionsDto.getPwdQuestion().trim().equals("");
     }
 }

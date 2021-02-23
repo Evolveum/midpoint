@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -25,6 +25,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -76,8 +77,8 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                                int numberOfButtons, boolean isHeaderPanel) {
         List<InlineMenuItem> filteredMenuItems = new ArrayList<>();
         List<InlineMenuItem> cloneMenuItems = cloneColumnMenuActionIfUse(menuItems, rowModel);
-        for (InlineMenuItem menuItem : (rowModel != null && rowModel.getObject() instanceof InlineMenuable ?
-                ((InlineMenuable)rowModel.getObject()).getMenuItems() : cloneMenuItems)){
+        for (InlineMenuItem menuItem : cloneMenuItems) {
+
             if (isHeaderPanel && !menuItem.isHeaderMenuItem()){
                 continue;
             }
@@ -90,11 +91,6 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
             }
 
             filteredMenuItems.add(menuItem);
-        }
-        if (rowModel != null && rowModel.getObject() instanceof InlineMenuable &&
-                ((InlineMenuable)rowModel.getObject()) != null){
-            ((InlineMenuable) rowModel.getObject()).getMenuItems().clear();
-            ((InlineMenuable) rowModel.getObject()).getMenuItems().addAll(filteredMenuItems);
         }
 
         List<ButtonInlineMenuItem> buttonMenuItems = new ArrayList<>();
@@ -109,6 +105,10 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                 buttonMenuItems.add((ButtonInlineMenuItem) menuItem);
             }
         });
+
+        if (filteredMenuItems.isEmpty()) {
+            return new Label(componentId); //this is hack, TODO: cleanup and refactor soif there aren't any inline (row) actions, nothing is displayed
+        }
 
         return new MenuMultiButtonPanel<T>(componentId, rowModel, buttonMenuItems.size(), Model.ofList(filteredMenuItems)) {
 
@@ -185,12 +185,6 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         };
         pageBase.showMainPopup(dialog, target);
     }
-
-
-
-//    public boolean isButtonVisible(int id, IModel<T> model) {
-//        return true;
-//    }
 
     public String getButtonSizeCssClass() {
         return DoubleButtonColumn.ButtonSizeClass.EXTRA_SMALL.toString();

@@ -3,8 +3,8 @@ import java.util.function.Function;
 
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
-import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
+import com.evolveum.concepts.SourceLocation;
 
 public interface ValueDecoder<I,O> {
 

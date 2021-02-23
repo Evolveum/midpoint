@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (c) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -64,6 +64,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -131,7 +132,7 @@ public class PageCertCampaigns extends PageAdminCertification {
             public CertCampaignListItemDto createDataObjectWrapper(
                     PrismObject<AccessCertificationCampaignType> obj) {
                 CertCampaignListItemDto dto = super.createDataObjectWrapper(obj);
-                createInlineMenuForItem(dto);
+//                createInlineMenuForItem(dto);
                 return dto;
             }
         };
@@ -477,11 +478,16 @@ public class PageCertCampaigns extends PageAdminCertification {
         };
         columns.add(column);
 
-        columns.add(new InlineMenuHeaderColumn(createInlineMenu()));
+        List<InlineMenuItem> inlineMenuItems = createInlineMenu();
+        inlineMenuItems.addAll(createInlineMenuForItem());
+
+        InlineMenuButtonColumn<CertCampaignListItemDto> actionsColumn = new InlineMenuButtonColumn<>(inlineMenuItems, this);
+        columns.add(actionsColumn);
 
         return columns;
     }
 
+    @NotNull
     private List<InlineMenuItem> createInlineMenu() {
         List<InlineMenuItem> items = new ArrayList<>();
         items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.startSelected")) {
@@ -498,6 +504,11 @@ public class PageCertCampaigns extends PageAdminCertification {
                     }
                 };
             }
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return true;
+            }
         });
         items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.closeSelected")) {
             private static final long serialVersionUID = 1L;
@@ -512,6 +523,11 @@ public class PageCertCampaigns extends PageAdminCertification {
                         closeSelectedCampaignsConfirmation(target);
                     }
                 };
+            }
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return true;
             }
         });
         items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.reiterateSelected")) {
@@ -528,6 +544,11 @@ public class PageCertCampaigns extends PageAdminCertification {
                     }
                 };
             }
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return true;
+            }
         });
         items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.deleteSelected")) {
             private static final long serialVersionUID = 1L;
@@ -543,14 +564,19 @@ public class PageCertCampaigns extends PageAdminCertification {
                     }
                 };
             }
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return true;
+            }
         });
         return items;
     }
 
-    private void createInlineMenuForItem(final CertCampaignListItemDto dto) {
+    private List<InlineMenuItem> createInlineMenuForItem() {
 
-        dto.getMenuItems().clear();
-        dto.getMenuItems().add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.close")) {
+        List<InlineMenuItem> menuItems = new ArrayList<>();
+        InlineMenuItem item = new InlineMenuItem(createStringResource("PageCertCampaigns.menu.close")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -560,23 +586,21 @@ public class PageCertCampaigns extends PageAdminCertification {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        closeCampaignConfirmation(target, dto);
+                        closeCampaignConfirmation(target, getRowModel().getObject());
                     }
                 };
             }
 
             @Override
-            public IModel<Boolean> getVisible() {
-                return new IModel<Boolean>() {
-                    @Override
-                    public Boolean getObject() {
-                        return dto.getState() != AccessCertificationCampaignStateType.CLOSED;
-                    }
-                };
+            public boolean isHeaderMenuItem() {
+                return false;
             }
-        });
 
-        dto.getMenuItems().add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.reiterate")) {
+        };
+        item.setVisibilityChecker((rowModel, header) -> isNotClosed(rowModel));
+        menuItems.add(item);
+
+        item = new InlineMenuItem(createStringResource("PageCertCampaigns.menu.reiterate")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -586,17 +610,20 @@ public class PageCertCampaigns extends PageAdminCertification {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        reiterateCampaignConfirmation(target, dto);
+                        reiterateCampaignConfirmation(target, getRowModel().getObject());
                     }
                 };
             }
 
             @Override
-            public IModel<Boolean> getVisible() {
-                return new ReadOnlyModel<>(dto::isReiterable);
+            public boolean isHeaderMenuItem() {
+                return false;
             }
-        });
-        dto.getMenuItems().add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.delete")) {
+        };
+        item.setVisibilityChecker((rowModel, header) -> isReiterable(rowModel));
+        menuItems.add(item);
+
+        menuItems.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.delete")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -606,14 +633,40 @@ public class PageCertCampaigns extends PageAdminCertification {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        deleteCampaignConfirmation(target, dto);
+                        deleteCampaignConfirmation(target, getRowModel().getObject());
                     }
                 };
             }
 
+            @Override
+            public boolean isHeaderMenuItem() {
+                return false;
+            }
 
         });
+        return menuItems;
+    }
 
+    private boolean isNotClosed(IModel<?> rowModel) {
+        CertCampaignListItemDto modelObject = getRowModelObject(rowModel);
+        return modelObject != null && modelObject.getState() != AccessCertificationCampaignStateType.CLOSED;
+    }
+
+    private boolean isReiterable(IModel<?> rowModel) {
+        CertCampaignListItemDto modelObject = getRowModelObject(rowModel);
+        return modelObject != null && modelObject.isReiterable();
+    }
+
+    private CertCampaignListItemDto getRowModelObject(IModel<?> rowModel) {
+        if (rowModel == null) {
+            return null;
+        }
+        Object modelObject = rowModel.getObject();
+        if (!(modelObject instanceof CertCampaignListItemDto)) {
+            return null;
+        }
+
+        return (CertCampaignListItemDto) modelObject;
     }
 
     private Table getCampaignsTable() {

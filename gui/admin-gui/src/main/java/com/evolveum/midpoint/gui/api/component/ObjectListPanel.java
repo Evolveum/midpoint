@@ -1,49 +1,50 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.function.Supplier;
-
-import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
-import com.evolveum.midpoint.web.component.search.*;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SerializableSupplier;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import static java.util.Collections.singleton;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.search.ContainerTypeSearchItem;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author katkav
@@ -51,21 +52,13 @@ import com.evolveum.midpoint.web.session.PageStorage;
 public abstract class ObjectListPanel<O extends ObjectType> extends ContainerableListPanel<O, SelectableBean<O>> {
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(ObjectListPanel.class);
     private static final String DOT_CLASS = ObjectListPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_CUSTOM_MENU_ITEMS = DOT_CLASS + "loadCustomMenuItems";
 
     /**
      * @param defaultType specifies type of the object that will be selected by default. It can be changed.
      */
-    public ObjectListPanel(String id, Class<? extends O> defaultType) {
-        this(id, defaultType, null);
-    }
-
-    /**
-     * @param defaultType specifies type of the object that will be selected by default. It can be changed.
-     */
-    public ObjectListPanel(String id, Class<? extends O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options) {
+    public ObjectListPanel(String id, Class<O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options) {
         super(id, defaultType, options);
     }
 
@@ -83,8 +76,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     }
 
     @Override
-    protected Search createSearch(Class<? extends O> type) {
-        return SearchFactory.createSearch(new ContainerTypeSearchItem<O>(new SearchValue(type, "")), isCollectionViewPanelForCompiledView() ? getCollectionNameParameterValue().toString() : null,
+    protected Search createSearch(Class<O> type) {
+        return SearchFactory.createSearch(new ContainerTypeSearchItem<>(new SearchValue<>(type, "")), isCollectionViewPanelForCompiledView() ? getCollectionNameParameterValue().toString() : null,
                 getFixedSearchItems(), null, getPageBase(), null, true, true, Search.PanelType.DEFAULT);
     }
 
@@ -94,7 +87,12 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         return fixedSearchItems;
     }
 
-    protected ISelectableDataProvider createProvider() {
+    @Override
+    protected LoadableModel<Search<O>> getSearchModel() {
+        return super.getSearchModel();
+    }
+
+    protected ISelectableDataProvider<O, SelectableBean<O>> createProvider() {
         List<O> preSelectedObjectList = getPreselectedObjectList();
         SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<O>(
                 getPageBase(), getSearchModel(), preSelectedObjectList == null ? null : new HashSet<>(preSelectedObjectList)) {
@@ -103,30 +101,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
             @Override
             protected PageStorage getPageStorage() {
                 return ObjectListPanel.this.getPageStorage();
-            }
-
-            @Override
-            public SelectableBean<O> createDataObjectWrapper(O obj) {
-                SelectableBean<O> bean = super.createDataObjectWrapper(obj);
-
-                List<InlineMenuItem> inlineMenu = createInlineMenu();
-                if (inlineMenu != null) {
-                    bean.getMenuItems().addAll(inlineMenu);
-                }
-                if (obj.getOid() != null) {
-                    addCustomActions(bean.getMenuItems(), () -> singleton(obj));
-                }
-                return bean;
-            }
-
-            @NotNull
-            @Override
-            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-                List<ObjectOrdering> customOrdering = createCustomOrdering(sortParam);
-                if (customOrdering != null) {
-                    return customOrdering;
-                }
-                return super.createObjectOrderings(sortParam);
             }
 
             @Override
@@ -140,6 +114,15 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
 
         return provider;
     }
+
+    protected ObjectQuery getCustomizeContentQuery() {
+        return null;
+    }
+
+    protected void setDefaultSorting(ISelectableDataProvider<O, SelectableBean<O>> provider){
+        //should be overrided if needed
+    }
+
 
     protected List<CompiledObjectCollectionView> getAllApplicableArchetypeViews() {
         return getPageBase().getCompiledGuiProfile().findAllApplicableArchetypeViews(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()));
@@ -162,8 +145,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     }
 
     @Override
-    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath, ExpressionType expression) {
-        return new ObjectNameColumn<O>(columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel,
+    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> displayModel, String itemPath, ExpressionType expression) {
+        return new ObjectNameColumn<>(displayModel == null ? createStringResource("ObjectType.name") : displayModel,
                 itemPath, expression, getPageBase(), StringUtils.isEmpty(itemPath)) {
             private static final long serialVersionUID = 1L;
 
@@ -184,12 +167,25 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         return true;
     }
 
-    protected void objectDetailsPerformed(AjaxRequestTarget target, O object){};
+    protected void objectDetailsPerformed(AjaxRequestTarget target, O object){}
 
     protected ContainerTypeSearchItem getTypeItem(Class<? extends O> type, List<DisplayableValue<Class<? extends O>>> allowedValues){
         @NotNull ObjectTypes objectType = ObjectTypes.getObjectType(type);
-        return new ContainerTypeSearchItem<O>(new SearchValue(objectType.getClassDefinition(),
+        return new ContainerTypeSearchItem<>(new SearchValue<>(objectType.getClassDefinition(),
                 "ObjectType." + objectType.getTypeQName().getLocalPart()),
                 allowedValues);
+    }
+
+    @Override
+    protected O getRowRealValue(SelectableBean<O> rowModelObject) {
+        if (rowModelObject == null) {
+            return null;
+        }
+        return rowModelObject.getValue();
+    }
+
+    @Override
+    protected IColumn<SelectableBean<O>, String> createIconColumn() {
+        return ColumnUtils.createIconColumn(getPageBase());
     }
 }

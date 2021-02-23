@@ -8,13 +8,13 @@ import com.evolveum.axiom.api.stream.AbstractStreamAdapter;
 import com.evolveum.axiom.api.stream.AxiomItemStream;
 import com.evolveum.axiom.api.stream.AxiomItemStream.TargetWithContext;
 import com.evolveum.axiom.api.stream.AxiomStreamTarget;
-import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ArgumentContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.PrefixedNameContext;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 import com.evolveum.axiom.spi.codec.ValueDecoder;
+import com.evolveum.concepts.SourceLocation;
 
 public class AntlrStreamToItemStream extends AbstractStreamAdapter<AxiomParser.PrefixedNameContext, AxiomParser.ArgumentContext> {
 

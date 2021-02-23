@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,8 +11,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.util.ContainerListDataProvider;
+import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
@@ -20,6 +25,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -48,6 +55,8 @@ import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by honchar
@@ -93,17 +102,84 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
         ContainerableListPanel workItemsPanel =
                 new ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>>(ID_WORKITEMS_TABLE, CaseWorkItemType.class) {
 
-            @Override
-            protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createDefaultColumns() {
-                return CaseWorkItemsPanel.this.createDefaultColumns();
-            }
+                    @Override
+                    protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createDefaultColumns() {
+                        return CaseWorkItemsPanel.this.createDefaultColumns();
+                    }
+
+                    @Override
+                    protected List<InlineMenuItem> createInlineMenu() {
+                        if (View.FULL_LIST.equals(view)) {
+                            return createRowActions();
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    protected ISelectableDataProvider<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>> createProvider() {
+                        return CaseWorkItemsPanel.this.createProvider(getSearchModel());
+                    }
+
+                    @Override
+                    protected UserProfileStorage.TableId getTableId() {
+                        return UserProfileStorage.TableId.PAGE_CASE_WORK_ITEMS_PANEL;
+                    }
+
+                    @Override
+                    protected boolean hideFooterIfSinglePage() {
+                        return View.DASHBOARD.equals(view);
+                    }
+
+                    @Override
+                    protected boolean isHeaderVisible() {
+                        return !View.DASHBOARD.equals(view);
+                    }
+
+                    @Override
+                    protected IColumn createCheckboxColumn() {
+                        return CaseWorkItemsPanel.this.createCheckboxColumn();
+                    }
+
+                    @Override
+                    protected IColumn createIconColumn() {
+                        return CaseWorkItemsPanel.this.createIconColumn();
+                    }
+
+                    @Override
+                    protected IColumn createNameColumn(IModel<String> displayModel, String itemPath, ExpressionType expression) {
+                        return CaseWorkItemsPanel.this.createNameColumn();
+                    }
+
+                    @Override
+                    protected String getStorageKey() {
+                        return SessionStorage.KEY_WORK_ITEMS;
+                    }
+
+                    @Override
+                    protected CaseWorkItemType getRowRealValue(PrismContainerValueWrapper<CaseWorkItemType> rowModelObject) {
+                        if (rowModelObject == null) {
+                            return null;
+                        }
+                        return rowModelObject.getRealValue();
+                    }
+                };
+        workItemsPanel.setOutputMarkupId(true);
+        add(workItemsPanel);
+    }
+
+    private ContainerListDataProvider<CaseWorkItemType> createProvider(IModel<Search<CaseWorkItemType>> searchModel) {
+        Collection<SelectorOptions<GetOperationOptions>> options = CaseWorkItemsPanel.this.getPageBase().getOperationOptionsBuilder()
+                .item(AbstractWorkItemType.F_ASSIGNEE_REF).resolve()
+                .item(PrismConstants.T_PARENT, CaseType.F_OBJECT_REF).resolve()
+                .item(PrismConstants.T_PARENT, CaseType.F_TARGET_REF).resolve()
+                .build();
+        ContainerListDataProvider<CaseWorkItemType> provider = new ContainerListDataProvider<>(this,
+                searchModel, options) {
+            private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<InlineMenuItem> createInlineMenu() {
-                if (View.FULL_LIST.equals(view)) {
-                    return createRowActions();
-                }
-                return null;
+            protected PageStorage getPageStorage() {
+                return getPageBase().getSessionStorage().getWorkItemStorage();
             }
 
             @Override
@@ -111,62 +187,14 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
                 ObjectQuery query = null;
                 ObjectFilter filter = getCaseWorkItemsFilter();
                 if (filter != null) {
-                    query = getPrismContext().queryFactory().createQuery(getCaseWorkItemsFilter());
+                    query = getPrismContext().queryFactory().createQuery(filter);
                 }
                 return query;
             }
 
-            @Override
-            protected Collection<SelectorOptions<GetOperationOptions>> createOptions() {
-                return CaseWorkItemsPanel.this.getPageBase().getOperationOptionsBuilder()
-                        .item(AbstractWorkItemType.F_ASSIGNEE_REF).resolve()
-                        .item(PrismConstants.T_PARENT, CaseType.F_OBJECT_REF).resolve()
-                        .item(PrismConstants.T_PARENT, CaseType.F_TARGET_REF).resolve()
-                        .build();
-            }
-
-            @Override
-            protected UserProfileStorage.TableId getTableId() {
-                return UserProfileStorage.TableId.PAGE_CASE_WORK_ITEMS_PANEL;
-            }
-
-            @Override
-            protected boolean hideFooterIfSinglePage() {
-                return View.DASHBOARD.equals(view);
-            }
-
-            @Override
-            protected boolean isHeaderVisible() {
-                return !View.DASHBOARD.equals(view);
-            }
-
-            @Override
-            protected void setDefaultSorting(BaseSortableDataProvider provider){
-                provider.setSort(CaseWorkItemType.F_CREATE_TIMESTAMP.getLocalPart(), SortOrder.DESCENDING);
-            }
-
-            @Override
-            protected IColumn createCheckboxColumn() {
-                return CaseWorkItemsPanel.this.createCheckboxColumn();
-            }
-
-            @Override
-            protected IColumn createIconColumn() {
-                return CaseWorkItemsPanel.this.createIconColumn();
-            }
-
-            @Override
-            protected IColumn createNameColumn(IModel columnNameModel, String itemPath, ExpressionType expression) {
-                return CaseWorkItemsPanel.this.createNameColumn();
-            }
-
-            @Override
-            protected String getStorageKey() {
-                return SessionStorage.KEY_WORK_ITEMS;
-            }
         };
-        workItemsPanel.setOutputMarkupId(true);
-        add(workItemsPanel);
+        provider.setSort(CaseWorkItemType.F_CREATE_TIMESTAMP.getLocalPart(), SortOrder.DESCENDING);
+        return provider;
     }
 
     private IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String> createCheckboxColumn(){
@@ -177,7 +205,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
     }
 
     private IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String> createIconColumn(){
-        return new IconColumn<PrismContainerValueWrapper<CaseWorkItemType>>(Model.of("")) {
+        return new IconColumn<>(Model.of("")) {
 
             private static final long serialVersionUID = 1L;
 

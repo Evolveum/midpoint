@@ -41,7 +41,8 @@ import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -106,8 +107,7 @@ public class AuditLogViewerPanel extends BasePanel {
             }
 
             @Override
-            protected IColumn<SelectableBean<AuditEventRecordType>, String> createNameColumn(IModel<String> columnNameModel,
-                    String itemPath, ExpressionType expression) {
+            protected IColumn<SelectableBean<AuditEventRecordType>, String> createNameColumn(IModel<String> displayModel, String itemPath, ExpressionType expression) {
                 return AuditLogViewerPanel.this.createNameColumn();
             }
 
@@ -124,7 +124,7 @@ public class AuditLogViewerPanel extends BasePanel {
 
 
             @Override
-            protected Search createSearch(Class<? extends AuditEventRecordType> type) {
+            protected Search createSearch(Class<AuditEventRecordType> type) {
                 AuditLogStorage storage = (AuditLogStorage) getPageStorage();
                 Search search = SearchFactory.createContainerSearch(new ContainerTypeSearchItem(new SearchValue(type, "")), AuditEventRecordType.F_TIMESTAMP, getPageBase(), true);
                 DateSearchItem timestampItem = (DateSearchItem) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
@@ -192,7 +192,15 @@ public class AuditLogViewerPanel extends BasePanel {
                 return provider;
             }
 
-            @Override
+                    @Override
+                    protected AuditEventRecordType getRowRealValue(SelectableBean<AuditEventRecordType> rowModelObject) {
+                        if (rowModelObject == null) {
+                            return null;
+                        }
+                        return rowModelObject.getValue();
+                    }
+
+                    @Override
             protected List<Component> createToolbarButtonsList(String idButton) {
                 List<Component> buttonsList = new ArrayList<>();
                 CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(idButton) {

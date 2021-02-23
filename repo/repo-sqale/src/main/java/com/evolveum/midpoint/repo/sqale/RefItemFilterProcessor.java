@@ -25,7 +25,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
- * Filter processor for reference item paths, typically mapped to three columns.
+ * Filter processor for reference item paths embedded in table as three columns.
  * OID is represented by UUID column, type by ID (see {@link MObjectTypeMapping} and relation
  * by Integer (foreign key) to {@link QUri}.
  */
@@ -42,6 +42,7 @@ public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
                 ctx, rootToOidPath, rootToTypePath, rootToRelationIdPath));
     }
 
+    // only oidPath is strictly not-null, but then the filter better not ask for type or relation
     private final UuidPath oidPath;
     private final NumberPath<Integer> typePath;
     private final NumberPath<Integer> relationIdPath;
@@ -51,11 +52,19 @@ public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
             Function<EntityPath<?>, UuidPath> rootToOidPath,
             Function<EntityPath<?>, NumberPath<Integer>> rootToTypePath,
             Function<EntityPath<?>, NumberPath<Integer>> rootToRelationIdPath) {
+        this(context,
+                rootToOidPath.apply(context.path()),
+                rootToTypePath != null ? rootToTypePath.apply(context.path()) : null,
+                rootToRelationIdPath != null ? rootToRelationIdPath.apply(context.path()) : null);
+    }
+
+    // exposed mainly for RefTableItemFilterProcessor
+    RefItemFilterProcessor(SqlQueryContext<?, ?, ?> context,
+            UuidPath oidPath, NumberPath<Integer> typePath, NumberPath<Integer> relationIdPath) {
         super(context);
-        this.oidPath = rootToOidPath.apply(context.path());
-        this.typePath = rootToTypePath != null ? rootToTypePath.apply(context.path()) : null;
-        this.relationIdPath = rootToRelationIdPath != null
-                ? rootToRelationIdPath.apply(context.path()) : null;
+        this.oidPath = oidPath;
+        this.typePath = typePath;
+        this.relationIdPath = relationIdPath;
     }
 
     @Override

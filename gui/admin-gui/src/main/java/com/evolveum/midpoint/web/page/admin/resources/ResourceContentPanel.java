@@ -286,7 +286,7 @@ public abstract class ResourceContentPanel extends Panel {
                     }
 
                     @Override
-                    protected Search createSearch(Class<? extends ShadowType> type) {
+                    protected Search createSearch(Class<ShadowType> type) {
                         return ResourceContentPanel.this.createSearch();
                     }
                 };

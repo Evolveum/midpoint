@@ -480,4 +480,5 @@ public class LoggingConfigurationTabPanel extends BasePanel<PrismContainerWrappe
 
         return columns;
     }
+
 }

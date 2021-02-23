@@ -1,15 +1,44 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -20,7 +49,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -38,48 +66,22 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
-import com.evolveum.midpoint.web.component.data.*;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.*;
-import com.evolveum.midpoint.web.component.util.*;
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Fragment;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.lang.Classes;
-import org.apache.wicket.util.string.StringValue;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.Serializable;
-import java.util.Objects;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author skublik
@@ -96,15 +98,17 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerableListPanel.class);
 
+    private static final String DOT_CLASS = ContainerableListPanel.class.getName() + ".";
+    private static final String OPERATION_EVALUATE_EXPRESSION = DOT_CLASS + "evaluateColumnExpression";
+    private static final String OPERATION_LOAD_LOOKUP_TABLE = DOT_CLASS + "loadLookupTable";
+
     public static final String ID_ITEMS = "items";
     private static final String ID_ITEMS_TABLE = "itemsTable";
     private static final String ID_BUTTON_BAR = "buttonBar";
     private static final String ID_BUTTON_REPEATER = "buttonsRepeater";
     private static final String ID_BUTTON = "button";
 
-    private static final String DOT_CLASS = ContainerableListPanel.class.getName() + ".";
-
-    private Class<? extends C> defaultType;
+    private Class<C> defaultType;
 
     private LoadableModel<Search<C>> searchModel;
 
@@ -123,7 +127,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         this(id, defaultType, null);
     }
 
-    public ContainerableListPanel(String id, Class<? extends C> defaultType, Collection<SelectorOptions<GetOperationOptions>> options) {
+    public ContainerableListPanel(String id, Class<C> defaultType, Collection<SelectorOptions<GetOperationOptions>> options) {
         super(id);
         this.defaultType = defaultType;
         this.options = options;
@@ -143,12 +147,12 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected LoadableModel<Search<C>> createSearchModel(){
-        return new LoadableModel<Search<C>>(false) {
+        return new LoadableModel<>(false) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public Search load() {
+            public Search<C> load() {
                 Search<C> newSearch = createSearch(getType());
 
                 Search<C> search = null;
@@ -169,9 +173,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                     if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())) {
                         search.setFullText(searchByName);
                     } else {
-                        for (PropertySearchItem item : search.getPropertyItems()) {
+                        for (PropertySearchItem<String> item : search.getPropertyItems()) {
                             if (ItemPath.create(ObjectType.F_NAME).equivalent(item.getPath())) {
-                                item.setValue(new SearchValue(searchByName));
+                                item.setValue(new SearchValue<>(searchByName));
                             }
                         }
                     }
@@ -194,8 +198,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return null;
     }
 
-    protected Search createSearch(Class<? extends C> type) {
-        return SearchFactory.createContainerSearch(new ContainerTypeSearchItem<C>(new SearchValue(type, "")), getPageBase());
+    protected Search createSearch(Class<C> type) {
+        return SearchFactory.createContainerSearch(new ContainerTypeSearchItem<>(new SearchValue<>(type, "")), getPageBase());
     }
 
     private void initLayout() {
@@ -235,7 +239,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
         List<IColumn<PO, String>> columns = createColumns();
         ISelectableDataProvider<C, PO> provider = createProvider();
-        BoxedTablePanel<PO> itemTable = new BoxedTablePanel<PO>(ID_ITEMS_TABLE,
+        BoxedTablePanel<PO> itemTable = new BoxedTablePanel<>(ID_ITEMS_TABLE,
                 provider, columns, getTableId()) {
             private static final long serialVersionUID = 1L;
 
@@ -248,7 +252,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             }
 
             @Override
-            protected org.apache.wicket.markup.repeater.Item customizeNewRowItem(org.apache.wicket.markup.repeater.Item item, IModel model) {
+            protected org.apache.wicket.markup.repeater.Item<PO> customizeNewRowItem(org.apache.wicket.markup.repeater.Item item, IModel model) {
                 String status = GuiImplUtil.getObjectStatus(model.getObject());
                 if (status != null) {
                     item.add(AttributeModifier.append("class", new IModel<String>() {
@@ -343,29 +347,18 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", createStringResource("MainObjectListPanel.newObject").getString());
     }
 
-//    public BoxedTablePanel getTable() {
-//        return (BoxedTablePanel) get(createComponentPath(ID_ITEMS, ID_ITEMS_TABLE));
-//    }
-
-//    public void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
-//        ajaxRequestTarget.add(getTable());
-//    }
-
     public BoxedTablePanel<PO> getTable() {
+        //noinspection unchecked
         return (BoxedTablePanel<PO>) get(ID_ITEMS).get(ID_ITEMS_TABLE);
     }
 
     public Class<C> getType() {
-        return getSearchModel().isLoaded() ? getSearchModel().getObject().getTypeClass() : (Class<C>) getDefaultType();
+        return getSearchModel().isLoaded() ? getSearchModel().getObject().getTypeClass() : getDefaultType();
     }
 
-    protected Class<? extends C> getDefaultType() {
+    protected Class<C> getDefaultType() {
         return defaultType;
     }
-
-    //    protected void setType(Class<? extends C> type) {
-//        this.type = type;
-//    }
 
     protected boolean enableSavePageSize() {
         return true;
@@ -382,7 +375,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         if (menuItems == null) {
             menuItems = new ArrayList<>();
         }
-        addCustomActions(menuItems, () -> getSelectedRealObjects());
+        addCustomActions(menuItems, this::getSelectedRealObjects);
 
         if (!menuItems.isEmpty()) {
             InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase());
@@ -391,6 +384,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return columns;
     }
 
+    @NotNull
     private List<IColumn<PO, String>> initViewColumns() {
         LOGGER.trace("Start to init custom columns for table of type {}", getType());
         List<IColumn<PO, String>> columns = new ArrayList<>();
@@ -424,143 +418,261 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         }
         IColumn<PO, String> column;
         for (GuiObjectColumnType customColumn : customColumns) {
-            if (customColumn.getPath() == null && (customColumn.getExport() == null || customColumn.getExport().getExpression() == null)) {
+            if (nothingToTransform(customColumn)) {
                 continue;
             }
             ItemPath columnPath = customColumn.getPath() == null ? null : customColumn.getPath().getItemPath();
             // TODO this throws an exception for some kinds of invalid paths like e.g. fullName/norm (but we probably should fix prisms in that case!)
             ExpressionType expression = customColumn.getExport() != null ? customColumn.getExport().getExpression() : null;
-            if (columnPath != null) {
-                ItemDefinition itemDefinition = getPageBase().getPrismContext().getSchemaRegistry()
-                        .findContainerDefinitionByCompileTimeClass(getType())
-                        .findItemDefinition(columnPath);
-                if (itemDefinition == null) { // TODO check  && expression == null) {
-                    LOGGER.warn("Unknown path '{}' in a definition of column '{}'", columnPath, customColumn.getName());
-                    continue;
-                }
+            if (noItemDefinitionFor(columnPath, customColumn)) {
+                continue;
             }
 
             if (WebComponentUtil.getElementVisibility(customColumn.getVisibility())) {
-                DisplayType displayType = customColumn.getDisplay();
-                PolyStringType label = displayType != null ? displayType.getLabel() : null;
-                String labelKey = label != null && label.getTranslation() != null ? label.getTranslation().getKey() : null;
-                IModel<String> columnDisplayModel =
-                        StringUtils.isNotEmpty(labelKey) ? createStringResource(labelKey) :
-                                (label != null && StringUtils.isNotEmpty(label.getOrig()) ?
-                                        Model.of(label.getOrig()) : (customColumn.getPath() != null ?
-                                            createStringResource(getItemDisplayName(customColumn)) :
-                                            Model.of(customColumn.getName())));
-
+                IModel<String> columnDisplayModel = createColumnDisplayModel(customColumn);
                 if (customColumns.indexOf(customColumn) == 0) {
                     // TODO what if a complex path is provided here?
-                    column = createNameColumn(columnDisplayModel, customColumn.getPath() == null ? "" : customColumn.getPath().toString(), null); //TODO check expression
+                    column = createNameColumn(columnDisplayModel, customColumn.getPath() == null ? "" : customColumn.getPath().toString(), expression);
                 } else {
-                    column = new AbstractExportableColumn<PO, String>(columnDisplayModel, customColumn.getSortProperty()) {
-                        private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public void populateItem(org.apache.wicket.markup.repeater.Item<ICellPopulator<PO>> item,
-                                String componentId, IModel<PO> rowModel) {
-                            item.add(new Label(componentId, getDataModel(rowModel)));
-                        }
-
-                        @Override
-                        public IModel<?> getDataModel(IModel<PO> rowModel) {
-                            PropertyModel<C> valueModel = new PropertyModel<>(rowModel, "value");
-                            C value = valueModel.getObject();
-                            if (value == null) {
-                                return Model.of("");
-                            }
-                            Item<?, ?> item = null;
-                            if (columnPath != null) {
-                                item = value.asPrismContainerValue().findItem(columnPath);
-                            }
-                            if (expression != null) {
-                                Task task = getPageBase().createSimpleTask("evaluate column expression");
-                                try {
-                                    Item object = value.asPrismContainerValue().getContainer();
-                                    if (item != null) {
-                                        object = item;
-                                    }
-                                    ExpressionVariables expressionVariables = new ExpressionVariables();
-                                    expressionVariables.put(ExpressionConstants.VAR_OBJECT, object, object.getClass());
-                                    String stringValue = ExpressionUtil.evaluateStringExpression(expressionVariables, getPageBase().getPrismContext(), expression,
-                                            MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
-                                            task, task.getResult()).iterator().next();
-                                    return Model.of(stringValue);
-                                } catch (Exception e) {
-                                    LOGGER.error("Couldn't execute expression for name column");
-                                    OperationResult result = task.getResult();
-                                    OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
-                                    return getPageBase().createStringResource(props.getStatusLabelKey());
-                                }
-                            }
-                            if (item != null) {
-                                if (item.getDefinition() != null && item.getDefinition().getValueEnumerationRef() != null &&
-                                        item.getDefinition().getValueEnumerationRef().getOid() != null){
-                                    String lookupTableOid = item.getDefinition().getValueEnumerationRef().getOid();
-                                    Task task = getPageBase().createSimpleTask("loadLookupTable");
-                                    OperationResult result = task.getResult();
-
-                                    Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-                                            .createLookupTableRetrieveOptions(getPageBase().getSchemaHelper());
-                                    PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
-                                            lookupTableOid, options, getPageBase(), task, result);
-                                    return getItemValuesString(item, customColumn.getDisplayValue(), lookupTable);
-                                } else {
-                                    return getItemValuesString(item, customColumn.getDisplayValue(), null);
-                                }
-                            } else {
-                                return Model.of("");
-                            }
-                        }
-
-                        @Override
-                        public String getCssClass() {
-                            return customColumn.getDisplay() != null ? customColumn.getDisplay().getCssClass() : "";
-                        }
-                    };
+                    column = createCustomExportableColumn(columnDisplayModel, customColumn, columnPath, expression);
                 }
-                if (column != null) {
-                    columns.add(column);
-                }
+
+                columns.add(column);
             }
         }
         return columns;
     }
 
-    private IModel<String> getItemValuesString(Item<?, ?> item, DisplayValueType displayValue, PrismObject<LookupTableType> lookupTable){
-        if (DisplayValueType.NUMBER.equals(displayValue)) {
-            return Model.of(String.valueOf(item.getValues().size()));
-        }
-        return Model.of(item.getValues().stream()
-                .filter(Objects::nonNull)
-                .map(itemValue -> {
-                    if (itemValue instanceof PrismPropertyValue) {
-                        if (lookupTable == null) {
-                            if (QNameUtil.match((itemValue).getTypeName(), PolyStringType.COMPLEX_TYPE)) {
-                                return WebComponentUtil.getTranslatedPolyString((PolyString)((PrismPropertyValue<?>) itemValue).getValue());
-                            }
-                            return String.valueOf(((PrismPropertyValue<?>) itemValue).getValue());
-                        } else {
-                            String lookupTableKey = ((PrismPropertyValue<?>) itemValue).getValue().toString();
-                            LookupTableType lookupTableObject = lookupTable.asObjectable();
-                            String rowLabel = "";
-                            for (LookupTableRowType lookupTableRow : lookupTableObject.getRow()){
-                                if (lookupTableRow.getKey().equals(lookupTableKey)){
-                                    rowLabel = lookupTableRow.getLabel() != null ? lookupTableRow.getLabel().getOrig() : lookupTableRow.getValue();
-                                    break;
-                                }
-                            }
-                            return rowLabel;
-                        }
-                    } else {
-                        return itemValue.toString();
-                    }
-                })
-                .collect(Collectors.joining(", ")));
+    private boolean nothingToTransform(GuiObjectColumnType customColumn) {
+        return customColumn.getPath() == null && (customColumn.getExport() == null || customColumn.getExport().getExpression() == null);
     }
 
+    private boolean noItemDefinitionFor(ItemPath columnPath, GuiObjectColumnType customColumn) {
+        if (columnPath != null) {
+            ItemDefinition itemDefinition = getPageBase().getPrismContext().getSchemaRegistry()
+                    .findContainerDefinitionByCompileTimeClass(getType())
+                    .findItemDefinition(columnPath);
+            if (itemDefinition == null) { // TODO check  && expression == null) {
+                LOGGER.warn("Unknown path '{}' in a definition of column '{}'", columnPath, customColumn.getName());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private IModel<String> createColumnDisplayModel(GuiObjectColumnType customColumn) {
+        DisplayType displayType = customColumn.getDisplay();
+        PolyStringType label = displayType != null ? displayType.getLabel() : null;
+        String labelKey = label != null && label.getTranslation() != null ? label.getTranslation().getKey() : null;
+        return StringUtils.isNotEmpty(labelKey) ? createStringResource(labelKey) :
+                (label != null && StringUtils.isNotEmpty(label.getOrig()) ?
+                        Model.of(label.getOrig()) : (customColumn.getPath() != null ?
+                        createStringResource(getItemDisplayName(customColumn)) :
+                        Model.of(customColumn.getName())));
+    }
+
+    private IColumn<PO, String> createCustomExportableColumn(IModel<String> columnDisplayModel, GuiObjectColumnType customColumn, ItemPath columnPath, ExpressionType expression) {
+        return new AbstractExportableColumn<>(columnDisplayModel, getSortProperty(customColumn, columnPath, expression)) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(org.apache.wicket.markup.repeater.Item<ICellPopulator<PO>> item,
+                    String componentId, IModel<PO> rowModel) {
+                item.add(new Label(componentId, getDataModel(rowModel)));
+            }
+
+            @Override
+            public IModel<?> getDataModel(IModel<PO> rowModel) {
+                return getExportableColumnDataModel(rowModel, customColumn, columnPath, expression);
+            }
+
+            @Override
+            public String getCssClass() {
+                return customColumn.getDisplay() != null ? customColumn.getDisplay().getCssClass() : "";
+            }
+        };
+    }
+
+    private String getSortProperty(GuiObjectColumnType customColumn, ItemPath columnPath, ExpressionType expressionType) {
+        String sortProperty = customColumn.getSortProperty();
+        if (sortProperty != null) {
+            return sortProperty;
+        }
+
+        // if there is an expression, it doesn't have a meaning to sort columns
+        // because such sort will work according to data in repo and if the expression
+        // somehow modify the data, it could be confusing
+        if (pathNotEmpty(columnPath) && expressionType == null) {
+            List<ItemPath> searchablePaths = getSearchablePaths(getType());
+
+            for (ItemPath searchablePath : searchablePaths) {
+                if (searchablePath.size() > 1) {
+                    //TODO: do we support such orderings in repo?
+                    continue; //eg. activation/administrative status.. sortParam (BaseSortableDataProvider) should be changes to ItemPath..
+                }
+                if (searchablePath.equivalent(columnPath)) {
+                    return columnPath.toString();
+                }
+            }
+        }
+        return null;
+    }
+
+    private List<ItemPath> getSearchablePaths(Class<C> type) {
+        List<ItemPath> availablePaths = SearchFactory.getAvailableSearchableItems(type);
+        if (CollectionUtils.isEmpty(availablePaths)) {
+            availablePaths = new ArrayList<>();
+        }
+        List<ItemPath> typePaths = new ArrayList<>(availablePaths);
+        return addSuperSearchablePaths(type, typePaths);
+    }
+
+    private List<ItemPath> addSuperSearchablePaths(Class<?> type, List<ItemPath> typePaths) {
+        Class<?> superClass = type.getSuperclass();
+        if (superClass == null) {
+            return typePaths;
+        }
+
+        List<ItemPath> superPaths = SearchFactory.getAvailableSearchableItems(superClass);
+        if (CollectionUtils.isNotEmpty(superPaths)) {
+            typePaths.addAll(superPaths);
+        }
+
+        return addSuperSearchablePaths(superClass, typePaths);
+    }
+
+    private boolean pathNotEmpty(ItemPath columnPath) {
+        return columnPath != null && !columnPath.isEmpty();
+    }
+
+    private IModel<?> getExportableColumnDataModel(IModel<PO> rowModel, GuiObjectColumnType customColumn, ItemPath columnPath, ExpressionType expression) {
+        return new ReadOnlyModel<>(() -> loadExportableColumnDataModel(rowModel, customColumn, columnPath, expression));
+    }
+
+    private String loadExportableColumnDataModel(IModel<PO> rowModel, GuiObjectColumnType customColumn, ItemPath columnPath, ExpressionType expression) {
+        C value = getRowRealValue(rowModel.getObject());
+        if (value == null) {
+            return "";
+        }
+        Item<?, ?> item = findItem(value, columnPath);
+
+        if (expression != null) {
+            return evaluateExpression(value, item, expression, customColumn);
+        }
+        if (item != null) {
+            return evaluateItemValues(item, customColumn.getDisplayValue());
+        }
+
+        return "";
+    }
+
+    protected abstract C getRowRealValue(PO rowModelObject);
+
+    private Item<?, ?> findItem(C rowRealValue, ItemPath columnPath) {
+        if (columnPath != null && !columnPath.isEmpty()) {
+            return rowRealValue.asPrismContainerValue().findItem(columnPath);
+        }
+        return null;
+    }
+
+    private String evaluateExpression(C rowValue, Item<?, ?> columnItem, ExpressionType expression, GuiObjectColumnType customColumn) {
+        Task task = getPageBase().createSimpleTask(OPERATION_EVALUATE_EXPRESSION);
+        OperationResult result = task.getResult();
+        try {
+            ExpressionVariables expressionVariables = new ExpressionVariables();
+            expressionVariables.put(ExpressionConstants.VAR_OBJECT, rowValue, rowValue.getClass());
+            if (columnItem != null) {
+                expressionVariables.put(ExpressionConstants.VAR_INPUT, columnItem, columnItem.getDefinition().getTypeClass());
+            }
+            Collection<String> evaluatedValues = ExpressionUtil.evaluateStringExpression(expressionVariables, getPageBase().getPrismContext(), expression,
+                    MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
+                    task, result);
+            String stringValue = null;
+            if (evaluatedValues != null) {
+                stringValue = evaluatedValues.iterator().next(); // TODO: what if more than one value is returned?
+            }
+
+            return stringValue;
+        } catch (Exception e) {
+            LOGGER.error("Couldn't execute expression for {} column. Reason: {}", customColumn, e.getMessage(), e);
+            result.recomputeStatus();
+            OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
+            return getPageBase().createStringResource(props.getStatusLabelKey()).getString();  //TODO: this is not entirely correct
+        }
+    }
+
+    private String evaluateItemValues(Item<?, ?> item, DisplayValueType displayValue) {
+        return getItemValuesString(item, displayValue, loadLookupTable(item));
+
+    }
+
+    private String getItemValuesString(Item<?, ?> item, DisplayValueType displayValue, PrismObject<LookupTableType> lookupTable){
+        if (DisplayValueType.NUMBER.equals(displayValue)) {
+            return String.valueOf(item.getValues().size());
+        }
+        return item.getValues().stream()
+                .filter(Objects::nonNull)
+                .map(itemValue -> getStringValue(itemValue,lookupTable))
+                .collect(Collectors.joining(", "));
+    }
+
+    private String getStringValue(PrismValue itemValue, PrismObject<LookupTableType> lookupTable) {
+        if (!(itemValue instanceof PrismPropertyValue)) {
+            return itemValue.toString();
+        }
+        PrismPropertyValue<?> prismPropertyValue = (PrismPropertyValue<?>) itemValue;
+        if (lookupTable == null) {
+            if (isPolyString(prismPropertyValue.getTypeName())) {
+                return WebComponentUtil.getTranslatedPolyString((PolyString) prismPropertyValue.getValue());
+            }
+            return String.valueOf(prismPropertyValue.getValue());
+        }
+
+        String lookupTableKey = prismPropertyValue.getValue().toString();
+        LookupTableType lookupTableObject = lookupTable.asObjectable();
+        String rowLabel = "";
+        for (LookupTableRowType lookupTableRow : lookupTableObject.getRow()){
+            if (lookupTableRow.getKey().equals(lookupTableKey)){
+                return lookupTableRow.getLabel() != null ? lookupTableRow.getLabel().getOrig() : lookupTableRow.getValue();
+            }
+        }
+        return rowLabel;
+
+    }
+
+    private boolean isPolyString(QName typeName) {
+        return QNameUtil.match(typeName, PolyStringType.COMPLEX_TYPE);
+    }
+
+    private PrismObject<LookupTableType> loadLookupTable(Item<?, ?> item) {
+        String lookupTableOid = getValueEnumerationRefOid(item);
+        if (lookupTableOid == null) {
+            return null;
+        }
+        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_LOOKUP_TABLE);
+        OperationResult result = task.getResult();
+
+        Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+                .createLookupTableRetrieveOptions(getPageBase().getSchemaHelper());
+        return WebModelServiceUtils.loadObject(LookupTableType.class,
+                lookupTableOid, options, getPageBase(), task, result);
+    }
+
+    private String getValueEnumerationRefOid(Item<?, ?> item) {
+        ItemDefinition<?> def = item.getDefinition();
+        if (def == null) {
+            return null;
+        }
+
+        PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
+        if (valueEnumerationRef == null) {
+            return null;
+        }
+
+        return valueEnumerationRef.getOid();
+    }
+
+    @NotNull
     private List<IColumn<PO, String>> initColumns() {
         LOGGER.trace("Start to init columns for table of type {}", getType());
         List<IColumn<PO, String>> columns = new ArrayList<>();
@@ -571,7 +683,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         if (others == null) {
             GuiObjectListViewType defaultView = DefaultColumnUtils.getDefaultView(getType());
             if (defaultView == null) {
-                return null;
+                return columns;
             }
             others = getViewColumnsTransformed(defaultView.getColumn());
         } else {
@@ -581,7 +693,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             }
         }
 
-        if (others != null) {
+        if (!others.isEmpty()) {
             columns.addAll(others);
         }
         LOGGER.trace("Finished to init columns, created columns {}", columns);
@@ -592,12 +704,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return new CheckBoxHeaderColumn<>();
     }
 
-    protected IColumn<PO, String> createIconColumn(){
-        return (IColumn<PO, String>) ColumnUtils.createIconColumn(getPageBase());
-    }
+    protected abstract IColumn<PO, String> createIconColumn();
 
-    protected IColumn<PO, String> createNameColumn(IModel<String> columnNameModel, String itemPath,
-            ExpressionType expression) {
+    protected IColumn<PO, String> createNameColumn(IModel<String> displayModel, String itemPath, ExpressionType expression) {
         return null;
     }
 
@@ -609,71 +718,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return null;
     }
 
-    protected ISelectableDataProvider<C, PO> createProvider() {
-//        SelectableBeanContainerDataProvider<C> provider = new SelectableBeanContainerDataProvider<C>(this,
-//                getType(), null, false){
-//            @Override
-//            protected PageStorage getPageStorage() {
-//                return ContainerableListPanel.this.getPageStorage();
-//            }
-//
-//            @Override
-//            public ObjectQuery getQuery() {
-//                return ContainerableListPanel.this.createQuery();
-//            }
-//
-//            @NotNull
-//            @Override
-//            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-//                List<ObjectOrdering> customOrdering =  createCustomOrdering(sortParam);
-//                if (customOrdering != null) {
-//                    return customOrdering;
-//                }
-//                return super.createObjectOrderings(sortParam);
-//            }
-//
-//            @Override
-//            public boolean isOrderingDisabled() {
-//                return ContainerableListPanel.this.isOrderingDisabled();
-//            }
-//        };
-//        provider.setOptions(createOptions());
-        ContainerListDataProvider<C> provider = new ContainerListDataProvider<C>(this,
-                getSearchModel(), createOptions()) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected PageStorage getPageStorage() {
-                return ContainerableListPanel.this.getPageStorage();
-            }
-
-            @Override
-            protected ObjectQuery getCustomizeContentQuery() {
-                return ContainerableListPanel.this.getCustomizeContentQuery();
-            }
-
-            @NotNull
-            @Override
-            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-                List<ObjectOrdering> customOrdering =  createCustomOrdering(sortParam);
-                if (customOrdering != null) {
-                    return customOrdering;
-                }
-                return super.createObjectOrderings(sortParam);
-            }
-
-            @Override
-            public boolean isOrderingDisabled() {
-                CompiledObjectCollectionView guiObjectListViewType = getObjectCollectionView();
-                if (guiObjectListViewType != null && guiObjectListViewType.isDisableSorting() != null) {
-                    return guiObjectListViewType.isDisableSorting();
-                }
-                return false;
-            }
-        };
-        setDefaultSorting(provider);
-        return (ISelectableDataProvider<C, PO>) provider;
-    }
+    protected abstract ISelectableDataProvider<C, PO> createProvider();
 
     public int getSelectedObjectsCount(){
         List<PO> selectedList = getSelectedObjects();
@@ -715,15 +760,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return null;
     }
 
-    protected List<ObjectOrdering> createCustomOrdering(SortParam<String> sortParam) {
-        return null;
-    }
-
     protected SearchFormPanel initSearch(String headerId) {
 
-        SearchFormPanel searchPanel = new SearchFormPanel(headerId, searchModel) {
-
-            private static final long serialVersionUID = 1L;
+        return new SearchFormPanel<>(headerId, searchModel) {
 
             @Override
             protected void searchPerformed(AjaxRequestTarget target) {
@@ -738,7 +777,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 }
             }
         };
-        return searchPanel;
     }
 
     public String getAdditionalBoxCssClasses() {
@@ -750,8 +788,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected List<Component> createToolbarButtonsList(String idButton){
-        List<Component> components = new ArrayList<>();
-        return components;
+        return new ArrayList<>();
     }
 
     protected String getStorageKey(){
@@ -767,14 +804,11 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     protected boolean isRefreshEnabled() {
         if (getAutoRefreshInterval() == 0) {
-            return manualRefreshEnabled != null && manualRefreshEnabled.booleanValue();
+            return manualRefreshEnabled != null && manualRefreshEnabled;
         }
 
-        if (manualRefreshEnabled == null) {
-            return true;
-        }
+        return Objects.requireNonNullElse(manualRefreshEnabled, true);
 
-        return manualRefreshEnabled.booleanValue();
     }
 
     protected int getAutoRefreshInterval() {
@@ -786,11 +820,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             }
 
             Integer autoRefreshInterval = view.getRefreshInterval();
-            if (autoRefreshInterval == null) {
-                return 0;
-            }
+            return Objects.requireNonNullElse(autoRefreshInterval, 0);
 
-            return autoRefreshInterval.intValue();
         }
         return 0;
     }
@@ -815,7 +846,11 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 return dashboardWidgetView;
             }
             Task task = getPageBase().createSimpleTask("Create view from dashboard");
-            DashboardType dashboard = WebModelServiceUtils.loadObject(DashboardType.class, dashboardOid, getPageBase(), task, task.getResult()).getRealValue();
+            PrismObject<DashboardType> dashboardType = WebModelServiceUtils.loadObject(DashboardType.class, dashboardOid, getPageBase(), task, task.getResult());
+            DashboardType dashboard = null;
+            if (dashboardType != null) {
+                dashboard = dashboardType.asObjectable();
+            }
             if (dashboard != null) {
                 for (DashboardWidgetType widget :dashboard.getWidget()) {
                     if (widget.getIdentifier().equals(dashboardWidgetName)
@@ -866,12 +901,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
 
-    @SuppressWarnings("unchecked")
     protected ISelectableDataProvider getDataProvider() {
         BoxedTablePanel<PO> table = getTable();
-        ISelectableDataProvider provider = (ISelectableDataProvider) table
-                .getDataTable().getDataProvider();
-        return provider;
+        return (ISelectableDataProvider) table.getDataTable().getDataProvider();
     }
 
     protected Collection<SelectorOptions<GetOperationOptions>> getOptions(){
@@ -893,10 +925,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     }
 
-    protected boolean isTypeChanged(Class<C> newTypeClass){
-        return !getType().equals(newTypeClass);
-    }
-
     public void resetSearchModel(){
         PageStorage storage = getPageStorage();
         if (storage != null) {
@@ -916,14 +944,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     public void clearCache() {
         WebComponentUtil.clearProviderCache(getDataProvider());
-    }
-
-    protected ObjectQuery getCustomizeContentQuery() {
-        return null;
-    }
-
-    protected void setDefaultSorting(BaseSortableDataProvider provider){
-        //should be overrided if needed
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
@@ -976,26 +996,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return searchModel;
     }
 
-    protected String getTableIdStringValue() {
-        UserProfileStorage.TableId tableId = getTableId();
-        if (tableId == null) {
-            String key;
-            if (getParent() == null) {
-                key = Classes.simpleName(getPageBase().getClass()) + "." + getId();
-            } else {
-                key = Classes.simpleName(getPageBase().getClass()) + "." + Classes.simpleName(getParent().getClass()) + "." + getId();
-            }
-            if (!isCollectionViewPanelForCompiledView()) {
-                return key;
-            }
-            return key + "." + getCollectionNameParameterValue().toString();
-        }
-        if (!isCollectionViewPanelForCompiledView()) {
-            return tableId.name();
-        }
-        return tableId.name() + "." + getCollectionNameParameterValue().toString();
-    }
-
     private static class ButtonBar extends Fragment {
 
         private static final long serialVersionUID = 1L;
@@ -1007,7 +1007,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         }
 
         private void initLayout(final List<Component> buttonsList) {
-            ListView<Component> buttonsView = new ListView<Component>(ID_BUTTON_REPEATER, Model.ofList(buttonsList)) {
+            ListView<Component> buttonsView = new ListView<>(ID_BUTTON_REPEATER, Model.ofList(buttonsList)) {
                 @Override
                 protected void populateItem(ListItem<Component> listItem) {
                     listItem.add(listItem.getModelObject());
@@ -1020,7 +1020,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     protected void createReportPerformed(AjaxRequestTarget target) {
         PrismContext prismContext = getPageBase().getPrismContext();
         PrismObjectDefinition<ReportType> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(ReportType.COMPLEX_TYPE);
-        PrismObject<ReportType> obj = null;
+        PrismObject<ReportType> obj;
         try {
             obj = def.instantiate();
         } catch (SchemaException e) {

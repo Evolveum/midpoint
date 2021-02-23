@@ -1,0 +1,2073 @@
+[1mdiff --git a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/component/menu/UserMenuPanel.html b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/component/menu/UserMenuPanel.html[m
+[1mindex 1ad590bf94..f25f90abc3 100644[m
+[1m--- a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/component/menu/UserMenuPanel.html[m
+[1m+++ b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/component/menu/UserMenuPanel.html[m
+[36m@@ -26,12 +26,6 @@[m
+                 <small wicket:id="focusType"/>[m
+             </p>[m
+         </li>[m
+[31m-        <!-- Menu Body -->[m
+[31m-        <li class="user-body">[m
+[31m-            <div class="col-xs-12 text-center">[m
+[31m-                <a wicket:id="passwordQuestions"/>[m
+[31m-            </div>[m
+[31m-        </li>[m
+         <!-- Menu Footer-->[m
+         <li class="user-footer">[m
+             <div class="pull-right">[m
+[1mdiff --git a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/component/menu/UserMenuPanel.java b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/component/menu/UserMenuPanel.java[m
+[1mindex 65ce52910b..e0e792eb58 100644[m
+[1m--- a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/component/menu/UserMenuPanel.java[m
+[1m+++ b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/component/menu/UserMenuPanel.java[m
+[36m@@ -8,20 +8,14 @@[m [mpackage com.evolveum.midpoint.web.component.menu;[m
+ [m
+ import java.io.IOException;[m
+ import java.net.URL;[m
+[31m-import java.util.ArrayList;[m
+[31m-import java.util.Collections;[m
+[31m-import java.util.List;[m
+ import javax.xml.namespace.QName;[m
+ [m
+[31m-import org.apache.commons.collections4.CollectionUtils;[m
+ import org.apache.commons.io.IOUtils;[m
+ import org.apache.wicket.AttributeModifier;[m
+[31m-import org.apache.wicket.ajax.AjaxRequestTarget;[m
+ import org.apache.wicket.markup.html.WebMarkupContainer;[m
+ import org.apache.wicket.markup.html.basic.Label;[m
+ import org.apache.wicket.markup.html.image.NonCachingImage;[m
+ import org.apache.wicket.model.IModel;[m
+[31m-import org.apache.wicket.model.Model;[m
+ import org.apache.wicket.request.resource.AbstractResource;[m
+ import org.apache.wicket.request.resource.ByteArrayResource;[m
+ import org.springframework.security.core.Authentication;[m
+[36m@@ -29,25 +23,16 @@[m [mimport org.springframework.security.core.context.SecurityContextHolder;[m
+ [m
+ import com.evolveum.midpoint.gui.api.component.BasePanel;[m
+ import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;[m
+[31m-import com.evolveum.midpoint.gui.api.page.PageBase;[m
+ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;[m
+ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;[m
+ import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;[m
+ import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;[m
+ import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;[m
+[31m-import com.evolveum.midpoint.prism.crypto.EncryptionException;[m
+[31m-import com.evolveum.midpoint.prism.crypto.Protector;[m
+ import com.evolveum.midpoint.security.api.MidPointPrincipal;[m
+ import com.evolveum.midpoint.util.logging.Trace;[m
+ import com.evolveum.midpoint.util.logging.TraceManager;[m
+[31m-import com.evolveum.midpoint.web.component.AjaxButton;[m
+ import com.evolveum.midpoint.web.component.form.MidpointForm;[m
+[31m-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;[m
+[31m-import com.evolveum.midpoint.web.page.admin.home.PageMyPasswordQuestions;[m
+[31m-import com.evolveum.midpoint.web.page.admin.home.dto.PasswordQuestionsDto;[m
+[31m-import com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;[m
+ import com.evolveum.midpoint.web.security.util.SecurityUtils;[m
+[31m-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;[m
+ [m
+ /**[m
+  * @author lazyman[m
+[36m@@ -111,25 +96,6 @@[m [mpublic class UserMenuPanel extends BasePanel<UserMenuPanel> {[m
+ [m
+         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);[m
+         form.add(csrfField);[m
+[31m-[m
+[31m-        AjaxButton editPasswordQ = new AjaxButton(ID_PASSWORD_QUESTIONS,[m
+[31m-                createStringResource("UserMenuPanel.editPasswordQuestions")) {[m
+[31m-[m
+[31m-            @Override[m
+[31m-            public void onClick(AjaxRequestTarget target) {[m
+[31m-                PageMyPasswordQuestions myPasswordQuestions = new PageMyPasswordQuestions(Model.of(getPasswordQuestions()));[m
+[31m-                setResponsePage(myPasswordQuestions);[m
+[31m-            }[m
+[31m-[m
+[31m-        };[m
+[31m-        editPasswordQ.add(new VisibleEnableBehaviour() {[m
+[31m-            @Override[m
+[31m-            public boolean isVisible() {[m
+[31m-                return hasQuestions() || (CollectionUtils.isNotEmpty(getSecurityQuestions()));[m
+[31m-            }[m
+[31m-        });[m
+[31m-        add(editPasswordQ);[m
+[31m-[m
+     }[m
+ [m
+     private IModel<AbstractResource> loadJpegPhotoModel() {[m
+[36m@@ -198,70 +164,4 @@[m [mpublic class UserMenuPanel extends BasePanel<UserMenuPanel> {[m
+         QName type = WebComponentUtil.classToQName(getPageBase().getPrismContext(), WebModelServiceUtils.getLoggedInFocus().getClass());[m
+         return type.getLocalPart();[m
+     }[m
+[31m-[m
+[31m-    private PasswordQuestionsDto getPasswordQuestions() {[m
+[31m-        PasswordQuestionsDto dto = new PasswordQuestionsDto();[m
+[31m-        dto.setSecurityAnswers(createUsersSecurityQuestionsList());[m
+[31m-        return dto;[m
+[31m-    }[m
+[31m-[m
+[31m-    public List<SecurityQuestionAnswerDTO> createUsersSecurityQuestionsList() {[m
+[31m-        GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();[m
+[31m-        if (principal == null) {[m
+[31m-            return null;[m
+[31m-        }[m
+[31m-[m
+[31m-        FocusType focus = principal.getFocus();[m
+[31m-        CredentialsType credentialsType = focus.getCredentials();[m
+[31m-        if (credentialsType == null) {[m
+[31m-            return null;[m
+[31m-        }[m
+[31m-[m
+[31m-        SecurityQuestionsCredentialsType credentialsPolicyType = credentialsType.getSecurityQuestions();[m
+[31m-        if (credentialsPolicyType == null) {[m
+[31m-            return null;[m
+[31m-        }[m
+[31m-        List<SecurityQuestionAnswerType> secQuestAnsList = credentialsPolicyType.getQuestionAnswer();[m
+[31m-[m
+[31m-        if (secQuestAnsList != null) {[m
+[31m-            List<SecurityQuestionAnswerDTO> secQuestAnswListDTO = new ArrayList<>();[m
+[31m-            for (SecurityQuestionAnswerType securityQuestionAnswerType : secQuestAnsList) {[m
+[31m-                Protector protector = ((PageBase) getPage()).getPrismContext().getDefaultProtector();[m
+[31m-                if (securityQuestionAnswerType.getQuestionAnswer() != null && securityQuestionAnswerType.getQuestionAnswer().getEncryptedDataType() != null) {[m
+[31m-                    try {[m
+[31m-                        String decoded = protector.decryptString(securityQuestionAnswerType.getQuestionAnswer());[m
+[31m-                        secQuestAnswListDTO.add(new SecurityQuestionAnswerDTO(securityQuestionAnswerType[m
+[31m-                                .getQuestionIdentifier(), decoded));[m
+[31m-                    } catch (EncryptionException e) {[m
+[31m-                        // TODO do we need to thrown exception here?[m
+[31m-                        LOGGER.error("Could not get security questions. Error: " + e.getMessage(), e);[m
+[31m-                    }[m
+[31m-                }[m
+[31m-            }[m
+[31m-[m
+[31m-            return secQuestAnswListDTO;[m
+[31m-        } else {[m
+[31m-            return null;[m
+[31m-        }[m
+[31m-    }[m
+[31m-[m
+[31m-    private List<SecurityQuestionDefinitionType> getSecurityQuestions() {[m
+[31m-            GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();[m
+[31m-[m
+[31m-            CredentialsPolicyType credentialsPolicyType = principal.getApplicableSecurityPolicy().getCredentials();[m
+[31m-            if (credentialsPolicyType == null) {[m
+[31m-                return Collections.emptyList();[m
+[31m-            }[m
+[31m-            SecurityQuestionsCredentialsPolicyType securityQuestionsPolicy = credentialsPolicyType.getSecurityQuestions();[m
+[31m-            if (securityQuestionsPolicy == null) {[m
+[31m-                return Collections.emptyList();[m
+[31m-            }[m
+[31m-[m
+[31m-            return securityQuestionsPolicy.getQuestion();[m
+[31m-    }[m
+[31m-[m
+[31m-    private boolean hasQuestions() {[m
+[31m-        PasswordQuestionsDto passwordQuestionsDto = getPasswordQuestions();[m
+[31m-        return passwordQuestionsDto.getPwdQuestion() != null && !passwordQuestionsDto.getPwdQuestion().trim().equals("");[m
+[31m-    }[m
+ }[m
+[1mdiff --git a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/admin/home/component/MyPasswordQuestionsPanel.java b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/admin/home/component/MyPasswordQuestionsPanel.java[m
+[1mindex a8614fa9cd..b297554d47 100644[m
+[1m--- a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/admin/home/component/MyPasswordQuestionsPanel.java[m
+[1m+++ b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/admin/home/component/MyPasswordQuestionsPanel.java[m
+[36m@@ -12,6 +12,7 @@[m [mimport java.util.List;[m
+ import org.apache.wicket.markup.html.basic.Label;[m
+ import org.apache.wicket.markup.html.form.FormComponent;[m
+ import org.apache.wicket.markup.html.form.TextField;[m
+[32m+[m[32mimport org.apache.wicket.model.IModel;[m
+ import org.apache.wicket.model.PropertyModel;[m
+ [m
+ import com.evolveum.midpoint.web.component.prism.InputPanel;[m
+[36m@@ -20,48 +21,37 @@[m [mimport com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;[m
+ [m
+ public class MyPasswordQuestionsPanel extends InputPanel {[m
+ [m
+[31m-    public static final String F_QUESTION = "questionTF";[m
+[31m-    public static final String F_ANSWER = "answerTF";[m
+[31m-    private static final String ID_QA_PANEL = "questionAnswerPanel";[m
+[31m-    PasswordQuestionsDto mod = new PasswordQuestionsDto();[m
+[32m+[m[32m    public static final String ID_QUESTION = "questionTF";[m
+[32m+[m[32m    public static final String ID_ANSWER = "answerTF";[m
+ [m
+[31m-    public MyPasswordQuestionsPanel(String id, SecurityQuestionAnswerDTO model) {[m
+[31m-        super(ID_QA_PANEL);[m
+[31m-[m
+[31m-        mod.setPwdQuestion(model.getQuestionItself());[m
+[31m-[m
+[31m-        mod.setPwdAnswer(model.getPwdAnswer());[m
+[31m-[m
+[31m-        initLayout();[m
+[32m+[m[32m    public MyPasswordQuestionsPanel(String id, IModel<SecurityQuestionAnswerDTO> model) {[m
+[32m+[m[32m        super(id);[m
+[32m+[m[32m        initLayout(model);[m
+     }[m
+ [m
+[31m-    public void initLayout() {[m
+[31m-        // final Label question = new Label (F_QUESTION, mod.getPwdQuestion());[m
+[31m-        final Label question = new Label(F_QUESTION, new PropertyModel<PasswordQuestionsDto>(mod,[m
+[31m-                PasswordQuestionsDto.F_MY_QUESTIONS_QUESTIONITSELF));[m
+[32m+[m[32m    public void initLayout(IModel<SecurityQuestionAnswerDTO> model) {[m
+[32m+[m[32m        final Label question = new Label(ID_QUESTION, new PropertyModel<String>(model,[m
+[32m+[m[32m                SecurityQuestionAnswerDTO.F_PASSWORD_QUESTION_ITSELF));[m
+         question.setOutputMarkupId(true);[m
+         add(question);[m
+ [m
+[31m-        final TextField<String> answer = new TextField<String>(F_ANSWER, new PropertyModel(mod,[m
+[32m+[m[32m        final TextField<String> answer = new TextField<String>(ID_ANSWER, new PropertyModel(model,[m
+                 SecurityQuestionAnswerDTO.F_PASSWORD_QUESTION_ANSWER));[m
+[31m-        answer.setRequired(true);[m
+         answer.setOutputMarkupId(true);[m
+         add(answer);[m
+[31m-[m
+     }[m
+ [m
+     @Override[m
+     public List<FormComponent> getFormComponents() {[m
+         List<FormComponent> list = new ArrayList<>();[m
+[31m-        list.add((FormComponent) get(F_QUESTION));[m
+[31m-        list.add((FormComponent) get(F_ANSWER));[m
+[32m+[m[32m        list.add((FormComponent) get(ID_QUESTION));[m
+[32m+[m[32m        list.add((FormComponent) get(ID_ANSWER));[m
+ [m
+         return list;[m
+     }[m
+ [m
+     @Override[m
+     public FormComponent getBaseFormComponent() {[m
+[31m-        return (FormComponent) get(F_QUESTION);[m
+[32m+[m[32m        return (FormComponent) get(ID_ANSWER);[m
+     }[m
+[31m-[m
+ }[m
+[1mdiff --git a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/admin/home/dto/MyCredentialsDto.java b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/admin/home/dto/MyCredentialsDto.java[m
+[1mindex 824cfa4cf8..f3313d1b31 100644[m
+[1m--- a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/admin/home/dto/MyCredentialsDto.java[m
+[1m+++ b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/admin/home/dto/MyCredentialsDto.java[m
+[36m@@ -6,9 +6,33 @@[m
+  */[m
+ package com.evolveum.midpoint.web.page.admin.home.dto;[m
+ [m
+[32m+[m[32mimport java.io.Serializable;[m
+[32m+[m
+ /**[m
+  * @author skublik[m
+  */[m
+ [m
+[31m-public class MyCredentialsDto {[m
+[32m+[m[32mpublic class MyCredentialsDto implements Serializable {[m
+[32m+[m
+[32m+[m[32m    public static final String F_MY_PASSOWRDS_DTO = "myPasswordsDto";[m
+[32m+[m[32m    public static final String F_PASSWORD_QUESTIONS_DTO = "passwordQuestionsDto";[m
+[32m+[m
+[32m+[m[32m    private MyPasswordsDto myPasswordsDto;[m
+[32m+[m[32m    private PasswordQuestionsDto passwordQuestionsDto;[m
+[32m+[m
+[32m+[m[32m    public MyPasswordsDto getMyPasswordsDto() {[m
+[32m+[m[32m        return myPasswordsDto;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    public void setMyPasswordsDto(MyPasswordsDto myPasswordsDto) {[m
+[32m+[m[32m        this.myPasswordsDto = myPasswordsDto;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    public PasswordQuestionsDto getPasswordQuestionsDto() {[m
+[32m+[m[32m        return passwordQuestionsDto;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    public void setPasswordQuestionsDto(PasswordQuestionsDto passwordQuestionsDto) {[m
+[32m+[m[32m        this.passwordQuestionsDto = passwordQuestionsDto;[m
+[32m+[m[32m    }[m
+ }[m
+[1mdiff --git a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/admin/home/dto/PasswordQuestionsDto.java b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/admin/home/dto/PasswordQuestionsDto.java[m
+[1mindex e8e3e7a9a8..eb0e4f10bb 100644[m
+[1m--- a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/admin/home/dto/PasswordQuestionsDto.java[m
+[1m+++ b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/admin/home/dto/PasswordQuestionsDto.java[m
+[36m@@ -7,64 +7,49 @@[m
+ package com.evolveum.midpoint.web.page.admin.home.dto;[m
+ [m
+ import java.io.Serializable;[m
+[32m+[m[32mimport java.util.ArrayList;[m
+ import java.util.List;[m
+ [m
+ import com.evolveum.midpoint.prism.PrismContainer;[m
+[32m+[m[32mimport com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionDefinitionType;[m
+ [m
+ public class PasswordQuestionsDto implements Serializable{[m
+ [m
+[31m-    public static final String F_MY_QUESTIONS_ANSWERS = "questionAnswers";[m
+[31m-    public static final String F_MY_QUESTIONS_ANSWER = "passwAnswer";[m
+[31m-    public static final String F_MY_QUESTIONS_QUESTIONITSELF = "passwQuestion";[m
+[31m-[m
+[31m-    private String passwQuestion;[m
+[31m-    private String passwAnswer;[m
+[31m-[m
+[31m-    private List<SecurityQuestionAnswerDTO> questionAnswers;[m
+[32m+[m[32m    private List<SecurityQuestionAnswerDTO> userQuestionAnswers;[m
+[32m+[m[32m    private List<SecurityQuestionAnswerDTO> actualQuestionAnswers = new ArrayList<>();[m
+[32m+[m[32m    private final String focusOid;[m
+ [m
+     private PrismContainer credentials;[m
+ [m
+[31m-    /*public PasswordQuestionsDto(String passwQuestion){[m
+[31m-        this.passwQuestion = passwQuestion;[m
+[31m-    }*/[m
+[31m-    public PasswordQuestionsDto(){[m
+[31m-[m
+[32m+[m[32m    public PasswordQuestionsDto(String focusOid){[m
+[32m+[m[32m        this.focusOid = focusOid;[m
+     }[m
+ [m
+[31m-    public PasswordQuestionsDto(String passwQuestion, String passAnswer){[m
+[31m-        this.passwQuestion = passwQuestion;[m
+[31m-        this.passwAnswer = passAnswer;[m
+[32m+[m[32m    public String getFocusOid() {[m
+[32m+[m[32m        return focusOid;[m
+     }[m
+ [m
+[31m-    public String getPwdQuestion() {[m
+[31m-        return passwQuestion;[m
+[31m-    }[m
+[31m-    public void setPwdQuestion(String pwdQuestion) {[m
+[31m-        this.passwQuestion = pwdQuestion;[m
+[32m+[m[32m    public PrismContainer getCredentials() {[m
+[32m+[m[32m        return credentials;[m
+     }[m
+[31m-    public String getPwdAnswer() {[m
+[31m-        return passwAnswer;[m
+[31m-    }[m
+[31m-    public void setPwdAnswer(String pwdAnswer) {[m
+[31m-        this.passwAnswer = pwdAnswer;[m
+[31m-    }[m
+[31m-[m
+[31m-       public PrismContainer getCredentials() {[m
+[31m-            return credentials;[m
+[31m-        }[m
+ [m
+[31m-        public void setCredentials(PrismContainer credentials) {[m
+[31m-            this.credentials = credentials;[m
+[31m-        }[m
+[31m-[m
+[31m-        public List<SecurityQuestionAnswerDTO> getSecurityAnswers() {[m
+[31m-            return questionAnswers;[m
+[31m-        }[m
+[32m+[m[32m    public void setCredentials(PrismContainer credentials) {[m
+[32m+[m[32m        this.credentials = credentials;[m
+[32m+[m[32m    }[m
+ [m
+[31m-        public void setSecurityAnswers(List<SecurityQuestionAnswerDTO> securityAnswers) {[m
+[31m-            this.questionAnswers = securityAnswers;[m
+[31m-        }[m
+[32m+[m[32m    public List<SecurityQuestionAnswerDTO> getUserQuestionAnswers() {[m
+[32m+[m[32m        return userQuestionAnswers;[m
+[32m+[m[32m    }[m
+ [m
+[32m+[m[32m    public void setUserQuestionAnswers(List<SecurityQuestionAnswerDTO> userQuestionAnswers) {[m
+[32m+[m[32m        this.userQuestionAnswers = userQuestionAnswers;[m
+[32m+[m[32m    }[m
+ [m
+[32m+[m[32m    public List<SecurityQuestionAnswerDTO> getActualQuestionAnswers() {[m
+[32m+[m[32m        return actualQuestionAnswers;[m
+[32m+[m[32m    }[m
+ [m
+[32m+[m[32m    public void setActualQuestionAnswers(List<SecurityQuestionAnswerDTO> actualQuestionAnswers) {[m
+[32m+[m[32m        this.actualQuestionAnswers = actualQuestionAnswers;[m
+[32m+[m[32m    }[m
+ }[m
+[1mdiff --git a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/admin/home/dto/SecurityQuestionAnswerDTO.java b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/admin/home/dto/SecurityQuestionAnswerDTO.java[m
+[1mindex 41eea147cf..8766061ccb 100644[m
+[1m--- a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/admin/home/dto/SecurityQuestionAnswerDTO.java[m
+[1m+++ b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/admin/home/dto/SecurityQuestionAnswerDTO.java[m
+[36m@@ -27,17 +27,17 @@[m [mpublic class SecurityQuestionAnswerDTO implements Serializable {[m
+         this.passwQuestionIdentifier = passwQuestion;[m
+         this.passwAnswer = passAnswer;[m
+     }[m
+[31m-    public SecurityQuestionAnswerDTO(String passwQuestion, String passAnswer,String questionitself){[m
+[32m+[m[32m    public SecurityQuestionAnswerDTO(String passwQuestion, String passAnswer, String questionitself){[m
+         this.passwQuestionIdentifier = passwQuestion;[m
+         this.passwAnswer = passAnswer;[m
+         this.questionItself=questionitself;[m
+     }[m
+ [m
+[31m-    public String getPwdQuestion() {[m
+[32m+[m[32m    public String getPwdQuestionIdentifier() {[m
+         return passwQuestionIdentifier;[m
+     }[m
+[31m-    public void setPwdQuestion(String pwdQuestion) {[m
+[31m-        this.passwQuestionIdentifier = pwdQuestion;[m
+[32m+[m[32m    public void setPwdQuestionIdentifier(String passwQuestionIdentifier) {[m
+[32m+[m[32m        this.passwQuestionIdentifier = passwQuestionIdentifier;[m
+     }[m
+     public String getPwdAnswer() {[m
+         return passwAnswer;[m
+[36m@@ -46,10 +46,10 @@[m [mpublic class SecurityQuestionAnswerDTO implements Serializable {[m
+         this.passwAnswer = pwdAnswer;[m
+     }[m
+ [m
+[31m-    public String getQuestionItself() {[m
+[32m+[m[32m    public String getPwdQuestion() {[m
+         return questionItself;[m
+     }[m
+[31m-    public void setQuestionItself(String questionItself) {[m
+[32m+[m[32m    public void setPwdQuestion(String questionItself) {[m
+         this.questionItself = questionItself;[m
+     }[m
+ [m
+[1mdiff --git a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/forgetpassword/PageResetPassword.java b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/forgetpassword/PageResetPassword.java[m
+[1mindex a2d4295584..815fd02a0e 100644[m
+[1m--- a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/forgetpassword/PageResetPassword.java[m
+[1m+++ b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/forgetpassword/PageResetPassword.java[m
+[36m@@ -72,7 +72,7 @@[m [mpublic class PageResetPassword extends PageAbstractSelfCredentials{[m
+             result.setMessage(getString("PageResetPassword.reset.successful"));[m
+             setResponsePage(PageLogin.class);[m
+ [m
+[31m-            MyPasswordsDto passwords = getModelObject();[m
+[32m+[m[32m            MyPasswordsDto passwords = getPasswordDto();[m
+             PrismObject<? extends FocusType> focus = passwords.getFocus();[m
+             if (focus == null) {[m
+                 SecurityContextHolder.getContext().setAuthentication(null);[m
+[36m@@ -111,13 +111,13 @@[m [mpublic class PageResetPassword extends PageAbstractSelfCredentials{[m
+     }[m
+ [m
+     @Override[m
+[31m-    protected boolean shouldLoadAccounts(MyPasswordsDto dto) {[m
+[32m+[m[32m    protected boolean shouldLoadAccounts() {[m
+         return false;[m
+     }[m
+ [m
+     @Override[m
+     protected List<PasswordAccountDto> getSelectedAccountsList() {[m
+[31m-        List<PasswordAccountDto> accounts = getModelObject().getAccounts();[m
+[32m+[m[32m        List<PasswordAccountDto> accounts = getPasswordDto().getAccounts();[m
+         if (accounts.isEmpty()) {[m
+             return Collections.emptyList();[m
+         }[m
+[1mdiff --git a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/forgetpassword/PageSecurityQuestions.java b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/forgetpassword/PageSecurityQuestions.java[m
+[1mindex 983b91db4a..89625806c8 100644[m
+[1m--- a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/forgetpassword/PageSecurityQuestions.java[m
+[1m+++ b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/forgetpassword/PageSecurityQuestions.java[m
+[36m@@ -14,6 +14,8 @@[m [mimport javax.mail.*;[m
+ import javax.mail.internet.InternetAddress;[m
+ import javax.mail.internet.MimeMessage;[m
+ [m
+[32m+[m[32mimport com.evolveum.midpoint.gui.api.model.LoadableModel;[m
+[32m+[m
+ import org.apache.commons.lang3.StringEscapeUtils;[m
+ import org.apache.wicket.RestartResponseException;[m
+ import org.apache.wicket.ajax.AjaxRequestTarget;[m
+[36m@@ -68,6 +70,7 @@[m [mpublic class PageSecurityQuestions extends PageBase {[m
+     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loaduser";[m
+     private static final String OPERATION_LOAD_QUESTION_POLICY = DOT_CLASS + "LOAD Question Policy";[m
+     private static final String ID_PASSWORD_QUESTIONS_PANEL = "pwdQuestionsPanel";[m
+[32m+[m[32m    private static final String ID_QUESTION_ANSWER_PANEL = "questionAnswerPanel";[m
+     private static final String OPERATION_RESET_PASSWORD = DOT_CLASS + "resetPassword";[m
+     private static final String ID_MAIN_FORM = "mainForm";[m
+     private static final String ID_BACK = "back";[m
+[36m@@ -115,7 +118,7 @@[m [mpublic class PageSecurityQuestions extends PageBase {[m
+         questionNumber = secQuestionsPolicy != null ? secQuestionsPolicy.getQuestionNumber() : 1;[m
+         questionList = secQuestionsPolicy != null ? secQuestionsPolicy.getQuestion() : new ArrayList<>();[m
+ [m
+[31m-        List<SecurityQuestionAnswerDTO> userQuestionAnswerList = questions.getSecurityAnswers();[m
+[32m+[m[32m        List<SecurityQuestionAnswerDTO> userQuestionAnswerList = questions.getUserQuestionAnswers();[m
+ [m
+         if (userQuestionAnswerList == null) {[m
+             getSession().error(getString("pageForgetPassword.message.ContactAdminQuestionsNotSet"));[m
+[36m@@ -133,13 +136,19 @@[m [mpublic class PageSecurityQuestions extends PageBase {[m
+             for (SecurityQuestionAnswerDTO questionAnswer : userQuestionAnswerList) {[m
+ [m
+                 // if the question is in the policy check[m
+[31m-                if (questionAnswer.getPwdQuestion().equalsIgnoreCase(question.getIdentifier())) {[m
+[31m-[m
+[31m-                    SecurityQuestionAnswerDTO a = new SecurityQuestionAnswerDTO(questionAnswer.getPwdQuestion(), "",[m
+[31m-                            questionAnswer.getQuestionItself());[m
+[31m-                    a = checkIfQuestionIsValid(a, questionList);[m
+[32m+[m[32m                if (questionAnswer.getPwdQuestionIdentifier().equalsIgnoreCase(question.getIdentifier())) {[m
+[32m+[m[32m                    LoadableModel<SecurityQuestionAnswerDTO> model = new LoadableModel<SecurityQuestionAnswerDTO>() {[m
+[32m+[m[32m                        @Override[m
+[32m+[m[32m                        protected SecurityQuestionAnswerDTO load() {[m
+[32m+[m[32m                            SecurityQuestionAnswerDTO a = new SecurityQuestionAnswerDTO(questionAnswer.getPwdQuestionIdentifier(), "",[m
+[32m+[m[32m                                    questionAnswer.getPwdQuestion());[m
+[32m+[m[32m                            a = checkIfQuestionIsValid(a, questionList);[m
+[32m+[m[32m                            return a;[m
+[32m+[m[32m                        }[m
+[32m+[m[32m                    };[m
+                     MyPasswordQuestionsPanel panel = new MyPasswordQuestionsPanel([m
+[31m-                            ID_PASSWORD_QUESTIONS_PANEL + panelNumber, a);[m
+[32m+[m[32m                            ID_QUESTION_ANSWER_PANEL, model);[m
+[32m+[m[32m                    panel.getBaseFormComponent().setRequired(true);[m
+                     pqPanels.add(panel);[m
+                     panelNumber++;[m
+                 }[m
+[36m@@ -235,16 +244,16 @@[m [mpublic class PageSecurityQuestions extends PageBase {[m
+ [m
+         int correctAnswers = 0;[m
+         for (MyPasswordQuestionsPanel type : pqPanels) {[m
+[31m-            List<SecurityQuestionAnswerDTO> userQuestionList = questions.getSecurityAnswers();[m
+[32m+[m[32m            List<SecurityQuestionAnswerDTO> userQuestionList = questions.getUserQuestionAnswers();[m
+             if (userQuestionList != null) {[m
+                 for (SecurityQuestionAnswerDTO securityQuestionAnswerDTO : userQuestionList) {[m
+                     // TODO do this in a proper way, what is this.[m
+                     String results = StringEscapeUtils.unescapeHtml4([m
+[31m-                            type.get(MyPasswordQuestionsPanel.F_QUESTION).getDefaultModelObjectAsString());[m
+[32m+[m[32m                            type.get(MyPasswordQuestionsPanel.ID_QUESTION).getDefaultModelObjectAsString());[m
+                     if (getQuestionIdentifierFromQuestion(results).trim().equalsIgnoreCase([m
+[31m-                            securityQuestionAnswerDTO.getPwdQuestion().trim())) {[m
+[32m+[m[32m                            securityQuestionAnswerDTO.getPwdQuestionIdentifier().trim())) {[m
+ [m
+[31m-                        if (((TextField<String>) type.get(MyPasswordQuestionsPanel.F_ANSWER)).getModelObject()[m
+[32m+[m[32m                        if (((TextField<String>) type.get(MyPasswordQuestionsPanel.ID_ANSWER)).getModelObject()[m
+                                 .equalsIgnoreCase(securityQuestionAnswerDTO.getPwdAnswer())) {[m
+                             correctAnswers++;[m
+                         }[m
+[36m@@ -288,8 +297,8 @@[m [mpublic class PageSecurityQuestions extends PageBase {[m
+         if (user == null) {[m
+             throw new RestartResponseException(PageLogin.class);        // TODO[m
+         }[m
+[31m-        questions = new PasswordQuestionsDto();[m
+[31m-        questions.setSecurityAnswers(createUsersSecurityQuestionsList(user));[m
+[32m+[m[32m        questions = new PasswordQuestionsDto(userOid);[m
+[32m+[m[32m        questions.setUserQuestionAnswers(createUsersSecurityQuestionsList(user));[m
+     }[m
+ [m
+     private List<SecurityQuestionAnswerDTO> createUsersSecurityQuestionsList(PrismObject<UserType> user) {[m
+[36m@@ -336,8 +345,8 @@[m [mpublic class PageSecurityQuestions extends PageBase {[m
+ [m
+         for (SecurityQuestionDefinitionType securityQuestionDefinitionType : securityQuestionList) {[m
+             if (securityQuestionDefinitionType.getIdentifier().trim()[m
+[31m-                    .equalsIgnoreCase(questionIdentifier.getPwdQuestion().trim())) {[m
+[31m-                questionIdentifier.setQuestionItself(securityQuestionDefinitionType.getQuestionText());[m
+[32m+[m[32m                    .equalsIgnoreCase(questionIdentifier.getPwdQuestionIdentifier().trim())) {[m
+[32m+[m[32m                questionIdentifier.setPwdQuestion(securityQuestionDefinitionType.getQuestionText());[m
+                 return questionIdentifier;[m
+             }[m
+         }[m
+[1mdiff --git a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/self/PageAbstractSelfCredentials.java b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/self/PageAbstractSelfCredentials.java[m
+[1mindex bf9956e9ff..2cc851c8bf 100644[m
+[1m--- a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/self/PageAbstractSelfCredentials.java[m
+[1m+++ b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/self/PageAbstractSelfCredentials.java[m
+[36m@@ -11,39 +11,32 @@[m [mimport java.util.Collection;[m
+ import java.util.Collections;[m
+ import java.util.List;[m
+ [m
+[31m-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;[m
+[31m-[m
+[31m-import com.evolveum.midpoint.model.api.ModelPublicConstants;[m
+ import com.evolveum.midpoint.schema.*;[m
+ import com.evolveum.midpoint.web.component.progress.ProgressReporter;[m
+ [m
+[32m+[m[32mimport com.evolveum.midpoint.web.page.admin.home.dto.MyCredentialsDto;[m
+[32m+[m[32mimport com.evolveum.midpoint.web.page.self.component.SecurityQuestionsPanel;[m
+ import com.evolveum.midpoint.web.security.MidPointApplication;[m
+ [m
+[31m-import org.apache.commons.collections4.CollectionUtils;[m
+ import org.apache.wicket.Component;[m
+ import org.apache.wicket.ajax.AjaxRequestTarget;[m
+ import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;[m
+ import org.apache.wicket.extensions.markup.html.tabs.ITab;[m
+ import org.apache.wicket.markup.html.WebMarkupContainer;[m
+ import org.apache.wicket.markup.html.form.Form;[m
+[32m+[m[32mimport org.apache.wicket.model.IModel;[m
+ import org.apache.wicket.model.Model;[m
+ [m
+[31m-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;[m
+ import com.evolveum.midpoint.gui.api.model.LoadableModel;[m
+ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;[m
+[31m-import com.evolveum.midpoint.prism.PrismObject;[m
+ import com.evolveum.midpoint.prism.PrismObjectDefinition;[m
+[31m-import com.evolveum.midpoint.prism.PrismReference;[m
+[31m-import com.evolveum.midpoint.prism.PrismReferenceValue;[m
+ import com.evolveum.midpoint.prism.delta.ObjectDelta;[m
+ import com.evolveum.midpoint.prism.delta.PropertyDelta;[m
+ import com.evolveum.midpoint.prism.path.ItemPath;[m
+ import com.evolveum.midpoint.prism.schema.SchemaRegistry;[m
+ import com.evolveum.midpoint.schema.constants.SchemaConstants;[m
+ import com.evolveum.midpoint.schema.result.OperationResult;[m
+[31m-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;[m
+ import com.evolveum.midpoint.task.api.Task;[m
+[31m-import com.evolveum.midpoint.util.exception.*;[m
+ import com.evolveum.midpoint.util.logging.LoggingUtils;[m
+ import com.evolveum.midpoint.util.logging.Trace;[m
+ import com.evolveum.midpoint.util.logging.TraceManager;[m
+[36m@@ -54,11 +47,11 @@[m [mimport com.evolveum.midpoint.web.component.form.MidpointForm;[m
+ import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;[m
+ import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;[m
+ import com.evolveum.midpoint.web.page.self.component.ChangePasswordPanel;[m
+[31m-import com.evolveum.midpoint.web.security.util.SecurityUtils;[m
+ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;[m
+[31m-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;[m
+ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;[m
+ [m
+[32m+[m[32mimport org.apache.wicket.model.PropertyModel;[m
+[32m+[m
+ /**[m
+  * @author Viliam Repan (lazyman)[m
+  */[m
+[36m@@ -74,25 +67,26 @@[m [mpublic abstract class PageAbstractSelfCredentials extends PageSelf {[m
+     private static final String ID_CANCEL_BUTTON = "cancel";[m
+ [m
+     private static final String DOT_CLASS = PageSelfCredentials.class.getName() + ".";[m
+[31m-    private static final String OPERATION_LOAD_USER_WITH_ACCOUNTS = DOT_CLASS + "loadUserWithAccounts";[m
+[31m-    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";[m
+[31m-    private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";[m
+     private static final String OPERATION_SAVE_PASSWORD = DOT_CLASS + "savePassword";[m
+     private static final String OPERATION_CHECK_PASSWORD = DOT_CLASS + "checkPassword";[m
+[31m-    private static final String OPERATION_GET_CREDENTIALS_POLICY = DOT_CLASS + "getCredentialsPolicy";[m
+[32m+[m[32m    private static final String OPERATION_SAVE_QUESTIONS = DOT_CLASS + "saveSecurityQuestions";[m
+ [m
+[31m-    private final LoadableModel<MyPasswordsDto> model;[m
+[32m+[m[32m    private final IModel<MyCredentialsDto> model;[m
+ [m
+     public PageAbstractSelfCredentials() {[m
+[31m-        model = new LoadableModel<MyPasswordsDto>(false) {[m
+[32m+[m[32m        model = new LoadableModel<MyCredentialsDto>(false) {[m
+             private static final long serialVersionUID = 1L;[m
+ [m
+             @Override[m
+[31m-            protected MyPasswordsDto load() {[m
+[31m-                return loadPageModel();[m
+[32m+[m[32m            protected MyCredentialsDto load() {[m
+[32m+[m[32m                return new MyCredentialsDto();[m
+             }[m
+         };[m
+[32m+[m[32m    }[m
+ [m
+[32m+[m[32m    @Override[m
+[32m+[m[32m    protected void onInitialize() {[m
+[32m+[m[32m        super.onInitialize();[m
+         initLayout();[m
+     }[m
+ [m
+[36m@@ -104,143 +98,48 @@[m [mpublic abstract class PageAbstractSelfCredentials extends PageSelf {[m
+         bc.setIcon(new Model<>("fa fa-shield"));[m
+     }[m
+ [m
+[31m-    private MyPasswordsDto loadPageModel() {[m
+[31m-        LOGGER.debug("Loading user and accounts.");[m
+[31m-[m
+[31m-        MyPasswordsDto dto = new MyPasswordsDto();[m
+[31m-        OperationResult result = new OperationResult(OPERATION_LOAD_USER_WITH_ACCOUNTS);[m
+[31m-        try {[m
+[31m-            String focusOid = SecurityUtils.getPrincipalUser().getOid();[m
+[31m-            Task task = createSimpleTask(OPERATION_LOAD_USER);[m
+[31m-            OperationResult subResult = result.createSubresult(OPERATION_LOAD_USER);[m
+[31m-            PrismObject<? extends FocusType> focus = getModelService().getObject(FocusType.class, focusOid, null, task, subResult);[m
+[31m-            dto = createMyPasswordsDto(focus);[m
+[31m-            subResult.recordSuccessIfUnknown();[m
+[31m-[m
+[31m-            if (!shouldLoadAccounts(dto)) {[m
+[31m-                LOGGER.debug("Skip loading account, because policy said so (enabled {} propagation).", dto.getPropagation());[m
+[31m-                return dto;[m
+[31m-            }[m
+[31m-[m
+[31m-            PrismReference reference = focus.findReference(FocusType.F_LINK_REF);[m
+[31m-            if (reference == null || CollectionUtils.isEmpty(reference.getValues())) {[m
+[31m-                LOGGER.debug("No accounts found for user {}.", focusOid);[m
+[31m-                return dto;[m
+[31m-            }[m
+[31m-[m
+[31m-            addAccountsToMyPasswordsDto(dto, reference.getValues(), task, result);[m
+[31m-            result.recordSuccessIfUnknown();[m
+[31m-        } catch (Exception ex) {[m
+[31m-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load accounts", ex);[m
+[31m-            result.recordFatalError(getString("PageAbstractSelfCredentials.message.couldntLoadAccounts.fatalError"), ex);[m
+[31m-        } finally {[m
+[31m-            result.recomputeStatus();[m
+[31m-        }[m
+[31m-[m
+[31m-        Collections.sort(dto.getAccounts());[m
+[31m-[m
+[31m-        if (!result.isSuccess() && !result.isHandledError()) {[m
+[31m-            showResult(result);[m
+[31m-        }[m
+[31m-[m
+[31m-        return dto;[m
+[31m-    }[m
+[31m-[m
+[31m-    private MyPasswordsDto createMyPasswordsDto(PrismObject<? extends FocusType> focus) {[m
+[31m-        MyPasswordsDto dto = new MyPasswordsDto();[m
+[31m-        dto.setFocus(focus);[m
+[31m-        CredentialsPolicyType credentialsPolicyType = getPasswordCredentialsPolicy(focus);[m
+[31m-        dto.getAccounts().add(createDefaultPasswordAccountDto(focus, getPasswordPolicyOid(credentialsPolicyType)));[m
+[31m-[m
+[31m-[m
+[31m-        if (credentialsPolicyType != null) {[m
+[31m-            PasswordCredentialsPolicyType passwordCredentialsPolicy = credentialsPolicyType.getPassword();[m
+[31m-            if (passwordCredentialsPolicy != null) {[m
+[31m-                CredentialsPropagationUserControlType propagationUserControl = passwordCredentialsPolicy.getPropagationUserControl();[m
+[31m-                if (propagationUserControl != null) {[m
+[31m-                    dto.setPropagation(propagationUserControl);[m
+[31m-                }[m
+[31m-                PasswordChangeSecurityType passwordChangeSecurity = passwordCredentialsPolicy.getPasswordChangeSecurity();[m
+[31m-                if (passwordChangeSecurity != null) {[m
+[31m-                    dto.setPasswordChangeSecurity(passwordChangeSecurity);[m
+[31m-                }[m
+[31m-                ObjectReferenceType valuePolicyRef = passwordCredentialsPolicy.getValuePolicyRef();[m
+[31m-                if (valuePolicyRef != null && valuePolicyRef.getOid() != null){[m
+[31m-                    Task task = createSimpleTask("load value policy");[m
+[31m-                    PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch([m
+[31m-                            valuePolicyRef, this, task, task.getResult());[m
+[31m-                    if (valuePolicy != null) {[m
+[31m-                        dto.addPasswordPolicy(valuePolicy.asObjectable());[m
+[31m-                    }[m
+[31m-                }[m
+[32m+[m[32m    private void initLayout() {[m
+[32m+[m[32m        Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);[m
+ [m
+[31m-            }[m
+[31m-        }[m
+[31m-        return dto;[m
+[31m-    }[m
+[32m+[m[32m        List<ITab> tabs = new ArrayList<>();[m
+[32m+[m[32m        tabs.addAll(createDefaultTabs());[m
+[32m+[m[32m        tabs.addAll(createSpecificTabs());[m
+ [m
+[31m-    private String getPasswordPolicyOid(CredentialsPolicyType credentialsPolicyType) {[m
+[31m-        if (credentialsPolicyType != null && credentialsPolicyType.getPassword() != null[m
+[31m-                && credentialsPolicyType.getPassword().getValuePolicyRef() != null) {[m
+[31m-            return credentialsPolicyType.getPassword().getValuePolicyRef().getOid();[m
+[31m-        }[m
+[31m-        return null;[m
+[31m-    }[m
+[32m+[m[32m        TabbedPanel<ITab> credentialsTabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, this, tabs, null);[m
+[32m+[m[32m        credentialsTabPanel.setOutputMarkupId(true);[m
+ [m
+[31m-    protected boolean shouldLoadAccounts(MyPasswordsDto dto) {[m
+[31m-        return dto.getPropagation() == null || CredentialsPropagationUserControlType.USER_CHOICE.equals(dto.getPropagation())[m
+[31m-                || CredentialsPropagationUserControlType.ONLY_MAPPING.equals(dto.getPropagation())[m
+[31m-                || CredentialsPropagationUserControlType.IDENTITY_MANAGER_MANDATORY.equals(dto.getPropagation());[m
+[31m-    }[m
+[32m+[m[32m        mainForm.add(credentialsTabPanel);[m
+[32m+[m[32m        initButtons(mainForm);[m
+ [m
+[31m-    private void addAccountsToMyPasswordsDto(MyPasswordsDto dto, List<PrismReferenceValue> linkReferences, Task task, OperationResult result) {[m
+[31m-        final Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()[m
+[31m-                .item(ShadowType.F_RESOURCE_REF).resolve()[m
+[31m-                .item(ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE,[m
+[31m-                        ResourceObjectTypeDefinitionType.F_SECURITY_POLICY_REF)).resolve()[m
+[31m-                .build();[m
+[31m-        for (PrismReferenceValue value : linkReferences) {[m
+[31m-            OperationResult subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);[m
+[31m-            try {[m
+[31m-                String accountOid = value.getOid();[m
+[31m-                PrismObject<ShadowType> account = getModelService().getObject(ShadowType.class,[m
+[31m-                        accountOid, options, task, subResult);[m
+[32m+[m[32m        add(mainForm);[m
+ [m
+[31m-                dto.getAccounts().add(createPasswordAccountDto(dto, account, task, subResult));[m
+[31m-                subResult.recordSuccessIfUnknown();[m
+[31m-            } catch (Exception ex) {[m
+[31m-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load account", ex);[m
+[31m-                subResult.recordFatalError(getString("PageAbstractSelfCredentials.message.couldntLoadAccount.fatalError"), ex);[m
+[31m-            }[m
+[31m-        }[m
+     }[m
+ [m
+[31m-    private void initLayout() {[m
+[31m-        Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);[m
+[32m+[m[32m    protected Collection<? extends ITab> createSpecificTabs(){[m
+[32m+[m[32m        return new ArrayList<>();[m
+[32m+[m[32m    };[m
+ [m
+[32m+[m[32m    private Collection<? extends ITab> createDefaultTabs(){[m
+         List<ITab> tabs = new ArrayList<>();[m
+         tabs.add(new AbstractTab(createStringResource("PageSelfCredentials.tabs.password")) {[m
+             private static final long serialVersionUID = 1L;[m
+ [m
+             @Override[m
+             public WebMarkupContainer getPanel(String panelId) {[m
+[31m-                return new ChangePasswordPanel(panelId, isCheckOldPassword(), model, model.getObject()) {[m
+[32m+[m[32m                return new ChangePasswordPanel(panelId, new PropertyModel<MyPasswordsDto>(model, MyCredentialsDto.F_MY_PASSOWRDS_DTO)) {[m
+                     @Override[m
+                     protected boolean shouldShowPasswordPropagation() {[m
+[31m-                        return shouldLoadAccounts(getModelObject());[m
+[32m+[m[32m                        return shouldLoadAccounts();[m
+[32m+[m[32m                    }[m
+[32m+[m
+[32m+[m[32m                    @Override[m
+[32m+[m[32m                    protected boolean isCheckOldPassword() {[m
+[32m+[m[32m                        return PageAbstractSelfCredentials.this.isCheckOldPassword();[m
+                     }[m
+                 };[m
+             }[m
+         });[m
+[31m-[m
+[31m-        TabbedPanel<ITab> credentialsTabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, this, tabs, null);[m
+[31m-        credentialsTabPanel.setOutputMarkupId(true);[m
+[31m-[m
+[31m-        mainForm.add(credentialsTabPanel);[m
+[31m-        initButtons(mainForm);[m
+[31m-[m
+[31m-        add(mainForm);[m
+[31m-[m
+[32m+[m[32m        return tabs;[m
+     }[m
+ [m
+     private void initButtons(Form<?> mainForm) {[m
+[36m@@ -278,182 +177,123 @@[m [mpublic abstract class PageAbstractSelfCredentials extends PageSelf {[m
+         mainForm.add(cancel);[m
+     }[m
+ [m
+[31m-    private PasswordAccountDto createDefaultPasswordAccountDto(PrismObject<? extends FocusType> focus, String passwordPolicyOid) {[m
+[31m-        String customSystemName = WebComponentUtil.getMidpointCustomSystemName(PageAbstractSelfCredentials.this, "midpoint.default.system.name");[m
+[31m-        PasswordAccountDto accountDto = new PasswordAccountDto(focus, focus.getName().getOrig(),[m
+[31m-                getString("PageSelfCredentials.resourceMidpoint", customSystemName),[m
+[31m-                WebComponentUtil.isActivationEnabled(focus, ActivationType.F_EFFECTIVE_STATUS), true);[m
+[31m-        accountDto.setPasswordValuePolicyOid(passwordPolicyOid);[m
+[31m-        return accountDto;[m
+[31m-    }[m
+[31m-[m
+[31m-    private PasswordAccountDto createPasswordAccountDto(MyPasswordsDto passwordDto, PrismObject<ShadowType> account, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {[m
+[31m-        PrismReference resourceRef = account.findReference(ShadowType.F_RESOURCE_REF);[m
+[31m-        String resourceName;[m
+[31m-        if (resourceRef == null || resourceRef.getValue() == null || resourceRef.getValue().getObject() == null) {[m
+[31m-            resourceName = getString("PageSelfCredentials.couldntResolve");[m
+[31m-        } else {[m
+[31m-            resourceName = WebComponentUtil.getName(resourceRef.getValue().getObject());[m
+[31m-        }[m
+[31m-[m
+[31m-        PasswordAccountDto passwordAccountDto = new PasswordAccountDto(account, resourceName, resourceRef.getOid());[m
+[31m-[m
+[31m-        ShadowType shadowType = account.asObjectable();[m
+[31m-        ResourceType resource = (ResourceType) shadowType.getResourceRef().asReferenceValue().getObject().asObjectable();[m
+[31m-        if (resource != null) {[m
+[31m-            ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());[m
+[31m-            passwordAccountDto.setPasswordCapabilityEnabled(ResourceTypeUtil.isPasswordCapabilityEnabled(resource, resourceObjectTypeDefinitionType));[m
+[31m-            passwordAccountDto.setMaintenanceState(ResourceTypeUtil.isInMaintenance(resource));[m
+[31m-            try {[m
+[31m-                RefinedObjectClassDefinition rOCDef = getModelInteractionService().getEditObjectClassDefinition(account,[m
+[31m-                        resource.asPrismObject(), AuthorizationPhaseType.REQUEST, task, result);[m
+[31m-[m
+[31m-                if (rOCDef != null) {[m
+[31m-                    passwordAccountDto.setPasswordOutbound(getPasswordOutbound(account, resource, rOCDef));[m
+[31m-                    CredentialsPolicyType credentialsPolicy = getPasswordCredentialsPolicy(rOCDef);[m
+[31m-                    if (credentialsPolicy != null && credentialsPolicy.getPassword() != null[m
+[31m-                            && credentialsPolicy.getPassword().getValuePolicyRef() != null) {[m
+[31m-                        PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch([m
+[31m-                                credentialsPolicy.getPassword().getValuePolicyRef(), this, task, task.getResult());[m
+[31m-                        if (valuePolicy != null) {[m
+[31m-                            passwordAccountDto.setPasswordValuePolicyOid(valuePolicy.getOid());[m
+[31m-                            passwordDto.addPasswordPolicy(valuePolicy.asObjectable());[m
+[32m+[m[32m    protected void onSavePerformed(AjaxRequestTarget target) {[m
+[32m+[m[32m        Component actualTab = getActualTabPanel();[m
+[32m+[m[32m        if (actualTab instanceof ChangePasswordPanel) {[m
+[32m+[m[32m            ProtectedStringType oldPassword = null;[m
+[32m+[m[32m            if (isCheckOldPassword()) {[m
+[32m+[m[32m                LOGGER.debug("Check old password");[m
+[32m+[m[32m                MyPasswordsDto modelObject = getPasswordDto();[m
+[32m+[m[32m                if (modelObject.getOldPassword() == null[m
+[32m+[m[32m                        || modelObject.getOldPassword().trim().equals("")) {[m
+[32m+[m[32m                    warn(getString("PageSelfCredentials.specifyOldPasswordMessage"));[m
+[32m+[m[32m                    target.add(getFeedbackPanel());[m
+[32m+[m[32m                    return;[m
+[32m+[m[32m                } else {[m
+[32m+[m[32m                    OperationResult checkPasswordResult = new OperationResult(OPERATION_CHECK_PASSWORD);[m
+[32m+[m[32m                    Task checkPasswordTask = createSimpleTask(OPERATION_CHECK_PASSWORD);[m
+[32m+[m[32m                    try {[m
+[32m+[m[32m                        oldPassword = new ProtectedStringType();[m
+[32m+[m[32m                        oldPassword.setClearValue(modelObject.getOldPassword());[m
+[32m+[m[32m                        boolean isCorrectPassword = getModelInteractionService().checkPassword(modelObject.getFocusOid(), oldPassword,[m
+[32m+[m[32m                                checkPasswordTask, checkPasswordResult);[m
+[32m+[m[32m                        if (!isCorrectPassword) {[m
+[32m+[m[32m                            error(getString("PageSelfCredentials.incorrectOldPassword"));[m
+[32m+[m[32m                            target.add(getFeedbackPanel());[m
+[32m+[m[32m                            return;[m
+                         }[m
+[32m+[m[32m                    } catch (Exception ex) {[m
+[32m+[m[32m                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check password", ex);[m
+[32m+[m[32m                        checkPasswordResult.recordFatalError([m
+[32m+[m[32m                                getString("PageAbstractSelfCredentials.message.onSavePerformed.fatalError", ex.getMessage()), ex);[m
+[32m+[m[32m                        target.add(getFeedbackPanel());[m
+[32m+[m[32m                        return;[m
+[32m+[m[32m                    } finally {[m
+[32m+[m[32m                        checkPasswordResult.computeStatus();[m
+                     }[m
+[31m-                } else {[m
+[31m-                    passwordAccountDto.setPasswordOutbound(false);[m
+                 }[m
+[31m-[m
+[31m-            } catch (Exception e) {[m
+[31m-                LoggingUtils.logUnexpectedException(LOGGER, "Fail to get RefinedObjectClassDefinition for {} ", e, account);[m
+[31m-                result.recordFatalError("Fail to get RefinedObjectClassDefinition for " + account, e);[m
+[31m-                showResult(result);[m
+[31m-                passwordAccountDto.setPasswordOutbound(false);[m
+             }[m
+ [m
+[31m-        } else {[m
+[31m-            passwordAccountDto.setPasswordCapabilityEnabled(false);[m
+[31m-            passwordAccountDto.setPasswordOutbound(false);[m
+[31m-        }[m
+[31m-[m
+[31m-        return passwordAccountDto;[m
+[31m-    }[m
+[31m-[m
+[31m-    protected void onSavePerformed(AjaxRequestTarget target) {[m
+[31m-        ProtectedStringType oldPassword = null;[m
+[31m-        if (isCheckOldPassword()) {[m
+[31m-            LOGGER.debug("Check old password");[m
+[31m-            MyPasswordsDto modelObject = getModelObject();[m
+[31m-            if (modelObject.getOldPassword() == null[m
+[31m-                    || modelObject.getOldPassword().trim().equals("")) {[m
+[31m-                warn(getString("PageSelfCredentials.specifyOldPasswordMessage"));[m
+[32m+[m[32m            if (getPasswordDto().getPassword() == null) {[m
+[32m+[m[32m                warn(getString("PageSelfCredentials.emptyPasswordFiled"));[m
+                 target.add(getFeedbackPanel());[m
+                 return;[m
+[31m-            } else {[m
+[31m-                OperationResult checkPasswordResult = new OperationResult(OPERATION_CHECK_PASSWORD);[m
+[31m-                Task checkPasswordTask = createSimpleTask(OPERATION_CHECK_PASSWORD);[m
+[31m-                try {[m
+[31m-                    oldPassword = new ProtectedStringType();[m
+[31m-                    oldPassword.setClearValue(modelObject.getOldPassword());[m
+[31m-                    boolean isCorrectPassword = getModelInteractionService().checkPassword(modelObject.getFocusOid(), oldPassword,[m
+[31m-                            checkPasswordTask, checkPasswordResult);[m
+[31m-                    if (!isCorrectPassword) {[m
+[31m-                        error(getString("PageSelfCredentials.incorrectOldPassword"));[m
+[31m-                        target.add(getFeedbackPanel());[m
+[31m-                        return;[m
+[31m-                    }[m
+[31m-                } catch (Exception ex) {[m
+[31m-                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check password", ex);[m
+[31m-                    checkPasswordResult.recordFatalError([m
+[31m-                            getString("PageAbstractSelfCredentials.message.onSavePerformed.fatalError", ex.getMessage()), ex);[m
+[31m-                    target.add(getFeedbackPanel());[m
+[31m-                    return;[m
+[31m-                } finally {[m
+[31m-                    checkPasswordResult.computeStatus();[m
+[31m-                }[m
+             }[m
+[31m-        }[m
+ [m
+[31m-        if (getModelObject().getPassword() == null) {[m
+[31m-            warn(getString("PageSelfCredentials.emptyPasswordFiled"));[m
+[31m-            target.add(getFeedbackPanel());[m
+[31m-            return;[m
+[31m-        }[m
+[32m+[m[32m            List<PasswordAccountDto> selectedAccounts = getSelectedAccountsList();[m
+[32m+[m[32m            if (selectedAccounts.isEmpty()) {[m
+[32m+[m[32m                warn(getString("PageSelfCredentials.noAccountSelected"));[m
+[32m+[m[32m                target.add(getFeedbackPanel());[m
+[32m+[m[32m                return;[m
+[32m+[m[32m            }[m
+ [m
+[31m-        List<PasswordAccountDto> selectedAccounts = getSelectedAccountsList();[m
+[31m-        if (selectedAccounts.isEmpty()) {[m
+[31m-            warn(getString("PageSelfCredentials.noAccountSelected"));[m
+[31m-            target.add(getFeedbackPanel());[m
+[31m-            return;[m
+[31m-        }[m
+[32m+[m[32m            OperationResult result = new OperationResult(OPERATION_SAVE_PASSWORD);[m
+[32m+[m[32m            ProgressReporter reporter = new ProgressReporter(MidPointApplication.get());[m
+[32m+[m[32m            reporter.getProgress().clear();[m
+[32m+[m[32m            reporter.setWriteOpResultForProgressActivity(true);[m
+ [m
+[31m-        OperationResult result = new OperationResult(OPERATION_SAVE_PASSWORD);[m
+[31m-        ProgressReporter reporter = new ProgressReporter(MidPointApplication.get());[m
+[31m-        reporter.getProgress().clear();[m
+[31m-        reporter.setWriteOpResultForProgressActivity(true);[m
+[31m-[m
+[31m-        reporter.recordExecutionStart();[m
+[31m-        boolean showFeedback = true;[m
+[31m-        try {[m
+[31m-            MyPasswordsDto dto = model.getObject();[m
+[31m-            ProtectedStringType password = dto.getPassword();[m
+[31m-            if (!password.isEncrypted()) {[m
+[31m-                WebComponentUtil.encryptProtectedString(password, true, getMidpointApplication());[m
+[31m-            }[m
+[31m-            final ItemPath valuePath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,[m
+[31m-                    CredentialsType.F_PASSWORD, PasswordType.F_VALUE);[m
+[31m-            SchemaRegistry registry = getPrismContext().getSchemaRegistry();[m
+[31m-            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();[m
+[31m-[m
+[31m-            for (PasswordAccountDto accDto : selectedAccounts) {[m
+[31m-                PrismObjectDefinition objDef = accDto.isMidpoint() ?[m
+[31m-                        registry.findObjectDefinitionByCompileTimeClass(UserType.class) :[m
+[31m-                        registry.findObjectDefinitionByCompileTimeClass(ShadowType.class);[m
+[31m-[m
+[31m-                PropertyDelta<ProtectedStringType> delta = getPrismContext().deltaFactory().property()[m
+[31m-                        .createModificationReplaceProperty(valuePath, objDef, password);[m
+[31m-                if (oldPassword != null) {[m
+[31m-                    delta.addEstimatedOldValue(getPrismContext().itemFactory().createPropertyValue(oldPassword));[m
+[32m+[m[32m            reporter.recordExecutionStart();[m
+[32m+[m[32m            boolean showFeedback = true;[m
+[32m+[m[32m            try {[m
+[32m+[m[32m                MyPasswordsDto dto = getPasswordDto();[m
+[32m+[m[32m                ProtectedStringType password = dto.getPassword();[m
+[32m+[m[32m                if (!password.isEncrypted()) {[m
+[32m+[m[32m                    WebComponentUtil.encryptProtectedString(password, true, getMidpointApplication());[m
+                 }[m
+[32m+[m[32m                final ItemPath valuePath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,[m
+[32m+[m[32m                        CredentialsType.F_PASSWORD, PasswordType.F_VALUE);[m
+[32m+[m[32m                SchemaRegistry registry = getPrismContext().getSchemaRegistry();[m
+[32m+[m[32m                Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();[m
+[32m+[m
+[32m+[m[32m                for (PasswordAccountDto accDto : selectedAccounts) {[m
+[32m+[m[32m                    PrismObjectDefinition objDef = accDto.isMidpoint() ?[m
+[32m+[m[32m                            registry.findObjectDefinitionByCompileTimeClass(UserType.class) :[m
+[32m+[m[32m                            registry.findObjectDefinitionByCompileTimeClass(ShadowType.class);[m
+[32m+[m
+[32m+[m[32m                    PropertyDelta<ProtectedStringType> delta = getPrismContext().deltaFactory().property()[m
+[32m+[m[32m                            .createModificationReplaceProperty(valuePath, objDef, password);[m
+[32m+[m[32m                    if (oldPassword != null) {[m
+[32m+[m[32m                        delta.addEstimatedOldValue(getPrismContext().itemFactory().createPropertyValue(oldPassword));[m
+[32m+[m[32m                    }[m
+ [m
+[31m-                Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : ShadowType.class;[m
+[32m+[m[32m                    Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : ShadowType.class;[m
+ [m
+[31m-                deltas.add(getPrismContext().deltaFactory().object().createModifyDelta(accDto.getOid(), delta, type[m
+[31m-                ));[m
+[31m-            }[m
+[31m-            Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = getModelService().executeChanges([m
+[31m-                    deltas, null, createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_SELF_SERVICE_URI), Collections.singleton(reporter), result);[m
+[31m-            result.computeStatus();[m
+[31m-        } catch (Exception ex) {[m
+[31m-            setNullEncryptedPasswordData();[m
+[31m-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save password changes", ex);[m
+[31m-            result.recordFatalError(getString("PageAbstractSelfCredentials.save.password.failed", ex.getMessage()), ex);[m
+[31m-        } finally {[m
+[31m-            reporter.recordExecutionStop();[m
+[31m-            model.getObject().setProgress(reporter.getProgress());[m
+[31m-            if (getChangePasswordPanel() != null) {[m
+[31m-                getChangePasswordPanel().updateResultColumnOfTable(target);[m
+[31m-            }[m
+[31m-            result.computeStatusIfUnknown();[m
+[31m-            if (shouldLoadAccounts(model.getObject())) {[m
+[31m-                showFeedback = false;[m
+[31m-                info(createStringResource("PageAbstractSelfCredentials.message.resultInTable").getString());[m
+[32m+[m[32m                    deltas.add(getPrismContext().deltaFactory().object().createModifyDelta(accDto.getOid(), delta, type[m
+[32m+[m[32m                    ));[m
+[32m+[m[32m                }[m
+[32m+[m[32m                getModelService().executeChanges([m
+[32m+[m[32m                        deltas, null, createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_SELF_SERVICE_URI), Collections.singleton(reporter), result);[m
+[32m+[m[32m                result.computeStatus();[m
+[32m+[m[32m            } catch (Exception ex) {[m
+[32m+[m[32m                setNullEncryptedPasswordData();[m
+[32m+[m[32m                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save password changes", ex);[m
+[32m+[m[32m                result.recordFatalError(getString("PageAbstractSelfCredentials.save.password.failed", ex.getMessage()), ex);[m
+[32m+[m[32m            } finally {[m
+[32m+[m[32m                reporter.recordExecutionStop();[m
+[32m+[m[32m                getPasswordDto().setProgress(reporter.getProgress());[m
+[32m+[m[32m                if (getActualTabPanel() != null) {[m
+[32m+[m[32m                    ((ChangePasswordPanel)getActualTabPanel()).updateResultColumnOfTable(target);[m
+[32m+[m[32m                }[m
+[32m+[m[32m                result.computeStatusIfUnknown();[m
+[32m+[m[32m                if (shouldLoadAccounts()) {[m
+[32m+[m[32m                    showFeedback = false;[m
+[32m+[m[32m                    info(createStringResource("PageAbstractSelfCredentials.message.resultInTable").getString());[m
+[32m+[m[32m                }[m
+             }[m
+[32m+[m
+[32m+[m[32m            finishChangePassword(result, target, showFeedback);[m
+[32m+[m[32m        } else if (actualTab instanceof SecurityQuestionsPanel) {[m
+[32m+[m[32m            ((SecurityQuestionsPanel) actualTab).onSavePerformed(target);[m
+         }[m
+ [m
+[31m-        finishChangePassword(result, target, showFeedback);[m
+     }[m
+ [m
+[31m-    protected ChangePasswordPanel getChangePasswordPanel(){[m
+[31m-        Component component = get(createComponentPath(ID_MAIN_FORM, ID_TAB_PANEL, TabbedPanel.TAB_PANEL_ID));[m
+[31m-        if (component instanceof ChangePasswordPanel) {[m
+[31m-            return (ChangePasswordPanel) component;[m
+[31m-        }[m
+[31m-        return null;[m
+[32m+[m[32m    protected Component getActualTabPanel(){[m
+[32m+[m[32m        return get(createComponentPath(ID_MAIN_FORM, ID_TAB_PANEL, TabbedPanel.TAB_PANEL_ID));[m
+     }[m
+ [m
+     protected void setNullEncryptedPasswordData() {[m
+[31m-        MyPasswordsDto dto = model.getObject();[m
+[32m+[m[32m        MyPasswordsDto dto = getPasswordDto();[m
+         ProtectedStringType password = dto.getPassword();[m
+         if (password != null) {[m
+             password.setEncryptedData(null);[m
+[36m@@ -464,11 +304,29 @@[m [mpublic abstract class PageAbstractSelfCredentials extends PageSelf {[m
+ [m
+     protected abstract void finishChangePassword(OperationResult result, AjaxRequestTarget target, boolean showFeedback);[m
+ [m
+[32m+[m[32m    private void onCancelPerformed() {[m
+[32m+[m[32m        redirectBack();[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    protected MyPasswordsDto getPasswordDto() {[m
+[32m+[m[32m        return model.getObject() == null ? null : model.getObject().getMyPasswordsDto();[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    protected IModel<MyCredentialsDto> getModel() {[m
+[32m+[m[32m        return model;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    protected boolean shouldLoadAccounts() {[m
+[32m+[m[32m        return getPasswordDto().getPropagation() == null || CredentialsPropagationUserControlType.USER_CHOICE.equals(getPasswordDto().getPropagation())[m
+[32m+[m[32m                || CredentialsPropagationUserControlType.ONLY_MAPPING.equals(getPasswordDto().getPropagation())[m
+[32m+[m[32m                || CredentialsPropagationUserControlType.IDENTITY_MANAGER_MANDATORY.equals(getPasswordDto().getPropagation());[m
+[32m+[m[32m    }[m
+[32m+[m
+     protected List<PasswordAccountDto> getSelectedAccountsList() {[m
+[31m-        List<PasswordAccountDto> passwordAccountDtos = model.getObject().getAccounts();[m
+[32m+[m[32m        List<PasswordAccountDto> passwordAccountDtos = getPasswordDto().getAccounts();[m
+         List<PasswordAccountDto> selectedAccountList = new ArrayList<>();[m
+[31m-        if (model.getObject().getPropagation() != null[m
+[31m-                && model.getObject().getPropagation().equals(CredentialsPropagationUserControlType.MAPPING)) {[m
+[32m+[m[32m        if (getPasswordDto().getPropagation() != null[m
+[32m+[m[32m                && getPasswordDto().getPropagation().equals(CredentialsPropagationUserControlType.MAPPING)) {[m
+             selectedAccountList.addAll(passwordAccountDtos);[m
+         } else {[m
+             boolean midpointAccountSelected = false;[m
+[36m@@ -491,73 +349,4 @@[m [mpublic abstract class PageAbstractSelfCredentials extends PageSelf {[m
+         }[m
+         return selectedAccountList;[m
+     }[m
+[31m-[m
+[31m-    private void onCancelPerformed() {[m
+[31m-        redirectBack();[m
+[31m-    }[m
+[31m-[m
+[31m-    private boolean getPasswordOutbound(PrismObject<ShadowType> shadow, ResourceType resource, RefinedObjectClassDefinition rOCDef) {[m
+[31m-[m
+[31m-            List<MappingType> passwordOutbound = rOCDef.getPasswordOutbound();[m
+[31m-            if (passwordOutbound == null) {[m
+[31m-                return false;[m
+[31m-            }[m
+[31m-            for (MappingType mapping : passwordOutbound) {[m
+[31m-                if (MappingStrengthType.WEAK == mapping.getStrength()) {[m
+[31m-                    CredentialsCapabilityType capability = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);[m
+[31m-                    if (CapabilityUtil.isPasswordReadable(capability)) {[m
+[31m-                        return true;[m
+[31m-                    }[m
+[31m-                    continue;[m
+[31m-                }[m
+[31m-                // at least one mapping which is not WEAK[m
+[31m-                return true;[m
+[31m-            }[m
+[31m-[m
+[31m-        return false;[m
+[31m-[m
+[31m-    }[m
+[31m-[m
+[31m-    private CredentialsPolicyType getPasswordCredentialsPolicy(PrismObject<? extends FocusType> focus) {[m
+[31m-        LOGGER.debug("Getting credentials policy");[m
+[31m-        Task task = createSimpleTask(OPERATION_GET_CREDENTIALS_POLICY);[m
+[31m-        OperationResult result = new OperationResult(OPERATION_GET_CREDENTIALS_POLICY);[m
+[31m-        CredentialsPolicyType credentialsPolicyType = null;[m
+[31m-        try {[m
+[31m-            credentialsPolicyType = getModelInteractionService().getCredentialsPolicy(focus, task, result);[m
+[31m-            result.recordSuccessIfUnknown();[m
+[31m-        } catch (Exception ex) {[m
+[31m-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load credentials policy", ex);[m
+[31m-            result.recordFatalError([m
+[31m-                    getString("PageAbstractSelfCredentials.message.getPasswordCredentialsPolicy.fatalError", ex.getMessage()), ex);[m
+[31m-        } finally {[m
+[31m-            result.computeStatus();[m
+[31m-        }[m
+[31m-        return credentialsPolicyType;[m
+[31m-    }[m
+[31m-[m
+[31m-    private CredentialsPolicyType getPasswordCredentialsPolicy(RefinedObjectClassDefinition rOCDef) {[m
+[31m-        LOGGER.debug("Getting credentials policy");[m
+[31m-        Task task = createSimpleTask(OPERATION_GET_CREDENTIALS_POLICY);[m
+[31m-        OperationResult result = new OperationResult(OPERATION_GET_CREDENTIALS_POLICY);[m
+[31m-        CredentialsPolicyType credentialsPolicyType = null;[m
+[31m-        try {[m
+[31m-            SecurityPolicyType securityPolicy = getModelInteractionService().getSecurityPolicy(rOCDef, task, result);[m
+[31m-            if (securityPolicy != null){[m
+[31m-                credentialsPolicyType = securityPolicy.getCredentials();[m
+[31m-            }[m
+[31m-            result.recordSuccessIfUnknown();[m
+[31m-        } catch (Exception ex) {[m
+[31m-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load security policy", ex);[m
+[31m-            result.recordFatalError([m
+[31m-                    getString("PageAbstractSelfCredentials.message.getPasswordSecurityPolicy.fatalError", ex.getMessage()), ex);[m
+[31m-        } finally {[m
+[31m-            result.computeStatus();[m
+[31m-        }[m
+[31m-        return credentialsPolicyType;[m
+[31m-    }[m
+[31m-[m
+[31m-    protected MyPasswordsDto getModelObject() {[m
+[31m-        return model.getObject();[m
+[31m-    }[m
+ }[m
+[1mdiff --git a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/self/PageSelfCredentials.java b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/self/PageSelfCredentials.java[m
+[1mindex a02fe22872..afb0a446b0 100644[m
+[1m--- a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/self/PageSelfCredentials.java[m
+[1m+++ b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/self/PageSelfCredentials.java[m
+[36m@@ -6,12 +6,13 @@[m
+  */[m
+ package com.evolveum.midpoint.web.page.self;[m
+ [m
+[32m+[m[32mimport com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;[m
+ import com.evolveum.midpoint.prism.path.ItemPath;[m
+ [m
+[31m-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;[m
+[31m-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;[m
+[31m-[m
+[31m-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;[m
+[32m+[m[32mimport com.evolveum.midpoint.web.page.admin.home.dto.MyCredentialsDto;[m
+[32m+[m[32mimport com.evolveum.midpoint.web.page.self.component.SecurityQuestionsPanel;[m
+[32m+[m[32mimport com.evolveum.midpoint.web.security.util.SecurityUtils;[m
+[32m+[m[32mimport com.evolveum.midpoint.xml.ns._public.common.common_3.*;[m
+ [m
+ import org.apache.wicket.ajax.AjaxRequestTarget;[m
+ [m
+[36m@@ -20,7 +21,15 @@[m [mimport com.evolveum.midpoint.schema.result.OperationResult;[m
+ import com.evolveum.midpoint.security.api.AuthorizationConstants;[m
+ import com.evolveum.midpoint.web.application.AuthorizationAction;[m
+ import com.evolveum.midpoint.web.application.PageDescriptor;[m
+[31m-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordChangeSecurityType;[m
+[32m+[m
+[32m+[m[32mimport org.apache.wicket.extensions.markup.html.tabs.AbstractTab;[m
+[32m+[m[32mimport org.apache.wicket.extensions.markup.html.tabs.ITab;[m
+[32m+[m[32mimport org.apache.wicket.markup.html.WebMarkupContainer;[m
+[32m+[m[32mimport org.apache.wicket.model.PropertyModel;[m
+[32m+[m
+[32m+[m[32mimport java.util.ArrayList;[m
+[32m+[m[32mimport java.util.Collection;[m
+[32m+[m[32mimport java.util.List;[m
+ [m
+ @PageDescriptor(url = {"/self/credentials"}, action = {[m
+         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,[m
+[36m@@ -35,10 +44,10 @@[m [mpublic class PageSelfCredentials extends PageAbstractSelfCredentials{[m
+ [m
+     @Override[m
+     protected boolean isCheckOldPassword() {[m
+[31m-        return (getModelObject().getPasswordChangeSecurity() == null) || (getModelObject().getPasswordChangeSecurity() != null &&[m
+[31m-                (getModelObject().getPasswordChangeSecurity().equals(PasswordChangeSecurityType.OLD_PASSWORD)[m
+[31m-                        || (getModelObject().getPasswordChangeSecurity().equals(PasswordChangeSecurityType.OLD_PASSWORD_IF_EXISTS)[m
+[31m-                        && getModelObject().getFocus().findProperty(ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE)) != null)));[m
+[32m+[m[32m        return (getPasswordDto().getPasswordChangeSecurity() == null) || (getPasswordDto().getPasswordChangeSecurity() != null &&[m
+[32m+[m[32m                (getPasswordDto().getPasswordChangeSecurity().equals(PasswordChangeSecurityType.OLD_PASSWORD)[m
+[32m+[m[32m                        || (getPasswordDto().getPasswordChangeSecurity().equals(PasswordChangeSecurityType.OLD_PASSWORD_IF_EXISTS)[m
+[32m+[m[32m                        && getPasswordDto().getFocus().findProperty(ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE)) != null)));[m
+     }[m
+ [m
+     @Override[m
+[36m@@ -54,4 +63,39 @@[m [mpublic class PageSelfCredentials extends PageAbstractSelfCredentials{[m
+             target.add(getFeedbackPanel());[m
+         }[m
+     }[m
+[32m+[m
+[32m+[m[32m    @Override[m
+[32m+[m[32m    protected Collection<? extends ITab> createSpecificTabs() {[m
+[32m+[m[32m        List<ITab> tabs = new ArrayList<>();[m
+[32m+[m[32m        if (showQuestions()) {[m
+[32m+[m[32m            tabs.add(new AbstractTab(createStringResource("PageSelfCredentials.tabs.securityQuestion")) {[m
+[32m+[m[32m                private static final long serialVersionUID = 1L;[m
+[32m+[m
+[32m+[m[32m                @Override[m
+[32m+[m[32m                public WebMarkupContainer getPanel(String panelId) {[m
+[32m+[m[32m                    return new SecurityQuestionsPanel(panelId, new PropertyModel<>(getModel(), MyCredentialsDto.F_PASSWORD_QUESTIONS_DTO));[m
+[32m+[m[32m                }[m
+[32m+[m[32m            });[m
+[32m+[m[32m        }[m
+[32m+[m[32m        return tabs;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    private boolean showQuestions() {[m
+[32m+[m[32m        GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();[m
+[32m+[m[32m        if (principal == null) {[m
+[32m+[m[32m            return false;[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        CredentialsPolicyType credentialsPolicyType = principal.getApplicableSecurityPolicy().getCredentials();[m
+[32m+[m[32m        if (credentialsPolicyType == null) {[m
+[32m+[m[32m            return false;[m
+[32m+[m[32m        }[m
+[32m+[m[32m        SecurityQuestionsCredentialsPolicyType securityQuestionsPolicy = credentialsPolicyType.getSecurityQuestions();[m
+[32m+[m[32m        if (securityQuestionsPolicy == null) {[m
+[32m+[m[32m            return false;[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        List<SecurityQuestionDefinitionType> secQuestAnsList = securityQuestionsPolicy.getQuestion();[m
+[32m+[m[32m        return secQuestAnsList != null && !secQuestAnsList.isEmpty();[m
+[32m+[m[32m    }[m
+ }[m
+[1mdiff --git a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/self/component/ChangePasswordPanel.java b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/self/component/ChangePasswordPanel.java[m
+[1mindex fd775ec7d1..97e09d406e 100644[m
+[1m--- a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/self/component/ChangePasswordPanel.java[m
+[1m+++ b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/self/component/ChangePasswordPanel.java[m
+[36m@@ -6,23 +6,40 @@[m
+  */[m
+ package com.evolveum.midpoint.web.page.self.component;[m
+ [m
+[31m-import java.util.ArrayList;[m
+[31m-import java.util.HashMap;[m
+[31m-import java.util.List;[m
+[31m-import java.util.Map;[m
+[32m+[m[32mimport java.util.*;[m
+ [m
+[32m+[m[32mimport com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;[m
+ import com.evolveum.midpoint.gui.api.GuiStyleConstants;[m
+ import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;[m
+ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;[m
+[32m+[m[32mimport com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;[m
+ import com.evolveum.midpoint.model.api.ProgressInformation;[m
+ import com.evolveum.midpoint.model.api.validator.StringLimitationResult;[m
+ import com.evolveum.midpoint.prism.PrismObject;[m
+[32m+[m[32mimport com.evolveum.midpoint.prism.PrismReference;[m
+[32m+[m[32mimport com.evolveum.midpoint.prism.PrismReferenceValue;[m
+[32m+[m[32mimport com.evolveum.midpoint.prism.path.ItemPath;[m
+[32m+[m[32mimport com.evolveum.midpoint.schema.CapabilityUtil;[m
+[32m+[m[32mimport com.evolveum.midpoint.schema.GetOperationOptions;[m
+[32m+[m[32mimport com.evolveum.midpoint.schema.SelectorOptions;[m
+ import com.evolveum.midpoint.schema.result.OperationResult;[m
+[32m+[m[32mimport com.evolveum.midpoint.schema.util.ResourceTypeUtil;[m
+[32m+[m[32mimport com.evolveum.midpoint.task.api.Task;[m
+[32m+[m[32mimport com.evolveum.midpoint.util.logging.LoggingUtils;[m
+[32m+[m[32mimport com.evolveum.midpoint.util.logging.Trace;[m
+[32m+[m[32mimport com.evolveum.midpoint.util.logging.TraceManager;[m
+ import com.evolveum.midpoint.web.component.data.column.*;[m
+ import com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto;[m
+ import com.evolveum.midpoint.web.component.util.Selectable;[m
+[32m+[m[32mimport com.evolveum.midpoint.web.page.admin.home.dto.MyCredentialsDto;[m
+[32m+[m[32mimport com.evolveum.midpoint.web.page.self.PageAbstractSelfCredentials;[m
+[32m+[m[32mimport com.evolveum.midpoint.web.page.self.PageSelfCredentials;[m
+[32m+[m[32mimport com.evolveum.midpoint.web.security.util.SecurityUtils;[m
+ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;[m
+ [m
+[32m+[m[32mimport com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;[m
+[32m+[m
+[32m+[m[32mimport org.apache.commons.collections4.CollectionUtils;[m
+ import org.apache.commons.lang3.StringUtils;[m
+ import org.apache.wicket.AttributeModifier;[m
+ import org.apache.wicket.ajax.AjaxRequestTarget;[m
+[36m@@ -59,6 +76,8 @@[m [mimport org.apache.wicket.util.visit.IVisitor;[m
+ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {[m
+     private static final long serialVersionUID = 1L;[m
+ [m
+[32m+[m[32m    private static final Trace LOGGER = TraceManager.getTrace(ChangePasswordPanel.class);[m
+[32m+[m
+     private static final String ID_PASSWORD_PANEL = "passwordPanel";[m
+     private static final String ID_OLD_PASSWORD_CONTAINER = "oldPasswordContainer";[m
+     private static final String ID_OLD_PASSWORD_FIELD = "oldPassword";[m
+[36m@@ -66,28 +85,33 @@[m [mpublic class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {[m
+     public static final String ID_ACCOUNTS_TABLE = "accounts";[m
+     public static final String ID_ACCOUNTS_CONTAINER = "accountsContainer";[m
+ [m
+[31m-    private LoadableModel<MyPasswordsDto> model;[m
+[32m+[m[32m    private static final String DOT_CLASS = PageSelfCredentials.class.getName() + ".";[m
+[32m+[m[32m    private static final String OPERATION_LOAD_USER_WITH_ACCOUNTS = DOT_CLASS + "loadUserWithAccounts";[m
+[32m+[m[32m    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";[m
+[32m+[m[32m    private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";[m
+[32m+[m[32m    private static final String OPERATION_GET_CREDENTIALS_POLICY = DOT_CLASS + "getCredentialsPolicy";[m
+[32m+[m
+     private IModel<Boolean> midpointAccountSelected;[m
+[31m-    private boolean oldPasswordVisible = false;[m
+     private Map<String, List<StringLimitationResult>> limitationsByPolicyOid = new HashMap<>();[m
+ [m
+[31m-    public ChangePasswordPanel(String id, boolean oldPasswordVisible) {[m
+[31m-        super(id);[m
+[31m-        this.oldPasswordVisible = oldPasswordVisible;[m
+[31m-    }[m
+[31m-[m
+[31m-    public ChangePasswordPanel(String id, boolean oldPasswordVisible, LoadableModel<MyPasswordsDto> model, MyPasswordsDto myPasswordsDto) {[m
+[32m+[m[32m    public ChangePasswordPanel(String id, IModel<MyPasswordsDto> model) {[m
+         super(id, model);[m
+[31m-        this.oldPasswordVisible = oldPasswordVisible;[m
+     }[m
+ [m
+     @Override[m
+     protected void onInitialize(){[m
+         super.onInitialize();[m
+[32m+[m[32m        initPasswordModel();[m
+         initMidpointAccountSelected();[m
+         initLayout();[m
+     }[m
+ [m
+[32m+[m[32m    private void initPasswordModel() {[m
+[32m+[m[32m        if (getModelObject() == null) {[m
+[32m+[m[32m            getModel().setObject(loadPageModel());[m
+[32m+[m[32m        }[m
+[32m+[m[32m    }[m
+[32m+[m
+     private void initMidpointAccountSelected() {[m
+         MyPasswordsDto dto = getModelObject();[m
+         PasswordAccountDto midpointAccount = null;[m
+[36m@@ -100,8 +124,6 @@[m [mpublic class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {[m
+     }[m
+ [m
+     private void initLayout() {[m
+[31m-        model = (LoadableModel<MyPasswordsDto>) getModel();[m
+[31m-[m
+         WebMarkupContainer oldPasswordContainer = new WebMarkupContainer(ID_OLD_PASSWORD_CONTAINER);[m
+         oldPasswordContainer.add(new VisibleEnableBehaviour() {[m
+ [m
+[36m@@ -109,24 +131,24 @@[m [mpublic class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {[m
+ [m
+             @Override[m
+             public boolean isVisible() {[m
+[31m-                return oldPasswordVisible;[m
+[32m+[m[32m                return isCheckOldPassword();[m
+             }[m
+         });[m
+         add(oldPasswordContainer);[m
+ [m
+         PasswordTextField oldPasswordField =[m
+[31m-                new PasswordTextField(ID_OLD_PASSWORD_FIELD, new PropertyModel<>(model, MyPasswordsDto.F_OLD_PASSWORD));[m
+[32m+[m[32m                new PasswordTextField(ID_OLD_PASSWORD_FIELD, new PropertyModel<>(getModel(), MyPasswordsDto.F_OLD_PASSWORD));[m
+         oldPasswordField.setRequired(false);[m
+         oldPasswordContainer.add(oldPasswordField);[m
+ [m
+         Label passwordLabel = new Label(ID_PASSWORD_LABEL, createStringResource("PageSelfCredentials.passwordLabel1"));[m
+         add(passwordLabel);[m
+ [m
+[31m-        PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new PropertyModel<>(model, MyPasswordsDto.F_PASSWORD),[m
+[31m-                model.getObject().getFocus(), getPageBase()){[m
+[32m+[m[32m        PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new PropertyModel<>(getModel(), MyPasswordsDto.F_PASSWORD),[m
+[32m+[m[32m                getModelObject().getFocus(), getPageBase()){[m
+             @Override[m
+             protected <F extends FocusType> ValuePolicyType getValuePolicy(PrismObject<F> object) {[m
+[31m-                return model.getObject().getFocusPolicy();[m
+[32m+[m[32m                return getModelObject().getFocusPolicy();[m
+             }[m
+ [m
+             @Override[m
+[36m@@ -146,7 +168,7 @@[m [mpublic class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {[m
+ [m
+         List<IColumn<PasswordAccountDto, String>> columns = initColumns();[m
+         ListDataProvider<PasswordAccountDto> provider = new ListDataProvider<>(this,[m
+[31m-            new PropertyModel<>(model, MyPasswordsDto.F_ACCOUNTS));[m
+[32m+[m[32m            new PropertyModel<>(getModel(), MyPasswordsDto.F_ACCOUNTS));[m
+         TablePanel accounts = new TablePanel(ID_ACCOUNTS_TABLE, provider, columns);[m
+         accounts.setItemsPerPage(30);[m
+         accounts.setShowPaging(false);[m
+[36m@@ -411,6 +433,230 @@[m [mpublic class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {[m
+                 });[m
+     }[m
+ [m
+[32m+[m[32m    private MyPasswordsDto loadPageModel() {[m
+[32m+[m[32m        LOGGER.debug("Loading user and accounts.");[m
+[32m+[m
+[32m+[m[32m        MyPasswordsDto passwordsDto = new MyPasswordsDto();[m
+[32m+[m[32m        OperationResult result = new OperationResult(OPERATION_LOAD_USER_WITH_ACCOUNTS);[m
+[32m+[m[32m        try {[m
+[32m+[m[32m            String focusOid = SecurityUtils.getPrincipalUser().getOid();[m
+[32m+[m[32m            Task task = getPageBase().createSimpleTask(OPERATION_LOAD_USER);[m
+[32m+[m[32m            OperationResult subResult = result.createSubresult(OPERATION_LOAD_USER);[m
+[32m+[m[32m            PrismObject<? extends FocusType> focus = getPageBase().getModelService().getObject(FocusType.class, focusOid, null, task, subResult);[m
+[32m+[m[32m            passwordsDto = createMyPasswordsDto(focus);[m
+[32m+[m[32m            subResult.recordSuccessIfUnknown();[m
+[32m+[m
+[32m+[m[32m            getModel().setObject(passwordsDto);[m
+[32m+[m[32m            if (!shouldShowPasswordPropagation()) {[m
+[32m+[m[32m                LOGGER.debug("Skip loading account, because policy said so (enabled {} propagation).", passwordsDto.getPropagation());[m
+[32m+[m[32m                return passwordsDto;[m
+[32m+[m[32m            }[m
+[32m+[m
+[32m+[m[32m            PrismReference reference = focus.findReference(FocusType.F_LINK_REF);[m
+[32m+[m[32m            if (reference == null || CollectionUtils.isEmpty(reference.getValues())) {[m
+[32m+[m[32m                LOGGER.debug("No accounts found for user {}.", focusOid);[m
+[32m+[m[32m                return passwordsDto;[m
+[32m+[m[32m            }[m
+[32m+[m
+[32m+[m[32m            addAccountsToMyPasswordsDto(passwordsDto, reference.getValues(), task, result);[m
+[32m+[m[32m            result.recordSuccessIfUnknown();[m
+[32m+[m[32m        } catch (Exception ex) {[m
+[32m+[m[32m            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load accounts", ex);[m
+[32m+[m[32m            result.recordFatalError(getString("PageAbstractSelfCredentials.message.couldntLoadAccounts.fatalError"), ex);[m
+[32m+[m[32m        } finally {[m
+[32m+[m[32m            result.recomputeStatus();[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        Collections.sort(passwordsDto.getAccounts());[m
+[32m+[m
+[32m+[m[32m        if (!result.isSuccess() && !result.isHandledError()) {[m
+[32m+[m[32m            getPageBase().showResult(result);[m
+[32m+[m[32m        }[m
+[32m+[m[32m        return passwordsDto;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    private MyPasswordsDto createMyPasswordsDto(PrismObject<? extends FocusType> focus) {[m
+[32m+[m[32m        MyPasswordsDto dto = new MyPasswordsDto();[m
+[32m+[m[32m        dto.setFocus(focus);[m
+[32m+[m[32m        CredentialsPolicyType credentialsPolicyType = getPasswordCredentialsPolicy(focus);[m
+[32m+[m[32m        dto.getAccounts().add(createDefaultPasswordAccountDto(focus, getPasswordPolicyOid(credentialsPolicyType)));[m
+[32m+[m
+[32m+[m
+[32m+[m[32m        if (credentialsPolicyType != null) {[m
+[32m+[m[32m            PasswordCredentialsPolicyType passwordCredentialsPolicy = credentialsPolicyType.getPassword();[m
+[32m+[m[32m            if (passwordCredentialsPolicy != null) {[m
+[32m+[m[32m                CredentialsPropagationUserControlType propagationUserControl = passwordCredentialsPolicy.getPropagationUserControl();[m
+[32m+[m[32m                if (propagationUserControl != null) {[m
+[32m+[m[32m                    dto.setPropagation(propagationUserControl);[m
+[32m+[m[32m                }[m
+[32m+[m[32m                PasswordChangeSecurityType passwordChangeSecurity = passwordCredentialsPolicy.getPasswordChangeSecurity();[m
+[32m+[m[32m                if (passwordChangeSecurity != null) {[m
+[32m+[m[32m                    dto.setPasswordChangeSecurity(passwordChangeSecurity);[m
+[32m+[m[32m                }[m
+[32m+[m[32m                ObjectReferenceType valuePolicyRef = passwordCredentialsPolicy.getValuePolicyRef();[m
+[32m+[m[32m                if (valuePolicyRef != null && valuePolicyRef.getOid() != null){[m
+[32m+[m[32m                    Task task = getPageBase().createSimpleTask("load value policy");[m
+[32m+[m[32m                    PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch([m
+[32m+[m[32m                            valuePolicyRef, getPageBase(), task, task.getResult());[m
+[32m+[m[32m                    if (valuePolicy != null) {[m
+[32m+[m[32m                        dto.addPasswordPolicy(valuePolicy.asObjectable());[m
+[32m+[m[32m                    }[m
+[32m+[m[32m                }[m
+[32m+[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m[32m        return dto;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    private PasswordAccountDto createDefaultPasswordAccountDto(PrismObject<? extends FocusType> focus, String passwordPolicyOid) {[m
+[32m+[m[32m        String customSystemName = WebComponentUtil.getMidpointCustomSystemName(getPageBase(), "midpoint.default.system.name");[m
+[32m+[m[32m        PasswordAccountDto accountDto = new PasswordAccountDto(focus, focus.getName().getOrig(),[m
+[32m+[m[32m                getString("PageSelfCredentials.resourceMidpoint", customSystemName),[m
+[32m+[m[32m                WebComponentUtil.isActivationEnabled(focus, ActivationType.F_EFFECTIVE_STATUS), true);[m
+[32m+[m[32m        accountDto.setPasswordValuePolicyOid(passwordPolicyOid);[m
+[32m+[m[32m        return accountDto;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    private CredentialsPolicyType getPasswordCredentialsPolicy(PrismObject<? extends FocusType> focus) {[m
+[32m+[m[32m        LOGGER.debug("Getting credentials policy");[m
+[32m+[m[32m        Task task = getPageBase().createSimpleTask(OPERATION_GET_CREDENTIALS_POLICY);[m
+[32m+[m[32m        OperationResult result = new OperationResult(OPERATION_GET_CREDENTIALS_POLICY);[m
+[32m+[m[32m        CredentialsPolicyType credentialsPolicyType = null;[m
+[32m+[m[32m        try {[m
+[32m+[m[32m            credentialsPolicyType = getPageBase().getModelInteractionService().getCredentialsPolicy(focus, task, result);[m
+[32m+[m[32m            result.recordSuccessIfUnknown();[m
+[32m+[m[32m        } catch (Exception ex) {[m
+[32m+[m[32m            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load credentials policy", ex);[m
+[32m+[m[32m            result.recordFatalError([m
+[32m+[m[32m                    getString("PageAbstractSelfCredentials.message.getPasswordCredentialsPolicy.fatalError", ex.getMessage()), ex);[m
+[32m+[m[32m        } finally {[m
+[32m+[m[32m            result.computeStatus();[m
+[32m+[m[32m        }[m
+[32m+[m[32m        return credentialsPolicyType;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    private CredentialsPolicyType getPasswordCredentialsPolicy(RefinedObjectClassDefinition rOCDef) {[m
+[32m+[m[32m        LOGGER.debug("Getting credentials policy");[m
+[32m+[m[32m        Task task = getPageBase().createSimpleTask(OPERATION_GET_CREDENTIALS_POLICY);[m
+[32m+[m[32m        OperationResult result = new OperationResult(OPERATION_GET_CREDENTIALS_POLICY);[m
+[32m+[m[32m        CredentialsPolicyType credentialsPolicyType = null;[m
+[32m+[m[32m        try {[m
+[32m+[m[32m            SecurityPolicyType securityPolicy = getPageBase().getModelInteractionService().getSecurityPolicy(rOCDef, task, result);[m
+[32m+[m[32m            if (securityPolicy != null){[m
+[32m+[m[32m                credentialsPolicyType = securityPolicy.getCredentials();[m
+[32m+[m[32m            }[m
+[32m+[m[32m            result.recordSuccessIfUnknown();[m
+[32m+[m[32m        } catch (Exception ex) {[m
+[32m+[m[32m            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load security policy", ex);[m
+[32m+[m[32m            result.recordFatalError([m
+[32m+[m[32m                    getString("PageAbstractSelfCredentials.message.getPasswordSecurityPolicy.fatalError", ex.getMessage()), ex);[m
+[32m+[m[32m        } finally {[m
+[32m+[m[32m            result.computeStatus();[m
+[32m+[m[32m        }[m
+[32m+[m[32m        return credentialsPolicyType;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    private String getPasswordPolicyOid(CredentialsPolicyType credentialsPolicyType) {[m
+[32m+[m[32m        if (credentialsPolicyType != null && credentialsPolicyType.getPassword() != null[m
+[32m+[m[32m                && credentialsPolicyType.getPassword().getValuePolicyRef() != null) {[m
+[32m+[m[32m            return credentialsPolicyType.getPassword().getValuePolicyRef().getOid();[m
+[32m+[m[32m        }[m
+[32m+[m[32m        return null;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    private void addAccountsToMyPasswordsDto(MyPasswordsDto dto, List<PrismReferenceValue> linkReferences, Task task, OperationResult result) {[m
+[32m+[m[32m        final Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()[m
+[32m+[m[32m                .item(ShadowType.F_RESOURCE_REF).resolve()[m
+[32m+[m[32m                .item(ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE,[m
+[32m+[m[32m                        ResourceObjectTypeDefinitionType.F_SECURITY_POLICY_REF)).resolve()[m
+[32m+[m[32m                .build();[m
+[32m+[m[32m        for (PrismReferenceValue value : linkReferences) {[m
+[32m+[m[32m            OperationResult subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);[m
+[32m+[m[32m            try {[m
+[32m+[m[32m                String accountOid = value.getOid();[m
+[32m+[m[32m                PrismObject<ShadowType> account = getPageBase().getModelService().getObject(ShadowType.class,[m
+[32m+[m[32m                        accountOid, options, task, subResult);[m
+[32m+[m
+[32m+[m[32m                dto.getAccounts().add(createPasswordAccountDto(dto, account, task, subResult));[m
+[32m+[m[32m                subResult.recordSuccessIfUnknown();[m
+[32m+[m[32m            } catch (Exception ex) {[m
+[32m+[m[32m                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load account", ex);[m
+[32m+[m[32m                subResult.recordFatalError(getString("PageAbstractSelfCredentials.message.couldntLoadAccount.fatalError"), ex);[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    private PasswordAccountDto createPasswordAccountDto(MyPasswordsDto passwordDto, PrismObject<ShadowType> account, Task task, OperationResult result){[m
+[32m+[m[32m        PrismReference resourceRef = account.findReference(ShadowType.F_RESOURCE_REF);[m
+[32m+[m[32m        String resourceName;[m
+[32m+[m[32m        if (resourceRef == null || resourceRef.getValue() == null || resourceRef.getValue().getObject() == null) {[m
+[32m+[m[32m            resourceName = getString("PageSelfCredentials.couldntResolve");[m
+[32m+[m[32m        } else {[m
+[32m+[m[32m            resourceName = WebComponentUtil.getName(resourceRef.getValue().getObject());[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        PasswordAccountDto passwordAccountDto = new PasswordAccountDto(account, resourceName, resourceRef.getOid());[m
+[32m+[m
+[32m+[m[32m        ShadowType shadowType = account.asObjectable();[m
+[32m+[m[32m        ResourceType resource = (ResourceType) shadowType.getResourceRef().asReferenceValue().getObject().asObjectable();[m
+[32m+[m[32m        if (resource != null) {[m
+[32m+[m[32m            ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());[m
+[32m+[m[32m            passwordAccountDto.setPasswordCapabilityEnabled(ResourceTypeUtil.isPasswordCapabilityEnabled(resource, resourceObjectTypeDefinitionType));[m
+[32m+[m[32m            passwordAccountDto.setMaintenanceState(ResourceTypeUtil.isInMaintenance(resource));[m
+[32m+[m[32m            try {[m
+[32m+[m[32m                RefinedObjectClassDefinition rOCDef = getPageBase().getModelInteractionService().getEditObjectClassDefinition(account,[m
+[32m+[m[32m                        resource.asPrismObject(), AuthorizationPhaseType.REQUEST, task, result);[m
+[32m+[m
+[32m+[m[32m                if (rOCDef != null) {[m
+[32m+[m[32m                    passwordAccountDto.setPasswordOutbound(getPasswordOutbound(account, resource, rOCDef));[m
+[32m+[m[32m                    CredentialsPolicyType credentialsPolicy = getPasswordCredentialsPolicy(rOCDef);[m
+[32m+[m[32m                    if (credentialsPolicy != null && credentialsPolicy.getPassword() != null[m
+[32m+[m[32m                            && credentialsPolicy.getPassword().getValuePolicyRef() != null) {[m
+[32m+[m[32m                        PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch([m
+[32m+[m[32m                                credentialsPolicy.getPassword().getValuePolicyRef(), getPageBase(), task, task.getResult());[m
+[32m+[m[32m                        if (valuePolicy != null) {[m
+[32m+[m[32m                            passwordAccountDto.setPasswordValuePolicyOid(valuePolicy.getOid());[m
+[32m+[m[32m                            passwordDto.addPasswordPolicy(valuePolicy.asObjectable());[m
+[32m+[m[32m                        }[m
+[32m+[m[32m                    }[m
+[32m+[m[32m                } else {[m
+[32m+[m[32m                    passwordAccountDto.setPasswordOutbound(false);[m
+[32m+[m[32m                }[m
+[32m+[m
+[32m+[m[32m            } catch (Exception e) {[m
+[32m+[m[32m                LoggingUtils.logUnexpectedException(LOGGER, "Fail to get RefinedObjectClassDefinition for {} ", e, account);[m
+[32m+[m[32m                result.recordFatalError("Fail to get RefinedObjectClassDefinition for " + account, e);[m
+[32m+[m[32m                getPageBase().showResult(result);[m
+[32m+[m[32m                passwordAccountDto.setPasswordOutbound(false);[m
+[32m+[m[32m            }[m
+[32m+[m
+[32m+[m[32m        } else {[m
+[32m+[m[32m            passwordAccountDto.setPasswordCapabilityEnabled(false);[m
+[32m+[m[32m            passwordAccountDto.setPasswordOutbound(false);[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        return passwordAccountDto;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    private boolean getPasswordOutbound(PrismObject<ShadowType> shadow, ResourceType resource, RefinedObjectClassDefinition rOCDef) {[m
+[32m+[m[32m        List<MappingType> passwordOutbound = rOCDef.getPasswordOutbound();[m
+[32m+[m[32m        if (passwordOutbound == null) {[m
+[32m+[m[32m            return false;[m
+[32m+[m[32m        }[m
+[32m+[m[32m        for (MappingType mapping : passwordOutbound) {[m
+[32m+[m[32m            if (MappingStrengthType.WEAK == mapping.getStrength()) {[m
+[32m+[m[32m                CredentialsCapabilityType capability = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);[m
+[32m+[m[32m                if (CapabilityUtil.isPasswordReadable(capability)) {[m
+[32m+[m[32m                    return true;[m
+[32m+[m[32m                }[m
+[32m+[m[32m                continue;[m
+[32m+[m[32m            }[m
+[32m+[m[32m            // at least one mapping which is not WEAK[m
+[32m+[m[32m            return true;[m
+[32m+[m[32m        }[m
+[32m+[m[32m        return false;[m
+[32m+[m[32m    }[m
+[32m+[m
+     private PasswordPanel getPasswordPanel(){[m
+         return (PasswordPanel) get(ID_PASSWORD_PANEL);[m
+     }[m
+[36m@@ -418,4 +664,8 @@[m [mpublic class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {[m
+     private TablePanel getTable() {[m
+         return (TablePanel) get(getPageBase().createComponentPath(ID_ACCOUNTS_CONTAINER, ID_ACCOUNTS_TABLE));[m
+     }[m
+[32m+[m
+[32m+[m[32m    protected boolean isCheckOldPassword(){[m
+[32m+[m[32m        return false;[m
+[32m+[m[32m    }[m
+ }[m
+[1mdiff --git a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/self/component/SecurityQuestionsPanel.java b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/self/component/SecurityQuestionsPanel.java[m
+[1mindex b4a244d671..c3a7cfb412 100644[m
+[1m--- a/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/self/component/SecurityQuestionsPanel.java[m
+[1m+++ b/gui/admin-gui/src/main/java/com/evolveum/midpoint/web/page/self/component/SecurityQuestionsPanel.java[m
+[36m@@ -12,73 +12,128 @@[m [mimport java.util.List;[m
+ [m
+ import com.evolveum.midpoint.gui.api.component.BasePanel;[m
+ [m
+[31m-import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;[m
+[31m-[m
+[31m-import org.apache.wicket.RestartResponseException;[m
+[32m+[m[32mimport com.evolveum.midpoint.gui.api.model.LoadableModel;[m
+[32m+[m[32mimport com.evolveum.midpoint.gui.api.util.WebComponentUtil;[m
+[32m+[m[32mimport com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;[m
+[32m+[m[32mimport com.evolveum.midpoint.prism.delta.ObjectDelta;[m
+[32m+[m[32mimport com.evolveum.midpoint.prism.path.ItemPath;[m
+[32m+[m[32mimport com.evolveum.midpoint.schema.util.MiscSchemaUtil;[m
+[32m+[m
+[32m+[m[32mimport com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;[m
+[32m+[m
+[32m+[m[32mimport org.apache.commons.lang3.StringUtils;[m
+[32m+[m[32mimport org.apache.commons.text.StringEscapeUtils;[m
+[32m+[m[32mimport org.apache.wicket.ajax.AjaxRequestTarget;[m
+ import org.apache.wicket.markup.html.list.ListItem;[m
+ import org.apache.wicket.markup.html.list.ListView;[m
+ import org.apache.wicket.model.IModel;[m
+ [m
+[31m-import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;[m
+[31m-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;[m
+ import com.evolveum.midpoint.gui.api.page.PageBase;[m
+[31m-import com.evolveum.midpoint.gui.api.prism.ItemStatus;[m
+[31m-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;[m
+ import com.evolveum.midpoint.prism.PrismObject;[m
+ import com.evolveum.midpoint.prism.crypto.EncryptionException;[m
+ import com.evolveum.midpoint.prism.crypto.Protector;[m
+ import com.evolveum.midpoint.schema.result.OperationResult;[m
+ import com.evolveum.midpoint.task.api.Task;[m
+[31m-import com.evolveum.midpoint.util.exception.SchemaException;[m
+[31m-import com.evolveum.midpoint.util.exception.SystemException;[m
+ import com.evolveum.midpoint.util.logging.LoggingUtils;[m
+ import com.evolveum.midpoint.util.logging.Trace;[m
+ import com.evolveum.midpoint.util.logging.TraceManager;[m
+[31m-import com.evolveum.midpoint.web.component.prism.ContainerStatus;[m
+ import com.evolveum.midpoint.web.page.admin.home.component.MyPasswordQuestionsPanel;[m
+ import com.evolveum.midpoint.web.page.admin.home.dto.PasswordQuestionsDto;[m
+ import com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;[m
+ import com.evolveum.midpoint.web.security.util.SecurityUtils;[m
+ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;[m
+ [m
+[31m-public class PasswordQuestionsPanel extends BasePanel<PasswordQuestionsDto> {[m
+[32m+[m[32mimport org.apache.wicket.model.Model;[m
+[32m+[m
+[32m+[m[32mpublic class SecurityQuestionsPanel extends BasePanel<PasswordQuestionsDto> {[m
+     private static final long serialVersionUID = 1L;[m
+ [m
+[31m-    private static final Trace LOGGER = TraceManager.getTrace(PasswordQuestionsPanel.class);[m
+[32m+[m[32m    private static final Trace LOGGER = TraceManager.getTrace(SecurityQuestionsPanel.class);[m
+ [m
+[31m-    private static final String DOT_CLASS = PasswordQuestionsPanel.class.getName() + ".";[m
+[32m+[m[32m    private static final String DOT_CLASS = SecurityQuestionsPanel.class.getName() + ".";[m
+     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loaduser";[m
+     private static final String OPERATION_LOAD_QUESTION_POLICY = DOT_CLASS + "LOAD Question Policy";[m
+[31m-    private static final String ID_PASSWORD_QUESTIONS_PANEL = "pwdQuestionsPanel";[m
+[32m+[m[32m    private static final String OPERATION_SAVE_QUESTIONS = DOT_CLASS + "saveSecurityQuestions";[m
+[32m+[m[32m    private static final String ID_SECURITY_QUESTIONS_PANEL = "pwdQuestionsPanel";[m
+[32m+[m[32m    private static final String ID_QUESTION_ANSWER_PANEL = "questionAnswerPanel";[m
+ [m
+[32m+[m[32m    public SecurityQuestionsPanel(String id, IModel<PasswordQuestionsDto> model) {[m
+[32m+[m[32m        super(id, model);[m
+[32m+[m[32m    }[m
+ [m
+[31m-    private List<MyPasswordQuestionsPanel> pqPanels;[m
+[31m-    private List<SecurityQuestionDefinitionType> policyQuestionList;[m
+[31m-    int questionNumber;[m
+[32m+[m[32m    @Override[m
+[32m+[m[32m    protected void onInitialize() {[m
+[32m+[m[32m        super.onInitialize();[m
+[32m+[m[32m        initSecurityQuestionsModel();[m
+[32m+[m[32m        initLayout();[m
+[32m+[m[32m    }[m
+ [m
+[31m-    public PasswordQuestionsPanel(String id, IModel<PasswordQuestionsDto> model) {[m
+[31m-        super(id, model);[m
+[32m+[m[32m    private void initSecurityQuestionsModel() {[m
+[32m+[m[32m        if (getModelObject() == null) {[m
+[32m+[m[32m            getModel().setObject(loadPageModel());[m
+[32m+[m[32m        }[m
+     }[m
+ [m
+     private PasswordQuestionsDto loadPageModel() {[m
+         LOGGER.debug("Loading user for Security Question Page.");[m
+ [m
+[31m-        PasswordQuestionsDto dto = new PasswordQuestionsDto();[m
+[32m+[m[32m        GuiProfiledPrincipal principalUser = SecurityUtils.getPrincipalUser();[m
+[32m+[m[32m        PasswordQuestionsDto dto = new PasswordQuestionsDto(principalUser.getOid());[m
+         OperationResult result = new OperationResult(OPERATION_LOAD_USER);[m
+         try {[m
+[31m-            String userOid = SecurityUtils.getPrincipalUser().getOid();[m
+             Task task = getPageBase().createSimpleTask(OPERATION_LOAD_USER);[m
+             OperationResult subResult = result.createSubresult(OPERATION_LOAD_USER);[m
+ [m
+[31m-            PrismObject<UserType> user = getPageBase().getModelService().getObject(UserType.class, userOid, null, task, subResult);[m
+[32m+[m[32m            PrismObject<UserType> user = getPageBase().getModelService().getObject(UserType.class, principalUser.getOid(), null, task, subResult);[m
+ [m
+[31m-            dto.setSecurityAnswers(createUsersSecurityQuestionsList(user));[m
+[32m+[m[32m            dto.setUserQuestionAnswers(createUsersSecurityQuestionsList(user));[m
+             subResult.recordSuccessIfUnknown();[m
+         } catch (Exception ex) {[m
+             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get user Questions, Probably not set yet", ex);[m
+         } finally {[m
+             result.recomputeStatus();[m
+         }[m
+[32m+[m
+[32m+[m[32m        CredentialsPolicyType credPolicy = principalUser.getApplicableSecurityPolicy().getCredentials();[m
+[32m+[m
+[32m+[m[32m        List<SecurityQuestionDefinitionType> questionsDef = new ArrayList<>();[m
+[32m+[m[32m        //Security Policy set question numbers[m
+[32m+[m[32m        if (credPolicy != null && credPolicy.getSecurityQuestions() != null) {[m
+[32m+[m
+[32m+[m[32m            // Actual Policy Question List[m
+[32m+[m[32m            questionsDef = getEnabledSecurityQuestions(credPolicy);[m
+[32m+[m[32m        } else {[m
+[32m+[m[32m            LOGGER.debug("Couldn't load credentials for security questions");[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        result = new OperationResult(OPERATION_LOAD_QUESTION_POLICY);[m
+[32m+[m[32m        try {[m
+[32m+[m
+[32m+[m[32m            /*User's Pre-Set Question List*/[m
+[32m+[m[32m            List<SecurityQuestionAnswerDTO> userQuestionList = getModelObject().getUserQuestionAnswers();[m
+[32m+[m
+[32m+[m[32m            /* check if user's set number of[m
+[32m+[m[32m             * questions matches the policy or not*/[m
+[32m+[m
+[32m+[m[32m            //Case that policy have more than users's number of numbers[m
+[32m+[m[32m            int questionSize = questionsDef.size();[m
+[32m+[m[32m            if (userQuestionList == null) {[m
+[32m+[m[32m                executeAddingQuestions(questionSize, 0, questionsDef);[m
+[32m+[m[32m                //TODO same questions check should be implemented[m
+[32m+[m[32m            } else if (questionSize > userQuestionList.size()){[m
+[32m+[m[32m                executePasswordQuestionsAndAnswers(userQuestionList, questionsDef, userQuestionList.size());[m
+[32m+[m[32m                //QUESTION NUMBER BIGGER THAN QUESTION LIST[m
+[32m+[m[32m                //rest of the questions[m
+[32m+[m[32m                int difference = questionSize - userQuestionList.size();[m
+[32m+[m[32m                executeAddingQuestions(difference, userQuestionList.size(), questionsDef);[m
+[32m+[m[32m            } else if (questionSize <= userQuestionList.size()) {[m
+[32m+[m[32m                //QUESTION NUMBER SMALLER THAN QUESTION LIST OR EQUALS TO QUESTION LIST[m
+[32m+[m[32m                executePasswordQuestionsAndAnswers(userQuestionList, questionsDef, 0);[m
+[32m+[m[32m            }[m
+[32m+[m[32m        } catch (Exception ex) {[m
+[32m+[m[32m            result.recordFatalError(getString("PageMyPasswordQuestions.message.couldNotLoadSysConfig"), ex);[m
+[32m+[m[32m        }[m
+[32m+[m
+         return dto;[m
+     }[m
+ [m
+[36m@@ -113,72 +168,14 @@[m [mpublic class PasswordQuestionsPanel extends BasePanel<PasswordQuestionsDto> {[m
+         return null;[m
+     }[m
+ [m
+[31m-    @Override[m
+[31m-    protected void onInitialize() {[m
+[31m-        super.onInitialize();[m
+[31m-        initSecurityQuestionsModel();[m
+[31m-        initLayout();[m
+[31m-    }[m
+[31m-[m
+[31m-    private void initSecurityQuestionsModel() {[m
+[31m-        if (getModelObject() == null) {[m
+[31m-            getModel().setObject(loadPageModel());[m
+[31m-        }[m
+[31m-    }[m
+[31m-[m
+     public void initLayout() {[m
+[31m-        //question panel list[m
+[31m-        pqPanels = new ArrayList<>();[m
+[31m-        OperationResult result = new OperationResult(OPERATION_LOAD_QUESTION_POLICY);[m
+[31m-        try {[m
+[31m-[m
+[31m-            Task task = getPageBase().createSimpleTask(OPERATION_LOAD_QUESTION_POLICY);[m
+[31m-            OperationResult subResult = result.createSubresult(OPERATION_LOAD_QUESTION_POLICY);[m
+[31m-            try {[m
+[31m-[m
+[31m-                CredentialsPolicyType credPolicy = getPageBase().getModelInteractionService().getCredentialsPolicy(null, null, result);[m
+[31m-[m
+[31m-                //Global Policy set question numbers[m
+[31m-                if (credPolicy != null && credPolicy.getSecurityQuestions() != null) {[m
+[31m-[m
+[31m-                    // Actual Policy Question List[m
+[31m-                    policyQuestionList = getEnabledSecurityQuestions(credPolicy);[m
+[31m-[m
+[31m-                    questionNumber = policyQuestionList.size();[m
+[31m-                } else {[m
+[31m-                    questionNumber = 0;[m
+[31m-                    policyQuestionList = new ArrayList<>();[m
+[31m-                }[m
+[31m-            } catch (Exception ex) {[m
+[31m-                LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't load credentials for security questions", ex);[m
+[31m-                getPageBase().showResult(result);[m
+[31m-            }[m
+[31m-[m
+[31m-            /*User's Pre-Set Question List*/[m
+[31m-            List<SecurityQuestionAnswerDTO> userQuestionList = getModelObject().getSecurityAnswers();[m
+[31m-[m
+[31m-            /* check if user's set number of[m
+[31m-             * questions matches the policy or not*/[m
+[31m-[m
+[31m-            //Case that policy have more than users's number of numbers[m
+[31m-            if (userQuestionList == null) {[m
+[31m-                executeAddingQuestions(questionNumber, 0, policyQuestionList);[m
+[31m-                //TODO same questions check should be implemented[m
+[31m-            } else if (questionNumber > userQuestionList.size()){[m
+[31m-                executePasswordQuestionsAndAnswers(userQuestionList, policyQuestionList, userQuestionList.size());[m
+[31m-                //QUESTION NUMBER BIGGER THAN QUESTION LIST[m
+[31m-                //rest of the questions[m
+[31m-                int difference = questionNumber - userQuestionList.size();[m
+[31m-                executeAddingQuestions(difference, userQuestionList.size(), policyQuestionList);[m
+[31m-            } else if (questionNumber <= userQuestionList.size()) {[m
+[31m-                //QUESTION NUMBER SMALLER THAN QUESTION LIST OR EQUALS TO QUESTION LIST[m
+[31m-                executePasswordQuestionsAndAnswers(userQuestionList, policyQuestionList, 0);[m
+[32m+[m[32m        add(new ListView<SecurityQuestionAnswerDTO>(ID_SECURITY_QUESTIONS_PANEL, getModelObject().getActualQuestionAnswers()) {[m
+[32m+[m[32m            @Override[m
+[32m+[m[32m            protected void populateItem(ListItem<SecurityQuestionAnswerDTO> item) {[m
+[32m+[m[32m                MyPasswordQuestionsPanel panel = new MyPasswordQuestionsPanel(ID_QUESTION_ANSWER_PANEL, Model.of(item.getModelObject()));[m
+[32m+[m[32m                item.add(panel);[m
+             }[m
+[31m-        } catch (Exception ex) {[m
+[31m-            result.recordFatalError(getString("PageMyPasswordQuestions.message.couldNotLoadSysConfig"), ex);[m
+[31m-        }[m
+[31m-[m
+[31m-        add(getPanels(pqPanels));[m
+[32m+[m[32m        });[m
+     }[m
+ [m
+     private List<SecurityQuestionDefinitionType> getEnabledSecurityQuestions(CredentialsPolicyType credPolicy) {[m
+[36m@@ -201,14 +198,11 @@[m [mpublic class PasswordQuestionsPanel extends BasePanel<PasswordQuestionsDto> {[m
+     public void executeAddingQuestions(int questionNumber, int panelNumber, List<SecurityQuestionDefinitionType> policyQuestionList) {[m
+         LOGGER.debug("executeAddingQuestions");[m
+         for (int i = 0; i < questionNumber; i++) {[m
+[31m-            //LOGGER.info("\n\n Adding panel element");[m
+[31m-            SecurityQuestionAnswerDTO a = new SecurityQuestionAnswerDTO(policyQuestionList.get(panelNumber).getIdentifier(), "", policyQuestionList.get(panelNumber).getQuestionText());[m
+[31m-            MyPasswordQuestionsPanel panel = new MyPasswordQuestionsPanel(ID_PASSWORD_QUESTIONS_PANEL + panelNumber, a);[m
+[31m-            pqPanels.add(panel);[m
+[32m+[m[32m            SecurityQuestionDefinitionType def = policyQuestionList.get(panelNumber);[m
+[32m+[m[32m            SecurityQuestionAnswerDTO a = new SecurityQuestionAnswerDTO(def.getIdentifier(), "", def.getQuestionText());[m
+[32m+[m[32m            getModelObject().getActualQuestionAnswers().add(a);[m
+             panelNumber++;[m
+[31m-[m
+         }[m
+[31m-[m
+     }[m
+ [m
+     /**[m
+[36m@@ -226,25 +220,24 @@[m [mpublic class PasswordQuestionsPanel extends BasePanel<PasswordQuestionsDto> {[m
+             //user's question List loop to match the questions[m
+             for (int i = userQuest; i < userQuestionList.size(); i++) {[m
+ [m
+[31m-                if (userQuestionList.get(i).getPwdQuestion().trim().compareTo(securityQuestionDefinitionType.getIdentifier().trim()) == 0) {[m
+[31m-[m
+[31m-                    SecurityQuestionAnswerDTO a = new SecurityQuestionAnswerDTO(userQuestionList.get(i).getPwdQuestion(), userQuestionList.get(i).getPwdAnswer(), userQuestionList.get(i).getQuestionItself());[m
+[32m+[m[32m                SecurityQuestionAnswerDTO dto = userQuestionList.get(i);[m
+ [m
+[32m+[m[32m                if (dto.getPwdQuestionIdentifier().trim().compareTo(securityQuestionDefinitionType.getIdentifier().trim()) == 0) {[m
+[32m+[m[32m                    SecurityQuestionAnswerDTO a = new SecurityQuestionAnswerDTO(dto.getPwdQuestionIdentifier(), dto.getPwdAnswer(), dto.getPwdQuestion());[m
+                     a = checkIfQuestionIsValidSingle(a, securityQuestionDefinitionType);[m
+[31m-                    MyPasswordQuestionsPanel panel = new MyPasswordQuestionsPanel(ID_PASSWORD_QUESTIONS_PANEL + panelNumber, a);[m
+[31m-                    pqPanels.add(panel);[m
+[32m+[m[32m                    getModelObject().getActualQuestionAnswers().add(a);[m
+[32m+[m
+                     panelNumber++;[m
+                     userQuest++;[m
+                     break;[m
+ [m
+[31m-                } else if (userQuestionList.get(i).getPwdQuestion().trim().compareTo(securityQuestionDefinitionType.getIdentifier().trim()) != 0) {[m
+[31m-[m
+[31m-                    SecurityQuestionAnswerDTO a = new SecurityQuestionAnswerDTO(policyQuestionList.get(panelNumber).getIdentifier(), "", policyQuestionList.get(panelNumber).getQuestionText());[m
+[31m-                    a.setQuestionItself(securityQuestionDefinitionType.getQuestionText());[m
+[31m-                    userQuestionList.get(i).setPwdQuestion(securityQuestionDefinitionType.getIdentifier().trim());[m
+[32m+[m[32m                } else if (dto.getPwdQuestionIdentifier().trim().compareTo(securityQuestionDefinitionType.getIdentifier().trim()) != 0) {[m
+[32m+[m[32m                    SecurityQuestionDefinitionType def = policyQuestionList.get(panelNumber);[m
+[32m+[m[32m                    SecurityQuestionAnswerDTO a = new SecurityQuestionAnswerDTO(def.getIdentifier(), "", def.getQuestionText());[m
+[32m+[m[32m                    a.setPwdQuestion(securityQuestionDefinitionType.getQuestionText());[m
+[32m+[m[32m                    getModelObject().getActualQuestionAnswers().add(a);[m
+[32m+[m[32m                    dto.setPwdQuestionIdentifier(securityQuestionDefinitionType.getIdentifier().trim());[m
+ [m
+[31m-                    MyPasswordQuestionsPanel panel = new MyPasswordQuestionsPanel(ID_PASSWORD_QUESTIONS_PANEL + panelNumber, a);[m
+[31m-                    pqPanels.add(panel);[m
+                     panelNumber++;[m
+ [m
+                     userQuest++;[m
+[36m@@ -255,68 +248,63 @@[m [mpublic class PasswordQuestionsPanel extends BasePanel<PasswordQuestionsDto> {[m
+             }[m
+ [m
+         }[m
+[31m-[m
+     }[m
+ [m
+[31m-    public ListView<MyPasswordQuestionsPanel> getPanels(List<MyPasswordQuestionsPanel> p) {[m
+[31m-        return new ListView<MyPasswordQuestionsPanel>(ID_PASSWORD_QUESTIONS_PANEL, p) {[m
+[31m-            @Override[m
+[31m-            protected void populateItem(ListItem item) {[m
+[31m-                item.add((MyPasswordQuestionsPanel) item.getModelObject());[m
+[31m-            }[m
+[31m-        };[m
+[32m+[m[32m    private SecurityQuestionAnswerDTO checkIfQuestionIsValidSingle([m
+[32m+[m[32m            SecurityQuestionAnswerDTO questionIdentifier, SecurityQuestionDefinitionType securityQuestion) {[m
+[32m+[m[32m        if (securityQuestion.getIdentifier().trim().compareTo(questionIdentifier.getPwdQuestionIdentifier().trim()) == 0) {[m
+[32m+[m[32m            questionIdentifier.setPwdQuestion(securityQuestion.getQuestionText());[m
+[32m+[m[32m            return questionIdentifier;[m
+[32m+[m[32m        } else {[m
+[32m+[m[32m            return null;[m
+[32m+[m[32m        }[m
+     }[m
+ [m
+[31m-    private PrismObjectWrapper<UserType> loadUserWrapper(PrismObject<UserType> userToEdit) {[m
+[31m-        OperationResult result = new OperationResult(OPERATION_LOAD_USER);[m
+[31m-        PrismObject<UserType> user = null;[m
+[31m-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_USER);[m
+[32m+[m[32m    public void onSavePerformed(AjaxRequestTarget target) {[m
+[32m+[m[32m        Task task = getPageBase().createSimpleTask(OPERATION_SAVE_QUESTIONS);[m
+[32m+[m[32m        OperationResult result = new OperationResult(OPERATION_SAVE_QUESTIONS);[m
+[32m+[m[32m        List<SecurityQuestionAnswerType> answerTypeList = new ArrayList<>();[m
+[32m+[m
+         try {[m
+[31m-            Collection options = getPageBase().getOperationOptionsBuilder()[m
+[31m-                    .item(UserType.F_CREDENTIALS).retrieve()[m
+[31m-                    .build();[m
+[31m-            user = getPageBase().getModelService().getObject(UserType.class, SecurityUtils.getPrincipalUser().getOid(), options, task, result);[m
+[32m+[m[32m            int listnum = 0;[m
+[32m+[m[32m            for (SecurityQuestionAnswerDTO answerDto : getModelObject().getActualQuestionAnswers()) {[m
+[32m+[m[32m                SecurityQuestionAnswerType answerType = new SecurityQuestionAnswerType();[m
+[32m+[m[32m                ProtectedStringType answer = new ProtectedStringType();[m
+[32m+[m
+[32m+[m[32m                if (StringUtils.isEmpty(answerDto.getPwdAnswer())) {[m
+[32m+[m[32m//                    warn(getString("SecurityQuestionsPanel.emptySecurityQuestionAnswerFiled"));[m
+[32m+[m[32m//                    target.add(getPageBase().getFeedbackPanel());[m
+[32m+[m[32m                    continue;[m
+[32m+[m[32m                }[m
+[32m+[m[32m                answer.setClearValue(answerDto.getPwdAnswer());[m
+[32m+[m[32m                if (!answer.isEncrypted()) {[m
+[32m+[m[32m                    WebComponentUtil.encryptProtectedString(answer, true, getPageBase().getMidpointApplication());[m
+[32m+[m[32m                }[m
+[32m+[m[32m                answerType.setQuestionAnswer(answer);[m
+ [m
+[31m-            result.recordSuccess();[m
+[31m-        } catch (Exception ex) {[m
+[31m-            result.recordFatalError(getString("PageMyPasswordQuestions.message.loadUserWrapper.fatalError"), ex);[m
+[31m-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user PageMyQuestions", ex);[m
+[31m-        }[m
+[32m+[m[32m                answerType.setQuestionIdentifier(answerDto.getPwdQuestionIdentifier());[m
+[32m+[m[32m                answerTypeList.add(answerType);[m
+[32m+[m[32m                listnum++;[m
+ [m
+[31m-        getPageBase().showResult(result, false);[m
+[32m+[m[32m            }[m
+ [m
+[31m-        if (user == null) {[m
+[32m+[m[32m            // fill in answerType data here[m
+[32m+[m[32m            ItemPath path = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS, SecurityQuestionsCredentialsType.F_QUESTION_ANSWER);[m
+[32m+[m[32m            String useroid = getModelObject().getFocusOid();[m
+[32m+[m[32m            ObjectDelta<UserType> objectDelta = getPrismContext().deltaFactory().object()[m
+[32m+[m[32m                    .createModificationReplaceContainer(UserType.class, useroid,[m
+[32m+[m[32m                            path, answerTypeList.toArray(new SecurityQuestionAnswerType[answerTypeList.size()]));[m
+ [m
+[31m-            throw new RestartResponseException(PageDashboardInfo.class);[m
+[31m-        }[m
+[32m+[m[32m            Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);[m
+[32m+[m[32m            getPageBase().getModelService().executeChanges(deltas, null, task, result);[m
+ [m
+[31m-        ContainerStatus status = ContainerStatus.MODIFYING;[m
+[31m-        PrismObjectWrapper<UserType> wrapper;[m
+[31m-        PrismObjectWrapperFactory<UserType> factory = getPageBase().findObjectWrapperFactory(user.getDefinition());[m
+[31m-        WrapperContext context = new WrapperContext(task, result);[m
+[31m-        try {[m
+[31m-            wrapper = factory.createObjectWrapper(user, ItemStatus.NOT_CHANGED, context);[m
+[32m+[m[32m            success(getString("message.success"));[m
+[32m+[m[32m            target.add(getPageBase().getFeedbackPanel());[m
+         } catch (Exception ex) {[m
+[31m-            result.recordFatalError(getString("PageMyPasswordQuestions.message.loadUserWrapper.fatalError"), ex);[m
+[31m-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);[m
+[31m-            try {[m
+[31m-                wrapper = factory.createObjectWrapper(user, ItemStatus.NOT_CHANGED, context);[m
+[31m-            } catch (SchemaException e) {[m
+[31m-                throw new SystemException(e.getMessage(), e);[m
+[31m-            }[m
+[31m-        }[m
+[31m-        getPageBase().showResult(result, false);[m
+ [m
+[31m-        return wrapper;[m
+[31m-    }[m
+[31m-[m
+[31m-    private SecurityQuestionAnswerDTO checkIfQuestionIsValidSingle([m
+[31m-            SecurityQuestionAnswerDTO questionIdentifier, SecurityQuestionDefinitionType securityQuestion) {[m
+[31m-        if (securityQuestion.getIdentifier().trim().compareTo(questionIdentifier.getPwdQuestion().trim()) == 0) {[m
+[31m-            questionIdentifier.setQuestionItself(securityQuestion.getQuestionText());[m
+[31m-            return questionIdentifier;[m
+[31m-        } else {[m
+[31m-            return null;[m
+[32m+[m[32m            error(getString("message.error"));[m
+[32m+[m[32m            target.add(getPageBase().getFeedbackPanel());[m
+[32m+[m[32m            ex.printStackTrace();[m
+         }[m
+     }[m
+ [m

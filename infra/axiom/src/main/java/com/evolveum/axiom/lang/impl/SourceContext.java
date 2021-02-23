@@ -16,13 +16,13 @@ import com.evolveum.axiom.api.AxiomValueFactory;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
-import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.api.stream.AxiomBuilderStreamTarget.ValueBuilder;
 import com.evolveum.axiom.api.stream.VirtualRootType;
 import com.evolveum.axiom.reactor.Dependency;
+import com.evolveum.concepts.SourceLocation;
 import com.google.common.base.Preconditions;
 
 class SourceContext extends ValueContext<Void> implements AxiomRootContext, ValueBuilder {

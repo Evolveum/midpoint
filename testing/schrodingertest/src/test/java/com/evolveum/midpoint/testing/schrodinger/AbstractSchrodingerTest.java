@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.testing.schrodinger.reports.SchrodingerTextReport;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -41,9 +42,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Listeners;
+import org.testng.ITestResult;
+import org.testng.annotations.*;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -99,6 +99,8 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
 
     protected BasicPage basicPage;
 
+    private boolean startMidpoint = true;
+
     public EnvironmentConfiguration getConfiguration() {
         return configuration;
     }
@@ -109,6 +111,10 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
 
     public String getPassword() {
         return password;
+    }
+
+    public boolean isStartMidpoint() {
+        return startMidpoint;
     }
 
     @Override
@@ -122,7 +128,42 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
         return new ArrayList<>();
     }
 
-    @BeforeClass
+    @BeforeClass(
+            alwaysRun = true,
+            dependsOnMethods = {"springTestContextBeforeTestClass"}
+    )
+    protected void springTestContextPrepareTestInstance() throws Exception {
+        String startMidpointStr = System.getProperty("startMidpoint");
+        if (startMidpointStr == null) {
+            Properties props = new Properties();
+            InputStream is = new FileInputStream(new File(SCHRODINGER_PROPERTIES));
+            props.load(is);
+            startMidpointStr = props.getProperty("startMidpoint");
+        }
+        if (!StringUtils.isEmpty(startMidpointStr) && startMidpointStr.equals("false")) {
+            startMidpoint = false;
+        }
+        if (startMidpoint) {
+            super.springTestContextPrepareTestInstance();
+        }
+    }
+
+    @BeforeMethod
+    public void startTestContext(ITestResult testResult) throws SchemaException {
+        if (startMidpoint) {
+            super.startTestContext(testResult);
+        }
+    }
+
+    @AfterMethod
+    public void finishTestContext(ITestResult testResult) {
+        if (startMidpoint) {
+            super.finishTestContext(testResult);
+        }
+    }
+
+
+    @BeforeClass(dependsOnMethods = {"springTestContextPrepareTestInstance"})
     public void beforeClass() throws IOException {
         LOG.info("Starting tests in class {}", getClass().getName());
 
@@ -160,9 +201,11 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
 
         config.headless(Boolean.parseBoolean(headlessStart));
 
-        String baseUrl = System.getProperty("base_url");
+        String baseUrl;
+        String urlPropertyName = startMidpoint ? "base_url" :  "base_url_mp_already_started";
+        baseUrl = System.getProperty(urlPropertyName);
         if (baseUrl == null) {
-            baseUrl = props.getProperty("base_url");
+            baseUrl = props.getProperty(urlPropertyName);
         }
         config.baseUrl(baseUrl);
 
@@ -351,15 +394,15 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
     }
 
     protected void addObjectFromFile(File file, boolean overwrite, OperationResult result) {
-        try {
-            RepoAddOptions options = null;
-            if (overwrite) {
-                options = RepoAddOptions.createOverwrite();
-            }
-            repoAddObjectsFromFile(file, null, options, result);
-        } catch (SchemaException | ObjectAlreadyExistsException | EncryptionException | IOException ex) {
-            LOG.error("Unable to add object, {}", result.getUserFriendlyMessage(), ex);
-        }
+//        try {
+//            RepoAddOptions options = null;
+//            if (overwrite) {
+//                options = RepoAddOptions.createOverwrite();
+//            }
+//            repoAddObjectsFromFile(file, null, options, result);
+//        } catch (SchemaException | ObjectAlreadyExistsException | EncryptionException | IOException ex) {
+//            LOG.error("Unable to add object, {}", result.getUserFriendlyMessage(), ex);
+//        }
     }
 
     public UserPage showUser(String userName){

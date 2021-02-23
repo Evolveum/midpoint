@@ -70,6 +70,10 @@ public abstract class BaseSearchDataProvider<C extends Containerable, T extends 
         this.oldType = search.getObject() == null ? null : search.getObject().getTypeClass();
     }
 
+    IModel<Search<C>> getSearchModel() {
+        return search;
+    }
+
     @Override
     public ObjectQuery getQuery() {
         ExpressionVariables expVariables = new ExpressionVariables();

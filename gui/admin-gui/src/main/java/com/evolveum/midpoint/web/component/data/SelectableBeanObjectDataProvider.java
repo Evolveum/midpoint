@@ -45,11 +45,11 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
 
     private boolean isMemberPanel = false;
 
-    public SelectableBeanObjectDataProvider(Component component, IModel<Search<O>> search, Set<? extends O> selected) {
+    public SelectableBeanObjectDataProvider(Component component, IModel<Search<O>> search, Set<O> selected) {
         super(component, search, selected, true);
     }
 
-    public SelectableBeanObjectDataProvider(Component component, Set<? extends O> selected) {
+    public SelectableBeanObjectDataProvider(Component component, Set<O> selected) {
         super(component, Model.of(), selected, true);
     }
 

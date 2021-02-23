@@ -12,7 +12,6 @@ import java.util.List;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -20,20 +19,17 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.session.ContainerTabStorage;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
@@ -74,7 +70,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
         getDetailsPanelContainer().add(cancelButton);
 
         CaseWorkItemActionsPanel actionsPanel = new CaseWorkItemActionsPanel(ID_CASE_WORK_ITEM_ACTIONS_PANEL,
-                new LoadableModel<CaseWorkItemType>() {
+                new LoadableModel<>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -148,8 +144,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
 
     @Override
     protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<CaseWorkItemType> containerDef) {
-        List<SearchItemDefinition> defs = new ArrayList<>();
-        return defs;
+        return new ArrayList<>();
     }
 
     @Override
@@ -158,24 +153,15 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
         return createWorkItemDetailsPanel(item);
     }
 
-//    @Override
-//    public void itemDetailsPerformed(AjaxRequestTarget target,  IModel<PrismContainerValueWrapper<CaseWorkItemType>> model){}
-
-//    private ContainerTabStorage getWorkitemsTabStorage() {
-//        return getPageBase().getSessionStorage().getCaseWorkitemsTabStorage();
-//    }
-
     private MultivalueContainerDetailsPanel<CaseWorkItemType> createWorkItemDetailsPanel(
             ListItem<PrismContainerValueWrapper<CaseWorkItemType>> item) {
-        MultivalueContainerDetailsPanel<CaseWorkItemType> detailsPanel = new MultivalueContainerDetailsPanel<CaseWorkItemType>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
-
-            private static final long serialVersionUID = 1L;
+        return new MultivalueContainerDetailsPanel<>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
 
             @Override
             protected DisplayNamePanel<CaseWorkItemType> createDisplayNamePanel(String displayNamePanelId) {
                 ItemRealValueModel<CaseWorkItemType> displayNameModel = new ItemRealValueModel<>(item.getModel());
-                return new DisplayNamePanel<CaseWorkItemType>(displayNamePanelId, displayNameModel) {
-                    private static final long serialVersionUID = 1L;
+                return new DisplayNamePanel<>(displayNamePanelId, displayNameModel) {
+
 
                     @Override
                     protected IModel<String> getDescriptionLabelModel() {
@@ -194,31 +180,12 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
             }
 
         };
-        return detailsPanel;
     }
 
     private List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> getWorkItemColumns() {
         List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> columns = new ArrayList<>();
 
-//                        columns.add(new IconColumn<ContainerValueWrapper<CaseWorkItemType>>(Model.of("")) {
-//
-//                            private static final long serialVersionUID = 1L;
-//
-//                            @Override
-//                            protected IModel<String> createIconModel(IModel<ContainerValueWrapper<CaseWorkItemType>> rowModel) {
-//                                return new IModel<String>() {
-//
-//                                    private static final long serialVersionUID = 1L;
-//
-//                                    @Override
-//                                    public String getObject() {
-//                                        return WebComponentUtil.createDefaultBlackIcon(AssignmentsUtil.getTargetType(rowModel.getObject().getContainerValue().asContainerable()));
-//                                    }
-//                                };
-//                            }
-//
-//                        });
-        columns.add(new AjaxLinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("PolicyRulesPanel.nameColumn")) {
+        columns.add(new AjaxLinkColumn<>(createStringResource("PolicyRulesPanel.nameColumn")) {
             private static final long serialVersionUID = 1L;
 
             @Override

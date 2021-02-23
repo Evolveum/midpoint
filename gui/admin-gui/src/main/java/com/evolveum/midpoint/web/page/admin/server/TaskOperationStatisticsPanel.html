@@ -21,10 +21,12 @@
         <wicket:message key="TaskOperationStatisticsPanel.processingInfo"/>
     </h2>
     <div wicket:id="processingInfo"></div>
-    <h2>
-        <wicket:message key="TaskOperationStatisticsPanel.synchronization.situation"/>
-    </h2>
-    <div wicket:id="synchronizationSituation"></div>
+    <wicket:enclosure child="synchronizationSituation">
+        <h2>
+            <wicket:message key="TaskOperationStatisticsPanel.synchronization.situation"/>
+        </h2>
+        <div wicket:id="synchronizationSituation"></div>
+    </wicket:enclosure>
     <h2>
         <wicket:message key="TaskOperationStatisticsPanel.resultingEntry"/>
     </h2>

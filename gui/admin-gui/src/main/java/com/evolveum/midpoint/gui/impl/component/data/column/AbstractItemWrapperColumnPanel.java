@@ -7,6 +7,12 @@
 
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+
+import com.evolveum.midpoint.util.logging.Trace;
+
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -27,7 +33,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW extends PrismValueWrapper>
         extends BasePanel<IW> {
 
-    private static final long serialVersionUID = 1L;
+    private static final transient Trace LOGGER = TraceManager.getTrace(AbstractItemWrapperColumnPanel.class);
     protected PageBase pageBase;
     protected ItemPath itemName;
 
@@ -74,7 +80,8 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
         }
         switch (columnType) {
             case STRING:
-                Label label = new Label(ID_VALUE, createLabel(item.getModelObject()));
+                LOGGER.info("creating label for {}", item.getModelObject());
+                Label label = new Label(ID_VALUE, new ReadOnlyModel<>(() -> createLabel(item.getModelObject())));
                 item.add(label);
                 break;
             case LINK:

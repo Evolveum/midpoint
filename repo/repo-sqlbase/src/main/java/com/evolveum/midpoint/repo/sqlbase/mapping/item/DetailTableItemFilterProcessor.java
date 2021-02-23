@@ -27,21 +27,6 @@ public class DetailTableItemFilterProcessor
         <Q extends FlexibleRelationalPathBase<?>, DQ extends FlexibleRelationalPathBase<DR>, DR>
         extends ItemFilterProcessor<PropertyValueFilter<String>> {
 
-    private final Class<DQ> detailQueryType;
-    private final BiFunction<Q, DQ, Predicate> joinOnPredicate;
-    private final ItemSqlMapper nestedItemMapper;
-
-    public DetailTableItemFilterProcessor(
-            SqlQueryContext<?, ?, ?> ctx,
-            Class<DQ> detailQueryType,
-            BiFunction<Q, DQ, Predicate> joinOnPredicate,
-            ItemSqlMapper nestedItemMapper) {
-        super(ctx);
-        this.detailQueryType = detailQueryType;
-        this.joinOnPredicate = joinOnPredicate;
-        this.nestedItemMapper = nestedItemMapper;
-    }
-
     /**
      * Creates composition mapper that defines:
      *
@@ -74,6 +59,21 @@ public class DetailTableItemFilterProcessor
         return new ItemSqlMapper(ctx ->
                 new DetailTableItemFilterProcessor<>(
                         ctx, detailQueryType, joinOnPredicate, nestedItemMapper));
+    }
+
+    private final Class<DQ> detailQueryType;
+    private final BiFunction<Q, DQ, Predicate> joinOnPredicate;
+    private final ItemSqlMapper nestedItemMapper;
+
+    public DetailTableItemFilterProcessor(
+            SqlQueryContext<?, ?, ?> ctx,
+            Class<DQ> detailQueryType,
+            BiFunction<Q, DQ, Predicate> joinOnPredicate,
+            ItemSqlMapper nestedItemMapper) {
+        super(ctx);
+        this.detailQueryType = detailQueryType;
+        this.joinOnPredicate = joinOnPredicate;
+        this.nestedItemMapper = nestedItemMapper;
     }
 
     @Override

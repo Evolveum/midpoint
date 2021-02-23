@@ -206,7 +206,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
 
     public int executeCount(Connection conn) {
         return (int) sqlQuery.clone(conn)
-                .select(root())
+                // select not needed here, it would only initialize projection unnecessarily
                 .fetchCount();
     }
 
@@ -221,8 +221,20 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     public <DQ extends FlexibleRelationalPathBase<DR>, DR> SqlQueryContext<?, DQ, DR> leftJoin(
             @NotNull Class<DQ> joinType,
             @NotNull BiFunction<Q, DQ, Predicate> joinOnPredicateFunction) {
-        QueryTableMapping<?, DQ, DR> targetMapping =
-                sqlRepoContext.getMappingByQueryType(joinType);
+        return leftJoin(sqlRepoContext.getMappingByQueryType(joinType), joinOnPredicateFunction);
+    }
+
+    /**
+     * Adds new LEFT JOIN to the query and returns {@link SqlQueryContext} for this join path.
+     *
+     * @param <DQ> query type for the JOINed table
+     * @param <DR> row type related to the {@link DQ}
+     * @param targetMapping mapping for the JOIN target query type
+     * @param joinOnPredicateFunction bi-function producing ON predicate for the JOIN
+     */
+    public <DQ extends FlexibleRelationalPathBase<DR>, DR> SqlQueryContext<?, DQ, DR> leftJoin(
+            @NotNull QueryTableMapping<?, DQ, DR> targetMapping,
+            @NotNull BiFunction<Q, DQ, Predicate> joinOnPredicateFunction) {
         String aliasName = uniqueAliasName(targetMapping.defaultAliasName());
         DQ joinPath = targetMapping.newAlias(aliasName);
         sqlQuery.leftJoin(joinPath).on(joinOnPredicateFunction.apply(path(), joinPath));

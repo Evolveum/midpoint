@@ -9,14 +9,15 @@ package com.evolveum.midpoint.gui.api.component.button;
 import java.io.Serializable;
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 
-public class DropdownButtonDto implements Serializable, InlineMenuable{
+public class DropdownButtonDto implements Serializable {
 
-    /**
-     *
-     */
+    public static final String F_INFO = "info";
+    public static final String F_ICON = "icon";
+    public static final String F_LABEL = "label";
+    public static final String F_ITEMS = "items";
+
     private static final long serialVersionUID = 1L;
     private String info;
     private String icon;
@@ -55,8 +56,6 @@ public class DropdownButtonDto implements Serializable, InlineMenuable{
         this.label = label;
     }
 
-
-    @Override
     public List<InlineMenuItem> getMenuItems() {
         return items;
     }

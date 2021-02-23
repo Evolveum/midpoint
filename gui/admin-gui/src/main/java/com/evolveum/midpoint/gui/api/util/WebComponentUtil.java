@@ -23,6 +23,7 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
@@ -3662,7 +3663,7 @@ public final class WebComponentUtil {
         if (obj == null) {
             return null;
         }
-        DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(obj, pageBase);
+        DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(obj.asPrismObject(), pageBase);
 
         if (displayType == null) {
             displayType = WebComponentUtil.createDisplayType(createDefaultIcon(obj.asPrismObject()),
@@ -3691,13 +3692,18 @@ public final class WebComponentUtil {
 
         CompositedIconBuilder builder = iconBuilder.setBasicIcon(
                 getIconCssClass(basicIconDisplayType), IconCssStyle.IN_ROW_STYLE)
-                .appendColorHtmlValue(StringUtils.isNotEmpty(iconColor) ? iconColor : "")
-                .appendLayerIcon(lifecycleStateIcon, IconCssStyle.BOTTOM_LEFT_FOR_COLUMN_STYLE)
-                .appendLayerIcon(activationStatusIcon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+                .appendColorHtmlValue(StringUtils.isNotEmpty(iconColor) ? iconColor : "");
 
         StringBuilder title = new StringBuilder(getOrigStringFromPolyOrEmpty(basicIconDisplayType.getTooltip()));
-        appendLifecycleState(title, lifecycleStateIcon, obj, pageBase);
-        appendActivationStatus(title, activationStatusIcon, obj, pageBase);
+        if (lifecycleStateIcon != null) {
+            builder.appendLayerIcon(lifecycleStateIcon, IconCssStyle.BOTTOM_LEFT_FOR_COLUMN_STYLE);  // TODO: do we really want to expect not null icon for layerIcon?
+            appendLifecycleState(title, lifecycleStateIcon, obj, pageBase);
+        }
+        if (activationStatusIcon != null) {
+            builder.appendLayerIcon(activationStatusIcon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+            appendActivationStatus(title, activationStatusIcon, obj, pageBase);
+        }
+
         if (StringUtils.isNotEmpty(title.toString())) {
             builder.setTitle(title.toString());
         }
@@ -3859,22 +3865,22 @@ public final class WebComponentUtil {
     public static <O extends ObjectType> IconType getIconForLifecycleState(O obj) {
         IconType icon = new IconType();
         if (obj == null) {
-            icon.setCssClass("");
-            return icon;
+            return null;
         }
         String lifecycle = obj.getLifecycleState();
-        if (lifecycle != null) {
-            switch (lifecycle) {
-                case SchemaConstants.LIFECYCLE_ARCHIVED:
-                    icon.setCssClass(GuiStyleConstants.CLASS_FILE_EXCEL);
-                    break;
-                case SchemaConstants.LIFECYCLE_DRAFT:
-                    icon.setCssClass(GuiStyleConstants.CLASS_FILE_BLACK_FILLED);
-                    break;
-                case SchemaConstants.LIFECYCLE_PROPOSED:
-                    icon.setCssClass(GuiStyleConstants.CLASS_FILE_WHITE_FILLED);
-                    break;
-            }
+        if (lifecycle == null) {
+            return null;
+        }
+        switch (lifecycle) {
+            case SchemaConstants.LIFECYCLE_ARCHIVED:
+                icon.setCssClass(GuiStyleConstants.CLASS_FILE_EXCEL);
+                break;
+            case SchemaConstants.LIFECYCLE_DRAFT:
+                icon.setCssClass(GuiStyleConstants.CLASS_FILE_BLACK_FILLED);
+                break;
+            case SchemaConstants.LIFECYCLE_PROPOSED:
+                icon.setCssClass(GuiStyleConstants.CLASS_FILE_WHITE_FILLED);
+                break;
         }
 
         if (icon.getCssClass() == null) {
@@ -3885,18 +3891,29 @@ public final class WebComponentUtil {
     }
 
     public static <O extends ObjectType> IconType getIconForActivationStatus(O obj) {
-        IconType icon = new IconType();
-        if (obj == null || !(obj instanceof FocusType) || ((FocusType) obj).getActivation() == null) {
-            icon.setCssClass("");
-            return icon;
+        if (obj == null || !(obj instanceof FocusType)) {
+            return null;
         }
-        if (LockoutStatusType.LOCKED.equals(((FocusType) obj).getActivation().getLockoutStatus())) {
+
+        FocusType focus = (FocusType) obj;
+        ActivationType activation = focus.getActivation();
+        if (activation == null) {
+            return null;
+        }
+
+        ActivationStatusType status = activation.getEffectiveStatus();
+        if (ActivationStatusType.ENABLED == status) {
+            return null;
+        }
+
+        IconType icon = new IconType();
+        if (LockoutStatusType.LOCKED == activation.getLockoutStatus()) {
             icon.setCssClass(GuiStyleConstants.CLASS_LOCK_STATUS);
-        } else if (ActivationStatusType.DISABLED.equals(((FocusType) obj).getActivation().getEffectiveStatus())) {
+        } else if (ActivationStatusType.DISABLED == status) {
             icon.setCssClass(GuiStyleConstants.CLASS_BAN);
-        } else if (ActivationStatusType.ARCHIVED.equals(((FocusType) obj).getActivation().getEffectiveStatus())) {
+        } else if (ActivationStatusType.ARCHIVED == status) {
             icon.setCssClass(GuiStyleConstants.CLASS_ICON_NO_OBJECTS);
-        } else if (!ActivationStatusType.ENABLED.equals(((FocusType) obj).getActivation().getEffectiveStatus())) {
+        } else if (ActivationStatusType.ENABLED != status) {
             icon.setCssClass(GuiStyleConstants.CLASS_TEST_CONNECTION_MENU_ITEM);
         }
         if (icon.getCssClass() == null) {
@@ -3999,8 +4016,16 @@ public final class WebComponentUtil {
     }
 
     public static <O extends ObjectType> DisplayType getArchetypePolicyDisplayType(O object, PageBase pageBase) {
+        if (object == null) {
+            return null;
+        }
+
+        return getArchetypePolicyDisplayType(object.asPrismObject(), pageBase);
+    }
+
+    public static <O extends ObjectType> DisplayType getArchetypePolicyDisplayType(PrismObject<O> object, PageBase pageBase) {
         if (object != null) {
-            ArchetypePolicyType archetypePolicy = WebComponentUtil.getArchetypeSpecification(object.asPrismObject(), pageBase);
+            ArchetypePolicyType archetypePolicy = WebComponentUtil.getArchetypeSpecification(object, pageBase);
             if (archetypePolicy != null) {
                 return archetypePolicy.getDisplay();
             }
@@ -4009,25 +4034,28 @@ public final class WebComponentUtil {
     }
 
     public static IModel<String> getIconUrlModel(IconType icon) {
-        if (icon == null || StringUtils.isEmpty(icon.getImageUrl())) {
-            return Model.of();
-        }
-        String sUrl = icon.getImageUrl();
-        if (URI.create(sUrl).isAbsolute()) {
-            return Model.of(sUrl);
-        }
+        return new ReadOnlyModel<>(() -> {
+            if (icon == null || StringUtils.isEmpty(icon.getImageUrl())) {
+                return null;
+            }
+            String sUrl = icon.getImageUrl();
+            if (URI.create(sUrl).isAbsolute()) {
+                return sUrl;
+            }
 
-        List<String> segments = RequestCycle.get().getUrlRenderer().getBaseUrl().getSegments();
-        if (segments == null || segments.size() < 2) {
-            return Model.of(sUrl);
-        }
+            List<String> segments = RequestCycle.get().getUrlRenderer().getBaseUrl().getSegments();
+            if (segments == null || segments.size() < 2) {
+                return sUrl;
+            }
 
-        String prefix = StringUtils.repeat("../", segments.size() - 1);
-        if (!sUrl.startsWith("/")) {
-            return Model.of(prefix + sUrl);
-        }
+            String prefix = StringUtils.repeat("../", segments.size() - 1);
+            if (!sUrl.startsWith("/")) {
+                return prefix + sUrl;
+            }
 
-        return Model.of(StringUtils.left(prefix, prefix.length() - 1) + sUrl);
+            return StringUtils.left(prefix, prefix.length() - 1) + sUrl;
+        });
+
     }
 
     public static void deleteSyncTokenPerformed(AjaxRequestTarget target, ResourceType resourceType, PageBase pageBase) {

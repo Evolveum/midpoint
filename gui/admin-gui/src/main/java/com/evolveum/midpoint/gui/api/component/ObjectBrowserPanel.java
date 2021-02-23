@@ -212,7 +212,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
             }
 
             @Override
-            protected Search createSearch(Class<? extends O> type) {
+            protected Search createSearch(Class<O> type) {
                 Search search = super.createSearch(type);
                 getSpecialSearchItemFunctions()
                         .forEach(function -> search.addSpecialItem(function.apply(search)));

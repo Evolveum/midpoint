@@ -39,7 +39,7 @@ public class ContainerTypeSearchItem<C extends Containerable> extends SearchItem
     private ObjectTypeSearchItemConfigurationType configuration = null;
 
     public ContainerTypeSearchItem(Class<C> typeClass) {
-        this(new SearchValue(typeClass, ""), null);
+        this(new SearchValue<>(typeClass, ""), null);
     }
 
     public ContainerTypeSearchItem(@NotNull DisplayableValue<Class<C>> type) {

@@ -11,7 +11,6 @@ import org.antlr.v4.runtime.Token;
 import com.evolveum.axiom.api.AxiomPrefixedName;
 
 import com.evolveum.axiom.api.stream.AxiomStreamTarget;
-import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ArgumentContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.InfraNameContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ItemContext;
@@ -19,6 +18,7 @@ import com.evolveum.axiom.lang.antlr.AxiomParser.ItemNameContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ItemValueContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.PrefixedNameContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StringContext;
+import com.evolveum.concepts.SourceLocation;
 
 
 public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {

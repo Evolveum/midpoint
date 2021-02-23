@@ -99,15 +99,11 @@ public class ObjectCollectionSearchItem extends SearchItem {
 
     @Override
     public String getHelp(PageBase pageBase) {
-        if (objectCollectionView.getCollection() != null && objectCollectionView.getCollection().getCollectionRef() != null) {
-            Task task = pageBase.createSimpleTask("load object collection");
-            PrismObject<ObjectType> collection = WebModelServiceUtils.resolveReferenceNoFetch(objectCollectionView.getCollection().getCollectionRef(),
-                    pageBase, task, task.getResult());
-            if (collection != null) {
-                return collection.asObjectable().getDescription();
-            }
+        if (objectCollectionView == null) {
+            return null;
         }
-        return null;
+
+        return objectCollectionView.getObjectCollectionDescription();
     }
 
     public CompiledObjectCollectionView getObjectCollectionView() {

@@ -6,44 +6,19 @@
  */
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
-import java.util.List;
-import javax.xml.namespace.QName;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.input.ChoiceableChoiceRenderer;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
-import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class DebugSearchFragment extends Fragment {
 
@@ -53,15 +28,15 @@ public class DebugSearchFragment extends Fragment {
     private static final String ID_SEARCH_FORM = "searchForm";
 
     public DebugSearchFragment(String id, String markupId, MarkupContainer markupProvider,
-            IModel<DebugSearchDto> model, IModel<Boolean> showAllItemsModel) {
+            IModel<Search<? extends ObjectType>> model, IModel<Boolean> showAllItemsModel) {
         super(id, markupId, markupProvider, model);
 
         initLayout(showAllItemsModel);
     }
 
-    private IModel<DebugSearchDto> getModel() {
+    private <O extends ObjectType> IModel<Search<O>> getModel() {
         //noinspection unchecked
-        return (IModel<DebugSearchDto>) getDefaultModel();
+        return (IModel<Search<O>>) getDefaultModel();
     }
 
     private void initLayout(IModel<Boolean> showAllItemsModel) {
@@ -95,9 +70,8 @@ public class DebugSearchFragment extends Fragment {
         searchForm.add(createSearchPanel());
     }
 
-    private WebMarkupContainer createSearchPanel() {
-        SearchPanel searchPanel = new SearchPanel(ID_SEARCH,
-                new PropertyModel<>(getModel(), DebugSearchDto.F_SEARCH)) {
+    private <O extends ObjectType> WebMarkupContainer createSearchPanel() {
+        SearchPanel<O> searchPanel = new SearchPanel<>(ID_SEARCH, getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -111,34 +85,6 @@ public class DebugSearchFragment extends Fragment {
 
     public AjaxCheckBox getZipCheck() {
         return (AjaxCheckBox) get(ID_ZIP_CHECK);
-    }
-
-    private IModel<List<ObjectTypes>> createChoiceModel() {
-        return new LoadableModel<List<ObjectTypes>>(false) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected List<ObjectTypes> load() {
-                List<ObjectTypes> choices = WebComponentUtil.createObjectTypesList();
-                choices.remove(ObjectTypes.OBJECT);
-                return choices;
-            }
-        };
-    }
-
-    private IChoiceRenderer<ObjectViewDto<ResourceType>> createResourceRenderer() {
-        return new ChoiceableChoiceRenderer<ObjectViewDto<ResourceType>>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public Object getDisplayValue(ObjectViewDto<ResourceType> object) {
-                if (object == null) {
-                    return getString("pageDebugList.resource");
-                }
-                return object.getName();
-            }
-
-        };
     }
 
     protected void searchPerformed(AjaxRequestTarget target) {

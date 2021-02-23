@@ -142,7 +142,7 @@ public class ColumnUtils {
         }
     }
 
-    public static <O extends ObjectType> IColumn<SelectableBean<O>, String> createIconColumn(PageBase pageBase) {
+    public static <O extends ObjectType> IColumn<SelectableBean<O>, String>  createIconColumn(PageBase pageBase) {
 
         return new CompositedIconColumn<SelectableBean<O>>(createIconColumnHeaderModel()) {
 

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.component;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -84,7 +86,12 @@ public abstract class MultifunctionalButton extends BasePanel<List<MultiFunctina
         }
         add(mainButton);
 
-        MultiCompositedButtonPanel buttonsPanel = new MultiCompositedButtonPanel(ID_BUTTON, buttonDtos) {
+        MultiCompositedButtonPanel buttonsPanel = new MultiCompositedButtonPanel(ID_BUTTON, new LoadableModel<List<MultiFunctinalButtonDto>>(false) {
+            @Override
+            protected List<MultiFunctinalButtonDto> load() {
+                return buttonDtos;
+            }
+        }) {
             private static final long serialVersionUID = 1L;
 
             @Override

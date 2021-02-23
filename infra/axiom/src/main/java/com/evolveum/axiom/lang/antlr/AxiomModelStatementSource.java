@@ -18,10 +18,10 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.stream.AxiomItemStream.TargetWithContext;
-import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ItemContext;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
+import com.evolveum.concepts.SourceLocation;
 
 public class AxiomModelStatementSource extends AxiomAntlrStatementSource implements AxiomNameResolver {
 

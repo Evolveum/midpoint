@@ -90,6 +90,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+//TODO: should be really reviewed
 public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extends BasePanel<R> {
 
     private static final long serialVersionUID = 1L;
@@ -261,7 +262,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
         PageBase pageBase = getPageBase();
         //TODO QName defines a relation value which will be used for new member creation
-        MainObjectListPanel<ObjectType> childrenListPanel = new MainObjectListPanel<ObjectType>(
+        MainObjectListPanel<ObjectType> childrenListPanel = new MainObjectListPanel<>(
                 ID_MEMBER_TABLE, defaultObjectTypeClass, getSearchOptions()) {
 
             private static final long serialVersionUID = 1L;
@@ -316,16 +317,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            protected IColumn<SelectableBean<ObjectType>, String> createIconColumn() {
-                return ColumnUtils.createIconColumn(pageBase);
-            }
-
-            @Override
-            protected List<IColumn<SelectableBean<ObjectType>, String>> createDefaultColumns() {
-                return (List) createMembersColumns();
-            }
-
-            @Override
             protected List<InlineMenuItem> createInlineMenu() {
                 return createRowActions();
             }
@@ -347,7 +338,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            protected Search createSearch(Class<? extends ObjectType> type) {
+            protected Search createSearch(Class<ObjectType> type) {
                 Search search = null;
                 if (getMemberPanelStorage() != null) {
                     if (getMemberPanelStorage().getRelation() == null) {
@@ -429,10 +420,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 provider.setIsMemberPanel(true);
                 provider.addQueryVariables(ExpressionConstants.VAR_PARENT_OBJECT, AbstractRoleMemberPanel.this.getModelObject());
                 return provider;
-            }
-
-            protected boolean isTypeChanged(Class<ObjectType> newTypeClass) {
-                return true;
             }
 
             @Override

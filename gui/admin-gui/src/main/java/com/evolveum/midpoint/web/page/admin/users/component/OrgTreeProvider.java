@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -152,17 +152,6 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
                     query.setPaging(paging);
 
                 List<PrismObject<OrgType>> orgs = getModelService().searchObjects(OrgType.class, query, null, task, result);
-//                Collections.sort(orgs, new Comparator<PrismObject<OrgType>>() {
-//
-//                    @Override
-//                    public int compare(PrismObject<OrgType> o1, PrismObject<OrgType> o2) {
-//                        String s1 = WebComponentUtil.getDisplayNameOrName(o1);
-//                        String s2 = WebComponentUtil.getDisplayNameOrName(o2);
-//
-//                        return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
-//                    }
-//                });
-
                 LOGGER.debug("Found {} sub-orgs.", orgs.size());
                 children = new ArrayList<>();
                 for (PrismObject<OrgType> org : orgs) {
@@ -190,8 +179,7 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
     }
 
     private ObjectPaging createPaging(TreeSelectableBean<OrgType> node) {
-//        Integer o = 0;
-//        Integer size = 300;
+
         List<ObjectOrdering> orderings = new ArrayList<>();
 
         OrderDirection order = OrderDirection.ASCENDING;
@@ -199,11 +187,6 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
         ItemPath.create(OrgType.F_DISPLAY_NAME), order));
         orderings.add(getPageBase().getPrismContext().queryFactory().createOrdering(
         ItemPath.create(OrgType.F_NAME), order));
-
-//        ObjectPaging paging = getPageBase().getPrismContext().queryFactory().createPaging();
-//        paging.setOrdering(orderings);
-//
-//        return paging;
 
         Integer o = WebComponentUtil.safeLongToInteger(offset);
         Integer size = WebComponentUtil.safeLongToInteger(count);
@@ -230,13 +213,9 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
             org.getParentOrgRef().add(parentOrgRef);
         }
         TreeSelectableBean<OrgType> orgDto = new TreeSelectableBean<>(org);
-        orgDto.getMenuItems().addAll(createInlineMenuItems(orgDto));
         return orgDto;
     }
 
-    protected List<InlineMenuItem> createInlineMenuItems(TreeSelectableBean<OrgType> org){
-        return null;
-    }
 
     @Override
     public Iterator<TreeSelectableBean<OrgType>> getRoots() {

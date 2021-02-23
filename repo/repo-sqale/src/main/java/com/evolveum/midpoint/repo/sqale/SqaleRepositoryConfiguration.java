@@ -9,12 +9,14 @@ package com.evolveum.midpoint.repo.sqale;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import javax.annotation.PostConstruct;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.springframework.core.env.Environment;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
@@ -35,45 +37,50 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     private static final int DEFAULT_MIN_POOL_SIZE = 8;
     private static final int DEFAULT_MAX_POOL_SIZE = 20;
 
-    /**
-     * Database kind - either explicitly configured or derived from other options .
-     */
-    @NotNull
-    private final SupportedDatabase databaseType;
+    @NotNull private final Environment env; // for better Spring properties/override integration
+    @NotNull private final Configuration configuration;
+
+    /** Database kind - either explicitly configured or derived from other options. */
+    private SupportedDatabase databaseType;
 
     // either dataSource or JDBC URL must be set
-    @Nullable private final String dataSource;
-    @Nullable private final String jdbcUrl;
-    @Nullable private final String jdbcUsername;
-    @Nullable private final String jdbcPassword;
+    private String dataSource;
+    private String jdbcUrl;
+    private String jdbcUsername;
+    private String jdbcPassword;
 
-    private final String driverClassName;
+    private String driverClassName;
 
-    private final int minPoolSize;
-    private final int maxPoolSize;
+    private int minPoolSize;
+    private int maxPoolSize;
 
-    private final boolean useZip;
-    private final boolean useZipAudit;
-    private final String fullObjectFormat;
+    private boolean useZip;
+    private boolean useZipAudit;
+    private String fullObjectFormat;
 
-    private final String performanceStatisticsFile;
-    private final int performanceStatisticsLevel;
+    private String performanceStatisticsFile;
+    private int performanceStatisticsLevel;
 
-    public SqaleRepositoryConfiguration(Configuration configuration) {
-        dataSource = configuration.getString(PROPERTY_DATASOURCE);
+    public SqaleRepositoryConfiguration(
+            @NotNull Environment env,
+            @NotNull Configuration configuration) {
+        this.env = env;
+        this.configuration = configuration;
+    }
+
+    @PostConstruct
+    public void init() throws RepositoryServiceFactoryException {
+        // TODO the rest from SqlRepoConf#validate except for Hibernate of course
+        dataSource = getString(PROPERTY_DATASOURCE);
 
         jdbcUrl = configuration.getString(PROPERTY_JDBC_URL, defaultJdbcUrl());
-        jdbcUsername = configuration.getString(PROPERTY_JDBC_USERNAME);
+        jdbcUsername = getString(PROPERTY_JDBC_USERNAME);
 
         // TODO perhaps add warnings that other values are ignored anyway?
         databaseType = DEFAULT_DATABASE;
-//        databaseType = Optional.ofNullable(configuration.getString(PROPERTY_DATABASE))
-//                .map(s -> SupportedDatabase.valueOf(s.toUpperCase()))
-//                .orElse(guessDatabaseType(configuration));
+        driverClassName = DEFAULT_DRIVER;
 
-        driverClassName = DEFAULT_DRIVER; //configuration.getString(PROPERTY_DRIVER_CLASS_NAME);
-
-        String jdbcPasswordFile = configuration.getString(PROPERTY_JDBC_PASSWORD_FILE);
+        String jdbcPasswordFile = getString(PROPERTY_JDBC_PASSWORD_FILE);
         if (jdbcPasswordFile != null) {
             try {
                 jdbcPassword = Files.readString(Path.of(jdbcPasswordFile));
@@ -83,7 +90,7 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
             }
         } else {
             jdbcPassword = System.getProperty(PROPERTY_JDBC_PASSWORD,
-                    configuration.getString(PROPERTY_JDBC_PASSWORD));
+                    getString(PROPERTY_JDBC_PASSWORD));
         }
 
         minPoolSize = configuration.getInt(PROPERTY_MIN_POOL_SIZE, DEFAULT_MIN_POOL_SIZE);
@@ -91,19 +98,51 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
         useZip = configuration.getBoolean(PROPERTY_USE_ZIP, false);
         useZipAudit = configuration.getBoolean(PROPERTY_USE_ZIP_AUDIT, true);
-        fullObjectFormat = System.getProperty(PROPERTY_FULL_OBJECT_FORMAT,
-                configuration.getString(PROPERTY_FULL_OBJECT_FORMAT, PrismContext.LANG_XML));
+        fullObjectFormat = getString(PROPERTY_FULL_OBJECT_FORMAT, PrismContext.LANG_XML)
+                .toLowerCase(); // all language string constants are lower-cases
 
-        performanceStatisticsFile = configuration.getString(PROPERTY_PERFORMANCE_STATISTICS_FILE);
+        performanceStatisticsFile = getString(PROPERTY_PERFORMANCE_STATISTICS_FILE);
         performanceStatisticsLevel = configuration.getInt(PROPERTY_PERFORMANCE_STATISTICS_LEVEL,
                 SqlPerformanceMonitorImpl.LEVEL_LOCAL_STATISTICS);
+
+        validateConfiguration();
+    }
+
+    private String getString(String property) {
+        return getString(property, null);
+    }
+
+    /**
+     * Returns property value as string in this precedence:
+     *
+     * * using just property name (local, short name) against Spring environment, see
+     * https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config[this documentation]
+     * for particular order of value resolution;
+     * * using property name with repository configuration prefix (`midpoint.repository.*`) which is
+     * future proof if we want to migrate to native Spring properties configuration;
+     * * finally, {@link Configuration} object representing content of `midpoint/repository`
+     * elements is used.
+     */
+    private String getString(String property, String defaultValue) {
+        return env.getProperty(property,
+                env.getProperty(MidpointConfiguration.REPOSITORY_CONFIGURATION + '.' + property,
+                        configuration.getString(property, defaultValue)));
+    }
+
+    private void validateConfiguration() throws RepositoryServiceFactoryException {
+        if (dataSource == null) {
+            notEmpty(jdbcUrl, "JDBC Url is empty or not defined.");
+            // We don't check username and password, they can be null (MID-5342)
+            // In case of configuration mismatch we let the JDBC driver to fail.
+            notEmpty(driverClassName, "Driver class name is empty or not defined.");
+        }
     }
 
     protected String defaultJdbcUrl() {
         return null;
     }
 
-    public SupportedDatabase getDatabaseType() {
+    public @NotNull SupportedDatabase getDatabaseType() {
         return databaseType;
     }
 
@@ -147,19 +186,6 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
      */
     public String getFullObjectFormat() {
         return fullObjectFormat;
-    }
-
-    public SqaleRepositoryConfiguration validate() throws RepositoryServiceFactoryException {
-        if (dataSource == null) {
-            notEmpty(jdbcUrl, "JDBC Url is empty or not defined.");
-            // We don't check username and password, they can be null (MID-5342)
-            // In case of configuration mismatch we let the JDBC driver to fail.
-            notEmpty(driverClassName, "Driver class name is empty or not defined.");
-        }
-
-        // TODO the rest from SqlRepoConf#validate except for Hibernate of course
-
-        return this;
     }
 
     public String getDefaultEmbeddedJdbcUrlPrefix() {

@@ -238,6 +238,15 @@ public class WebModelServiceUtils {
 
     @Nullable
     public static <T extends ObjectType> PrismObject<T> loadObject(Referencable objectReference,
+            PageBase page) {
+        Task task = page.createSimpleTask(OPERATION_LOAD_OBJECT);
+        OperationResult result = task.getResult();
+        Class<T> type = page.getPrismContext().getSchemaRegistry().determineClassForType(objectReference.getType());
+        return loadObject(type, objectReference.getOid(), null, page, task, result);
+    }
+
+    @Nullable
+    public static <T extends ObjectType> PrismObject<T> loadObject(Referencable objectReference,
             PageBase page, Task task, OperationResult result) {
         Class<T> type = page.getPrismContext().getSchemaRegistry().determineClassForType(objectReference.getType());
         return loadObject(type, objectReference.getOid(), null, page, task, result);
