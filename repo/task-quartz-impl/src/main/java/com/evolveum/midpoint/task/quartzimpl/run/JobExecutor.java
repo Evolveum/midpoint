@@ -8,54 +8,36 @@
 package com.evolveum.midpoint.task.quartzimpl.run;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.constants.Channel;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.*;
-import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.NotNull;
+
 import org.quartz.*;
 import org.springframework.security.core.Authentication;
 
-import javax.xml.datatype.Duration;
-import java.util.*;
-import java.util.Objects;
+import static com.evolveum.midpoint.task.quartzimpl.run.GroupLimitsChecker.*;
+import static com.evolveum.midpoint.task.quartzimpl.run.StopJobException.Severity.*;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
+/**
+ * Executes a Quartz job i.e. midPoint task.
+ */
 @DisallowConcurrentExecution
 public class JobExecutor implements InterruptableJob {
 
-    private static TaskManagerQuartzImpl taskManagerImpl;
-    private static TaskBeans beans;
-
-    private static final String DOT_CLASS = JobExecutor.class.getName() + ".";
-
-    /**
-     * Ugly hack - this class is instantiated not by Spring but explicitly by Quartz.
-     */
-    public static void setTaskManagerQuartzImpl(TaskManagerQuartzImpl taskManager) {
-        taskManagerImpl = taskManager;
-        beans = taskManager.getBeans();
-    }
-
     private static final Trace LOGGER = TraceManager.getTrace(JobExecutor.class);
 
-    private static final long WATCHFUL_SLEEP_INCREMENT = 500;
+    private static final String DOT_CLASS = JobExecutor.class.getName() + ".";
+    public static final String OP_EXECUTE = DOT_CLASS + "execute";
 
-    private static final int DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT = 60;
-    private static final int RESCHEDULE_TIME_RANDOMIZATION_INTERVAL = 3;
-
-    /*
+    /**
      * JobExecutor is instantiated at each execution of the task, so we can store
      * the task here.
      *
@@ -65,374 +47,341 @@ public class JobExecutor implements InterruptableJob {
      */
     private volatile RunningTaskQuartzImpl task;
 
+    /** Quartz execution context. To be used from the handling thread only. */
+    private JobExecutionContext context;
+
+    /**
+     * This is a result used for task run preparation. It is written into the task on selected occasions.
+     * See {@link #closeFlawedTaskRecordingResult(OperationResult)}}.
+     */
+    private OperationResult executionResult;
+
+    /** Useful Spring beans. */
+    private static TaskBeans beans;
+
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
-
-        OperationResult executionResult = createOperationResult("execute");
-
-        if (taskManagerImpl == null) {
-            LOGGER.error("TaskManager not correctly set for JobExecutor, exiting the execution routine.");
-            return;
+        try {
+            this.context = context;
+            this.executionResult = new OperationResult(OP_EXECUTE);
+            executeInternal(executionResult);
+        } catch (StopJobException e) {
+            e.log(LOGGER);
+            if (e.getCause() != null) {
+                throw new JobExecutionException(e.getMessage(), e.getCause());
+            }
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception occurred during task execution", e);
+            // We do not need to propagate this.
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception occurred during task execution", t);
+            throw t;
         }
+    }
 
-        // get the task instance
+    public void executeInternal(OperationResult result)
+            throws StopJobException, SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+
+        stateCheck(beans != null, "Task manager beans are not correctly set");
+
         String oid = context.getJobDetail().getKey().getName();
         LOGGER.trace("Starting execution of task {}", oid);
-        try {
-            TaskQuartzImpl taskWithResult = beans.taskRetriever.getTaskWithResult(oid, executionResult);
-            String rootOid = beans.taskRetriever.getRootTaskOid(taskWithResult, executionResult);
-            task = beans.taskInstantiator.toRunningTaskInstance(taskWithResult, rootOid);
-        } catch (ObjectNotFoundException e) {
-            LoggingUtils.logException(LOGGER, "Task with OID {} no longer exists, removing Quartz job and exiting the execution routine.", e, oid);
-            beans.localScheduler.deleteTaskFromQuartz(oid, false, executionResult);
-            return;
-        } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Task with OID {} cannot be retrieved because of schema exception. Please correct the problem or resynchronize midPoint repository with Quartz job store. Now exiting the execution routine.", e, oid);
-            return;
-        } catch (RuntimeException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Task with OID {} could not be retrieved, exiting the execution routine.", e, oid);
-            return;
-        }
 
-        if (!task.isRunnable()) {
-            LOGGER.warn("Task is not in RUNNABLE state (its state is {}), exiting its execution and removing its Quartz trigger. Task = {}", task.getExecutionState(), task);
-            try {
-                context.getScheduler().unscheduleJob(context.getTrigger().getKey());
-            } catch (SchedulerException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Cannot unschedule job for a non-RUNNABLE task {}", e, task);
-            }
-            return;
-        }
+        fetchTheTask(oid, result);
 
-        // if task manager is stopping or stopped, stop this task immediately
-        // this can occur in rare situations, see https://jira.evolveum.com/browse/MID-1167
-        if (!beans.localScheduler.isRunningChecked()) {
-            LOGGER.warn("Task was started while task manager is not running: exiting and rescheduling (if needed)");
-            processTaskStop(executionResult);
-            return;
-        }
+        checkTaskReady();
+        fixTaskExecutionInformation(result);
+        checkLocalSchedulerRunning(result);
 
-        boolean isRecovering;
+        boolean isRecovering = applyThreadStopActionForRecoveringJobs(result);
 
-        // if this is a restart, check whether the task is resilient
-        if (context.isRecovering()) {
-            // reset task node (there's potentially old information from crashed node)
-            try {
-                if (task.getNode() != null) {
-                    LOGGER.info("Resetting executing-at-node information for {} because it is recovering. Previous value was '{}'.",
-                            task, task.getNode());
-                    task.setNodeImmediate(null, executionResult);
-                }
-            } catch (ObjectNotFoundException | SchemaException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Cannot reset executing-at-node information for recovering task {}", e, task);
-            }
+        checkGroupLimits(result);
 
-            if (!processTaskRecovery(executionResult)) {
-                return;
-            }
-            isRecovering = true;
-        } else {
-            isRecovering = false;
-        }
-
-        if (!checkExecutionConstraints(task, executionResult)) {
-            return;            // rescheduling is done within the checker method
-        }
-
-        task.setExecutingThread(Thread.currentThread());
-
-        LOGGER.trace("execute called; task = {}, thread = {}, isRecovering = {}", task, task.getExecutingThread(), isRecovering);
-
-        boolean executionNodeSet = false;
+        boolean nodeAndStateSet = false;
         boolean taskRegistered = false;
         TaskHandler handler = null;
         try {
-            executionNodeSet = checkAndSetTaskExecutionNode(executionResult);
-            if (!executionNodeSet) {
-                return;
-            }
+            checkForConcurrentExecution(result);
 
+            setExecutionNodeAndState(result);
+            nodeAndStateSet = true;
+
+            task.setExecutingThread(Thread.currentThread());
             beans.localNodeState.registerRunningTask(task);
             taskRegistered = true;
 
-            beans.cacheConfigurationManager.setThreadLocalProfiles(task.getCachingProfiles());
-            OperationResult.setThreadLocalHandlingStrategy(task.getOperationResultHandlingStrategyName());
+            setupThreadLocals();
 
-            handler = beans.handlerRegistry.getHandler(task.getHandlerUri());
+            handler = getHandler(result);
 
             LOGGER.debug("Task thread run STARTING: {}, handler = {}, isRecovering = {}", task, handler, isRecovering);
-            beans.listenerRegistry.notifyTaskThreadStart(task, isRecovering, executionResult);
+            beans.listenerRegistry.notifyTaskThreadStart(task, isRecovering, result);
 
-            if (handler==null) {
-                LOGGER.error("No handler for URI '{}', task {} - closing it.", task.getHandlerUri(), task);
-                executionResult.recordFatalError("No handler for URI '" + task.getHandlerUri() + "', closing the task.");
-                closeFlawedTask(task, executionResult);
-                return;
-                //throw new JobExecutionException("No handler for URI '" + task.getHandlerUri() + "'");
-                // actually there is no point in throwing JEE; the only thing that is done with it is
-                // that it is logged by Quartz
-            }
+            setupSecurityContext(result);
 
-            // Setup Spring Security context
-            PrismObject<? extends FocusType> taskOwner = task.getOwner(executionResult);
-            try {
-                // just to be sure we won't run the owner-setting login with any garbage security context (see MID-4160)
-                beans.securityContextManager.setupPreAuthenticatedSecurityContext((Authentication) null);
-                beans.securityContextManager.setupPreAuthenticatedSecurityContext(taskOwner);
-            } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Task with OID {} cannot be executed: error setting security context", e, oid);
-                return;
-            }
-
-            if (task.isRecurring()) {
-                executeRecurrentTask(handler);
-            } else if (task.isSingle()) {
-                executeSingleTask(handler, executionResult);
-            } else {
-                LOGGER.error("Tasks must be either recurrent or single-run. This one is neither. Sorry.");
-                executionResult.recordFatalError("Tasks must be either recurrent or single-run. This one is neither. Closing it.");
-                closeFlawedTask(task, executionResult);
-            }
+            executeHandler(handler, result);
 
         } finally {
 
-            try {
-                waitForTransientChildrenAndCloseThem(executionResult);              // this is only a safety net; because we've waited for children just after executing a handler
+            unsetSecurityContext();
 
-                beans.cacheConfigurationManager.unsetThreadLocalProfiles();
+            LOGGER.debug("Task thread run FINISHED: {}, handler = {}", task, handler);
+            beans.listenerRegistry.notifyTaskThreadFinish(task, result);
 
-                if (taskRegistered) {
-                    beans.localNodeState.unregisterRunningTask(task);
-                }
+            unsetThreadLocals();
 
-                task.setExecutingThread(null);
-                if (executionNodeSet) {
-                    resetTaskExecutionNode(executionResult);
-                }
-
-                if (!task.canRun()) {
-                    processTaskStop(executionResult);
-                }
-
-                LOGGER.debug("Task thread run FINISHED: {}, handler = {}", task, handler);
-                beans.listenerRegistry.notifyTaskThreadFinish(task, executionResult);
-            } finally {
-                // "logout" this thread
-                beans.securityContextManager.setupPreAuthenticatedSecurityContext((Authentication) null);
+            task.setExecutingThread(null);
+            if (taskRegistered) {
+                beans.localNodeState.unregisterRunningTask(task);
             }
+
+            if (nodeAndStateSet) {
+                resetTaskExecutionNodeAndState(result);
+            }
+
+            if (!task.canRun()) {
+                processTaskStop(result);
+            }
+
+            // this is only a safety net; because we've waited for children just after executing a handler
+            waitForTransientChildrenAndCloseThem(result);
         }
+    }
+
+    private void executeHandler(TaskHandler handler, OperationResult result) throws StopJobException {
+        TaskCycleExecutor taskCycleExecutor = new TaskCycleExecutor(task, handler, this, beans);
+        taskCycleExecutor.execute(result);
+    }
+
+    private void setupSecurityContext(OperationResult result) throws StopJobException {
+        PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
+        try {
+            // just to be sure we won't run the owner-setting login with any garbage security context (see MID-4160)
+            beans.securityContextManager.setupPreAuthenticatedSecurityContext((Authentication) null);
+            beans.securityContextManager.setupPreAuthenticatedSecurityContext(taskOwner);
+        } catch (Throwable t) {
+            throw new StopJobException(UNEXPECTED_ERROR, "Couldn't set security context for task %s", t, task);
+        }
+    }
+
+    private void unsetSecurityContext() {
+        beans.securityContextManager.setupPreAuthenticatedSecurityContext((Authentication) null);
+    }
+
+    private void setupThreadLocals() {
+        beans.cacheConfigurationManager.setThreadLocalProfiles(task.getCachingProfiles());
+        OperationResult.setThreadLocalHandlingStrategy(task.getOperationResultHandlingStrategyName());
+    }
+
+    private void unsetThreadLocals() {
+        beans.cacheConfigurationManager.unsetThreadLocalProfiles();
+        OperationResult.setThreadLocalHandlingStrategy(null);
+    }
+
+    private TaskHandler getHandler(OperationResult result) throws StopJobException {
+        TaskHandler handler = beans.handlerRegistry.getHandler(task.getHandlerUri());
+        if (handler != null) {
+            return handler;
+        }
+
+        LOGGER.error("No handler for URI '{}', task {} - closing it.", task.getHandlerUri(), task);
+        closeFlawedTaskRecordingResult(result);
+        throw new StopJobException();
     }
 
     /**
-     * We have a suspicion that Quartz (in some cases) allows multiple instances of a given task to run concurrently.
-     * So we use "node" property to check this.
-     *
-     * Note that if the task is being recovered, its "node" property should be already cleared.
-     *
-     * The following algorithm is only approximate one. It could generate false positives e.g. if a node goes down abruptly
-     * (i.e. without stopping tasks cleanly) and then restarts sooner than in "nodeTimeout" (30) seconds. Therefore, its use
-     * is currently optional.
+     * In case of leftover tasks, let us fix the execution state and node information.
      */
-    private boolean checkAndSetTaskExecutionNode(OperationResult result) {
-        try {
-            if (beans.configuration.isCheckForTaskConcurrentExecution()) {
-                task.refresh(result);
-                String executingAtNode = task.getNode();
-                if (executingAtNode != null) {
-                    LOGGER.debug("Task {} seems to be executing on node {}", task, executingAtNode);
-                    if (executingAtNode.equals(beans.configuration.getNodeId())) {
-                        RunningTask locallyRunningTask = beans.localNodeState
-                                .getLocallyRunningTaskByIdentifier(task.getTaskIdentifier());
-                        if (locallyRunningTask != null) {
-                            LOGGER.error(
-                                    "Current task {} seems to be already running in thread {} on the local node. We will NOT start it here.",
-                                    task, ((RunningTaskQuartzImpl) locallyRunningTask).getExecutingThread());
-                            return false;
-                        } else {
-                            LOGGER.warn("Current task {} seemed to be already running on the local node but it cannot be found"
-                                    + " there. So we'll start it now.", task);
-                        }
-                    } else {
-                        ObjectQuery query = beans.prismContext.queryFor(NodeType.class)
-                                .item(NodeType.F_NODE_IDENTIFIER).eq(executingAtNode)
-                                .build();
-                        SearchResultList<PrismObject<NodeType>> nodes = beans.nodeRetriever.searchNodes(query, null, result);
-                        if (nodes.size() > 1) {
-                            throw new IllegalStateException(
-                                    "More than one node with identifier " + executingAtNode + ": " + nodes);
-                        } else if (nodes.size() == 1) {
-                            NodeType remoteNode = nodes.get(0).asObjectable();
-                            if (beans.clusterManager.isCheckingIn(remoteNode)) {
-                                LOGGER.error(
-                                        "Current task {} seems to be already running at node {} that is alive or starting."
-                                                + " We will NOT start it here.",
-                                        task, remoteNode.getNodeIdentifier());
-                                // We should probably contact the remote node and check if the task is really running there.
-                                // But let's keep things simple for the time being.
-                                return false;
-                            } else {
-                                LOGGER.warn(
-                                        "Current task {} seems to be already running at node {} but this node is not currently "
-                                                + "checking in (last: {}). So we will start the task here.", task,
-                                        remoteNode.getNodeIdentifier(), remoteNode.getLastCheckInTime());
-                            }
-                        } else {
-                            LOGGER.warn("Current task {} seems to be already running at node {} but this node cannot be found"
-                                    + "in the repository. So we will start the task here.", task, executingAtNode);
-                        }
-                    }
-                }
-            }
-            task.setNodeImmediate(beans.configuration.getNodeId(), result);
+    private void fixTaskExecutionInformation(OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException,
+            SchemaException {
+        assert task.getSchedulingState() == TaskSchedulingStateType.READY;
+
+        if (context.isRecovering()) {
+            LOGGER.info("Task {} is recovering", task);
+        }
+
+        if (task.getNode() != null) {
+            LOGGER.info("Clearing executing node information (was: {}) for {}", task.getNode(), task);
+            task.setNode(null);
+        }
+        if (task.getExecutionState() != TaskExecutionStateType.RUNNABLE) {
+            LOGGER.info("Fixing execution state from {} to RUNNABLE for {}", task.getExecutionState(), task);
+            task.setExecutionState(TaskExecutionStateType.RUNNABLE);
+        }
+        task.flushPendingModifications(result);
+        // Not handling any exceptions here. If we cannot write such simple
+        // information into the task, something is seriously broken.
+    }
+
+    /**
+     * Returns whether the job is recovering.
+     */
+    private boolean applyThreadStopActionForRecoveringJobs(OperationResult result) throws StopJobException {
+        if (!context.isRecovering()) {
+            return false;
+        }
+
+        if (task.getThreadStopAction() == ThreadStopActionType.CLOSE) {
+            LOGGER.info("Closing recovered non-resilient task {}", task);
+            closeTask(task, result);
+            throw new StopJobException();
+        } else if (task.getThreadStopAction() == ThreadStopActionType.SUSPEND) {
+            LOGGER.info("Suspending recovered non-resilient task {}", task);
+            // Using DO_NOT_STOP because we are the task that is to be suspended
+            beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, result);
+            throw new StopJobException();
+        } else if (task.getThreadStopAction() == null || task.getThreadStopAction() == ThreadStopActionType.RESTART) {
+            LOGGER.info("Recovering resilient task {}", task);
             return true;
-        } catch (Throwable t) {
-            throw new SystemException("Couldn't check and set task execution node: " + t.getMessage(), t);
-        }
-    }
-
-    private void resetTaskExecutionNode(OperationResult result) {
-        try {
-            task.setNodeImmediate(null, result);
-        } catch (Throwable t) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reset task execution node information for {}", t, task);
-        }
-    }
-
-    static class GroupExecInfo {
-        private int limit;
-        private final Collection<Task> tasks = new ArrayList<>();
-
-        private GroupExecInfo(Integer l) {
-            limit = l != null ? l : Integer.MAX_VALUE;
-        }
-
-        public void accept(Integer limit, Task task) {
-            if (limit != null && limit < this.limit) {
-                this.limit = limit;
+        } else if (task.getThreadStopAction() == ThreadStopActionType.RESCHEDULE) {
+            if (task.isRecurring() && task.isLooselyBound()) {
+                LOGGER.info("Recovering resilient task with RESCHEDULE thread stop action - exiting the execution, "
+                        + "the task will be rescheduled; task = {}", task);
+                throw new StopJobException();
+            } else {
+                LOGGER.info("Recovering resilient task {}", task);
+                return true;
             }
-            if (tasks.stream().noneMatch(t -> Objects.equals(t.getOid(), task.getOid()))) {    // just for sure
-                tasks.add(task);
-            }
-        }
-
-        @Override
-        public String toString() {
-            return "{limit=" + limit + ", tasks=" + tasks + "}";
-        }
-    }
-
-    // returns false if constraints are not met (i.e. execution should finish immediately)
-    private boolean checkExecutionConstraints(RunningTaskQuartzImpl task, OperationResult result) throws JobExecutionException {
-        TaskExecutionConstraintsType executionConstraints = task.getExecutionConstraints();
-        if (executionConstraints == null) {
-            return true;
-        }
-
-        // group limits
-        Map<String, GroupExecInfo> groupMap = createGroupMap(task, result);
-        LOGGER.trace("groupMap = {}", groupMap);
-        for (Map.Entry<String, GroupExecInfo> entry : groupMap.entrySet()) {
-            String group = entry.getKey();
-            int limit = entry.getValue().limit;
-            Collection<Task> tasksInGroup = entry.getValue().tasks;
-            if (tasksInGroup.size() >= limit) {
-                RescheduleTime rescheduleTime = getRescheduleTime(executionConstraints,
-                        DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT, task.getNextRunStartTime(result));
-                LOGGER.info("Limit of {} task(s) in group {} would be exceeded if task {} would start. Existing tasks: {}."
-                                + " Will try again at {}{}.", limit, group, task, tasksInGroup, rescheduleTime.asDate(),
-                        rescheduleTime.regular ? " (i.e. at the next regular run time)" : "");
-                if (!rescheduleTime.regular) {
-                    rescheduleLater(task, rescheduleTime.timestamp);
-                }
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    @NotNull
-    private Map<String, GroupExecInfo> createGroupMap(RunningTaskQuartzImpl task, OperationResult result) {
-        Map<String, GroupExecInfo> groupMap = new HashMap<>();
-        Map<String, Integer> groupsWithLimits = task.getGroupsWithLimits();
-        if (!groupsWithLimits.isEmpty()) {
-            groupsWithLimits.forEach((g, l) -> groupMap.put(g, new GroupExecInfo(l)));
-            ClusterStatusInformation csi = beans.clusterStatusInformationRetriever
-                    .getClusterStatusInformation(true, false, result);
-            for (ClusterStatusInformation.TaskInfo taskInfo : csi.getTasks()) {
-                if (task.getOid().equals(taskInfo.getOid())) {
-                    continue;
-                }
-                Task otherTask;
-                try {
-                    otherTask = beans.taskRetriever.getTaskPlain(taskInfo.getOid(), result);
-                } catch (ObjectNotFoundException e) {
-                    LOGGER.debug("Couldn't find running task {} when checking execution constraints: {}", taskInfo.getOid(),
-                            e.getMessage());
-                    continue;
-                } catch (SchemaException e) {
-                    LoggingUtils.logUnexpectedException(LOGGER,
-                            "Couldn't retrieve running task {} when checking execution constraints", e, taskInfo.getOid());
-                    continue;
-                }
-                addToGroupMap(groupMap, otherTask);
-            }
-        }
-        return groupMap;
-    }
-
-    private void addToGroupMap(Map<String, GroupExecInfo> groupMap, Task otherTask) {
-        for (Map.Entry<String, Integer> otherGroupWithLimit : otherTask.getGroupsWithLimits().entrySet()) {
-            String otherGroup = otherGroupWithLimit.getKey();
-            GroupExecInfo groupExecInfo = groupMap.get(otherGroup);
-            if (groupExecInfo != null) {
-                Integer otherLimit = otherGroupWithLimit.getValue();
-                groupExecInfo.accept(otherLimit, otherTask);
-            }
-        }
-    }
-
-    private static class RescheduleTime {
-        private final long timestamp;
-        private final boolean regular;
-        private RescheduleTime(long timestamp, boolean regular) {
-            this.timestamp = timestamp;
-            this.regular = regular;
-        }
-        public Date asDate() {
-            return new Date(timestamp);
-        }
-    }
-
-    private RescheduleTime getRescheduleTime(TaskExecutionConstraintsType executionConstraints, int defaultInterval, Long nextTaskRunTime) {
-        long retryAt;
-        Duration retryAfter = executionConstraints != null ? executionConstraints.getRetryAfter() : null;
-        if (retryAfter != null) {
-            retryAt = XmlTypeConverter.toMillis(
-                            XmlTypeConverter.addDuration(
-                                    XmlTypeConverter.createXMLGregorianCalendar(new Date()), retryAfter));
         } else {
-            retryAt = System.currentTimeMillis() + defaultInterval * 1000L;
-        }
-        retryAt += Math.random() * RESCHEDULE_TIME_RANDOMIZATION_INTERVAL * 1000.0;     // to avoid endless collisions
-        if (nextTaskRunTime != null && nextTaskRunTime < retryAt) {
-            return new RescheduleTime(nextTaskRunTime, true);
-        } else {
-            return new RescheduleTime(retryAt, false);
+            throw new SystemException("Unknown value of ThreadStopAction: " + task.getThreadStopAction() + " for task " + task);
         }
     }
 
-    private void rescheduleLater(RunningTaskQuartzImpl task, long startAt) throws JobExecutionException {
+    private void checkLocalSchedulerRunning(OperationResult result) throws StopJobException {
+        // if task manager is stopping or stopped, stop this task immediately
+        // this can occur in rare situations, see https://jira.evolveum.com/browse/MID-1167
+        if (beans.localScheduler.isRunningChecked()) {
+            return;
+        }
+
+        LOGGER.warn("Task was started while task manager is not running: exiting and rescheduling (if needed)");
+        processTaskStop(result);
+        throw new StopJobException();
+    }
+
+    private void checkTaskReady() throws StopJobException {
+        if (task.isReady()) {
+            return;
+        }
+
         try {
-            beans.localScheduler.rescheduleLater(task, startAt);
+            LOGGER.debug("Unscheduling non-ready task {}", task);
+            context.getScheduler().unscheduleJob(context.getTrigger().getKey());
+            throw new StopJobException(WARNING, "Task is not in READY state (its state is {}), exiting its execution after "
+                    + "removed the Quartz trigger. Task = {}", null, task.getSchedulingState(), task);
+        } catch (Throwable t) {
+            throw new StopJobException(UNEXPECTED_ERROR, "Couldn't unschedule job for a non-READY task {}", t, task);
+        }
+    }
+
+    private void fetchTheTask(String oid, OperationResult result) throws StopJobException {
+        try {
+            TaskQuartzImpl taskWithResult = beans.taskRetriever.getTaskWithResult(oid, result);
+            String rootOid = beans.taskRetriever.getRootTaskOid(taskWithResult, result);
+            task = beans.taskInstantiator.toRunningTaskInstance(taskWithResult, rootOid);
+        } catch (ObjectNotFoundException e) {
+            beans.localScheduler.deleteTaskFromQuartz(oid, false, result);
+            throw new StopJobException(ERROR, "Task with OID %s no longer exists. "
+                    + "Removed the Quartz job and exiting the execution routine.", e, oid);
+        } catch (Throwable t) {
+            throw new StopJobException(UNEXPECTED_ERROR, "Task with OID %s could not be retrieved. "
+                    + "Please correct the problem or resynchronize midPoint repository with Quartz job store. "
+                    + "Now exiting the execution routine.", t, oid);
+        }
+    }
+
+    private void checkForConcurrentExecution(OperationResult result)
+            throws ObjectNotFoundException, SchemaException, StopJobException {
+        if (beans.configuration.isCheckForTaskConcurrentExecution()) {
+            new ConcurrentExecutionChecker(task, beans)
+                    .check(result);
+        }
+    }
+
+    private void setExecutionNodeAndState(OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        task.setExecutionState(TaskExecutionStateType.RUNNING);
+        task.setNode(beans.configuration.getNodeId());
+        task.flushPendingModifications(result);
+    }
+
+    private void resetTaskExecutionNodeAndState(OperationResult result) {
+        try {
+            task.setNode(null);
+            task.flushPendingModifications(result);
         } catch (Exception e) {
-            // TODO or handle it somehow?
-            throw new JobExecutionException("Couldn't reschedule task " + task + " (rescheduled because" +
-                    " of execution constraints): " + e.getMessage(), e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reset task execution node information for {}", e, task);
+        }
+
+        try {
+            task.refresh(result);
+            // If the task was suspended or closed or whatever in the meanwhile, most probably the new value is reflected here.
+            if (task.getSchedulingState() == TaskSchedulingStateType.READY) {
+                // But to be sure, let us do preconditions-based modification
+                try {
+                    task.setExecutionAndSchedulingStateImmediate(TaskExecutionStateType.RUNNABLE, TaskSchedulingStateType.READY,
+                            TaskSchedulingStateType.READY, result);
+                } catch (PreconditionViolationException e) {
+                    LOGGER.trace("The scheduling state was no longer READY. Let us refresh the task.", e);
+                    task.refresh(result);
+                    resetExecutionState(result);
+                }
+            } else {
+                resetExecutionState(result);
+            }
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't set execution state information for {}", e, task);
         }
     }
 
-    private void waitForTransientChildrenAndCloseThem(OperationResult result) {
+    private void resetExecutionState(OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException,
+            SchemaException {
+        TaskExecutionStateType newExecutionState = getNewExecutionState();
+        if (newExecutionState != null) {
+            task.setExecutionState(newExecutionState);
+            task.flushPendingModifications(result);
+        }
+    }
+
+    private TaskExecutionStateType getNewExecutionState() {
+        if (task.getSchedulingState() == null) {
+            LOGGER.error("No scheduling state in {}. Setting execution state to SUSPENDED.", task);
+            return TaskExecutionStateType.SUSPENDED;
+        }
+        switch (task.getSchedulingState()) {
+            case SUSPENDED:
+                return TaskExecutionStateType.SUSPENDED;
+            case CLOSED:
+                return TaskExecutionStateType.CLOSED;
+            case WAITING:
+                // The current execution state should be OK. It is because the switch to WAITING was done internally
+                // by the task handler, and was accompanied by the change in the execution state.
+                return null;
+            case READY: // Not much probable, but can occur in theory.
+                return TaskExecutionStateType.RUNNABLE;
+            default:
+                throw new AssertionError(task.getSchedulingState());
+        }
+    }
+
+    private void checkGroupLimits(OperationResult result) throws StopJobException {
+        GroupLimitsChecker checker = new GroupLimitsChecker(task, beans);
+        RescheduleTime rescheduleTime = checker.checkIfAllowed(result);
+        if (rescheduleTime == null) {
+            return; // everything ok
+        }
+
+        if (!rescheduleTime.regular) {
+            try {
+                beans.localScheduler.rescheduleLater(task, rescheduleTime.timestamp);
+            } catch (Exception e) {
+                throw new StopJobException(UNEXPECTED_ERROR, "Couldn't reschedule task " + task + " (rescheduled because" +
+                        " of execution constraints): " + e.getMessage(), e);
+            }
+        }
+        throw new StopJobException();
+    }
+
+    void waitForTransientChildrenAndCloseThem(OperationResult result) {
         beans.lightweightTaskManager.waitForTransientChildren(task, result);
 
         // at this moment, there should be no executing child tasks... we just clean-up all runnables that had not started
@@ -445,31 +394,6 @@ public class JobExecutor implements InterruptableJob {
     }
 
     // returns true if the execution of the task should continue
-    private boolean processTaskRecovery(OperationResult executionResult) {
-        if (task.getThreadStopAction() == ThreadStopActionType.CLOSE) {
-            LOGGER.info("Closing recovered non-resilient task {}", task);
-            closeTask(task, executionResult);
-            return false;
-        } else if (task.getThreadStopAction() == ThreadStopActionType.SUSPEND) {
-            LOGGER.info("Suspending recovered non-resilient task {}", task);
-            // we must NOT wait here, as we would wait infinitely -- we do not have to stop the task neither, because we are that task :)
-            beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, executionResult);
-            return false;
-        } else if (task.getThreadStopAction() == null || task.getThreadStopAction() == ThreadStopActionType.RESTART) {
-            LOGGER.info("Recovering resilient task {}", task);
-            return true;
-        } else if (task.getThreadStopAction() == ThreadStopActionType.RESCHEDULE) {
-            if (task.isRecurring() && task.isLooselyBound()) {
-                LOGGER.info("Recovering resilient task with RESCHEDULE thread stop action - exiting the execution, the task will be rescheduled; task = {}", task);
-                return false;
-            } else {
-                LOGGER.info("Recovering resilient task {}", task);
-                return true;
-            }
-        } else {
-            throw new SystemException("Unknown value of ThreadStopAction: " + task.getThreadStopAction() + " for task " + task);
-        }
-    }
 
     // called when task is externally stopped (can occur on node shutdown, node scheduler stop, node threads deactivation, or task suspension)
     // we have to act (i.e. reschedule resilient tasks or close/suspend non-resilient tasks) in all cases, except task suspension
@@ -511,10 +435,11 @@ public class JobExecutor implements InterruptableJob {
         }
     }
 
-    private void closeFlawedTask(RunningTaskQuartzImpl task, OperationResult result) {
+    // Note that the result is most probably == executionResult. But it is no problem.
+    void closeFlawedTaskRecordingResult(OperationResult result) {
         LOGGER.info("Closing flawed task {}", task);
         try {
-            task.setResultImmediate(result, result);
+            task.setResultImmediate(executionResult, result);
         } catch (ObjectNotFoundException  e) {
             LoggingUtils.logException(LOGGER, "Couldn't store operation result into the task {}", e, task);
         } catch (SchemaException e) {
@@ -535,289 +460,6 @@ public class JobExecutor implements InterruptableJob {
         }
     }
 
-    private void executeSingleTask(TaskHandler handler, OperationResult executionResult) {
-
-        Validate.notNull(handler, "Task handler is null");
-
-        try {
-
-            TaskRunResult runResult;
-
-            recordCycleRunStart(handler, executionResult);
-            runResult = executeHandler(handler, executionResult);        // exceptions thrown by handler are handled in executeHandler()
-
-            // we should record finish-related information before dealing with (potential) task closure/restart
-            // so we place this method call before the following block
-            recordCycleRunFinish(runResult, handler, executionResult);
-
-            // should be after recordCycleRunFinish, e.g. not to overwrite task result
-            task.refresh(executionResult);
-
-            // let us treat various exit situations here...
-
-            if (!task.canRun() || runResult.getRunResultStatus() == TaskRunResultStatus.INTERRUPTED) {
-                // first, if a task was interrupted, we do not want to change its status
-                LOGGER.trace("Task was interrupted, exiting the execution routine. Task = {}", task);
-            } else if (runResult.getRunResultStatus() == TaskRunResultStatus.TEMPORARY_ERROR) {
-                // in case of temporary error, we want to suspend the task and exit
-                LOGGER.info("Task encountered temporary error, suspending it. Task = {}", task);
-                beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, executionResult);
-            } else if (runResult.getRunResultStatus() == TaskRunResultStatus.RESTART_REQUESTED) {
-                // in case of RESTART_REQUESTED we have to get (new) current handler and restart it
-                // this is implemented by pushHandler and by Quartz
-            } else if (runResult.getRunResultStatus() == TaskRunResultStatus.PERMANENT_ERROR) {
-                // PERMANENT ERROR means we do not continue executing other handlers, we just close this task
-                beans.taskStateManager.closeTask(task, executionResult);
-            } else if (runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED || runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED_HANDLER) {
-                // FINISHED/FINISHED_HANDLER means we continue with other handlers, if there are any
-                beans.taskStateManager.closeTask(task, executionResult);
-            } else if (runResult.getRunResultStatus() == TaskRunResultStatus.IS_WAITING) {
-                LOGGER.trace("Task switched to waiting state, exiting the execution routine. Task = {}", task);
-            } else {
-                throw new IllegalStateException("Invalid value for Task's runResultStatus: " + runResult.getRunResultStatus() + " for task " + task);
-            }
-
-        } catch (Throwable t) {
-            LoggingUtils.logUnexpectedException(LOGGER, "An exception occurred during processing of task {}", t, task);
-            //throw new JobExecutionException("An exception occurred during processing of task " + task, t);
-        }
-    }
-
-    private void executeRecurrentTask(TaskHandler handler) {
-
-        try {
-
-mainCycle:
-
-            while (task.canRun()) {
-
-                // executionResult should be initialized here (inside the loop), because for long-running tightly-bound
-                // recurring tasks it would otherwise bloat indefinitely
-                OperationResult executionResult = createOperationResult("executeTaskRun");
-
-                if (!task.stillCanStart()) {
-                    LOGGER.trace("CycleRunner loop: task latest start time ({}) has elapsed, exiting the execution cycle. Task = {}", task.getSchedule().getLatestStartTime(), task);
-                    break;
-                }
-
-                LOGGER.trace("CycleRunner loop: start");
-
-                recordCycleRunStart(handler, executionResult);
-                TaskRunResult runResult = executeHandler(handler, executionResult);
-                boolean canContinue = recordCycleRunFinish(runResult, handler, executionResult);
-                if (!canContinue) { // in case of task disappeared
-                    break;
-                }
-
-                // let us treat various exit situations here...
-
-                if (!task.canRun() || runResult.getRunResultStatus() == TaskRunResultStatus.INTERRUPTED) {
-                    // first, if a task was interrupted, we do not want to change its status
-                    LOGGER.trace("Task was interrupted, exiting the execution cycle. Task = {}", task);
-                    break;
-                } else if (runResult.getRunResultStatus() == TaskRunResultStatus.TEMPORARY_ERROR) {
-                    LOGGER.trace("Task encountered temporary error, continuing with the execution cycle. Task = {}", task);
-                } else if (runResult.getRunResultStatus() == TaskRunResultStatus.RESTART_REQUESTED) {
-                    // in case of RESTART_REQUESTED we have to get (new) current handler and restart it
-                    // this is implemented by pushHandler and by Quartz
-                    LOGGER.trace("Task returned RESTART_REQUESTED state, exiting the execution cycle. Task = {}", task);
-                    break;
-                } else if (runResult.getRunResultStatus() == TaskRunResultStatus.PERMANENT_ERROR) {
-                    LOGGER.info("Task encountered permanent error, suspending the task. Task = {}", task);
-                    beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, executionResult);
-                    break;
-                } else if (runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED) {
-                    LOGGER.trace("Task handler finished, continuing with the execution cycle. Task = {}", task);
-                } else if (runResult.getRunResultStatus() == TaskRunResultStatus.IS_WAITING) {
-                    LOGGER.trace("Task switched to waiting state, exiting the execution cycle. Task = {}", task);
-                    break;
-                } else if (runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED_HANDLER) {
-                    LOGGER.trace("Task handler finished with FINISHED_HANDLER, calling task.finishHandler() and exiting the execution cycle. Task = {}", task);
-                    beans.taskStateManager.closeTask(task, executionResult);
-                    break;
-                } else {
-                    throw new IllegalStateException("Invalid value for Task's runResultStatus: " + runResult.getRunResultStatus() + " for task " + task);
-                }
-
-                // if the task is loosely-bound, exit the loop here
-                if (task.isLooselyBound()) {
-                    LOGGER.trace("CycleRunner loop: task is loosely bound, exiting the execution cycle");
-                    break;
-                }
-
-                // or, was the task suspended (closed, ...) remotely?
-                LOGGER.trace("CycleRunner loop: refreshing task after one iteration, task = {}", task);
-                try {
-                    task.refresh(executionResult);
-                } catch (ObjectNotFoundException ex) {
-                    LOGGER.error("Error refreshing task "+task+": Object not found: "+ex.getMessage(),ex);
-                    return;            // The task object in repo is gone. Therefore this task should not run any more.
-                }
-
-                if (!task.isReady()) {
-                    LOGGER.info("Task not in the READY state, exiting the execution routing. State = {}, Task = {}",
-                            task.getSchedulingState(), task);
-                    break;
-                }
-
-                // Determine how long we need to sleep and hit the bed
-
-                Integer interval = task.getScheduleInterval();
-                if (interval == null) {
-                    LOGGER.error("Tightly bound task " + task + " has no scheduling interval specified.");
-                    break;
-                }
-
-                long lastRunStartTime = task.getLastRunStartTimestamp() == null ? 0 : task.getLastRunStartTimestamp();
-                long sleepFor = lastRunStartTime + (interval * 1000) - System.currentTimeMillis();
-                if (sleepFor < 0)
-                    sleepFor = 0;
-
-                LOGGER.trace("CycleRunner loop: sleep ({})", sleepFor);
-
-                for (long time = 0; time < sleepFor + WATCHFUL_SLEEP_INCREMENT; time += WATCHFUL_SLEEP_INCREMENT) {
-                    try {
-                        //noinspection BusyWait
-                        Thread.sleep(WATCHFUL_SLEEP_INCREMENT);
-                    } catch (InterruptedException e) {
-                        // safely ignored
-                    }
-                    if (!task.canRun()) {
-                        LOGGER.trace("CycleRunner loop: sleep interrupted, task.canRun == false");
-                        break mainCycle;
-                    }
-                }
-
-                LOGGER.trace("CycleRunner loop: refreshing task after sleep, task = {}", task);
-                try {
-                    task.refresh(executionResult);
-                } catch (ObjectNotFoundException ex) {
-                    LOGGER.error("Error refreshing task "+task+": Object not found: "+ex.getMessage(),ex);
-                    return;            // The task object in repo is gone. Therefore this task should not run any more. Therefore commit seppuku
-                }
-
-                if (!task.isReady()) {
-                    LOGGER.info("Task not in the READY state, exiting the execution routine. State = {}, Task = {}",
-                            task.getSchedulingState(), task);
-                    break;
-                }
-
-                LOGGER.trace("CycleRunner loop: end");
-            }
-
-        } catch (Throwable t) {
-            // This is supposed to run in a thread, so this kind of heavy artillery is needed. If throwable won't be
-            // caught here, nobody will catch it and it won't even get logged.
-            if (task.canRun()) {
-                LOGGER.error("CycleRunner got unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
-            } else {
-                LOGGER.info("CycleRunner got unexpected exception while shutting down: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task);
-                LOGGER.trace("CycleRunner got unexpected exception while shutting down: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
-            }
-            //throw new JobExecutionException("An exception occurred during processing of task " + task, t);
-        }
-    }
-
-    private TaskRunResult executeHandler(TaskHandler handler, OperationResult executionResult) {
-
-        if (task.getResult() == null) {
-            LOGGER.warn("Task without operation result found, please check the task creation/retrieval/update code: {}", task);
-            task.setResultTransient(TaskQuartzImpl.createUnnamedTaskResult());
-        }
-
-        TaskRunResult runResult;
-        try {
-            runResult = beans.handlerExecutor.executeHandler(task, null, handler, executionResult);
-        } finally {
-            // TEMPORARY see MID-6343; TODO implement correctly!
-            beans.counterManager.cleanupCounters(task.getOid());
-        }
-
-        // It is dangerous to start waiting for transient children if they were not told to finish! Make sure you signal them
-        // to stop at appropriate place.
-        waitForTransientChildrenAndCloseThem(executionResult);
-        return runResult;
-    }
-
-    private OperationResult createOperationResult(String methodName) {
-        return new OperationResult(DOT_CLASS + methodName);
-    }
-
-    private void recordCycleRunStart(TaskHandler handler, OperationResult result) {
-        LOGGER.debug("Task cycle run STARTING {}, handler = {}", task, handler);
-        beans.listenerRegistry.notifyTaskStart(task, result);
-        try {
-            task.setLastRunStartTimestamp(System.currentTimeMillis());
-            setCategoryIfMissing();
-            setOrMigrateChannelUri();
-            setNewOperationResult();
-            task.flushPendingModifications(result);
-        } catch (Exception e) {    // TODO: implement correctly after clarification
-            LoggingUtils.logUnexpectedException(LOGGER, "Cannot record run start for task {}", e, task);
-        }
-    }
-
-    private void setCategoryIfMissing() {
-        if (task.getCategory() == null) {
-            task.setCategory(task.getCategoryFromHandler());
-        }
-    }
-
-    private void setOrMigrateChannelUri() {
-        if (task.getChannel() != null) {
-            Channel.Migration migration = Channel.findMigration(task.getChannel());
-            if (migration != null && migration.isNeeded()) {
-                task.setChannel(migration.getNewUri());
-            }
-        } else {
-            task.setChannel(task.getChannelFromHandler());
-        }
-    }
-
-    private void setNewOperationResult() {
-        OperationResult newResult = new OperationResult("run");
-        newResult.setStatus(OperationResultStatus.IN_PROGRESS);
-        task.setResult(newResult); // MID-4033
-    }
-
-    /*
-     * Returns a flag whether to continue (false if the task has disappeared)
-     */
-    private boolean recordCycleRunFinish(TaskRunResult runResult, TaskHandler handler, OperationResult result) {
-        LOGGER.debug("Task cycle run FINISHED {}, handler = {}", task, handler);
-        beans.listenerRegistry.notifyTaskFinish(task, runResult, result);
-        try {
-            if (runResult.getProgress() != null) {
-                task.setProgress(runResult.getProgress());
-            }
-            task.setLastRunFinishTimestamp(System.currentTimeMillis());
-            if (runResult.getOperationResult() != null) {
-                try {
-                    OperationResult taskResult = runResult.getOperationResult().clone();
-                    taskResult.cleanupResult();
-                    taskResult.summarize(true);
-                    task.setResult(taskResult);
-                } catch (Throwable ex) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Problem with task result cleanup/summarize - continuing with raw result", ex);
-                    task.setResult(runResult.getOperationResult());
-                }
-            }
-            task.storeOperationStatsDeferred();     // maybe redundant, but better twice than never at all
-            task.flushPendingModifications(result);
-
-            return true;
-        } catch (ObjectNotFoundException ex) {
-            LoggingUtils.logException(LOGGER, "Cannot record run finish for task {}", ex, task);
-            return false;
-        } catch (com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Cannot record run finish for task {}", ex, task);
-            return true;
-        } catch (SchemaException ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Unable to record run finish and close the task: {}", ex, task);
-            return true;
-        }
-    }
-
     @Override
     public void interrupt() {
         boolean interruptsAlways = beans.configuration.getUseThreadInterrupt() == UseThreadInterrupt.ALWAYS;
@@ -832,7 +474,7 @@ mainCycle:
                 subtask.getLightweightHandlerFuture().cancel(interruptsMaybe);
             }
             if (interruptsAlways) {
-                sendThreadInterrupt(false);         // subtasks were interrupted by their futures
+                sendThreadInterrupt(false); // subtasks were interrupted by their futures
             }
         }
     }
@@ -859,5 +501,12 @@ mainCycle:
 
     public Thread getExecutingThread() {
         return task.getExecutingThread();
+    }
+
+    /**
+     * Ugly hack - this class is instantiated not by Spring but explicitly by Quartz.
+     */
+    public static void setTaskManagerQuartzImpl(TaskManagerQuartzImpl taskManager) {
+        beans = taskManager.getBeans();
     }
 }

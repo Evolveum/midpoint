@@ -63,7 +63,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
      */
     private final Map<String, RunningTaskQuartzImpl> lightweightAsynchronousSubtasks = new ConcurrentHashMap<>();
 
-    private RunningTaskQuartzImpl parentForLightweightAsynchronousTask;            // EXPERIMENTAL
+    private RunningTaskQuartzImpl parentForLightweightAsynchronousTask;
 
     /**
      * Is the task handler allowed to run, or should it stop as soon as possible?

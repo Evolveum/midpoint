@@ -278,7 +278,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             //assertEquals("Wrong state-before-suspend of coordinator", TaskExecutionStatusType.WAITING,
             //        coordinatorTask.getStateBeforeSuspend());
             assertEquals("Wrong scheduling state of worker", TaskSchedulingStateType.SUSPENDED, worker.getSchedulingState());
-            assertEquals("Wrong state-before-suspend of worker", TaskExecutionStateType.RUNNABLE,
+            assertEquals("Wrong state-before-suspend of worker", TaskExecutionStateType.RUNNING,
                     worker.getStateBeforeSuspend());
 
             assertTrue("tasks were not stopped", stopped);

@@ -163,11 +163,6 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
         } else if (runResult.getRunResultStatus() == TaskRunResultStatus.TEMPORARY_ERROR) {
             LOGGER.trace("Task encountered temporary error, continuing with the execution cycle. Task = {}", task);
             return false;
-        } else if (runResult.getRunResultStatus() == TaskRunResultStatus.RESTART_REQUESTED) {
-            // in case of RESTART_REQUESTED we have to get (new) current handler and restart it
-            // this is implemented by pushHandler and by Quartz
-            LOGGER.trace("Task returned RESTART_REQUESTED state, exiting the execution cycle. Task = {}", task);
-            return false;
         } else if (runResult.getRunResultStatus() == TaskRunResultStatus.PERMANENT_ERROR) {
             LOGGER.info("Task encountered permanent error, suspending the task. Task = {}", task);
             return false;
@@ -176,9 +171,6 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
             return true;
         } else if (runResult.getRunResultStatus() == TaskRunResultStatus.IS_WAITING) {
             LOGGER.trace("Task switched to waiting state, exiting the execution cycle. Task = {}", task);
-            return true;
-        } else if (runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED_HANDLER) {
-            LOGGER.trace("Task handler finished with FINISHED_HANDLER, calling task.finishHandler() and exiting the execution cycle. Task = {}", task);
             return true;
         } else {
             throw new IllegalStateException("Invalid value for Task's runResultStatus: " + runResult.getRunResultStatus() + " for task " + task);

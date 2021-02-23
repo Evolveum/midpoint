@@ -308,8 +308,8 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         assertTrue("Task progress is too small (should be at least 1)", task.getProgress() >= 1);
         assertSuccessOrInProgress(task);
 
-        // Suspend the task (in order to keep logs clean), without much waiting
-        taskStateManager.suspendTaskNoException(task, 100, result);
+        boolean stopped = taskStateManager.suspendTaskNoException(task, 2000, result);
+        assertThat(stopped).as("Task was stopped").isTrue();
     }
 
     private void assertDeadPropertySanity(OperationResult result, PrismObject<? extends ObjectType> object)

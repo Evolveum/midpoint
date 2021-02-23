@@ -33,14 +33,6 @@ public class TaskRunResult implements Serializable {
         FINISHED,
 
         /**
-         * The task run has finished, and this was the last run of the current handler.
-         *
-         * For single-run tasks, the effect is the same as of FINISHED value.
-         * However, for recurring tasks, this return value causes current handler to be removed from the handler stack.
-         */
-        FINISHED_HANDLER,
-
-        /**
          * The run has failed.
          *
          * The error is permanent. Unless the administrator does something to recover from the situation, there is no point in
@@ -63,17 +55,8 @@ public class TaskRunResult implements Serializable {
          * Task run hasn't finished but nevertheless it must end (for now). An example of such a situation is
          * when the long-living task run execution is requested to stop (e.g. when suspending the task or
          * shutting down the node).
-         *
-         * For single-run tasks this state means that the task SHOULD NOT be closed, nor the handler should
-         * be removed from the handler stack.
          */
         INTERRUPTED,
-
-        /**
-         * Task has to be restarted, typically because a new handler was put onto the handler stack during
-         * the task run.
-         */
-        RESTART_REQUESTED,
 
         /**
          * Task has entered waiting state. TODO. EXPERIMENTAL.

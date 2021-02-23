@@ -163,7 +163,6 @@ public class TaskPersister {
                 schedulingState = TaskSchedulingStateType.READY;
                 break;
             case SUSPENDED:
-            case SUSPENDING:
                 schedulingState = TaskSchedulingStateType.SUSPENDED;
                 break;
             case WAITING:

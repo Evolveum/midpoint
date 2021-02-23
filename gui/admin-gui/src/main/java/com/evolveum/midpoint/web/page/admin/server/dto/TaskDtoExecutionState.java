@@ -33,7 +33,7 @@ public enum TaskDtoExecutionState {
     public static TaskDtoExecutionState fromTaskExecutionStatus(TaskExecutionStateType executionStatus, boolean running) {
         if (running) {
             if (executionStatus == TaskExecutionStateType.SUSPENDED) {
-                return SUSPENDING; // todo remove when no longer needed
+                return SUSPENDING;
             } else {
                 return TaskDtoExecutionState.RUNNING;
             }
@@ -44,7 +44,6 @@ public enum TaskDtoExecutionState {
                     case RUNNING: return RUNNING;
                     case WAITING: return WAITING;
                     case SUSPENDED: return SUSPENDED;
-                    case SUSPENDING: return SUSPENDING;
                     case CLOSED: return CLOSED;
                     default: throw new IllegalArgumentException("executionStatus = " + executionStatus);
                 }

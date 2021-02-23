@@ -353,6 +353,11 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
     default boolean isLooselyBound() {
         return getBinding() == TaskBindingType.LOOSE;
     }
+
+    /** Returns true if the task is tightly bound. */
+    default boolean isTightlyBound() {
+        return !isLooselyBound();
+    }
     //endregion
 
     //region Handler URI, category, archetype

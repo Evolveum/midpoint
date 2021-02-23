@@ -20,8 +20,7 @@ public enum RTaskExecutionState implements SchemaEnum<TaskExecutionStateType> {
     WAITING(TaskExecutionStateType.WAITING),
     SUSPENDED(TaskExecutionStateType.SUSPENDED),
     CLOSED(TaskExecutionStateType.CLOSED),
-    RUNNING(TaskExecutionStateType.RUNNING),
-    SUSPENDING(TaskExecutionStateType.SUSPENDING);
+    RUNNING(TaskExecutionStateType.RUNNING);
 
     private TaskExecutionStateType status;
 

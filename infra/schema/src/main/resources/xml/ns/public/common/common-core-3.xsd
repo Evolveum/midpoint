@@ -3603,17 +3603,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="suspending">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Task suspension was requested and is in progress.
-                        When the task really stops, the status will be switched to SUSPENDED.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SUSPENDING"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
             <xsd:enumeration value="closed">
                 <xsd:annotation>
                     <xsd:documentation>

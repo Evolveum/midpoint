@@ -52,7 +52,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class AbstractTaskManagerTest extends AbstractSpringTest implements InfraTestMixin {
 
     private static final String CYCLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/cycle-task-handler";
-    private static final String CYCLE_FINISHING_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/cycle-finishing-task-handler";
     static final String SINGLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/single-task-handler";
     private static final String SINGLE_TASK_HANDLER_2_URI = "http://midpoint.evolveum.com/test/single-task-handler-2";
     private static final String SINGLE_TASK_HANDLER_3_URI = "http://midpoint.evolveum.com/test/single-task-handler-3";
@@ -89,10 +88,8 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
     MockParallelTaskHandler parallelTaskHandler;
 
     private void initHandlers() {
-        MockCycleTaskHandler cycleHandler = new MockCycleTaskHandler(false); // ordinary recurring task
+        MockCycleTaskHandler cycleHandler = new MockCycleTaskHandler();
         taskManager.registerHandler(CYCLE_TASK_HANDLER_URI, cycleHandler);
-        MockCycleTaskHandler cycleFinishingHandler = new MockCycleTaskHandler(true); // finishes the handler
-        taskManager.registerHandler(CYCLE_FINISHING_TASK_HANDLER_URI, cycleFinishingHandler);
 
         singleHandler1 = new MockSingleTaskHandler("1", taskManager);
         taskManager.registerHandler(SINGLE_TASK_HANDLER_URI, singleHandler1);
