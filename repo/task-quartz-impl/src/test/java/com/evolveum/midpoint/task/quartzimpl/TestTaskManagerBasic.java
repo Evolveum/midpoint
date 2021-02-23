@@ -105,18 +105,6 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
 
     public static final ItemName SHIP_STATE_ITEM_NAME = new ItemName("http://myself.me/schemas/whatever", "shipState");
 
-    private String taskFilename(String fileSuffix) {
-        return "/task-" + getTestNameShort().substring(4) + fileSuffix + ".xml";
-    }
-
-    private String taskFilename() {
-        return taskFilename("");
-    }
-
-    private String taskOid(String testNumber, String subId) {
-        return "91919191-76e0-59e2-86d6-55665566" + subId + testNumber;
-    }
-
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
         super.setup();

@@ -86,7 +86,8 @@ public class WorkersCreationTaskHandler implements TaskHandler {
             taskManager.reconcileWorkers(task.getOid(), options, opResult);
 
             // TODO what if the task was suspended in the meanwhile?
-            ((TaskQuartzImpl) task).makeWaiting(TaskWaitingReasonType.OTHER_TASKS, TaskUnpauseActionType.RESCHEDULE);  // i.e. close for single-run tasks
+            // reschedule means close for single-run tasks
+            ((TaskQuartzImpl) task).makeWaitingForOtherTasks(TaskUnpauseActionType.RESCHEDULE); // keeping exec state RUNNING
             task.flushPendingModifications(opResult);
             taskManager.resumeTasks(TaskUtil.tasksToOids(task.listSubtasks(true, opResult)), opResult);
             LOGGER.info("Worker tasks were successfully created for coordinator {}", task);

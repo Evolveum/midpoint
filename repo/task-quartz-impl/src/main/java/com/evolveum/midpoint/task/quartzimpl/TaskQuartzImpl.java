@@ -888,13 +888,23 @@ public class TaskQuartzImpl implements Task {
     }
 
     /**
-     * Changes exec status to WAITING, with a given waiting reason.
-     * Currently use only on transient tasks or from within task handler.
+     * Changes scheduling status to WAITING. Does not change execution state.
+     * Currently use only on transient tasks OR from within task handler.
      */
-    public void makeWaiting(TaskWaitingReasonType reason, TaskUnpauseActionType unpauseAction) {
-        setExecutionState(TaskExecutionStateType.WAITING);
+    public void makeWaitingForOtherTasks(TaskUnpauseActionType unpauseAction) {
         setSchedulingState(TaskSchedulingStateType.WAITING);
-        setWaitingReason(reason);
+        setWaitingReason(TaskWaitingReasonType.OTHER_TASKS);
+        setUnpauseAction(unpauseAction);
+    }
+
+    /**
+     * Changes scheduling status to WAITING, and execution state to the given value.
+     * Currently use only on transient tasks OR from within task handler.
+     */
+    public void makeWaitingForOtherTasks(TaskExecutionStateType execState, TaskUnpauseActionType unpauseAction) {
+        setExecutionState(execState);
+        setSchedulingState(TaskSchedulingStateType.WAITING);
+        setWaitingReason(TaskWaitingReasonType.OTHER_TASKS);
         setUnpauseAction(unpauseAction);
     }
 

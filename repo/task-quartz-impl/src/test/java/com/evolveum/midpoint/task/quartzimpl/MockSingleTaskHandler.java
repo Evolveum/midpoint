@@ -6,50 +6,35 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-
-import org.apache.commons.lang.Validate;
-
-import static com.evolveum.midpoint.task.quartzimpl.TaskTestUtil.createExtensionDelta;
 
 /**
  * @author Radovan Semancik
- *
  */
 public class MockSingleTaskHandler implements TaskHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(MockSingleTaskHandler.class);
     private static final String NS_EXT = "http://myself.me/schemas/whatever";
-    private static final ItemName L1_FLAG_QNAME = new ItemName(NS_EXT, "l1Flag", "m");
 
     private TaskManagerQuartzImpl taskManager;
 
-    private String id;
-
-    private PrismPropertyDefinition l1FlagDefinition;
+    private final String id;
 
     MockSingleTaskHandler(String id, TaskManagerQuartzImpl taskManager) {
         this.id = id;
         this.taskManager = taskManager;
-
-        l1FlagDefinition = taskManager.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(L1_FLAG_QNAME);
-        Validate.notNull(l1FlagDefinition, "l1Flag property is unknown");
     }
 
     private boolean hasRun = false;
     private int executions = 0;
+
+    private long delay;
 
     @Override
     public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
@@ -63,6 +48,10 @@ public class MockSingleTaskHandler implements TaskHandler {
         // TODO
         task.incrementProgressAndStoreStatsIfNeeded();
 
+        if (delay > 0) {
+            sleep(task, delay);
+        }
+
         opResult.recordSuccess();
 
         // This "run" is finished. But the task goes on ...
@@ -75,10 +64,23 @@ public class MockSingleTaskHandler implements TaskHandler {
         return runResult;
     }
 
+    private void sleep(RunningTask task, long delay) {
+        LOGGER.trace("Sleeping for {} msec", delay);
+        long end = System.currentTimeMillis() + delay;
+        while (task.canRun() && System.currentTimeMillis() < end) {
+            try {
+                //noinspection BusyWait
+                Thread.sleep(100);
+            } catch (InterruptedException ignored) {
+            }
+        }
+    }
+
     @Override
     public Long heartbeat(Task task) {
         return null;
     }
+
     @Override
     public void refreshStatus(Task task) {
     }
@@ -95,6 +97,7 @@ public class MockSingleTaskHandler implements TaskHandler {
         return executions;
     }
 
+    @SuppressWarnings("unused")
     public void resetExecutions() {
         executions = 0;
     }
@@ -115,5 +118,9 @@ public class MockSingleTaskHandler implements TaskHandler {
     @Override
     public String getArchetypeOid() {
         return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
+    }
+
+    public void setDelay(long delay) {
+        this.delay = delay;
     }
 }
