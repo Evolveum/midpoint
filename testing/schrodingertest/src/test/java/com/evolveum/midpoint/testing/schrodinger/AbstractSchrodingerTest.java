@@ -394,15 +394,15 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
     }
 
     protected void addObjectFromFile(File file, boolean overwrite, OperationResult result) {
-//        try {
-//            RepoAddOptions options = null;
-//            if (overwrite) {
-//                options = RepoAddOptions.createOverwrite();
-//            }
-//            repoAddObjectsFromFile(file, null, options, result);
-//        } catch (SchemaException | ObjectAlreadyExistsException | EncryptionException | IOException ex) {
-//            LOG.error("Unable to add object, {}", result.getUserFriendlyMessage(), ex);
-//        }
+        try {
+            RepoAddOptions options = null;
+            if (overwrite) {
+                options = RepoAddOptions.createOverwrite();
+            }
+            repoAddObjectsFromFile(file, null, options, result);
+        } catch (SchemaException | ObjectAlreadyExistsException | EncryptionException | IOException ex) {
+            LOG.error("Unable to add object, {}", result.getUserFriendlyMessage(), ex);
+        }
     }
 
     public UserPage showUser(String userName){
