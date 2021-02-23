@@ -13,6 +13,8 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
+
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -31,7 +33,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -136,7 +137,7 @@ public class PageTasks extends PageAdmin {
                     public Date getObject() {
                         Date date = getCurrentRuntime(rowModel);
                         SelectableBean<TaskType> task = rowModel.getObject();
-                        if (getRawExecutionStatus(task.getValue()) == TaskExecutionStatus.CLOSED && date != null) {
+                        if (task.getValue().getExecutionStatus() == TaskExecutionStateType.CLOSED && date != null) {
                             ((DateLabelComponent) item.get(componentId)).setBefore(createStringResource("pageTasks.task.closedAt").getString() + " ");
                         } else if (date != null) {
                             ((DateLabelComponent) item.get(componentId))
@@ -154,7 +155,7 @@ public class PageTasks extends PageAdmin {
                 Date date = getCurrentRuntime(rowModel);
                 String displayValue = "";
                 if (date != null) {
-                    if (getRawExecutionStatus(task.getValue()) == TaskExecutionStatus.CLOSED) {
+                    if (task.getValue().getExecutionStatus() == TaskExecutionStateType.CLOSED) {
                         displayValue =
                                 createStringResource("pageTasks.task.closedAt").getString() +
                                         WebComponentUtil.getShortDateTimeFormattedValue(date, PageTasks.this);
@@ -198,7 +199,7 @@ public class PageTasks extends PageAdmin {
     private Date getCurrentRuntime(IModel<SelectableBean<TaskType>> taskModel) {
         TaskType task = taskModel.getObject().getValue();
 
-        if (getRawExecutionStatus(task) == TaskExecutionStatus.CLOSED) {
+        if (task.getExecutionStatus() == TaskExecutionStateType.CLOSED) {
 
             Long time = getCompletionTimestamp(task);
             if (time == null) {
@@ -220,11 +221,6 @@ public class PageTasks extends PageAdmin {
 
         return PageBase.createStringResourceStatic(this, key, localizationObjects.isEmpty() ? null : localizationObjects.toArray())
                 .getString();
-    }
-
-    //TODO why?
-    public TaskExecutionStatus getRawExecutionStatus(TaskType taskType) {
-        return TaskExecutionStatus.fromTaskType(taskType.getExecutionStatus());
     }
 
     private Long xgc2long(XMLGregorianCalendar gc) {
