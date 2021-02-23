@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionWriter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -190,7 +191,7 @@ public class OperationExecutionRecorderForClockwork {
     private void setOperationContext(OperationExecutionType operation, OperationResultStatusType overallStatus, Context<?> ctx) {
         operation.setStatus(overallStatus);
         // TODO what if the real initiator is different? (e.g. when executing approved changes)
-        operation.setInitiatorRef(ObjectTypeUtil.createObjectRef(ctx.task.getOwner(), prismContext));
+        operation.setInitiatorRef(CloneUtil.clone(ctx.task.getOwnerRef()));
         operation.setChannel(ctx.lensContext.getChannel());
         operation.setTimestamp(ctx.now);
     }

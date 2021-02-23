@@ -243,10 +243,10 @@ public class ObjectImporter {
                 String channel = SchemaConstants.CHANNEL_OBJECT_IMPORT_URI;
                 metaData.setCreateChannel(channel);
                 metaData.setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
-                if (task.getOwner() != null) {
-                    metaData.setCreatorRef(ObjectTypeUtil.createObjectRef(task.getOwner(), prismContext));
-                }
-                object.asObjectable().setMetadata(metaData);
+            if (task.getOwnerRef() != null) {
+                metaData.setCreatorRef(task.getOwnerRef().clone());
+            }
+            object.asObjectable().setMetadata(metaData);
         }
 
         objectResult.computeStatus();

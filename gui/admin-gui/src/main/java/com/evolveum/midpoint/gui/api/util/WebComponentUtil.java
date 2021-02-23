@@ -635,6 +635,7 @@ public final class WebComponentUtil {
         task.setBinding(TaskBindingType.LOOSE);
         task.setCategory(category);
         task.setExecutionStatus(TaskExecutionStateType.RUNNABLE);
+        task.setSchedulingState(TaskSchedulingStateType.READY);
         task.setRecurrence(TaskRecurrenceType.SINGLE);
         task.setThreadStopAction(ThreadStopActionType.RESTART);
         task.setHandlerUri(pageBase.getTaskService().getHandlerUriForCategory(category));

@@ -787,7 +787,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                 // the permission to read target org
                 // It is OK to just ignore it.
                 subResult.muteLastSubresultError();
-                LOGGER.debug("User {} does not have permission to read parent org unit {} (ignoring error)", task.getOwner().getName(), parentOrgRef.getOid());
+                PrismObject<? extends FocusType> taskOwner = task.getOwner(subResult);
+                LOGGER.debug("User {} does not have permission to read parent org unit {} (ignoring error)", taskOwner.getName(), parentOrgRef.getOid());
             } catch (Exception ex) {
                 subResult.recordWarning(createStringResource("PageAdminObjectDetails.message.loadParentOrgs.warning", parentOrgRef.getOid()).getString(), ex);
                 LOGGER.warn("Cannot load parent org {}: {}", parentOrgRef.getOid(), ex.getMessage(), ex);

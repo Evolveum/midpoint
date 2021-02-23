@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import static java.util.Collections.*;
@@ -1032,10 +1033,36 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public PrismObject<? extends FocusType> getOwner() {
+    public PrismObject<? extends FocusType> getOwner(OperationResult result) {
         PrismReferenceValue ownerRef = getReferenceValue(TaskType.F_OWNER_REF);
-        //noinspection unchecked
-        return ownerRef != null ? ownerRef.getObject() : null;
+        if (ownerRef == null) {
+            return null; // Shouldn't occur (this is checked on instantiation)
+        }
+        return resolveOwnerRef(ownerRef, result);
+    }
+
+    private PrismObject<? extends FocusType> resolveOwnerRef(PrismReferenceValue ownerRef, OperationResult result) {
+        if (ownerRef.getObject() != null) {
+            //noinspection unchecked
+            return ownerRef.getObject();
+        }
+
+        try {
+            // todo use type from the reference instead
+            PrismObject<FocusType> owner = beans.repositoryService.getObject(FocusType.class, ownerRef.getOid(), null, result);
+            synchronized (prismAccess) {
+                ownerRef.setObject(owner);
+            }
+            return owner;
+        } catch (ObjectNotFoundException e) {
+            LoggingUtils.logExceptionAsWarning(LOGGER, "The owner of task {} cannot be found (owner OID: {})",
+                    e, this, ownerRef.getOid());
+            return null;
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "The owner of task {} cannot be retrieved (owner OID: {})",
+                    e, this, ownerRef.getOid());
+            return null;
+        }
     }
 
     @Override
@@ -1053,20 +1080,15 @@ public class TaskQuartzImpl implements Task {
         }
     }
 
-    public void resolveOwnerRef(OperationResult result) throws SchemaException {
+    @Override
+    public void setOwnerRef(ObjectReferenceType ownerRef) {
+        stateCheck(isTransient(), "setOwnerRef method can be called only on transient tasks!");
+        setReference(TaskType.F_OWNER_REF, ownerRef);
+    }
+
+    public void checkOwnerRefPresent() throws SchemaException {
         PrismReferenceValue ownerRef = getReferenceValue(TaskType.F_OWNER_REF);
-        if (ownerRef == null) {
-            throw new SchemaException("Task " + getOid() + " does not have an owner (missing ownerRef)");
-        }
-        try {
-            PrismObject<UserType> owner = beans.repositoryService.getObject(UserType.class, ownerRef.getOid(), null, result);
-            synchronized (prismAccess) {
-                ownerRef.setObject(owner);
-            }
-        } catch (ObjectNotFoundException e) {
-            LoggingUtils.logExceptionAsWarning(LOGGER, "The owner of task {} cannot be found (owner OID: {})", e, getOid(),
-                    ownerRef.getOid());
-        }
+        schemaCheck(ownerRef != null, "No ownerRef present in %s", this);
     }
 
     @Override
@@ -1822,7 +1844,7 @@ public class TaskQuartzImpl implements Task {
             this.taskPrism = beans.taskRetriever.getRepoObjectWithResult(getOid(), result);
             updateTaskResult();
             setDefaults();
-            resolveOwnerRef(result);
+            checkOwnerRefPresent();
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -1836,7 +1858,7 @@ public class TaskQuartzImpl implements Task {
     public TaskQuartzImpl createSubtask() {
         TaskQuartzImpl sub = beans.taskInstantiator.createTaskInstance(null);
         sub.setParent(this.getTaskIdentifier());
-        sub.setOwner(this.getOwner());
+        sub.setOwnerRef(this.getOwnerRef());
         sub.setChannel(this.getChannel());
         sub.setExecutionState(TaskExecutionStateType.RUNNABLE);
         sub.setSchedulingState(TaskSchedulingStateType.READY);

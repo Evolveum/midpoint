@@ -161,7 +161,7 @@ public class JobExecutor implements InterruptableJob {
             handler = beans.handlerRegistry.getHandler(task.getHandlerUri());
 
             LOGGER.debug("Task thread run STARTING: {}, handler = {}, isRecovering = {}", task, handler, isRecovering);
-            beans.listenerRegistry.notifyTaskThreadStart(task, isRecovering);
+            beans.listenerRegistry.notifyTaskThreadStart(task, isRecovering, executionResult);
 
             if (handler==null) {
                 LOGGER.error("No handler for URI '{}', task {} - closing it.", task.getHandlerUri(), task);
@@ -174,7 +174,7 @@ public class JobExecutor implements InterruptableJob {
             }
 
             // Setup Spring Security context
-            PrismObject<? extends FocusType> taskOwner = task.getOwner();
+            PrismObject<? extends FocusType> taskOwner = task.getOwner(executionResult);
             try {
                 // just to be sure we won't run the owner-setting login with any garbage security context (see MID-4160)
                 beans.securityContextManager.setupPreAuthenticatedSecurityContext((Authentication) null);
@@ -215,7 +215,7 @@ public class JobExecutor implements InterruptableJob {
                 }
 
                 LOGGER.debug("Task thread run FINISHED: {}, handler = {}", task, handler);
-                beans.listenerRegistry.notifyTaskThreadFinish(task);
+                beans.listenerRegistry.notifyTaskThreadFinish(task, executionResult);
             } finally {
                 // "logout" this thread
                 beans.securityContextManager.setupPreAuthenticatedSecurityContext((Authentication) null);
@@ -543,7 +543,7 @@ public class JobExecutor implements InterruptableJob {
 
             TaskRunResult runResult;
 
-            recordCycleRunStart(executionResult, handler);
+            recordCycleRunStart(handler, executionResult);
             runResult = executeHandler(handler, executionResult);        // exceptions thrown by handler are handled in executeHandler()
 
             // we should record finish-related information before dealing with (potential) task closure/restart
@@ -602,7 +602,7 @@ mainCycle:
 
                 LOGGER.trace("CycleRunner loop: start");
 
-                recordCycleRunStart(executionResult, handler);
+                recordCycleRunStart(handler, executionResult);
                 TaskRunResult runResult = executeHandler(handler, executionResult);
                 boolean canContinue = recordCycleRunFinish(runResult, handler, executionResult);
                 if (!canContinue) { // in case of task disappeared
@@ -743,9 +743,9 @@ mainCycle:
         return new OperationResult(DOT_CLASS + methodName);
     }
 
-    private void recordCycleRunStart(OperationResult result, TaskHandler handler) {
+    private void recordCycleRunStart(TaskHandler handler, OperationResult result) {
         LOGGER.debug("Task cycle run STARTING {}, handler = {}", task, handler);
-        beans.listenerRegistry.notifyTaskStart(task);
+        beans.listenerRegistry.notifyTaskStart(task, result);
         try {
             task.setLastRunStartTimestamp(System.currentTimeMillis());
             setCategoryIfMissing();
@@ -785,7 +785,7 @@ mainCycle:
      */
     private boolean recordCycleRunFinish(TaskRunResult runResult, TaskHandler handler, OperationResult result) {
         LOGGER.debug("Task cycle run FINISHED {}, handler = {}", task, handler);
-        beans.listenerRegistry.notifyTaskFinish(task, runResult);
+        beans.listenerRegistry.notifyTaskFinish(task, runResult, result);
         try {
             if (runResult.getProgress() != null) {
                 task.setProgress(runResult.getProgress());

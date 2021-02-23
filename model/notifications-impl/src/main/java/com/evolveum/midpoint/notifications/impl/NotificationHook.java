@@ -14,8 +14,6 @@ import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
-import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
@@ -25,13 +23,13 @@ import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.impl.events.ModelEventImpl;
 import com.evolveum.midpoint.notifications.impl.events.PolicyRuleEventImpl;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationPolicyActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
@@ -119,7 +117,7 @@ public class NotificationHook implements ChangeHook {
 
     private void emitPolicyEvent(@SuppressWarnings("unused") NotificationPolicyActionType action, EvaluatedPolicyRule rule,
             ModelContext<?> context, Task task, OperationResult result) {
-        PolicyRuleEvent ruleEvent = createRuleEvent(rule, context, task);
+        PolicyRuleEvent ruleEvent = createRuleEvent(rule, context, task, result);
         notificationManager.processEvent(ruleEvent, task, result);
     }
 
@@ -129,7 +127,7 @@ public class NotificationHook implements ChangeHook {
             LOGGER.trace("Focus context object is null, not sending the notification.");
             return;
         }
-        ModelEvent event = createModelEvent(object, context, task);
+        ModelEvent event = createModelEvent(object, context, task, result);
         notificationManager.processEvent(event, task, result);
     }
 
@@ -148,17 +146,17 @@ public class NotificationHook implements ChangeHook {
     }
 
     @NotNull
-    private PolicyRuleEvent createRuleEvent(EvaluatedPolicyRule rule, ModelContext<?> context, Task task) {
+    private PolicyRuleEvent createRuleEvent(EvaluatedPolicyRule rule, ModelContext<?> context, Task task, OperationResult result) {
         PolicyRuleEventImpl ruleEvent = new PolicyRuleEventImpl(lightweightIdentifierGenerator, rule);
-        setCommonEventProperties(getObject(context), task, context, ruleEvent);
+        setCommonEventProperties(getObject(context), task, context, ruleEvent, result);
         return ruleEvent;
     }
 
 
     @NotNull
-    private ModelEvent createModelEvent(PrismObject<?> object, ModelContext<?> modelContext, Task task) {
+    private ModelEvent createModelEvent(PrismObject<?> object, ModelContext<?> modelContext, Task task, OperationResult result) {
         ModelEventImpl event = new ModelEventImpl(lightweightIdentifierGenerator, modelContext);
-        setCommonEventProperties(object, task, modelContext, event);
+        setCommonEventProperties(object, task, modelContext, event, result);
         event.setChannel(getChannel(modelContext, task));
         return event;
     }
@@ -167,9 +165,11 @@ public class NotificationHook implements ChangeHook {
         return modelContext.getChannel() != null ? modelContext.getChannel() : task.getChannel();
     }
 
-    private void setCommonEventProperties(PrismObject<?> object, Task task, ModelContext<?> modelContext, Event event) {
-        if (task.getOwner() != null) {
-            ((BaseEventImpl) event).setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner().asObjectable()));
+    private void setCommonEventProperties(PrismObject<?> object, Task task, ModelContext<?> modelContext, Event event,
+            OperationResult result) {
+        PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
+        if (taskOwner != null) {
+            ((BaseEventImpl) event).setRequester(new SimpleObjectRefImpl(notificationsUtil, taskOwner.asObjectable()));
         } else {
             LOGGER.debug("No owner for task " + task + ", therefore no requester will be set for event " + event.getId());
         }

@@ -82,8 +82,10 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      * Returns object that owns this task. It usually means the user that started the task
      * or a system used that is used to execute the task. The owner will be used to
      * determine access rights of the task, will be used for auditing, etc.
+     *
+     * The object is lazily fetched from repository.
      */
-    PrismObject<? extends FocusType> getOwner();
+    PrismObject<? extends FocusType> getOwner(OperationResult result);
 
     /** Returns a reference to the task owner. (Cloned if the task is running.) */
     ObjectReferenceType getOwnerRef();
@@ -94,6 +96,13 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      * Precondition: Task is transient.
      */
     void setOwner(PrismObject<? extends FocusType> owner);
+
+    /**
+     * Sets the task owner reference.
+     *
+     * Precondition: Task is transient.
+     */
+    void setOwnerRef(ObjectReferenceType ownerRef);
 
     /**
      * Returns human-readable name of the task.

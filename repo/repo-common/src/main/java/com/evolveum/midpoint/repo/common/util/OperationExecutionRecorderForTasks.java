@@ -10,6 +10,8 @@ package com.evolveum.midpoint.repo.common.util;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -101,7 +103,7 @@ public class OperationExecutionRecorderForTasks {
         operation.setTaskRef(ObjectTypeUtil.createObjectRef(task.getRootTaskOid(), ObjectTypes.TASK));
         operation.setStatus(result.getStatus().createStatusType());
         // TODO what if the real initiator is different? (e.g. when executing approved changes)
-        operation.setInitiatorRef(ObjectTypeUtil.createObjectRef(task.getOwner(), prismContext));
+        operation.setInitiatorRef(CloneUtil.clone(task.getOwnerRef()));
         operation.setChannel(task.getChannel());
         operation.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar());
         return operation;

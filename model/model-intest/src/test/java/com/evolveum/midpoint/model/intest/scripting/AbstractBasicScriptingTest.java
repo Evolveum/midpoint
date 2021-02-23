@@ -1204,7 +1204,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
         // cleaning up the tasks
 
-        Thread.sleep(5000L);            // cleanup is set to 1 second after completion
+        Thread.sleep(5000L); // cleanup is set to 1 second after completion
 
         importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
 

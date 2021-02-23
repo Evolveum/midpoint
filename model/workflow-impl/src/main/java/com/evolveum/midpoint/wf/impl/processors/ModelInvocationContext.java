@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -77,24 +78,23 @@ public class ModelInvocationContext<T extends ObjectType> {
     }
 
     public PrismObject<? extends FocusType> getRequestor(OperationResult result) {
-        if (task.getOwner() == null) {
+        if (task.getOwnerRef() == null) {
             LOGGER.warn("No requester in task {} -- continuing, but the situation is suspicious.", task);
             return null;
         }
 
-        // let's get fresh data (not the ones read on user login)
-        PrismObject<? extends FocusType> requester;
+        // let's get fresh data (not the ones read on task creation, that may be - e.g. if used from GUI - the state of
+        // logged in midPoint principal, which is determined at logon)
         try {
-            requester = repositoryService.getObject(UserType.class, task.getOwner().getOid(), null, result);
+            return repositoryService.getObject(UserType.class, task.getOwnerRef().getOid(), null, result);
         } catch (ObjectNotFoundException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't get data about task requester (" + task.getOwner() + "), because it does not exist in repository anymore. Using cached data.", e);
-            requester = task.getOwner().clone();
+            PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
+            LoggingUtils.logException(LOGGER, "Couldn't get data about task requester (" + taskOwner + "), because it does not exist in repository anymore. Using cached data.", e);
+            return CloneUtil.clone(taskOwner); // may be still null if it was not cached
         } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get data about task requester (" + task.getOwner() + "), due to schema exception. Using cached data.", e);
-            requester = task.getOwner().clone();
+            PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get data about task requester (" + taskOwner + "), due to schema exception. Using cached data.", e);
+            return CloneUtil.clone(taskOwner); // may be still null if it was not cached
         }
-        return requester;
     }
-
-
 }

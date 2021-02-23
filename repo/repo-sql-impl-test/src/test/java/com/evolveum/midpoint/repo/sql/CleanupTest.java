@@ -144,7 +144,7 @@ public class CleanupTest extends BaseSQLRepoTest {
             record.addReferenceValue("ref1", ObjectTypeUtil.createObjectRef("oid1", ObjectTypes.USER).asReferenceValue());
             logger.info("Adding audit record with timestamp {}", new Date(timestamp));
 
-            auditService.audit(record, new NullTaskImpl());
+            auditService.audit(record, new NullTaskImpl(), createOperationResult());
             calendar.add(Calendar.HOUR_OF_DAY, 1);
         }
 

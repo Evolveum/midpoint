@@ -39,10 +39,10 @@ public class TaskListenerRegistry {
         taskListeners.remove(taskListener);
     }
 
-    public void notifyTaskStart(Task task) {
+    public void notifyTaskStart(Task task, OperationResult result) {
         for (TaskListener taskListener : taskListeners) {
             try {
-                taskListener.onTaskStart(task);
+                taskListener.onTaskStart(task, result);
             } catch (RuntimeException e) {
                 logListenerException(e);
             }
@@ -53,30 +53,30 @@ public class TaskListenerRegistry {
         LoggingUtils.logUnexpectedException(LOGGER, "Task listener returned an unexpected exception", e);
     }
 
-    public void notifyTaskFinish(Task task, TaskRunResult runResult) {
+    public void notifyTaskFinish(Task task, TaskRunResult runResult, OperationResult result) {
         for (TaskListener taskListener : taskListeners) {
             try {
-                taskListener.onTaskFinish(task, runResult);
+                taskListener.onTaskFinish(task, runResult, result);
             } catch (RuntimeException e) {
                 logListenerException(e);
             }
         }
     }
 
-    public void notifyTaskThreadStart(Task task, boolean isRecovering) {
+    public void notifyTaskThreadStart(Task task, boolean isRecovering, OperationResult result) {
         for (TaskListener taskListener : taskListeners) {
             try {
-                taskListener.onTaskThreadStart(task, isRecovering);
+                taskListener.onTaskThreadStart(task, isRecovering, result);
             } catch (RuntimeException e) {
                 logListenerException(e);
             }
         }
     }
 
-    public void notifyTaskThreadFinish(Task task) {
+    public void notifyTaskThreadFinish(Task task, OperationResult result) {
         for (TaskListener taskListener : taskListeners) {
             try {
-                taskListener.onTaskThreadFinish(task);
+                taskListener.onTaskThreadFinish(task, result);
             } catch (RuntimeException e) {
                 logListenerException(e);
             }

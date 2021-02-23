@@ -286,8 +286,9 @@ public class WebModelServiceUtils {
             // point to an object that the current user cannot read. This is no big deal.
             // Just do not display that object.
             subResult.recordHandledError(e);
+            PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
             LOGGER.debug("User {} is not authorized to read {} {}",
-                    task.getOwner() != null ? task.getOwner().getName() : null, type.getSimpleName(), oid);
+                    taskOwner != null ? taskOwner.getName() : null, type.getSimpleName(), oid);
             return null;
         } catch (ObjectNotFoundException e) {
             if (allowNotFound) {

@@ -64,7 +64,7 @@ public class AuditCleanupPerformanceTest extends BaseSQLRepoTest {
             record.setTimestamp(System.currentTimeMillis());
             record.addPropertyValue("prop1", "val1");
             record.addReferenceValue("ref1", ObjectTypeUtil.createObjectRef("oid1", ObjectTypes.USER).asReferenceValue());
-            auditService.audit(record, new NullTaskImpl());
+            auditService.audit(record, new NullTaskImpl(), new OperationResult("dummy"));
             i++;
             if (i % 1000 == 0 || i == RECORDS) {
                 long duration = System.currentTimeMillis() - start;

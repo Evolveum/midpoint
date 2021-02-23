@@ -67,7 +67,7 @@ public class LightweightTaskManager {
 
             Runnable r = () -> {
                 LOGGER.debug("Lightweight task handler shell starting execution; task = {}", task);
-                setupSecurityContext(task);
+                setupSecurityContext(task, task.getResult());
                 try {
                     task.setLightweightHandlerExecuting(true);
                     task.setExecutingThread(Thread.currentThread());
@@ -96,10 +96,10 @@ public class LightweightTaskManager {
         }
     }
 
-    private void setupSecurityContext(RunningTaskQuartzImpl task) {
+    private void setupSecurityContext(RunningTaskQuartzImpl task, OperationResult result) {
         try {
             // Task owner is cloned because otherwise we get CME's when recomputing the owner user during login process
-            securityContextManager.setupPreAuthenticatedSecurityContext(CloneUtil.clone(task.getOwner()));
+            securityContextManager.setupPreAuthenticatedSecurityContext(CloneUtil.clone(task.getOwner(result)));
         } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't set up task security context {}", e, task);
             throw new SystemException(e.getMessage(), e);

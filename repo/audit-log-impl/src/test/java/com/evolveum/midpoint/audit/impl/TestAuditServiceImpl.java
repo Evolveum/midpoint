@@ -51,7 +51,7 @@ public class TestAuditServiceImpl extends AbstractSpringTest {
         Task task = taskManager.createTaskInstance();
 
         // WHEN
-        auditService.audit(auditRecord, task);
+        auditService.audit(auditRecord, task, task.getResult());
 
         // THEN
 

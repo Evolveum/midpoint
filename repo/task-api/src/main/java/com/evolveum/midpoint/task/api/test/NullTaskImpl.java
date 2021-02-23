@@ -123,12 +123,17 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public PrismObject<? extends FocusType> getOwner() {
+    public PrismObject<? extends FocusType> getOwner(OperationResult result) {
         return null;
     }
 
     @Override
     public void setOwner(PrismObject<? extends FocusType> owner) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setOwnerRef(ObjectReferenceType ownerRef) {
         throw new UnsupportedOperationException();
     }
 

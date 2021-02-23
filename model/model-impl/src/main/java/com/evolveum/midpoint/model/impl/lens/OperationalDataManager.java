@@ -63,8 +63,8 @@ public class OperationalDataManager {
     private MetadataType collectRequestMetadata(XMLGregorianCalendar now, Task task) {
         MetadataType metaData = new MetadataType(prismContext);
         metaData.setRequestTimestamp(now);
-        if (task.getOwner() != null) {
-            metaData.setRequestorRef(createObjectRef(task.getOwner(), prismContext));
+        if (task.getOwnerRef() != null) {
+            metaData.setRequestorRef(task.getOwnerRef().clone());
         }
         // It is not necessary to store requestor comment here as it is preserved in context.options field.
         return metaData;
@@ -268,8 +268,8 @@ public class OperationalDataManager {
         String channel = LensUtil.getChannel(context, task);
         metaData.setCreateChannel(channel);
         metaData.setCreateTimestamp(now);
-        if (task.getOwner() != null) {
-            metaData.setCreatorRef(createObjectRef(task.getOwner(), prismContext));
+        if (task.getOwnerRef() != null) {
+            metaData.setCreatorRef(task.getOwnerRef().clone());
         }
         metaData.setCreateTaskRef(task.getOid() != null ? task.getSelfReference() : null);
     }
@@ -304,7 +304,7 @@ public class OperationalDataManager {
         List<ItemDelta<?, ?>> deltas = new ArrayList<>(prismContext.deltaFor(objectType)
                 .item(metadataPath.append(MetadataType.F_MODIFY_CHANNEL)).replace(LensUtil.getChannel(context, task))
                 .item(metadataPath.append(MetadataType.F_MODIFY_TIMESTAMP)).replace(now)
-                .item(metadataPath.append(MetadataType.F_MODIFIER_REF)).replace(createObjectRef(task.getOwner(), prismContext))
+                .item(metadataPath.append(MetadataType.F_MODIFIER_REF)).replace(CloneUtil.clone(task.getOwnerRef()))
                 .item(metadataPath.append(MetadataType.F_MODIFY_TASK_REF)).replaceRealValues(
                         task.getOid() != null ? singleton(task.getSelfReference()) : emptySet())
                 .asItemDeltas());

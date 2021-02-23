@@ -176,10 +176,7 @@ class ShadowCreator {
             PasswordType passwordType = creds.getPassword();
             if (passwordType != null) {
                 preparePasswordForStorage(passwordType, ctx.getObjectClassDefinition());
-                PrismObject<? extends FocusType> owner = null;
-                if (ctx.getTask() != null) {
-                    owner = ctx.getTask().getOwner();
-                }
+                ObjectReferenceType owner = ctx.getTask() != null ? ctx.getTask().getOwnerRef() : null;
                 ProvisioningUtil.addPasswordMetadata(passwordType, clock.currentTimeXMLGregorianCalendar(), owner);
             }
             // TODO: other credential types - later

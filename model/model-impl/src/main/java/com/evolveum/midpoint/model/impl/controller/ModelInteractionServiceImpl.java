@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType.READY;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 
@@ -1666,6 +1668,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             newTask.setTaskIdentifier(null);
             newTask.setOwnerRef(createObjectRef(principal.getFocus(), prismContext));
             newTask.setExecutionStatus(RUNNABLE);
+            newTask.setSchedulingState(READY);
             for (Item<?, ?> extensionItem : extensionItems) {
                 newTask.asPrismObject().getExtension().add(extensionItem.clone());
             }

@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.task.api;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+
 /**
  * Notifies external observers about task-related events.
  *
@@ -27,7 +29,7 @@ public interface TaskListener {
      *
      * @param task task that is about to be started
      */
-    void onTaskStart(Task task);
+    void onTaskStart(Task task, OperationResult result);
 
     /**
      * Called when a task execution routine (i.e. task handler) finishes.
@@ -35,24 +37,22 @@ public interface TaskListener {
      * operation result, last task run finish timestamp, are NOT updated
      * when this routine is called. These values have to be got from
      * runResult parameter.
-     *
      * @param task task that was just finished
      * @param runResult result of the task's run
      */
-    void onTaskFinish(Task task, TaskRunResult runResult);
+    void onTaskFinish(Task task, TaskRunResult runResult, OperationResult result);
 
     /**
      * Called when a task's execution thread is started.
-     *
      * @param task task whose thread was started
      * @param isRecovering true if the task was recovering from previous nodefailure
      */
-    void onTaskThreadStart(Task task, boolean isRecovering);
+    void onTaskThreadStart(Task task, boolean isRecovering, OperationResult result);
 
     /**
      * Called when task's execution thread is finishing
      *
      * @param task task whose thread is finishing
      */
-    void onTaskThreadFinish(Task task);
+    void onTaskThreadFinish(Task task, OperationResult result);
 }

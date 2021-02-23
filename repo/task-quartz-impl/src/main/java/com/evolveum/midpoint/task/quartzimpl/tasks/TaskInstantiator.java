@@ -34,7 +34,7 @@ public class TaskInstantiator {
         result.addParam("taskPrism", taskPrism);
 
         TaskQuartzImpl task = TaskQuartzImpl.createFromPrismObject(taskManager, taskPrism);
-        task.resolveOwnerRef(result);
+        task.checkOwnerRefPresent();
         result.recordSuccessIfUnknown();
         return task;
     }
