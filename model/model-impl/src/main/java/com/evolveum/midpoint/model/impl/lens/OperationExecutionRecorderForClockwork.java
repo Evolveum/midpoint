@@ -191,7 +191,7 @@ public class OperationExecutionRecorderForClockwork {
     private void setOperationContext(OperationExecutionType operation, OperationResultStatusType overallStatus, Context<?> ctx) {
         operation.setStatus(overallStatus);
         // TODO what if the real initiator is different? (e.g. when executing approved changes)
-        operation.setInitiatorRef(CloneUtil.clone(ctx.task.getOwnerRef()));
+        operation.setInitiatorRef(ObjectTypeUtil.createObjectRefCopy(ctx.task.getOwnerRef()));
         operation.setChannel(ctx.lensContext.getChannel());
         operation.setTimestamp(ctx.now);
     }

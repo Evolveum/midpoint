@@ -103,7 +103,7 @@ public class OperationExecutionRecorderForTasks {
         operation.setTaskRef(ObjectTypeUtil.createObjectRef(task.getRootTaskOid(), ObjectTypes.TASK));
         operation.setStatus(result.getStatus().createStatusType());
         // TODO what if the real initiator is different? (e.g. when executing approved changes)
-        operation.setInitiatorRef(CloneUtil.clone(task.getOwnerRef()));
+        operation.setInitiatorRef(ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()));
         operation.setChannel(task.getChannel());
         operation.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar());
         return operation;

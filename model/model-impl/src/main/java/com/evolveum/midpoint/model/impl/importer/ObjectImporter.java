@@ -244,7 +244,7 @@ public class ObjectImporter {
                 metaData.setCreateChannel(channel);
                 metaData.setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
             if (task.getOwnerRef() != null) {
-                metaData.setCreatorRef(task.getOwnerRef().clone());
+                metaData.setCreatorRef(ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()));
             }
             object.asObjectable().setMetadata(metaData);
         }
