@@ -204,7 +204,7 @@ public class ObjectImporter {
         object = migrator.migrate(object);
 
         ModelImplUtils.resolveReferences(object, repository,
-                (options == null || options.isReferentialIntegrity() == null) ? false : options.isReferentialIntegrity(),
+                options != null && options.isReferentialIntegrity() != null && options.isReferentialIntegrity(),
                 false, EvaluationTimeType.IMPORT, false, prismContext, objectResult);
 
         objectResult.computeStatus();
@@ -368,9 +368,6 @@ public class ObjectImporter {
 
                 String deletedOid = deleteObject(foundObject, repository, result);
                 if (deletedOid != null) {
-                    if (object.canRepresent(TaskType.class)) {
-                        taskManager.onTaskDelete(deletedOid, result);
-                    }
                     if (isTrue(options.isKeepOid())) {
                         object.setOid(deletedOid);
                     }
@@ -423,9 +420,6 @@ public class ObjectImporter {
         if (oidOfAddedObject == null) {
             LOGGER.warn("No OID of added object. Executed deltas:\n{}", DebugUtil.debugDump(executedDeltas));
         } else {
-            if (object.canRepresent(TaskType.class)) {
-                taskManager.onTaskCreate(oidOfAddedObject, parentResult);
-            }
             if (object.canRepresent(ResourceType.COMPLEX_TYPE) && isTrue(importOptions.isFetchResourceSchema())) {
                 modelService.testResource(oidOfAddedObject, task);
             }

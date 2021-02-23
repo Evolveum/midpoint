@@ -317,18 +317,6 @@ public interface TaskManager {
      * Deletes dead nodes, i.e. ones that were not checked-in for a given time period.
      */
     void cleanupNodes(DeadNodeCleanupPolicyType deadNodesPolicy, RunningTask task, OperationResult opResult) throws SchemaException;
-
-    /**
-     * This is a signal to task manager that a new task was created in the repository.
-     * Task manager can react to it e.g. by creating shadow quartz job and trigger.
-     */
-    void onTaskCreate(String oid, OperationResult parentResult);
-
-    /**
-     * This is a signal to task manager that a task was removed from the repository.
-     * Task manager can react to it e.g. by removing shadow quartz job and trigger.
-     */
-    void onTaskDelete(String oid, OperationResult parentResult);
     //endregion
 
     //region Remotely invokable methods

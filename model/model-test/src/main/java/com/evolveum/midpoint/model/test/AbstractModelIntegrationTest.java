@@ -3269,7 +3269,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             public boolean check() throws CommonException {
                 Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
                 OperationResult result = freshTask.getResult();
-                if (verbose) { display("Check result", result); }
+                if (verbose) { display("Task checked (result=" + result + ")", freshTask); }
                 assert !isError(result, checkSubresult) : "Error in " + freshTask + ": " + TestUtil.getErrorMessage(result);
                 if (isUnknown(result, checkSubresult)) {
                     return false;
@@ -3282,7 +3282,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 try {
                     Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
                     OperationResult result = freshTask.getResult();
-                    logger.debug("Result of timed-out task:\n{}", result.debugDump());
+                    logger.debug("Result of timed-out task:\n{}", DebugUtil.debugDump(result));
                     assert false : "Timeout (" + timeout + ") while waiting for " + freshTask + " to start. Last result " + result;
                 } catch (ObjectNotFoundException | SchemaException e) {
                     logger.error("Exception during task refresh: {}", e, e);

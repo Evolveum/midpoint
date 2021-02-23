@@ -1973,16 +1973,16 @@ public class TaskQuartzImpl implements Task {
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
-        sb.append("Task(");
-        sb.append(TaskQuartzImpl.class.getName());
-        sb.append(")\n");
+        sb.append("Task(").append(getClass().getSimpleName()).append(")\n");
         DebugUtil.debugDumpLabelLn(sb, "prism", indent + 1);
         synchronized (prismAccess) {
             sb.append(taskPrism.debugDump(indent + 2));
         }
         sb.append("\n");
-        DebugUtil.debugDumpWithLabelToStringLn(sb, "persistenceStatus", getPersistenceStatus(), indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "taskResult", taskResult, indent);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "persistenceStatus", getPersistenceStatus(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "taskResult", taskResult, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "pendingModifications", new ArrayList<>(pendingModifications), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "recreateQuartzTrigger", recreateQuartzTrigger, indent + 1);
         return sb.toString();
     }
 

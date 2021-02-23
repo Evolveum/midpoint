@@ -696,49 +696,6 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     }
     //endregion
 
-    //region Task creation/removal event handling
-    @Override
-    public void onTaskCreate(String oid, OperationResult parentResult) {
-
-        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "onTaskCreate");
-        result.addParam("oid", oid);
-
-        LOGGER.trace("onTaskCreate called for oid = " + oid);
-
-        TaskQuartzImpl task;
-        try {
-            task = getTaskPlain(oid, result);
-        } catch (ObjectNotFoundException e) {
-            LoggingUtils.logException(LOGGER, "Quartz shadow job cannot be created, because task in repository was not found; oid = {}", e, oid);
-            result.computeStatus();
-            return;
-        } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Quartz shadow job cannot be created, because task from repository could not be retrieved; oid = {}", e, oid);
-            result.computeStatus();
-            return;
-        }
-
-        task.synchronizeWithQuartz(result);
-        result.computeStatus();
-    }
-
-    @Override
-    public void onTaskDelete(String oid, OperationResult parentResult) {
-
-        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "onTaskDelete");
-        result.addParam("oid", oid);
-        try {
-            LOGGER.trace("onTaskDelete called for oid = {}", oid);
-            localScheduler.deleteTaskFromQuartz(oid, true, result);
-        } catch (Throwable t) {
-            result.recordFatalError(t);
-            throw t;
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-    }
-    //endregion
-
     //region Notifications
     @Override
     public void registerTaskListener(TaskListener taskListener) {
