@@ -18,6 +18,9 @@
         <xsd:documentation>
             TODO
         </xsd:documentation>
+        <xsd:appinfo>
+            <a:defaultPrefix>jping</a:defaultPrefix>
+        </xsd:appinfo>
     </xsd:annotation>
 
     <xsd:element name="tests" type="xsd:int">

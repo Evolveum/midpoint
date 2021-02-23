@@ -30,6 +30,7 @@
         </xsd:documentation>
         <xsd:appinfo>
             <!--  jaxb:globalBindings are specified indirectly by import from common-2 -->
+            <a:defaultPrefix>cap</a:defaultPrefix>
         </xsd:appinfo>
     </xsd:annotation>
 

@@ -26,6 +26,9 @@
             Version: 3.7
             Recommended namespace prefix: audit
         </xsd:documentation>
+        <xsd:appinfo>
+            <a:defaultPrefix>audit</a:defaultPrefix>
+        </xsd:appinfo>
     </xsd:annotation>
 
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"

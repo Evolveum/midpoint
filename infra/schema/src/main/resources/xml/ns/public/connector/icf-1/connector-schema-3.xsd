@@ -27,6 +27,9 @@
              Version: 3.1
             Recommended namespace prefix: icfc
         </xsd:documentation>
+        <xsd:appinfo>
+            <a:defaultPrefix>icfc</a:defaultPrefix>
+        </xsd:appinfo>
     </xsd:annotation>
 
     <xsd:complexType name="ConfigurationPropertiesType">
