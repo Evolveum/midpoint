@@ -238,10 +238,16 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
             }
         } else {
             if (hasValueDelta(focusDelta, getCredentialsContainerPath())) {
-                credentialValueChanged = true;
+                credentialValueChanged = isCredentialValueChanged(focusDelta);
                 checkMinOccurs = true; // might not be precise (e.g. might check minOccurs even if a value is being added)
                 processValueDelta(focusDelta);
-                addMetadataDelta();
+
+                // Do not add metadata to the password and do not append password history, if the new value is same as old (and password reuse in history is ON). This is because modifyTimestamp would change and could not be relied upon with maxAge.
+                if (!credentialValueChanged && SecurityUtil.isHistoryAllowExistingPasswordReuse(getCredentialPolicy())) {
+                    LOGGER.trace("Skipping Metadata delta.");
+                } else {
+                    addMetadataDelta();
+                }
             }
         }
 
@@ -252,6 +258,41 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
         }
         if (credentialValueChanged) {
             addHistoryDeltas();
+        }
+    }
+
+    private boolean isCredentialValueChanged(ObjectDelta<F> focusDelta) {
+        ProtectedStringType oldPassword;
+        ProtectedStringType newPassword = null;
+
+        PropertyDelta<ProtectedStringType> valueDelta = focusDelta.findPropertyDelta(getCredentialValuePath());
+        if (valueDelta != null && valueDelta.getValuesToReplace() != null) {
+            for (PrismPropertyValue val : valueDelta.getValuesToReplace()) {
+                newPassword = (ProtectedStringType) val.getValue();
+                break; // password should have only one value
+            }
+        }
+
+        // in case that password is added and not replaced:
+        if (newPassword == null && valueDelta.getValuesToAdd() != null) {
+            for (PrismPropertyValue val : valueDelta.getValuesToAdd()) {
+                newPassword = (ProtectedStringType) val.getValue();
+                break; // password should have only one value
+            }
+        }
+
+        if (getOldCredential() == null) {
+            return newPassword != null;
+        }
+        oldPassword = ((PasswordType) getOldCredential()).getValue();
+
+        if (newPassword == null) {
+            return oldPassword != null;
+        }
+        try {
+            return !protector.compareCleartext(oldPassword, newPassword);
+        } catch (EncryptionException | SchemaException e) {
+            throw new SystemException("Failed to compare passwords: " + e.getMessage(), e);
         }
     }
 
