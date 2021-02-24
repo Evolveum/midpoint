@@ -375,7 +375,7 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
         try {
             RestPrismServiceBuilder builder = RestPrismServiceBuilder.create();
             RestPrismService service = builder
-                    .baseUrl(getConfigurationPropertyValue(startMidpoint ? "base_url" : "base_url_mp_already_started"))
+                    .baseUrl(getConfigurationPropertyValue(startMidpoint ? "base_url" : "base_url_mp_already_started") + "/ws/rest")
                     .username(getConfigurationPropertyValue("username"))
                     .password(getConfigurationPropertyValue("password"))
                     .build();
