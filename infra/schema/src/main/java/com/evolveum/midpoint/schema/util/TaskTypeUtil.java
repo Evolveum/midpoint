@@ -16,17 +16,13 @@ import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
-
-import static java.util.Collections.singletonList;
 
 /**
  * TODO
@@ -103,7 +99,7 @@ public class TaskTypeUtil {
 
     public static int getItemsProcessedWithSuccess(IterativeTaskInformationType info) {
         if (info != null) {
-            return getCounts(getProcessingComponents(info), TaskTypeUtil::isSuccess);
+            return getCounts(info.getPart(), TaskTypeUtil::isSuccess);
         } else {
             return 0;
         }
@@ -115,7 +111,7 @@ public class TaskTypeUtil {
 
     public static int getItemsProcessedWithFailure(IterativeTaskInformationType info) {
         if (info != null) {
-            return getCounts(getProcessingComponents(info), TaskTypeUtil::isFailure);
+            return getCounts(info.getPart(), TaskTypeUtil::isFailure);
         } else {
             return 0;
         }
@@ -123,7 +119,7 @@ public class TaskTypeUtil {
 
     public static int getItemsProcessedWithSkip(IterativeTaskInformationType info) {
         if (info != null) {
-            return getCounts(getProcessingComponents(info), TaskTypeUtil::isSkip);
+            return getCounts(info.getPart(), TaskTypeUtil::isSkip);
         } else {
             return 0;
         }
@@ -148,7 +144,7 @@ public class TaskTypeUtil {
         subTasks.forEach(subTask -> {
             OperationStatsType operationStatsBean = subTask.getOperationStats();
             if (operationStatsBean != null) {
-                IterativeTaskInformation.addToSummary(aggregate.getIterativeTaskInformation(), operationStatsBean.getIterativeTaskInformation());
+                IterativeTaskInformation.addTo(aggregate.getIterativeTaskInformation(), operationStatsBean.getIterativeTaskInformation());
                 SynchronizationInformation.addTo(aggregate.getSynchronizationInformation(), operationStatsBean.getSynchronizationInformation());
                 ActionsExecutedInformation.addTo(aggregate.getActionsExecutedInformation(), operationStatsBean.getActionsExecutedInformation());
             }
@@ -205,46 +201,16 @@ public class TaskTypeUtil {
      * It is useful e.g. to provide average values for performance indicators.
      */
     public static Integer getItemsProcessed(OperationStatsType statistics) {
-        if (statistics == null) {
+        if (statistics == null || statistics.getIterativeTaskInformation() == null) {
             return null;
-        }
-
-        List<? extends IterativeItemsProcessingInformationType> components =
-                getProcessingComponentsNullable(statistics.getIterativeTaskInformation());
-        if (components == null) {
-            return null;
-        }
-
-        return getItemsProcessed(components);
-    }
-
-    @NotNull
-    private static List<? extends IterativeItemsProcessingInformationType> getProcessingComponents(IterativeTaskInformationType info) {
-        return emptyIfNull(getProcessingComponentsNullable(info));
-    }
-
-    /**
-     * Returns a list of iterative info statistics components (e.g. by part).
-     * Or null if no such information is available.
-     */
-    @Nullable
-    private static List<? extends IterativeItemsProcessingInformationType> getProcessingComponentsNullable(IterativeTaskInformationType info) {
-        if (info == null) {
-            return null;
-        } else if (info.getSummary() != null) {
-            return singletonList(info.getSummary());
         } else {
-            return info.getPart();
+            return getCounts(statistics.getIterativeTaskInformation().getPart(), set -> true);
         }
     }
 
-    private static int getItemsProcessed(List<? extends IterativeItemsProcessingInformationType> components) {
-        return getCounts(components, set -> true);
-    }
-
-    private static int getCounts(List<? extends IterativeItemsProcessingInformationType> components,
+    private static int getCounts(List<IterativeTaskPartItemsProcessingInformationType> parts,
             Predicate<ProcessedItemSetType> itemSetFilter) {
-        return components.stream()
+        return parts.stream()
                 .flatMap(component -> component.getProcessed().stream())
                 .filter(Objects::nonNull)
                 .filter(itemSetFilter)
@@ -265,9 +231,10 @@ public class TaskTypeUtil {
     }
 
     public static String getLastProcessedObjectName(IterativeTaskInformationType info, Predicate<ProcessedItemSetType> itemSetFilter) {
-        List<? extends IterativeItemsProcessingInformationType> components =
-                getProcessingComponents(info);
-        ProcessedItemType lastSuccess = components.stream()
+        if (info == null) {
+            return null;
+        }
+        ProcessedItemType lastSuccess = info.getPart().stream()
                 .flatMap(component -> component.getProcessed().stream())
                 .filter(itemSetFilter)
                 .map(ProcessedItemSetType::getLastItem)

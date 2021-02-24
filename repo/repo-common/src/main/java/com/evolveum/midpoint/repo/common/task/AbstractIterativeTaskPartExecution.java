@@ -125,10 +125,10 @@ public abstract class AbstractIterativeTaskPartExecution<I,
     @NotNull protected final TaskReportingOptions reportingOptions;
 
     /**
-     * Sequential number of the part within the current task.
+     * URI of this task part (unique within the task).
      */
     @Experimental
-    int partNumber = 1;
+    String partUri;
 
     protected AbstractIterativeTaskPartExecution(@NotNull TE taskExecution) {
         this.taskHandler = taskExecution.taskHandler;
@@ -390,11 +390,11 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         return taskExecution.getRootTaskOid();
     }
 
-    public int getPartNumber() {
-        return partNumber;
+    public String getPartUri() {
+        return partUri;
     }
 
-    public void setPartNumber(int partNumber) {
-        this.partNumber = partNumber;
+    public void setPartUri(String partUri) {
+        this.partUri = partUri;
     }
 }

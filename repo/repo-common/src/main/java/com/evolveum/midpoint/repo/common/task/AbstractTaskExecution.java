@@ -124,7 +124,6 @@ public abstract class AbstractTaskExecution
             List<? extends AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> partExecutions = createPartExecutions();
             for (int i = 0, partExecutionsSize = partExecutions.size(); i < partExecutionsSize; i++) {
                 AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?> partExecution = partExecutions.get(i);
-                partExecution.setPartNumber(i + 1);
                 currentTaskPartExecution.set(partExecution);
 
                 OperationResult opResult = taskOperationResult.createSubresult(taskHandler.taskOperationPrefix + ".part" + (i+1)); // TODO

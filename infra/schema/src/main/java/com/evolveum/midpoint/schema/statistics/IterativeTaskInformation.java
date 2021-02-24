@@ -62,7 +62,7 @@ public class IterativeTaskInformation {
     public IterativeTaskInformation(IterativeTaskInformationType value, @NotNull PrismContext prismContext) {
         this.prismContext = prismContext;
         if (value != null) {
-            addToParts(this.value, value);
+            addTo(this.value, value);
         }
     }
 
@@ -81,7 +81,7 @@ public class IterativeTaskInformation {
                 .operationId(getNextOperationId());
 
         IterativeTaskPartItemsProcessingInformationType matchingPart =
-                findOrCreateMatchingPart(value.getPart(), operation.getTaskPartNumber());
+                findOrCreateMatchingPart(value.getPart(), operation.getPartUri());
         List<ProcessedItemType> currentList = matchingPart.getCurrent();
 
         currentList.add(processedItem);
@@ -93,12 +93,12 @@ public class IterativeTaskInformation {
     private synchronized void recordOperationEnd(IterativeOperation operation, long operationId,
             ProcessedItemType processedItem, QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
         Optional<IterativeTaskPartItemsProcessingInformationType> matchingPartOptional =
-                findMatchingPart(value.getPart(), operation.getTaskPartNumber());
+                findMatchingPart(value.getPart(), operation.getPartUri());
         if (matchingPartOptional.isPresent()) {
             recordToPart(matchingPartOptional.get(), operation, operationId, processedItem, outcome, exception);
         } else {
             LOGGER.warn("Couldn't record operation end. Task part {} was not found for {}",
-                    operation.getTaskPartNumber(), operation);
+                    operation.getPartUri(), operation);
         }
     }
 
@@ -117,6 +117,9 @@ public class IterativeTaskInformation {
         itemSet.setDuration(or0(itemSet.getDuration()) + duration);
         ProcessedItemType processedItemClone = processedItem.clone(); // to remove the parent
         processedItemClone.setEndTimestamp(XmlTypeConverter.createXMLGregorianCalendar(endTimestamp));
+        if (exception != null) {
+            processedItemClone.setMessage(exception.getMessage());
+        }
         itemSet.setLastItem(processedItemClone);
     }
 
@@ -141,54 +144,26 @@ public class IterativeTaskInformation {
     }
 
     /**
-     * Does the following:
-     *
-     * - sum.parts += delta.parts (matching)
-     * - sum.summary += delta.summary (just for sure; setting summary only if present in delta)
+     * sum += delta
      */
-    public static void addToParts(@NotNull IterativeTaskInformationType sum, @NotNull IterativeTaskInformationType delta) {
+    public static void addTo(@NotNull IterativeTaskInformationType sum, @NotNull IterativeTaskInformationType delta) {
         addMatchingParts(sum.getPart(), delta.getPart());
-        addToSummary(sum, delta.getSummary());
-    }
-
-    /**
-     * Does the following:
-     *
-     * - sum.summary += delta.parts
-     * - sum.summary += delta.summary
-     *
-     * Typically because the part numbering is not compatible among sum/deltas.
-     * */
-    public static void addToSummary(@NotNull IterativeTaskInformationType sum,
-            @NotNull IterativeTaskInformationType delta) {
-        delta.getPart().forEach(part -> addToSummary(sum, part));
-        addToSummary(sum, delta.getSummary());
-    }
-
-    private static void addToSummary(@NotNull IterativeTaskInformationType sum, IterativeItemsProcessingInformationType deltaInfo) {
-        if (deltaInfo == null) {
-            return;
-        }
-        if (sum.getSummary() == null) {
-            sum.setSummary(new IterativeItemsProcessingInformationType());
-        }
-        addInternal(sum.getSummary(), deltaInfo);
     }
 
     private static void addMatchingParts(List<IterativeTaskPartItemsProcessingInformationType> sumParts,
             List<IterativeTaskPartItemsProcessingInformationType> deltaParts) {
         for (IterativeTaskPartItemsProcessingInformationType deltaPart : deltaParts) {
             IterativeTaskPartItemsProcessingInformationType matchingPart =
-                    findOrCreateMatchingPart(sumParts, deltaPart.getPartNumber());
+                    findOrCreateMatchingPart(sumParts, deltaPart.getPartUri());
             addInternal(matchingPart, deltaPart);
         }
     }
 
     private static IterativeTaskPartItemsProcessingInformationType findOrCreateMatchingPart(
-            @NotNull List<IterativeTaskPartItemsProcessingInformationType> list, Integer partNumber) {
-        return findMatchingPart(list, partNumber)
+            @NotNull List<IterativeTaskPartItemsProcessingInformationType> list, String partUri) {
+        return findMatchingPart(list, partUri)
                 .orElseGet(
-                        () -> add(list, new IterativeTaskPartItemsProcessingInformationType().partNumber(partNumber)));
+                        () -> add(list, new IterativeTaskPartItemsProcessingInformationType().partUri(partUri)));
     }
 
     private static <T> T add(List<T> list, T value) {
@@ -197,14 +172,14 @@ public class IterativeTaskInformation {
     }
 
     private static Optional<IterativeTaskPartItemsProcessingInformationType> findMatchingPart(
-            @NotNull List<IterativeTaskPartItemsProcessingInformationType> list, Integer partNumber) {
+            @NotNull List<IterativeTaskPartItemsProcessingInformationType> list, String partUri) {
         return list.stream()
-                .filter(item -> Objects.equals(item.getPartNumber(), partNumber))
+                .filter(item -> Objects.equals(item.getPartUri(), partUri))
                 .findFirst();
     }
 
-    private static void addInternal(@NotNull IterativeItemsProcessingInformationType sum,
-            @NotNull IterativeItemsProcessingInformationType delta) {
+    private static void addInternal(@NotNull IterativeTaskPartItemsProcessingInformationType sum,
+            @NotNull IterativeTaskPartItemsProcessingInformationType delta) {
         addProcessed(sum.getProcessed(), delta.getProcessed());
         addCurrent(sum.getCurrent(), delta.getCurrent());
     }

@@ -316,7 +316,7 @@ class ItemProcessingGatekeeper<I> {
     private Operation recordIterativeOperationStart() {
         if (getReportingOptions().isEnableIterationStatistics()) {
             return workerTask.recordIterativeOperationStart(
-                    new IterativeOperation(iterationItemInformation, partExecution.getPartNumber()));
+                    new IterativeOperation(iterationItemInformation, partExecution.getPartUri()));
         } else {
             return Operation.none();
         }

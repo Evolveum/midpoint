@@ -120,7 +120,7 @@ public class StatisticsUtil {
             }
             EnvironmentalPerformanceInformation.addTo(aggregate.getEnvironmentalPerformanceInformation(), increment.getEnvironmentalPerformanceInformation());
         }
-        IterativeTaskInformation.addToSummary(aggregate.getIterativeTaskInformation(), increment.getIterativeTaskInformation());
+        IterativeTaskInformation.addTo(aggregate.getIterativeTaskInformation(), increment.getIterativeTaskInformation());
         if (increment.getSynchronizationInformation() != null) {
             if (aggregate.getSynchronizationInformation() == null) {
                 aggregate.setSynchronizationInformation(new SynchronizationInformationType());

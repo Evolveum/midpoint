@@ -19,20 +19,20 @@ public class IterativeOperation {
 
     private final IterationItemInformation item;
     private final long startTimestamp;
-    private final Integer taskPartNumber;
+    private final String partUri;
 
     public IterativeOperation(IterationItemInformation item) {
         this(item, null);
     }
 
-    public IterativeOperation(IterationItemInformation item, Integer taskPartNumber) {
-        this(item, System.currentTimeMillis(), taskPartNumber);
+    public IterativeOperation(IterationItemInformation item, String partUri) {
+        this(item, System.currentTimeMillis(), partUri);
     }
 
-    public IterativeOperation(IterationItemInformation item, long startTimestamp, Integer taskPartNumber) {
+    public IterativeOperation(IterationItemInformation item, long startTimestamp, String partUri) {
         this.item = item;
         this.startTimestamp = startTimestamp;
-        this.taskPartNumber = taskPartNumber;
+        this.partUri = partUri;
     }
 
     public IterationItemInformation getItem() {
@@ -43,8 +43,8 @@ public class IterativeOperation {
         return startTimestamp;
     }
 
-    public Integer getTaskPartNumber() {
-        return taskPartNumber;
+    public String getPartUri() {
+        return partUri;
     }
 
     @Override
@@ -52,7 +52,7 @@ public class IterativeOperation {
         return "IterativeOperation{" +
                 "item=" + item +
                 ", startTimestamp=" + startTimestamp +
-                ", taskPartNumber=" + taskPartNumber +
+                ", partUri=" + partUri +
                 '}';
     }
 }

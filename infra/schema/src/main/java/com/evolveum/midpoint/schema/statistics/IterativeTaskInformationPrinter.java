@@ -38,21 +38,16 @@ public class IterativeTaskInformationPrinter extends AbstractStatisticsPrinter<I
 
     private void createData() {
         initData();
-
-        if (information.getSummary() != null) {
-            createData(information.getSummary());
-        } else {
-            information.getPart().forEach(this::createData);
-        }
+        information.getPart().forEach(this::createData);
     }
 
-    private void createData(IterativeItemsProcessingInformationType component) {
+    private void createData(IterativeTaskPartItemsProcessingInformationType component) {
         List<ProcessedItemSetType> processed = new ArrayList<>(component.getProcessed());
         processed.sort(Comparator.comparing(StatisticsUtil::getOutcome));
 
         for (ProcessedItemSetType set : processed) {
             Data.Record record = data.createRecord();
-            addPartInfo(record, component);
+            record.add(component.getPartUri());
             record.add(StatisticsUtil.getOutcome(set));
             record.add(set.getCount());
             record.add(set.getDuration());
@@ -68,14 +63,6 @@ public class IterativeTaskInformationPrinter extends AbstractStatisticsPrinter<I
                 record.add(null);
                 record.add(null);
             }
-        }
-    }
-
-    private void addPartInfo(Data.Record record, IterativeItemsProcessingInformationType component) {
-        if (component instanceof IterativeTaskPartItemsProcessingInformationType) {
-            record.add("Part " + ((IterativeTaskPartItemsProcessingInformationType) component).getPartNumber());
-        } else {
-            record.add("Summary");
         }
     }
 
