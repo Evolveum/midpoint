@@ -26,3 +26,4 @@ test-output/
 
 _mess
 .checkstyle
+gui/bin/com/

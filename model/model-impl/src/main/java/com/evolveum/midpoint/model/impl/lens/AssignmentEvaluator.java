@@ -43,6 +43,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -509,7 +510,8 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
                         setEvaluatedAssignmentTarget(segment, targets, ctx);
                     }
                     for (PrismObject<O> target : targets) {
-                        if (hasCycle(segment, target, ctx)) {
+                        //MID-6341
+                        if (hasCycle(segment, target, relation, ctx)) {
                             continue;
                         }
                         if (isDelegationToNonDelegableTarget(assignment, target, ctx)) {
@@ -549,10 +551,11 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
     // number of times any given target is allowed to occur in the assignment path
     private static final int MAX_TARGET_OCCURRENCES = 2;
 
+    //MID-6341
     private <O extends ObjectType> boolean hasCycle(AssignmentPathSegmentImpl segment, @NotNull PrismObject<O> target,
-            EvaluationContext ctx) throws PolicyViolationException {
+            QName relation, EvaluationContext ctx) throws PolicyViolationException {
         // TODO reconsider this
-        if (target.getOid().equals(segment.source.getOid())) {
+        if (target.getOid().equals(segment.source.getOid()) && !relation.equals(RelationTypes.APPROVER.getRelation())) {
             throw new PolicyViolationException("The "+segment.source+" refers to itself in assignment/inducement");
         }
         // removed condition "&& segment.getEvaluationOrder().equals(ctx.assignmentPath.getEvaluationOrder())"
