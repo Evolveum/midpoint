@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -226,7 +227,7 @@ public class IterativeTaskInformation {
     }
 
     private static void addCurrent(List<ProcessedItemType> sum, List<ProcessedItemType> delta) {
-        sum.addAll(delta);
+        sum.addAll(CloneUtil.cloneCollectionMembers(delta)); // to avoid problems with parent
     }
 
     private static void addCounters(@NotNull ProcessedItemSetType sum, @NotNull ProcessedItemSetType delta) {
