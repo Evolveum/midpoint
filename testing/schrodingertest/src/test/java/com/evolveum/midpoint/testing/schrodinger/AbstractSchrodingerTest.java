@@ -391,9 +391,9 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
             }else if (object.isOfType(OrgType.class)) {
                 service.orgs().add((OrgType) object.asObjectable()).post();
             }else if (object.isOfType(ArchetypeType.class)) {
-//                service.archetypes().add((ArchetypeType) object.asObjectable()).post();
+                service.archetypes().add((ArchetypeType) object.asObjectable()).post();
             }else if (object.isOfType(LookupTableType.class)) {
-//                service.lookupTables().add((LookupTableType) object.asObjectable()).post();
+                service.lookupTables().add((LookupTableType) object.asObjectable()).post();
             }else if (object.isOfType(ObjectTemplateType.class)) {
                 service.objectTemplates().add((ObjectTemplateType) object.asObjectable()).post();
             }else if (object.isOfType(ResourceType.class)) {
