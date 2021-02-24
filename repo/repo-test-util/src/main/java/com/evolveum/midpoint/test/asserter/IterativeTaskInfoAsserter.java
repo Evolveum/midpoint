@@ -27,14 +27,31 @@ public class IterativeTaskInfoAsserter<RA> extends AbstractAsserter<RA> {
         this.information = information;
     }
 
-    public IterativeTaskInfoAsserter<RA> assertTotalCounts(int success, int failure) {
+    public IterativeTaskInfoAsserter<RA> assertTotalCounts(int nonFailure, int failure) {
+        assertNonFailureCount(nonFailure);
+        assertFailureCount(failure);
+        return this;
+    }
+
+    public IterativeTaskInfoAsserter<RA> assertTotalCounts(int success, int failure, int skip) {
         assertSuccessCount(success);
         assertFailureCount(failure);
+        assertSkipCount(skip);
+        return this;
+    }
+
+    public IterativeTaskInfoAsserter<RA> assertNonFailureCount(int success) {
+        assertEquals("Wrong value of total 'non-failure' counter", success, getNonFailureCount());
         return this;
     }
 
     public IterativeTaskInfoAsserter<RA> assertSuccessCount(int success) {
         assertEquals("Wrong value of total success counter", success, getSuccessCount());
+        return this;
+    }
+
+    public IterativeTaskInfoAsserter<RA> assertSkipCount(int skip) {
+        assertEquals("Wrong value of total skip counter", skip, getSkipCount());
         return this;
     }
 
@@ -82,6 +99,14 @@ public class IterativeTaskInfoAsserter<RA> extends AbstractAsserter<RA> {
 
     private int getFailureCount() {
         return TaskTypeUtil.getItemsProcessedWithFailure(information);
+    }
+
+    private int getSkipCount() {
+        return TaskTypeUtil.getItemsProcessedWithSkip(information);
+    }
+
+    private int getNonFailureCount() {
+        return getSuccessCount() + getSkipCount();
     }
 
     private String getLastFailedObjectName() {

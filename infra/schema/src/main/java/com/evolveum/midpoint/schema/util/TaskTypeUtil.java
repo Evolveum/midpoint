@@ -121,6 +121,14 @@ public class TaskTypeUtil {
         }
     }
 
+    public static int getItemsProcessedWithSkip(IterativeTaskInformationType info) {
+        if (info != null) {
+            return getCounts(getProcessingComponents(info), TaskTypeUtil::isSkip);
+        } else {
+            return 0;
+        }
+    }
+
     /**
      * Provides aggregated operation statistics from this task and all its subtasks.
      * Works with stored operation stats, obviously. (We have no task instances here.)
@@ -277,4 +285,7 @@ public class TaskTypeUtil {
         return set.getOutcome() != null && set.getOutcome().getOutcome() == ItemProcessingOutcomeType.FAILURE;
     }
 
+    public static boolean isSkip(ProcessedItemSetType set) {
+        return set.getOutcome() != null && set.getOutcome().getOutcome() == ItemProcessingOutcomeType.SKIP;
+    }
 }

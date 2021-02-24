@@ -407,6 +407,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .assertTransitions(5)
                     .end()
                 .iterativeTaskInformation()
+                    .display()
                     .assertTotalCounts(7, 0)
                     .end()
                 .assertProgress(7);
@@ -484,6 +485,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .assertTransitions(2)
                     .end()
                 .iterativeTaskInformation()
+                    .display()
                     .assertTotalCounts(7, 0)
                     .end()
                 .assertProgress(7);
@@ -571,6 +573,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .assertTransitions(2)
                     .end()
                 .iterativeTaskInformation()
+                    .display()
                     .assertTotalCounts(3, 0)
                     .end()
                 .assertProgress(3);
@@ -832,6 +835,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .assertTransitions(2)
                     .end()
                 .iterativeTaskInformation()
+                    .display()
                     .assertTotalCounts(9, 0)            // protected accounts are processed also in the third stage
                     .end();
                 //.assertProgress(7);         // TODO - specify meaning of progress for reconciliation tasks
@@ -1097,6 +1101,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .assertTransitions(2)
                     .end()
                 .iterativeTaskInformation()
+                    .display()
                     .assertTotalCounts(8, 1)
                     .end();
                 //.assertProgress(7);         // TODO - specify meaning of progress for reconciliation tasks
@@ -1282,6 +1287,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .assertTransitions(3)
                     .end()
                 .iterativeTaskInformation()
+                    .display()
                     .assertTotalCounts(10, 0)
                     .end();
                 //.assertProgress(8);         // TODO - specify meaning of progress for reconciliation tasks
