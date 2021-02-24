@@ -53,8 +53,7 @@ public class TestThresholdsReconSimulate extends TestThresholds {
 
     @Override
     protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) {
-        IterativeTaskInformationType infoType = getIterativeTaskInformation(taskAfter);
-        assertEquals(infoType.getTotalFailureCount(), 1);
+        assertEquals(getFailureCount(taskAfter), 1);
 
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
@@ -77,8 +76,7 @@ public class TestThresholdsReconSimulate extends TestThresholds {
      */
     @Override
     protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
-        IterativeTaskInformationType infoType = getIterativeTaskInformation(taskAfter);
-        assertEquals(infoType.getTotalFailureCount(), 1);
+        assertEquals(getFailureCount(taskAfter), 1);
 
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
@@ -98,8 +96,7 @@ public class TestThresholdsReconSimulate extends TestThresholds {
 
     @Override
     protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
-        IterativeTaskInformationType infoType = getIterativeTaskInformation(taskAfter);
-        assertEquals(infoType.getTotalFailureCount(), 1);
+        assertEquals(getFailureCount(taskAfter), 1);
 
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);

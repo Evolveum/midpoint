@@ -9,6 +9,7 @@ package com.evolveum.midpoint.task.quartzimpl.execution;
 import java.util.*;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
 import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -164,18 +165,7 @@ public class TaskThreadsDumper {
         OperationStatsType stats = localTask.getAggregatedLiveOperationStats();
         IterativeTaskInformationType info = stats != null ? stats.getIterativeTaskInformation() : null;
         if (info != null) {
-            output.append("Total success count: ").append(info.getTotalSuccessCount()).append(", failure count: ").append(info.getTotalFailureCount()).append("\n");
-            output.append("Current object: ").append(info.getCurrentObjectOid()).append(" ").append(info.getCurrentObjectName()).append("\n");
-            if (info.getLastSuccessObjectOid() != null || info.getLastSuccessObjectName() != null) {
-                output.append("Last object (success): ").append(info.getLastSuccessObjectOid())
-                        .append(" (").append(info.getLastSuccessObjectName()).append(") at ")
-                        .append(info.getLastSuccessEndTimestamp()).append("\n");
-            }
-            if (info.getLastFailureObjectOid() != null || info.getLastFailureObjectName() != null) {
-                output.append("Last object (failure): ").append(info.getLastFailureObjectOid())
-                        .append(" (").append(info.getLastFailureObjectName()).append(") at ")
-                        .append(info.getLastFailureEndTimestamp()).append("\n");
-            }
+            output.append(IterativeTaskInformation.format(info));
         }
         output.append("\n");
         if (thread != null) {

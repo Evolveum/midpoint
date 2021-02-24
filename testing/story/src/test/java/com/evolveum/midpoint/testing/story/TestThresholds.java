@@ -16,7 +16,9 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -288,7 +290,10 @@ public abstract class TestThresholds extends AbstractStoryTest {
                 .assertPropertyValuesEqual(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, getWorkerThreads());
     }
 
-    IterativeTaskInformationType getIterativeTaskInformation(Task taskAfter) {
-        return taskAfter.getStoredOperationStats().getIterativeTaskInformation(); // FIXME !!!
+    int getFailureCount(Task taskAfter) {
+        // TODO separate the statistics dump
+        OperationStatsType stats = taskAfter.getStoredOperationStats();
+        displayValue("Iterative statistics", IterativeTaskInformation.format(stats.getIterativeTaskInformation()));
+        return TaskTypeUtil.getItemsProcessedWithFailure(stats);
     }
 }

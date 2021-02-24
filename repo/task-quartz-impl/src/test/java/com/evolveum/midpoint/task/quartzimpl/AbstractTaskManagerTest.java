@@ -7,7 +7,10 @@
 
 package com.evolveum.midpoint.task.quartzimpl;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
@@ -265,12 +268,10 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
     }
 
     void assertTotalSuccessCount(int expectedCount, Collection<? extends Task> workers) {
-        throw new UnsupportedOperationException(); // TODO
-//        int total = 0;
-//        for (Task worker : workers) {
-//            total += worker.getStoredOperationStats().getIterativeTaskInformation().getTotalSuccessCount();
-//        }
-//        assertEquals("Wrong total success count", expectedCount, total);
+        int successCount = workers.stream()
+                .mapToInt(w -> TaskTypeUtil.getItemsProcessedWithSuccess(w.getStoredOperationStats()))
+                .sum();
+        assertThat(successCount).isEqualTo(expectedCount);
     }
 
     void assertNoWorkBuckets(TaskWorkStateType ws) {
@@ -333,7 +334,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
             List<? extends Task> tasks = coordinatorTask.listSubtasks(result);
             int total = 0;
             for (Task task : tasks) {
-                int count = TaskTypeUtil.getObjectsProcessedSuccesses(task.getUpdatedOrClonedTaskObject().asObjectable()); // todo
+                int count = or0(TaskTypeUtil.getItemsProcessed(task.getStoredOperationStats()));
                 display("Task " + task + ": " + count + " items processed");
                 total += count;
             }

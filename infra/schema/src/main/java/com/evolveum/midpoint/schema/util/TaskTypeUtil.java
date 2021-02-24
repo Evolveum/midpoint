@@ -9,18 +9,27 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
+import static java.util.Collections.singletonList;
+
 /**
- * @author mederly
+ * TODO
  */
 public class TaskTypeUtil {
 
@@ -72,53 +81,44 @@ public class TaskTypeUtil {
         }
     }
 
-    // TODO?
-    public static int getObjectsProcessed(TaskType task) {
-        OperationStatsType stats = task.getOperationStats();
-        if (stats == null) {
-            return 0;
-        }
-        throw new UnsupportedOperationException(); // FIXME implement
-//        return stats.getIterativeTaskInformation().stream()
-//                .mapToInt(info -> getCount(info.getSucceeded()) + getCount(info.getFailed()) + getCount(info.getSkipped()))
-//                .sum();
+    /**
+     * Returns the number of item processing failures from this task and its subtasks.
+     */
+    public static int getItemsProcessedWithFailureFromTree(TaskType task, PrismContext prismContext) {
+        OperationStatsType stats = getOperationStatsFromTree(task, prismContext); // TODO avoid aggregation
+        return getItemsProcessedWithFailure(stats);
     }
 
-    private static int getCount(ProcessedItemSetType set) {
-        return set != null && set.getCount() != null ? set.getCount() : 0;
+    public static int getItemsProcessedWithSuccess(TaskType task) {
+        return getItemsProcessedWithSuccess(task.getOperationStats());
     }
 
-    public static int getAggregatedObjectsProcessedFailures(TaskType task, PrismContext prismContext) {
-        OperationStatsType stats = getAggregatedOperationStats(task, prismContext);
-        if (stats == null) {
-            return 0;
-        }
-        throw new UnsupportedOperationException(); // FIXME implement
-//        return stats.getIterativeTaskInformation().stream()
-//                .mapToInt(info -> getCount(info.getFailed()))
-//                .sum();
+    public static int getItemsProcessedWithFailure(TaskType task) {
+        return getItemsProcessedWithFailure(task.getOperationStats());
     }
 
-    public static int getObjectsProcessedFailures(TaskType task) {
-        OperationStatsType stats = task.getOperationStats();
-        if (stats == null) {
-            return 0;
-        }
-        throw new UnsupportedOperationException(); // FIXME implement
-//        return stats.getIterativeTaskInformation().stream()
-//                .mapToInt(info -> getCount(info.getFailed()))
-//                .sum();
+    public static int getItemsProcessedWithSuccess(OperationStatsType stats) {
+        return stats != null ? getItemsProcessedWithSuccess(stats.getIterativeTaskInformation()) : 0;
     }
 
-    public static int getObjectsProcessedSuccesses(TaskType task) {
-        OperationStatsType stats = task.getOperationStats();
-        if (stats == null) {
+    public static int getItemsProcessedWithSuccess(IterativeTaskInformationType info) {
+        if (info != null) {
+            return getCounts(getProcessingComponents(info), TaskTypeUtil::isSuccess);
+        } else {
             return 0;
         }
-        throw new UnsupportedOperationException(); // FIXME implement
-//        return stats.getIterativeTaskInformation().stream()
-//                .mapToInt(info -> getCount(info.getSucceeded()))
-//                .sum();
+    }
+
+    public static int getItemsProcessedWithFailure(OperationStatsType stats) {
+        return stats != null ? getItemsProcessedWithFailure(stats.getIterativeTaskInformation()) : 0;
+    }
+
+    public static int getItemsProcessedWithFailure(IterativeTaskInformationType info) {
+        if (info != null) {
+            return getCounts(getProcessingComponents(info), TaskTypeUtil::isFailure);
+        } else {
+            return 0;
+        }
     }
 
     /**
@@ -127,7 +127,7 @@ public class TaskTypeUtil {
      *
      * Assumes that the task has all subtasks filled-in.
      */
-    public static OperationStatsType getAggregatedOperationStats(TaskType task, PrismContext prismContext) {
+    public static OperationStatsType getOperationStatsFromTree(TaskType task, PrismContext prismContext) {
         if (!isPartitionedMaster(task) && !isWorkStateHolder(task)) {
            return task.getOperationStats();
         }
@@ -140,7 +140,7 @@ public class TaskTypeUtil {
         subTasks.forEach(subTask -> {
             OperationStatsType operationStatsBean = subTask.getOperationStats();
             if (operationStatsBean != null) {
-                IterativeTaskInformation.addToMergingParts(aggregate.getIterativeTaskInformation(), operationStatsBean.getIterativeTaskInformation());
+                IterativeTaskInformation.addToSummary(aggregate.getIterativeTaskInformation(), operationStatsBean.getIterativeTaskInformation());
                 SynchronizationInformation.addTo(aggregate.getSynchronizationInformation(), operationStatsBean.getSynchronizationInformation());
                 ActionsExecutedInformation.addTo(aggregate.getActionsExecutedInformation(), operationStatsBean.getActionsExecutedInformation());
             }
@@ -184,23 +184,97 @@ public class TaskTypeUtil {
         return isCoordinator(taskType) || isPartitionedMaster(taskType);
     }
 
-    public static Integer getIterations(OperationStatsType statistics) {
-        // FIXME!!!
-//        if (statistics.getIterativeTaskInformation() != null) {
-//            return statistics.getIterativeTaskInformation().getTotalSuccessCount() +
-//                    statistics.getIterativeTaskInformation().getTotalFailureCount();
-//        } else {
-//            return null;
-//        }
-        return null;
+    /**
+     * Returns the number of "iterations" i.e. how many times an item was processed by this task.
+     * It is useful e.g. to provide average values for performance indicators.
+     */
+    public static Integer getItemsProcessed(TaskType task) {
+        return getItemsProcessed(task.getOperationStats());
     }
 
-    public static String getLastSuccessObjectName(TaskType task) {
-        throw new UnsupportedOperationException(); // FIXME implement
-//        if (task.getOperationStats() != null && !task.getOperationStats().getIterativeTaskInformation().isEmpty()) {
-//            return task.getOperationStats().getIterativeTaskInformation().get(0).getLastSuccessObjectName();
-//        } else {
-//            return null;
-//        }
+    /**
+     * Returns the number of "iterations" i.e. how many times an item was processed by this task.
+     * It is useful e.g. to provide average values for performance indicators.
+     */
+    public static Integer getItemsProcessed(OperationStatsType statistics) {
+        if (statistics == null) {
+            return null;
+        }
+
+        List<? extends IterativeItemsProcessingInformationType> components =
+                getProcessingComponentsNullable(statistics.getIterativeTaskInformation());
+        if (components == null) {
+            return null;
+        }
+
+        return getItemsProcessed(components);
     }
+
+    @NotNull
+    private static List<? extends IterativeItemsProcessingInformationType> getProcessingComponents(IterativeTaskInformationType info) {
+        return emptyIfNull(getProcessingComponentsNullable(info));
+    }
+
+    /**
+     * Returns a list of iterative info statistics components (e.g. by part).
+     * Or null if no such information is available.
+     */
+    @Nullable
+    private static List<? extends IterativeItemsProcessingInformationType> getProcessingComponentsNullable(IterativeTaskInformationType info) {
+        if (info == null) {
+            return null;
+        } else if (info.getSummary() != null) {
+            return singletonList(info.getSummary());
+        } else {
+            return info.getPart();
+        }
+    }
+
+    private static int getItemsProcessed(List<? extends IterativeItemsProcessingInformationType> components) {
+        return getCounts(components, set -> true);
+    }
+
+    private static int getCounts(List<? extends IterativeItemsProcessingInformationType> components,
+            Predicate<ProcessedItemSetType> itemSetFilter) {
+        return components.stream()
+                .flatMap(component -> component.getProcessed().stream())
+                .filter(Objects::nonNull)
+                .filter(itemSetFilter)
+                .mapToInt(p -> or0(p.getCount()))
+                .sum();
+    }
+
+    /**
+     * Returns object that was last successfully processed by given task.
+     */
+    public static String getLastSuccessObjectName(TaskType task) {
+        OperationStatsType stats = task.getOperationStats();
+        if (stats == null || stats.getIterativeTaskInformation() == null) {
+            return null;
+        } else {
+            return getLastProcessedObjectName(stats.getIterativeTaskInformation(), TaskTypeUtil::isSuccess);
+        }
+    }
+
+    public static String getLastProcessedObjectName(IterativeTaskInformationType info, Predicate<ProcessedItemSetType> itemSetFilter) {
+        List<? extends IterativeItemsProcessingInformationType> components =
+                getProcessingComponents(info);
+        ProcessedItemType lastSuccess = components.stream()
+                .flatMap(component -> component.getProcessed().stream())
+                .filter(itemSetFilter)
+                .map(ProcessedItemSetType::getLastItem)
+                .filter(Objects::nonNull)
+                .max(Comparator.nullsFirst(Comparator.comparing(item -> XmlTypeConverter.toMillis(item.getEndTimestamp()))))
+                .orElse(null);
+        return lastSuccess != null ? lastSuccess.getName() : null;
+    }
+
+    public static boolean isSuccess(ProcessedItemSetType set) {
+        return set.getOutcome() != null && set.getOutcome().getOutcome() == ItemProcessingOutcomeType.SUCCESS;
+    }
+
+    public static boolean isFailure(ProcessedItemSetType set) {
+        return set.getOutcome() != null && set.getOutcome().getOutcome() == ItemProcessingOutcomeType.FAILURE;
+    }
+
 }

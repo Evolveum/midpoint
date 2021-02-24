@@ -120,7 +120,7 @@ public class StatisticsUtil {
             }
             EnvironmentalPerformanceInformation.addTo(aggregate.getEnvironmentalPerformanceInformation(), increment.getEnvironmentalPerformanceInformation());
         }
-        IterativeTaskInformation.addToMergingParts(aggregate.getIterativeTaskInformation(), increment.getIterativeTaskInformation());
+        IterativeTaskInformation.addToSummary(aggregate.getIterativeTaskInformation(), increment.getIterativeTaskInformation());
         if (increment.getSynchronizationInformation() != null) {
             if (aggregate.getSynchronizationInformation() == null) {
                 aggregate.setSynchronizationInformation(new SynchronizationInformationType());
@@ -188,5 +188,13 @@ public class StatisticsUtil {
                     .append("\n");
         }
         return sb.toString();
+    }
+
+    public static ItemProcessingOutcomeType getOutcome(ProcessedItemSetType set) {
+        if (set != null && set.getOutcome() != null) {
+            return set.getOutcome().getOutcome();
+        } else {
+            return null;
+        }
     }
 }

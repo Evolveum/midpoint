@@ -13,6 +13,8 @@ import java.io.File;
 
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
 
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -122,8 +124,7 @@ public class TestThresholdsReconFull extends TestThresholds {
 
         assertTaskSchedulingState(TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, TaskSchedulingStateType.READY);
 
-        IterativeTaskInformationType infoType = getIterativeTaskInformation(taskAfter);
-        assertEquals(infoType.getTotalFailureCount(), 0);
+        assertEquals(TaskTypeUtil.getItemsProcessedWithFailure(taskAfter.getStoredOperationStats()), 0);
 
         PrismObject<UserType> user10 = findUserByUsername("user10");
         assertNull(user10);
@@ -147,8 +148,7 @@ public class TestThresholdsReconFull extends TestThresholds {
 
     @Override
     protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) {
-        IterativeTaskInformationType infoType = getIterativeTaskInformation(taskAfter);
-        assertEquals(infoType.getTotalFailureCount(), 1);
+        assertEquals(getFailureCount(taskAfter), 1);
 
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
 
@@ -164,16 +164,13 @@ public class TestThresholdsReconFull extends TestThresholds {
     }
 
     private void assertSynchronizationStatisticsFull(Task taskAfter) {
-        IterativeTaskInformationType infoType = getIterativeTaskInformation(taskAfter);
-        assertEquals(infoType.getTotalFailureCount(), 0);
+        assertEquals(getFailureCount(taskAfter), 0);
         assertNull(taskAfter.getWorkState(), "Unexpected work state in task.");
-
     }
 
     @Override
     protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
-        IterativeTaskInformationType infoType = getIterativeTaskInformation(taskAfter);
-        assertEquals(infoType.getTotalFailureCount(), 1);
+        assertEquals(getFailureCount(taskAfter), 1);
 
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
 
@@ -189,9 +186,7 @@ public class TestThresholdsReconFull extends TestThresholds {
     }
 
     protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
-        IterativeTaskInformationType infoType = getIterativeTaskInformation(taskAfter);
-        assertEquals(infoType.getTotalFailureCount(), 1);
-        displayValue("Iterative task information", IterativeTaskInformation.format(infoType));
+        assertEquals(getFailureCount(taskAfter), 1);
 
         SynchronizationInformationType synchronizationInformation = taskAfter.getStoredOperationStats().getSynchronizationInformation();
         dumpSynchronizationInformation(synchronizationInformation);

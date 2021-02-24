@@ -305,7 +305,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId, IModel<SelectableBean<TaskType>> rowModel) {
                 TaskType task = rowModel.getObject().getValue();
-                cellItem.add(new Label(componentId, new Model<>(TaskTypeUtil.getAggregatedObjectsProcessedFailures(task, getPrismContext()))));
+                cellItem.add(new Label(componentId, new Model<>(TaskTypeUtil.getItemsProcessedWithFailureFromTree(task, getPrismContext()))));
             }
         };
     }

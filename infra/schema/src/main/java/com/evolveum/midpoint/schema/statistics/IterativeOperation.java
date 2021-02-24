@@ -46,4 +46,13 @@ public class IterativeOperation {
     public Integer getTaskPartNumber() {
         return taskPartNumber;
     }
+
+    @Override
+    public String toString() {
+        return "IterativeOperation{" +
+                "item=" + item +
+                ", startTimestamp=" + startTimestamp +
+                ", taskPartNumber=" + taskPartNumber +
+                '}';
+    }
 }

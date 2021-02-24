@@ -147,7 +147,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
         for (Statistics child : children) {
             IterativeTaskInformation info = child.getIterativeTaskInformation();
             if (info != null) {
-                IterativeTaskInformation.addToKeepingParts(sum, info.getValueCopy());
+                IterativeTaskInformation.addToParts(sum, info.getValueCopy());
             }
         }
         return sum;

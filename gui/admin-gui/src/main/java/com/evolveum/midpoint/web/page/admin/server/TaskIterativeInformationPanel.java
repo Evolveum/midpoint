@@ -21,7 +21,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Date;
 
 /**
- * @author mederly
+ * TODO MID-6850 (whole class)
  */
 public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInformationType> {
 
@@ -52,7 +52,7 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
 
     protected void initLayout() {
 
-
+        // TODO MID-6850
         Label processedSuccess = new Label(ID_OBJECTS_PROCESSED_SUCCESS, new PropertyModel<>(getModel(), IterativeTaskInformationType.F_TOTAL_SUCCESS_COUNT.getLocalPart()));
         add(processedSuccess);
 
@@ -71,6 +71,7 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
         });
         add(processedSuccessTime);
 
+        // TODO MID-6850
         Label lastProcessedSuccess = new Label(ID_LAST_OBJECT_PROCESSED_SUCCESS, new PropertyModel<>(getModel(), IterativeTaskInformationType.F_LAST_SUCCESS_OBJECT_DISPLAY_NAME.getLocalPart()));
         add(lastProcessedSuccess);
 
@@ -97,6 +98,7 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
         });
         add(lastProcessedSuccessTime);
 
+        // TODO MID-6850
         Label processedFailure = new Label(ID_OBJECTS_PROCESSED_FAILURE, new PropertyModel<>(getModel(), IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT.getLocalPart()));
         add(processedFailure);
 
@@ -115,6 +117,7 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
         });
         add(processedFailureTime);
 
+        // TODO MID-6850
         Label lastProcessedFailure = new Label(ID_LAST_OBJECT_PROCESSED_FAILURE, new PropertyModel<>(getModel(), IterativeTaskInformationType.F_LAST_FAILURE_OBJECT_DISPLAY_NAME.getLocalPart()));
         add(lastProcessedFailure);
 
@@ -141,9 +144,11 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
         });
         add(lastProcessedFailureTime);
 
+        // TODO MID-6850
         Label lastError = new Label(ID_LAST_ERROR, new PropertyModel<>(getModel(), IterativeTaskInformationType.F_LAST_FAILURE_EXCEPTION_MESSAGE.getLocalPart()));
         add(lastError);
 
+        // TODO MID-6850
         Label currentObjectProcessed = new Label(ID_CURRENT_OBJECT_PROCESSED, new PropertyModel<>(getModel(), IterativeTaskInformationType.F_CURRENT_OBJECT_DISPLAY_NAME.getLocalPart()));
         add(currentObjectProcessed);
 

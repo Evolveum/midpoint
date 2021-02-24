@@ -59,7 +59,7 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
            @Override
            protected OperationStatsType load() {
                PrismObject<TaskType> task = getModelObject().getObject();
-               return TaskTypeUtil.getAggregatedOperationStats(task.asObjectable(), getPrismContext());
+               return TaskTypeUtil.getOperationStatsFromTree(task.asObjectable(), getPrismContext());
            }
        };
     }

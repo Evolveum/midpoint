@@ -128,7 +128,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
      * Sequential number of the part within the current task.
      */
     @Experimental
-    int partNumber;
+    int partNumber = 1;
 
     protected AbstractIterativeTaskPartExecution(@NotNull TE taskExecution) {
         this.taskHandler = taskExecution.taskHandler;

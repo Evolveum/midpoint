@@ -61,7 +61,7 @@ public class IterativeTaskInformation {
     public IterativeTaskInformation(IterativeTaskInformationType value, @NotNull PrismContext prismContext) {
         this.prismContext = prismContext;
         if (value != null) {
-            addToKeepingParts(this.value, value);
+            addToParts(this.value, value);
         }
     }
 
@@ -84,7 +84,7 @@ public class IterativeTaskInformation {
         List<ProcessedItemType> currentList = matchingPart.getCurrent();
 
         currentList.add(processedItem);
-        LOGGER.trace("Recorded current operation. Current list size: {}. Operation: {}", currentList.size(), operation);
+        LOGGER.info("Recorded current operation. Current list size: {}. Operation: {}", currentList.size(), operation);
         return new OperationImpl(operation, processedItem);
     }
 
@@ -124,7 +124,8 @@ public class IterativeTaskInformation {
         return part.getProcessed().stream()
                 .filter(itemSet -> Objects.equals(itemSet.getOutcome(), outcome))
                 .findFirst()
-                .orElseGet(() -> new ProcessedItemSetType(prismContext).outcome(outcome.clone()));
+                .orElseGet(
+                        () -> add(part.getProcessed(), new ProcessedItemSetType(prismContext).outcome(outcome.clone())));
     }
 
     private void removeFromCurrentOperations(IterativeTaskPartItemsProcessingInformationType part, long operationId) {
@@ -144,7 +145,7 @@ public class IterativeTaskInformation {
      * - sum.parts += delta.parts (matching)
      * - sum.summary += delta.summary (just for sure; setting summary only if present in delta)
      */
-    public static void addToKeepingParts(@NotNull IterativeTaskInformationType sum, @NotNull IterativeTaskInformationType delta) {
+    public static void addToParts(@NotNull IterativeTaskInformationType sum, @NotNull IterativeTaskInformationType delta) {
         addMatchingParts(sum.getPart(), delta.getPart());
         addToSummary(sum, delta.getSummary());
     }
@@ -157,7 +158,7 @@ public class IterativeTaskInformation {
      *
      * Typically because the part numbering is not compatible among sum/deltas.
      * */
-    public static void addToMergingParts(@NotNull IterativeTaskInformationType sum,
+    public static void addToSummary(@NotNull IterativeTaskInformationType sum,
             @NotNull IterativeTaskInformationType delta) {
         delta.getPart().forEach(part -> addToSummary(sum, part));
         addToSummary(sum, delta.getSummary());
@@ -185,7 +186,13 @@ public class IterativeTaskInformation {
     private static IterativeTaskPartItemsProcessingInformationType findOrCreateMatchingPart(
             @NotNull List<IterativeTaskPartItemsProcessingInformationType> list, Integer partNumber) {
         return findMatchingPart(list, partNumber)
-                .orElseGet(() -> new IterativeTaskPartItemsProcessingInformationType().partNumber(partNumber));
+                .orElseGet(
+                        () -> add(list, new IterativeTaskPartItemsProcessingInformationType().partNumber(partNumber)));
+    }
+
+    private static <T> T add(List<T> list, T value) {
+        list.add(value);
+        return value;
     }
 
     private static Optional<IterativeTaskPartItemsProcessingInformationType> findMatchingPart(
@@ -214,7 +221,8 @@ public class IterativeTaskInformation {
         return list.stream()
                 .filter(item -> Objects.equals(item.getOutcome(), outcome))
                 .findFirst()
-                .orElseGet(() -> new ProcessedItemSetType().outcome(outcome));
+                .orElseGet(
+                        () -> add(list, new ProcessedItemSetType().outcome(outcome)));
     }
 
     private static void addCurrent(List<ProcessedItemType> sum, List<ProcessedItemType> delta) {
