@@ -24,6 +24,9 @@
             Version: 4.0-SNAPSHOT
             Recommended namespace prefix: t
         </xsd:documentation>
+        <xsd:appinfo>
+          <a:defaultPrefix>t</a:defaultPrefix>
+        </xsd:appinfo>
     </xsd:annotation>
 
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"
