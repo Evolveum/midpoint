@@ -981,6 +981,17 @@ public class DOMUtil {
         return null;
     }
 
+    public static Optional<Element> getElement(Element root, QName... path) {
+        Element current = root;
+        for(QName step : path) {
+            if(current == null) {
+                break;
+            }
+            current = getChildElement(current, step);
+        }
+        return Optional.ofNullable(current);
+    }
+
     public static Element getMatchingChildElement(Element element, QName qname) {
         for (Element subelement : listChildElements(element)) {
             if (QNameUtil.match(qname, getQName(subelement))) {

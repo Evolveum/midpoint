@@ -21,6 +21,9 @@
         <xsd:documentation>
             Model object extension schema. Used mostly in task extensions. (Some of them in trigger extensions.)
         </xsd:documentation>
+        <xsd:appinfo>
+            <a:defaultPrefix>mext</a:defaultPrefix>
+        </xsd:appinfo>
     </xsd:annotation>
 
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"

@@ -19,6 +19,9 @@
         <xsd:documentation>
             NoOp task handler task extensions.
         </xsd:documentation>
+        <xsd:appinfo>
+            <a:defaultPrefix>taskext</a:defaultPrefix>
+        </xsd:appinfo>
     </xsd:annotation>
 
     <xsd:element name="determineExpectedTotalProgress" type="xsd:boolean">
