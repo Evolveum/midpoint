@@ -249,6 +249,26 @@ public class ObjectValuePolicyEvaluator {
         }
     }
 
+
+    private boolean isMaxAgeViolated() {
+        if (oldCredential == null) {
+            return false;
+        }
+        Duration maxAge = getMaxAge();
+        MetadataType currentCredentialMetadata = oldCredential.getMetadata();
+        if (maxAge != null && currentCredentialMetadata != null) {
+            XMLGregorianCalendar lastChangeTimestamp = getLastChangeTimestamp(currentCredentialMetadata);
+            if (lastChangeTimestamp != null) {
+                XMLGregorianCalendar changeAllowedTimestamp = XmlTypeConverter.addDuration(lastChangeTimestamp, maxAge);
+                if (changeAllowedTimestamp.compare(now) == DatatypeConstants.LESSER) {
+                    LOGGER.trace("Password maxAge violated. lastChange={}, maxAge={}, now={}", lastChangeTimestamp, maxAge, now);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private XMLGregorianCalendar getLastChangeTimestamp(MetadataType currentCredentialMetadata) {
         XMLGregorianCalendar modifyTimestamp = currentCredentialMetadata.getModifyTimestamp();
         if (modifyTimestamp != null) {
@@ -314,8 +334,11 @@ public class ObjectValuePolicyEvaluator {
 
         if (passwordEquals(newPasswordPs, existingPassword.getValue())) {
             LOGGER.trace("{} matched current value", shortDesc);
-            appendHistoryViolationMessage(messages, result);
-            return;
+
+            if (!SecurityUtil.isHistoryAllowExistingPasswordReuse(credentialPolicy) || isMaxAgeViolated()) { // existing password can be reused even when stored in focus, it has to be valid according to maxAge setting
+                appendHistoryViolationMessage(messages, result);
+                return;
+            }
         }
 
         //noinspection unchecked
@@ -340,6 +363,14 @@ public class ObjectValuePolicyEvaluator {
     private Duration getMinAge() {
         if (credentialPolicy != null) {
             return credentialPolicy.getMinAge();
+        } else {
+            return null;
+        }
+    }
+
+    private Duration getMaxAge() {
+        if (credentialPolicy != null) {
+            return credentialPolicy.getMaxAge();
         } else {
             return null;
         }
