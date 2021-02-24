@@ -9,6 +9,10 @@ package com.evolveum.midpoint.notifications.impl.events.factory;
 
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,10 +27,6 @@ import com.evolveum.midpoint.notifications.impl.events.CertCampaignStageEventImp
 import com.evolveum.midpoint.notifications.impl.events.CertReviewEventImpl;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Creates certification events
@@ -42,62 +42,64 @@ public class CertEventFactory {
     @Autowired
     private NotificationFunctionsImpl notificationsUtil;
 
-    public CertCampaignEvent createOnCampaignStartEvent(AccessCertificationCampaignType campaign, Task task) {
+    public CertCampaignEvent createOnCampaignStartEvent(AccessCertificationCampaignType campaign, Task task, OperationResult result) {
         CertCampaignEventImpl event = new CertCampaignEventImpl(idGenerator, campaign, EventOperationType.ADD);
-        fillInEvent(campaign, task, event);
+        fillInEvent(campaign, task, event, result);
         return event;
     }
 
-    private void fillInEvent(AccessCertificationCampaignType campaign, Task task, AccessCertificationEventImpl event) {
+    private void fillInEvent(AccessCertificationCampaignType campaign, Task task, AccessCertificationEventImpl event, OperationResult result) {
         event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, campaign.getOwnerRef()));
         if (task != null) {
-            event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner()));
+            PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
+            event.setRequester(new SimpleObjectRefImpl(notificationsUtil, taskOwner));
             event.setChannel(task.getChannel());
         }
     }
 
     private void fillInReviewerRelatedEvent(ObjectReferenceType reviewerOrDeputyRef, ObjectReferenceType actualReviewerRef,
-            Task task, CertReviewEventImpl event) {
+            Task task, CertReviewEventImpl event, OperationResult result) {
         event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, reviewerOrDeputyRef));
-        event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner()));                    // or campaign owner?
+        PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
+        event.setRequester(new SimpleObjectRefImpl(notificationsUtil, taskOwner));
         event.setActualReviewer(new SimpleObjectRefImpl(notificationsUtil, actualReviewerRef));
     }
 
-    public CertCampaignEvent createOnCampaignEndEvent(AccessCertificationCampaignType campaign, Task task) {
+    public CertCampaignEvent createOnCampaignEndEvent(AccessCertificationCampaignType campaign, Task task, OperationResult result) {
         CertCampaignEventImpl event = new CertCampaignEventImpl(idGenerator, campaign, EventOperationType.DELETE);
-        fillInEvent(campaign, task, event);
+        fillInEvent(campaign, task, event, result);
         return event;
     }
 
-    public CertCampaignStageEvent createOnCampaignStageStartEvent(AccessCertificationCampaignType campaign, Task task) {
+    public CertCampaignStageEvent createOnCampaignStageStartEvent(AccessCertificationCampaignType campaign, Task task, OperationResult result) {
         CertCampaignStageEventImpl event = new CertCampaignStageEventImpl(idGenerator, campaign, EventOperationType.ADD);
-        fillInEvent(campaign, task, event);
+        fillInEvent(campaign, task, event, result);
         return event;
     }
 
-    public CertCampaignStageEvent createOnCampaignStageDeadlineApproachingEvent(AccessCertificationCampaignType campaign, Task task) {
+    public CertCampaignStageEvent createOnCampaignStageDeadlineApproachingEvent(AccessCertificationCampaignType campaign, Task task, OperationResult result) {
         CertCampaignStageEventImpl event = new CertCampaignStageEventImpl(idGenerator, campaign, EventOperationType.MODIFY);
-        fillInEvent(campaign, task, event);
+        fillInEvent(campaign, task, event, result);
         return event;
     }
 
-    public CertCampaignStageEvent createOnCampaignStageEndEvent(AccessCertificationCampaignType campaign, Task task) {
+    public CertCampaignStageEvent createOnCampaignStageEndEvent(AccessCertificationCampaignType campaign, Task task, OperationResult result) {
         CertCampaignStageEventImpl event = new CertCampaignStageEventImpl(idGenerator, campaign, EventOperationType.DELETE);
-        fillInEvent(campaign, task, event);
+        fillInEvent(campaign, task, event, result);
         return event;
     }
 
     public CertReviewEvent createReviewRequestedEvent(ObjectReferenceType reviewerOrDeputyRef, ObjectReferenceType actualReviewerRef,
-            List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task) {
+            List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result) {
         CertReviewEventImpl event = new CertReviewEventImpl(idGenerator, cases, campaign, EventOperationType.ADD);
-        fillInReviewerRelatedEvent(reviewerOrDeputyRef, actualReviewerRef, task, event);
+        fillInReviewerRelatedEvent(reviewerOrDeputyRef, actualReviewerRef, task, event, result);
         return event;
     }
 
     public CertReviewEvent createReviewDeadlineApproachingEvent(ObjectReferenceType reviewerOrDeputyRef, ObjectReferenceType actualReviewerRef,
-            List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task) {
+            List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result) {
         CertReviewEventImpl event = new CertReviewEventImpl(idGenerator, cases, campaign, EventOperationType.MODIFY);
-        fillInReviewerRelatedEvent(reviewerOrDeputyRef, actualReviewerRef, task, event);
+        fillInReviewerRelatedEvent(reviewerOrDeputyRef, actualReviewerRef, task, event, result);
         return event;
     }
 }

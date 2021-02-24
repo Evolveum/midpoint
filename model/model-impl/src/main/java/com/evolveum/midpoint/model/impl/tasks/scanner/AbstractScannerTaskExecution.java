@@ -71,7 +71,7 @@ public class AbstractScannerTaskExecution
                     ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME),
                     lastScanTimestampDef);
             lastScanTimestampDelta.setRealValuesToReplace(thisScanTimestamp);
-            localCoordinatorTask.modifyExtension(lastScanTimestampDelta);
+            localCoordinatorTask.modify(lastScanTimestampDelta);
         }
     }
 

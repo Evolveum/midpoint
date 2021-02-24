@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
 import java.io.File;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -23,14 +25,9 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -252,7 +249,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
         // THEN
         then();
-        assertTaskExecutionStatus(TASK_LIVE_SYNC_DUMMY_OID, TaskExecutionStatus.SUSPENDED);
+        assertTaskExecutionStatus(TASK_LIVE_SYNC_DUMMY_OID, TaskExecutionStateType.SUSPENDED);
     }
 
     @Test
@@ -335,7 +332,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
         // THEN
         then();
 
-        assertTaskExecutionStatus(TASK_RECONCILE_DUMMY_OID, TaskExecutionStatus.SUSPENDED);
+        assertTaskExecutionStatus(TASK_RECONCILE_DUMMY_OID, TaskExecutionStateType.SUSPENDED);
     }
 
     /**

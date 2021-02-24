@@ -127,7 +127,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     @Override
-    public void audit(AuditEventRecord record, Task task) {
+    public void audit(AuditEventRecord record, Task task, OperationResult result) {
         Objects.requireNonNull(record, "Audit event record must not be null.");
         Objects.requireNonNull(task, "Task must not be null.");
 
@@ -141,7 +141,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 auditAttempt(record);
                 return;
             } catch (RuntimeException ex) {
-                attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, null);
+                attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, result);
                 pm.registerOperationNewAttempt(opHandle, attempt);
             } finally {
                 pm.registerOperationFinish(opHandle, attempt);

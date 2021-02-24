@@ -14,10 +14,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.commons.lang3.Validate;
@@ -39,7 +36,7 @@ public class TaskUtil {
     public static final long ALREADY_PASSED = -2L;
     public static final long NOW = 0L;
 
-    public static List<String> tasksToOids(List<Task> tasks) {
+    public static List<String> tasksToOids(List<? extends Task> tasks) {
         return tasks.stream().map(Task::getOid).collect(Collectors.toList());
     }
 
@@ -75,9 +72,6 @@ public class TaskUtil {
 
     private static Boolean findExtensionItemValue(Task task, QName path) throws SchemaException {
         Validate.notNull(task, "Task must not be null.");
-        if (!task.hasExtension()) {
-            return null;
-        }
         PrismProperty<Boolean> item = task.getExtensionPropertyOrClone(ItemName.fromQName(path));
         if (item == null || item.isEmpty()) {
             return null;
@@ -89,7 +83,7 @@ public class TaskUtil {
     }
 
     public static String createScheduledToRunAgain(TaskType task, List<Object> localizationObject) {
-        boolean runnable = TaskExecutionStatus.fromTaskType(task.getExecutionStatus()) == TaskExecutionStatus.RUNNABLE;
+        boolean runnable = task.getSchedulingState() == TaskSchedulingStateType.READY;
         Long scheduledAfter = getScheduledToStartAgain(task);
         Long retryAfter = runnable ? getRetryAfter(task) : null;
 
@@ -135,12 +129,12 @@ public class TaskUtil {
     public static Long getScheduledToStartAgain(TaskType task) {
         long current = System.currentTimeMillis();
 
-        if (task.getNodeAsObserved() != null && (task.getExecutionStatus() != TaskExecutionStatusType.SUSPENDED)) {
+        if (task.getNodeAsObserved() != null && (task.getSchedulingState() != TaskSchedulingStateType.SUSPENDED)) {
 
             if (TaskRecurrenceType.RECURRING != task.getRecurrence()) {
                 return null;
             } else if (TaskBindingType.TIGHT == task.getBinding()) {
-                return RUNS_CONTINUALLY;             // runs continually; todo provide some information also in this case
+                return RUNS_CONTINUALLY; // runs continually; todo provide some information also in this case
             }
         }
 

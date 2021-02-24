@@ -53,45 +53,45 @@ public class CertificationListener implements AccessCertificationEventListener {
 
     @Override
     public void onCampaignStart(AccessCertificationCampaignType campaign, Task task, OperationResult result) {
-        CertCampaignEvent event = certEventFactory.createOnCampaignStartEvent(campaign, task);
+        CertCampaignEvent event = certEventFactory.createOnCampaignStartEvent(campaign, task, result);
         eventHelper.processEvent(event, task, result);
     }
 
     @Override
     public void onCampaignEnd(AccessCertificationCampaignType campaign, Task task, OperationResult result) {
-        CertCampaignEvent event = certEventFactory.createOnCampaignEndEvent(campaign, task);
+        CertCampaignEvent event = certEventFactory.createOnCampaignEndEvent(campaign, task, result);
         eventHelper.processEvent(event, task, result);
     }
 
     @Override
     public void onCampaignStageStart(AccessCertificationCampaignType campaign, Task task, OperationResult result) {
-        CertCampaignStageEvent event = certEventFactory.createOnCampaignStageStartEvent(campaign, task);
+        CertCampaignStageEvent event = certEventFactory.createOnCampaignStageStartEvent(campaign, task, result);
         eventHelper.processEvent(event, task, result);
     }
 
     @Override
     public void onCampaignStageDeadlineApproaching(AccessCertificationCampaignType campaign, Task task, OperationResult result) {
-        CertCampaignStageEvent event = certEventFactory.createOnCampaignStageDeadlineApproachingEvent(campaign, task);
+        CertCampaignStageEvent event = certEventFactory.createOnCampaignStageDeadlineApproachingEvent(campaign, task, result);
         eventHelper.processEvent(event, task, result);
     }
 
     @Override
     public void onCampaignStageEnd(AccessCertificationCampaignType campaign, Task task, OperationResult result) {
-        CertCampaignStageEvent event = certEventFactory.createOnCampaignStageEndEvent(campaign, task);
+        CertCampaignStageEvent event = certEventFactory.createOnCampaignStageEndEvent(campaign, task, result);
         eventHelper.processEvent(event, task, result);
     }
 
     @Override
     public void onReviewRequested(ObjectReferenceType reviewerOrDeputyRef, ObjectReferenceType actualReviewerRef,
             List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result) {
-        CertReviewEvent event = certEventFactory.createReviewRequestedEvent(reviewerOrDeputyRef, actualReviewerRef, cases, campaign, task);
+        CertReviewEvent event = certEventFactory.createReviewRequestedEvent(reviewerOrDeputyRef, actualReviewerRef, cases, campaign, task, result);
         eventHelper.processEvent(event, task, result);
     }
 
     @Override
     public void onReviewDeadlineApproaching(ObjectReferenceType reviewerOrDeputyRef, ObjectReferenceType actualReviewerRef,
             List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result) {
-        CertReviewEvent event = certEventFactory.createReviewDeadlineApproachingEvent(reviewerOrDeputyRef, actualReviewerRef, cases, campaign, task);
+        CertReviewEvent event = certEventFactory.createReviewDeadlineApproachingEvent(reviewerOrDeputyRef, actualReviewerRef, cases, campaign, task, result);
         eventHelper.processEvent(event, task, result);
     }
 }

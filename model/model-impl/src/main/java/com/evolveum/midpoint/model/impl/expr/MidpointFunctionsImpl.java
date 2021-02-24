@@ -11,7 +11,7 @@ import static java.util.Collections.*;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType.RUNNABLE;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -1688,6 +1688,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         newTask.setTaskIdentifier(null);
         newTask.setOwnerRef(createObjectRef(principal.getFocus(), prismContext));
         newTask.setExecutionStatus(RUNNABLE);
+        newTask.setSchedulingState(TaskSchedulingStateType.READY);
         newTask.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
         if (deltas.isEmpty()) {
             throw new IllegalArgumentException("No deltas to execute");

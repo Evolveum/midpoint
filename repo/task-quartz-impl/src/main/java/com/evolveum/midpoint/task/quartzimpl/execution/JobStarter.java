@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
+import com.evolveum.midpoint.task.quartzimpl.quartz.QuartzUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * @author mederly
+ * TODO what is this for?!
  */
 public class JobStarter implements Job {
 
@@ -43,7 +43,7 @@ public class JobStarter implements Job {
         String oid = (String) context.getMergedJobDataMap().get(TASK_OID);
         LOGGER.trace("Requested starting Quartz job for task {}", oid);
         if (oid == null) {
-            return;            // just for safety
+            return; // just for safety
         }
 
         int wait = WAIT_MINIMUM + ((int) (Math.random() * (WAIT_MAXIMUM-WAIT_MINIMUM)));
@@ -56,8 +56,8 @@ public class JobStarter implements Job {
 
         try {
             deleteRedirectTriggers(oid);
-            Scheduler scheduler = taskManager.getExecutionManager().getQuartzScheduler();
-            scheduler.triggerJob(TaskQuartzImplUtil.createJobKeyForTaskOid(oid),
+            Scheduler scheduler = taskManager.getBeans().localScheduler.getQuartzScheduler();
+            scheduler.triggerJob(QuartzUtil.createJobKeyForTaskOid(oid),
                     new JobDataMap(Collections.singletonMap(REDIRECT_FLAG, "")));
         } catch (SchedulerException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't trigger task {}", e, oid);
@@ -66,8 +66,8 @@ public class JobStarter implements Job {
 
     private void deleteRedirectTriggers(@NotNull String oid) throws SchedulerException {
         LOGGER.trace("Going to remove obsolete redirect triggers");
-        Scheduler scheduler = taskManager.getExecutionManager().getQuartzScheduler();
-        List<? extends Trigger> existingTriggers = scheduler.getTriggersOfJob(TaskQuartzImplUtil.createJobKeyForTaskOid(oid));
+        Scheduler scheduler = taskManager.getBeans().localScheduler.getQuartzScheduler();
+        List<? extends Trigger> existingTriggers = scheduler.getTriggersOfJob(QuartzUtil.createJobKeyForTaskOid(oid));
         for (Trigger trigger : existingTriggers) {
             if (trigger.getJobDataMap().containsKey(REDIRECT_FLAG)) {
                 LOGGER.trace("Removing obsolete redirect trigger {}", trigger);

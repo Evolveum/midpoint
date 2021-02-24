@@ -23,7 +23,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -114,7 +113,7 @@ public class ExecutionHelper {
         } else {
             ObjectQuery query = prismContext.queryFor(TaskType.class)
                     .item(TaskType.F_OBJECT_REF).ref(openOids.toArray(new String[0]))
-                    .and().item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.WAITING)
+                    .and().item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStateType.WAITING)
                     .build();
             SearchResultList<PrismObject<TaskType>> waitingTasks = repositoryService
                     .searchObjects(TaskType.class, query, null, result);
@@ -234,7 +233,7 @@ public class ExecutionHelper {
         task.setObjectRef(ObjectTypeUtil.createObjectRef(aCase, prismContext));
         task.setHandlerUri(CaseOperationExecutionTaskHandler.HANDLER_URI);
         if (waiting) {
-            task.setInitialExecutionStatus(TaskExecutionStatus.WAITING);
+            task.setInitiallyWaitingForPrerequisites();
         }
         task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_APPROVAL_TASK.value());
         setExecutionConstraints(task, aCase, result);

@@ -1246,7 +1246,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
             }
 
             @Override
-            public String getTaskTreeOid(Task task, OperationResult result) throws SchemaException {
+            public String getTaskTreeOid(Task task, OperationResult result) {
                 return null;
             }
         };

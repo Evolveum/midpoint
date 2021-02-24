@@ -215,7 +215,7 @@ public class TestArchetypeInheritance extends AbstractInitializedModelIntegratio
         addObject(reconTask.asPrismObject());
 
         assertTask(TASK_RECON_OID, "created reconciliation task")
-                .assertExecutionStatus(TaskExecutionStatusType.SUSPENDED)
+                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED)
                 .assertCategory(TaskCategory.RECONCILIATION)
                 .assertBinding(TaskBindingType.TIGHT);
     }
@@ -230,7 +230,7 @@ public class TestArchetypeInheritance extends AbstractInitializedModelIntegratio
         addObject(reconTask.asPrismObject());
 
         assertTask(TASK_LIVE_SYNC_OID, "created live synchronization task")
-                .assertExecutionStatus(TaskExecutionStatusType.SUSPENDED)
+                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED)
                 .assertCategory(TaskCategory.LIVE_SYNCHRONIZATION)
                 .assertBinding(TaskBindingType.TIGHT);
     }

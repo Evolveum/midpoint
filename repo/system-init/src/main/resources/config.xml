@@ -1,10 +1,36 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
+
+<!--
+Configuration key-value can be added or overridden using -Dkey=value JVM argument.
+Key is a path to element, starting at "midpoint", separated with "." - for example:
+-Dmidpoint.repository.asServer=false
+or
+-Dmidpoint.profilingEnabled=true
+See more: https://wiki.evolveum.com/display/midPoint/Overriding+config.xml+parameters
+
+It is also possible to read values from file - to do so:
+- use "_FILE" suffix for key element, e.g. keyStorePassword_FILE
+- specify path to the file as its value
+- subsequently, value of key without the _FILE suffix will be set to the content of the file
+Notes:
+- The content of the file will be used as-is, including any newlines, including trailing ones.
+- If the file is missing error is logged, but the startup continues (value will be null).
+- Relative paths are resolved from current working directory, better specify absolute path or
+  start with "${midpoint.home}" (without quotes) can also be used and will be resolved.
+  (Please use / to separate it from the rest of the path, because while it internally ends
+  with / now, this behaviour will likely change later.)
+Example (from under midpoint/keystore element):
+<keyStorePassword_FILE>${midpoint.home}/keystore.pass</keyStorePassword_FILE>
+
+The _FILE feature is not to be confused with elements like <keyStorePath> where the path
+to a file, not its content, is the actual value.
+-->
 <configuration>
     <midpoint>
         <webApplication>

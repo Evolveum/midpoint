@@ -716,8 +716,8 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
                 .build();
         SearchResultList<PrismObject<TaskType>> campaignTasks = repositoryService.searchObjects(TaskType.class, query, null, result);
         for (PrismObject<TaskType> campaignTask : campaignTasks) {
-            if (campaignTask.asObjectable().getExecutionStatus() != TaskExecutionStatusType.CLOSED &&
-                    campaignTask.asObjectable().getExecutionStatus() != TaskExecutionStatusType.SUSPENDED) {
+            if (campaignTask.asObjectable().getSchedulingState() != TaskSchedulingStateType.CLOSED &&
+                    campaignTask.asObjectable().getSchedulingState() != TaskSchedulingStateType.SUSPENDED) {
                 waitForTaskFinish(campaignTask.getOid(), false, timeout);
             }
         }

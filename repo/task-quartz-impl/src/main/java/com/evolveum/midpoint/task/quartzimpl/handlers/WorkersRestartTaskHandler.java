@@ -18,10 +18,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -57,9 +55,9 @@ public class WorkersRestartTaskHandler implements TaskHandler {
         runResult.setOperationResult(opResult);
 
         try {
-            List<Task> workers = task.listSubtasks(true, opResult);
+            List<? extends Task> workers = task.listSubtasks(true, opResult);
             List<Task> workersNotClosed = workers.stream()
-                    .filter(w -> w.getExecutionStatus() != TaskExecutionStatus.CLOSED)
+                    .filter(w -> !w.isClosed())
                     .collect(Collectors.toList());
             // todo consider checking that the subtask is really a worker (workStateConfiguration.taskKind)
             if (!workersNotClosed.isEmpty()) {

@@ -42,7 +42,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
@@ -244,7 +243,7 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
                 task.refresh(waitResult);
                 OperationResult result = task.getResult();
                 if (verbose) { display("Check result", result); }
-                return task.getExecutionStatus() == TaskExecutionStatus.CLOSED;
+                return task.isClosed();
             }
 
             @Override

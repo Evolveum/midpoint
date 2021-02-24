@@ -23,17 +23,18 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ShadowWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -189,17 +190,18 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
 
                     @Override
                     public String getCount() {
-                        try {
-                            PrismReferenceWrapper<Referencable> link = getObjectWrapper().findReference(FocusType.F_LINK_REF);
-                            if (link == null) {
-                                return "0";
-                            }
+                        if (projectionModel.isLoaded()) {
+                            List<ShadowWrapper> shadowWrappers = projectionModel.getObject();
+                            return  shadowWrappers == null ? "0" : Integer.toString(shadowWrappers.size());
 
-                            return Integer.toString(link.getValues().size());
-                        } catch (SchemaException e) {
-                            LoggingUtils.logUnexpectedException(LOGGER, "Problem while getting link refs, {}", e, e.getMessage());
+                        }
+
+                        PrismObject<F> object = getObject();
+                        if (object == null) {
                             return "0";
                         }
+
+                        return Integer.toString(object.asObjectable().getLinkRef().size());
 
                     }
                 });

@@ -503,7 +503,7 @@ public class ProvisioningUtil {
         p.setValue(null);
     }
 
-    public static void addPasswordMetadata(PasswordType p, XMLGregorianCalendar now, PrismObject<? extends FocusType> owner) {
+    public static void addPasswordMetadata(PasswordType p, XMLGregorianCalendar now, ObjectReferenceType ownerRef) {
         MetadataType metadata = p.getMetadata();
         if (metadata != null) {
             return;
@@ -512,8 +512,8 @@ public class ProvisioningUtil {
         // normal thing is that those metadata are provided by model
         metadata = new MetadataType();
         metadata.setCreateTimestamp(now);
-        if (owner != null) {
-            metadata.creatorRef(owner.getOid(), null);
+        if (ownerRef != null) {
+            metadata.creatorRef(ownerRef.getOid(), null);
         }
         p.setMetadata(metadata);
     }

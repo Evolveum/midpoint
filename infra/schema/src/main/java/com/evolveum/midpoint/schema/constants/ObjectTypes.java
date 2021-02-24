@@ -306,6 +306,15 @@ public enum ObjectTypes {
         return false;
     }
 
+    public static boolean isClassManagedByTaskManager(@NotNull Class<? extends ObjectType> clazz) {
+        for (ObjectTypes type : ObjectTypes.values()) {
+            if (type.getClassDefinition().isAssignableFrom(clazz)) {
+                return type.isManagedByTaskManager();
+            }
+        }
+        return false;
+    }
+
     public static boolean isObjectTypeManagedByProvisioning(Class<? extends ObjectType> objectType) {
         Validate.notNull(objectType, "Object type must not be null.");
 

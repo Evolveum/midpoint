@@ -10,11 +10,19 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
+import com.evolveum.midpoint.task.quartzimpl.tasks.TaskStateManager;
+import com.evolveum.midpoint.task.quartzimpl.tasks.TaskRetriever;
+import com.evolveum.midpoint.task.quartzimpl.execution.StalledTasksWatcher;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -22,18 +30,22 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonType;
+
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
  * Responsible for keeping the cluster consistent.
- * (Clusterwide task management operations are in ExecutionManager.)
  *
- * @author Pavol Mederly
+ * TODO finish review of this class
  */
+@Component
 public class ClusterManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClusterManager.class);
@@ -41,17 +53,18 @@ public class ClusterManager {
     private static final String CLASS_DOT = ClusterManager.class.getName() + ".";
     private static final String CHECK_SYSTEM_CONFIGURATION_CHANGED = CLASS_DOT + "checkSystemConfigurationChanged";
 
-    private final TaskManagerQuartzImpl taskManager;
-    private final NodeRegistrar nodeRegistrar;
+    @Autowired private TaskManagerQuartzImpl taskManager;
+    @Autowired private NodeRegistrar nodeRegistrar;
+    @Autowired private TaskManagerConfiguration configuration;
+    @Autowired private StalledTasksWatcher stalledTasksWatcher;
+    @Autowired private TaskRetriever taskRetriever;
+    @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
+    @Autowired private TaskStateManager taskStateManager;
+    @Autowired private LocalScheduler localScheduler;
 
     private ClusterManagerThread clusterManagerThread;
 
-    private static boolean updateNodeExecutionLimitations = true;           // turned off when testing
-
-    public ClusterManager(TaskManagerQuartzImpl taskManager) {
-        this.taskManager = taskManager;
-        this.nodeRegistrar = new NodeRegistrar(taskManager, this);
-    }
+    private static boolean updateNodeExecutionLimitations = true; // turned off when testing
 
     public static void setUpdateNodeExecutionLimitations(boolean value) {
         updateNodeExecutionLimitations = value;
@@ -116,14 +129,6 @@ public class ClusterManager {
         nodeRegistrar.registerNodeUp(result);
     }
 
-    public void postConstruct() {
-        nodeRegistrar.postConstruct();
-    }
-
-    public void preDestroy() {
-        nodeRegistrar.preDestroy();
-    }
-
     class ClusterManagerThread extends Thread {
 
         private boolean canRun = true;
@@ -132,10 +137,10 @@ public class ClusterManager {
         public void run() {
             LOGGER.info("ClusterManager thread starting.");
 
-            long nodeAlivenessCheckInterval = taskManager.getConfiguration().getNodeAlivenessCheckInterval() * 1000L;
+            long nodeAlivenessCheckInterval = configuration.getNodeAlivenessCheckInterval() * 1000L;
             long lastNodeAlivenessCheck = 0;
 
-            long delay = taskManager.getConfiguration().getNodeRegistrationCycleTime() * 1000L;
+            long delay = configuration.getNodeRegistrationCycleTime() * 1000L;
             while (canRun) {
 
                 OperationResult result = new OperationResult(ClusterManagerThread.class + ".run");
@@ -147,7 +152,8 @@ public class ClusterManager {
                     try {
                         NodeType node = checkClusterConfiguration(result);                              // if error, the scheduler will be stopped
                         if (updateNodeExecutionLimitations && node != null) {
-                            taskManager.getExecutionManager().setLocalExecutionLimitations(node);    // we want to set limitations ONLY if the cluster configuration passes (i.e. node object is not inadvertently overwritten)
+                            // we want to set limitations ONLY if the cluster configuration passes (i.e. node object is not inadvertently overwritten)
+                            localScheduler.setLocalExecutionLimitations(node.getTaskExecutionLimitations());
                         }
                         nodeRegistrar.updateNodeObject(result);    // however, we want to update repo even in that case
                     } catch (Throwable t) {
@@ -181,6 +187,7 @@ public class ClusterManager {
 
                 LOGGER.trace("ClusterManager thread sleeping for {} msec", delay);
                 try {
+                    //noinspection BusyWait
                     Thread.sleep(delay);
                 } catch (InterruptedException e) {
                     LOGGER.trace("ClusterManager thread interrupted.");
@@ -207,7 +214,7 @@ public class ClusterManager {
                     LOGGER.warn("Node {} is down, marking it as such", node);
                     List<ItemDelta<?, ?>> modifications = taskManager.getPrismContext().deltaFor(NodeType.class)
                             .item(NodeType.F_RUNNING).replace(false)
-                            .item(NodeType.F_OPERATIONAL_STATUS).replace(NodeOperationalStatusType.DOWN)
+                            .item(NodeType.F_OPERATIONAL_STATUS).replace(NodeOperationalStateType.DOWN)
                             .asItemDeltas();
                     try {
                         getRepositoryService().modifyObject(NodeType.class, node.getOid(), modifications, result);
@@ -227,15 +234,15 @@ public class ClusterManager {
     }
 
     private boolean shouldBeMarkedAsDown(NodeType node) {
-        return node.getOperationalStatus() == NodeOperationalStatusType.UP && (node.getLastCheckInTime() == null ||
+        return node.getOperationalStatus() == NodeOperationalStateType.UP && (node.getLastCheckInTime() == null ||
                 System.currentTimeMillis() - node.getLastCheckInTime().toGregorianCalendar().getTimeInMillis()
-                        > taskManager.getConfiguration().getNodeAlivenessTimeout() * 1000L);
+                        > configuration.getNodeAlivenessTimeout() * 1000L);
     }
 
     private boolean startingForTooLong(NodeType node) {
-        return node.getOperationalStatus() == NodeOperationalStatusType.STARTING && (node.getLastCheckInTime() == null ||
+        return node.getOperationalStatus() == NodeOperationalStateType.STARTING && (node.getLastCheckInTime() == null ||
                 System.currentTimeMillis() - node.getLastCheckInTime().toGregorianCalendar().getTimeInMillis()
-                        > taskManager.getConfiguration().getNodeStartupTimeout() * 1000L);
+                        > configuration.getNodeStartupTimeout() * 1000L);
     }
 
     public void stopClusterManagerThread(long waitTime, OperationResult parentResult) {
@@ -289,11 +296,9 @@ public class ClusterManager {
 
     public PrismObject<NodeType> getNodeById(String nodeIdentifier, OperationResult result) throws ObjectNotFoundException {
         try {
-//            QueryType q = QueryUtil.createNameQuery(nodeIdentifier);        // TODO change to query-by-node-id
             ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, taskManager.getPrismContext(), nodeIdentifier);
             List<PrismObject<NodeType>> nodes = taskManager.getRepositoryService().searchObjects(NodeType.class, q, null, result);
             if (nodes.isEmpty()) {
-//                result.recordFatalError("A node with identifier " + nodeIdentifier + " does not exist.");
                 throw new ObjectNotFoundException("A node with identifier " + nodeIdentifier + " does not exist.");
             } else if (nodes.size() > 1) {
                 throw new SystemException("Multiple nodes with the same identifier '" + nodeIdentifier + "' in the repository.");
@@ -305,7 +310,6 @@ public class ClusterManager {
         }
     }
 
-
     /**
      * Check whether system configuration has not changed in repository (e.g. by another node in cluster).
      * Applies new configuration if so.
@@ -313,7 +317,7 @@ public class ClusterManager {
     private void checkSystemConfigurationChanged(OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(CHECK_SYSTEM_CONFIGURATION_CHANGED);
         try {
-            taskManager.getSystemConfigurationChangeDispatcher().dispatch(false, false, result);
+            systemConfigurationChangeDispatcher.dispatch(false, false, result);
             result.computeStatus();
         } catch (Throwable t) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply system configuration", t);
@@ -324,18 +328,32 @@ public class ClusterManager {
     private long lastCheckedWaitingTasks = 0L;
 
     private void checkWaitingTasks(OperationResult result) throws SchemaException {
-        if (System.currentTimeMillis() > lastCheckedWaitingTasks + taskManager.getConfiguration().getWaitingTasksCheckInterval() * 1000L) {
+        if (System.currentTimeMillis() > lastCheckedWaitingTasks + configuration.getWaitingTasksCheckInterval() * 1000L) {
             lastCheckedWaitingTasks = System.currentTimeMillis();
-            taskManager.checkWaitingTasks(result);
+            doCheckWaitingTasks(result);
         }
+    }
+
+    private void doCheckWaitingTasks(OperationResult result) throws SchemaException {
+        int count = 0;
+        List<? extends Task> tasks = taskRetriever.listWaitingTasks(TaskWaitingReasonType.OTHER_TASKS, result);
+        for (Task task : tasks) {
+            try {
+                taskStateManager.unpauseIfPossible((TaskQuartzImpl) task, result);
+                count++;
+            } catch (SchemaException | ObjectNotFoundException e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check dependencies for task {}", e, task);
+            }
+        }
+        LOGGER.trace("Check waiting tasks completed; {} tasks checked.", count);
     }
 
     private long lastCheckedStalledTasks = 0L;
 
     private void checkStalledTasks(OperationResult result) {
-        if (System.currentTimeMillis() > lastCheckedStalledTasks + taskManager.getConfiguration().getStalledTasksCheckInterval() * 1000L) {
+        if (System.currentTimeMillis() > lastCheckedStalledTasks + configuration.getStalledTasksCheckInterval() * 1000L) {
             lastCheckedStalledTasks = System.currentTimeMillis();
-            taskManager.checkStalledTasks(result);
+            stalledTasksWatcher.checkStalledTasks(result);
         }
     }
 }

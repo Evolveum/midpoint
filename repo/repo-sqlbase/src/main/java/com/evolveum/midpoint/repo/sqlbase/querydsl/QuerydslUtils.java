@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonType;
 
 // TODO MID-6318, MID-6319 review what needed (let's say in 2021), drop the rest
@@ -66,7 +66,7 @@ public enum QuerydslUtils {
 
         // each enum type must be registered if we want to map it as objects (to PG enum types)
         querydslConfiguration.register(new EnumAsObjectType<>(OperationResultStatusType.class));
-        querydslConfiguration.register(new EnumAsObjectType<>(TaskExecutionStatusType.class));
+        querydslConfiguration.register(new EnumAsObjectType<>(TaskExecutionStateType.class));
         querydslConfiguration.register(new EnumAsObjectType<>(TaskWaitingReasonType.class));
 
         return querydslConfiguration;

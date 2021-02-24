@@ -72,7 +72,7 @@ public class AuditHelper {
         try {
             LOGGER.trace("Auditing the record:\n{}", record.debugDumpLazily());
             resolveNamesInDeltas(record, externalNameResolver, result);
-            auditService.audit(record, task);
+            auditService.audit(record, task, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;

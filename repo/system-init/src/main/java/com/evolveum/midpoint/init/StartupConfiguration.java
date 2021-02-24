@@ -7,8 +7,10 @@
 package com.evolveum.midpoint.init;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 import ch.qos.logback.classic.LoggerContext;
@@ -21,7 +23,6 @@ import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.interpol.ConfigurationInterpolator;
 import org.apache.commons.configuration2.interpol.Lookup;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wss4j.dom.engine.WSSConfig;
 import org.jetbrains.annotations.NotNull;
@@ -275,9 +276,8 @@ public class StartupConfiguration implements MidpointConfiguration {
                     overrideProperty(valueKey, value);
                     LOGGER.trace("Property '{}' was read from '{}': '{}'", valueKey, filename, value);
                 } catch (IOException e) {
-                    String message =
-                            "Couldn't read the value of configuration key '" + valueKey + "' from the file '" + filename + "': "
-                                    + e.getMessage();
+                    String message = "Couldn't read the value of configuration key '" + valueKey
+                            + "' from the file '" + filename + "': " + e.getMessage();
                     LoggingUtils.logUnexpectedException(LOGGER, message, e);
                     System.err.println(message);
                 }
@@ -286,10 +286,9 @@ public class StartupConfiguration implements MidpointConfiguration {
     }
 
     private String readFile(String filename) throws IOException {
-        try (FileReader reader = new FileReader(filename)) {
-            List<String> lines = IOUtils.readLines(reader);
-            return String.join("\n", lines);
-        }
+        Path filePath = Path.of(filename.replace("${midpoint.home}", midPointHomePath))
+                .toAbsolutePath(); // if missing this provides better diagnostics
+        return Files.readString(filePath, StandardCharsets.UTF_8);
     }
 
     private void applyEnvironmentProperties() {

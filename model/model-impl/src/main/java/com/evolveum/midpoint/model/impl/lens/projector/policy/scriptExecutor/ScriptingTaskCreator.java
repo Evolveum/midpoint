@@ -9,7 +9,8 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 
 import static com.evolveum.midpoint.model.api.util.ReferenceResolver.Source.MODEL;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType.RUNNABLE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType.READY;
 
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 
@@ -91,6 +92,7 @@ abstract class ScriptingTaskCreator {
         newTask.setTaskIdentifier(null);
         newTask.setOwnerRef(createObjectRef(principal.getFocus(), beans.prismContext));
         newTask.setExecutionStatus(RUNNABLE);
+        newTask.setSchedulingState(READY);
         return newTask;
     }
 

@@ -162,7 +162,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
         return true;
     }
 
-    public static void addSummaryPanel(MarkupContainer parentComponent, PrismObject<FocusType> focus, PrismObjectWrapper<FocusType> focusWrapper, String id, ModelServiceLocator serviceLocator) {
+    public static void addSummaryPanel(MarkupContainer parentComponent, PrismObject<FocusType> focus, String id, ModelServiceLocator serviceLocator) {
         if (focus.getCompileTimeClass().equals(UserType.class)) {
             parentComponent.add(new UserSummaryPanel(id,
                     Model.of((UserType) focus.asObjectable()), serviceLocator));

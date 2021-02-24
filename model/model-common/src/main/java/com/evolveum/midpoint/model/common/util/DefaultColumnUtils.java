@@ -229,7 +229,7 @@ public class DefaultColumnUtils {
             TaskType task = (TaskType) object.getRealValue();
             if (itemPath.equivalent(TaskType.F_COMPLETION_TIMESTAMP)) {
                 XMLGregorianCalendar timestamp = task.getCompletionTimestamp();
-                if (timestamp != null && task.getExecutionStatus().equals(TaskExecutionStatusType.CLOSED)) {
+                if (timestamp != null && task.getExecutionStatus() == TaskExecutionStateType.CLOSED) {
                     // Do we want default locale or default locale for FORMAT category?
                     // For latter no .withLocale() would be needed.
                     DateTimeFormatter formatter = DateTimeFormatter

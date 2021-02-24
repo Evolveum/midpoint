@@ -41,7 +41,7 @@ public class RTask extends RObject implements OperationResultFull {
 
     private RPolyString nameCopy;
     private String taskIdentifier;
-    private RTaskExecutionStatus executionStatus;
+    private RTaskExecutionState executionStatus;
     private String node;
     private String category;
     private String handlerUri;
@@ -117,7 +117,7 @@ public class RTask extends RObject implements OperationResultFull {
     }
 
     @Enumerated(EnumType.ORDINAL)
-    public RTaskExecutionStatus getExecutionStatus() {
+    public RTaskExecutionState getExecutionStatus() {
         return executionStatus;
     }
 
@@ -216,7 +216,7 @@ public class RTask extends RObject implements OperationResultFull {
         this.binding = binding;
     }
 
-    public void setExecutionStatus(RTaskExecutionStatus executionStatus) {
+    public void setExecutionStatus(RTaskExecutionState executionStatus) {
         this.executionStatus = executionStatus;
     }
 
@@ -327,7 +327,7 @@ public class RTask extends RObject implements OperationResultFull {
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setTaskIdentifier(jaxb.getTaskIdentifier());
-        repo.setExecutionStatus(RUtil.getRepoEnumValue(jaxb.getExecutionStatus(), RTaskExecutionStatus.class));
+        repo.setExecutionStatus(RUtil.getRepoEnumValue(jaxb.getExecutionStatus(), RTaskExecutionState.class));
         repo.setHandlerUri(jaxb.getHandlerUri());
         repo.setLastRunFinishTimestamp(jaxb.getLastRunFinishTimestamp());
         repo.setCompletionTimestamp(jaxb.getCompletionTimestamp());

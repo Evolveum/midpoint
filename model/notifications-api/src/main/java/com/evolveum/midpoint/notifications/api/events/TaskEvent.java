@@ -33,8 +33,6 @@ public interface TaskEvent extends Event {
 
     boolean isInterrupted();
 
-    boolean isRestartRequested();
-
     OperationResultStatus getOperationResultStatus();
 
     String getMessage();

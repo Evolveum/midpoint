@@ -220,7 +220,7 @@ public class AbstractRestController {
             record.setSessionIdentifier(((MidpointAuthentication) authentication).getSessionId());
         }
 
-        auditService.audit(record, task);
+        auditService.audit(record, task, result);
     }
 
     private boolean isAuditingSkipped(OperationResult result) {
