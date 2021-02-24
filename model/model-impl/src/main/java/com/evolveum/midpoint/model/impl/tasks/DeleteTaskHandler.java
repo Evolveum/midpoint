@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.*;
@@ -45,6 +46,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+
+import static com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.*;
 
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
@@ -193,18 +196,19 @@ public class DeleteTaskHandler implements TaskHandler {
                     String objectName = PolyString.getOrig(object.getName());
                     String objectDisplayName = StatisticsUtil.getDisplayName(object);
                     String objectOid = object.getOid();
+                    IterationItemInformation info = new IterationItemInformation(objectName, objectDisplayName, objectTypeName, objectOid);
 
-                    task.recordIterativeOperationStart(objectName, objectDisplayName, objectTypeName, objectOid);
-                    long objectDeletionStarted = System.currentTimeMillis();
+                    Operation op = task.recordIterativeOperationStart(info);
                     try {
                         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), execOptions, task, opResult);
-                        task.recordIterativeOperationEnd(objectName, objectDisplayName, objectTypeName, objectOid, objectDeletionStarted, null);
+                        op.succeeded();
                     } catch (IndestructibilityViolationException ex) {
                         skipped++;
+                        op.skipped();
                         continue;
                     } catch (Throwable t) {
-                        task.recordIterativeOperationEnd(objectName, objectDisplayName, objectTypeName, objectOid, objectDeletionStarted, t);
-                        throw t;        // TODO we don't want to continue processing if an error occurs?
+                        op.failed(t);
+                        throw t; // TODO we don't want to continue processing if an error occurs?
                     }
                     task.incrementProgressAndStoreStatsIfNeeded();
                 }

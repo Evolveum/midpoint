@@ -122,7 +122,7 @@ public class TestThresholdsReconFull extends TestThresholds {
 
         assertTaskSchedulingState(TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, TaskSchedulingStateType.READY);
 
-        IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
+        IterativeTaskInformationType infoType = getIterativeTaskInformation(taskAfter);
         assertEquals(infoType.getTotalFailureCount(), 0);
 
         PrismObject<UserType> user10 = findUserByUsername("user10");
@@ -147,7 +147,7 @@ public class TestThresholdsReconFull extends TestThresholds {
 
     @Override
     protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) {
-        IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
+        IterativeTaskInformationType infoType = getIterativeTaskInformation(taskAfter);
         assertEquals(infoType.getTotalFailureCount(), 1);
 
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
@@ -164,7 +164,7 @@ public class TestThresholdsReconFull extends TestThresholds {
     }
 
     private void assertSynchronizationStatisticsFull(Task taskAfter) {
-        IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
+        IterativeTaskInformationType infoType = getIterativeTaskInformation(taskAfter);
         assertEquals(infoType.getTotalFailureCount(), 0);
         assertNull(taskAfter.getWorkState(), "Unexpected work state in task.");
 
@@ -172,7 +172,7 @@ public class TestThresholdsReconFull extends TestThresholds {
 
     @Override
     protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
-        IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
+        IterativeTaskInformationType infoType = getIterativeTaskInformation(taskAfter);
         assertEquals(infoType.getTotalFailureCount(), 1);
 
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
@@ -189,7 +189,7 @@ public class TestThresholdsReconFull extends TestThresholds {
     }
 
     protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
-        IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
+        IterativeTaskInformationType infoType = getIterativeTaskInformation(taskAfter);
         assertEquals(infoType.getTotalFailureCount(), 1);
         displayValue("Iterative task information", IterativeTaskInformation.format(infoType));
 

@@ -529,4 +529,15 @@ public class XmlTypeConverter {
         }
     }
 
+    public static boolean isAfterNullLast(XMLGregorianCalendar v1, XMLGregorianCalendar v2) {
+        if (v1 == null && v2 == null) {
+            return false;
+        } else if (v1 == null) {
+            return true;
+        } else if (v2 == null) {
+            return false;
+        } else {
+            return v1.compare(v2) == DatatypeConstants.GREATER;
+        }
+    }
 }

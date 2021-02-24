@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -42,24 +43,22 @@ public interface StatisticsCollector {
     void recordMappingOperation(String objectOid, String objectName, String objectTypeName, String mappingName, long duration);
 
     /**
-     * Records information about iterative processing of objects.
+     * Records the start of iterative operation.
+     * The operation end is recorded by calling appropriate method on the returned object.
      */
-
-    void recordIterativeOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid);
-
-    default void recordIterativeOperationStart(IterationItemInformation info) {
-        recordIterativeOperationStart(info.getObjectName(), info.getObjectDisplayName(), info.getObjectType(), info.getObjectOid());
+    @NotNull default Operation recordIterativeOperationStart(PrismObject<? extends ObjectType> object) {
+        return recordIterativeOperationStart(new IterationItemInformation(object));
     }
 
-    void recordIterativeOperationStart(ShadowType shadow);
-
-    void recordIterativeOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception);
-
-    default void recordIterativeOperationEnd(IterationItemInformation info, long started, Throwable exception) {
-        recordIterativeOperationEnd(info.getObjectName(), info.getObjectDisplayName(), info.getObjectType(), info.getObjectOid(), started, exception);
+    @NotNull default Operation recordIterativeOperationStart(IterationItemInformation info) {
+        return recordIterativeOperationStart(new IterativeOperation(info));
     }
 
-    void recordIterativeOperationEnd(ShadowType shadow, long started, Throwable exception);
+    /**
+     * Records the start of iterative operation.
+     * The operation end is recorded by calling appropriate method on the returned object.
+     */
+    @NotNull Operation recordIterativeOperationStart(IterativeOperation operation);
 
     /**
      * Records information about repository (focal) events.
@@ -88,6 +87,7 @@ public interface StatisticsCollector {
     // EXPERIMENTAL - TODO: replace by something more serious
     @NotNull
     @Experimental
+    @Deprecated
     List<String> getLastFailures();
 
 }

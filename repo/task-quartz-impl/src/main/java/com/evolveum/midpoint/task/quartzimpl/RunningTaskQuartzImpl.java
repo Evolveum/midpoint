@@ -303,7 +303,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
         List<Statistics> subCollections = subtasks.stream()
                 .map(RunningTaskQuartzImpl::getStatistics)
                 .collect(Collectors.toList());
-        return statistics.getAggregatedLiveOperationStats(subCollections);
+        return statistics.getAggregatedOperationStats(subCollections);
     }
 
     @Override

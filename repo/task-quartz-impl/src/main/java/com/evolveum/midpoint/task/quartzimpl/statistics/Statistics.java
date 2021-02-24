@@ -16,6 +16,7 @@ import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.statistics.*;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -29,10 +30,12 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
+
 import static java.util.Collections.emptySet;
 
 /**
@@ -55,9 +58,9 @@ public class Statistics implements WorkBucketStatisticsCollector {
     }
 
     private EnvironmentalPerformanceInformation environmentalPerformanceInformation = new EnvironmentalPerformanceInformation();
-    private SynchronizationInformation synchronizationInformation;                // has to be explicitly enabled
-    private IterativeTaskInformation iterativeTaskInformation;                    // has to be explicitly enabled
-    private ActionsExecutedInformation actionsExecutedInformation;            // has to be explicitly enabled
+    private SynchronizationInformation synchronizationInformation; // has to be explicitly enabled (by setting non-null value)
+    private IterativeTaskInformation iterativeTaskInformation; // has to be explicitly enabled (by setting non-null value)
+    private ActionsExecutedInformation actionsExecutedInformation; // has to be explicitly enabled (by setting non-null value)
 
     /**
      * This data structure is synchronized explicitly. Because it is updated infrequently, it should be sufficient.
@@ -115,6 +118,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
     private volatile String cachingConfigurationDump;
 
     @NotNull
+    @Deprecated
     public List<String> getLastFailures() {
         return iterativeTaskInformation != null ? iterativeTaskInformation.getLastFailures() : Collections.emptyList();
     }
@@ -134,19 +138,19 @@ public class Statistics implements WorkBucketStatisticsCollector {
         return rv;
     }
 
+    /** We assume that the children have compatible part numbers. */
     private IterativeTaskInformationType getAggregateIterativeTaskInformation(Collection<Statistics> children) {
         if (iterativeTaskInformation == null) {
             return null;
         }
-        IterativeTaskInformationType rv = new IterativeTaskInformationType();
-        IterativeTaskInformation.addTo(rv, iterativeTaskInformation.getAggregatedValue(), false);
+        IterativeTaskInformationType sum = iterativeTaskInformation.getValueCopy();
         for (Statistics child : children) {
             IterativeTaskInformation info = child.getIterativeTaskInformation();
             if (info != null) {
-                IterativeTaskInformation.addTo(rv, info.getAggregatedValue(), false);
+                IterativeTaskInformation.addToKeepingParts(sum, info.getValueCopy());
             }
         }
-        return rv;
+        return sum;
     }
 
     private SynchronizationInformationType getAggregateSynchronizationInformation(Collection<Statistics> children) {
@@ -221,7 +225,12 @@ public class Statistics implements WorkBucketStatisticsCollector {
         }
     }
 
-    public OperationStatsType getAggregatedLiveOperationStats(Collection<Statistics> children) {
+    /**
+     * Gets aggregated operation statistics from this object and provided child objects.
+     *
+     * We assume that the children have compatible part numbers.
+     */
+    public OperationStatsType getAggregatedOperationStats(Collection<Statistics> children) {
         EnvironmentalPerformanceInformationType env = getAggregateEnvironmentalPerformanceInformation(children);
         IterativeTaskInformationType itit = getAggregateIterativeTaskInformation(children);
         SynchronizationInformationType sit = getAggregateSynchronizationInformation(children);
@@ -324,27 +333,12 @@ public class Statistics implements WorkBucketStatisticsCollector {
         }
     }
 
-    public synchronized void recordIterativeOperationEnd(String objectName, String objectDisplayName, QName objectType,
-            String objectOid, long started, Throwable exception) {
+    @NotNull
+    public synchronized IterativeTaskInformation.Operation recordIterativeOperationStart(IterativeOperation operation) {
         if (iterativeTaskInformation != null) {
-            iterativeTaskInformation.recordOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception);
-        }
-    }
-
-    public void recordIterativeOperationEnd(ShadowType shadow, long started, Throwable exception) {
-        recordIterativeOperationEnd(PolyString.getOrig(shadow.getName()), StatisticsUtil.getDisplayName(shadow),
-                ShadowType.COMPLEX_TYPE, shadow.getOid(), started, exception);
-    }
-
-    public void recordIterativeOperationStart(ShadowType shadow) {
-        recordIterativeOperationStart(PolyString.getOrig(shadow.getName()), StatisticsUtil.getDisplayName(shadow),
-                ShadowType.COMPLEX_TYPE, shadow.getOid());
-    }
-
-    public synchronized void recordIterativeOperationStart(String objectName, String objectDisplayName, QName objectType,
-            String objectOid) {
-        if (iterativeTaskInformation != null) {
-            iterativeTaskInformation.recordOperationStart(objectName, objectDisplayName, objectType, objectOid);
+            return iterativeTaskInformation.recordOperationStart(operation);
+        } else {
+            return Operation.none();
         }
     }
 
@@ -365,7 +359,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
             String defaultOid, ChangeType changeType, String channel, Throwable exception) {
         if (actionsExecutedInformation != null) {
             String name, displayName, oid;
-            PrismObjectDefinition definition;
+            PrismObjectDefinition<?> definition;
             Class<T> clazz;
             if (object != null) {
                 name = PolyString.getOrig(object.getName());
@@ -412,7 +406,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
     }
 
     public void resetIterativeTaskInformation(IterativeTaskInformationType value) {
-        iterativeTaskInformation = new IterativeTaskInformation(value);
+        iterativeTaskInformation = new IterativeTaskInformation(value, prismContext);
     }
 
     public void resetActionsExecutedInformation(ActionsExecutedInformationType value) {
@@ -486,11 +480,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
         XMLGregorianCalendar now = createXMLGregorianCalendar(System.currentTimeMillis());
         String dump = "Caching configuration for thread " + Thread.currentThread().getName() + " on " + now + ":\n\n";
         String cfg = cacheConfigurationManager.dumpThreadLocalConfiguration(false);
-        if (cfg != null) {
-            dump += cfg;
-        } else {
-            dump += "(none defined)";
-        }
+        dump += Objects.requireNonNullElse(cfg, "(none defined)");
         cachingConfigurationDump = dump;
     }
 

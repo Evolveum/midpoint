@@ -788,8 +788,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
                     .build();
             TaskType task = taskManager.getObject(TaskType.class, taskOid, options, result).asObjectable();
             OperationStatsType stats = task.getOperationStats();
-            Integer totalSuccessCount = stats != null && stats.getIterativeTaskInformation() != null ?
-                    stats.getIterativeTaskInformation().getTotalSuccessCount() : null;
+            int totalSuccessCount = TaskTypeUtil.getObjectsProcessedSuccesses(task); // todo ok?
             System.out.println((System.currentTimeMillis() - start) + ": subtasks: " + task.getSubtaskRef().size() +
                     ", progress = " + task.getProgress() + ", objects = " + totalSuccessCount);
             if (task.getSchedulingState() != TaskSchedulingStateType.READY) {

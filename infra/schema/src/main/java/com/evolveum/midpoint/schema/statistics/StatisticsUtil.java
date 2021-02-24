@@ -20,51 +20,56 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 
 /**
- * @author Pavol Mederly
+ * Utility methods related to task statistics (`OperationStatsType`).
  */
 public class StatisticsUtil {
 
-    public static String getDisplayName(ShadowType shadow) {
-        String objectName = PolyString.getOrig(shadow.getName());
-        QName oc = shadow.getObjectClass();
-        String ocName = oc != null ? oc.getLocalPart() : null;
-        return objectName + " (" + shadow.getKind() + " - " + shadow.getIntent() + " - " + ocName + ")";
-    }
-
+    /**
+     * Returns display name for given object, e.g. fullName for a user, displayName for a role,
+     * and more detailed description for a shadow.
+     */
     public static <O extends ObjectType> String getDisplayName(PrismObject<O> object) {
         if (object == null) {
             return null;
         }
         O objectable = object.asObjectable();
         if (objectable instanceof UserType) {
-            return "User " + ((UserType) objectable).getFullName() + " (" + object.getName() + ")";
-        } else if (objectable instanceof RoleType) {
-            return "Role " + ((RoleType) objectable).getDisplayName() + " (" + object.getName() + ")";
-        } else if (objectable instanceof OrgType) {
-            return "Org " + ((OrgType) objectable).getDisplayName() + " (" + object.getName() + ")";
+            return PolyString.getOrig(((UserType) objectable).getFullName());
+        } else if (objectable instanceof AbstractRoleType) {
+            return PolyString.getOrig(((AbstractRoleType) objectable).getDisplayName());
         } else if (objectable instanceof ShadowType) {
-            return "Shadow " + getDisplayName((ShadowType) objectable);
+            ShadowType shadow = (ShadowType) objectable;
+            String objectName = PolyString.getOrig(shadow.getName());
+            QName oc = shadow.getObjectClass();
+            String ocName = oc != null ? oc.getLocalPart() : null;
+            return objectName + " (" + shadow.getKind() + " - " + shadow.getIntent() + " - " + ocName + ")";
         } else {
-            return objectable.getClass().getSimpleName() + " " + objectable.getName();
+            return null;
         }
     }
 
-    public static QName getObjectType(ObjectType objectType, PrismContext prismContext) {
-        if (objectType == null) {
+    /**
+     * Returns the type name for an object.
+     * (This really belongs somewhere else, not here.)
+     */
+    public static QName getObjectType(ObjectType object, PrismContext prismContext) {
+        if (object == null) {
             return null;
         }
-        PrismObjectDefinition def = objectType.asPrismObject().getDefinition();
-        if (def == null) {
-            Class<? extends Objectable> clazz = objectType.asPrismObject().getCompileTimeClass();
-            if (clazz == null) {
-                return null;
-            }
-            def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
-            if (def == null) {
-                return ObjectType.COMPLEX_TYPE;
-            }
+        PrismObjectDefinition<?> objectDef = object.asPrismObject().getDefinition();
+        if (objectDef != null) {
+            return objectDef.getTypeName();
         }
-        return def.getTypeName();
+        Class<? extends Objectable> clazz = object.asPrismObject().getCompileTimeClass();
+        if (clazz == null) {
+            return null;
+        }
+        PrismObjectDefinition<?> defFromRegistry = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
+        if (defFromRegistry != null) {
+            return defFromRegistry.getTypeName();
+        } else {
+            return ObjectType.COMPLEX_TYPE;
+        }
     }
 
     public static boolean isEmpty(EnvironmentalPerformanceInformationType info) {
@@ -88,7 +93,24 @@ public class StatisticsUtil {
         return provisioningStatistics == null || provisioningStatistics.getEntry().isEmpty();
     }
 
-    public static void addTo(@NotNull OperationStatsType aggregate, @Nullable OperationStatsType increment) {
+    /**
+     * Computes a sum of two operation statistics.
+     * Returns a modifiable object, independent from the source ones.
+     */
+    public static OperationStatsType sum(OperationStatsType a, OperationStatsType b) {
+        if (a == null) {
+            return CloneUtil.clone(b);
+        } else {
+            OperationStatsType sum = CloneUtil.clone(a);
+            addTo(sum, b);
+            return sum;
+        }
+    }
+
+    /**
+     * Adds an statistics increment into given aggregate statistic information.
+     */
+    private static void addTo(@NotNull OperationStatsType aggregate, @Nullable OperationStatsType increment) {
         if (increment == null) {
             return;
         }
@@ -98,12 +120,7 @@ public class StatisticsUtil {
             }
             EnvironmentalPerformanceInformation.addTo(aggregate.getEnvironmentalPerformanceInformation(), increment.getEnvironmentalPerformanceInformation());
         }
-        if (increment.getIterativeTaskInformation() != null) {
-            if (aggregate.getIterativeTaskInformation() == null) {
-                aggregate.setIterativeTaskInformation(new IterativeTaskInformationType());
-            }
-            IterativeTaskInformation.addTo(aggregate.getIterativeTaskInformation(), increment.getIterativeTaskInformation(), false);
-        }
+        IterativeTaskInformation.addToMergingParts(aggregate.getIterativeTaskInformation(), increment.getIterativeTaskInformation());
         if (increment.getSynchronizationInformation() != null) {
             if (aggregate.getSynchronizationInformation() == null) {
                 aggregate.setSynchronizationInformation(new SynchronizationInformationType());
@@ -127,16 +144,6 @@ public class StatisticsUtil {
                 aggregate.setCachesPerformanceInformation(new CachesPerformanceInformationType());
             }
             CachePerformanceInformationUtil.addTo(aggregate.getCachesPerformanceInformation(), increment.getCachesPerformanceInformation());
-        }
-    }
-
-    public static OperationStatsType sum(OperationStatsType a, OperationStatsType b) {
-        if (a == null) {
-            return CloneUtil.clone(b);
-        } else {
-            OperationStatsType sum = CloneUtil.clone(a);
-            addTo(sum, b);
-            return sum;
         }
     }
 

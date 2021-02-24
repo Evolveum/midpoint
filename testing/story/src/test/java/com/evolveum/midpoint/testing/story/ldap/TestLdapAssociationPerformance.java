@@ -335,7 +335,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         //assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 0);
 
-        assertEquals("Wrong success count", NUMBER_OF_GENERATED_USERS, statistics.getIterativeTaskInformation().getTotalSuccessCount());
+        assertEquals("Wrong success count", NUMBER_OF_GENERATED_USERS, getTotalSuccessCount(statistics));
     }
 
     @Test
@@ -374,7 +374,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         //assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 0);
 
-        assertEquals("Wrong success count", NUMBER_OF_GENERATED_USERS, statistics.getIterativeTaskInformation().getTotalSuccessCount());
+        assertEquals("Wrong success count", NUMBER_OF_GENERATED_USERS, getTotalSuccessCount(statistics));
     }
 
     @Test
@@ -417,7 +417,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
         //dumpTaskTree(TASK_RECOMPUTE_MULTINODE_OID, result);
 
-        assertEquals("Wrong success count", NUMBER_OF_GENERATED_USERS, statistics.getIterativeTaskInformation().getTotalSuccessCount());
+        assertEquals("Wrong success count", NUMBER_OF_GENERATED_USERS, getTotalSuccessCount(statistics));
     }
 
     @Test
@@ -461,7 +461,12 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
         //dumpTaskTree(TASK_RECOMPUTE_MULTINODE_OID, result);
 
-        assertEquals("Wrong success count", NUMBER_OF_GENERATED_USERS, statistics.getIterativeTaskInformation().getTotalSuccessCount());
+        assertEquals("Wrong success count", NUMBER_OF_GENERATED_USERS, getTotalSuccessCount(statistics));
+    }
+
+    private int getTotalSuccessCount(OperationStatsType statistics) {
+        // FIXME!!!
+        return statistics.getIterativeTaskInformation().getTotalSuccessCount();
     }
 
     @Test
@@ -506,7 +511,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         //assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 0);
 
-        assertEquals("Wrong success count", NUMBER_OF_GENERATED_USERS, statistics.getIterativeTaskInformation().getTotalSuccessCount());
+        assertEquals("Wrong success count", NUMBER_OF_GENERATED_USERS, getTotalSuccessCount(statistics));
     }
 
     @Test

@@ -287,4 +287,8 @@ public abstract class TestThresholds extends AbstractStoryTest {
                 .extension()
                 .assertPropertyValuesEqual(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, getWorkerThreads());
     }
+
+    IterativeTaskInformationType getIterativeTaskInformation(Task taskAfter) {
+        return taskAfter.getStoredOperationStats().getIterativeTaskInformation(); // FIXME !!!
+    }
 }

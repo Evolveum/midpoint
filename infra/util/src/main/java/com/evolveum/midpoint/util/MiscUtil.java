@@ -1009,4 +1009,12 @@ public class MiscUtil {
             return Arrays.asList(values);
         }
     }
+
+    public static int or0(Integer value) {
+        return Objects.requireNonNullElse(value, 0);
+    }
+
+    public static long or0(Long value) {
+        return Objects.requireNonNullElse(value, 0L);
+    }
 }

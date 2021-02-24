@@ -9,6 +9,11 @@ package com.evolveum.midpoint.task.quartzimpl.nodes;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
+
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -55,14 +60,12 @@ public class NodeCleaner {
                     XmlTypeConverter.compareMillis(node.asObjectable().getLastCheckInTime(), deleteNodesNotCheckedInAfter) <= 0) {
                 // This includes last check in time == null
                 LOGGER.info("Deleting dead node {}; last check in time = {}", node, node.asObjectable().getLastCheckInTime());
-                String nodeName = PolyString.getOrig(node.getName());
-                long started = System.currentTimeMillis();
+                Operation op = task.recordIterativeOperationStart(node);
                 try {
-                    task.recordIterativeOperationStart(nodeName, null, NodeType.COMPLEX_TYPE, node.getOid());
                     repositoryService.deleteObject(NodeType.class, node.getOid(), result);
-                    task.recordIterativeOperationEnd(nodeName, null, NodeType.COMPLEX_TYPE, node.getOid(), started, null);
+                    op.succeeded();
                 } catch (Throwable t) {
-                    task.recordIterativeOperationEnd(nodeName, null, NodeType.COMPLEX_TYPE, node.getOid(), started, t);
+                    op.failed(t);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete dead node {}", t, node);
                 }
             }

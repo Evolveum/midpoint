@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
 import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.prism.*;
@@ -71,13 +72,13 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
             if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof ConnectorHostType) {
                 PrismObject<ConnectorHostType> connectorHostTypePrismObject = ((PrismObjectValue) value).asPrismObject();
                 Set<ConnectorType> newConnectors;
-                long started = operationsHelper.recordStart(context, connectorHostTypePrismObject.asObjectable());
+                Operation op = operationsHelper.recordStart(context, connectorHostTypePrismObject.asObjectable());
                 Throwable exception = null;
                 try {
                     newConnectors = modelService.discoverConnectors(connectorHostTypePrismObject.asObjectable(), context.getTask(), result);
-                    operationsHelper.recordEnd(context, connectorHostTypePrismObject.asObjectable(), started, null);
+                    operationsHelper.recordEnd(context, op, null);
                 } catch (CommunicationException | SecurityViolationException | SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException e) {
-                    operationsHelper.recordEnd(context, connectorHostTypePrismObject.asObjectable(), started, e);
+                    operationsHelper.recordEnd(context, op, e);
                     exception = processActionException(e, NAME, value, context);
                     newConnectors = Collections.emptySet();
                 }

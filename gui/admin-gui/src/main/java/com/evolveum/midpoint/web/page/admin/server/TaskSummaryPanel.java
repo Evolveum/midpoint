@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
@@ -203,15 +204,13 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         return new IModel<String>() {
             @Override
             public String getObject() {
-                    TaskType taskType = getModelObject();
-                    if (taskType.getOperationStats() != null && taskType.getOperationStats().getIterativeTaskInformation() != null &&
-                            taskType.getOperationStats().getIterativeTaskInformation().getLastSuccessObjectName() != null) {
-                        return createStringResource("TaskSummaryPanel.lastProcessed",
-                                taskType.getOperationStats().getIterativeTaskInformation().getLastSuccessObjectName()).getString();
-                    } else {
-                        return "";
-                    }
-//                }
+                TaskType taskType = getModelObject();
+                String lastSuccess = TaskTypeUtil.getLastSuccessObjectName(taskType);
+                if (lastSuccess != null) {
+                    return createStringResource("TaskSummaryPanel.lastProcessed", lastSuccess).getString();
+                } else {
+                    return "";
+                }
             }
         };
     }

@@ -13,6 +13,8 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -248,10 +250,7 @@ public class DefaultColumnUtils {
                 return localization.translate(key, params, Locale.getDefault(), key);
             } else if (itemPath.equivalent(ItemPath.create(TaskType.F_OPERATION_STATS, OperationStatsType.F_ITERATIVE_TASK_INFORMATION,
                     IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT))) {
-                if (task.getOperationStats() != null && task.getOperationStats().getIterativeTaskInformation() != null) {
-                    return String.valueOf(task.getOperationStats().getIterativeTaskInformation().getTotalFailureCount());
-                }
-                return "0";
+                return String.valueOf(TaskTypeUtil.getObjectsProcessedFailures(task)); // TODO or aggregated?
             } else if (itemPath.equivalent(TaskType.F_PROGRESS)) {
                 List<Object> localizationObject = new ArrayList<>();
                 String key = TaskUtil.getProgressDescription(task, localizationObject);

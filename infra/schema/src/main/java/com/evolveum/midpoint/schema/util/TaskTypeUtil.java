@@ -72,53 +72,80 @@ public class TaskTypeUtil {
         }
     }
 
+    // TODO?
     public static int getObjectsProcessed(TaskType task) {
         OperationStatsType stats = task.getOperationStats();
         if (stats == null) {
             return 0;
         }
-        IterativeTaskInformationType iterativeStats = stats.getIterativeTaskInformation();
-        if (iterativeStats == null) {
-            return 0;
-        }
-        return iterativeStats.getTotalSuccessCount() + iterativeStats.getTotalFailureCount();
+        throw new UnsupportedOperationException(); // FIXME implement
+//        return stats.getIterativeTaskInformation().stream()
+//                .mapToInt(info -> getCount(info.getSucceeded()) + getCount(info.getFailed()) + getCount(info.getSkipped()))
+//                .sum();
     }
 
-    public static int getObjectsProcessedFailures(TaskType task, PrismContext prismContext) {
+    private static int getCount(ProcessedItemSetType set) {
+        return set != null && set.getCount() != null ? set.getCount() : 0;
+    }
+
+    public static int getAggregatedObjectsProcessedFailures(TaskType task, PrismContext prismContext) {
         OperationStatsType stats = getAggregatedOperationStats(task, prismContext);
         if (stats == null) {
             return 0;
         }
-        IterativeTaskInformationType iterativeStats = stats.getIterativeTaskInformation();
-        if (iterativeStats == null) {
-            return 0;
-        }
-        return iterativeStats.getTotalFailureCount();
+        throw new UnsupportedOperationException(); // FIXME implement
+//        return stats.getIterativeTaskInformation().stream()
+//                .mapToInt(info -> getCount(info.getFailed()))
+//                .sum();
     }
 
+    public static int getObjectsProcessedFailures(TaskType task) {
+        OperationStatsType stats = task.getOperationStats();
+        if (stats == null) {
+            return 0;
+        }
+        throw new UnsupportedOperationException(); // FIXME implement
+//        return stats.getIterativeTaskInformation().stream()
+//                .mapToInt(info -> getCount(info.getFailed()))
+//                .sum();
+    }
+
+    public static int getObjectsProcessedSuccesses(TaskType task) {
+        OperationStatsType stats = task.getOperationStats();
+        if (stats == null) {
+            return 0;
+        }
+        throw new UnsupportedOperationException(); // FIXME implement
+//        return stats.getIterativeTaskInformation().stream()
+//                .mapToInt(info -> getCount(info.getSucceeded()))
+//                .sum();
+    }
+
+    /**
+     * Provides aggregated operation statistics from this task and all its subtasks.
+     * Works with stored operation stats, obviously. (We have no task instances here.)
+     *
+     * Assumes that the task has all subtasks filled-in.
+     */
     public static OperationStatsType getAggregatedOperationStats(TaskType task, PrismContext prismContext) {
         if (!isPartitionedMaster(task) && !isWorkStateHolder(task)) {
            return task.getOperationStats();
         }
 
-        IterativeTaskInformationType iterativeTaskInformation = new IterativeTaskInformationType();
-        SynchronizationInformationType synchronizationInformation = new SynchronizationInformationType();
-        ActionsExecutedInformationType actionsExecutedInformation = new ActionsExecutedInformationType();
+        OperationStatsType aggregate = new OperationStatsType(prismContext)
+                .synchronizationInformation(new SynchronizationInformationType())
+                .actionsExecutedInformation(new ActionsExecutedInformationType());
 
         Stream<TaskType> subTasks = TaskTypeUtil.getAllTasksStream(task);
         subTasks.forEach(subTask -> {
-            OperationStatsType operationStatsType = subTask.getOperationStats();
-            if (operationStatsType != null) {
-                IterativeTaskInformation.addTo(iterativeTaskInformation, operationStatsType.getIterativeTaskInformation(), false);
-                SynchronizationInformation.addTo(synchronizationInformation, operationStatsType.getSynchronizationInformation());
-                ActionsExecutedInformation.addTo(actionsExecutedInformation, operationStatsType.getActionsExecutedInformation());
+            OperationStatsType operationStatsBean = subTask.getOperationStats();
+            if (operationStatsBean != null) {
+                IterativeTaskInformation.addToMergingParts(aggregate.getIterativeTaskInformation(), operationStatsBean.getIterativeTaskInformation());
+                SynchronizationInformation.addTo(aggregate.getSynchronizationInformation(), operationStatsBean.getSynchronizationInformation());
+                ActionsExecutedInformation.addTo(aggregate.getActionsExecutedInformation(), operationStatsBean.getActionsExecutedInformation());
             }
         });
-
-        return new OperationStatsType(prismContext)
-                .iterativeTaskInformation(iterativeTaskInformation)
-                .synchronizationInformation(synchronizationInformation)
-                .actionsExecutedInformation(actionsExecutedInformation);
+        return aggregate;
     }
 
     public static TaskType findChild(TaskType parent, String childOid) {
@@ -155,5 +182,25 @@ public class TaskTypeUtil {
 
     public static boolean isManageableTreeRoot(TaskType taskType) {
         return isCoordinator(taskType) || isPartitionedMaster(taskType);
+    }
+
+    public static Integer getIterations(OperationStatsType statistics) {
+        // FIXME!!!
+//        if (statistics.getIterativeTaskInformation() != null) {
+//            return statistics.getIterativeTaskInformation().getTotalSuccessCount() +
+//                    statistics.getIterativeTaskInformation().getTotalFailureCount();
+//        } else {
+//            return null;
+//        }
+        return null;
+    }
+
+    public static String getLastSuccessObjectName(TaskType task) {
+        throw new UnsupportedOperationException(); // FIXME implement
+//        if (task.getOperationStats() != null && !task.getOperationStats().getIterativeTaskInformation().isEmpty()) {
+//            return task.getOperationStats().getIterativeTaskInformation().get(0).getLastSuccessObjectName();
+//        } else {
+//            return null;
+//        }
     }
 }

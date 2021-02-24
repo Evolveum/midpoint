@@ -14,7 +14,9 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import com.inamik.text.tables.Cell;
@@ -216,12 +218,7 @@ public class TaskInternalPerformanceTabPanel extends BasePanel<PrismObjectWrappe
     }
 
     private Integer getIterations(OperationStatsType statistics) {
-        if (statistics.getIterativeTaskInformation() != null) {
-            return statistics.getIterativeTaskInformation().getTotalSuccessCount() +
-                    statistics.getIterativeTaskInformation().getTotalFailureCount();
-        } else {
-            return null;
-        }
+        return TaskTypeUtil.getIterations(statistics);
     }
 
     @Override

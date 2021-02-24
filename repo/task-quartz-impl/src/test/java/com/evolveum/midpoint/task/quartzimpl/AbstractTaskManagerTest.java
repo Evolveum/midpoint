@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
 
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
 import com.evolveum.midpoint.task.quartzimpl.tasks.TaskStateManager;
 
@@ -264,11 +265,12 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
     }
 
     void assertTotalSuccessCount(int expectedCount, Collection<? extends Task> workers) {
-        int total = 0;
-        for (Task worker : workers) {
-            total += worker.getStoredOperationStats().getIterativeTaskInformation().getTotalSuccessCount();
-        }
-        assertEquals("Wrong total success count", expectedCount, total);
+        throw new UnsupportedOperationException(); // TODO
+//        int total = 0;
+//        for (Task worker : workers) {
+//            total += worker.getStoredOperationStats().getIterativeTaskInformation().getTotalSuccessCount();
+//        }
+//        assertEquals("Wrong total success count", expectedCount, total);
     }
 
     void assertNoWorkBuckets(TaskWorkStateType ws) {
@@ -331,15 +333,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
             List<? extends Task> tasks = coordinatorTask.listSubtasks(result);
             int total = 0;
             for (Task task : tasks) {
-                OperationStatsType opStat = task.getStoredOperationStats();
-                if (opStat == null) {
-                    continue;
-                }
-                IterativeTaskInformationType iti = opStat.getIterativeTaskInformation();
-                if (iti == null) {
-                    continue;
-                }
-                int count = iti.getTotalSuccessCount();
+                int count = TaskTypeUtil.getObjectsProcessedSuccesses(task.getUpdatedOrClonedTaskObject().asObjectable()); // todo
                 display("Task " + task + ": " + count + " items processed");
                 total += count;
             }

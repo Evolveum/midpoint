@@ -340,8 +340,9 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", false);
 
         TaskType recomputeTask = getTask(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID).asObjectable();
-        assertEquals("Wrong success count", 1, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalSuccessCount());
-        assertEquals("Wrong failure count", 0, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalFailureCount());
+        IterativeTaskInformationType info = recomputeTask.getOperationStats().getIterativeTaskInformation(); // FIXME
+        assertEquals("Wrong success count", 1, info.getTotalSuccessCount());
+        assertEquals("Wrong failure count", 0, info.getTotalFailureCount());
 
         assertUsers(7);
 
@@ -422,8 +423,9 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", false);
 
         TaskType recomputeTask = getTask(TASK_USER_RECOMPUTE_LIGHT_OID).asObjectable();
-        assertEquals("Wrong success count", 7, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalSuccessCount());
-        assertEquals("Wrong failure count", 0, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalFailureCount());
+        IterativeTaskInformationType info = recomputeTask.getOperationStats().getIterativeTaskInformation(); // FIXME
+        assertEquals("Wrong success count", 7, info.getTotalSuccessCount());
+        assertEquals("Wrong failure count", 0, info.getTotalFailureCount());
 
         assertUser(USER_JACK_OID, "user jack after")
                 .display()

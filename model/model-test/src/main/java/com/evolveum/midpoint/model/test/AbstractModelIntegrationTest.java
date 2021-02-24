@@ -3205,7 +3205,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             ConfigurationException, ExpressionEvaluationException {
         PrismObject<TaskType> rootTask = getTaskTree(rootTaskOid);
         return TaskTypeUtil.getAllTasksStream(rootTask.asObjectable())
-                .map(t -> t.getOperationStats())
+                .map(TaskType::getOperationStats)
                 .reduce(StatisticsUtil::sum)
                 .orElse(null);
     }
@@ -6687,8 +6687,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void dumpStatistics(Task task) {
         OperationStatsType stats = task.getStoredOperationStats();
-        IterativeTaskInformationType iterativeInfo = stats.getIterativeTaskInformation();
-        displayValue("Iterative information", IterativeTaskInformation.format(iterativeInfo));
+        displayValue("Iterative information", IterativeTaskInformation.format(stats.getIterativeTaskInformation()));
         SynchronizationInformationType synchronizationInfo = stats.getSynchronizationInformation();
         displayValue("Synchronization information", SynchronizationInformation.format(synchronizationInfo));
     }

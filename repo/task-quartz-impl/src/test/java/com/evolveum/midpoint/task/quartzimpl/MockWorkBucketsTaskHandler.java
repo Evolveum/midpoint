@@ -8,6 +8,8 @@ package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -109,15 +111,14 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
             for (int i = from; i < to; i++) {
                 String objectName = "item " + i;
                 String objectOid = String.valueOf(i);
-                long start = System.currentTimeMillis();
-                task.recordIterativeOperationStart(objectName, null, ObjectType.COMPLEX_TYPE, objectOid);
+                IterationItemInformation info = new IterationItemInformation(objectName, null, ObjectType.COMPLEX_TYPE, objectOid);
+                Operation op = task.recordIterativeOperationStart(info);
                 LOGGER.info("Processing item #{}; task = {}", i, task);
                 itemsProcessed++;
                 if (processor != null) {
                     processor.process(task, workBucket, i);
                 }
-                task.recordIterativeOperationEnd(objectName, null, ObjectType.COMPLEX_TYPE, objectOid,
-                        System.currentTimeMillis() - start, null);
+                op.succeeded();
                 task.incrementProgressAndStoreStatsIfNeeded();
             }
         }

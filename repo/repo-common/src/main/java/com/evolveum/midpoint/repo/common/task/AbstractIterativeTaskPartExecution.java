@@ -10,6 +10,7 @@ package com.evolveum.midpoint.repo.common.task;
 import static com.evolveum.midpoint.repo.common.task.AnnotationSupportUtil.createFromAnnotation;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
@@ -122,6 +123,12 @@ public abstract class AbstractIterativeTaskPartExecution<I,
      * them for individual tasks.
      */
     @NotNull protected final TaskReportingOptions reportingOptions;
+
+    /**
+     * Sequential number of the part within the current task.
+     */
+    @Experimental
+    int partNumber;
 
     protected AbstractIterativeTaskPartExecution(@NotNull TE taskExecution) {
         this.taskHandler = taskExecution.taskHandler;
@@ -381,5 +388,13 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
     public String getRootTaskOid() {
         return taskExecution.getRootTaskOid();
+    }
+
+    public int getPartNumber() {
+        return partNumber;
+    }
+
+    public void setPartNumber(int partNumber) {
+        this.partNumber = partNumber;
     }
 }
