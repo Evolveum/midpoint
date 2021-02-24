@@ -25,6 +25,9 @@
             Version: 4.0
             Recommended namespace prefix: q
         </xsd:documentation>
+        <xsd:appinfo>
+           <a:defaultPrefix>q</a:defaultPrefix>
+        </xsd:appinfo>
     </xsd:annotation>
 
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"

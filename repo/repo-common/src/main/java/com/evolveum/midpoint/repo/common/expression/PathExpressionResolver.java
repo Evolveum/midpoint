@@ -17,6 +17,7 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -57,7 +58,7 @@ class PathExpressionResolver {
     /**
      * Variables that can be pointed to by the variable name (e.g. focus, immediateRole).
      */
-    @NotNull private final ExpressionVariables variables;
+    @NotNull private final VariablesMap variables;
 
     /**
      * Default object to be used if the path does not start with a variable.
@@ -75,7 +76,7 @@ class PathExpressionResolver {
     @NotNull private final String shortDesc;
     @NotNull private final Task task;
 
-    PathExpressionResolver(@NotNull ItemPath path, @NotNull ExpressionVariables variables, boolean normalizeValuesToDelete,
+    PathExpressionResolver(@NotNull ItemPath path, @NotNull VariablesMap variables, boolean normalizeValuesToDelete,
             TypedValue<?> defaultContext, @NotNull ObjectResolver objectResolver, @NotNull PrismContext prismContext,
             @NotNull String shortDesc, @NotNull Task task) {
         this.path = path;

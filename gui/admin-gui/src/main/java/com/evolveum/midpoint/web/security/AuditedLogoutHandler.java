@@ -43,6 +43,8 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(AuditedLogoutHandler.class);
 
+    private static final String OP_AUDIT_EVENT = AuditedLogoutHandler.class.getName() + ".auditEvent";
+
     @Autowired private TaskManager taskManager;
     @Autowired private AuditService auditService;
     @Autowired private SystemObjectCache systemObjectCache;
@@ -87,6 +89,8 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
     }
 
     private void auditEvent(HttpServletRequest request, Authentication authentication) {
+        OperationResult result = new OperationResult(OP_AUDIT_EVENT); // Eventually we should get this from the caller
+
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser(authentication);
         PrismObject<? extends FocusType> user = principal != null ? principal.getFocus().asPrismObject() : null;
 
@@ -101,7 +105,7 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
         }
         SystemConfigurationType system = null;
         try {
-            system = systemObjectCache.getSystemConfiguration(new OperationResult("LOAD SYSTEM CONFIGURATION")).asObjectable();
+            system = systemObjectCache.getSystemConfiguration(result).asObjectable();
         } catch (SchemaException e) {
             LOGGER.error("Couldn't get system configuration from cache", e);
         }
@@ -127,6 +131,6 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
         record.setNodeIdentifier(taskManager.getNodeId());
         record.setSessionIdentifier(sessionId);
 
-        auditService.audit(record, task);
+        auditService.audit(record, task, result);
     }
 }

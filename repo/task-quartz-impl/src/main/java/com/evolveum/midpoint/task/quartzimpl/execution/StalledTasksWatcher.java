@@ -6,28 +6,30 @@
  */
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
+import com.evolveum.midpoint.task.quartzimpl.*;
+import com.evolveum.midpoint.task.quartzimpl.tasks.TaskRetriever;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 
 /**
  * Watches whether a task is stalled.
- *
- * @author Pavol Mederly
  */
+@Component
 public class StalledTasksWatcher {
 
     private static final Trace LOGGER = TraceManager.getTrace(StalledTasksWatcher.class);
@@ -36,7 +38,10 @@ public class StalledTasksWatcher {
 
     private static final List<String> CATEGORIES_TO_SKIP = Collections.singletonList(TaskCategory.ASYNCHRONOUS_UPDATE);
 
-    private TaskManagerQuartzImpl taskManager;
+    @Autowired private TaskRetriever taskRetriever;
+    @Autowired private TaskThreadsDumper taskThreadsDumper;
+    @Autowired private TaskManagerConfiguration configuration;
+    @Autowired private LocalNodeState localNodeState;
 
     private static class ProgressInformation {
         long measurementTimestamp;
@@ -59,17 +64,13 @@ public class StalledTasksWatcher {
         }
     }
 
-    private Map<String,ProgressInformation> lastProgressMap = new HashMap<>();
-
-    public StalledTasksWatcher(TaskManagerQuartzImpl taskManager) {
-        this.taskManager = taskManager;
-    }
+    private final Map<String,ProgressInformation> lastProgressMap = new HashMap<>();
 
     public void checkStalledTasks(OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "checkStalledTasks");
 
-        Map<String, RunningTaskQuartzImpl> runningTasks = taskManager.getLocallyRunningTaskInstances();
+        Map<String, RunningTaskQuartzImpl> runningTasks = localNodeState.getLocallyRunningTaskInstances();
         LOGGER.trace("checkStalledTasks: running tasks = {}", runningTasks);
 
         for (RunningTaskQuartzImpl task : runningTasks.values()) {
@@ -84,7 +85,7 @@ public class StalledTasksWatcher {
                 realProgress = heartbeatProgressInfo;
             } else {
                 try {
-                    realProgress = taskManager.getTaskPlain(task.getOid(), result).getProgress();
+                    realProgress = taskRetriever.getTaskPlain(task.getOid(), result).getProgress();
                 } catch (ObjectNotFoundException e) {
                     LoggingUtils.logException(LOGGER, "Task {} cannot be checked for staleness because it is gone", e, task);
                     continue;
@@ -104,7 +105,7 @@ public class StalledTasksWatcher {
                 lastProgressMap.put(task.getTaskIdentifier(), new ProgressInformation(currentTimestamp, realProgress, lastStartedTimestamp));
             } else {
                 if (isEntryStalled(currentTimestamp, lastProgressEntry)) {
-                    if (currentTimestamp - lastProgressEntry.lastNotificationIssuedTimestamp > taskManager.getConfiguration().getStalledTasksRepeatedNotificationInterval() * 1000L) {
+                    if (currentTimestamp - lastProgressEntry.lastNotificationIssuedTimestamp > configuration.getStalledTasksRepeatedNotificationInterval() * 1000L) {
                         LOGGER.error("Task {} is stalled (started {}; progress is still {}, observed since {}){}",
                                 task,
                                 new Date(lastProgressEntry.lastStartedTimestamp),
@@ -114,7 +115,7 @@ public class StalledTasksWatcher {
                                     " [this is a repeated notification]" : "");
                         lastProgressEntry.lastNotificationIssuedTimestamp = currentTimestamp;
                         try {
-                            taskManager.recordTaskThreadsDump(task.getOid(), SchemaConstants.INTERNAL_URI, result);
+                            taskThreadsDumper.recordTaskThreadsDump(task.getOid(), SchemaConstants.INTERNAL_URI, result);
                         } catch (SchemaException|ObjectNotFoundException|ObjectAlreadyExistsException|RuntimeException e) {
                             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't record thread dump for stalled task {}", e, task);
                         }
@@ -131,8 +132,8 @@ public class StalledTasksWatcher {
 
     public Long getStalledSinceForTask(TaskType taskType) {
         ProgressInformation lastProgressEntry = lastProgressMap.get(taskType.getTaskIdentifier());
-        if (taskType.getExecutionStatus() != TaskExecutionStatusType.RUNNABLE ||
-                hasEntryChanged(lastProgressEntry, TaskQuartzImplUtil.xmlGCtoMillis(taskType.getLastRunStartTimestamp()),
+        if (taskType.getSchedulingState() != TaskSchedulingStateType.READY ||
+                hasEntryChanged(lastProgressEntry, XmlTypeConverter.toMillis(taskType.getLastRunStartTimestamp()),
                     taskType.getProgress() != null ? taskType.getProgress() : 0L)) {
             return null;
         } else {
@@ -145,7 +146,7 @@ public class StalledTasksWatcher {
     }
 
     private boolean isEntryStalled(long currentTimestamp, ProgressInformation lastProgressEntry) {
-        return currentTimestamp - lastProgressEntry.measurementTimestamp > taskManager.getConfiguration().getStalledTasksThreshold() * 1000L;
+        return currentTimestamp - lastProgressEntry.measurementTimestamp > configuration.getStalledTasksThreshold() * 1000L;
     }
 
     private boolean hasEntryChanged(ProgressInformation lastProgressEntry, long lastRunStartTimestamp, long realProgress) {

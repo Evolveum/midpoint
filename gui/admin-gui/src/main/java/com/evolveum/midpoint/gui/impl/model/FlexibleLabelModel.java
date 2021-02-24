@@ -20,8 +20,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -122,9 +122,9 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
         PrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
                 DOMUtil.XSD_STRING);
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), contextDesc, task, result);
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_OBJECT, object, object.asPrismContainerValue().getDefinition());
-        addAdditionalExpressionVariables(variables);
+        addAdditionalVariablesMap(variables);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(context, result);
         if (outputTriple == null) {
@@ -140,7 +140,7 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
         return outputValues.iterator().next().getRealValue();
     }
 
-    protected void addAdditionalExpressionVariables(ExpressionVariables variables) {
+    protected void addAdditionalVariablesMap(VariablesMap variables) {
     }
 
     @Override

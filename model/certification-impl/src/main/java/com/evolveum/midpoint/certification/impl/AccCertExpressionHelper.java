@@ -15,7 +15,7 @@ import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -46,7 +46,7 @@ public class AccCertExpressionHelper {
     @Autowired private ExpressionFactory expressionFactory;
 
     @SuppressWarnings("SameParameterValue")
-    private <T> List<T> evaluateExpression(Class<T> resultClass, ExpressionType expressionType, ExpressionVariables expressionVariables,
+    private <T> List<T> evaluateExpression(Class<T> resultClass, ExpressionType expressionType, VariablesMap VariablesMap,
             String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         QName xsdType = XsdTypeMapper.toXsdType(resultClass);
@@ -55,7 +55,7 @@ public class AccCertExpressionHelper {
         PrismPropertyDefinition<T> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, xsdType);
 
         Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task);
+        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
 
         PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResult = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
 
@@ -67,9 +67,9 @@ public class AccCertExpressionHelper {
     }
 
     List<ObjectReferenceType> evaluateRefExpressionChecked(ExpressionType expressionType,
-            ExpressionVariables expressionVariables, String shortDesc, Task task, OperationResult result) {
+            VariablesMap VariablesMap, String shortDesc, Task task, OperationResult result) {
         try {
-            return evaluateRefExpression(expressionType, expressionVariables, shortDesc, task, result);
+            return evaluateRefExpression(expressionType, VariablesMap, shortDesc, task, result);
         } catch (CommonException|RuntimeException e) {
             LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
             result.recordFatalError("Couldn't evaluate " + shortDesc, e);
@@ -77,7 +77,7 @@ public class AccCertExpressionHelper {
         }
     }
 
-    private List<ObjectReferenceType> evaluateRefExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
+    private List<ObjectReferenceType> evaluateRefExpression(ExpressionType expressionType, VariablesMap VariablesMap,
             String shortDesc, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -85,7 +85,7 @@ public class AccCertExpressionHelper {
         PrismReferenceDefinition resultDef = prismContext.definitionFactory().createReferenceDefinition(resultName, ObjectReferenceType.COMPLEX_TYPE);
 
         Expression<PrismReferenceValue,PrismReferenceDefinition> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
-        ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task);
+        ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
         context.setAdditionalConvertor(ExpressionUtil.createRefConvertor(UserType.COMPLEX_TYPE));
         PrismValueDeltaSetTriple<PrismReferenceValue> exprResult =
                 ModelExpressionThreadLocalHolder.evaluateRefExpressionInContext(expression, context, task, result);
@@ -99,11 +99,11 @@ public class AccCertExpressionHelper {
         return retval;
     }
 
-//    public boolean evaluateBooleanExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
+//    public boolean evaluateBooleanExpressionChecked(ExpressionType expressionType, VariablesMap VariablesMap,
 //                                                       String shortDesc, Task task, OperationResult result) {
 //
 //        try {
-//            return evaluateBooleanExpression(expressionType, expressionVariables, shortDesc, task, result);
+//            return evaluateBooleanExpression(expressionType, VariablesMap, shortDesc, task, result);
 //        } catch (ObjectNotFoundException|SchemaException|ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 //            LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
 //            result.recordFatalError("Couldn't evaluate " + shortDesc, e);
@@ -111,9 +111,9 @@ public class AccCertExpressionHelper {
 //        }
 //    }
 
-    public boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, String shortDesc,
+    public boolean evaluateBooleanExpression(ExpressionType expressionType, VariablesMap VariablesMap, String shortDesc,
             Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        List<Boolean> exprResult = evaluateExpression(Boolean.class, expressionType, expressionVariables, shortDesc, task, result);
+        List<Boolean> exprResult = evaluateExpression(Boolean.class, expressionType, VariablesMap, shortDesc, task, result);
         if (exprResult.size() == 0) {
             return false;
         } else if (exprResult.size() > 1) {

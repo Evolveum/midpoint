@@ -12,6 +12,7 @@ import static org.testng.AssertJUnit.*;
 import java.io.File;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.*;
@@ -22,7 +23,6 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -125,11 +125,11 @@ public class TestParseTaskBulkAction extends AbstractSchemaTest {
         assertPropertyValue(task, "taskIdentifier", "44444444-4444-4444-4444-000000001111");
         assertPropertyDefinition(task, "taskIdentifier", DOMUtil.XSD_STRING, 0, 1);
 
-        assertPropertyDefinition(task, "executionStatus", JAXBUtil.getTypeQName(TaskExecutionStatusType.class), 0, 1);
-        PrismProperty<TaskExecutionStatusType> executionStatusProperty = task.findProperty(TaskType.F_EXECUTION_STATUS);
-        PrismPropertyValue<TaskExecutionStatusType> executionStatusValue = executionStatusProperty.getValue();
-        TaskExecutionStatusType executionStatus = executionStatusValue.getValue();
-        assertEquals("Wrong execution status", TaskExecutionStatusType.RUNNABLE, executionStatus);
+        assertPropertyDefinition(task, "executionStatus", JAXBUtil.getTypeQName(TaskExecutionStateType.class), 0, 1);
+        PrismProperty<TaskExecutionStateType> executionStatusProperty = task.findProperty(TaskType.F_EXECUTION_STATUS);
+        PrismPropertyValue<TaskExecutionStateType> executionStatusValue = executionStatusProperty.getValue();
+        TaskExecutionStateType executionStatus = executionStatusValue.getValue();
+        assertEquals("Wrong execution status", TaskExecutionStateType.RUNNABLE, executionStatus);
 
         PrismContainer extension = task.getExtension();
         PrismContainerValue extensionValue = extension.getValue();

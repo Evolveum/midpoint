@@ -18,7 +18,7 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.task.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
@@ -56,7 +56,7 @@ public abstract class AbstractIterativeModelTaskPartExecution<O extends ObjectTy
         }
 
         PrismObject<SystemConfigurationType> configuration = taskHandler.systemObjectCache.getSystemConfiguration(opResult);
-        ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, null, null,
+        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(null, null, null,
                 configuration != null ? configuration.asObjectable() : null, getPrismContext());
         try {
             ExpressionEnvironment<?,?,?> env = new ExpressionEnvironment<>(localCoordinatorTask, opResult);

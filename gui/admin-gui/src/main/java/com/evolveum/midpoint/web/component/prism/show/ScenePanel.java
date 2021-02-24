@@ -7,9 +7,12 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerValuePanel;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -51,18 +54,19 @@ public class ScenePanel extends BasePanel<SceneDto> {
     private static final String ID_SHOW_OPERATIONAL_ITEMS_LINK = "showOperationalItemsLink";
 
     private static final Trace LOGGER = TraceManager.getTrace(ScenePanel.class);
-    public static final String ID_OPTION_BUTTONS = "optionButtons";
-    public static final String ID_HEADER_PANEL = "headerPanel";
-    public static final String ID_HEADER_DESCRIPTION = "description";
-    public static final String ID_HEADER_WRAPPER_DISPLAY_NAME = "wrapperDisplayName";
-    public static final String ID_HEADER_NAME_LABEL = "nameLabel";
-    public static final String ID_HEADER_NAME_LINK = "nameLink";
-    public static final String ID_HEADER_CHANGE_TYPE = "changeType";
-    public static final String ID_HEADER_OBJECT_TYPE = "objectType";
-    public static final String ID_BODY = "body";
-    public static final String ID_OLD_VALUE_LABEL = "oldValueLabel";
-    public static final String ID_NEW_VALUE_LABEL = "newValueLabel";
-    public static final String ID_VALUE_LABEL = "valueLabel";
+    private static final String ID_OPTION_BUTTONS = "optionButtons";
+    private static final String ID_HEADER_PANEL = "headerPanel";
+    private static final String ID_HEADER_DESCRIPTION = "description";
+    private static final String ID_HEADER_WRAPPER_DISPLAY_NAME = "wrapperDisplayName";
+    private static final String ID_HEADER_NAME_LABEL = "nameLabel";
+    private static final String ID_HEADER_NAME_LINK = "nameLink";
+    private static final String ID_HEADER_CHANGE_TYPE = "changeType";
+    private static final String ID_HEADER_OBJECT_TYPE = "objectType";
+    private static final String ID_BODY = "body";
+    private static final String ID_OLD_VALUE_LABEL = "oldValueLabel";
+    private static final String ID_NEW_VALUE_LABEL = "newValueLabel";
+    private static final String ID_VALUE_LABEL = "valueLabel";
+    private static final String ID_SORT_PROPERTIES = "sortProperties";
 
     private boolean showOperationalItems = false;
     private boolean operationalItemsVisible = false;
@@ -243,6 +247,27 @@ public class ScenePanel extends BasePanel<SceneDto> {
                 return !model.getObject().getItems().isEmpty();
             }
         });
+        itemsTable.setOutputMarkupId(true);
+
+        ToggleIconButton<String> sortPropertiesButton = new ToggleIconButton<String>(ID_SORT_PROPERTIES,
+                GuiStyleConstants.CLASS_ICON_SORT_ALPHA_ASC, GuiStyleConstants.CLASS_ICON_SORT_AMOUNT_ASC) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onSortClicked(model, target);
+            }
+
+            @Override
+            public boolean isOn() {
+                return model.getObject().isSorted();
+            }
+        };
+        sortPropertiesButton.setOutputMarkupId(true);
+        sortPropertiesButton.setOutputMarkupPlaceholderTag(true);
+        itemsTable.add(sortPropertiesButton);
+
         WebMarkupContainer oldValueLabel = new WebMarkupContainer(ID_OLD_VALUE_LABEL);
         oldValueLabel.add(new VisibleEnableBehaviour() {
             @Override
@@ -324,6 +349,12 @@ public class ScenePanel extends BasePanel<SceneDto> {
         showOperationalItemsLink.add(AttributeAppender.append("style", "cursor: pointer;"));
         showOperationalItemsLink.add(new VisibleBehaviour(() -> showOperationalItems));
         body.add(showOperationalItemsLink);
+    }
+
+    private void onSortClicked(IModel<SceneDto> model, AjaxRequestTarget target) {
+        model.getObject().setSorted(!model.getObject().isSorted());
+        target.add(get(getPageBase().createComponentPath(ID_BOX, ID_BODY, ID_ITEMS_TABLE)));
+        target.add(get(getPageBase().createComponentPath(ID_BOX, ID_BODY, ID_ITEMS_TABLE, ID_SORT_PROPERTIES)));
     }
 
     protected boolean isExistingViewableObject() {

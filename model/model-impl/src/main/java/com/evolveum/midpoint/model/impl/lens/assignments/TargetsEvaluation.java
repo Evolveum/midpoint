@@ -29,7 +29,7 @@ import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -212,7 +212,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
                 try {
                     // TODO: expression profile should be determined from the holding object archetype
                     ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
-                    ExpressionVariables variables = createVariables(segment, ctx, result1);
+                    VariablesMap variables = createVariables(segment, ctx, result1);
                     return ExpressionUtil.evaluateFilterExpressions(rawFilter, variables, expressionProfile,
                             ctx.ae.mappingFactory.getExpressionFactory(), ctx.ae.prismContext,
                             " evaluating resource filter expression ", ctx.task, result1);
@@ -223,10 +223,10 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
     }
 
     @NotNull
-    private ExpressionVariables createVariables(AssignmentPathSegmentImpl segment, EvaluationContext<AH> ctx,
+    private VariablesMap createVariables(AssignmentPathSegmentImpl segment, EvaluationContext<AH> ctx,
             OperationResult result) throws SchemaException {
         PrismObject<SystemConfigurationType> systemConfiguration = ctx.ae.systemObjectCache.getSystemConfiguration(result);
-        ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(segment.source, null,
+        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(segment.source, null,
                 null, systemConfiguration.asObjectable(), ctx.ae.prismContext);
         variables.put(ExpressionConstants.VAR_SOURCE, segment.source, ObjectType.class);
         AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);

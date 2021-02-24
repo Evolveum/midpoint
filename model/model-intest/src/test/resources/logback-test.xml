@@ -35,7 +35,7 @@
 
     <!-- Temporary, to hunt down MID-3036 -->
     <logger name="com.evolveum.midpoint.task" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor" level="DEBUG" /> <!-- should be DEBUG -->
+    <logger name="com.evolveum.midpoint.task.quartzimpl.run.JobExecutor" level="DEBUG" /> <!-- should be DEBUG -->
 
     <logger name="PROFILING" level="OFF" />
     <logger name="com.evolveum.midpoint.audit.log" level="TRACE" />

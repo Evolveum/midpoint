@@ -479,7 +479,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(object, AssignmentPanel.this.getPageBase());
 
         if (displayType == null) {
-            return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(
+            displayType = WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(
                     AssignmentsUtil.getTargetType(assignment)));
         }
 

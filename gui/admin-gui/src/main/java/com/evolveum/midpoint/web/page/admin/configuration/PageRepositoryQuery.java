@@ -7,8 +7,28 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createDistinct;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createRawCollection;
+import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.util.ListModel;
+
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyWrapperModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -16,19 +36,15 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -52,26 +68,6 @@ import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.util.ListModel;
-
-import javax.xml.namespace.QName;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-
-import static com.evolveum.midpoint.schema.GetOperationOptions.*;
-import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 
 /**
  * @author lazyman
@@ -143,7 +139,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 
     private String dataLanguage;
 
-    enum Action {TRANSLATE_ONLY, EXECUTE_MIDPOINT, EXECUTE_HIBERNATE }
+    enum Action {TRANSLATE_ONLY, EXECUTE_MIDPOINT, EXECUTE_HIBERNATE}
 
     @Override
     protected void onInitialize() {
@@ -182,7 +178,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         mainForm.add(repositoryQueryLabel);
 
         DropDownChoicePanel<QName> objectTypeChoice = new DropDownChoicePanel<>(ID_OBJECT_TYPE,
-            new PropertyModel<>(model, RepoQueryDto.F_OBJECT_TYPE),
+                new PropertyModel<>(model, RepoQueryDto.F_OBJECT_TYPE),
                 new ListModel<>(WebComponentUtil.createObjectTypeList()),
                 new QNameChoiceRenderer());
         objectTypeChoice.setOutputMarkupId(true);
@@ -242,6 +238,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
                         dataLanguage = updatedLanguage;
                         target.add(mainForm);
                     }
+
                     @Override
                     protected String getObjectStringRepresentation() {
                         return model.getObject().getMidPointQuery();
@@ -281,6 +278,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
             protected void onError(AjaxRequestTarget target) {
                 target.add(getFeedbackPanel());
             }
+
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
                 useInObjectListPerformed(target);
@@ -553,7 +551,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         QueryType queryType = prismContext.parserFor(queryText).language(dataLanguage).parseRealValue(QueryType.class);
         request.setType(clazz);
         ObjectQuery objectQuery = prismContext.getQueryConverter().createObjectQuery(clazz, queryType);
-        ObjectQuery queryWithExprEvaluated = ExpressionUtil.evaluateQueryExpressions(objectQuery, new ExpressionVariables(),
+        ObjectQuery queryWithExprEvaluated = ExpressionUtil.evaluateQueryExpressions(objectQuery, new VariablesMap(),
                 MiscSchemaUtil.getExpressionProfile(), getExpressionFactory(), getPrismContext(), "evaluate query expressions", task, result);
         request.setQuery(queryWithExprEvaluated);
 

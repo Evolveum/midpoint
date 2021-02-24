@@ -18,7 +18,6 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -112,5 +111,5 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 
     void setSequenceCounter(String sequenceOid, long counter);
 
-    String getTaskTreeOid(Task task, OperationResult result) throws SchemaException;
+    String getTaskTreeOid(Task task, OperationResult result);
 }

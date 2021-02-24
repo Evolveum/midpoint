@@ -7,8 +7,10 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -16,6 +18,7 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -64,7 +67,17 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
             }
         };
 
-        final ImagePanel icon = new ImagePanel(ID_ICON, new IconModel(), new TitleModel());
+        IModel<DisplayType> displayModel = (IModel) () -> {
+            ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor();
+            String cssClass = ObjectTypeGuiDescriptor.ERROR_ICON;
+            String title = null;
+            if (guiDescriptor != null) {
+                cssClass = guiDescriptor.getBlackIcon();
+                title = createStringResource(guiDescriptor.getLocalizationKey()).getObject();
+            }
+            return WebComponentUtil.createDisplayType(cssClass, "", title);
+        };
+        final ImagePanel icon = new ImagePanel(ID_ICON, displayModel);
         icon.add(visibleIfReference);
         add(icon);
 
@@ -128,22 +141,6 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
             return ObjectTypeGuiDescriptor.getDescriptor(ObjectTypes.getObjectTypeFromTypeQName(targetType));
         } else {
             return null;
-        }
-    }
-
-    private class IconModel implements IModel<String> {
-        @Override
-        public String getObject() {
-            ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor();
-            return guiDescriptor != null ? guiDescriptor.getBlackIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
-        }
-    }
-
-    private class TitleModel implements IModel<String> {
-        @Override
-        public String getObject() {
-            ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor();
-            return guiDescriptor != null ? createStringResource(guiDescriptor.getLocalizationKey()).getObject() : null;
         }
     }
 

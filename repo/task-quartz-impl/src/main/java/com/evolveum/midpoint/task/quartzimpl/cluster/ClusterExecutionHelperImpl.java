@@ -29,7 +29,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.cxf.common.util.Base64Utility;
@@ -56,9 +56,9 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper {
     @Autowired private RepositoryService repositoryService;
     @Autowired private Protector protector;
 
-    @Autowired private MidpointXmlProvider xmlProvider;
-    @Autowired private MidpointJsonProvider jsonProvider;
-    @Autowired private MidpointYamlProvider yamlProvider;
+    @Autowired private MidpointXmlProvider<?> xmlProvider;
+    @Autowired private MidpointJsonProvider<?> jsonProvider;
+    @Autowired private MidpointYamlProvider<?> yamlProvider;
 
     private static final String DOT_CLASS = ClusterExecutionHelperImpl.class.getName() + ".";
 
@@ -168,7 +168,7 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper {
         String nodeIdentifier = node.getNodeIdentifier();
         result.addParam("node", nodeIdentifier);
         try {
-            boolean isDead = node.getOperationalStatus() == NodeOperationalStatusType.DOWN;
+            boolean isDead = node.getOperationalStatus() == NodeOperationalStateType.DOWN;
             boolean isUpAndAlive = taskManager.isUpAndAlive(node);
             if (isUpAndAlive || ClusterExecutionOptions.isTryAllNodes(options) ||
                     !isDead && ClusterExecutionOptions.isTryNodesInTransition(options)) {
@@ -243,5 +243,4 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper {
             return null;
         }
     }
-
 }

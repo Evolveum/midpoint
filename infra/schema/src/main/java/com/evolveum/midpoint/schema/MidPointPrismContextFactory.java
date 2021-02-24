@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 
+import javax.xml.XMLConstants;
+
 import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.prism.impl.schema.axiom.AxiomEnabledSchemaRegistry;
@@ -134,8 +136,8 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 
         // Standard schemas
 
-        schemaRegistry.getNamespacePrefixMapper().registerPrefix("http://www.w3.org/2001/XMLSchema", DOMUtil.NS_W3C_XML_SCHEMA_PREFIX, false);
-        schemaRegistry.getNamespacePrefixMapper().registerPrefix("http://www.w3.org/2001/XMLSchema-instance", "xsi", false);
+        schemaRegistry.registerStaticNamespace(XMLConstants.W3C_XML_SCHEMA_NS_URI, DOMUtil.NS_W3C_XML_SCHEMA_PREFIX, false);
+        schemaRegistry.registerStaticNamespace("http://www.w3.org/2001/XMLSchema-instance", "xsi", false);
 
 
         // Prism Schemas
@@ -152,9 +154,11 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         schemaRegistry.registerPrismDefaultSchemaResource("xml/ns/public/common/common-3.xsd", "c",
                 com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory.class.getPackage());         // declared by default
 
+        // FIXME: MID-6845: audit.xsd recommend 'audit' prefix
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/audit-3.xsd", "aud",
                 com.evolveum.midpoint.xml.ns._public.common.audit_3.ObjectFactory.class.getPackage());
 
+        // FIXME: MID-6845: audit.xsd recommend 'apti' prefix
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/api-types-3.xsd", "apti",
                 com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectFactory.class.getPackage());
 
@@ -195,10 +199,10 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/scripting/extension-3.xsd", "se");
 
-        schemaRegistry.getNamespacePrefixMapper().registerPrefix(MidPointConstants.NS_RI, MidPointConstants.PREFIX_NS_RI, false);
+        schemaRegistry.registerStaticNamespace(MidPointConstants.NS_RI, MidPointConstants.PREFIX_NS_RI, false);
         schemaRegistry.getNamespacePrefixMapper().addDeclaredByDefault(MidPointConstants.PREFIX_NS_RI); // declared by default
 
-        schemaRegistry.getNamespacePrefixMapper().registerPrefix(SchemaConstants.NS_ORG, SchemaConstants.PREFIX_NS_ORG, false);
+        schemaRegistry.registerStaticNamespace(SchemaConstants.NS_ORG, SchemaConstants.PREFIX_NS_ORG, false);
         schemaRegistry.getNamespacePrefixMapper().addDeclaredByDefault(SchemaConstants.PREFIX_NS_ORG); // declared by default
     }
 

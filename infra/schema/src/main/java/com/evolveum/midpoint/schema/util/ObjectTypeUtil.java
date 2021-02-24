@@ -391,6 +391,28 @@ public class ObjectTypeUtil {
         return ref;
     }
 
+    /**
+     * This is to create reference clone without actually cloning. (Because the cloning copies
+     * also the embedded object.)
+     */
+    public static ObjectReferenceType createObjectRefCopy(ObjectReferenceType ref) {
+        if (ref == null) {
+            return null;
+        } else {
+            ObjectReferenceType copy = new ObjectReferenceType();
+            copy.setOid(ref.getOid());
+            copy.setDescription(ref.getDescription());
+            copy.setDocumentation(ref.getDocumentation());
+            copy.setFilter(ref.getFilter());
+            copy.setResolutionTime(ref.getResolutionTime());
+            copy.setReferentialIntegrity(ref.getReferentialIntegrity());
+            copy.setTargetName(ref.getTargetName());
+            copy.setType(ref.getType());
+            copy.setRelation(ref.getRelation());
+            return copy;
+        }
+    }
+
     public static ObjectReferenceType createObjectRef(String oid, ObjectTypes type) {
        return createObjectRef(oid, null, type);
     }

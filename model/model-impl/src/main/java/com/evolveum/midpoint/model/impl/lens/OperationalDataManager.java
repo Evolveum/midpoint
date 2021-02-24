@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.Channel;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +33,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerable;
 import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult.EQUIVALENT;
 import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult.SUPERPATH;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
@@ -63,8 +63,8 @@ public class OperationalDataManager {
     private MetadataType collectRequestMetadata(XMLGregorianCalendar now, Task task) {
         MetadataType metaData = new MetadataType(prismContext);
         metaData.setRequestTimestamp(now);
-        if (task.getOwner() != null) {
-            metaData.setRequestorRef(createObjectRef(task.getOwner(), prismContext));
+        if (task.getOwnerRef() != null) {
+            metaData.setRequestorRef(ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()));
         }
         // It is not necessary to store requestor comment here as it is preserved in context.options field.
         return metaData;
@@ -268,8 +268,8 @@ public class OperationalDataManager {
         String channel = LensUtil.getChannel(context, task);
         metaData.setCreateChannel(channel);
         metaData.setCreateTimestamp(now);
-        if (task.getOwner() != null) {
-            metaData.setCreatorRef(createObjectRef(task.getOwner(), prismContext));
+        if (task.getOwnerRef() != null) {
+            metaData.setCreatorRef(ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()));
         }
         metaData.setCreateTaskRef(task.getOid() != null ? task.getSelfReference() : null);
     }
@@ -304,7 +304,8 @@ public class OperationalDataManager {
         List<ItemDelta<?, ?>> deltas = new ArrayList<>(prismContext.deltaFor(objectType)
                 .item(metadataPath.append(MetadataType.F_MODIFY_CHANNEL)).replace(LensUtil.getChannel(context, task))
                 .item(metadataPath.append(MetadataType.F_MODIFY_TIMESTAMP)).replace(now)
-                .item(metadataPath.append(MetadataType.F_MODIFIER_REF)).replace(createObjectRef(task.getOwner(), prismContext))
+                .item(metadataPath.append(MetadataType.F_MODIFIER_REF))
+                    .replace(ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()))
                 .item(metadataPath.append(MetadataType.F_MODIFY_TASK_REF)).replaceRealValues(
                         task.getOid() != null ? singleton(task.getSelfReference()) : emptySet())
                 .asItemDeltas());

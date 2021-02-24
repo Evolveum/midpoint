@@ -88,7 +88,6 @@ class AsynchronousScriptExecutor {
         ModelExecuteOptions options = new ModelExecuteOptions(actx.beans.prismContext).preAuthorized();
         Collection<ObjectDeltaOperation<? extends ObjectType>> operations = actx.beans.modelService.executeChanges(deltas, options, actx.task, result);
         String oid = ObjectDeltaOperation.findAddDeltaOid(operations, newTask.asPrismObject());
-        System.out.println("New task OID = " + oid);
         result.setAsynchronousOperationReference(oid);
     }
 }

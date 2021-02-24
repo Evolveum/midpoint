@@ -277,7 +277,11 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                 result.computeStatusIfUnknown();
                 if (shouldLoadAccounts()) {
                     showFeedback = false;
-                    info(createStringResource("PageAbstractSelfCredentials.message.resultInTable").getString());
+                    if (result.isError()) {
+                        error(createStringResource("PageAbstractSelfCredentials.message.resultInTable.error").getString());
+                    } else {
+                        info(createStringResource("PageAbstractSelfCredentials.message.resultInTable").getString());
+                    }
                 }
             }
 

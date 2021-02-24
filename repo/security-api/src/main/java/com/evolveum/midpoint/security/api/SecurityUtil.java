@@ -220,6 +220,9 @@ public class SecurityUtil {
         if (target.getWarningBeforeExpirationDuration() == null && defaults.getWarningBeforeExpirationDuration() != null) {
             target.setWarningBeforeExpirationDuration(defaults.getWarningBeforeExpirationDuration());
         }
+        if (target.isHistoryAllowExistingPasswordReuse() == null && defaults.isHistoryAllowExistingPasswordReuse() != null) {
+            target.setHistoryAllowExistingPasswordReuse(defaults.isHistoryAllowExistingPasswordReuse());
+        }
     }
 
     public static int getCredentialHistoryLength(CredentialPolicyType credentialPolicy) {
@@ -231,6 +234,17 @@ public class SecurityUtil {
             return 0;
         }
         return historyLength;
+    }
+
+    public static boolean isHistoryAllowExistingPasswordReuse(CredentialPolicyType credentialPolicy) {
+        if (credentialPolicy == null) {
+            return false;
+        }
+        Boolean historyAllowExistingPasswordReuse = credentialPolicy.isHistoryAllowExistingPasswordReuse();
+        if (historyAllowExistingPasswordReuse == null) {
+            return false;
+        }
+        return historyAllowExistingPasswordReuse;
     }
 
     public static CredentialsStorageTypeType getCredentialStorageTypeType(CredentialsStorageMethodType storageMethod) {

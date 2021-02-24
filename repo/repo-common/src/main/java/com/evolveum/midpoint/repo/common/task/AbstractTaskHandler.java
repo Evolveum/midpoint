@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
 import com.evolveum.midpoint.schema.SchemaHelper;
 
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -116,6 +117,8 @@ public abstract class AbstractTaskHandler<
     // Various useful beans.
 
     @Autowired protected TaskManager taskManager;
+    @Autowired private Tracer tracer;
+    @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired @Qualifier("cacheRepositoryService") protected RepositoryService repositoryService;
     @Autowired protected PrismContext prismContext;
     @Autowired protected SchemaHelper schemaHelper;
@@ -245,5 +248,13 @@ public abstract class AbstractTaskHandler<
 
     public @NotNull Trace getLogger() {
         return logger;
+    }
+
+    public Tracer getTracer() {
+        return tracer;
+    }
+
+    public CacheConfigurationManager getCacheConfigurationManager() {
+        return cacheConfigurationManager;
     }
 }

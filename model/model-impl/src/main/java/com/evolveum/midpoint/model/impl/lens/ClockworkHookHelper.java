@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -156,7 +156,7 @@ public class ClockworkHookHelper {
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptExpressionEvaluatorType, null,
                 context.getPrivilegedExpressionProfile(), expressionFactory, shortDesc, result);
 
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext, PrismContext.class);
         variables.put(ExpressionConstants.VAR_MODEL_CONTEXT, context, ModelContext.class);
         LensFocusContext focusContext = context.getFocusContext();

@@ -31,7 +31,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -77,7 +77,7 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
         boolean applies = aggregatedEventHandler.processEvent(event, configuration, task, result);
 
         if (applies) {
-            ExpressionVariables variables = getDefaultVariables(event, result);
+            VariablesMap variables = getDefaultVariables(event, result);
 
             List<String> transports = new ArrayList<>(configuration.getTransport());
             if (transports.isEmpty()) {
@@ -111,7 +111,7 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
         return DEFAULT_LOGGER;              // in case a subclass does not provide its own logger
     }
 
-    private Message getMessageFromExpression(CustomNotifierType config, ExpressionVariables variables,
+    private Message getMessageFromExpression(CustomNotifierType config, VariablesMap variables,
             Task task, OperationResult result) {
         if (config.getExpression() == null) {
             return null;
@@ -132,7 +132,7 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private List<NotificationMessageType> evaluateExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
+    private List<NotificationMessageType> evaluateExpression(ExpressionType expressionType, VariablesMap VariablesMap,
             String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -142,7 +142,7 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
 
         Expression<PrismPropertyValue<NotificationMessageType>,PrismPropertyDefinition<NotificationMessageType>> expression =
                 expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task);
+        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
         PrismValueDeltaSetTriple<PrismPropertyValue<NotificationMessageType>> exprResult = ModelExpressionThreadLocalHolder
                 .evaluateExpressionInContext(expression, params, task, result);
         return exprResult.getZeroSet().stream().map(PrismPropertyValue::getValue).collect(Collectors.toList());

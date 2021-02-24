@@ -6,24 +6,9 @@
  */
 package com.evolveum.midpoint.task.quartzimpl.execution.remote;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
-import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
-import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
-import com.evolveum.midpoint.task.quartzimpl.execution.ExecutionManager;
-import com.evolveum.midpoint.task.quartzimpl.execution.JmxClient;
-import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import org.quartz.Scheduler;
-import org.quartz.core.jmx.QuartzSchedulerMBean;
-
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import javax.management.JMX;
 import javax.management.MBeanServerConnection;
 import javax.management.MalformedObjectNameException;
@@ -32,24 +17,36 @@ import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXServiceURL;
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+
+import org.quartz.Scheduler;
+import org.quartz.core.jmx.QuartzSchedulerMBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
+import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
+import com.evolveum.midpoint.task.quartzimpl.execution.JmxClient;
+import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
 /**
  * Manages remote nodes using JMX.
- *
- * @author Pavol Mederly
  */
+@Component
 public class JmxConnector {
 
     private static final Trace LOGGER = TraceManager.getTrace(JmxConnector.class);
 
-    private TaskManagerQuartzImpl taskManager;
-
-    public JmxConnector(TaskManagerQuartzImpl taskManager) {
-        this.taskManager = taskManager;
-    }
+    @Autowired private TaskManagerQuartzImpl taskManager;
+    @Autowired private TaskManagerConfiguration configuration;
 
     public void addNodeStatusUsingJmx(ClusterStatusInformation info, NodeType nodeInfo, OperationResult result) {
         String nodeIdentifier = nodeInfo.getNodeIdentifier();
@@ -66,7 +63,7 @@ public class JmxConnector {
                 LoggingUtils
                         .logUnexpectedException(LOGGER, "Cannot connect to the remote node {} at {}", e, nodeIdentifier, address);
                 result.recordWarning("Cannot connect to the remote node " + nodeIdentifier + " at " + address + ": " + e.getMessage(), e);
-                nodeInfo.setExecutionStatus(NodeExecutionStatusType.COMMUNICATION_ERROR);
+                nodeInfo.setExecutionState(NodeExecutionStateType.COMMUNICATION_ERROR);
                 nodeInfo.setConnectionResult(result.createOperationResultType());
                 info.addNodeInfo(nodeInfo);
                 return;
@@ -95,11 +92,11 @@ public class JmxConnector {
                 LOGGER.trace(" - scheduler found = " + (mbeanProxy != null) + ", running = " + running + ", shutdown = " + down);
 
                 if (down) {
-                    nodeInfo.setExecutionStatus(NodeExecutionStatusType.ERROR);         // this is a mark of error situation (we expect that during ordinary shutdown the node quickly goes down so there is little probability of getting this status on that occasion)
+                    nodeInfo.setExecutionState(NodeExecutionStateType.ERROR);         // this is a mark of error situation (we expect that during ordinary shutdown the node quickly goes down so there is little probability of getting this status on that occasion)
                 } else if (running) {
-                    nodeInfo.setExecutionStatus(NodeExecutionStatusType.RUNNING);
+                    nodeInfo.setExecutionState(NodeExecutionStateType.RUNNING);
                 } else {
-                    nodeInfo.setExecutionStatus(NodeExecutionStatusType.PAUSED);
+                    nodeInfo.setExecutionState(NodeExecutionStateType.PAUSED);
                 }
 
                 List<ClusterStatusInformation.TaskInfo> taskInfoList = new ArrayList<>();
@@ -113,13 +110,13 @@ public class JmxConnector {
                 }
 
                 if (result.isUnknown()) {
-                    result.recordStatus(OperationResultStatus.SUCCESS, "Node " + nodeIdentifier + ": status = " + nodeInfo.getExecutionStatus() + ", # of running tasks: " + taskInfoList.size());
+                    result.recordStatus(OperationResultStatus.SUCCESS, "Node " + nodeIdentifier + ": status = " + nodeInfo.getExecutionState() + ", # of running tasks: " + taskInfoList.size());
                 }
                 info.addNodeAndTaskInfo(nodeInfo, taskInfoList);
             } catch (Exception e) {   // unfortunately, mbeanProxy.getCurrentlyExecutingJobs is declared to throw an Exception
                 LoggingUtils.logUnexpectedException(LOGGER, "Cannot get information from the remote node {} at {}", e, nodeIdentifier, address);
                 result.recordWarning("Cannot get information from the remote node " + nodeIdentifier + " at " + address + ": " + e.getMessage(), e);
-                nodeInfo.setExecutionStatus(NodeExecutionStatusType.COMMUNICATION_ERROR);
+                nodeInfo.setExecutionState(NodeExecutionStateType.COMMUNICATION_ERROR);
                 nodeInfo.setConnectionResult(result.createOperationResultType());
                 info.addNodeInfo(nodeInfo);
             }
@@ -136,17 +133,7 @@ public class JmxConnector {
         }
     }
 
-    private NodeType getNode(String nodeIdentifier, OperationResult result) {
-        try {
-            return taskManager.getClusterManager().getNodeById(nodeIdentifier, result).asObjectable();
-        } catch (ObjectNotFoundException e) {
-            result.recordFatalError("A node with identifier " + nodeIdentifier + " does not exist.");
-            return null;
-        }
-    }
-
     public void stopRemoteScheduler(NodeType node, OperationResult result) {
-
         String nodeName = node.getNodeIdentifier();
         String address = node.getHostname() + ":" + node.getJmxPort();
 
@@ -259,22 +246,14 @@ public class JmxConnector {
                 new JMXServiceURL("service:jmx:rmi:///jndi/rmi://" + address + "/jmxrmi");
 
         Map<String,Object> env = new HashMap<>();
-        String jmxUsername = taskManager.getConfiguration().getJmxUsername();
-        String jmxPassword = taskManager.getConfiguration().getJmxPassword();
+        String jmxUsername = configuration.getJmxUsername();
+        String jmxPassword = configuration.getJmxPassword();
         if (jmxUsername != null || jmxPassword != null) {
             String[] creds = { jmxUsername, jmxPassword };
             env.put(JMXConnector.CREDENTIALS, creds);
         }
         return JmxClient.connectWithTimeout(url, env,
-                taskManager.getConfiguration().getJmxConnectTimeout(), TimeUnit.SECONDS);
-    }
-
-    private TaskManagerConfiguration getConfiguration() {
-        return taskManager.getConfiguration();
-    }
-
-    private ExecutionManager getGlobalExecutionManager() {
-        return taskManager.getExecutionManager();
+                configuration.getJmxConnectTimeout(), TimeUnit.SECONDS);
     }
 
     // the task should be really running

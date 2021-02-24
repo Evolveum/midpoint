@@ -24,7 +24,7 @@ import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -51,7 +51,7 @@ public class PopulatorUtil {
     private static final Trace LOGGER = TraceManager.getTrace(PopulatorUtil.class);
 
     public static <V extends PrismValue, D extends ItemDefinition, C extends Containerable>
-        List<ItemDelta<V,D>> computePopulateItemDeltas(PopulateType fromPopulate, PrismContainerDefinition<C> targetContainerDefinition, ExpressionVariables variables,
+        List<ItemDelta<V,D>> computePopulateItemDeltas(PopulateType fromPopulate, PrismContainerDefinition<C> targetContainerDefinition, VariablesMap variables,
                 ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -75,7 +75,7 @@ public class PopulatorUtil {
     }
 
     public static <IV extends PrismValue, ID extends ItemDefinition, C extends Containerable> ItemDelta<IV,ID> evaluatePopulateExpression(PopulateItemType populateItem,
-            ExpressionVariables variables, ExpressionEvaluationContext context, PrismContainerDefinition<C> targetContainerDefinition,
+            VariablesMap variables, ExpressionEvaluationContext context, PrismContainerDefinition<C> targetContainerDefinition,
             String contextDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         ExpressionType expressionType = populateItem.getExpression();
         if (expressionType == null) {

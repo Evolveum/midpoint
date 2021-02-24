@@ -7,10 +7,10 @@
 
 package com.evolveum.midpoint.model.api;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -21,5 +21,5 @@ public interface ModelAuditRecorder {
 
     void auditLoginFailure(String username, FocusType focus, ConnectionEnvironment connEnv, String message);
 
-    void auditLogout(ConnectionEnvironment connEnv, Task task);
+    void auditLogout(ConnectionEnvironment connEnv, Task task, OperationResult result);
 }

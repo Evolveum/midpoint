@@ -12,6 +12,8 @@ import java.util.Map.Entry;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.task.api.RunningTask;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -1749,9 +1751,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                 Boolean.TRUE.equals(systemConfiguration.asObjectable().getInternals().isEnableExperimentalCode());
     }
 
-    public String getTaskTreeOid(Task task, OperationResult result) throws SchemaException {
+    public String getTaskTreeOid(Task task, OperationResult result) {
         if (taskTreeOid == null) {
-            taskTreeOid = task.getTaskTreeId(result);
+            if (task instanceof RunningTask) {
+                taskTreeOid = ((RunningTask) task).getRootTaskOid();
+            }
         }
         return taskTreeOid;
     }

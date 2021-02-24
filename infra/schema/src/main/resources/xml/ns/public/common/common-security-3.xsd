@@ -1962,6 +1962,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="historyAllowExistingPasswordReuse" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true, then existing focus password (last set password) can be reused and set again to the same value as the new password.
+                        However, when maxAge constraint is set, value cannot be reused after existing password has expired.
+                        If set to false, user must always provide fresh password when setting the new password.
+                        This setting is effective only when historyLength > 0.
+                        Default behaviour is that reuse is not allowed (setting is false).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <!-- TODO: similarity criteria (history vs new password) -->
         </xsd:sequence>
     </xsd:complexType>
@@ -2015,7 +2029,7 @@
             <xsd:enumeration value="identityManagerMandatory">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Identity Manager Repository will by propagated.
+                        Identity Manager Repository will be propagated always.
                         The user can choose where the other credentials will be propagated.
                         The propagation dialog will be shown.
                     </xsd:documentation>

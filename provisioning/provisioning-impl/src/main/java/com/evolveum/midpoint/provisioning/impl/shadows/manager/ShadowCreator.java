@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2010-2021 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
 import com.evolveum.midpoint.common.Clock;
@@ -176,10 +183,7 @@ class ShadowCreator {
             PasswordType passwordType = creds.getPassword();
             if (passwordType != null) {
                 preparePasswordForStorage(passwordType, ctx.getObjectClassDefinition());
-                PrismObject<? extends FocusType> owner = null;
-                if (ctx.getTask() != null) {
-                    owner = ctx.getTask().getOwner();
-                }
+                ObjectReferenceType owner = ctx.getTask() != null ? ctx.getTask().getOwnerRef() : null;
                 ProvisioningUtil.addPasswordMetadata(passwordType, clock.currentTimeXMLGregorianCalendar(), owner);
             }
             // TODO: other credential types - later

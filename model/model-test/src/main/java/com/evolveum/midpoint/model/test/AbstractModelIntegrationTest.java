@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -93,7 +95,7 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -117,7 +119,6 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.test.asserter.*;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerDefinitionAsserter;
@@ -3093,9 +3094,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             public boolean check() throws CommonException {
                 Task task = taskManager.getTaskWithResult(taskOid, waitResult);
                 waitResult.summarize();
-                display("Task execution status = " + task.getExecutionStatus());
-                return task.getExecutionStatus() == TaskExecutionStatus.CLOSED
-                        || task.getExecutionStatus() == TaskExecutionStatus.SUSPENDED;
+                display("Task execution status = " + task.getExecutionState());
+                return task.getExecutionState() == TaskExecutionStateType.CLOSED
+                        || task.getExecutionState() == TaskExecutionStateType.SUSPENDED;
             }
 
             @Override
@@ -3268,7 +3269,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             public boolean check() throws CommonException {
                 Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
                 OperationResult result = freshTask.getResult();
-                if (verbose) { display("Check result", result); }
+                if (verbose) { display("Task checked (result=" + result + ")", freshTask); }
                 assert !isError(result, checkSubresult) : "Error in " + freshTask + ": " + TestUtil.getErrorMessage(result);
                 if (isUnknown(result, checkSubresult)) {
                     return false;
@@ -3281,7 +3282,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 try {
                     Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
                     OperationResult result = freshTask.getResult();
-                    logger.debug("Result of timed-out task:\n{}", result.debugDump());
+                    logger.debug("Result of timed-out task:\n{}", DebugUtil.debugDump(result));
                     assert false : "Timeout (" + timeout + ") while waiting for " + freshTask + " to start. Last result " + result;
                 } catch (ObjectNotFoundException | SchemaException e) {
                     logger.error("Exception during task refresh: {}", e, e);
@@ -3448,8 +3449,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 long progress = runningTask != null ? runningTask.getProgress() : freshTask.getProgress();
                 boolean extraTestSuccess = extraTest != null && Boolean.TRUE.equals(extraTest.get());
                 return extraTestSuccess ||
-                        freshTask.getExecutionStatus() == TaskExecutionStatus.SUSPENDED ||
-                        freshTask.getExecutionStatus() == TaskExecutionStatus.CLOSED ||
+                        freshTask.getExecutionState() == TaskExecutionStateType.SUSPENDED ||
+                        freshTask.getExecutionState() == TaskExecutionStateType.CLOSED ||
                         progress >= progressToReach;
             }
 
@@ -3494,7 +3495,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
             long waiting = (System.currentTimeMillis() - start) / 1000;
             String description =
-                    freshRootTask.getName().getOrig() + " [es:" + freshRootTask.getExecutionStatus() + ", rs:" +
+                    freshRootTask.getName().getOrig() + " [es:" + freshRootTask.getExecutionState() + ", rs:" +
                             freshRootTask.getResultStatus() + ", p:" + freshRootTask.getProgress() + ", n:" +
                             freshRootTask.getNode() + "] (waiting for: " + waiting + ")";
             // was the whole task tree refreshed at least once after we were called?
@@ -3516,7 +3517,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             triggered.set(true);
 
             aggregateResult.getSubresults().clear();
-            List<Task> subtasks = freshRootTask.listSubtasksDeeply(waitResult);
+            List<? extends Task> subtasks = freshRootTask.listSubtasksDeeply(waitResult);
             for (Task subtask : subtasks) {
                 try {
                     subtask.refresh(waitResult);        // quick hack to get operation results
@@ -3526,11 +3527,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
             Task failedTask = null;
             for (Task subtask : subtasks) {
-                if (subtask.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
-                    display("Found runnable/running subtasks during waiting => continuing waiting: " + description, subtask);
+                if (subtask.getSchedulingState() == TaskSchedulingStateType.READY) {
+                    display("Found ready subtasks during waiting => continuing waiting: " + description, subtask);
                     return false;
                 }
-                if (subtask.getExecutionStatus() == TaskExecutionStatus.WAITING) {
+                if (subtask.getSchedulingState() == TaskSchedulingStateType.WAITING) {
                     display("Found waiting subtasks during waiting => continuing waiting: " + description, subtask);
                     return false;
                 }
@@ -3556,7 +3557,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 display("Found 'error' subtask operation result during waiting => done waiting: " + description, failedTask);
                 return true;
             }
-            if (freshRootTask.getExecutionStatus() == TaskExecutionStatus.WAITING) {
+            if (freshRootTask.getSchedulingState() == TaskSchedulingStateType.WAITING) {
                 display("Found WAITING root task during wait for next finished run => continuing waiting: " + description);
                 return false;
             }
@@ -3716,13 +3717,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
         Task task = taskManager.getTaskWithResult(taskOid, result);
         logger.info("Restarting task {}", taskOid);
-        if (task.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
+        if (task.getSchedulingState() == TaskSchedulingStateType.SUSPENDED) {
             logger.debug("Task {} is suspended, resuming it", task);
             taskManager.resumeTask(task, result);
-        } else if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
+        } else if (task.getSchedulingState() == TaskSchedulingStateType.CLOSED) {
             logger.debug("Task {} is closed, scheduling it to run now", task);
             taskManager.scheduleTasksNow(singleton(taskOid), result);
-        } else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+        } else if (task.getSchedulingState() == TaskSchedulingStateType.READY) {
             if (taskManager.getLocallyRunningTaskByIdentifier(task.getTaskIdentifier()) != null) {
                 // Task is really executing. Let's wait until it finishes; hopefully it won't start again (TODO)
                 logger.debug("Task {} is running, waiting while it finishes before restarting", task);
@@ -3732,7 +3733,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             taskManager.scheduleTasksNow(singleton(taskOid), result);
         } else {
             throw new IllegalStateException(
-                    "Task " + task + " cannot be restarted, because its state is: " + task.getExecutionStatus());
+                    "Task " + task + " cannot be restarted, because its state is: " + task.getExecutionState());
         }
     }
 
@@ -3744,7 +3745,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".suspendTask");
         Task task = taskManager.getTaskWithResult(taskOid, result);
         logger.info("Suspending task {}", taskOid);
-        return taskManager.suspendTaskQuietly(task, waitTime, result);
+        try {
+            return taskManager.suspendTask(task, waitTime, result);
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(logger, "Couldn't suspend task {}", e, task);
+            return false;
+        }
     }
 
     /**
@@ -3774,10 +3780,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return waitForTaskFinish(taskOid, true, startTime, DEFAULT_TASK_WAIT_TIMEOUT, true);
     }
 
-    protected void assertTaskExecutionStatus(String taskOid, TaskExecutionStatus expectedExecutionStatus) throws ObjectNotFoundException, SchemaException {
+    protected void assertTaskExecutionStatus(String taskOid, TaskExecutionStateType expectedExecutionStatus)
+            throws ObjectNotFoundException, SchemaException {
         final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".assertTaskExecutionStatus");
         Task task = taskManager.getTaskPlain(taskOid, result);
-        assertEquals("Wrong executionStatus in " + task, expectedExecutionStatus, task.getExecutionStatus());
+        assertEquals("Wrong executionStatus in " + task, expectedExecutionStatus, task.getExecutionState());
+    }
+
+    protected void assertTaskSchedulingState(String taskOid, TaskSchedulingStateType expectedState)
+            throws ObjectNotFoundException, SchemaException {
+        final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".assertTaskSchedulingState");
+        Task task = taskManager.getTaskPlain(taskOid, result);
+        assertEquals("Wrong schedulingState in " + task, expectedState, task.getSchedulingState());
     }
 
     protected String getSecurityContextUserOid() {
@@ -5396,11 +5410,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void assertTaskClosed(PrismObject<TaskType> task) {
-        assertEquals("Wrong executionStatus in " + task, TaskExecutionStatusType.CLOSED, task.asObjectable().getExecutionStatus());
+        assertEquals("Wrong executionStatus in " + task, TaskExecutionStateType.CLOSED, task.asObjectable().getExecutionStatus());
     }
 
     protected void assertTaskClosed(Task task) {
-        assertEquals("Wrong executionStatus in " + task, TaskExecutionStatus.CLOSED, task.getExecutionStatus());
+        assertEquals("Wrong executionStatus in " + task, TaskExecutionStateType.CLOSED, task.getExecutionState());
     }
 
     @Deprecated
@@ -6667,8 +6681,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return asserter;
     }
 
-    protected ExpressionVariables createVariables(Object... params) {
-        return ExpressionVariables.create(prismContext, params);
+    protected VariablesMap createVariables(Object... params) {
+        return VariablesMap.create(prismContext, params);
     }
 
     protected void dumpStatistics(Task task) {

@@ -141,10 +141,6 @@ public class SynchronizationServiceMock
 
         Validate.notNull(task, "Task must not be null.");
 
-        if (!task.hasExtension()) {
-            return false;
-        }
-
         PrismProperty<Boolean> item = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
         if (item == null || item.isEmpty()) {
             return false;

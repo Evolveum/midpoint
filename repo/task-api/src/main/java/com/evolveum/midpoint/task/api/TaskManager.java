@@ -88,8 +88,6 @@ public interface TaskManager {
      */
     <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult) throws SchemaException;
 
-    void waitForTransientChildren(RunningTask task, OperationResult result);
-
     /**
      * TODO
      */
@@ -192,8 +190,7 @@ public interface TaskManager {
 
     //endregion
 
-    //region Basic working with tasks (create, get, modify, delete)
-    // ==================================================== Basic working with tasks (create, get, modify, delete)
+    //region Basic working with tasks (create instance, get, modify, delete)
 
     /**
      * Creates new transient, running task instance.
@@ -206,7 +203,9 @@ public interface TaskManager {
      *
      * @return transient, running task instance
      */
-    Task createTaskInstance();
+    default Task createTaskInstance() {
+        return createTaskInstance(null);
+    }
 
     /**
      * Creates task instance from the XML task representation.
@@ -318,93 +317,31 @@ public interface TaskManager {
      * Deletes dead nodes, i.e. ones that were not checked-in for a given time period.
      */
     void cleanupNodes(DeadNodeCleanupPolicyType deadNodesPolicy, RunningTask task, OperationResult opResult) throws SchemaException;
-
-    /**
-     * This is a signal to task manager that a new task was created in the repository.
-     * Task manager can react to it e.g. by creating shadow quartz job and trigger.
-     */
-    void onTaskCreate(String oid, OperationResult parentResult);
-
-    /**
-     * This is a signal to task manager that a task was removed from the repository.
-     * Task manager can react to it e.g. by removing shadow quartz job and trigger.
-     */
-    void onTaskDelete(String oid, OperationResult parentResult);
     //endregion
 
-    //region Searching for tasks
-    // ==================================================== Searching for tasks
-
-    /*
-     * Returns tasks satisfying given query.
-     *
-     * Comparing to searchObjects(TaskType) in repo, there are the following differences:
-     * (1) This method combines information from the repository with run-time information obtained from cluster nodes
-     *     (clusterStatusInformation), mainly to tell what tasks are really executing at this moment. The repository
-     *     contains 'node' attribute (telling on which node task runs), which may be out-of-date for nodes which
-     *     crashed recently.
-     * (2) this method returns Tasks, not TaskTypes - a Task provides some information (e.g. getNextRunStartTime())
-     *     that is not stored in repository; Task object can be directly used as an input to several methods,
-     *     like suspendTask() or releaseTask().
-     *
-     * However, the reason (2) is only of a technical character. So, if necessary, this method can be changed
-     * to return a list of TaskTypes instead of Tasks.
-     *
-     * @param query Search query
-     * @param clusterStatusInformation If null, the method will query cluster nodes to get up-to-date runtime information.
-     *                                 If non-null, the method will use the provided information. Used to optimize
-     *                                 network traffic in case of repeating calls to searchTasks/searchNodes (e.g. when
-     *                                 displaying them on one page).
-     * @param result
-     * @return
-     * @throws SchemaException
-     */
-    //List<Task> searchTasks(ObjectQuery query, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
-
-    /*
-     * Returns the number of tasks satisfying given query.
-     *
-     * @param query search query
-     * @param result
-     * @return
-     * @throws SchemaException
-     */
-//    int countTasks(ObjectQuery query, OperationResult result) throws SchemaException;
-
+    //region Remotely invokable methods
     /**
-     * Returns tasks that currently run on this node.
-     * E.g. tasks that have allocated threads.
-     *
-     * Does not look primarily into repository, but looks at runtime structures describing the task execution.
-     *
-     * @return tasks that currently run on this node.
-     */
-    Collection<Task> getLocallyRunningTasks(OperationResult parentResult);
-
-    /**
-     * Returns the local scheduler information.
+     * Returns the local scheduler information. To be called from the task manager on other nodes.
      */
     SchedulerInformationType getLocalSchedulerInformation(OperationResult parentResult);
 
+    /**
+     * Stops the local scheduler. To be called from the task manager on other nodes.
+     */
     void stopLocalScheduler(OperationResult parentResult);
 
+    /**
+     * Starts the local scheduler. To be called from the task manager on other nodes.
+     */
     void startLocalScheduler(OperationResult parentResult);
 
-    void stopLocalTask(String oid, OperationResult parentResult);
-
     /**
-     * Returns locally-run task by identifier. Returned instance is the same as is being used to carrying out
-     * operations. SO USE WITH CARE.
-     *
-     * EXPERIMENTAL. Should be replaced by something like "get operational information".
+     * Stops the local task. To be called from the task manager on other nodes.
      */
-    RunningTask getLocallyRunningTaskByIdentifier(String lightweightIdentifier);
-
+    void stopLocalTaskRunInStandardWay(String oid, OperationResult result);
     //endregion
 
     //region Suspending, resuming and scheduling the tasks
-    // ==================================================== Suspending and resuming the tasks
-
     /**
      * Suspends a set of tasks. Sets their execution status to SUSPENDED. Stops their execution (unless doNotStop is set).
      *
@@ -418,13 +355,7 @@ public interface TaskManager {
      *
      * On error conditions does NOT throw an exception.
      */
-    boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult);
-
-    /**
-     * Suspends a task. The same as above.
-     */
-    boolean suspendTaskQuietly(Task task, long waitTime, OperationResult parentResult)
-            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException;
+    boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) throws SchemaException;
 
     /**
      * Suspends a task. The same as above except that on error condition it DOES throw appropriate exception.
@@ -437,12 +368,6 @@ public interface TaskManager {
      */
     boolean suspendTask(String taskOid, long waitTime, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException;
-
-    /**
-     * After stopping a task puts it into CLOSED state (not SUSPENDED one).
-     */
-    @SuppressWarnings("UnusedReturnValue")
-    boolean suspendAndCloseTaskQuietly(Task task, long waitTime, OperationResult parentResult);
 
     /**
      * Suspends tasks and deletes them.
@@ -488,19 +413,6 @@ public interface TaskManager {
             throws SchemaException, ObjectNotFoundException;
 
     /**
-     * TODO is this method really necessary?
-     */
-    void scheduleCoordinatorAndWorkersNow(String coordinatorOid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
-
-    /**
-     * Puts a runnable/running task into WAITING state.
-     *
-     * @param task a runnable/running task
-     * @param reason the reason for waiting, which is stored into the repository
-     */
-    void pauseTask(Task task, TaskWaitingReason reason, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
-
-    /**
      * Puts a WAITING task back into RUNNABLE state.
      */
     void unpauseTask(Task task, OperationResult parentResult)
@@ -538,23 +450,9 @@ public interface TaskManager {
      * The same as above.
      */
     void scheduleTaskNow(String taskOid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
-
     //endregion
 
-    //region Working with nodes (searching, managing)
-    // ==================================================== Working with nodes (searching, mananging)
-
-
-    /*
-     * Returns the number of nodes satisfying given query.
-     *
-     * @param query search query
-     * @param result
-     * @return
-     * @throws SchemaException
-     */
-//    int countNodes(ObjectQuery query, OperationResult result) throws SchemaException;
-
+    //region Working with nodes
     /**
      * Returns identifier for current node.
      */
@@ -574,14 +472,7 @@ public interface TaskManager {
     void deleteNode(String nodeOid, OperationResult result) throws SchemaException, ObjectNotFoundException;
     //endregion
 
-    //region Managing state of the node(s)
-    // ==================================================== Managing state of the node(s)
-
-    /**
-     * Shuts down current node. Stops all tasks and cluster manager thread as well.
-     * Waits until all tasks on this node finish.
-     */
-    void shutdown();
+    //region Managing state of the scheduler(s)
 
     /**
      * Deactivates service threads (temporarily).
@@ -598,7 +489,7 @@ public interface TaskManager {
      *  timeToWait is only for orientation = it may be so that the implementation would wait 2 or 3 times this value
      *  (if it waits separately for several threads completion)
      */
-    boolean deactivateServiceThreads(long timeToWait, OperationResult parentResult);
+    boolean deactivateServiceThreads(long timeToWait, OperationResult parentResult) throws SchemaException;
 
     /**
      * Re-activates the service threads after they have been deactivated.
@@ -631,7 +522,7 @@ public interface TaskManager {
      *                 0 = indefinitely
      *                 -1 = do not wait at all
      */
-    boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, OperationResult parentResult);
+    boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, OperationResult parentResult) throws SchemaException;
 
     /**
      * Starts the scheduler on a given node. A prerequisite is that the node is running and its
@@ -662,11 +553,6 @@ public interface TaskManager {
 
     //region Miscellaneous methods
     // ==================================================== Miscellaneous methods
-
-    /**
-     * Currently not used.
-     */
-    void postInit(OperationResult result);
 
     /**
      * Called when the whole application is initialized.
@@ -723,13 +609,6 @@ public interface TaskManager {
     Collection<String> getHandlerUrisForArchetype(String archetypeOid, boolean nonDeprecatedOnly);
 
     /**
-     * Validates a cron expression for scheduling tasks - without context of any given task.
-     * @param cron expression to validate
-     * @return an exception if there's something wrong with the expression (null if it's OK).
-     */
-    ParseException validateCronExpression(String cron);
-
-    /**
      * Registers a handler for a specified handler URI.
      *
      * @param uri URI of the handler, e.g. http://midpoint.evolveum.com/xml/ns/public/model/cleanup/handler-3
@@ -753,6 +632,7 @@ public interface TaskManager {
 
     //endregion
 
+    //region TODO
     /**
      * TODO. EXPERIMENTAL.
      */
@@ -802,8 +682,6 @@ public interface TaskManager {
 
     boolean isDynamicProfilingEnabled();
 
-    Tracer getTracer();
-
     boolean isClustered();
 
     // EXPERIMENTAL
@@ -840,4 +718,18 @@ public interface TaskManager {
      * (Current implementation uses node archetypes to keep this information.)
      */
     Collection<ObjectReferenceType> getLocalNodeGroups();
+
+
+    /**
+     * Returns locally-run task by identifier. Returned instance is the same as is being used to carrying out
+     * operations. SO USE WITH CARE.
+     *
+     * EXPERIMENTAL. Should be replaced by something like "get operational information".
+     */
+    @VisibleForTesting
+    RunningTask getLocallyRunningTaskByIdentifier(String lightweightIdentifier);
+
+    void waitForTransientChildren(RunningTask task, OperationResult result);
+
+    //endregion
 }

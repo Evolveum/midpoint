@@ -165,7 +165,8 @@ public class DeleteTaskHandler implements TaskHandler {
                 Integer expectedTotal = modelService.countObjects(objectType, query, searchOptions, task, opResult);
                 LOGGER.trace("Expecting {} objects to be deleted", expectedTotal);
                 if (expectedTotal != null) {
-                    task.setExpectedTotalImmediate((long) expectedTotal, opResult);
+                    task.setExpectedTotal((long) expectedTotal);
+                    task.flushPendingModifications(opResult);
                 }
             }
 

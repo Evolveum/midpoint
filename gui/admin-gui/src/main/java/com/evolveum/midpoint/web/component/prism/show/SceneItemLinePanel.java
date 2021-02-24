@@ -53,7 +53,7 @@ public class SceneItemLinePanel extends BasePanel<SceneItemLineDto> {
         nameCell.add(new AttributeModifier("rowspan",
                 new PropertyModel<Integer>(getModel(), SceneItemLineDto.F_NUMBER_OF_LINES)));
 
-        Label label = new Label("name",createStringResource("${name}", getModel()));
+        Label label = new Label(ID_NAME, createStringResource("${name}", getModel()));
         nameCell.add(label);
         nameCell.add(new VisibleEnableBehaviour() {
             @Override

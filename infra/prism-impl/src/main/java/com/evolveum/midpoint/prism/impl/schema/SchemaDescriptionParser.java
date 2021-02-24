@@ -9,13 +9,13 @@ package com.evolveum.midpoint.prism.impl.schema;
 
 import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.util.Checks;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -23,7 +23,9 @@ import javax.xml.namespace.QName;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import static com.evolveum.midpoint.prism.PrismConstants.*;
 /**
  * Parser for SchemaDescription objects. TODO Rework, along with SchemaDescriptionImpl.
  */
@@ -142,15 +144,18 @@ class SchemaDescriptionParser {
 
     private static void fetchBasicInfoFromSchema(SchemaDescriptionImpl desc) throws SchemaException {
         Element rootElement = desc.getDomElement();
-        if (DOMUtil.XSD_SCHEMA_ELEMENT.equals(DOMUtil.getQName(rootElement))) {
-            String targetNamespace = DOMUtil.getAttribute(rootElement, DOMUtil.XSD_ATTR_TARGET_NAMESPACE);
-            if (targetNamespace != null) {
-                desc.setNamespace(targetNamespace);
-            } else {
-                throw new SchemaException("Schema " + desc.getSourceDescription() + " does not have targetNamespace attribute");
+        Checks.checkSchema(DOMUtil.XSD_SCHEMA_ELEMENT.equals(DOMUtil.getQName(rootElement)), "Schema %s does not start with xsd:schema element", desc.getSourceDescription());
+        String targetNamespace = DOMUtil.getAttribute(rootElement, DOMUtil.XSD_ATTR_TARGET_NAMESPACE);
+        Checks.checkSchemaNotNull(targetNamespace, "Schema %s does not have targetNamespace attribute", desc.getSourceDescription());
+        desc.setNamespace(targetNamespace);
+        Optional<Element> defaultPrefixElem = DOMUtil.getElement(rootElement, SCHEMA_ANNOTATION, SCHEMA_APP_INFO, A_DEFAULT_PREFIX);
+        if(defaultPrefixElem.isPresent()) {
+            String defaultPrefix = defaultPrefixElem.get().getTextContent().strip();
+            if(!defaultPrefix.isEmpty()) {
+                desc.setDefaultPrefix(defaultPrefix);
             }
-        } else {
-            throw new SchemaException("Schema " + desc.getSourceDescription() + " does not start with xsd:schema element");
+
         }
+
     }
 }

@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
@@ -686,7 +686,7 @@ public class ObjectMerger {
             Expression<PrismValue, ItemDefinition> valueExpression, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_SIDE, side, String.class);
         variables.put(ExpressionConstants.VAR_OBJECT_LEFT, objectLeft, String.class);
         variables.put(ExpressionConstants.VAR_OBJECT_RIGHT, objectRight, String.class);

@@ -13,6 +13,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -74,17 +76,17 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
     private final List<AuditService> services = new ArrayList<>();
 
     @Override
-    public void audit(AuditEventRecord record, Task task) {
+    public void audit(AuditEventRecord record, Task task, OperationResult result) {
         if (services.isEmpty()) {
             LOGGER.warn("Audit event will not be recorded. No audit services registered.");
             return;
         }
 
         assertCorrectness(task);
-        completeRecord(record, task);
+        completeRecord(record, task, result);
 
         for (AuditService service : services) {
-            service.audit(record, task);
+            service.audit(record, task, result);
         }
     }
 
@@ -124,7 +126,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
      * Complete the record with data that can be computed or discovered from the
      * environment
      */
-    private void completeRecord(AuditEventRecord record, Task task) {
+    private void completeRecord(AuditEventRecord record, Task task, OperationResult result) {
         LightweightIdentifier id = null;
         if (record.getEventIdentifier() == null) {
             id = lightweightIdentifierGenerator.generate();
@@ -148,7 +150,8 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
             record.setChannel(task.getChannel());
         }
         if (record.getInitiatorRef() == null && task != null) {
-            record.setInitiator(task.getOwner(), prismContext);
+            PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
+            record.setInitiator(taskOwner, prismContext);
         }
 
         if (record.getNodeIdentifier() == null && taskManager != null) {

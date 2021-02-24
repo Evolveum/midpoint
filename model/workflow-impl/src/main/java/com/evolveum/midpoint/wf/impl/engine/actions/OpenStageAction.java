@@ -9,7 +9,7 @@ package com.evolveum.midpoint.wf.impl.engine.actions;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.MidpointParsingMigrator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -168,7 +168,7 @@ class OpenStageAction extends InternalAction {
         }
         if (stageDef.getAdditionalInformation() != null) {
             try {
-                ExpressionVariables variables = engine.stageComputeHelper
+                VariablesMap variables = engine.stageComputeHelper
                         .getDefaultVariables(ctx.getCurrentCase(), ctx.getWfContext(), ctx.getChannel(), result);
                 List<InformationType> additionalInformation = engine.expressionEvaluationHelper
                         .evaluateExpression(stageDef.getAdditionalInformation(), variables,

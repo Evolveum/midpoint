@@ -220,7 +220,7 @@ public class ProcessingCoordinator<I> {
                     } finally {
                         requestsBuffer.markProcessed(request, taskIdentifier);
                         treatOperationResultAfterOperation();
-                        workerTask.setProgressTransient(workerTask.getProgress() + 1);
+                        workerTask.setProgress(workerTask.getProgress() + 1);
                     }
                 } else {
                     if (allItemsSubmitted.get()) {

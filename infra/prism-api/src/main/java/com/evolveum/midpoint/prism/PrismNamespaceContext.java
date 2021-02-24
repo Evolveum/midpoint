@@ -37,6 +37,17 @@ public abstract class PrismNamespaceContext implements Serializable {
             .put(PrismConstants.PREFIX_NS_QUERY, PrismConstants.NS_QUERY)
             .build());
 
+    public static PrismNamespaceContext from(Map<String, String> prefixToNs) {
+        if(prefixToNs.isEmpty()) {
+            return EMPTY;
+        }
+        return new Impl(null, prefixToNs);
+    }
+
+    public static PrismNamespaceContext.Builder builder() {
+        return new Builder();
+    }
+
     /**
      * Returns parent namespace context
      * @return parent namespace context
@@ -122,6 +133,14 @@ public abstract class PrismNamespaceContext implements Serializable {
     public abstract PrismNamespaceContext childContext(Map<String, String> local);
 
     /**
+     * Creates optimized child namespace context with supplied local mapping
+     *
+     * @param local Local definition of prefixes
+     * @return Child context with local definitions
+     */
+    public abstract PrismNamespaceContext optimizedChildContext(Map<String, String> local);
+
+    /**
      * Returns child namespace context with no local mappings.
      *
      * Implementation Note: Implementation ensures that instances of inherited context
@@ -131,13 +150,6 @@ public abstract class PrismNamespaceContext implements Serializable {
      * @return child namespace context with no local mappings.
      */
     public abstract PrismNamespaceContext inherited();
-
-    public static PrismNamespaceContext from(Map<String, String> prefixToNs) {
-        if(prefixToNs.isEmpty()) {
-            return EMPTY;
-        }
-        return new Impl(null, prefixToNs);
-    }
 
     private static class Impl extends PrismNamespaceContext {
 
@@ -192,6 +204,21 @@ public abstract class PrismNamespaceContext implements Serializable {
                 return inherited;
             }
             return new Impl(this, local);
+        }
+
+        @Override
+        public PrismNamespaceContext optimizedChildContext(Map<String, String> local) {
+            if(local.isEmpty()) {
+                return inherited;
+            }
+            ImmutableMap.Builder<String, String> optimizedLocal = ImmutableMap.builder();
+            for(Entry<String, String> entry : local.entrySet()) {
+                Optional<String> ns = namespaceFor(entry.getKey());
+                if(ns.isEmpty() || !entry.getValue().equals(ns.get())) {
+                    optimizedLocal.put(entry);
+                }
+            }
+            return childContext(optimizedLocal.build());
         }
 
         @Override
@@ -365,6 +392,11 @@ public abstract class PrismNamespaceContext implements Serializable {
         }
 
         @Override
+        public PrismNamespaceContext optimizedChildContext(Map<String, String> local) {
+            return parent.optimizedChildContext(local);
+        }
+
+        @Override
         public Optional<String> namespaceFor(String prefix) {
             return parent.namespaceFor(prefix);
         }
@@ -435,6 +467,11 @@ public abstract class PrismNamespaceContext implements Serializable {
         @Override
         public PrismNamespaceContext childContext(Map<String, String> local) {
             return from(local);
+        }
+
+        @Override
+        public PrismNamespaceContext optimizedChildContext(Map<String, String> local) {
+            return childContext(local);
         }
 
         @Override
@@ -529,4 +566,26 @@ public abstract class PrismNamespaceContext implements Serializable {
         return new StringBuilder(this.getClass().getSimpleName()).append(allPrefixes().toString()).toString();
     }
 
+    public static class Builder {
+
+        protected Builder() {
+
+        }
+
+        private final Map<String, String> prefixToNamespace = new HashMap<>();
+
+        public Builder addPrefix(String prefix, String namespace) {
+            String previous = prefixToNamespace.putIfAbsent(prefix, namespace);
+            Preconditions.checkArgument(previous == null || namespace.equals(previous), "Prefix %s is already declared as '%s', trying to redeclare it as '%s'", prefix, previous, namespace);
+            return this;
+        }
+
+        public PrismNamespaceContext build() {
+            return from(prefixToNamespace);
+        }
+
+        public void defaultNamespace(String defaultNamespace) {
+            addPrefix(DEFAULT_PREFIX, defaultNamespace);
+        }
+    }
 }

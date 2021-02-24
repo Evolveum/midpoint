@@ -9,15 +9,14 @@ package com.evolveum.midpoint.model.test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.Checker;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType;
 
 import java.util.function.Consumer;
 
@@ -40,7 +39,7 @@ public class TaskFinishChecker implements Checker {
     private final int showProgressEach;
     private final boolean verbose;
     private final Consumer<Task> taskConsumer;
-    private final Boolean checkAlsoExecutionStatus;
+    private final Boolean checkAlsoSchedulingState;
 
     private Task freshTask;
     private long progressLastShown;
@@ -55,7 +54,7 @@ public class TaskFinishChecker implements Checker {
         showProgressEach = builder.showProgressEach;
         verbose = builder.verbose;
         taskConsumer = builder.taskConsumer;
-        checkAlsoExecutionStatus = builder.checkAlsoExecutionStatus;
+        checkAlsoSchedulingState = builder.checkAlsoSchedulingState;
     }
 
     @Override
@@ -73,30 +72,30 @@ public class TaskFinishChecker implements Checker {
         if (verbose) {
             display("Task", freshTask);
         }
-        if (freshTask.getExecutionStatus() == TaskExecutionStatus.WAITING) {
+        if (freshTask.getSchedulingState() == TaskSchedulingStateType.WAITING) {
             return false;
         } else if (isError(result, checkSubresult)) {
             if (errorOk) {
-                return executionStatusIsDone();
+                return schedulingStateIsDone();
             } else {
                 display("Failed result of task " + freshTask, freshTask.getResult());
                 throw new AssertionError("Error in " + freshTask + ": " + result);
             }
         } else {
             boolean resultDone = !isUnknown(result, checkSubresult) && !isInProgress(result, checkSubresult);
-            return resultDone && executionStatusIsDone();
+            return resultDone && schedulingStateIsDone();
         }
     }
 
-    private boolean executionStatusIsDone() {
-        return !shouldCheckAlsoExecutionStatus() ||
-                freshTask.getExecutionStatus() == TaskExecutionStatus.CLOSED ||
-                freshTask.getExecutionStatus() == TaskExecutionStatus.SUSPENDED;
+    private boolean schedulingStateIsDone() {
+        return !shouldCheckAlsoSchedulingState() ||
+                freshTask.getSchedulingState() == TaskSchedulingStateType.CLOSED ||
+                freshTask.getSchedulingState() == TaskSchedulingStateType.SUSPENDED;
     }
 
-    private boolean shouldCheckAlsoExecutionStatus() {
-        if (checkAlsoExecutionStatus != null) {
-            return checkAlsoExecutionStatus;
+    private boolean shouldCheckAlsoSchedulingState() {
+        if (checkAlsoSchedulingState != null) {
+            return checkAlsoSchedulingState;
         } else {
             return freshTask.isSingle(); // For single-run tasks we can safely check the execution status.
         }
@@ -131,10 +130,10 @@ public class TaskFinishChecker implements Checker {
         private Consumer<Task> taskConsumer;
 
         /**
-         * Does extra check based on execution status: the task is not considered finished if it is not CLOSED or SUSPENDED.
+         * Does extra check based on scheduling state: the task is not considered finished if it is not CLOSED or SUSPENDED.
          * Default is true for single-run tasks and false for recurring ones.
          */
-        private Boolean checkAlsoExecutionStatus;
+        private Boolean checkAlsoSchedulingState;
 
         public Builder taskManager(TaskManager val) {
             taskManager = val;
@@ -181,8 +180,8 @@ public class TaskFinishChecker implements Checker {
             return this;
         }
 
-        public Builder checkAlsoExecutionStatus(Boolean val) {
-            checkAlsoExecutionStatus = val;
+        public Builder checkAlsoSchedulingState(Boolean val) {
+            checkAlsoSchedulingState = val;
             return this;
         }
 

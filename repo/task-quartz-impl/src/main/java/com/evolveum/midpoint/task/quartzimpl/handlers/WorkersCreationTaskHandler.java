@@ -12,6 +12,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -53,12 +54,12 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 
         try {
             setOrCheckTaskKind(task, opResult);
-            List<Task> workers = task.listSubtasks(true, opResult);
+            List<? extends Task> workers = task.listSubtasks(true, opResult);
             boolean clean = task.getWorkState() == null || Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete());
             // todo consider checking that the subtask is really a worker (workStateConfiguration.taskKind)
             if (clean) {
                 List<Task> notClosedNorSuspended = workers.stream()
-                        .filter(w -> w.getExecutionStatus() != TaskExecutionStatus.CLOSED && w.getExecutionStatus() != TaskExecutionStatus.SUSPENDED)
+                        .filter(w -> !w.isClosed() && !w.isSuspended())
                         .collect(Collectors.toList());
                 if (!notClosedNorSuspended.isEmpty()) {
                     LOGGER.warn("Couldn't (re)create worker tasks because the work is done but the following ones are not closed nor suspended: {}", notClosedNorSuspended);
@@ -67,8 +68,8 @@ public class WorkersCreationTaskHandler implements TaskHandler {
                     return runResult;
                 }
             } else {
-                List<Task> notClosed = workers.stream()
-                        .filter(w -> w.getExecutionStatus() == TaskExecutionStatus.CLOSED)
+                List<? extends Task> notClosed = workers.stream()
+                        .filter(w -> !w.isClosed())
                         .collect(Collectors.toList());
                 if (!notClosed.isEmpty()) {
                     LOGGER.warn("Couldn't (re)create worker tasks because the work is not done and the following ones are not closed yet: {}", notClosed);
@@ -83,7 +84,10 @@ public class WorkersCreationTaskHandler implements TaskHandler {
             WorkersReconciliationOptions options = new WorkersReconciliationOptions();
             options.setDontCloseWorkersWhenWorkDone(true);
             taskManager.reconcileWorkers(task.getOid(), options, opResult);
-            task.makeWaiting(TaskWaitingReason.OTHER_TASKS, TaskUnpauseActionType.RESCHEDULE);  // i.e. close for single-run tasks
+
+            // TODO what if the task was suspended in the meanwhile?
+            // reschedule means close for single-run tasks
+            ((TaskQuartzImpl) task).makeWaitingForOtherTasks(TaskUnpauseActionType.RESCHEDULE); // keeping exec state RUNNING
             task.flushPendingModifications(opResult);
             taskManager.resumeTasks(TaskUtil.tasksToOids(task.listSubtasks(true, opResult)), opResult);
             LOGGER.info("Worker tasks were successfully created for coordinator {}", task);
@@ -107,7 +111,8 @@ public class WorkersCreationTaskHandler implements TaskHandler {
                     .item(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_TASK_KIND)
                     .replace(TaskKindType.COORDINATOR)
                     .asItemDelta();
-            task.modifyAndFlush(itemDelta, opResult);
+            task.modify(itemDelta);
+            task.flushPendingModifications(opResult);
         } else if (taskKind != TaskKindType.COORDINATOR) {
             throw new IllegalStateException("Task has incompatible task kind; expected " + TaskKindType.COORDINATOR +
                     " but having: " + task.getWorkManagement() + " in " + task);
@@ -115,12 +120,12 @@ public class WorkersCreationTaskHandler implements TaskHandler {
     }
 
     // returns true in case of problem
-    private boolean deleteWorkersAndWorkState(List<Task> workers, Task task, OperationResult opResult, TaskRunResult runResult)
+    private boolean deleteWorkersAndWorkState(List<? extends Task> workers, Task task, OperationResult opResult, TaskRunResult runResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         deleteWorkState(task, opResult);
         for (Task worker : workers) {
             try {
-                List<Task> workerSubtasks = worker.listSubtasks(true, opResult);
+                List<? extends Task> workerSubtasks = worker.listSubtasks(true, opResult);
                 if (!workerSubtasks.isEmpty()) {
                     LOGGER.warn("Couldn't recreate worker task {} because it has its own subtasks: {}", worker, workerSubtasks);
                     opResult.recordFatalError("Couldn't recreate worker task " + worker + " because it has its own subtasks: " + workerSubtasks);

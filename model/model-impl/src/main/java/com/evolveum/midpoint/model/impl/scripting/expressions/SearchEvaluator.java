@@ -29,7 +29,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -105,7 +105,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
             }
             ObjectQuery objectQuery;
             if (unresolvedObjectQuery != null) {
-                ExpressionVariables variables = new ExpressionVariables();
+                VariablesMap variables = new VariablesMap();
                 //noinspection unchecked
                 item.getVariables().forEach((name, value) -> variables.put(name, cloneIfNecessary(name, value)));
                 try {

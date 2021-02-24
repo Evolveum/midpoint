@@ -7,6 +7,14 @@
 
 package com.evolveum.midpoint.provisioning.util;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -14,7 +22,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.UcfExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -22,13 +29,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Expression evaluator that is provided to lower-level components in UCF layer.
@@ -54,7 +54,7 @@ public class UcfExpressionEvaluatorImpl implements UcfExpressionEvaluator {
                     expressionFactory
                             .makePropertyExpression(expressionBean, outputPropertyName, MiscSchemaUtil.getExpressionProfile(),
                                     ctxDesc, task, result);
-            ExpressionVariables exprVariables = new ExpressionVariables();
+            VariablesMap exprVariables = new VariablesMap();
             exprVariables.putAll(variables);
             ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, exprVariables, ctxDesc, task);
             PrismValueDeltaSetTriple<PrismPropertyValue<O>> exprResultTriple = expression.evaluate(context, result);

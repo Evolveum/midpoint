@@ -7,10 +7,11 @@
 package com.evolveum.midpoint.repo.common.expression;
 
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 
 @FunctionalInterface
 public interface VariableProducer<V extends PrismValue> {
 
-    void produce(V value, ExpressionVariables variables);
+    void produce(V value, VariablesMap variables);
 
 }
