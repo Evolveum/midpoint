@@ -7,6 +7,16 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary.aspect;
 
+import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Collection;
+import javax.xml.namespace.QName;
+
+import org.apache.velocity.util.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -16,9 +26,9 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -29,15 +39,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
-import org.apache.velocity.util.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Collection;
 
 /**
  * @author mederly
@@ -69,7 +70,7 @@ public class PrimaryChangeAspectHelper {
             Method getter = processorConfigurationType.getClass().getDeclaredMethod(getterName);
             try {
                 aspectConfigurationObject = getter.invoke(processorConfigurationType);
-            } catch (IllegalAccessException|InvocationTargetException e) {
+            } catch (IllegalAccessException | InvocationTargetException e) {
                 throw new SystemException("Couldn't obtain configuration for aspect " + aspectName + " from the workflow configuration.", e);
             }
             if (aspectConfigurationObject != null) {
@@ -101,7 +102,7 @@ public class PrimaryChangeAspectHelper {
     //region ========================================================================== Expression evaluation
 
     public boolean evaluateApplicabilityCondition(PcpAspectConfigurationType config, ModelContext modelContext, Serializable itemToApprove,
-            ExpressionVariables additionalVariables, PrimaryChangeAspect aspect, Task task, OperationResult result) {
+            VariablesMap additionalVariables, PrimaryChangeAspect aspect, Task task, OperationResult result) {
 
         if (config == null || config.getApplicabilityCondition() == null) {
             return true;
@@ -112,19 +113,19 @@ public class PrimaryChangeAspectHelper {
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<Boolean> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN);
 
-        ExpressionVariables expressionVariables = new ExpressionVariables();
-        expressionVariables.put(ExpressionConstants.VAR_MODEL_CONTEXT, modelContext, ModelContext.class);
-        expressionVariables.put(ExpressionConstants.VAR_ITEM_TO_APPROVE, itemToApprove, itemToApprove.getClass());
+        VariablesMap variablesMap = new VariablesMap();
+        variablesMap.put(ExpressionConstants.VAR_MODEL_CONTEXT, modelContext, ModelContext.class);
+        variablesMap.put(ExpressionConstants.VAR_ITEM_TO_APPROVE, itemToApprove, itemToApprove.getClass());
         if (additionalVariables != null) {
-            expressionVariables.addVariableDefinitions(additionalVariables);
+            variablesMap.addVariableDefinitions(additionalVariables);
         }
 
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple;
         try {
-            Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression =
+            Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> expression =
                     expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(),
                             "applicability condition expression", task, result);
-            ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables,
+            ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variablesMap,
                     "applicability condition expression", task);
 
             exprResultTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);

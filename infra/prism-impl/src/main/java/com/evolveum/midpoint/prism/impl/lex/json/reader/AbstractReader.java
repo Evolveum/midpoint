@@ -46,7 +46,11 @@ public abstract class AbstractReader {
 
     AbstractReader(@NotNull SchemaRegistry schemaRegistry) {
         this.schemaRegistry = schemaRegistry;
-        this.namespaceContext = schemaRegistry.globalNamespaceContext();
+        // Parsing legacy namespace-less JSON with default namespace declared
+        // would put any undefined element to default namespace (usually common)
+        // which will break in places, where namespace change is expected
+        // and final item name is not directly defined in parent.
+        this.namespaceContext = schemaRegistry.staticNamespaceContext().withoutDefault();
     }
 
     @NotNull

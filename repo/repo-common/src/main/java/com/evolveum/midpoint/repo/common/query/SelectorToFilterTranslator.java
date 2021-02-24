@@ -22,7 +22,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -146,7 +146,7 @@ public class SelectorToFilterTranslator {
             SecurityViolationException {
         ObjectFilter filter = prismContext.getQueryConverter().createObjectFilter(targetDefinition, filterBean);
         if (filter != null) {
-            ExpressionVariables variables = new ExpressionVariables(); // TODO
+            VariablesMap variables = new VariablesMap(); // TODO
             return ExpressionUtil.evaluateFilterExpressions(filter, variables, MiscSchemaUtil.getExpressionProfile(),
                     expressionFactory, prismContext, "expression in " + contextDescription, task, result);
         } else {

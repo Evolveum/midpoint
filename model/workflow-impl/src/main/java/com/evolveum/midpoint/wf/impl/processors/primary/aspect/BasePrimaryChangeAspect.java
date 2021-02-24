@@ -22,7 +22,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -120,7 +120,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
         try {
 
             PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
-            ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(getFocusObjectable(lensContext), null, null, systemConfiguration.asObjectable(), prismContext);
+            VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(getFocusObjectable(lensContext), null, null, systemConfiguration.asObjectable(), prismContext);
 
             ObjectFilter origFilter = prismContext.getQueryConverter().parseFilter(filter, clazz);
             ObjectFilter evaluatedFilter = ExpressionUtil

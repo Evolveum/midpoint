@@ -18,7 +18,7 @@ import org.codehaus.groovy.transform.stc.StaticTypeCheckingVisitor;
 
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
@@ -102,7 +102,7 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
             return false;
         }
 
-        ExpressionVariables variables = context.getVariables();
+        VariablesMap variables = context.getVariables();
         if (variables != null) {
             TypedValue variableTypedValue = variables.get(variableName);
             if (variableTypedValue != null) {

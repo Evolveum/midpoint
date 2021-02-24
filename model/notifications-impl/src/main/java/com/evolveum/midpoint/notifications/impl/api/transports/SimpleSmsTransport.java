@@ -57,7 +57,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -194,7 +194,7 @@ public class SimpleSmsTransport implements Transport {
             OperationResult resultForGateway = result.createSubresult(DOT_CLASS + "send.forGateway");
             resultForGateway.addContext("gateway name", smsGatewayConfigurationType.getName());
             try {
-                ExpressionVariables variables = getDefaultVariables(from, to, message);
+                VariablesMap variables = getDefaultVariables(from, to, message);
                 HttpMethodType method = defaultIfNull(smsGatewayConfigurationType.getMethod(), HttpMethodType.GET);
                 ExpressionType urlExpression = defaultIfNull(smsGatewayConfigurationType.getUrlExpression(), null);
                 String url = evaluateExpressionChecked(urlExpression, variables, "sms gateway request url", task, result);
@@ -326,10 +326,10 @@ public class SimpleSmsTransport implements Transport {
                 + "\n\nFor message:\n" + mailMessage.toString() + "\n\n";
     }
 
-    private String evaluateExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
+    private String evaluateExpressionChecked(ExpressionType expressionType, VariablesMap VariablesMap,
             String shortDesc, Task task, OperationResult result) {
         try {
-            return evaluateExpression(expressionType, expressionVariables, false, shortDesc, task, result).get(0);
+            return evaluateExpression(expressionType, VariablesMap, false, shortDesc, task, result).get(0);
         } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
             result.recordFatalError("Couldn't evaluate " + shortDesc, e);
@@ -338,10 +338,10 @@ public class SimpleSmsTransport implements Transport {
     }
 
     @NotNull
-    private List<String> evaluateExpressionsChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
+    private List<String> evaluateExpressionsChecked(ExpressionType expressionType, VariablesMap VariablesMap,
             @SuppressWarnings("SameParameterValue") String shortDesc, Task task, OperationResult result) {
         try {
-            return evaluateExpression(expressionType, expressionVariables, true, shortDesc, task, result);
+            return evaluateExpression(expressionType, VariablesMap, true, shortDesc, task, result);
         } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
             result.recordFatalError("Couldn't evaluate " + shortDesc, e);
@@ -351,7 +351,7 @@ public class SimpleSmsTransport implements Transport {
 
     // A little hack: for single-value cases we always return single-item list (even if the returned value is null)
     @NotNull
-    private List<String> evaluateExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
+    private List<String> evaluateExpression(ExpressionType expressionType, VariablesMap VariablesMap,
             boolean multipleValues, String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (expressionType == null) {
@@ -365,7 +365,7 @@ public class SimpleSmsTransport implements Transport {
 
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
                 expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task);
+        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = ModelExpressionThreadLocalHolder
                 .evaluateExpressionInContext(expression, params, task, result);
 
@@ -381,8 +381,8 @@ public class SimpleSmsTransport implements Transport {
         return exprResult.getZeroSet().stream().map(ppv -> ppv.getValue()).collect(Collectors.toList());
     }
 
-    protected ExpressionVariables getDefaultVariables(String from, List<String> to, Message message) throws UnsupportedEncodingException {
-        ExpressionVariables variables = new ExpressionVariables();
+    protected VariablesMap getDefaultVariables(String from, List<String> to, Message message) throws UnsupportedEncodingException {
+        VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_FROM, from, String.class);
         variables.put(ExpressionConstants.VAR_ENCODED_FROM, URLEncoder.encode(from, "US-ASCII"), String.class);
         variables.put(ExpressionConstants.VAR_TO, to.get(0), String.class);

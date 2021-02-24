@@ -129,7 +129,7 @@ public class ExpressionUtil {
 
     // TODO: do we need this?
     public static Object resolvePathGetValue(
-            ItemPath path, ExpressionVariables variables, boolean normalizeValuesToDelete,
+            ItemPath path, VariablesMap variables, boolean normalizeValuesToDelete,
             TypedValue defaultContext, ObjectResolver objectResolver, PrismContext prismContext,
             String shortDesc, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
@@ -150,7 +150,7 @@ public class ExpressionUtil {
      * 1. consider setting this parameter to true at some other places where it might be relevant
      * 2. consider normalizing delete deltas earlier in the clockwork, probably at the very beginning of the operation
      */
-    public static TypedValue<?> resolvePathGetTypedValue(ItemPath path, ExpressionVariables variables, boolean normalizeValuesToDelete,
+    public static TypedValue<?> resolvePathGetTypedValue(ItemPath path, VariablesMap variables, boolean normalizeValuesToDelete,
             TypedValue<?> defaultContext, ObjectResolver objectResolver, PrismContext prismContext, String shortDesc, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         return new PathExpressionResolver(path, variables, normalizeValuesToDelete, defaultContext, objectResolver, prismContext, shortDesc, task)
@@ -159,7 +159,7 @@ public class ExpressionUtil {
 
     public static <V extends PrismValue, F extends FocusType> Collection<V> computeTargetValues(
             VariableBindingDefinitionType target,
-            TypedValue defaultTargetContext, ExpressionVariables variables, ObjectResolver objectResolver, String contextDesc,
+            TypedValue defaultTargetContext, VariablesMap variables, ObjectResolver objectResolver, String contextDesc,
             PrismContext prismContext, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (target == null) {
             // Is this correct? What about default targets?
@@ -411,7 +411,7 @@ public class ExpressionUtil {
     }
 
     public static <ID extends ItemDefinition> ID resolveDefinitionPath(@NotNull ItemPath path,
-            ExpressionVariables variables, PrismContainerDefinition<?> defaultContext, String shortDesc)
+            VariablesMap variables, PrismContainerDefinition<?> defaultContext, String shortDesc)
             throws SchemaException {
         while (!path.isEmpty() && !path.startsWithName() && !path.startsWithVariable()) {
             path = path.rest();
@@ -485,7 +485,7 @@ public class ExpressionUtil {
         }
     }
 
-    public static ObjectQuery evaluateQueryExpressions(ObjectQuery origQuery, ExpressionVariables variables, ExpressionProfile expressionProfile,
+    public static ObjectQuery evaluateQueryExpressions(ObjectQuery origQuery, VariablesMap variables, ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory, PrismContext prismContext, String shortDesc, Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -500,7 +500,7 @@ public class ExpressionUtil {
     }
 
     public static ObjectFilter evaluateFilterExpressions(ObjectFilter origFilter,
-            ExpressionVariables variables, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, PrismContext prismContext,
+            VariablesMap variables, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, PrismContext prismContext,
             String shortDesc, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (origFilter == null) {
@@ -528,7 +528,7 @@ public class ExpressionUtil {
     }
 
     private static ObjectFilter evaluateFilterExpressionsInternal(ObjectFilter filter,
-            ExpressionVariables variables, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, PrismContext prismContext,
+            VariablesMap variables, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, PrismContext prismContext,
             String shortDesc, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (filter == null) {
@@ -747,7 +747,7 @@ public class ExpressionUtil {
 
     }
 
-    private static <V extends PrismValue> V evaluateExpression(ExpressionVariables variables,
+    private static <V extends PrismValue> V evaluateExpression(VariablesMap variables,
             PrismContext prismContext, ExpressionType expressionType, ExpressionProfile expressionProfile, ObjectFilter filter,
             ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -769,7 +769,7 @@ public class ExpressionUtil {
     }
 
     public static <V extends PrismValue, D extends ItemDefinition> V evaluateExpression(Collection<Source<?, ?>> sources,
-            ExpressionVariables variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
+            VariablesMap variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -786,7 +786,7 @@ public class ExpressionUtil {
     }
 
     public static <V extends PrismValue, D extends ItemDefinition> V evaluateExpression(
-            ExpressionVariables variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
+            VariablesMap variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -809,7 +809,7 @@ public class ExpressionUtil {
         return nonNegativeValues.iterator().next();
     }
 
-    public static Collection<String> evaluateStringExpression(ExpressionVariables variables,
+    public static Collection<String> evaluateStringExpression(VariablesMap variables,
             PrismContext prismContext, ExpressionType expressionType, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,
             String shortDesc, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -838,7 +838,7 @@ public class ExpressionUtil {
         // return nonNegativeValues.iterator().next();
     }
 
-    public static PrismPropertyValue<Boolean> evaluateCondition(ExpressionVariables variables,
+    public static PrismPropertyValue<Boolean> evaluateCondition(VariablesMap variables,
             ExpressionType expressionType, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String shortDesc, Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -850,7 +850,7 @@ public class ExpressionUtil {
                 expressionFactory, shortDesc, task, parentResult);
     }
 
-    public static boolean evaluateConditionDefaultTrue(ExpressionVariables variables,
+    public static boolean evaluateConditionDefaultTrue(VariablesMap variables,
             ExpressionType expressionBean, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,
             String shortDesc, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
@@ -859,7 +859,7 @@ public class ExpressionUtil {
                 true, task, parentResult);
     }
 
-    public static boolean evaluateConditionDefaultFalse(ExpressionVariables variables,
+    public static boolean evaluateConditionDefaultFalse(VariablesMap variables,
             ExpressionType expressionBean, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,
             String shortDesc, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
@@ -868,7 +868,7 @@ public class ExpressionUtil {
                 false, task, parentResult);
     }
 
-    private static boolean evaluateConditionWithDefault(ExpressionVariables variables,
+    private static boolean evaluateConditionWithDefault(VariablesMap variables,
             ExpressionType expressionBean, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String shortDesc,
             boolean defaultValue, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -961,7 +961,7 @@ public class ExpressionUtil {
         throw new IllegalStateException("notreached");
     }
 
-    public static void addActorVariable(ExpressionVariables scriptVariables, SecurityContextManager securityContextManager, PrismContext prismContext) {
+    public static void addActorVariable(VariablesMap scriptVariables, SecurityContextManager securityContextManager, PrismContext prismContext) {
         // There can already be a value, because for mappings, we create the
         // variable before parsing sources.
         // For other scripts we do it just before the execution, to catch all

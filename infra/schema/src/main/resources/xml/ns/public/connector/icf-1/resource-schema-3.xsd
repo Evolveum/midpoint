@@ -19,6 +19,9 @@
             Version: 3.1
             Recommended namespace prefix: icfs
         </xsd:documentation>
+        <xsd:appinfo>
+            <a:defaultPrefix>icfs</a:defaultPrefix>
+        </xsd:appinfo>
     </xsd:annotation>
 
     <xsd:element name="uid" type="xsd:string">

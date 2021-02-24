@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.certification.impl.handlers;
 
 import com.evolveum.midpoint.certification.api.AccessCertificationApiConstants;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -134,7 +134,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
             return true;        // no expression, no rejections
         }
         ExpressionType selectionExpression = scope.getItemSelectionExpression();
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_ASSIGNMENT, assignment, AssignmentType.class);
         if (object instanceof FocusType) {
             variables.putObject(ExpressionConstants.VAR_FOCUS, (FocusType)object, FocusType.class);

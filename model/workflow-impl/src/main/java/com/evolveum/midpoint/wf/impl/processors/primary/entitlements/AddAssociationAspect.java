@@ -17,7 +17,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -291,7 +291,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
     private boolean isAssociationRelevant(PcpAspectConfigurationType config, AssociationAdditionType itemToApprove,
             ResourceShadowDiscriminator rsd, ModelContext<?> modelContext, Task task, OperationResult result) {
         LOGGER.trace(" - considering: {}", itemToApprove);
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_ASSOCIATION, itemToApprove.getAssociation(), ShadowAssociationType.class);
         variables.put(ExpressionConstants.VAR_SHADOW_DISCRIMINATOR, rsd, ResourceShadowDiscriminator.class);
         boolean applicable = primaryChangeAspectHelper.evaluateApplicabilityCondition(

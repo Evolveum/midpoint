@@ -14,7 +14,7 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
@@ -315,7 +315,7 @@ public class AccCertCaseOperationsHelper {
 
         List<ObjectReferenceType> rv = CloneUtil.cloneCollectionMembers(delegateAction.getApproverRef());
         if (!delegateAction.getApproverExpression().isEmpty()) {
-            ExpressionVariables variables = new ExpressionVariables();
+            VariablesMap variables = new VariablesMap();
             variables.put(ExpressionConstants.VAR_WORK_ITEM, workItem, AccessCertificationWorkItemType.class);
             variables.put(ExpressionConstants.VAR_CERTIFICATION_CASE, aCase, aCase.asPrismContainerValue().getDefinition());
             variables.putObject(ExpressionConstants.VAR_CAMPAIGN, campaign, AccessCertificationCampaignType.class);

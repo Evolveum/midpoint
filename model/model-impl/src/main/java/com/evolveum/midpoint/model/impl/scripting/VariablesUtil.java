@@ -116,8 +116,8 @@ public class VariablesUtil {
         return ExpressionUtil.resolvePathGetTypedValue(itemPath, createVariables(resultingVariables), false, null, ctx.objectResolver, ctx.prismContext, shortDesc, ctx.task, result);
     }
 
-    private static ExpressionVariables createVariables(VariablesMap variableMap) {
-        ExpressionVariables rv = new ExpressionVariables();
+    private static VariablesMap createVariables(VariablesMap variableMap) {
+        VariablesMap rv = new VariablesMap();
         VariablesMap clonedVariableMap = cloneIfNecessary(variableMap);
         clonedVariableMap.forEach((name, value) -> rv.put(name, value));
         return rv;

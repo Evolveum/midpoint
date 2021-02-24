@@ -36,7 +36,7 @@ import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
@@ -129,7 +129,7 @@ public class MappingEvaluator {
         MappingInitializer<PrismPropertyValue<T>, PrismPropertyDefinition<T>> internalInitializer =
                 builder -> {
 
-                    builder.addVariableDefinitions(ModelImplUtils.getDefaultExpressionVariables(context, projCtx, true));
+                    builder.addVariableDefinitions(ModelImplUtils.getDefaultVariablesMap(context, projCtx, true));
 
                     builder.mappingKind(MappingKindType.OUTBOUND);
                     builder.originType(OriginType.OUTBOUND);
@@ -625,7 +625,7 @@ public class MappingEvaluator {
             }
         };
 
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_FOCUS, focusOdo, focusOdo.getDefinition());
         variables.put(ExpressionConstants.VAR_USER, focusOdo, focusOdo.getDefinition());
         variables.registerAlias(ExpressionConstants.VAR_USER, ExpressionConstants.VAR_FOCUS);
@@ -648,7 +648,7 @@ public class MappingEvaluator {
                 .defaultSource(defaultSource)
                 .targetContext(targetContext.getDefinition())
                 .variablesFrom(variables)
-                .variablesFrom(LensUtil.getAssignmentPathExpressionVariables(assignmentPathVariables, prismContext))
+                .variablesFrom(LensUtil.getAssignmentPathVariablesMap(assignmentPathVariables, prismContext))
                 .originalTargetValues(targetValues)
                 .mappingKind(mappingKind)
                 .originType(OriginType.USER_POLICY)

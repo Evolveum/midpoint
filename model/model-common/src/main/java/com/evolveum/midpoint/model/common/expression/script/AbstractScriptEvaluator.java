@@ -17,7 +17,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
@@ -105,7 +105,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
         }
 
         // Variables
-        ExpressionVariables variables = context.getVariables();
+        VariablesMap variables = context.getVariables();
         if (variables != null) {
             for (Entry<String, TypedValue> variableEntry: variables.entrySet()) {
                 if (variableEntry.getKey() == null) {

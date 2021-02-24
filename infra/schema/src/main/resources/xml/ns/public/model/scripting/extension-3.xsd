@@ -16,6 +16,9 @@
         <xsd:documentation>
             Scripting task extensions.
         </xsd:documentation>
+        <xsd:appinfo>
+            <a:defaultPrefix>se</a:defaultPrefix>
+        </xsd:appinfo>
     </xsd:annotation>
 
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"

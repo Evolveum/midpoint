@@ -696,7 +696,7 @@ public class ActivationProcessor implements ProjectorProcessor {
         MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> internalInitializer =
             builder -> {
 
-                builder.addVariableDefinitions(ModelImplUtils.getDefaultExpressionVariables(context, projCtx, true));
+                builder.addVariableDefinitions(ModelImplUtils.getDefaultVariablesMap(context, projCtx, true));
 
                 builder.originType(OriginType.OUTBOUND);
                 builder.mappingKind(MappingKindType.OUTBOUND);

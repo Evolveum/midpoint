@@ -14,19 +14,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.ValueMetadata;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.ValueMetadata;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.*;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.TraceUtil;
@@ -34,6 +32,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueTransformationTraceType;
 import com.evolveum.prism.xml.ns._public.types_3.PlusMinusZeroType;
 
@@ -149,7 +148,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
                 setTraceComment("All sources are null and includeNullInputs is true.");
                 return;
             }
-            ExpressionVariables staticVariables = createStaticVariablesFromSources();
+            VariablesMap staticVariables = createStaticVariablesFromSources();
             recordBeforeTransformation();
 
             augmentStaticVariablesWithInputVariables(staticVariables);
@@ -169,8 +168,8 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
      * Also sets hasPlus/hasZero/hasMinus flags.
      */
     @NotNull
-    private ExpressionVariables createStaticVariablesFromSources() {
-        ExpressionVariables staticVariables = new ExpressionVariables();
+    private VariablesMap createStaticVariablesFromSources() {
+        VariablesMap staticVariables = new VariablesMap();
         for (int sourceIndex = 0; sourceIndex < numberOfSources; sourceIndex++) {
             // This strange casting is needed because of presentInPlusSet/MinusSet/ZeroSet calls
             // that expect the same type as the SourceTriple has.
@@ -216,7 +215,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
         return pval.find(residualPath);
     }
 
-    private void augmentStaticVariablesWithInputVariables(ExpressionVariables staticVariables) {
+    private void augmentStaticVariablesWithInputVariables(VariablesMap staticVariables) {
         if (inputVariableState == InputVariableState.NEW) {
             staticVariables.addVariableDefinitionsNew(context.getVariables());
         } else if (inputVariableState == InputVariableState.OLD) {
@@ -269,7 +268,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
 //        }
 //    }
 
-    private void evaluateConditionAndTransformation(ExpressionVariables staticVariables) {
+    private void evaluateConditionAndTransformation(VariablesMap staticVariables) {
         try {
             conditionResult = evaluateCondition(staticVariables);
             if (conditionResult) {
@@ -293,7 +292,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
         }
     }
 
-    private boolean evaluateCondition(ExpressionVariables staticVariables)
+    private boolean evaluateCondition(VariablesMap staticVariables)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         if (combinatorialEvaluation.conditionExpression != null) {
@@ -308,7 +307,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
     }
 
     @NotNull
-    private List<V> evaluateTransformation(ExpressionVariables staticVariables) throws ExpressionEvaluationException,
+    private List<V> evaluateTransformation(VariablesMap staticVariables) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         List<V> transformationOutput = combinatorialEvaluation.evaluator.transformSingleValue(staticVariables, outputSet,
                 inputVariableState == InputVariableState.NEW, context,

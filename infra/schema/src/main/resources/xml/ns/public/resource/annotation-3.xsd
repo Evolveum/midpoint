@@ -10,6 +10,7 @@
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             elementFormDefault="qualified">
 
     <xsd:annotation>
@@ -24,6 +25,9 @@
             Version: 3.2
             Usual prefix: ra
         </xsd:documentation>
+        <xsd:appinfo>
+            <a:defaultPrefix>ra</a:defaultPrefix>
+        </xsd:appinfo>
     </xsd:annotation>
 
     <xsd:element name="resourceObject">

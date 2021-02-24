@@ -17,7 +17,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -95,7 +95,7 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition, E ext
                 .addContext("evaluator", getClass().getName())
                 .build();
         try {
-            ExpressionVariables staticVariables = new ExpressionVariables();
+            VariablesMap staticVariables = new VariablesMap();
             addVariablesToStaticVariables(staticVariables, useNewValues);
             addSourcesToStaticVariables(staticVariables, useNewValues);
             assert !staticVariables.haveDeltas();
@@ -113,7 +113,7 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition, E ext
         }
     }
 
-    private void addVariablesToStaticVariables(ExpressionVariables staticVariables, boolean useNewValues) {
+    private void addVariablesToStaticVariables(VariablesMap staticVariables, boolean useNewValues) {
         if (useNewValues) {
             staticVariables.addVariableDefinitionsNew(context.getVariables());
         } else {
@@ -121,7 +121,7 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition, E ext
         }
     }
 
-    private void addSourcesToStaticVariables(ExpressionVariables scriptVariables, boolean useNewValues) {
+    private void addSourcesToStaticVariables(VariablesMap scriptVariables, boolean useNewValues) {
         for (Source<?,?> source: context.getSources()) {
             LOGGER.trace("source: {}", source);
 

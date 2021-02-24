@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.certification.impl;
 
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.model.api.expr.OrgStructFunctions;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
@@ -82,7 +82,7 @@ public class AccCertReviewersHelper {
             cloneAndMerge(reviewers, getObjectManagers(_case, reviewerSpec.getUseObjectManager(), task, result));
         }
         for (ExpressionType reviewerExpression : reviewerSpec.getReviewerExpression()) {
-            ExpressionVariables variables = new ExpressionVariables();
+            VariablesMap variables = new VariablesMap();
             // The _case does NOT have definition here. Can we have it?
             variables.put(ExpressionConstants.VAR_CERTIFICATION_CASE, _case, AccessCertificationCaseType.class);
             variables.putObject(ExpressionConstants.VAR_CAMPAIGN, campaign, AccessCertificationCampaignType.class);

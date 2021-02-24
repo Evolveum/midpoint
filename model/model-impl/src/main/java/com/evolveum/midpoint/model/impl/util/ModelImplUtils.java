@@ -40,7 +40,7 @@ import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -590,9 +590,9 @@ public class ModelImplUtils {
         return null;
     }
 
-    public static ExpressionVariables getDefaultExpressionVariables(@NotNull LensContext<?> context,
+    public static VariablesMap getDefaultVariablesMap(@NotNull LensContext<?> context,
             @Nullable LensProjectionContext projCtx, boolean focusOdoAbsolute) throws SchemaException {
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         if (context.getFocusContext() != null) {
             ObjectDeltaObject<?> focusOdo = focusOdoAbsolute
                     ? context.getFocusContext().getObjectDeltaObjectAbsolute()
@@ -617,7 +617,7 @@ public class ModelImplUtils {
         return variables;
     }
 
-    public static ExpressionVariables getDefaultExpressionVariables(ObjectType focusType,
+    public static VariablesMap getDefaultVariablesMap(ObjectType focusType,
             ShadowType shadowType, ResourceType resourceType, SystemConfigurationType configurationType,
             PrismContext prismContext) {
         PrismObject<? extends ObjectType> focus = null;
@@ -636,19 +636,19 @@ public class ModelImplUtils {
         if (configurationType != null) {
             configuration = configurationType.asPrismObject();
         }
-        return getDefaultExpressionVariables(focus, shadow, null, resource, configuration, null, prismContext);
+        return getDefaultVariablesMap(focus, shadow, null, resource, configuration, null, prismContext);
     }
 
-    public static <O extends ObjectType> ExpressionVariables getDefaultExpressionVariables(PrismObject<? extends ObjectType> focus,
+    public static <O extends ObjectType> VariablesMap getDefaultVariablesMap(PrismObject<? extends ObjectType> focus,
             PrismObject<? extends ShadowType> shadow, ResourceShadowDiscriminator discr,
             PrismObject<ResourceType> resource, PrismObject<SystemConfigurationType> configuration, LensElementContext<O> affectedElementContext,
             PrismContext prismContext) {
-        ExpressionVariables variables = new ExpressionVariables();
-        addDefaultExpressionVariables(variables, focus, shadow, discr, resource, configuration, affectedElementContext, prismContext);
+        VariablesMap variables = new VariablesMap();
+        addDefaultVariablesMap(variables, focus, shadow, discr, resource, configuration, affectedElementContext, prismContext);
         return variables;
     }
 
-    public static <O extends ObjectType> void addDefaultExpressionVariables(ExpressionVariables variables, PrismObject<? extends ObjectType> focus,
+    public static <O extends ObjectType> void addDefaultVariablesMap(VariablesMap variables, PrismObject<? extends ObjectType> focus,
             PrismObject<? extends ShadowType> shadow, ResourceShadowDiscriminator discr,
             PrismObject<ResourceType> resource, PrismObject<SystemConfigurationType> configuration, LensElementContext<O> affectedElementContext,
             PrismContext prismContext) {
@@ -701,20 +701,20 @@ public class ModelImplUtils {
         }
     }
 
-    public static void addAssignmentPathVariables(AssignmentPathVariables assignmentPathVariables, ExpressionVariables expressionVariables, PrismContext prismContext) {
+    public static void addAssignmentPathVariables(AssignmentPathVariables assignmentPathVariables, VariablesMap VariablesMap, PrismContext prismContext) {
         if (assignmentPathVariables != null) {
             PrismContainerDefinition<AssignmentType> assignmentDef = assignmentPathVariables.getAssignmentDefinition();
-            expressionVariables.put(ExpressionConstants.VAR_ASSIGNMENT, assignmentPathVariables.getMagicAssignment(), assignmentDef);
-            expressionVariables.put(ExpressionConstants.VAR_ASSIGNMENT_PATH, assignmentPathVariables.getAssignmentPath(), AssignmentPath.class);
-            expressionVariables.put(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment(), assignmentDef);
-            expressionVariables.put(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment(), assignmentDef);
-            expressionVariables.put(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment(), assignmentDef);
+            VariablesMap.put(ExpressionConstants.VAR_ASSIGNMENT, assignmentPathVariables.getMagicAssignment(), assignmentDef);
+            VariablesMap.put(ExpressionConstants.VAR_ASSIGNMENT_PATH, assignmentPathVariables.getAssignmentPath(), AssignmentPath.class);
+            VariablesMap.put(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment(), assignmentDef);
+            VariablesMap.put(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment(), assignmentDef);
+            VariablesMap.put(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment(), assignmentDef);
             PrismObjectDefinition<AbstractRoleType> abstractRoleDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AbstractRoleType.class);
-            expressionVariables.put(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole(), abstractRoleDefinition);
+            VariablesMap.put(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole(), abstractRoleDefinition);
         } else {
             // to avoid "no such variable" exceptions in boundary cases
             // for null/empty paths we might consider creating empty AssignmentPathVariables objects to keep null/empty path distinction
-            expressionVariables.put(ExpressionConstants.VAR_ASSIGNMENT_PATH, null, AssignmentPath.class);
+            VariablesMap.put(ExpressionConstants.VAR_ASSIGNMENT_PATH, null, AssignmentPath.class);
         }
     }
 
@@ -771,7 +771,7 @@ public class ModelImplUtils {
 
     @NotNull
     public static <V extends PrismValue, F extends ObjectType> List<V> evaluateScript(
-                ScriptExpression scriptExpression, LensContext<F> lensContext, ExpressionVariables variables, boolean useNew, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+                ScriptExpression scriptExpression, LensContext<F> lensContext, VariablesMap variables, boolean useNew, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         ExpressionEnvironment<F,?,?> env = new ExpressionEnvironment<>();
         env.setLensContext(lensContext);

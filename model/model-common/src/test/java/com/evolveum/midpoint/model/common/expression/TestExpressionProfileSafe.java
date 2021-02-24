@@ -12,7 +12,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
@@ -37,7 +37,7 @@ public class TestExpressionProfileSafe extends TestExpression {
 
         ExpressionType expressionType = parseExpression(EXPRESSION_CONST_FILE);
         Collection<Source<?, ?>> sources = prepareStringSources();
-        ExpressionVariables variables = prepareBasicVariables();
+        VariablesMap variables = prepareBasicVariables();
         ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN
@@ -58,7 +58,7 @@ public class TestExpressionProfileSafe extends TestExpression {
 
         ExpressionType expressionType = parseExpression(EXPRESSION_SCRIPT_GROOVY_SYSTEM_DENY_FILE);
         Collection<Source<?, ?>> sources = prepareStringSources();
-        ExpressionVariables variables = prepareBasicVariables();
+        VariablesMap variables = prepareBasicVariables();
         ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN
@@ -79,7 +79,7 @@ public class TestExpressionProfileSafe extends TestExpression {
 
         ExpressionType expressionType = parseExpression(EXPRESSION_SCRIPT_JAVASCRIPT_FILE);
         Collection<Source<?, ?>> sources = prepareStringSources();
-        ExpressionVariables variables = prepareBasicVariables();
+        VariablesMap variables = prepareBasicVariables();
         ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN

@@ -15,7 +15,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -82,7 +82,7 @@ class IterationHelper<AH extends AssignmentHolderType> {
     /**
      * Lazily evaluated pre-iteration variables.
      */
-    private ExpressionVariables variablesPreIteration;
+    private VariablesMap variablesPreIteration;
 
     /**
      * Message about re-iteration reason.
@@ -152,7 +152,7 @@ class IterationHelper<AH extends AssignmentHolderType> {
 
     private void createVariablesPreIterationIfNeeded() {
         if (variablesPreIteration == null) {
-            variablesPreIteration = ModelImplUtils.getDefaultExpressionVariables(focusContext.getObjectNew(),
+            variablesPreIteration = ModelImplUtils.getDefaultVariablesMap(focusContext.getObjectNew(),
                     null, null, null, context.getSystemConfiguration(), focusContext, assignmentHolderProcessor.getPrismContext());
         }
     }
@@ -214,7 +214,7 @@ class IterationHelper<AH extends AssignmentHolderType> {
         FocusConstraintsChecker<AH> checker = createChecker(context);
         if (!shouldCheckConstraints() || checker.check(objectNew, result)) {
             LOGGER.trace("Current focus satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
-            ExpressionVariables variablesPostIteration = ModelImplUtils.getDefaultExpressionVariables(objectNew,
+            VariablesMap variablesPostIteration = ModelImplUtils.getDefaultVariablesMap(objectNew,
                     null, null, null, context.getSystemConfiguration(), focusContext, assignmentHolderProcessor.getPrismContext());
             if (LensUtil.evaluateIterationCondition(context, focusContext,
                     iterationSpecification, iteration, iterationToken, false, assignmentHolderProcessor.getExpressionFactory(), variablesPostIteration,
