@@ -10,7 +10,7 @@ import java.util.Optional;
 
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.axiom.concepts.SourceLocation;
+import com.evolveum.concepts.SourceLocation;
 import com.google.common.base.Strings;
 
 public class AxiomSyntaxException extends RuntimeException {

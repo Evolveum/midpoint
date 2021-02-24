@@ -7,8 +7,8 @@ import java.util.Optional;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
-import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
+import com.evolveum.concepts.SourceLocation;
 
 public class MapItemContext<V> extends ItemContext<V> {
 

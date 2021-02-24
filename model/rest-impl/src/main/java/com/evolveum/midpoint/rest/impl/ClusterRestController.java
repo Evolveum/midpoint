@@ -222,7 +222,7 @@ public class ClusterRestController extends AbstractRestController {
         ResponseEntity<?> response;
         try {
             checkNodeAuthentication();
-            taskManager.stopLocalTask(oid, result);
+            taskManager.stopLocalTaskRunInStandardWay(oid, result);
             response = createResponse(HttpStatus.OK, result);
         } catch (Throwable t) {
             response = handleException(result, t);

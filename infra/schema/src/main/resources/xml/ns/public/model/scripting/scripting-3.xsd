@@ -27,6 +27,9 @@
 
             Recommended namespace prefix: s
         </xsd:documentation>
+        <xsd:appinfo>
+            <a:defaultPrefix>s</a:defaultPrefix>
+        </xsd:appinfo>
     </xsd:annotation>
 
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"

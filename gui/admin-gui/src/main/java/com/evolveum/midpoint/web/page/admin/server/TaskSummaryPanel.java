@@ -10,26 +10,21 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
-import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
 import com.evolveum.midpoint.web.component.refresh.Refreshable;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import java.util.ArrayList;
@@ -120,7 +115,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         return summaryTagList;
     }
 
-    private String getIconForExecutionStatus(TaskDtoExecutionStatus status) {
+    private String getIconForExecutionStatus(TaskDtoExecutionState status) {
         if (status == null) {
             return "fa fa-fw fa-question-circle text-warning";
         }
@@ -236,9 +231,9 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
                 if (started == 0) {
                     return null;
                 }
-                TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(
+                TaskDtoExecutionState status = TaskDtoExecutionState.fromTaskExecutionStatus(
                         taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);
-                if (status.equals(TaskDtoExecutionStatus.RUNNING)
+                if (status.equals(TaskDtoExecutionState.RUNNING)
                         || finished == 0 || finished < started) {
 
                     return getString("TaskStatePanel.message.executionTime.notFinished",
@@ -255,7 +250,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
     }
 
     private String getTaskExecutionLabel(TaskType task) {
-        TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(task.getExecutionStatus(), task.getNodeAsObserved() != null);
+        TaskDtoExecutionState status = TaskDtoExecutionState.fromTaskExecutionStatus(task.getExecutionStatus(), task.getNodeAsObserved() != null);
         if (status != null){
             return PageBase.createStringResourceStatic(TaskSummaryPanel.this, status).getString();
         }
@@ -263,7 +258,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
     }
 
     private String getTaskExecutionIcon(TaskType task) {
-        TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(task.getExecutionStatus(), task.getNodeAsObserved() != null);
+        TaskDtoExecutionState status = TaskDtoExecutionState.fromTaskExecutionStatus(task.getExecutionStatus(), task.getNodeAsObserved() != null);
         return getIconForExecutionStatus(status);
     }
 

@@ -18,7 +18,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +57,7 @@ public class CompletedTaskCleanupTriggerHandler implements SingleTriggerHandler 
             }
             TaskType completedTask = repositoryService.getObject(TaskType.class, object.getOid(), null, result).asObjectable();
             LOGGER.trace("Checking completed task to be deleted {}", completedTask);
-            if (completedTask.getExecutionStatus() != TaskExecutionStatusType.CLOSED) {
+            if (completedTask.getExecutionStatus() != TaskExecutionStateType.CLOSED) {
                 LOGGER.debug("Task {} is not closed, not deleting it.", completedTask);
                 return;
             }

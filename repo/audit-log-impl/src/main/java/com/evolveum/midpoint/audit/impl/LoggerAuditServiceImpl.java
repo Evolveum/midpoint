@@ -46,11 +46,8 @@ public class LoggerAuditServiceImpl implements AuditService {
     private static final Logger AUDIT_LOGGER =
             LoggerFactory.getLogger(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.common.audit.AuditService#audit(com.evolveum.midpoint.common.audit.AuditEventRecord)
-     */
     @Override
-    public void audit(AuditEventRecord record, Task task) {
+    public void audit(AuditEventRecord record, Task task, OperationResult result) {
         recordRecord(record);
     }
 

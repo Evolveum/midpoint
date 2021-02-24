@@ -55,7 +55,7 @@ public class FocusValidityScannerItemProcessor
         return true;
     }
 
-    private void recomputeFocus(PrismObject<FocusType> focus, Task workerTask, OperationResult result) throws SchemaException,
+    private void recomputeFocus(PrismObject<FocusType> focus, RunningTask workerTask, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException,
             ConfigurationException, PolicyViolationException, SecurityViolationException, PreconditionViolationException {
         LensContext<FocusType> lensContext = createLensContext(focus, workerTask, result);
@@ -63,7 +63,7 @@ public class FocusValidityScannerItemProcessor
         taskHandler.clockwork.run(lensContext, workerTask, result);
     }
 
-    private LensContext<FocusType> createLensContext(PrismObject<FocusType> focus, Task workerTask, OperationResult result)
+    private LensContext<FocusType> createLensContext(PrismObject<FocusType> focus, RunningTask workerTask, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
 
@@ -80,12 +80,12 @@ public class FocusValidityScannerItemProcessor
     }
 
     private void addTriggeredPolicyRuleToContext(PrismObject<FocusType> focus, LensContext<FocusType> lensContext,
-            Task workerTask, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
+            RunningTask workerTask, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         PrismContext prismContext = taskHandler.getPrismContext();
         TimeValidityPolicyConstraintType constraint = taskExecution.getValidityConstraint();
-        EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(
-                CloneUtil.clone(workerTask.getPolicyRule()), null, null, prismContext);
+        EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(workerTask.getPolicyRule(),
+                null, null, prismContext);
         policyRule.computeEnabledActions(null, focus, taskHandler.getExpressionFactory(), prismContext, workerTask, result);
         EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedTimeValidityTrigger(
                 Boolean.TRUE.equals(constraint.isAssignment()) ? PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY : PolicyConstraintKindType.OBJECT_TIME_VALIDITY,

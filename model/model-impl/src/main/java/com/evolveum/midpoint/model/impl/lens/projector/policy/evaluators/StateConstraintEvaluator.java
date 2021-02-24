@@ -147,7 +147,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 
         if (constraint.getMessageExpression() != null) {
             LocalizableMessageType messageBean = evaluatorHelper
-                    .evaluateLocalizableMessageType(constraint.getMessageExpression(), evaluatorHelper.createExpressionVariables(ctx, constraintElement),
+                    .evaluateLocalizableMessageType(constraint.getMessageExpression(), evaluatorHelper.createVariablesMap(ctx, constraintElement),
                             "message expression in object state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task,
                             result);
             if (messageBean == null) {
@@ -159,7 +159,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
         }
 
         if (constraint.getExpression() != null) {
-            if (!evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx, constraintElement),
+            if (!evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createVariablesMap(ctx, constraintElement),
                     "expression in object state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result)) {
                 return null;
             }
@@ -183,7 +183,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
         if (!ctx.isApplicableToState()) {
             return null;
         }
-        boolean match = evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx, constraintElement),
+        boolean match = evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createVariablesMap(ctx, constraintElement),
                 "expression in assignment state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result);
         if (match) {
             return new EvaluatedStateTrigger(ASSIGNMENT_STATE, constraint,

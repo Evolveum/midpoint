@@ -21,15 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinit
 public class MockCycleTaskHandler implements TaskHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(MockCycleTaskHandler.class);
-    private final boolean finishTheHandler;
 
-    public MockCycleTaskHandler(boolean finishTheHandler) {
-        this.finishTheHandler = finishTheHandler;
-    }
-
-    /* (non-Javadoc)
-      * @see com.evolveum.midpoint.task.api.TaskHandler#run(com.evolveum.midpoint.task.api.Task)
-      */
     @Override
     public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 
@@ -45,27 +37,19 @@ public class MockCycleTaskHandler implements TaskHandler {
         opResult.recordSuccess();
 
         // This "run" is finished. But the task goes on ... (if finishTheHandler == false)
-        runResult.setRunResultStatus(finishTheHandler ? TaskRunResultStatus.FINISHED_HANDLER : TaskRunResultStatus.FINISHED);
+        runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 
         LOGGER.info("MockCycle.run stopping");
         return runResult;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.task.api.TaskHandler#heartbeat(com.evolveum.midpoint.task.api.Task)
-     */
     @Override
     public Long heartbeat(Task task) {
         return null;        // not to overwrite progress information!
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.task.api.TaskHandler#refreshStatus(com.evolveum.midpoint.task.api.Task)
-     */
     @Override
     public void refreshStatus(Task task) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override

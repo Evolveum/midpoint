@@ -12,6 +12,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -35,6 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 public class AuditedAccessDeniedHandler extends MidpointAccessDeniedHandler {
 
+    private static final String OP_AUDIT_EVENT = AuditedAccessDeniedHandler.class.getName() + ".auditEvent";
+
     @Autowired private TaskManager taskManager;
     @Autowired private AuditService auditService;
     @Autowired private PrismContext prismContext;
@@ -55,6 +59,8 @@ public class AuditedAccessDeniedHandler extends MidpointAccessDeniedHandler {
     }
 
     private void auditEvent(HttpServletRequest request, Authentication authentication, AccessDeniedException accessDeniedException) {
+        OperationResult result = new OperationResult(OP_AUDIT_EVENT); // Eventually we should get this from the caller
+
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser(authentication);
         PrismObject<? extends FocusType> user = principal != null ? principal.getFocus().asPrismObject() : null;
 
@@ -83,6 +89,6 @@ public class AuditedAccessDeniedHandler extends MidpointAccessDeniedHandler {
         record.setSessionIdentifier(request.getRequestedSessionId());
         record.setMessage(accessDeniedException.getMessage());
 
-        auditService.audit(record, task);
+        auditService.audit(record, task, result);
     }
 }

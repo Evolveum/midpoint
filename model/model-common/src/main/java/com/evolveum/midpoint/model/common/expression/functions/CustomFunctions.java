@@ -24,7 +24,7 @@ import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
@@ -102,7 +102,7 @@ public class CustomFunctions {
         LOGGER.trace("function to execute {}", expressionType);
 
         try {
-            ExpressionVariables variables = new ExpressionVariables();
+            VariablesMap variables = new VariablesMap();
             if (MapUtils.isNotEmpty(params)) {
                 for (Map.Entry<String, Object> entry : params.entrySet()) {
                     variables.put(entry.getKey(), convertInput(entry, expressionType));

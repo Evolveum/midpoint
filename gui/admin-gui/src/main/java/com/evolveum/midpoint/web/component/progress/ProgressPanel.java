@@ -28,7 +28,6 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -455,7 +454,7 @@ public class ProgressPanel extends BasePanel {
             task.setChannel(SchemaConstants.CHANNEL_USER_URI);
             task.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
             task.setName("Execute changes");
-            task.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);
+            task.setInitiallyRunnable();
 
             PrismObject<TaskType> taskType = task.getUpdatedTaskObject();
             AssignmentType archetypeAssignment = new AssignmentType();

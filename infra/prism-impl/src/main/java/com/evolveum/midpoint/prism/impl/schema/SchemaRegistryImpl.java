@@ -214,6 +214,10 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
     private final Multimap<QName, ItemDefinition<?>> substitutions = HashMultimap.create();
 
+    private PrismNamespaceContext staticNamespaceContext;
+
+    private PrismNamespaceContext.Builder staticPrefixes = PrismNamespaceContext.builder();
+
     @Override
     public DynamicNamespacePrefixMapper getNamespacePrefixMapper() {
         return namespacePrefixMapper;
@@ -274,6 +278,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
     public void setDefaultNamespace(String defaultNamespace) {
         this.defaultNamespace = defaultNamespace;
+        this.staticPrefixes.defaultNamespace(defaultNamespace);
     }
 
     //region Registering resources and initialization
@@ -395,6 +400,12 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
                 namespacePrefixMapper.addDeclaredByDefault(usualPrefix);
             }
         }
+        String defaultPrefix = desc.getDefaultPrefix();
+        if (defaultPrefix != null) {
+            staticPrefixes.addPrefix(defaultPrefix, desc.getNamespace());
+        }
+
+
         if (initialized) {
             desc.freeze();
         }
@@ -472,6 +483,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
             schemaDescriptions.forEach(Freezable::freeze);
 
             invalidateCaches();
+            staticNamespaceContext = staticPrefixes.build();
             initialized = true;
         } catch (SAXException ex) {
             if (ex instanceof SAXParseException) {
@@ -1724,5 +1736,20 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
     public QName getValueMetadataTypeName() {
         return valueMetadataTypeName;
+    }
+
+    @Override
+    public PrismNamespaceContext staticNamespaceContext() {
+        PrismNamespaceContext ret = staticNamespaceContext;
+        if(ret == null) {
+            // Temporary version, initialize was not yet called on schema registry
+            return staticPrefixes.build();
+        }
+        return ret;
+    }
+
+    public void registerStaticNamespace(String ns, String prefix, boolean declaredByDefault) {
+        staticPrefixes.addPrefix(prefix, ns);
+        getNamespacePrefixMapper().registerPrefix(ns, prefix, declaredByDefault);
     }
 }

@@ -7,8 +7,17 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
+import java.util.Collection;
+import java.util.List;
+import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -19,7 +28,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
@@ -27,27 +35,10 @@ import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptActionExpressionType;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.List;
-
-import static com.evolveum.midpoint.model.impl.scripting.VariablesUtil.cloneIfNecessary;
 
 /**
  * Executes "execute-script" (s:execute) actions.
@@ -113,7 +104,7 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
         try {
             TypedValue<PipelineData> inputTypedValue = new TypedValue<>(input, PipelineData.class);
             Object outObject = executeScript(parameters.scriptExpression, inputTypedValue, context.getInitialVariables(), context, result);
-            if (outObject != null ) {
+            if (outObject != null) {
                 addToData(outObject, PipelineData.newOperationResult(), output);
             } else {
                 // no definition means we don't plan to provide any output - so let's just copy the input item to the output
@@ -272,12 +263,12 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
     private <I> Object executeScript(ScriptExpression scriptExpression, TypedValue<I> inputTypedValue,
             VariablesMap externalVariables, ExecutionContext context, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ExpressionVariables variables = createVariables(externalVariables);
+        VariablesMap variables = createVariables(externalVariables);
 
         variables.put(ExpressionConstants.VAR_INPUT, inputTypedValue);
 
         LensContext<?> lensContext = getLensContext(externalVariables);
-        List<?> rv = ModelImplUtils.evaluateScript(scriptExpression, lensContext, variables, true, "in '"+NAME+"' action", context.getTask(), result);
+        List<?> rv = ModelImplUtils.evaluateScript(scriptExpression, lensContext, variables, true, "in '" + NAME + "' action", context.getTask(), result);
 
         if (rv.isEmpty()) {
             return null;

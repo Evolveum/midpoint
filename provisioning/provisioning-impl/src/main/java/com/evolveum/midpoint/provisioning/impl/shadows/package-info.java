@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2010-2021 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
 /**
  * Classes in this package cover operations with shadows. They take care of splitting the operations
  * between repository and resource, merging the data back, handling the errors and generally controlling the

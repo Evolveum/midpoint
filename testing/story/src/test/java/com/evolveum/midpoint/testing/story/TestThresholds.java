@@ -31,7 +31,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -162,7 +161,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
         display("Task after:", taskAfter);
         assertAssignments(taskAfter, 1);
         assertAssigned(taskAfter, ROLE_POLICY_RULE_CREATE_OID, RoleType.COMPLEX_TYPE);
-        assertTaskExecutionStatus(getTaskOid(), TaskExecutionStatus.SUSPENDED);
+        assertTaskExecutionStatus(getTaskOid(), TaskExecutionStateType.SUSPENDED);
 
     }
 
@@ -184,7 +183,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
         then();
         assertUsers(getProcessedUsers() + getNumberOfUsers());
-        assertTaskExecutionStatus(getTaskOid(), TaskExecutionStatus.SUSPENDED);
+        assertTaskExecutionStatus(getTaskOid(), TaskExecutionStateType.SUSPENDED);
 
         Task taskAfter = taskManager.getTaskWithResult(getTaskOid(), result);
         assertSynchronizationStatisticsAfterImport(taskAfter);
@@ -209,7 +208,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
         then();
         assertUsers(getProcessedUsers() * 2 + getNumberOfUsers());
-        assertTaskExecutionStatus(getTaskOid(), TaskExecutionStatus.SUSPENDED);
+        assertTaskExecutionStatus(getTaskOid(), TaskExecutionStateType.SUSPENDED);
 
         Task taskAfter = taskManager.getTaskWithResult(getTaskOid(), result);
         assertSynchronizationStatisticsAfterSecondImport(taskAfter);
@@ -240,7 +239,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
         display("Task after:", taskAfter);
         assertAssignments(taskAfter, 1);
         assertAssigned(taskAfter, ROLE_POLICY_RULE_CHANGE_ACTIVATION_OID, RoleType.COMPLEX_TYPE);
-        assertTaskExecutionStatus(getTaskOid(), TaskExecutionStatus.SUSPENDED);
+        assertTaskExecutionStatus(getTaskOid(), TaskExecutionStateType.SUSPENDED);
     }
 
     /**
@@ -261,7 +260,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
         then();
         Task taskAfter = taskManager.getTaskWithResult(getTaskOid(), result);
 
-        assertTaskExecutionStatus(getTaskOid(), TaskExecutionStatus.SUSPENDED);
+        assertTaskExecutionStatus(getTaskOid(), TaskExecutionStateType.SUSPENDED);
 
         assertSynchronizationStatisticsActivation(taskAfter);
     }

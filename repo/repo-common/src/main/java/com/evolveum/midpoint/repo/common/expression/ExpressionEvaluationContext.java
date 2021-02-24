@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.task.api.Task;
 
 /**
@@ -42,7 +43,7 @@ public class ExpressionEvaluationContext {
      * Additional variables to be used during the evaluation.
      * May contain item-delta-item objects.
      */
-    private ExpressionVariables variables;
+    private VariablesMap variables;
 
     /**
      * Should we skip evaluation to the plus set?
@@ -120,7 +121,7 @@ public class ExpressionEvaluationContext {
     private TransformationValueMetadataComputer valueMetadataComputer;
 
     public ExpressionEvaluationContext(Collection<Source<?,?>> sources,
-            ExpressionVariables variables, String contextDescription, Task task) {
+            VariablesMap variables, String contextDescription, Task task) {
         super();
         this.sources = emptyIfNull(sources);
         this.variables = variables;
@@ -141,11 +142,11 @@ public class ExpressionEvaluationContext {
         this.defaultSource = defaultSource;
     }
 
-    public ExpressionVariables getVariables() {
+    public VariablesMap getVariables() {
         return variables;
     }
 
-    public void setVariables(ExpressionVariables variables) {
+    public void setVariables(VariablesMap variables) {
         this.variables = variables;
     }
 

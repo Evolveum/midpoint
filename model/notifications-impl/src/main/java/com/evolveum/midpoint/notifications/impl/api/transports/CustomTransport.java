@@ -32,7 +32,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -174,19 +174,19 @@ public class CustomTransport implements Transport {
     }
 
     // TODO deduplicate
-    private void evaluateExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
+    private void evaluateExpression(ExpressionType expressionType, VariablesMap VariablesMap,
             String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<String> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_STRING);
 
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task);
+        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
         ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
     }
 
-    protected ExpressionVariables getDefaultVariables(Message message, Event event) throws UnsupportedEncodingException {
-        ExpressionVariables variables = new ExpressionVariables();
+    protected VariablesMap getDefaultVariables(Message message, Event event) throws UnsupportedEncodingException {
+        VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_MESSAGE, message, Message.class);
         variables.put(ExpressionConstants.VAR_EVENT, event, Event.class);
         return variables;

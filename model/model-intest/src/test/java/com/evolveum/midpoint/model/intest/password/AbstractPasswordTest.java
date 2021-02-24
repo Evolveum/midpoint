@@ -1316,6 +1316,34 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
                 USER_PASSWORD_VALID_1, USER_PASSWORD_VALID_3, USER_PASSWORD_VALID_4);
     }
 
+    /**
+     * When historyAllowExistingPasswordReuse is true and password history is ON,
+     * existing password value (as found in UserType) can be set again as the new password.
+     * Only until maxAge.
+     */
+    @Test
+    public void test250ExistingPasswordReuse() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
+                ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_ALLOW_EXISTING_PASSWORD_REUSE),
+                task, result, Boolean.TRUE);
+        modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
+                ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MAX_AGE),
+                task, result, XmlTypeConverter.createDuration("PT10M"));
+
+        // WHEN
+        when();
+        modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_1, task, result);
+        modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_1, task, result); // modify with same pwd
+
+        // THEN
+        then();
+        assertSuccess(result);
+    }
+
     private void doTestModifyUserJackPasswordSuccessWithHistory(
             String newPassword, String... expectedPasswordHistory)
             throws Exception {

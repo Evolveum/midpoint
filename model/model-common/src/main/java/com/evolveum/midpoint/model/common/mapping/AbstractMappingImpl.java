@@ -6,11 +6,11 @@
  */
 package com.evolveum.midpoint.model.common.mapping;
 
-import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.REAL_VALUE;
-import static com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil.hasMappingSpec;
-
 import static org.apache.commons.lang3.BooleanUtils.isNotFalse;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
+
+import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.REAL_VALUE;
+import static com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil.hasMappingSpec;
 
 import java.util.Objects;
 import java.util.*;
@@ -18,27 +18,25 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-
-import com.evolveum.midpoint.prism.util.CloneUtil;
-
-import com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -65,7 +63,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * @param <V> type of mapping output value
  * @param <D> type of mapping output value definition (property, container, ...)
  * @param <MBT> mapping bean type: MappingType or MetadataMappingType
- *
  * @author Radovan Semancik
  */
 @SuppressWarnings("JavadocReference")
@@ -96,7 +93,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     /**
      * (Context) variables to be used during mapping evaluation.
      */
-    final ExpressionVariables variables;
+    final VariablesMap variables;
 
     /**
      * Default source object. Used for resolution of paths that have no variable specification.
@@ -289,7 +286,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * real value has not changed.
      *
      * TODO move to "configuration" options and provide via builder.
-     *  (Current way of determining via lens context is more a hack than real solution.)
+     * (Current way of determining via lens context is more a hack than real solution.)
      */
     @Experimental
     private boolean pushChangesRequested;

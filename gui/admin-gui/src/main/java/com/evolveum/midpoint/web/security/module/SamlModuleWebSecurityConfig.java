@@ -7,19 +7,13 @@
 
 package com.evolveum.midpoint.web.security.module;
 
-import com.evolveum.midpoint.model.api.ModelAuditRecorder;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.*;
-import com.evolveum.midpoint.web.security.filter.MidpointSamlAuthenticationRequestFilter;
-import com.evolveum.midpoint.web.security.filter.MidpointSamlAuthenticationResponseFilter;
-import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
-import com.evolveum.midpoint.web.security.module.configuration.SamlModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.web.security.SamlAuthenticationEntryPoint;
+import static org.springframework.security.saml.util.StringUtils.stripEndingSlases;
 
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import javax.servlet.Filter;
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -43,15 +37,17 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
-import javax.servlet.Filter;
-import javax.servlet.http.HttpServletRequest;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static org.springframework.security.saml.util.StringUtils.stripEndingSlases;
-import static org.springframework.util.StringUtils.hasText;
+import com.evolveum.midpoint.model.api.ModelAuditRecorder;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.*;
+import com.evolveum.midpoint.web.security.filter.MidpointSamlAuthenticationRequestFilter;
+import com.evolveum.midpoint.web.security.filter.MidpointSamlAuthenticationResponseFilter;
+import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
+import com.evolveum.midpoint.web.security.module.configuration.SamlModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 /**
  * @author skublik
@@ -83,9 +79,9 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
                 .authenticationEntryPoint(new SamlAuthenticationEntryPoint("/saml2/select"));
 
         http.addFilterAfter(
-                        getBeanConfiguration().samlConfigurationFilter(),
-                        BasicAuthenticationFilter.class
-                )
+                getBeanConfiguration().samlConfigurationFilter(),
+                BasicAuthenticationFilter.class
+        )
                 .addFilterAfter(
                         getBeanConfiguration().spMetadataFilter(),
                         getBeanConfiguration().samlConfigurationFilter().getClass()

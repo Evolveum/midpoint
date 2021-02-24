@@ -12,14 +12,12 @@ import static java.util.Collections.singleton;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createExecutionPhase;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType.RUNNABLE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType.READY;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
@@ -44,12 +42,14 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
+import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.metadata.MetadataItemProcessingSpecImpl;
 import com.evolveum.midpoint.model.common.stringpolicy.*;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.ModelCrudService;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.*;
@@ -79,7 +79,6 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -1542,7 +1541,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             VariablesMap variables, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        ExpressionVariables vars = new ExpressionVariables();
+        VariablesMap vars = new VariablesMap();
         vars.putAll(variables);
         return LensUtil.interpretLocalizableMessageTemplate(template, vars, expressionFactory, prismContext, task, result);
     }
@@ -1666,6 +1665,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             newTask.setTaskIdentifier(null);
             newTask.setOwnerRef(createObjectRef(principal.getFocus(), prismContext));
             newTask.setExecutionStatus(RUNNABLE);
+            newTask.setSchedulingState(READY);
             for (Item<?, ?> extensionItem : extensionItems) {
                 newTask.asPrismObject().getExtension().add(extensionItem.clone());
             }
@@ -1714,7 +1714,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         for (PrismObject<ArchetypeType> archetype : archetypes) {
             List<QName> archetypeFocusTypes = null;
             for (AssignmentType inducement : archetype.asObjectable().getInducement()) {
-                for (AssignmentRelationType assignmentRelation: inducement.getAssignmentRelation()) {
+                for (AssignmentRelationType assignmentRelation : inducement.getAssignmentRelation()) {
                     if (canBeAssignmentHolder(assignmentRelation, object)) {
                         if (archetypeFocusTypes == null) {
                             archetypeFocusTypes = determineArchetypeFocusTypes(archetype);

@@ -41,7 +41,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -305,7 +305,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
         ExpressionType classificationExpression = synchronizationSorterType.getExpression();
         String desc = "synchronization divider type ";
-        ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, syncCtx.getApplicableShadow(), null,
+        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(null, syncCtx.getApplicableShadow(), null,
                 syncCtx.getResource(), syncCtx.getSystemConfiguration(), null, syncCtx.getPrismContext());
         variables.put(ExpressionConstants.VAR_CHANNEL, syncCtx.getChannel(), String.class);
         try {

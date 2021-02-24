@@ -21,7 +21,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.interpol.ConfigurationInterpolator;
@@ -192,7 +192,7 @@ class NodeIdComputer {
                         sequenceLookup.advance();
                     } else {
                         NodeType existingNode = existingNodes.get(0).asObjectable();
-                        if (existingNode.getOperationalStatus() == NodeOperationalStatusType.DOWN) {
+                        if (existingNode.getOperationalStatus() == NodeOperationalStateType.DOWN) {
                             LOGGER.info("Considering using the node name of '{}' that already exists but is marked as being down"
                                     + " (OID {}). So deleting the node and trying again.", candidateNodeId, existingNode.getOid());
                             try {

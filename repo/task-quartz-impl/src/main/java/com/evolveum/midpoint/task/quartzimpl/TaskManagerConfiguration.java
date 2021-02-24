@@ -29,12 +29,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionLimitat
 /**
  * Task Manager configuration, derived from "taskManager" section of midPoint config,
  * SQL repository configuration (if present), and some system properties.
- * <p>
+ *
  * See also the description in midPoint wiki (TODO URL).
- * <p>
+ *
  * On configuration failures, it throws TaskManagerConfigurationException.
  *
- * @author Pavol Mederly
+ * TODO finish review of this class
  */
 @SuppressWarnings("DeprecatedIsStillUsed")
 @Component

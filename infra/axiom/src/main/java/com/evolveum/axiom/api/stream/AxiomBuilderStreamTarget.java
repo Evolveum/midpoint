@@ -12,9 +12,9 @@ import java.util.Optional;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
-import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
+import com.evolveum.concepts.SourceLocation;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 

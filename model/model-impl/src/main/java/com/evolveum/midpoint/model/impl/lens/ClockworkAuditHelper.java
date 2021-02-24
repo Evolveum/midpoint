@@ -34,7 +34,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -232,7 +232,7 @@ public class ClockworkAuditHelper {
             }
             ExpressionType expression = propertyDef.getExpression();
             if (expression != null) {
-                ExpressionVariables variables = new ExpressionVariables();
+                VariablesMap variables = new VariablesMap();
                 variables.put(ExpressionConstants.VAR_TARGET, primaryObject, PrismObject.class);
                 variables.put(ExpressionConstants.VAR_AUDIT_RECORD, auditRecord, AuditEventRecord.class);
                 String shortDesc = "value for custom column of audit table";

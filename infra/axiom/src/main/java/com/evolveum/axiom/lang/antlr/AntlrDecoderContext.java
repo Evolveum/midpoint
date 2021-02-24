@@ -8,13 +8,13 @@ import com.evolveum.axiom.api.AxiomPrefixedName;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.api.stream.AxiomItemStream;
 import com.evolveum.axiom.api.stream.AxiomItemTarget;
-import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ArgumentContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.PrefixedNameContext;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 import com.evolveum.axiom.spi.codec.ValueDecoder;
+import com.evolveum.concepts.SourceLocation;
 import com.google.common.collect.ImmutableMap;
 
 public class AntlrDecoderContext implements AxiomDecoderContext<AxiomParser.PrefixedNameContext, AxiomParser.ArgumentContext> {

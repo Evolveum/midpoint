@@ -18,6 +18,9 @@
         <xsd:documentation>
             Connector extensions.
         </xsd:documentation>
+        <xsd:appinfo>
+            <a:defaultPrefix>connext</a:defaultPrefix>
+        </xsd:appinfo>
     </xsd:annotation>
 
     <!--<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" -->

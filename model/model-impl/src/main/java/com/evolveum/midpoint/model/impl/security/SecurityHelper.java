@@ -93,16 +93,17 @@ public class SecurityHelper implements ModelAuditRecorder {
     }
 
     @Override
-    public void auditLogout(ConnectionEnvironment connEnv, Task task) {
+    public void auditLogout(ConnectionEnvironment connEnv, Task task, OperationResult result) {
         if (!SecurityUtil.isAuditedLoginAndLogout(getSystemConfig(), connEnv.getChannel())) {
             return;
         }
         AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
-        record.setInitiatorAndLoginParameter(task.getOwner(), prismContext);
+        PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
+        record.setInitiatorAndLoginParameter(taskOwner, prismContext);
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(OperationResultStatus.SUCCESS);
         storeConnectionEnvironment(record, connEnv);
-        auditHelper.audit(record, null, task, new OperationResult(SecurityHelper.class.getName() + ".auditLogout"));
+        auditHelper.audit(record, null, task, result);
     }
 
     private SystemConfigurationType getSystemConfig() {

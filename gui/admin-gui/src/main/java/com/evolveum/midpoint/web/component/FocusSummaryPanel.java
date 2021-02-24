@@ -17,13 +17,12 @@ import org.apache.wicket.request.resource.ByteArrayResource;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -124,7 +123,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
     }
 
     @Override
-    protected void addAdditionalExpressionVariables(ExpressionVariables variables) {
+    protected void addAdditionalVariablesMap(VariablesMap variables) {
         List<OrgType> parentOrgs = new ArrayList<>();
         for (ObjectReferenceType parentOrgRef : getModelObject().getParentOrgRef()) {
             if (parentOrgRef != null && parentOrgRef.asReferenceValue().getObject() != null) {
@@ -162,7 +161,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
         return true;
     }
 
-    public static void addSummaryPanel(MarkupContainer parentComponent, PrismObject<FocusType> focus, PrismObjectWrapper<FocusType> focusWrapper, String id, ModelServiceLocator serviceLocator) {
+    public static void addSummaryPanel(MarkupContainer parentComponent, PrismObject<FocusType> focus, String id, ModelServiceLocator serviceLocator) {
         if (focus.getCompileTimeClass().equals(UserType.class)) {
             parentComponent.add(new UserSummaryPanel(id,
                     Model.of((UserType) focus.asObjectable()), serviceLocator));

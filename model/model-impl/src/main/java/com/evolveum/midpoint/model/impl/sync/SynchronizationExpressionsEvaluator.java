@@ -15,7 +15,7 @@ import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
@@ -137,7 +137,7 @@ public class SynchronizationExpressionsEvaluator {
         if (conditionalFilter.getCondition() == null) {
             return true;
         } else {
-            ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, currentShadow,
+            VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(null, currentShadow,
                     resource, configuration, prismContext);
             return ExpressionUtil.evaluateConditionDefaultFalse(variables,
                     conditionalFilter.getCondition(), expressionProfile, expressionFactory, shortDesc, task, result);
@@ -346,7 +346,7 @@ public class SynchronizationExpressionsEvaluator {
 
     private ObjectQuery evaluateQueryExpressions(ObjectQuery query, ExpressionProfile expressionProfile, ShadowType currentShadow, ResourceType resource, SystemConfigurationType configuration,
             String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, currentShadow, resource, configuration, prismContext);
+        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(null, currentShadow, resource, configuration, prismContext);
         return ExpressionUtil.evaluateQueryExpressions(query, variables, expressionProfile, expressionFactory, prismContext, shortDesc, task, result);
     }
 
@@ -358,7 +358,7 @@ public class SynchronizationExpressionsEvaluator {
         Validate.notNull(expressionType, "Expression must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
-        ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(user, shadow, resource, configuration, prismContext);
+        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(user, shadow, resource, configuration, prismContext);
         String shortDesc = "confirmation expression for "+resource.asPrismObject();
 
         PrismPropertyDefinition<Boolean> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
@@ -402,7 +402,7 @@ public class SynchronizationExpressionsEvaluator {
             return shadow.getOid();
         }
 
-        ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, shadow, null, resource, configuration, null, prismContext);
+        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(null, shadow, null, resource, configuration, null, prismContext);
         ItemDefinition outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.STRING.getQname());
         PrismPropertyValue<String> tagProp = ExpressionUtil.evaluateExpression(variables,

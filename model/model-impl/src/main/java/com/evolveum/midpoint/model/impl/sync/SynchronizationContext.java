@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -212,7 +212,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
             ExpressionType expression = reaction.getCondition();
             String desc = "condition in synchronization reaction on " + reaction.getSituation()
                     + (reaction.getName() != null ? " (" + reaction.getName() + ")" : "");
-            ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(getFocus(), applicableShadow, null,
+            VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(getFocus(), applicableShadow, null,
                     resource, systemConfiguration, null, prismContext);
             variables.put(ExpressionConstants.VAR_RESOURCE_OBJECT_DELTA, resourceObjectDelta, ObjectDelta.class);
             try {

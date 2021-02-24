@@ -23,7 +23,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -221,7 +221,7 @@ public class ProjectionValueMetadataCreator {
             return valueMetadataBean;
         }
 
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         PrismObject<ShadowType> projection = projectionCtx.getObjectAny();
         variables.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, projection, projectionCtx.getObjectDefinition());
         // TODO other variables

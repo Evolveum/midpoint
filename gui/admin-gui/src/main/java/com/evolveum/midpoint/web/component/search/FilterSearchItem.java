@@ -6,22 +6,8 @@
  */
 package com.evolveum.midpoint.web.component.search;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DisplayableValue;
-
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import java.io.Serializable;
+import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
@@ -29,14 +15,22 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * @author honchar
@@ -49,7 +43,6 @@ public class FilterSearchItem extends SearchItem {
     public static final String F_APPLY_FILTER = "applyFilter";
     public static final String F_INPUT_VALUE = "input.value";
     public static final String F_INPUT = "input";
-
 
     private SearchItemType predefinedFilter;
     private DisplayableValue<? extends Serializable> input = new SearchValue<>();
@@ -148,7 +141,7 @@ public class FilterSearchItem extends SearchItem {
         Object value = null;
         try {
 
-            value = ExpressionUtil.evaluateExpression(new ExpressionVariables(), null,
+            value = ExpressionUtil.evaluateExpression(new VariablesMap(), null,
                     expression, MiscSchemaUtil.getExpressionProfile(),
                     pageBase.getExpressionFactory(), "evaluate expression for allowed values", task, task.getResult());
         } catch (Exception e) {
@@ -166,7 +159,7 @@ public class FilterSearchItem extends SearchItem {
             return null;
         }
 
-        if (!((List<?>) value).isEmpty()){
+        if (!((List<?>) value).isEmpty()) {
             if (!(((List<?>) value).get(0) instanceof DisplayableValue)) {
                 LOGGER.error("Exception return unexpected type, expected List<DisplayableValue>, but was " + (value == null ? null : value.getClass()));
                 pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.wrongType", expression).getString());

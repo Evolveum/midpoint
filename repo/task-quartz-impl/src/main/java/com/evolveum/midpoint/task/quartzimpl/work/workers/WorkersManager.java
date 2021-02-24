@@ -13,6 +13,11 @@ import java.util.Objects;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.tasks.TaskRetriever;
+import com.evolveum.midpoint.task.quartzimpl.tasks.TaskStateManager;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,15 +57,17 @@ public class WorkersManager {
 
     @Autowired private PrismContext prismContext;
     @Autowired private TaskManager taskManager;
+    @Autowired private TaskRetriever taskRetriever;
+    @Autowired private TaskStateManager taskStateManager;
     @Autowired private RepositoryService repositoryService;
 
     public void reconcileWorkers(String coordinatorTaskOid, WorkersReconciliationOptions options, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        Task coordinatorTask = taskManager.getTaskPlain(coordinatorTaskOid, result);
+        TaskQuartzImpl coordinatorTask = taskRetriever.getTaskPlain(coordinatorTaskOid, result);
         if (coordinatorTask.getKind() != TaskKindType.COORDINATOR) {
             throw new IllegalArgumentException("Task is not a coordinator task: " + coordinatorTask);
         }
-        List<Task> currentWorkers = new ArrayList<>(coordinatorTask.listSubtasks(true, result));
+        List<TaskQuartzImpl> currentWorkers = new ArrayList<>(coordinatorTask.listSubtasks(true, result));
         Map<WorkerKey, WorkerTasksPerNodeConfigurationType> perNodeConfigurationMap = new HashMap<>();
         MultiValuedMap<String, WorkerKey> shouldBeWorkers = createWorkerKeys(coordinatorTask, perNodeConfigurationMap, result);
 
@@ -68,17 +75,17 @@ public class WorkersManager {
         int startingShouldBeWorkersCount = shouldBeWorkers.size();
 
         currentWorkers.sort(Comparator.comparing(t -> {
-            if (t.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
-                if (t.getNodeAsObserved() != null) {
+            if (t.getSchedulingState() == TaskSchedulingStateType.READY) {
+                if (t.getNodeAsObserved() != null) { // todo use execution state here
                     return 0;
                 } else if (t.getNode() != null) {
                     return 1;
                 } else {
                     return 2;
                 }
-            } else if (t.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
+            } else if (t.getSchedulingState() == TaskSchedulingStateType.SUSPENDED) {
                 return 3;
-            } else if (t.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
+            } else if (t.getSchedulingState() == TaskSchedulingStateType.CLOSED) {
                 return 4;
             } else {
                 return 5;
@@ -111,13 +118,17 @@ public class WorkersManager {
         return options == null || !options.isDontCloseWorkersWhenWorkDone();
     }
 
-    private Integer closeAllWorkers(Task coordinatorTask, OperationResult result) throws SchemaException {
+    private Integer closeAllWorkers(TaskQuartzImpl coordinatorTask, OperationResult result) throws SchemaException {
         int count = 0;
-        List<Task> workers = new ArrayList<>(coordinatorTask.listSubtasks(true, result));
-        for (Task worker : workers) {
-            if (worker.getExecutionStatus() != TaskExecutionStatus.CLOSED) {
+        List<TaskQuartzImpl> workers = new ArrayList<>(coordinatorTask.listSubtasks(true, result));
+        for (TaskQuartzImpl worker : workers) {
+            if (worker.getSchedulingState() != TaskSchedulingStateType.CLOSED) {
                 LOGGER.info("Closing worker because the work is done: {}", worker);
-                taskManager.suspendAndCloseTaskQuietly(worker, TaskManager.DO_NOT_WAIT, result);
+                try {
+                    taskStateManager.suspendAndCloseTaskNoException(worker, TaskManager.DO_NOT_WAIT, result);
+                } catch (Exception e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't close task {}", e, worker);
+                }
                 count++;
             }
         }
@@ -127,9 +138,9 @@ public class WorkersManager {
     /**
      * The easiest step: we just match current workers with the 'should be' state. Matching items are deleted from both sides.
      */
-    private int matchWorkers(List<Task> currentWorkers, MultiValuedMap<String, WorkerKey> shouldBeWorkers) {
+    private int matchWorkers(List<TaskQuartzImpl> currentWorkers, MultiValuedMap<String, WorkerKey> shouldBeWorkers) {
         int count = 0;
-        for (Task currentWorker : new ArrayList<>(currentWorkers)) {
+        for (TaskQuartzImpl currentWorker : new ArrayList<>(currentWorkers)) {
             WorkerKey currentWorkerKey = new WorkerKey(currentWorker);
             if (shouldBeWorkers.containsValue(currentWorkerKey)) {
                 shouldBeWorkers.removeMapping(currentWorkerKey.group, currentWorkerKey);
@@ -144,12 +155,12 @@ public class WorkersManager {
     /**
      * Going through the groups and renaming wrongly-named tasks to the correct names.
      */
-    private int renameWorkers(List<Task> currentWorkers, MultiValuedMap<String, WorkerKey> shouldBeWorkers, OperationResult result)
+    private int renameWorkers(List<TaskQuartzImpl> currentWorkers, MultiValuedMap<String, WorkerKey> shouldBeWorkers, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         int count = 0;
         for (String shouldBeGroup : shouldBeWorkers.keySet()) {
             Collection<WorkerKey> shouldBeWorkersInGroup = shouldBeWorkers.get(shouldBeGroup);
-            for (Task currentWorker : new ArrayList<>(currentWorkers)) {
+            for (TaskQuartzImpl currentWorker : new ArrayList<>(currentWorkers)) {
                 if (Objects.equals(shouldBeGroup, currentWorker.getGroup())) {
                     if (!shouldBeWorkersInGroup.isEmpty()) {
                         WorkerKey nextWorker = shouldBeWorkersInGroup.iterator().next();
@@ -176,12 +187,16 @@ public class WorkersManager {
         repositoryService.modifyObject(TaskType.class, currentWorker.getOid(), itemDeltas, result);
     }
 
-    private int closeExecutingWorkers(List<Task> currentWorkers, OperationResult result) {
+    private int closeExecutingWorkers(List<TaskQuartzImpl> currentWorkers, OperationResult result) {
         int count = 0;
-        for (Task worker : new ArrayList<>(currentWorkers)) {
-            if (worker.getExecutionStatus() == TaskExecutionStatus.RUNNABLE && worker.getNodeAsObserved() != null) {
+        for (TaskQuartzImpl worker : new ArrayList<>(currentWorkers)) {
+            if (worker.getSchedulingState() == TaskSchedulingStateType.READY && worker.getNodeAsObserved() != null) { // todo
                 LOGGER.info("Suspending misplaced worker task {}", worker);
-                taskManager.suspendAndCloseTaskQuietly(worker, TaskManager.DO_NOT_WAIT, result);
+                try {
+                    taskStateManager.suspendAndCloseTaskNoException(worker, TaskManager.DO_NOT_WAIT, result);
+                } catch (Exception e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't close the task {}", e, worker);
+                }
                 currentWorkers.remove(worker);
                 count++;
             }
@@ -203,11 +218,11 @@ public class WorkersManager {
      * Moving workers to correct groups (and renaming them if needed).
      * We assume none of the workers are currently being executed.
      */
-    private MovedClosed moveWorkers(List<Task> currentWorkers, MultiValuedMap<String, WorkerKey> shouldBeWorkers, OperationResult result)
+    private MovedClosed moveWorkers(List<TaskQuartzImpl> currentWorkers, MultiValuedMap<String, WorkerKey> shouldBeWorkers, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         int moved = 0, closed = 0;
         Iterator<WorkerKey> shouldBeIterator = shouldBeWorkers.values().iterator();
-        for (Task worker : new ArrayList<>(currentWorkers)) {
+        for (TaskQuartzImpl worker : new ArrayList<>(currentWorkers)) {
             if (shouldBeIterator.hasNext()) {
                 WorkerKey shouldBeNext = shouldBeIterator.next();
                 moveWorker(worker, shouldBeNext, result);
@@ -215,9 +230,9 @@ public class WorkersManager {
                 shouldBeIterator.remove();
                 moved++;
             } else {
-                if (worker.getExecutionStatus() != TaskExecutionStatus.CLOSED) {
+                if (!worker.isClosed()) {
                     LOGGER.info("Closing superfluous worker task {}", worker);
-                    taskManager.suspendAndCloseTaskQuietly(worker, TaskManager.DO_NOT_WAIT, result);
+                    taskStateManager.suspendAndCloseTaskNoException(worker, TaskManager.DO_NOT_WAIT, result); // todo exceptions?
                     closed++;
                 }
             }
@@ -235,23 +250,28 @@ public class WorkersManager {
             OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException {
 
-        TaskExecutionStatusType workerExecutionStatus;
-        if (coordinatorTask.getExecutionStatus() == null) {
+        TaskExecutionStateType workerExecutionState;
+        TaskSchedulingStateType workerSchedulingState;
+        if (coordinatorTask.getSchedulingState() == null) {
             throw new IllegalStateException("Null executionStatus of " + coordinatorTask);
         }
-        switch (coordinatorTask.getExecutionStatus()) {
+        switch (coordinatorTask.getSchedulingState()) {
             case WAITING:
-                workerExecutionStatus = TaskExecutionStatusType.RUNNABLE;
+                workerExecutionState = TaskExecutionStateType.RUNNABLE;
+                workerSchedulingState = TaskSchedulingStateType.READY;
                 break;
             case SUSPENDED:
-            case RUNNABLE:
-                workerExecutionStatus = TaskExecutionStatusType.SUSPENDED;
+            case READY:
+                workerExecutionState = TaskExecutionStateType.SUSPENDED;
+                workerSchedulingState = TaskSchedulingStateType.SUSPENDED;
                 break;
-            case CLOSED:
-                workerExecutionStatus = TaskExecutionStatusType.CLOSED;
-                break;             // not very useful
+            case CLOSED: // not very useful
+                workerExecutionState = TaskExecutionStateType.CLOSED;
+                workerSchedulingState = TaskSchedulingStateType.CLOSED;
+                break;
             default:
-                throw new IllegalStateException("Unsupported executionStatus of " + coordinatorTask + ": " + coordinatorTask.getExecutionStatus());
+                throw new IllegalStateException("Unsupported scheduling state of " + coordinatorTask + ": " +
+                        coordinatorTask.getSchedulingState());
         }
 
         int count = 0;
@@ -269,7 +289,8 @@ public class WorkersManager {
             applyDeltas(worker, workersCfg.getOtherDeltas());
             applyDeltas(worker, perNodeConfigurationMap.get(keyToCreate).getOtherDeltas());
 
-            worker.setExecutionStatus(workerExecutionStatus);
+            worker.setExecutionStatus(workerExecutionState);
+            worker.setSchedulingState(workerSchedulingState);
             worker.setOwnerRef(CloneUtil.clone(coordinatorTask.getOwnerRef()));
             worker.setCategory(coordinatorTask.getCategory());
             worker.setObjectRef(CloneUtil.clone(coordinatorTask.getObjectRefOrClone()));
@@ -319,7 +340,7 @@ public class WorkersManager {
 
         /** Objects created by this constructor should be used only for matching and comparisons. */
         WorkerKey(Task worker) {
-            this(worker.getExecutionGroup(), PolyString.getOrig(worker.getName()), isScavenger(worker));
+            this(worker.getGroup(), PolyString.getOrig(worker.getName()), isScavenger(worker));
         }
 
         @Override
@@ -409,7 +430,7 @@ public class WorkersManager {
         } else {
             SearchResultList<PrismObject<NodeType>> nodes = taskManager.searchObjects(NodeType.class, null, null, opResult);
             return nodes.stream()
-                    .filter(n -> n.asObjectable().getExecutionStatus() == NodeExecutionStatusType.RUNNING)
+                    .filter(n -> n.asObjectable().getExecutionState() == NodeExecutionStateType.RUNNING)
                     .map(n -> n.asObjectable().getNodeIdentifier())
                     .collect(Collectors.toSet());
         }
@@ -430,7 +451,7 @@ public class WorkersManager {
     private void deleteWorkersAndWorkState(Task rootTask, boolean deleteWorkers, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         TaskKindType kind = rootTask.getKind();
-        List<Task> subtasks = rootTask.listSubtasks(true, result);
+        List<? extends Task> subtasks = rootTask.listSubtasks(true, result);
         if (deleteWorkers && kind == TaskKindType.COORDINATOR) {
             taskManager.suspendAndDeleteTasks(TaskUtil.tasksToOids(subtasks), TaskManager.DO_NOT_WAIT, true, result);
         } else {

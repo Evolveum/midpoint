@@ -6,33 +6,31 @@
  */
 package com.evolveum.midpoint.web.component.data;
 
-import java.util.*;
-
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.util.exception.*;
-
-import com.evolveum.midpoint.web.component.search.Search;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultImportanceType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultImportanceType;
 
 /**
  * @author lazyman
@@ -106,7 +104,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
             if (isMemberPanel()) {
                 if (guiObjectListViewType.getAdditionalPanels() != null &&
                         guiObjectListViewType.getAdditionalPanels().getMemberPanel() != null &&
-                        guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableSorting() != null){
+                        guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableSorting() != null) {
                     return guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableSorting();
                 }
             } else {

@@ -514,7 +514,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                         }
                         String oid;
                         try {
-                            oid = cacheRepositoryService.addObject(objectToAdd, repoOptions, result1);
+                            if (objectToAdd.canRepresent(TaskType.class)) {
+                                //noinspection unchecked
+                                oid = taskManager.addTask((PrismObject<TaskType>) objectToAdd, result1);
+                            } else {
+                                oid = cacheRepositoryService.addObject(objectToAdd, repoOptions, result1);
+                            }
                             task.recordObjectActionExecuted(objectToAdd, null, oid, ChangeType.ADD, task.getChannel(), null);
                         } catch (Throwable t) {
                             task.recordObjectActionExecuted(objectToAdd, null, null, ChangeType.ADD, task.getChannel(), t);
@@ -550,9 +555,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                                     ModelImplUtils.clearRequestee(task);
                                     provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
                                             ProvisioningOperationOptions.createRaw(), null, task, result1);
+                                } else if (TaskType.class.isAssignableFrom(delta.getObjectTypeClass())) {
+                                    // Maybe we should check if the task is not running. However, this is raw processing.
+                                    // (But, actually, this is better than simply deleting the task from repository.)
+                                    taskManager.deleteTask(delta.getOid(), result1);
                                 } else {
-                                    cacheRepositoryService.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
-                                            result1);
+                                    cacheRepositoryService.deleteObject(delta.getObjectTypeClass(), delta.getOid(), result1);
                                 }
                                 task.recordObjectActionExecuted(objectToDetermineDetailsForAudit, delta.getObjectTypeClass(), delta.getOid(), ChangeType.DELETE, task.getChannel(), null);
                             } catch (Throwable t) {
@@ -573,8 +581,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                                 securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, autzParams, null, task, result1);
                             }
                             try {
-                                cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(),
-                                        delta.getModifications(), result1);
+                                if (TaskType.class.isAssignableFrom(delta.getObjectTypeClass())) {
+                                    taskManager.modifyTask(delta.getOid(), delta.getModifications(), result1);
+                                } else {
+                                    cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(),
+                                            delta.getModifications(), result1);
+                                }
                                 task.recordObjectActionExecuted(existingObject, ChangeType.MODIFY, null);
                             } catch (Throwable t) {
                                 task.recordObjectActionExecuted(existingObject, ChangeType.MODIFY, t);
@@ -1479,9 +1491,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         result.addParam(OperationResult.PARAM_LANGUAGE, language);
         try {
             objectImporter.importObjects(input, language, options, task, result);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Import result:\n{}", result.debugDump());
-            }
+            LOGGER.trace("Import result:\n{}", result.debugDumpLazily());
             // No need to compute status. The validator inside will do it.
             // result.computeStatus("Couldn't import object from input stream.");
         } catch (RuntimeException e) {
@@ -1567,8 +1577,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         }
 
         securityContextManager.setUserProfileService(focusProfileService);
-
-        taskManager.postInit(result);
 
         // Initialize provisioning
         provisioning.postInit(result);

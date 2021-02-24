@@ -12,7 +12,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.jetbrains.annotations.NotNull;
@@ -58,7 +58,7 @@ public class TaskPartitioningInformation implements DebugDumpable, ShortDumpable
                 TaskType subtask = subtaskObject.asObjectable();
                 Integer subtaskPartitionNumber = TaskWorkStateTypeUtil.getPartitionSequentialNumber(subtask);
                 partitionsMap.put(subtaskPartitionNumber, subtask);
-                if (subtask.getExecutionStatus() == TaskExecutionStatusType.CLOSED) {
+                if (subtask.getExecutionStatus() == TaskExecutionStateType.CLOSED) {
                     completePartitions++;
                     if (lastCompletePartitionNumber == null ||
                             subtaskPartitionNumber != null && subtaskPartitionNumber > lastCompletePartitionNumber) {

@@ -9,10 +9,14 @@ package com.evolveum.midpoint.notifications.impl;
 
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.impl.events.TaskEventImpl;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,36 +52,37 @@ public class NotificationTaskListener implements TaskListener {
     }
 
     @Override
-    public void onTaskStart(Task task) {
-        createAndProcessEvent(task, null, EventOperationType.ADD);
+    public void onTaskStart(Task task, OperationResult result) {
+        createAndProcessEvent(task, null, EventOperationType.ADD, result);
     }
 
     @Override
-    public void onTaskFinish(Task task, TaskRunResult runResult) {
-        createAndProcessEvent(task, runResult, EventOperationType.DELETE);
+    public void onTaskFinish(Task task, TaskRunResult runResult, OperationResult result) {
+        createAndProcessEvent(task, runResult, EventOperationType.DELETE, result);
     }
 
-    private void createAndProcessEvent(Task task, TaskRunResult runResult, EventOperationType operationType) {
+    private void createAndProcessEvent(Task task, TaskRunResult runResult, EventOperationType operationType, OperationResult result) {
         TaskEventImpl event = new TaskEventImpl(lightweightIdentifierGenerator, task, runResult, operationType, task.getChannel());
 
-        if (task.getOwner() != null) {
-            event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner().asObjectable()));
-            event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, task.getOwner().asObjectable()));
+        PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
+        if (taskOwner != null) {
+            event.setRequester(new SimpleObjectRefImpl(notificationsUtil, taskOwner.asObjectable()));
+            event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, taskOwner.asObjectable()));
         } else {
             LOGGER.debug("No owner for task " + task + ", therefore no requester and requestee will be set for event " + event.getId());
         }
 
         Task opTask = taskManager.createTaskInstance(OPERATION_PROCESS_EVENT);
-        notificationManager.processEvent(event, opTask, opTask.getResult());
+        notificationManager.processEvent(event, opTask, result);
     }
 
     @Override
-    public void onTaskThreadStart(Task task, boolean isRecovering) {
+    public void onTaskThreadStart(Task task, boolean isRecovering, OperationResult result) {
         // not implemented
     }
 
     @Override
-    public void onTaskThreadFinish(Task task) {
+    public void onTaskThreadFinish(Task task, OperationResult result) {
         // not implemented
     }
 }

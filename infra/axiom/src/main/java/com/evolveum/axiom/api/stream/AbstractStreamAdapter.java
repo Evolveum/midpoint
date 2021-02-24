@@ -1,6 +1,6 @@
 package com.evolveum.axiom.api.stream;
 
-import com.evolveum.axiom.concepts.SourceLocation;
+import com.evolveum.concepts.SourceLocation;
 
 abstract public class AbstractStreamAdapter<N,V>  implements AxiomStreamTarget<N, V> {
 

@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.expression.ValuePolicySupplier;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -172,7 +172,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
     // determine object from the variables
     @SuppressWarnings("unchecked")
     private <O extends ObjectType> ObjectBasedValuePolicyOriginResolver<O> getOriginResolver(ExpressionEvaluationContext context) throws SchemaException {
-        ExpressionVariables variables = context.getVariables();
+        VariablesMap variables = context.getVariables();
         if (variables == null) {
             return null;
         }

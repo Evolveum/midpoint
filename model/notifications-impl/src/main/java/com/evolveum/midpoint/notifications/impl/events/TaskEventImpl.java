@@ -69,18 +69,12 @@ public class TaskEventImpl extends BaseEventImpl implements TaskEvent {
     @Override
     public boolean isFinished() {
         return taskRunResult != null &&
-                (taskRunResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.FINISHED ||
-                        taskRunResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.FINISHED_HANDLER);
+                taskRunResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.FINISHED;
     }
 
     @Override
     public boolean isInterrupted() {
         return taskRunResult != null && taskRunResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.INTERRUPTED;
-    }
-
-    @Override
-    public boolean isRestartRequested() {
-        return taskRunResult != null && taskRunResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.RESTART_REQUESTED;
     }
 
     @Override

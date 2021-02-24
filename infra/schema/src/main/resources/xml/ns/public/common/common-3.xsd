@@ -46,6 +46,7 @@
                 <xjc:typeSubstitution type="complex"/>
                 <xjc:serializable uid="201105211233"/>
             </jaxb:globalBindings>
+            <a:defaultPrefix>c</a:defaultPrefix>
         </xsd:appinfo>
     </xsd:annotation>
 

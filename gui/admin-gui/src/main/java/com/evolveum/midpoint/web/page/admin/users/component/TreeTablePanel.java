@@ -10,20 +10,22 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -34,8 +36,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -134,8 +134,8 @@ public class TreeTablePanel extends BasePanel<String> {
         treePanel.setOutputMarkupId(true);
         add(treePanel);
         add(createMemberPanel(treePanel.getSelected().getValue()));
-
-        add(createManagerPanel(treePanel.getSelected().getValue()));
+//
+        add(createManagerPanel());
         setOutputMarkupId(true);
     }
 
@@ -154,43 +154,39 @@ public class TreeTablePanel extends BasePanel<String> {
         return memberPanel;
     }
 
-    private WebMarkupContainer createManagerPanel(OrgType org) {
+    private WebMarkupContainer createManagerPanel() {
         WebMarkupContainer managerContainer = new WebMarkupContainer(ID_CONTAINER_MANAGER);
         managerContainer.setOutputMarkupId(true);
         managerContainer.setOutputMarkupPlaceholderTag(true);
 
-        RepeatingView view = new RepeatingView(ID_MANAGER_TABLE);
-        view.setOutputMarkupId(true);
-        ObjectQuery managersQuery = createManagerQuery(org);
+        ListView<PrismObject<FocusType>> listView = new ListView<>(ID_MANAGER_TABLE, createManagersModel()) {
 
-        OperationResult searchManagersResult = new OperationResult(OPERATION_SEARCH_MANAGERS);
-        Collection<SelectorOptions<GetOperationOptions>> options = getSchemaHelper().getOperationOptionsBuilder()
-                .distinct()
-                .item(FocusType.F_JPEG_PHOTO).retrieve()
-                .build();
-        List<PrismObject<FocusType>> managers = WebModelServiceUtils.searchObjects(FocusType.class,
-                managersQuery, options, searchManagersResult, getPageBase());
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_MANAGERS);
-        for (PrismObject<FocusType> manager : managers) {
-            WrapperContext context = new WrapperContext(task, searchManagersResult);
-            PrismObjectWrapper<FocusType> managerWrapper;
-            try {
-                managerWrapper = getPageBase().getRegistry().getObjectWrapperFactory(manager.getDefinition()).createObjectWrapper(manager, ItemStatus.NOT_CHANGED, context);
-            } catch (Throwable e) {
-                LoggingUtils.logException(LOGGER, "Cannoot create wrapper for {}" + manager, e);
-                searchManagersResult.recordFatalError(getString("TreeTablePanel.message.createManagerPanel.fatalError", manager), e);
-                getPageBase().showResult(searchManagersResult);
-                continue;
+            @Override
+            protected void populateItem(ListItem<PrismObject<FocusType>> item) {
+                FocusSummaryPanel.addSummaryPanel(item, item.getModelObject(), ID_MANAGER_SUMMARY, getPageBase());
             }
-            WebMarkupContainer managerMarkup = new WebMarkupContainer(view.newChildId());
+        };
+        managerContainer.add(listView);
 
-            FocusSummaryPanel.addSummaryPanel(managerMarkup, manager, managerWrapper, ID_MANAGER_SUMMARY, getPageBase());
-            view.add(managerMarkup);
-
-        }
-
-        managerContainer.add(view);
         return managerContainer;
+    }
+
+    private LoadableModel<List<PrismObject<FocusType>>> createManagersModel() {
+        return new LoadableModel<>(false) {
+
+            @Override
+            protected List<PrismObject<FocusType>> load() {
+                ObjectQuery managersQuery = createManagerQuery(getTreePanel().getSelected().getValue());
+
+                OperationResult searchManagersResult = new OperationResult(OPERATION_SEARCH_MANAGERS);
+                Collection<SelectorOptions<GetOperationOptions>> options = getSchemaHelper().getOperationOptionsBuilder()
+                        .distinct()
+                        .item(FocusType.F_JPEG_PHOTO).retrieve()
+                        .build();
+                return WebModelServiceUtils.searchObjects(FocusType.class,
+                        managersQuery, options, searchManagersResult, getPageBase());
+            }
+        };
     }
 
     private ObjectQuery createManagerQuery(OrgType org) {
@@ -462,7 +458,7 @@ public class TreeTablePanel extends BasePanel<String> {
         getTreePanel().setSelected(selected);
         getTreePanel().refreshContentPannels();
         target.add(addOrReplace(createMemberPanel(selected.getValue())));
-        target.add(addOrReplace(createManagerPanel(selected.getValue())));
+        target.add(addOrReplace(createManagerPanel()));
     }
 
     private void moveRootPerformed(final TreeSelectableBean<OrgType> root, AjaxRequestTarget target) {

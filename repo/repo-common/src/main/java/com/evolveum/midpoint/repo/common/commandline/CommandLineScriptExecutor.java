@@ -23,7 +23,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -57,12 +57,12 @@ public class CommandLineScriptExecutor {
     @Autowired private PrismContext prismContext;
     @Autowired private ExpressionFactory expressionFactory;
 
-    public void executeScript(CommandLineScriptType scriptType, ExpressionVariables variables, String shortDesc, Task task, OperationResult parentResult) throws IOException, InterruptedException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public void executeScript(CommandLineScriptType scriptType, VariablesMap variables, String shortDesc, Task task, OperationResult parentResult) throws IOException, InterruptedException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         OperationResult result = parentResult.createSubresult(CommandLineScriptExecutor.class.getSimpleName() + ".run");
 
         if (variables == null) {
-            variables = new ExpressionVariables();
+            variables = new VariablesMap();
         }
 
         String expandedCode = expandMacros(scriptType, variables, shortDesc, task, result);
@@ -81,7 +81,7 @@ public class CommandLineScriptExecutor {
     }
 
 
-    private String expandMacros(CommandLineScriptType scriptType, ExpressionVariables variables, String shortDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private String expandMacros(CommandLineScriptType scriptType, VariablesMap variables, String shortDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         String code = scriptType.getCode();
         for (ProvisioningScriptArgumentType macroDef: scriptType.getMacro()) {
 
