@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.schema.statistics.Formatting.Alignment.LEFT;
 import static com.evolveum.midpoint.schema.statistics.Formatting.Alignment.RIGHT;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
@@ -43,13 +42,13 @@ public class IterativeTaskInformationPrinter extends AbstractStatisticsPrinter<I
 
     private void createData(IterativeTaskPartItemsProcessingInformationType component) {
         List<ProcessedItemSetType> processed = new ArrayList<>(component.getProcessed());
-        processed.sort(Comparator.comparing(StatisticsUtil::getOutcomeSortingKey)); // FIXME
+        processed.sort(OutcomeKeyedCounterTypeUtil.createOutcomeKeyedCounterComparator());
 
         for (ProcessedItemSetType set : processed) {
             Data.Record record = data.createRecord();
             record.add(component.getPartUri());
-            record.add(StatisticsUtil.getOutcome(set));
-            record.add(StatisticsUtil.getOutcomeQualifierUri(set));
+            record.add(OutcomeKeyedCounterTypeUtil.getOutcome(set));
+            record.add(OutcomeKeyedCounterTypeUtil.getOutcomeQualifierUri(set));
             record.add(set.getCount());
             record.add(set.getDuration());
             record.add(div(set.getDuration(), set.getCount()));

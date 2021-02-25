@@ -2103,12 +2103,6 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void recordSynchronizationOperationLegacy(SynchronizationInformation.LegacyCounters originalStateIncrement,
-            SynchronizationInformation.LegacyCounters newStateIncrement) {
-        statistics.onSyncItemProcessingEnd(originalStateIncrement, newStateIncrement);
-    }
-
-    @Override
     public void onSyncItemProcessingStart(@NotNull String processingIdentifier, @Nullable SynchronizationSituationType situationBefore) {
         statistics.onSyncItemProcessingStart(processingIdentifier, situationBefore);
     }
@@ -2133,8 +2127,8 @@ public class TaskQuartzImpl implements Task {
 
     @Override
     public synchronized void onSyncItemProcessingEnd(@NotNull String processingIdentifier,
-            @NotNull SynchronizationInformation.Status status) {
-        statistics.onSyncItemProcessingEnd(processingIdentifier, status);
+            @NotNull QualifiedItemProcessingOutcomeType outcome) {
+        statistics.onSyncItemProcessingEnd(processingIdentifier, outcome);
     }
 
     @Override

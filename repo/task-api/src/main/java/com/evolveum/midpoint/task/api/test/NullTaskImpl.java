@@ -556,10 +556,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void recordSynchronizationOperationLegacy(SynchronizationInformation.LegacyCounters originalStateIncrement, SynchronizationInformation.LegacyCounters newStateIncrement) {
-    }
-
-    @Override
     public void onSyncItemProcessingStart(@NotNull String processingIdentifier, @Nullable SynchronizationSituationType situationBefore) {
     }
 
@@ -576,8 +572,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void onSyncItemProcessingEnd(@NotNull String processingIdentifier,
-            SynchronizationInformation.@NotNull Status status) {
+    public void onSyncItemProcessingEnd(@NotNull String processingIdentifier, @NotNull QualifiedItemProcessingOutcomeType outcome) {
     }
 
     @Override

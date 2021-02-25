@@ -87,16 +87,12 @@ public class Synchronizer {
         }
         if (Boolean.TRUE.equals(shadow.isProtectedObject())) {
             LOGGER.trace("Skipping {} because it is protected", shadowObject);
-            SynchronizationInformation.LegacyCounters record = SynchronizationInformation.LegacyCounters.createProtected(); // TODO temporary
-            workerTask.recordSynchronizationOperationLegacy(record, record); // TODO temporary
             workerTask.onSynchronizationExclusion(itemProcessingIdentifier, SynchronizationExclusionReasonType.PROTECTED);
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
             return;
         }
         if (!isShadowUnknown(shadow) && !objectsFilter.matches(shadowObject)) {
             LOGGER.trace("Skipping {} because it does not match objectClass/kind/intent", shadowObject);
-            SynchronizationInformation.LegacyCounters record = SynchronizationInformation.LegacyCounters.createNotApplicable(); // TODO temporary
-            workerTask.recordSynchronizationOperationLegacy(record, record); // TODO temporary
             workerTask.onSynchronizationExclusion(itemProcessingIdentifier, SynchronizationExclusionReasonType.NOT_APPLICABLE_FOR_TASK);
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it does not match objectClass/kind/intent");
             return;

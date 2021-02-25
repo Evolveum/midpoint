@@ -14,10 +14,14 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.Ordering;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.util.Comparator;
 
 /**
  * Utility methods related to task statistics (`OperationStatsType`).
@@ -190,57 +194,4 @@ public class StatisticsUtil {
         return sb.toString();
     }
 
-    public static ItemProcessingOutcomeType getOutcome(ProcessedItemSetType set) {
-        if (set != null && set.getOutcome() != null) {
-            return set.getOutcome().getOutcome();
-        } else {
-            return null;
-        }
-    }
-
-    public static String getOutcomeQualifierUri(ProcessedItemSetType set) {
-        if (set != null && set.getOutcome() != null) {
-            return set.getOutcome().getQualifierUri();
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * FIXME. Brutally hacked. Use regular approach with two keys.
-     */
-    public static String getOutcomeSortingKey(ProcessedItemSetType set) {
-        if (set != null && set.getOutcome() != null) {
-            return set.getOutcome().getOutcome().ordinal() + " " + set.getOutcome().getQualifierUri();
-        } else {
-            return null;
-        }
-    }
-
-    public static ItemProcessingOutcomeType getOutcome(TaskProgressCounterType counter) {
-        if (counter != null && counter.getOutcome() != null) {
-            return counter.getOutcome().getOutcome();
-        } else {
-            return null;
-        }
-    }
-
-    public static String getOutcomeQualifierUri(TaskProgressCounterType counter) {
-        if (counter != null && counter.getOutcome() != null) {
-            return counter.getOutcome().getQualifierUri();
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * FIXME. Brutally hacked. Use regular approach with two keys.
-     */
-    public static String getOutcomeSortingKey(TaskProgressCounterType counter) {
-        if (counter != null && counter.getOutcome() != null) {
-            return counter.getOutcome().getOutcome().ordinal() + " " + counter.getOutcome().getQualifierUri();
-        } else {
-            return null;
-        }
-    }
 }

@@ -394,16 +394,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .display()
                 .synchronizationInformation()
                     .display()
-                    .assertUnmatched(1, 0)
-                    .assertUnlinked(1, 0)
-                    .assertLinked(3, 5)
-                    .assertProtected(2, 2)
-                    .assertTotal(7, 7)
                     .assertTransition(LINKED, LINKED, LINKED, null, 1, 0, 0) // stan
                     .assertTransition(null, LINKED, LINKED, null, 2, 0, 0) // guybrush, elaine
                     .assertTransition(null, UNLINKED, LINKED, null, 1, 0, 0) // rapp
                     .assertTransition(null, UNMATCHED, LINKED, null, 1, 0, 0) // ht
-                    .assertTransition(null, null, null, PROTECTED, 2, 0, 0) // daviejones, calypso
+                    .assertTransition(null, null, null, PROTECTED, 0, 0, 2) // daviejones, calypso
                     .assertTransitions(5)
                     .end()
                 .iterativeTaskInformation()
@@ -480,11 +475,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .display()
                 .synchronizationInformation()
                     .display()
-                    .assertLinked(5, 5)
-                    .assertProtected(2, 2)
-                    .assertTotal(7, 7)
                     .assertTransition(LINKED, LINKED, LINKED, null, 5, 0, 0) // stan, guybrush, elaine, rapp, ht
-                    .assertTransition(null, null, null, PROTECTED, 2, 0, 0) // daviejones, calypso
+                    .assertTransition(null, null, null, PROTECTED, 0, 0, 2) // daviejones, calypso
                     .assertTransitions(2)
                     .end()
                 .iterativeTaskInformation()
@@ -570,10 +562,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .display()
                 .synchronizationInformation()
                     .display()
-                    .assertUnmatched(2, 0)
-                    .assertUnlinked(1, 0)
-                    .assertLinked(0, 3)
-                    .assertTotal(3, 3)
                     .assertTransition(null, UNLINKED, LINKED, null, 1, 0, 0) // rapp
                     .assertTransition(null, UNMATCHED, LINKED, null, 2, 0, 0) // rum, murray
                     .assertTransitions(2)
@@ -836,11 +824,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .display()
                 .synchronizationInformation()
                     .display()
-                    .assertLinked(5, 5)
-                    .assertProtected(2, 2)
-                    .assertTotal(7, 7)
                     .assertTransition(LINKED, LINKED, LINKED, null, 5, 0, 0)
-                    .assertTransition(null, null, null, PROTECTED, 2, 0, 0)
+                    .assertTransition(null, null, null, PROTECTED, 0, 0, 2)
                     .assertTransitions(2)
                     .end()
                 .iterativeTaskInformation()
@@ -1106,11 +1091,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .display()
                 .synchronizationInformation()
                     .display()
-                    .assertLinked(5, 5)
-                    .assertProtected(2, 2)
-                    .assertTotal(7, 7)
                     .assertTransition(LINKED, LINKED, LINKED, null, 4, 1, 0) // error is guybrush
-                    .assertTransition(null, null, null, PROTECTED, 2, 0, 0)
+                    .assertTransition(null, null, null, PROTECTED, 0, 0, 2)
                     .assertTransitions(2)
                     .end()
                 .iterativeTaskInformation()
@@ -1292,14 +1274,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .display()
                 .synchronizationInformation()
                     .display()
-                    .assertUnmatched(1, 0)
-                    .assertLinked(4, 5)
-                    .assertDeleted(1, 1)
-                    .assertProtected(2, 2)
-                    .assertTotal(8, 8)
                     .assertTransition(LINKED, LINKED, LINKED, null, 4, 0, 0) // guybrush, elaine, rapp, stan
                     .assertTransition(null, UNMATCHED, LINKED, null, 1, 0, 0) // htm (new name for ht)
-                    .assertTransition(null, null, null, PROTECTED, 2, 0, 0) // daviejones, calypso
+                    .assertTransition(null, null, null, PROTECTED, 0, 0, 2) // daviejones, calypso
                     // TODO implement 3rd part reporting and have: LINKED -> DELETED -> ? for ht (old name for htm)
                     .assertTransitions(3)
                     .end()
@@ -2598,11 +2575,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_FILTER.oid, false, 40000);
         dumpStatistics(taskAfter);
-
-        OperationStatsType statistics = taskAfter.getStoredOperationStatsOrClone();
-        SynchronizationInformationType syncInfo = statistics.getSynchronizationInformation();
-        // TODO: sometimes fails with: java.lang.AssertionError: expected:<12> but was:<0>
-        assertEquals(17 - 3 - 2, (Object) syncInfo.getCountLinked());  //total (17) - filtered (3)- protectected (2)
+        assertTask(taskAfter, "after")
+                .synchronizationInformation()
+                    .assertTransition(LINKED, LINKED, LINKED, null, 12, 0, 0)
+                    .assertTransition(null, null, null, PROTECTED, 0, 0, 2)
+                    .assertTransitions(2);
     }
 
     @Test

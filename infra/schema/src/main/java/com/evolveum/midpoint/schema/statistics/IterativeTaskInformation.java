@@ -268,6 +268,8 @@ public class IterativeTaskInformation {
 
         void done(ItemProcessingOutcomeType outcome, Throwable exception);
 
+        void done(QualifiedItemProcessingOutcomeType outcome, Throwable exception);
+
         default void succeeded() {
             done(ItemProcessingOutcomeType.SUCCESS, null);
         }
@@ -309,12 +311,16 @@ public class IterativeTaskInformation {
             this.processedItem = processedItem;
         }
 
-        public void done(ItemProcessingOutcomeType outcome, Throwable exception) {
-            // Eventually the qualifier will be added to the API.
+        public void done(ItemProcessingOutcomeType simpleOutcome, Throwable exception) {
             QualifiedItemProcessingOutcomeType qualifiedOutcome =
                     new QualifiedItemProcessingOutcomeType(prismContext)
-                            .outcome(outcome);
-            recordOperationEnd(operation, operationId, processedItem, qualifiedOutcome, exception);
+                            .outcome(simpleOutcome);
+            done(qualifiedOutcome, exception);
+        }
+
+        @Override
+        public void done(QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
+            recordOperationEnd(operation, operationId, processedItem, outcome, exception);
         }
     }
 
@@ -328,7 +334,10 @@ public class IterativeTaskInformation {
 
         @Override
         public void done(ItemProcessingOutcomeType outcome, Throwable exception) {
-            // no op
+        }
+
+        @Override
+        public void done(QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
         }
     }
 }

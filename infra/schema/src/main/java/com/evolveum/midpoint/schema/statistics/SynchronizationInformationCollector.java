@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
@@ -17,13 +18,6 @@ import org.jetbrains.annotations.Nullable;
  * Collects synchronization statistics related e.g. to the processing within given task.
  */
 public interface SynchronizationInformationCollector {
-
-    /**
-     * Records synchronization operation in "legacy way" - i.e. in the set of "before" and "after" counters.
-     * This is in contrast with the "new way", where we record transitions between states instead.
-     */
-    void recordSynchronizationOperationLegacy(SynchronizationInformation.LegacyCounters originalStateIncrement,
-            SynchronizationInformation.LegacyCounters newStateIncrement);
 
     /**
      * Support method for recording sync operation in the new way.
@@ -59,6 +53,6 @@ public interface SynchronizationInformationCollector {
     /**
      * Records the synchronization-related information into the statistics. Stops the watching.
      */
-    void onSyncItemProcessingEnd(@NotNull String processingIdentifier, @NotNull SynchronizationInformation.Status status);
+    void onSyncItemProcessingEnd(@NotNull String processingIdentifier, @NotNull QualifiedItemProcessingOutcomeType outcome);
 
 }

@@ -18,7 +18,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperation;
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Tracer;
@@ -31,9 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
-
-import static com.evolveum.midpoint.schema.statistics.SynchronizationInformation.Status.ERROR;
-import static com.evolveum.midpoint.schema.statistics.SynchronizationInformation.Status.SUCCESS;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
@@ -99,9 +95,6 @@ class ItemProcessingGatekeeper<I> {
 
     /** What was the final processing result? */
     private ProcessingResult processingResult;
-
-    /** What was the status of processing of this item? */
-    private SynchronizationInformation.Status processingStatus;
 
     /**
      * True if the flow of new events can continue. It can be switched to false either if the item processor
@@ -196,8 +189,6 @@ class ItemProcessingGatekeeper<I> {
         } finally {
             RepositoryCache.exitLocalCaches();
         }
-
-        processingStatus = isError() ? ERROR : SUCCESS; // TODO: SKIPPED
 
         return result;
     }
@@ -321,7 +312,7 @@ class ItemProcessingGatekeeper<I> {
 
     private void recordIterativeOperationEnd(Operation operation) {
         if (getReportingOptions().isEnableIterationStatistics()) {
-            operation.done(processingResult.outcome.getOutcome(), processingResult.exception);
+            operation.done(processingResult.outcome, processingResult.exception);
         }
     }
 
@@ -333,7 +324,7 @@ class ItemProcessingGatekeeper<I> {
 
     private void onSyncItemProcessingEnd() {
         if (getReportingOptions().isEnableSynchronizationStatistics()) {
-            workerTask.onSyncItemProcessingEnd(request.getIdentifier(), requireNonNull(processingStatus));
+            workerTask.onSyncItemProcessingEnd(request.getIdentifier(), processingResult.outcome);
         }
     }
 

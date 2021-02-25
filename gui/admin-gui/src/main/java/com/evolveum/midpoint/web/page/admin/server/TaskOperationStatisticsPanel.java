@@ -162,9 +162,9 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
         syncColumns.add(createEnumColumn("SynchronizationSituationTransitionType", SynchronizationSituationTransitionType.F_ON_SYNCHRONIZATION_START));
         syncColumns.add(createEnumColumn("SynchronizationSituationTransitionType", SynchronizationSituationTransitionType.F_ON_SYNCHRONIZATION_END));
         syncColumns.add(createEnumColumn("SynchronizationSituationTransitionType", SynchronizationSituationTransitionType.F_EXCLUSION_REASON));
-        syncColumns.add(createPropertyColumn("SynchronizationSituationTransitionType", SynchronizationSituationTransitionType.F_COUNT_SUCCESS));
-        syncColumns.add(createPropertyColumn("SynchronizationSituationTransitionType", SynchronizationSituationTransitionType.F_COUNT_ERROR));
-        syncColumns.add(createPropertyColumn("SynchronizationSituationTransitionType", SynchronizationSituationTransitionType.F_COUNT_SKIP));
+//        syncColumns.add(createPropertyColumn("SynchronizationSituationTransitionType", SynchronizationSituationTransitionType.F_COUNT_SUCCESS));
+//        syncColumns.add(createPropertyColumn("SynchronizationSituationTransitionType", SynchronizationSituationTransitionType.F_COUNT_ERROR));
+//        syncColumns.add(createPropertyColumn("SynchronizationSituationTransitionType", SynchronizationSituationTransitionType.F_COUNT_SKIP));
         return syncColumns;
     }
 

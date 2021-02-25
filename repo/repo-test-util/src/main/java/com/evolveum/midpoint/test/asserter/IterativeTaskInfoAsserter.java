@@ -10,6 +10,7 @@ package com.evolveum.midpoint.test.asserter;
 import static org.testng.AssertJUnit.assertEquals;
 
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
+import com.evolveum.midpoint.schema.statistics.OutcomeKeyedCounterTypeUtil;
 import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
@@ -110,6 +111,6 @@ public class IterativeTaskInfoAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     private String getLastFailedObjectName() {
-        return TaskTypeUtil.getLastProcessedObjectName(information, TaskTypeUtil::isFailure);
+        return TaskTypeUtil.getLastProcessedObjectName(information, OutcomeKeyedCounterTypeUtil::isFailure);
     }
 }

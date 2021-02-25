@@ -51,7 +51,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -122,7 +121,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         String applicableShadowOid = currentShadow != null ? currentShadow.getOid() : null;
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-        SynchronizationEventInformation eventInfo = new SynchronizationEventInformation();
 
         try {
             PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(subResult);
@@ -131,7 +129,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     change.getSourceChannel(), change.getItemProcessingIdentifier(), configuration, task, subResult);
             LOGGER.trace("SYNCHRONIZATION determined policy: {}", syncCtx);
 
-            if (!checkSynchronizationPolicy(syncCtx, eventInfo, subResult) || !checkProtected(syncCtx, eventInfo, subResult)) {
+            if (!checkSynchronizationPolicy(syncCtx, subResult) || !checkProtected(syncCtx, subResult)) {
                 return;
             }
 
@@ -140,7 +138,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
             setupSituation(syncCtx, change, subResult);
 
-            eventInfo.setOnSynchronizationStart(syncCtx.getSituation());
             task.onSynchronizationStart(change.getItemProcessingIdentifier(), applicableShadowOid, syncCtx.getSituation());
 
             boolean isDryRun = TaskUtil.isDryRun(syncCtx.getTask());
@@ -151,7 +148,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 subResult.recordSuccess();
             } else {
                 LOGGER.trace("Synchronization context:\n{}", syncCtx.debugDumpLazily(1));
-                reactToChange(syncCtx, change, logDebug, eventInfo, subResult);
+                reactToChange(syncCtx, change, logDebug, subResult);
                 LOGGER.debug("SYNCHRONIZATION: DONE for {}", currentShadow);
                 subResult.computeStatus();
             }
@@ -163,7 +160,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             subResult.recordFatalError(ex);
             throw new SystemException(ex);
         } finally {
-            eventInfo.record(task); // TODO
             task.markObjectActionExecutedBoundary();
         }
     }
@@ -322,7 +318,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     }
 
     private <F extends FocusType> boolean checkSynchronizationPolicy(SynchronizationContext<F> syncCtx,
-            SynchronizationEventInformation eventInfo, OperationResult result) throws SchemaException {
+            OperationResult result) throws SchemaException {
         Task task = syncCtx.getTask();
 
         if (!syncCtx.hasApplicablePolicy()) {
@@ -333,7 +329,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, false);
             executeShadowModifications(syncCtx.getApplicableShadow(), modifications, task, result);
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
-            eventInfo.setExclusionReason(SynchronizationExclusionReasonType.NO_SYNCHRONIZATION_POLICY);
             task.onSynchronizationExclusion(syncCtx.getItemProcessingIdentifier(), SynchronizationExclusionReasonType.NO_SYNCHRONIZATION_POLICY);
             return false;
         }
@@ -345,7 +340,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, true);
             executeShadowModifications(syncCtx.getApplicableShadow(), modifications, task, result);
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
-            eventInfo.setExclusionReason(SynchronizationExclusionReasonType.SYNCHRONIZATION_DISABLED);
             task.onSynchronizationExclusion(syncCtx.getItemProcessingIdentifier(), SynchronizationExclusionReasonType.SYNCHRONIZATION_DISABLED);
             return false;
         }
@@ -354,13 +348,12 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     }
 
     private <F extends FocusType> boolean checkProtected(SynchronizationContext<F> syncCtx,
-            SynchronizationEventInformation eventInfo, OperationResult result) throws SchemaException {
+            OperationResult result) throws SchemaException {
         if (syncCtx.isProtected()) {
             Task task = syncCtx.getTask();
             List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, true);
             executeShadowModifications(syncCtx.getApplicableShadow(), modifications, task, result);
             result.recordSuccess();
-            eventInfo.setExclusionReason(SynchronizationExclusionReasonType.PROTECTED);
             task.onSynchronizationExclusion(syncCtx.getItemProcessingIdentifier(), SynchronizationExclusionReasonType.PROTECTED);
             LOGGER.debug("SYNCHRONIZATION: DONE for protected shadow {}", syncCtx.getApplicableShadow());
             return false;
@@ -654,7 +647,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     }
 
     private <F extends FocusType> void reactToChange(SynchronizationContext<F> syncCtx,
-            ResourceObjectShadowChangeDescription change, boolean logDebug, SynchronizationEventInformation eventInfo,
+            ResourceObjectShadowChangeDescription change, boolean logDebug,
             OperationResult parentResult)
             throws ConfigurationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ExpressionEvaluationException, CommunicationException {
@@ -714,18 +707,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             // modify lens context - which is relevant only if followed by
             // clockwork run)
             executeActions(syncCtx, lensContext, BeforeAfterType.AFTER, logDebug, task, parentResult);
-
-            if (originalProjectionContext != null) {
-                SynchronizationSituationType resolvedSituation = originalProjectionContext.getSynchronizationSituationResolved();
-                if (resolvedSituation != null) {
-                    if (eventInfo.getOnSynchronizationEnd() != resolvedSituation) {
-                        LOGGER.trace("We have changed new situation: {} -> {}", eventInfo.getOnSynchronizationEnd(), resolvedSituation);
-                    }
-                    eventInfo.setOnSynchronizationEnd(resolvedSituation); // legacy
-                } else {
-                    LOGGER.trace("Resolved situation is null i.e. unknown");
-                }
-            }
 
         } else {
             LOGGER.trace("Skipping clockwork run on {} for situation {}, synchronize is set to false.",
@@ -1008,94 +989,5 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     @Override
     public String getName() {
         return "model synchronization service";
-    }
-
-    // will be removed
-    private static class SynchronizationEventInformation {
-
-        private boolean alreadySaved;
-
-        private SynchronizationSituationType onSynchronizationStart;
-        private SynchronizationSituationType onSynchronizationEnd;
-        private SynchronizationExclusionReasonType exclusionReason;
-
-        private void setSituation(SynchronizationInformation.LegacyCounters increment,
-                SynchronizationSituationType situation) {
-            if (situation != null) {
-                switch (situation) {
-                    case LINKED:
-                        increment.setCountLinked(1);
-                        break;
-                    case UNLINKED:
-                        increment.setCountUnlinked(1);
-                        break;
-                    case DELETED:
-                        increment.setCountDeleted(1);
-                        break;
-                    case DISPUTED:
-                        increment.setCountDisputed(1);
-                        break;
-                    case UNMATCHED:
-                        increment.setCountUnmatched(1);
-                        break;
-                    default:
-                        throw new AssertionError(situation);
-                }
-            }
-        }
-
-        private void setExclusionReason(SynchronizationExclusionReasonType exclusionReason) {
-            this.exclusionReason = exclusionReason;
-        }
-
-        private void setOnSynchronizationStart(SynchronizationSituationType situation) {
-            onSynchronizationStart = situation;
-            onSynchronizationEnd = situation; // potentially overwritten later
-        }
-
-        private SynchronizationSituationType getOnSynchronizationEnd() {
-            return onSynchronizationEnd;
-        }
-
-        private void setOnSynchronizationEnd(SynchronizationSituationType situation) {
-            onSynchronizationEnd = situation;
-        }
-
-        private void record(Task task) {
-            SynchronizationInformation.LegacyCounters originalStateIncrement = new SynchronizationInformation.LegacyCounters();
-            SynchronizationInformation.LegacyCounters newStateIncrement = new SynchronizationInformation.LegacyCounters();
-            if (exclusionReason != null) {
-                switch (exclusionReason) {
-                    case NO_SYNCHRONIZATION_POLICY:
-                        originalStateIncrement.setCountNoSynchronizationPolicy(1);
-                        newStateIncrement.setCountNoSynchronizationPolicy(1);
-                        break;
-                    case SYNCHRONIZATION_DISABLED:
-                        originalStateIncrement.setCountSynchronizationDisabled(1);
-                        newStateIncrement.setCountSynchronizationDisabled(1);
-                        break;
-                    case PROTECTED:
-                        originalStateIncrement.setCountProtected(1);
-                        newStateIncrement.setCountProtected(1);
-                        break;
-                    default:
-                        throw new AssertionError(exclusionReason);
-                }
-            } else {
-                setSituation(originalStateIncrement, onSynchronizationStart);
-                setSituation(newStateIncrement, onSynchronizationEnd);
-            }
-            saveToTaskLegacy(task, originalStateIncrement, newStateIncrement);
-        }
-
-        private void saveToTaskLegacy(Task task, SynchronizationInformation.LegacyCounters originalStateIncrement,
-                SynchronizationInformation.LegacyCounters newStateIncrement) {
-            task.recordSynchronizationOperationLegacy(originalStateIncrement, newStateIncrement);
-            if (alreadySaved) {
-                throw new IllegalStateException("SynchronizationEventInformation already saved");
-            } else {
-                alreadySaved = true;
-            }
-        }
     }
 }

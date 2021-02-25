@@ -164,11 +164,11 @@ public class Statistics implements WorkBucketStatisticsCollector {
             return null;
         }
         SynchronizationInformationType rv = new SynchronizationInformationType();
-        SynchronizationInformation.addTo(rv, synchronizationInformation.getAggregatedValue());
+        SynchronizationInformation.addTo(rv, synchronizationInformation.getValueCopy());
         for (Statistics child : children) {
             SynchronizationInformation info = child.getSynchronizationInformation();
             if (info != null) {
-                SynchronizationInformation.addTo(rv, info.getAggregatedValue());
+                SynchronizationInformation.addTo(rv, info.getValueCopy());
             }
         }
         return rv;
@@ -300,14 +300,6 @@ public class Statistics implements WorkBucketStatisticsCollector {
         environmentalPerformanceInformation.recordMappingOperation(objectOid, objectName, objectTypeName, mappingName, duration);
     }
 
-    public synchronized void onSyncItemProcessingEnd(SynchronizationInformation.LegacyCounters originalStateIncrement,
-            SynchronizationInformation.LegacyCounters newStateIncrement) {
-        if (synchronizationInformation != null) {
-            synchronizationInformation
-                    .recordSynchronizationOperationLegacy(originalStateIncrement, newStateIncrement);
-        }
-    }
-
     public synchronized void onSyncItemProcessingStart(@NotNull String processingIdentifier,
             @Nullable SynchronizationSituationType beforeOperation) {
         if (synchronizationInformation != null) {
@@ -337,9 +329,9 @@ public class Statistics implements WorkBucketStatisticsCollector {
     }
 
     public synchronized void onSyncItemProcessingEnd(@NotNull String processingIdentifier,
-            @NotNull SynchronizationInformation.Status status) {
+            @NotNull QualifiedItemProcessingOutcomeType outcome) {
         if (synchronizationInformation != null) {
-            synchronizationInformation.onSyncItemProcessingEnd(processingIdentifier, status);
+            synchronizationInformation.onSyncItemProcessingEnd(processingIdentifier, outcome);
         }
     }
 
@@ -424,7 +416,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
     }
 
     public void resetSynchronizationInformation(SynchronizationInformationType value) {
-        synchronizationInformation = new SynchronizationInformation(value);
+        synchronizationInformation = new SynchronizationInformation(value, prismContext);
     }
 
     public void resetIterativeTaskInformation(IterativeTaskInformationType value) {

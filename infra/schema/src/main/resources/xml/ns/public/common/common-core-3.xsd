@@ -3325,7 +3325,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="closed" type="tns:TaskProgressCounterType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="closed" type="tns:OutcomeKeyedCounterType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Counters representing items that were processed and are stored in closed buckets.
@@ -3334,7 +3334,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="open" type="tns:TaskProgressCounterType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="open" type="tns:OutcomeKeyedCounterType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Counters representing items that were processed but their bucket is not closed yet.
@@ -3347,10 +3347,11 @@
     </xsd:complexType>
     <xsd:element name="taskPartProgress" type="tns:TaskPartProgressType" />
 
-    <xsd:complexType name="TaskProgressCounterType">
+    <!-- If needed, please create subtypes of this for particular uses. -->
+    <xsd:complexType name="OutcomeKeyedCounterType">
         <xsd:annotation>
             <xsd:documentation>
-                Counter representing task or task part progress.
+                Counter keyed by a qualified outcome. Used e.g. for structured progress or synchronization situation transitions.
             </xsd:documentation>
            <xsd:appinfo>
                <a:container>true</a:container>
@@ -3369,13 +3370,13 @@
             <xsd:element name="count" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Number of items for given qualified outcome.
+                        Count of items/situations/whatever for given qualified outcome.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="progressCounters" type="tns:TaskProgressCounterType" />
+    <xsd:element name="outcomeKeyedCounter" type="tns:OutcomeKeyedCounterType" />
 
     <xsd:complexType name="OperationStatsType">
         <xsd:annotation>
@@ -25691,36 +25692,27 @@
                 <a:since>4.3</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="outcome" type="tns:QualifiedItemProcessingOutcomeType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Outcome defining this set. (E.g. items skipped because of specific reason.)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="count" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Number of items in this set. For example, number of items successfully processed.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="duration" type="xsd:long" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Total time spent while processing items in this set.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="lastItem" type="tns:ProcessedItemType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Last item in this set.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
+        <xsd:complexContent>
+            <xsd:extension base="tns:OutcomeKeyedCounterType">
+                <xsd:sequence>
+                    <!-- outcome and count are inherited -->
+                    <xsd:element name="duration" type="xsd:long" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Total time spent while processing items in this set.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="lastItem" type="tns:ProcessedItemType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Last item in this set.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="ProcessedItemType">
@@ -25801,10 +25793,14 @@
                 Information about synchronization situations of objects processed by synchronization-related tasks:
                 live sync, import, reconciliation. Currently it shows just counters for possible sync situations.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="transition" type="tns:SynchronizationSituationTransitionType" minOccurs="0" maxOccurs="unbounded" />
 
+            <!-- The following is not used anymore -->
             <xsd:element name="countProtected" type="xsd:int" minOccurs="0" />
             <xsd:element name="countNoSynchronizationPolicy" type="xsd:int" minOccurs="0" />
             <xsd:element name="countSynchronizationDisabled" type="xsd:int" minOccurs="0" />
@@ -25829,10 +25825,10 @@
     <xsd:complexType name="SynchronizationSituationTransitionType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Describes how many times given synchronization situation transition has occurred.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container>false</a:container> <!-- parent is not a container yet -->
+                <a:container>true</a:container>
                 <a:experimental>true</a:experimental>
                 <a:since>4.3</a:since>
             </xsd:appinfo>
@@ -25842,9 +25838,7 @@
             <xsd:element name="onSynchronizationStart" type="tns:SynchronizationSituationType" minOccurs="0" />
             <xsd:element name="onSynchronizationEnd" type="tns:SynchronizationSituationType" minOccurs="0" />
             <xsd:element name="exclusionReason" type="tns:SynchronizationExclusionReasonType" minOccurs="0" />
-            <xsd:element name="countSuccess" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countError" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countSkip" type="xsd:int" minOccurs="0" />
+            <xsd:element name="counter" type="tns:OutcomeKeyedCounterType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="synchronizationSituationTransition" type="tns:SynchronizationSituationTransitionType"/>

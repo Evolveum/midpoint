@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.schema.statistics.Formatting.Alignment.LEFT;
 import static com.evolveum.midpoint.schema.statistics.Formatting.Alignment.RIGHT;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -47,18 +46,18 @@ public class StructuredTaskProgressPrinter extends AbstractStatisticsPrinter<Str
         createDataFromCounters(partProgress, partProgress.getOpen(), STATE_OPEN);
     }
 
-    private void createDataFromCounters(TaskPartProgressType partProgress, List<TaskProgressCounterType> countersOriginal,
+    private void createDataFromCounters(TaskPartProgressType partProgress, List<OutcomeKeyedCounterType> countersOriginal,
             String state) {
 
-        ArrayList<TaskProgressCounterType> counters = new ArrayList<>(countersOriginal);
-        counters.sort(Comparator.comparing(StatisticsUtil::getOutcomeSortingKey)); // FIXME
+        ArrayList<OutcomeKeyedCounterType> counters = new ArrayList<>(countersOriginal);
+        counters.sort(OutcomeKeyedCounterTypeUtil.createOutcomeKeyedCounterComparator());
 
-        for (TaskProgressCounterType counter : counters) {
+        for (OutcomeKeyedCounterType counter : counters) {
             Data.Record record = data.createRecord();
             record.add(partProgress.getPartUri());
             record.add(state);
-            record.add(StatisticsUtil.getOutcome(counter));
-            record.add(StatisticsUtil.getOutcomeQualifierUri(counter));
+            record.add(OutcomeKeyedCounterTypeUtil.getOutcome(counter));
+            record.add(OutcomeKeyedCounterTypeUtil.getOutcomeQualifierUri(counter));
             record.add(counter.getCount());
         }
     }

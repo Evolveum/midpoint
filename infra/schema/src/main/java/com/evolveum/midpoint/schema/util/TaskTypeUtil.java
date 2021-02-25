@@ -97,7 +97,7 @@ public class TaskTypeUtil {
 
     public static int getItemsProcessedWithSuccess(IterativeTaskInformationType info) {
         if (info != null) {
-            return getCounts(info.getPart(), TaskTypeUtil::isSuccess);
+            return getCounts(info.getPart(), OutcomeKeyedCounterTypeUtil::isSuccess);
         } else {
             return 0;
         }
@@ -111,14 +111,14 @@ public class TaskTypeUtil {
         }
     }
 
-    private static Predicate<TaskProgressCounterType> getCounterFilter(ItemProcessingOutcomeType outcome) {
+    private static Predicate<OutcomeKeyedCounterType> getCounterFilter(ItemProcessingOutcomeType outcome) {
         switch (outcome) {
             case SUCCESS:
-                return TaskTypeUtil::isSuccess;
+                return OutcomeKeyedCounterTypeUtil::isSuccess;
             case FAILURE:
-                return TaskTypeUtil::isFailure;
+                return OutcomeKeyedCounterTypeUtil::isFailure;
             case SKIP:
-                return TaskTypeUtil::isSkip;
+                return OutcomeKeyedCounterTypeUtil::isSkip;
             default:
                 throw new AssertionError(outcome);
         }
@@ -130,7 +130,7 @@ public class TaskTypeUtil {
 
     public static int getItemsProcessedWithFailure(IterativeTaskInformationType info) {
         if (info != null) {
-            return getCounts(info.getPart(), TaskTypeUtil::isFailure);
+            return getCounts(info.getPart(), OutcomeKeyedCounterTypeUtil::isFailure);
         } else {
             return 0;
         }
@@ -138,7 +138,7 @@ public class TaskTypeUtil {
 
     public static int getItemsProcessedWithSkip(IterativeTaskInformationType info) {
         if (info != null) {
-            return getCounts(info.getPart(), TaskTypeUtil::isSkip);
+            return getCounts(info.getPart(), OutcomeKeyedCounterTypeUtil::isSkip);
         } else {
             return 0;
         }
@@ -238,7 +238,7 @@ public class TaskTypeUtil {
     }
 
     private static int getCounts(List<TaskPartProgressType> parts,
-            Predicate<TaskProgressCounterType> counterFilter, boolean open) {
+            Predicate<OutcomeKeyedCounterType> counterFilter, boolean open) {
         return parts.stream()
                 .flatMap(part -> (open ? part.getOpen() : part.getClosed()).stream())
                 .filter(Objects::nonNull)
@@ -255,7 +255,7 @@ public class TaskTypeUtil {
         if (stats == null || stats.getIterativeTaskInformation() == null) {
             return null;
         } else {
-            return getLastProcessedObjectName(stats.getIterativeTaskInformation(), TaskTypeUtil::isSuccess);
+            return getLastProcessedObjectName(stats.getIterativeTaskInformation(), OutcomeKeyedCounterTypeUtil::isSuccess);
         }
     }
 
@@ -273,27 +273,4 @@ public class TaskTypeUtil {
         return lastSuccess != null ? lastSuccess.getName() : null;
     }
 
-    public static boolean isSuccess(ProcessedItemSetType set) {
-        return StatisticsUtil.getOutcome(set) == ItemProcessingOutcomeType.SUCCESS;
-    }
-
-    public static boolean isFailure(ProcessedItemSetType set) {
-        return StatisticsUtil.getOutcome(set) == ItemProcessingOutcomeType.FAILURE;
-    }
-
-    public static boolean isSkip(ProcessedItemSetType set) {
-        return StatisticsUtil.getOutcome(set) == ItemProcessingOutcomeType.SKIP;
-    }
-
-    public static boolean isSuccess(TaskProgressCounterType counter) {
-        return StatisticsUtil.getOutcome(counter) == ItemProcessingOutcomeType.SUCCESS;
-    }
-
-    public static boolean isFailure(TaskProgressCounterType counter) {
-        return StatisticsUtil.getOutcome(counter) == ItemProcessingOutcomeType.FAILURE;
-    }
-
-    public static boolean isSkip(TaskProgressCounterType counter) {
-        return StatisticsUtil.getOutcome(counter) == ItemProcessingOutcomeType.SKIP;
-    }
 }
