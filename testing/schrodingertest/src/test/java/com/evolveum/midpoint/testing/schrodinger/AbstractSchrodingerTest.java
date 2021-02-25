@@ -21,21 +21,27 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
-import org.testng.ITestResult;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Listeners;
+import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.client.api.ObjectAddService;
 import com.evolveum.midpoint.client.api.exception.CommonException;
 import com.evolveum.midpoint.client.impl.prism.RestPrismObjectAddService;
 import com.evolveum.midpoint.client.impl.prism.RestPrismService;
 import com.evolveum.midpoint.client.impl.prism.RestPrismServiceBuilder;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.prism.util.PrismContextFactory;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schrodinger.EnvironmentConfiguration;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.WebDriver;
@@ -56,8 +62,6 @@ import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.testing.schrodinger.reports.SchrodingerTextReport;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.boot.MidPointSpringApplication;
@@ -72,7 +76,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @TestPropertySource(properties = { "server.port=8180", "midpoint.schrodinger=true" })
 @Listeners({ BrowserPerClass.class, SchrodingerTextReport.class })
 @Report
-public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
+public abstract class AbstractSchrodingerTest extends AbstractTestNGSpringContextTests {
 
     public static final String PROPERTY_NAME_MIDPOINT_HOME = "-Dmidpoint.home";
     public static final String PROPERTY_NAME_USER_HOME = "user.home";
@@ -117,12 +121,14 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
 
     private Properties props = null;
 
-    @Override
-    protected void initSystem(Task task, OperationResult initResult) throws Exception {
-        super.initSystem(task, initResult);
-//        addObjectFromFile(SYSTEM_CONFIG_INITIAL, true, initResult);
-        getObjectListToImport().forEach(objFile -> addObjectFromFile(objFile, true));
-    }
+    @Autowired protected PrismContext prismContext;
+
+//    @Override
+//    protected void initSystem(Task task, OperationResult initResult) throws Exception {
+//        super.initSystem(task, initResult);
+////        addObjectFromFile(SYSTEM_CONFIG_INITIAL, true, initResult);
+//        getObjectListToImport().forEach(objFile -> addObjectFromFile(objFile, true));
+//    }
 
     protected List<File> getObjectListToImport(){
         return new ArrayList<>();
@@ -139,22 +145,35 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
         }
         if (startMidpoint) {
             super.springTestContextPrepareTestInstance();
+        } else if (prismContext == null) {
+            PrismContextFactory pcf = new MidPointPrismContextFactory();
+            try {
+                prismContext = pcf.createPrismContext();
+                prismContext.initialize();
+            } catch (SchemaException | SAXException | IOException e) {
+                throw new com.evolveum.midpoint.client.api.exception.SchemaException(e);
+            }
         }
+
+        getObjectListToImport().forEach(objFile -> addObjectFromFile(objFile, true));
+
+
+
     }
 
-    @BeforeMethod
-    public void startTestContext(ITestResult testResult) throws SchemaException {
-        if (startMidpoint) {
-            super.startTestContext(testResult);
-        }
-    }
-
-    @AfterMethod
-    public void finishTestContext(ITestResult testResult) {
-        if (startMidpoint) {
-            super.finishTestContext(testResult);
-        }
-    }
+//    @BeforeMethod
+//    public void startTestContext(ITestResult testResult) throws SchemaException {
+//        if (startMidpoint) {
+//            super.startTestContext(testResult);
+//        }
+//    }
+//
+//    @AfterMethod
+//    public void finishTestContext(ITestResult testResult) {
+//        if (startMidpoint) {
+//            super.finishTestContext(testResult);
+//        }
+//    }
 
 
     @BeforeClass(dependsOnMethods = {"springTestContextPrepareTestInstance"})
