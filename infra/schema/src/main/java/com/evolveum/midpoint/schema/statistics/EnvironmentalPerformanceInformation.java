@@ -22,51 +22,52 @@ import java.util.Map;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
- * @author Pavol Mederly
+ * Thread safety: Instances of this class may be accessed from more than one thread at once.
+ * Updates are invoked in the context of the thread executing the task.
+ * Queries are invoked either from this thread, or from some observer (task manager or GUI thread).
+ *
+ * We ensure synchronization by making public methods synchronized. We don't expect much contention on this.
  */
 public class EnvironmentalPerformanceInformation {
 
-    /*
-     * Thread safety: Instances of this class may be accessed from more than one thread at once.
-     * Updates are invoked in the context of the thread executing the task.
-     * Queries are invoked either from this thread, or from some observer (task manager or GUI thread).
+    /**
+     * This object is concurrently read (that is thread-safe), not written.
      *
-     * We ensure synchronization by making public methods synchronized. We don't expect much contention on this.
+     * NOTE: provisioning part of this value is always null
      */
-    private final EnvironmentalPerformanceInformationType startValue;        // this object is concurrently read (that is thread-safe), not written
+    private final EnvironmentalPerformanceInformationType startValue;
 
-    private Map<ProvisioningStatisticsKey,ProvisioningStatisticsData> provisioningData = new HashMap<>();
-    private Map<NotificationsStatisticsKey,GenericStatisticsData> notificationsData = new HashMap<>();
-    private Map<MappingsStatisticsKey,GenericStatisticsData> mappingsData = new HashMap<>();
+    private final ProvisioningStatistics provisioningStatistics;
+    private final Map<NotificationsStatisticsKey,GenericStatisticsData> notificationsData = new HashMap<>();
+    private final Map<MappingsStatisticsKey,GenericStatisticsData> mappingsData = new HashMap<>();
 
     private static final int AGGREGATION_THRESHOLD = 50;
 
     private StatusMessage lastMessage;
 
     public EnvironmentalPerformanceInformation(EnvironmentalPerformanceInformationType value) {
-        startValue = value;
+        if (value != null) {
+            startValue = value.clone();
+            startValue.setProvisioningStatistics(null);
+            provisioningStatistics = new ProvisioningStatistics(value.getProvisioningStatistics());
+        } else {
+            startValue = null;
+            provisioningStatistics = new ProvisioningStatistics();
+        }
     }
 
     public EnvironmentalPerformanceInformation() {
         this(null);
     }
 
-    public EnvironmentalPerformanceInformationType getStartValue() {
-        return startValue;
-    }
-
-    public synchronized EnvironmentalPerformanceInformationType getDeltaValue() {
-        return toEnvironmentalPerformanceInformationType();
-    }
-
-    public synchronized EnvironmentalPerformanceInformationType getAggregatedValue() {
+    public synchronized EnvironmentalPerformanceInformationType getValueCopy() {
         EnvironmentalPerformanceInformationType delta = toEnvironmentalPerformanceInformationType();
         return aggregate(startValue, delta);
     }
 
     private EnvironmentalPerformanceInformationType toEnvironmentalPerformanceInformationType() {
         EnvironmentalPerformanceInformationType rv = new EnvironmentalPerformanceInformationType();
-        rv.setProvisioningStatistics(toProvisioningStatisticsType());
+        rv.setProvisioningStatistics(provisioningStatistics.getValueCopy());
         rv.setMappingsStatistics(toMappingsStatisticsType());
         rv.setNotificationsStatistics(toNotificationsStatisticsType());
         if (lastMessage != null) {
@@ -78,9 +79,6 @@ public class EnvironmentalPerformanceInformation {
 
     private NotificationsStatisticsType toNotificationsStatisticsType() {
         NotificationsStatisticsType rv = new NotificationsStatisticsType();
-        if (notificationsData == null) {
-            return rv;
-        }
         for (Map.Entry<NotificationsStatisticsKey, GenericStatisticsData> entry : notificationsData.entrySet()) {
             NotificationsStatisticsKey key = entry.getKey();
             String transport = key.getTransport();
@@ -98,9 +96,6 @@ public class EnvironmentalPerformanceInformation {
 
     private MappingsStatisticsType toMappingsStatisticsType() {
         final MappingsStatisticsType rv = new MappingsStatisticsType();
-        if (mappingsData == null) {
-            return rv;
-        }
         final Map<String,Integer> entriesPerType = new HashMap<>();
         for (MappingsStatisticsKey key: mappingsData.keySet()) {
             Integer current = entriesPerType.get(key.getObjectType());
@@ -124,108 +119,6 @@ public class EnvironmentalPerformanceInformation {
                     entry.getValue().getMinDuration(), entry.getValue().getMaxDuration(), entry.getValue().getTotalDuration());
         }
         return rv;
-    }
-
-    private ProvisioningStatisticsType toProvisioningStatisticsType() {
-        ProvisioningStatisticsType rv = new ProvisioningStatisticsType();
-        if (provisioningData == null) {
-            return rv;
-        }
-        for (Map.Entry<ProvisioningStatisticsKey, ProvisioningStatisticsData> entry : provisioningData.entrySet()) {
-            ProvisioningStatisticsKey key = entry.getKey();
-            String resource = key.getResourceName();
-            QName oc = key.getObjectClass();
-            ProvisioningStatisticsEntryType entryType = findProvisioningEntryType(rv.getEntry(), resource, oc);
-            if (entryType == null) {
-                entryType = new ProvisioningStatisticsEntryType();
-                entryType.setResource(resource);
-                entryType.setObjectClass(oc);
-                rv.getEntry().add(entryType);
-            }
-            setValue(entryType, key.getOperation(), key.getStatusType(), entry.getValue().getCount(),
-                    entry.getValue().getMinDuration(), entry.getValue().getMaxDuration(), entry.getValue().getTotalDuration());
-        }
-        return rv;
-    }
-
-    private static ProvisioningStatisticsEntryType findProvisioningEntryType(List<ProvisioningStatisticsEntryType> list, String resource, QName objectClass) {
-        for (ProvisioningStatisticsEntryType entryType : list) {
-            if (StringUtils.equals(entryType.getResource(), resource) && QNameUtil.match(entryType.getObjectClass(), objectClass)) {
-                return entryType;
-            }
-        }
-        return null;
-    }
-
-    private void setValue(ProvisioningStatisticsEntryType e, ProvisioningOperation operation, ProvisioningStatusType statusType, int count, long min, long max, long totalDuration) {
-        switch (operation) {
-            case ICF_GET:
-                if (statusType == ProvisioningStatusType.SUCCESS) {
-                    e.setGetSuccess(e.getGetSuccess() + count);
-                } else {
-                    e.setGetFailure(e.getGetFailure() + count);
-                }
-                break;
-            case ICF_SEARCH:
-                if (statusType == ProvisioningStatusType.SUCCESS) {
-                    e.setSearchSuccess(e.getSearchSuccess() + count);
-                } else {
-                    e.setSearchFailure(e.getSearchFailure() + count);
-                }
-                break;
-            case ICF_CREATE:
-                if (statusType == ProvisioningStatusType.SUCCESS) {
-                    e.setCreateSuccess(e.getCreateSuccess() + count);
-                } else {
-                    e.setCreateFailure(e.getCreateFailure() + count);
-                }
-                break;
-            case ICF_UPDATE:
-                if (statusType == ProvisioningStatusType.SUCCESS) {
-                    e.setUpdateSuccess(e.getUpdateSuccess() + count);
-                } else {
-                    e.setUpdateFailure(e.getUpdateFailure() + count);
-                }
-                break;
-            case ICF_DELETE:
-                if (statusType == ProvisioningStatusType.SUCCESS) {
-                    e.setDeleteSuccess(e.getDeleteSuccess() + count);
-                } else {
-                    e.setDeleteFailure(e.getDeleteFailure() + count);
-                }
-                break;
-            case ICF_SYNC:
-                if (statusType == ProvisioningStatusType.SUCCESS) {
-                    e.setSyncSuccess(e.getSyncSuccess() + count);
-                } else {
-                    e.setSyncFailure(e.getSyncFailure() + count);
-                }
-                break;
-            case ICF_SCRIPT:
-                if (statusType == ProvisioningStatusType.SUCCESS) {
-                    e.setScriptSuccess(e.getScriptSuccess() + count);
-                } else {
-                    e.setScriptFailure(e.getScriptFailure() + count);
-                }
-                break;
-            case ICF_GET_LATEST_SYNC_TOKEN:
-            case ICF_GET_SCHEMA:
-                if (statusType == ProvisioningStatusType.SUCCESS) {
-                    e.setOtherSuccess(e.getOtherSuccess() + count);
-                } else {
-                    e.setOtherFailure(e.getOtherFailure() + count);
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Illegal operation name: " + operation);
-        }
-        if (e.getMinTime() == null || min < e.getMinTime()) {
-            e.setMinTime(min);
-        }
-        if (e.getMaxTime() == null || max > e.getMaxTime()) {
-            e.setMaxTime(max);
-        }
-        e.setTotalTime(e.getTotalTime() + totalDuration);
     }
 
     private void setValueNotifications(NotificationsStatisticsEntryType e, boolean success, int count, long min, long max, long totalDuration) {
@@ -366,54 +259,7 @@ public class EnvironmentalPerformanceInformation {
             rv.setProvisioningStatistics(delta.clone());
             return;
         }
-
-        ProvisioningStatisticsType rvPST = rv.getProvisioningStatistics();
-        for (ProvisioningStatisticsEntryType de : delta.getEntry()) {
-            String resource = de.getResource();
-            QName oc = de.getObjectClass();
-            ProvisioningStatisticsEntryType e = findProvisioningEntryType(rvPST.getEntry(), resource, oc);
-            if (e == null) {
-                e = new ProvisioningStatisticsEntryType();
-                e.setResource(resource);
-                e.setObjectClass(oc);
-                rvPST.getEntry().add(e);
-            }
-            e.setGetSuccess(e.getGetSuccess() + de.getGetSuccess());
-            e.setSearchSuccess(e.getSearchSuccess() + de.getSearchSuccess());
-            e.setCreateSuccess(e.getCreateSuccess() + de.getCreateSuccess());
-            e.setUpdateSuccess(e.getUpdateSuccess() + de.getUpdateSuccess());
-            e.setDeleteSuccess(e.getDeleteSuccess() + de.getDeleteSuccess());
-            e.setSyncSuccess(e.getSyncSuccess() + de.getSyncSuccess());
-            e.setScriptSuccess(e.getScriptSuccess() + de.getScriptSuccess());
-            e.setOtherSuccess(e.getOtherSuccess() + de.getOtherSuccess());
-
-            e.setGetFailure(e.getGetFailure() + de.getGetFailure());
-            e.setSearchFailure(e.getSearchFailure() + de.getSearchFailure());
-            e.setCreateFailure(e.getCreateFailure() + de.getCreateFailure());
-            e.setUpdateFailure(e.getUpdateFailure() + de.getUpdateFailure());
-            e.setDeleteFailure(e.getDeleteFailure() + de.getDeleteFailure());
-            e.setSyncFailure(e.getSyncFailure() + de.getSyncFailure());
-            e.setScriptFailure(e.getScriptFailure() + de.getScriptFailure());
-            e.setOtherFailure(e.getOtherFailure() + de.getOtherFailure());
-
-            int totalCount = e.getGetSuccess() + e.getGetFailure() +
-                    e.getSearchSuccess() + e.getSearchFailure() +
-                    e.getCreateSuccess() + e.getCreateFailure() +
-                    e.getUpdateSuccess() + e.getUpdateFailure() +
-                    e.getDeleteSuccess() + e.getDeleteFailure() +
-                    e.getSyncSuccess() + e.getSyncFailure() +
-                    e.getScriptSuccess() + e.getScriptFailure() +
-                    e.getOtherSuccess() + e.getOtherFailure();
-
-            e.setMinTime(min(e.getMinTime(), de.getMinTime()));
-            e.setMaxTime(max(e.getMaxTime(), de.getMaxTime()));
-            e.setTotalTime(e.getTotalTime() + de.getTotalTime());
-            if (totalCount > 0) {
-                e.setAverageTime(e.getTotalTime() / totalCount);
-            } else {
-                e.setAverageTime(null);
-            }
-        }
+        ProvisioningStatistics.addTo(rv.getProvisioningStatistics(), delta);
     }
 
     private static Long min(Long a, Long b) {
@@ -436,14 +282,10 @@ public class EnvironmentalPerformanceInformation {
         return Math.max(a, b);
     }
 
-    public synchronized void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName, ProvisioningOperation operation, boolean success, int count, long duration) {
-        ProvisioningStatisticsKey key = new ProvisioningStatisticsKey(resourceOid, resourceName, objectClassName, operation, success);
-        ProvisioningStatisticsData data = provisioningData.get(key);
-        if (data == null) {
-            data = new ProvisioningStatisticsData();
-            provisioningData.put(key, data);
-        }
-        data.recordOperation(duration, count);
+    public synchronized void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName,
+            ProvisioningOperation operation, boolean success, int count, long duration) {
+        provisioningStatistics.recordProvisioningOperation(resourceOid, resourceName, objectClassName, operation,
+                success, count, duration);
     }
 
     public synchronized void recordNotificationOperation(String transportName, boolean success, long duration) {
@@ -479,7 +321,7 @@ public class EnvironmentalPerformanceInformation {
         StringBuilder sb = new StringBuilder();
         if (information.getProvisioningStatistics() != null && !information.getProvisioningStatistics().getEntry().isEmpty()) {
             sb.append("  Provisioning:\n");
-            sb.append(format(information.getProvisioningStatistics()));
+            sb.append(ProvisioningStatistics.format(information.getProvisioningStatistics()));
         }
         if (information.getMappingsStatistics() != null && !information.getMappingsStatistics().getEntry().isEmpty()) {
             sb.append("  Mappings:\n");
@@ -492,25 +334,6 @@ public class EnvironmentalPerformanceInformation {
         if (information.getLastMessage() != null) {
             sb.append("  Last message: ").append(information.getLastMessage()).append("\n");
             sb.append("  On:           ").append(information.getLastMessageTimestamp()).append("\n");
-        }
-        return sb.toString();
-    }
-
-    public static String format(ProvisioningStatisticsType information) {
-        StringBuilder sb = new StringBuilder();
-        for (ProvisioningStatisticsEntryType e : information.getEntry()) {
-            int sum = e.getGetSuccess() + e.getGetFailure() + e.getSearchSuccess() + e.getSearchFailure() +
-                    e.getCreateSuccess() + e.getCreateFailure() + e.getUpdateSuccess() + e.getUpdateFailure() +
-                    e.getDeleteSuccess() + e.getDeleteFailure() + e.getSyncSuccess() + e.getSyncFailure() +
-                    e.getScriptSuccess() + e.getScriptFailure() + e.getOtherSuccess() + e.getOtherFailure();
-            sb.append(String.format(Locale.US, "    %-60s count: %8d, total time: %8d ms [min: %6d, max: %6d, avg: %7.1f] GET: %5d:%3d SEARCH: %5d:%3d CREATE: %5d:%3d UPDATE: %5d:%3d DELETE: %5d:%3d SYNC: %5d:%3d SCRIPT: %5d:%3d OTHER: %5d:%3d\n",
-                    e.getResource() + " (" + QNameUtil.getLocalPart(e.getObjectClass()) + ")",
-                    sum, e.getTotalTime(), defaultIfNull(e.getMinTime(), 0L), defaultIfNull(e.getMaxTime(), 0L),
-                    avg(e.getTotalTime(), sum),
-                    e.getGetSuccess(), e.getGetFailure(), e.getSearchSuccess(), e.getSearchFailure(),
-                    e.getCreateSuccess(), e.getCreateFailure(), e.getUpdateSuccess(), e.getUpdateFailure(),
-                    e.getDeleteSuccess(), e.getDeleteFailure(), e.getSyncSuccess(), e.getSyncFailure(),
-                    e.getScriptSuccess(), e.getScriptFailure(), e.getOtherSuccess(), e.getOtherFailure()));
         }
         return sb.toString();
     }

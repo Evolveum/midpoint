@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.statistics.StructuredTaskProgress;
+import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.apache.commons.lang.StringUtils;
@@ -106,9 +106,6 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -6692,6 +6689,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         displayValue("Structured progress", StructuredTaskProgress.format(task.getStructuredProgressOrClone()));
         SynchronizationInformationType synchronizationInfo = stats.getSynchronizationInformation();
         displayValue("Synchronization information", SynchronizationInformation.format(synchronizationInfo));
+        displayValue("Provisioning statistics", ProvisioningStatistics.format(
+                stats.getEnvironmentalPerformanceInformation().getProvisioningStatistics()));
     }
 
     protected void dumpShadowSituations(String resourceOid, OperationResult result) throws SchemaException {
