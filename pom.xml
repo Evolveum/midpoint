@@ -64,9 +64,9 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>2.4.2</version>
+        <version>2.4.3</version>
         <!-- This parent also declares dependencies listed here:
-        https://docs.spring.io/spring-boot/docs/2.4.2/reference/html/appendix-dependency-versions.html
+        https://docs.spring.io/spring-boot/docs/2.4.3/reference/html/appendix-dependency-versions.html
         Or for current version of Spring Boot:
         https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-dependency-versions.html
         -->
