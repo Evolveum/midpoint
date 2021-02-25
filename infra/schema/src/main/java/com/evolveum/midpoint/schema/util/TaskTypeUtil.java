@@ -10,9 +10,7 @@ package com.evolveum.midpoint.schema.util;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformation;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -102,6 +100,27 @@ public class TaskTypeUtil {
             return getCounts(info.getPart(), TaskTypeUtil::isSuccess);
         } else {
             return 0;
+        }
+    }
+
+    public static int getProgressForOutcome(StructuredTaskProgressType info, ItemProcessingOutcomeType outcome, boolean open) {
+        if (info != null) {
+            return getCounts(info.getPart(), getCounterFilter(outcome), open);
+        } else {
+            return 0;
+        }
+    }
+
+    private static Predicate<TaskProgressCounterType> getCounterFilter(ItemProcessingOutcomeType outcome) {
+        switch (outcome) {
+            case SUCCESS:
+                return TaskTypeUtil::isSuccess;
+            case FAILURE:
+                return TaskTypeUtil::isFailure;
+            case SKIP:
+                return TaskTypeUtil::isSkip;
+            default:
+                throw new AssertionError(outcome);
         }
     }
 
@@ -218,6 +237,16 @@ public class TaskTypeUtil {
                 .sum();
     }
 
+    private static int getCounts(List<TaskPartProgressType> parts,
+            Predicate<TaskProgressCounterType> counterFilter, boolean open) {
+        return parts.stream()
+                .flatMap(part -> (open ? part.getOpen() : part.getClosed()).stream())
+                .filter(Objects::nonNull)
+                .filter(counterFilter)
+                .mapToInt(p -> or0(p.getCount()))
+                .sum();
+    }
+
     /**
      * Returns object that was last successfully processed by given task.
      */
@@ -245,14 +274,26 @@ public class TaskTypeUtil {
     }
 
     public static boolean isSuccess(ProcessedItemSetType set) {
-        return set.getOutcome() != null && set.getOutcome().getOutcome() == ItemProcessingOutcomeType.SUCCESS;
+        return StatisticsUtil.getOutcome(set) == ItemProcessingOutcomeType.SUCCESS;
     }
 
     public static boolean isFailure(ProcessedItemSetType set) {
-        return set.getOutcome() != null && set.getOutcome().getOutcome() == ItemProcessingOutcomeType.FAILURE;
+        return StatisticsUtil.getOutcome(set) == ItemProcessingOutcomeType.FAILURE;
     }
 
     public static boolean isSkip(ProcessedItemSetType set) {
-        return set.getOutcome() != null && set.getOutcome().getOutcome() == ItemProcessingOutcomeType.SKIP;
+        return StatisticsUtil.getOutcome(set) == ItemProcessingOutcomeType.SKIP;
+    }
+
+    public static boolean isSuccess(TaskProgressCounterType counter) {
+        return StatisticsUtil.getOutcome(counter) == ItemProcessingOutcomeType.SUCCESS;
+    }
+
+    public static boolean isFailure(TaskProgressCounterType counter) {
+        return StatisticsUtil.getOutcome(counter) == ItemProcessingOutcomeType.FAILURE;
+    }
+
+    public static boolean isSkip(TaskProgressCounterType counter) {
+        return StatisticsUtil.getOutcome(counter) == ItemProcessingOutcomeType.SKIP;
     }
 }

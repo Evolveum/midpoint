@@ -299,6 +299,11 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public StructuredTaskProgressType getStructuredProgressOrClone() {
+        return null;
+    }
+
+    @Override
     public void setProgress(Long value) {
         throw new UnsupportedOperationException();
     }
@@ -613,7 +618,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public OperationStatsType getStoredOperationStats() {
+    public OperationStatsType getStoredOperationStatsOrClone() {
         return null;
     }
 

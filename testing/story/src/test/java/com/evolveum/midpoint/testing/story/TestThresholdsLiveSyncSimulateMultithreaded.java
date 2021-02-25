@@ -51,7 +51,7 @@ public class TestThresholdsLiveSyncSimulateMultithreaded extends TestThresholds 
 
     @Override
     protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) throws Exception {
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
         assertSyncToken(taskAfter, 4);
@@ -65,7 +65,7 @@ public class TestThresholdsLiveSyncSimulateMultithreaded extends TestThresholds 
     }
 
     protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
         // new users: user5, user6, user7, user8, user9, user10, user11, user12, user13, user14, user15 (11 users)
@@ -78,7 +78,7 @@ public class TestThresholdsLiveSyncSimulateMultithreaded extends TestThresholds 
 
     @Override
     protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
         assertSyncToken(taskAfter, 4);

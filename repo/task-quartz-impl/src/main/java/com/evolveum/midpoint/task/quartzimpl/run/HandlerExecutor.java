@@ -49,18 +49,20 @@ public class HandlerExecutor {
         if (handler instanceof WorkBucketAwareTaskHandler) {
             return executeWorkBucketAwareTaskHandler(task, partition, (WorkBucketAwareTaskHandler) handler, executionResult);
         } else {
-            return executePlainTaskHandler(task, partition, handler);
+            return executePlainTaskHandler(task, partition, handler, executionResult);
         }
     }
 
     @NotNull
-    private TaskRunResult executePlainTaskHandler(RunningTask task, TaskPartitionDefinitionType partition, TaskHandler handler) {
+    private TaskRunResult executePlainTaskHandler(RunningTaskQuartzImpl task, TaskPartitionDefinitionType partition, TaskHandler handler, OperationResult executionResult) {
         TaskRunResult runResult;
         try {
             LOGGER.trace("Executing handler {}", handler.getClass().getName());
             task.startCollectingOperationStats(handler.getStatisticsCollectionStrategy(), true);
+
             runResult = handler.run(task, partition);
-            task.storeOperationStatsDeferred();
+
+            storeOperationStatsPersistently(task, executionResult);
             if (runResult == null) {                // Obviously an error in task handler
                 LOGGER.error("Unable to record run finish: task returned null result");
                 runResult = createFailureTaskRunResult(task, "Unable to record run finish: task returned null result", null);
@@ -76,17 +78,7 @@ public class HandlerExecutor {
     private TaskRunResult executeWorkBucketAwareTaskHandler(RunningTaskQuartzImpl task, TaskPartitionDefinitionType taskPartition, WorkBucketAwareTaskHandler handler, OperationResult executionResult) {
         WorkStateManager workStateManager = (WorkStateManager) taskManager.getWorkStateManager();
 
-        if (task.getWorkState() != null && Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete())) {
-            LOGGER.debug("Work is marked as complete; restarting it in task {}", task);
-            try {
-                List<ItemDelta<?, ?>> itemDeltas = prismCtx.deltaFor(TaskType.class)
-                        .item(TaskType.F_WORK_STATE).replace()
-                        .asItemDeltas();
-                task.applyDeltasImmediate(itemDeltas, executionResult);
-            } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | RuntimeException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove work state from (completed) task {} -- continuing", e, task);
-            }
-        }
+        deleteWorkStateIfWorkComplete(task, executionResult);
 
         task.startCollectingOperationStats(handler.getStatisticsCollectionStrategy(), true);
 
@@ -118,12 +110,14 @@ public class HandlerExecutor {
                 if (!initialBucket) {
                     task.startCollectingOperationStats(handler.getStatisticsCollectionStrategy(), false);
                 }
+
                 LOGGER.trace("Executing handler {} with work bucket of {} for {}", handler.getClass().getName(), bucket, task);
                 runResult = handler.run(task, bucket, taskPartition, runResult);
                 LOGGER.trace("runResult is {} for {}", runResult, task);
-                task.storeOperationStatsDeferred();
 
-                if (runResult == null) {                // Obviously an error in task handler
+                storeOperationStatsPersistently(task, executionResult);
+
+                if (runResult == null) { // Obviously an error in task handler
                     LOGGER.error("Unable to record run finish: task returned null result");
                     //releaseWorkBucketChecked(bucket, executionResult);
                     return createFailureTaskRunResult(task, "Unable to record run finish: task returned null result", null);
@@ -139,12 +133,42 @@ public class HandlerExecutor {
             try {
                 ((WorkStateManager) taskManager.getWorkStateManager()).completeWorkBucket(task.getOid(), bucket.getSequentialNumber(),
                         task.getWorkBucketStatisticsCollector(), executionResult);
+                task.updateStructuredProgressOnWorkBucketCompletion();
+                storeOperationStatsPersistently(task, executionResult);
             } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RuntimeException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't complete work bucket for task {}", e, task);
                 return createFailureTaskRunResult(task, "Couldn't complete work bucket: " + e.getMessage(), e);
             }
             if (!task.canRun() || !runResult.isShouldContinue()) {
                 return runResult;
+            }
+        }
+    }
+
+    private void storeOperationStatsPersistently(RunningTaskQuartzImpl task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        try {
+            task.storeOperationStatsDeferred();
+            task.flushPendingModifications(result);
+        } catch (ObjectNotFoundException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't store operation statistics to {}", e, task);
+            // intentionally continuing
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't store operation statistics to {}", e, task);
+            // intentionally continuing
+        }
+    }
+
+    private void deleteWorkStateIfWorkComplete(RunningTaskQuartzImpl task, OperationResult executionResult) {
+        if (task.getWorkState() != null && Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete())) {
+            LOGGER.debug("Work is marked as complete; restarting it in task {}", task);
+            try {
+                List<ItemDelta<?, ?>> itemDeltas = prismCtx.deltaFor(TaskType.class)
+                        .item(TaskType.F_WORK_STATE).replace()
+                        .asItemDeltas();
+                task.applyDeltasImmediate(itemDeltas, executionResult);
+            } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | RuntimeException e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove work state from (completed) task {} -- continuing", e, task);
             }
         }
     }

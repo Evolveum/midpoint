@@ -410,6 +410,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .display()
                     .assertTotalCounts(7, 0)
                     .end()
+                .structuredProgress()
+                    .display() // TODO asserts
+                    .end()
                 .assertProgress(7);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 3);
@@ -487,6 +490,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .iterativeTaskInformation()
                     .display()
                     .assertTotalCounts(7, 0)
+                    .end()
+                .structuredProgress()
+                    .display() // TODO asserts
                     .end()
                 .assertProgress(7);
 
@@ -575,6 +581,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .iterativeTaskInformation()
                     .display()
                     .assertTotalCounts(3, 0)
+                    .end()
+                .structuredProgress()
+                    .display() // TODO asserts
                     .end()
                 .assertProgress(3);
 
@@ -837,7 +846,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .iterativeTaskInformation()
                     .display()
                     .assertTotalCounts(9, 0)            // protected accounts are processed also in the third stage
-                    .end();
+                    .end()
+                .structuredProgress()
+                    .display() // TODO asserts
+                    .end()
+                ;
                 //.assertProgress(7);         // TODO - specify meaning of progress for reconciliation tasks
 
         // THEN
@@ -1103,7 +1116,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .iterativeTaskInformation()
                     .display()
                     .assertTotalCounts(8, 1)
-                    .end();
+                    .end()
+                .structuredProgress()
+                    .display() // TODO asserts
+                    .end()
+                ;
                 //.assertProgress(7);         // TODO - specify meaning of progress for reconciliation tasks
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
@@ -1289,7 +1306,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .iterativeTaskInformation()
                     .display()
                     .assertTotalCounts(10, 0)
-                    .end();
+                    .end()
+                .structuredProgress()
+                    .display() // TODO asserts
+                    .end()
+                ;
                 //.assertProgress(8);         // TODO - specify meaning of progress for reconciliation tasks
 
         dumpShadowSituations(RESOURCE_DUMMY_OID, result);
@@ -2578,7 +2599,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_FILTER.oid, false, 40000);
         dumpStatistics(taskAfter);
 
-        OperationStatsType statistics = taskAfter.getStoredOperationStats();
+        OperationStatsType statistics = taskAfter.getStoredOperationStatsOrClone();
         SynchronizationInformationType syncInfo = statistics.getSynchronizationInformation();
         // TODO: sometimes fails with: java.lang.AssertionError: expected:<12> but was:<0>
         assertEquals(17 - 3 - 2, (Object) syncInfo.getCountLinked());  //total (17) - filtered (3)- protectected (2)

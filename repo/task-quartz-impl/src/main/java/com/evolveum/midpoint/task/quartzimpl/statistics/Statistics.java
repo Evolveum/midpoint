@@ -39,12 +39,15 @@ import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregoria
 import static java.util.Collections.emptySet;
 
 /**
- *  Code to manage operational statistics. Originally it was a part of the TaskQuartzImpl
- *  but it is cleaner to keep it separate.
+ *  Code to manage operational statistics, including structured progress.
+ *  Originally it was a part of the TaskQuartzImpl but it is cleaner to keep it separate.
  *
  *  It is used for
+ *
  *  1) running background tasks (RunningTask) - both heavyweight and lightweight
  *  2) transient tasks e.g. those invoked from GUI
+ *
+ *  (The structured progress is used only for heavyweight running tasks.)
  */
 public class Statistics implements WorkBucketStatisticsCollector {
 
@@ -55,12 +58,15 @@ public class Statistics implements WorkBucketStatisticsCollector {
 
     public Statistics(@NotNull PrismContext prismContext) {
         this.prismContext = prismContext;
+        this.structuredProgress = new StructuredTaskProgress(prismContext);
     }
 
     private EnvironmentalPerformanceInformation environmentalPerformanceInformation = new EnvironmentalPerformanceInformation();
     private SynchronizationInformation synchronizationInformation; // has to be explicitly enabled (by setting non-null value)
     private IterativeTaskInformation iterativeTaskInformation; // has to be explicitly enabled (by setting non-null value)
     private ActionsExecutedInformation actionsExecutedInformation; // has to be explicitly enabled (by setting non-null value)
+
+    @NotNull private final StructuredTaskProgress structuredProgress;
 
     /**
      * This data structure is synchronized explicitly. Because it is updated infrequently, it should be sufficient.
@@ -257,6 +263,10 @@ public class Statistics implements WorkBucketStatisticsCollector {
         return rv;
     }
 
+    public StructuredTaskProgressType getStructuredTaskProgress() {
+        return structuredProgress.getValueCopy();
+    }
+
     private String getAggregateCachingConfiguration(Collection<Statistics> children) {
         if (children.isEmpty()) {
             return cachingConfigurationDump;
@@ -340,6 +350,18 @@ public class Statistics implements WorkBucketStatisticsCollector {
         } else {
             return Operation.none();
         }
+    }
+
+    public void setStructuredProgressPartInformation(String partUri, Integer partNumber, Integer expectedParts) {
+        structuredProgress.setPartInformation(partUri, partNumber, expectedParts);
+    }
+
+    public void incrementStructuredProgress(String partUri, QualifiedItemProcessingOutcomeType outcome) {
+        structuredProgress.increment(partUri, outcome);
+    }
+
+    public void updateStructuredProgressOnWorkBucketCompletion() {
+        structuredProgress.updateStructuredProgressOnWorkBucketCompletion();
     }
 
     public void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid,

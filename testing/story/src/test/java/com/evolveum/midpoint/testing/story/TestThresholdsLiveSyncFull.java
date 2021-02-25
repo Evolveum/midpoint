@@ -10,9 +10,6 @@ import static org.testng.Assert.assertEquals;
 
 import java.io.File;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -52,7 +49,7 @@ public class TestThresholdsLiveSyncFull extends TestThresholds {
 
     @Override
     protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) throws Exception {
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
         assertSyncToken(taskAfter, 4);
@@ -70,7 +67,7 @@ public class TestThresholdsLiveSyncFull extends TestThresholds {
     }
 
     protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
         // It's actually not much clear how these numbers are obtained. The task processes various (yet unprocessed) changes
@@ -83,7 +80,7 @@ public class TestThresholdsLiveSyncFull extends TestThresholds {
 
     @Override
     protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
         assertSyncToken(taskAfter, 4);

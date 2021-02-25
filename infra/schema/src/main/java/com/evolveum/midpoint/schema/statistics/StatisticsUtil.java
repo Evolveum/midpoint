@@ -197,4 +197,50 @@ public class StatisticsUtil {
             return null;
         }
     }
+
+    public static String getOutcomeQualifierUri(ProcessedItemSetType set) {
+        if (set != null && set.getOutcome() != null) {
+            return set.getOutcome().getQualifierUri();
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * FIXME. Brutally hacked. Use regular approach with two keys.
+     */
+    public static String getOutcomeSortingKey(ProcessedItemSetType set) {
+        if (set != null && set.getOutcome() != null) {
+            return set.getOutcome().getOutcome().ordinal() + " " + set.getOutcome().getQualifierUri();
+        } else {
+            return null;
+        }
+    }
+
+    public static ItemProcessingOutcomeType getOutcome(TaskProgressCounterType counter) {
+        if (counter != null && counter.getOutcome() != null) {
+            return counter.getOutcome().getOutcome();
+        } else {
+            return null;
+        }
+    }
+
+    public static String getOutcomeQualifierUri(TaskProgressCounterType counter) {
+        if (counter != null && counter.getOutcome() != null) {
+            return counter.getOutcome().getQualifierUri();
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * FIXME. Brutally hacked. Use regular approach with two keys.
+     */
+    public static String getOutcomeSortingKey(TaskProgressCounterType counter) {
+        if (counter != null && counter.getOutcome() != null) {
+            return counter.getOutcome().getOutcome().ordinal() + " " + counter.getOutcome().getQualifierUri();
+        } else {
+            return null;
+        }
+    }
 }

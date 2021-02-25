@@ -227,6 +227,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     public void storeOperationStatsDeferred() {
         refreshLowLevelStatistics();
         setOperationStats(getAggregatedLiveOperationStats());
+        setStructuredProgress(getLiveStructuredTaskProgress());
     }
 
     @Override
@@ -242,12 +243,13 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     }
 
     @Override
-    public void storeOperationStats() {
+    public void storeOperationStatsAndProgress() {
         try {
             storeOperationStatsDeferred();
             addPendingModification(createPropertyDeltaIfPersistent(TaskType.F_PROGRESS, getProgress()));
+            addPendingModification(createContainerDeltaIfPersistent(TaskType.F_STRUCTURED_PROGRESS, getStructuredProgressOrClone()));
             addPendingModification(createPropertyDeltaIfPersistent(TaskType.F_EXPECTED_TOTAL, getExpectedTotal()));
-            flushPendingModifications(new OperationResult(DOT_INTERFACE + ".storeOperationStats"));    // TODO fixme
+            flushPendingModifications(new OperationResult(DOT_INTERFACE + ".storeOperationStats")); // TODO fixme
             lastOperationStatsUpdateTimestamp = System.currentTimeMillis();
         } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't store statistical information into task {}", e, this);
@@ -255,10 +257,10 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     }
 
     @Override
-    public void storeOperationStatsIfNeeded() {
+    public void storeOperationStatsAndProgressIfNeeded() {
         if (lastOperationStatsUpdateTimestamp == null ||
                 System.currentTimeMillis() - lastOperationStatsUpdateTimestamp > operationStatsUpdateInterval) {
-            storeOperationStats();
+            storeOperationStatsAndProgress();
         } else {
             refreshLowLevelStatistics();
         }
@@ -282,7 +284,21 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     @Override
     public void incrementProgressAndStoreStatsIfNeeded() {
         setProgress(getProgress() + 1);
-        storeOperationStatsIfNeeded();
+        storeOperationStatsAndProgressIfNeeded();
+    }
+
+    @Override
+    public void setStructuredProgressPartInformation(String partUri, Integer partNumber, Integer expectedParts) {
+        statistics.setStructuredProgressPartInformation(partUri, partNumber, expectedParts);
+    }
+
+    @Override
+    public void incrementStructuredProgress(String partUri, QualifiedItemProcessingOutcomeType outcome) {
+        statistics.incrementStructuredProgress(partUri, outcome);
+    }
+
+    public void updateStructuredProgressOnWorkBucketCompletion() {
+        statistics.updateStructuredProgressOnWorkBucketCompletion();
     }
 
     @Override
@@ -306,6 +322,10 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
         return statistics.getAggregatedOperationStats(subCollections);
     }
 
+    public StructuredTaskProgressType getLiveStructuredTaskProgress() {
+        return statistics.getStructuredTaskProgress();
+    }
+
     @Override
     public void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy, boolean initialExecution) {
         if (initialExecution && strategy.isStartFromZero()) {
@@ -313,9 +333,9 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
                     strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics(),
                     beans.sqlPerformanceMonitorsCollection);
             setProgress(0L);
-            storeOperationStats();
+            storeOperationStatsAndProgress();
         } else {
-            OperationStatsType stored = getStoredOperationStats();
+            OperationStatsType stored = getStoredOperationStatsOrClone();
             statistics.startCollectingOperationStatsFromStoredValues(stored, strategy.isMaintainIterationStatistics(),
                     strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics(),
                     initialExecution, beans.sqlPerformanceMonitorsCollection);

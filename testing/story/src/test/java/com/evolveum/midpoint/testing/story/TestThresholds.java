@@ -122,7 +122,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
         Task taskAfter = taskManager.getTaskWithResult(TASK_IMPORT_BASE_USERS_OID, result);
         display("Task after test001testImportBaseUsers:", taskAfter);
 
-        OperationStatsType stats = taskAfter.getStoredOperationStats();
+        OperationStatsType stats = taskAfter.getStoredOperationStatsOrClone();
         assertNotNull(stats, "No statistics in task");
 
         SynchronizationInformationType syncInfo = stats.getSynchronizationInformation();
@@ -292,7 +292,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
     int getFailureCount(Task taskAfter) {
         // TODO separate the statistics dump
-        OperationStatsType stats = taskAfter.getStoredOperationStats();
+        OperationStatsType stats = taskAfter.getStoredOperationStatsOrClone();
         displayValue("Iterative statistics", IterativeTaskInformation.format(stats.getIterativeTaskInformation()));
         return TaskTypeUtil.getItemsProcessedWithFailure(stats);
     }

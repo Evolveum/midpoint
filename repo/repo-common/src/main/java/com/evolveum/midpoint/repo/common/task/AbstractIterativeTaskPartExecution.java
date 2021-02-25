@@ -130,6 +130,18 @@ public abstract class AbstractIterativeTaskPartExecution<I,
     @Experimental
     String partUri;
 
+    /**
+     * Relative number of the part within this physical task. Starting at 1.
+     */
+    @Experimental
+    int partNumber;
+
+    /**
+     * Expected number of parts.
+     */
+    @Experimental
+    int expectedParts;
+
     protected AbstractIterativeTaskPartExecution(@NotNull TE taskExecution) {
         this.taskHandler = taskExecution.taskHandler;
         this.taskExecution = taskExecution;
@@ -153,6 +165,8 @@ public abstract class AbstractIterativeTaskPartExecution<I,
                 processShortNameCapitalized, localCoordinatorTask, taskExecution.previousRunResult);
 
         checkTaskPersistence();
+
+        setStructuredProgressPartInformation();
 
         initialize(opResult);
 
@@ -187,6 +201,10 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         runResult.setBucketComplete(localCoordinatorTask.canRun()); // TODO
         runResult.setShouldContinue(localCoordinatorTask.canRun()); // TODO
         return runResult;
+    }
+
+    private void setStructuredProgressPartInformation() {
+        taskExecution.localCoordinatorTask.setStructuredProgressPartInformation(partUri, partNumber, expectedParts);
     }
 
     // TODO finish this method
@@ -396,5 +414,21 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
     public void setPartUri(String partUri) {
         this.partUri = partUri;
+    }
+
+    public int getPartNumber() {
+        return partNumber;
+    }
+
+    public void setPartNumber(int partNumber) {
+        this.partNumber = partNumber;
+    }
+
+    public int getExpectedParts() {
+        return expectedParts;
+    }
+
+    public void setExpectedParts(int expectedParts) {
+        this.expectedParts = expectedParts;
     }
 }

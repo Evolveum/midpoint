@@ -116,6 +116,7 @@ outer:  for (int o = objectFrom; o <= objectTo; o++) {
                     long delta = sleepUntil - System.currentTimeMillis();
                     if (delta > 0) {
                         try {
+                            //noinspection BusyWait
                             Thread.sleep(delta);
                         } catch (InterruptedException e) {
                             // ignore

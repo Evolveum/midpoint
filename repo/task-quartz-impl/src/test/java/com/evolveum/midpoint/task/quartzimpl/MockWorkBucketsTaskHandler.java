@@ -6,10 +6,13 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
+import com.evolveum.midpoint.schema.statistics.StructuredTaskProgress;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -25,15 +28,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author mederly
- *
+ * TODO
  */
 public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(MockWorkBucketsTaskHandler.class);
 
+    private static final String PART_URI = "part";
+
     private TaskManagerQuartzImpl taskManager;
-    private String id;
+    private final String id;
 
     MockWorkBucketsTaskHandler(String id, TaskManagerQuartzImpl taskManager) {
         this.id = id;
@@ -53,7 +57,7 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 
     private ObjectQuery defaultQuery;
 
-    private List<ObjectQuery> queriesExecuted = new ArrayList<>();
+    private final List<ObjectQuery> queriesExecuted = new ArrayList<>();
 
     private Task runningTask;
 
@@ -71,6 +75,7 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
     public TaskWorkBucketProcessingResult run(RunningTask task, WorkBucketType workBucket,
             TaskPartitionDefinitionType partition, TaskWorkBucketProcessingResult previousRunResult) {
         LOGGER.info("Run starting (id = {}); task = {}", id, task);
+        task.setStructuredProgressPartInformation(PART_URI, 1, 1);
 
         if (ensureSingleRunner) {
             if (runningTask != null) {
@@ -106,7 +111,7 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
             task.incrementProgressAndStoreStatsIfNeeded();
         } else {
             int from = content.getFrom().intValue();
-            int to = content.getTo().intValue();         // beware of nullability
+            int to = content.getTo().intValue(); // beware of nullability
             LOGGER.info("Processing bucket {}; task = {}", content, task);
             for (int i = from; i < to; i++) {
                 String objectName = "item " + i;
@@ -119,6 +124,10 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
                     processor.process(task, workBucket, i);
                 }
                 op.succeeded();
+                QualifiedItemProcessingOutcomeType outcome = new QualifiedItemProcessingOutcomeType(getPrismContext())
+                        .outcome(ItemProcessingOutcomeType.SUCCESS)
+                        .qualifierUri("some-qualifier");
+                task.incrementStructuredProgress(PART_URI, outcome);
                 task.incrementProgressAndStoreStatsIfNeeded();
             }
         }
@@ -133,8 +142,15 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
         runningTask = null;
 
         LOGGER.info("Run stopping; task = {}", task);
-        task.storeOperationStats();
+        task.storeOperationStatsAndProgress();
+
+        LOGGER.info("Task structured progress:\n{}", StructuredTaskProgress.format(task.getStructuredProgressOrClone()));
+        LOGGER.info("Task iterative information:\n{}", IterativeTaskInformation.format(task.getStoredOperationStatsOrClone().getIterativeTaskInformation()));
         return runResult;
+    }
+
+    private PrismContext getPrismContext() {
+        return taskManager.getPrismContext();
     }
 
     @Override

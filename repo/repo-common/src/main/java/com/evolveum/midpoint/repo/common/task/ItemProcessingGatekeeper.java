@@ -86,9 +86,6 @@ class ItemProcessingGatekeeper<I> {
     /** Timing information related to the execution of this item. */
     @NotNull private final Timing timing;
 
-    /** TODO */
-    private RunningStatisticsSnapshot runningStatisticsSnapshot;
-
     /**
      * Tuple "name, display name, type, OID" that is to be written to the iterative task information.
      */
@@ -147,9 +144,9 @@ class ItemProcessingGatekeeper<I> {
 
             acknowledgeItemProcessed(result);
 
-            computeStatistics();
-            recordStatistics(result);
-            logOperationEnd(result);
+            RunningStatisticsSnapshot stats = computeStatisticsSnapshot();
+            incrementProgressAndStoreTaskStats(stats, result);
+            logOperationEnd(stats, result);
 
             cleanupAndSummarizeResults(result, parentResult);
 
@@ -251,15 +248,15 @@ class ItemProcessingGatekeeper<I> {
         return partExecution.getProcessShortNameCapitalized();
     }
 
-    private void logOperationEnd(OperationResult result) {
+    private void logOperationEnd(RunningStatisticsSnapshot statSnapshot, OperationResult result) {
         // TODO make this configurable per task or per task type; or switch to DEBUG
         logger.info("{} of {} {} done with status {} (this one: {} ms, avg: {} ms) (total progress: {}, wall clock avg: {} ms)",
                 getProcessShortNameCapitalized(), iterationItemInformation,
                 getContextDesc(), result.getStatus(),
                 String.format(Locale.US, "%,.1f", timing.durationNanos / 1000000.0f),
-                String.format(Locale.US, "%,.1f", runningStatisticsSnapshot.totalTime / runningStatisticsSnapshot.totalProgress),
-                runningStatisticsSnapshot.totalProgress,
-                runningStatisticsSnapshot.totalTimeMillis / runningStatisticsSnapshot.totalProgress);
+                String.format(Locale.US, "%,.1f", statSnapshot.totalTime / statSnapshot.totalProgress),
+                statSnapshot.totalProgress,
+                statSnapshot.totalTimeMillis / statSnapshot.totalProgress);
 
         if (isError() && getReportingOptions().isLogErrors()) {
             logger.error("{} of object {} {} failed: {}", getProcessShortNameCapitalized(), iterationItemInformation,
@@ -422,8 +419,8 @@ class ItemProcessingGatekeeper<I> {
         return getTaskHandler().taskOperationPrefix;
     }
 
-    private void computeStatistics() {
-        runningStatisticsSnapshot = new RunningStatisticsSnapshot();
+    private RunningStatisticsSnapshot computeStatisticsSnapshot() {
+        RunningStatisticsSnapshot runningStatisticsSnapshot = new RunningStatisticsSnapshot();
         timing.recordEnd();
 
         ItemProcessingStatistics runningStatistics = getStatistics();
@@ -434,20 +431,27 @@ class ItemProcessingGatekeeper<I> {
         if (isError()) {
             runningStatistics.incrementErrors();
         }
+        return runningStatisticsSnapshot;
     }
 
-    private void recordStatistics(OperationResult result) {
-        result.addContext(OperationResult.CONTEXT_PROGRESS, runningStatisticsSnapshot.totalProgress);
+    /**
+     * Increments the progress and gives a task a chance to update its statistics.
+     */
+    private void incrementProgressAndStoreTaskStats(RunningStatisticsSnapshot statSnapshot, OperationResult result) {
+        result.addContext(OperationResult.CONTEXT_PROGRESS, statSnapshot.totalProgress);
 
         // TODO TODO TODO
         synchronized (coordinatorTask) {
-            coordinatorTask.setProgress(runningStatisticsSnapshot.totalProgress);
+            coordinatorTask.setProgress(statSnapshot.totalProgress);
+            coordinatorTask.incrementStructuredProgress(partExecution.partUri,
+                    processingResult.outcome);
+
             if (partExecution.isMultithreaded()) {
                 workerTask.incrementProgressAndStoreStatsIfNeeded();
             }
-            // todo report current op result?
+            // TODO Should we update task operation result as well?
             // FIXME this should not be called from the worker task!
-            coordinatorTask.storeOperationStatsIfNeeded();  // includes flushPendingModifications
+            coordinatorTask.storeOperationStatsAndProgressIfNeeded(); // includes flushPendingModifications
         }
     }
 
@@ -472,7 +476,11 @@ class ItemProcessingGatekeeper<I> {
         }
     }
 
-    /** Snapshot of selected overall statistics after applying a delta from this execution. */
+    /**
+     * Snapshot of selected overall statistics after applying a delta from this execution.
+     * It is used just to aggregate related parameters passed among methods in this call.
+     */
+    @Experimental
     private static class RunningStatisticsSnapshot {
         private double totalTime;
         private long totalProgress;

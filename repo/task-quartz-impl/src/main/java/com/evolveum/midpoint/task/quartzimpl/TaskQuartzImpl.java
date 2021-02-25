@@ -457,8 +457,7 @@ public class TaskQuartzImpl implements Task {
         return deltaFactory().property().createReplaceDeltaOrEmptyDelta(taskManager.getTaskObjectDefinition(), name, value);
     }
 
-    @Nullable
-    private <X extends Containerable> ContainerDelta<X> createContainerDeltaIfPersistent(ItemName name, X value)
+    @Nullable <X extends Containerable> ContainerDelta<X> createContainerDeltaIfPersistent(ItemName name, X value)
             throws SchemaException {
         if (isPersistent()) {
             //noinspection unchecked
@@ -663,6 +662,11 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
+    public StructuredTaskProgressType getStructuredProgressOrClone() {
+        return getContainerableOrClone(TaskType.F_STRUCTURED_PROGRESS);
+    }
+
+    @Override
     public void setProgressImmediate(Long value, OperationResult result) throws ObjectNotFoundException, SchemaException {
         setPropertyImmediate(TaskType.F_PROGRESS, value, result);
     }
@@ -672,12 +676,16 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public OperationStatsType getStoredOperationStats() {
+    public OperationStatsType getStoredOperationStatsOrClone() {
         return getContainerableOrClone(TaskType.F_OPERATION_STATS);
     }
 
     public void setOperationStats(OperationStatsType value) {
         setContainerable(TaskType.F_OPERATION_STATS, value);
+    }
+
+    public void setStructuredProgress(StructuredTaskProgressType value) {
+        setContainerable(TaskType.F_STRUCTURED_PROGRESS, value);
     }
 
     public void setOperationStatsTransient(OperationStatsType value) {

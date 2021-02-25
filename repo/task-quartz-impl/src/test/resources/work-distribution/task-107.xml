@@ -6,12 +6,10 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="44444444-2222-2222-2222-110000000000"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-    <name>task-110-0-single</name>
-    <taskIdentifier>44444444-2222-2222-2222-110000000000</taskIdentifier>
+<task oid="44444444-2222-2222-2222-107000000000"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>task-105-0-single</name>
+    <taskIdentifier>44444444-2222-2222-2222-107000000000</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
     <handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
@@ -21,6 +19,9 @@
                 <numberOfBuckets>1000</numberOfBuckets>
                 <bucketSize>100</bucketSize>
             </numericSegmentation>
+            <allocation>
+                <bucketCreationBatch>7</bucketCreationBatch>
+            </allocation>
         </buckets>
     </workManagement>
     <recurrence>single</recurrence>

@@ -156,7 +156,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
     }
 
     private void displayBucketOpStatistics(String label, Task task) throws SchemaException {
-        OperationStatsType stats = task.getStoredOperationStats();
+        OperationStatsType stats = task.getStoredOperationStatsOrClone();
         WorkBucketManagementPerformanceInformationType bucketStats = stats != null ? stats.getWorkBucketManagementPerformanceInformation() : null;
         String text = bucketStats != null ? prismContext.yamlSerializer().root(new QName("stats")).serializeRealValue(bucketStats) : "(null)";
         displayValue("Bucket op stats for " + label, text);

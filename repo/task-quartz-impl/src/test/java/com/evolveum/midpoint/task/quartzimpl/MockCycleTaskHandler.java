@@ -31,7 +31,6 @@ public class MockCycleTaskHandler implements TaskHandler {
         TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(opResult);
 
-        // TODO
         task.incrementProgressAndStoreStatsIfNeeded();
 
         opResult.recordSuccess();

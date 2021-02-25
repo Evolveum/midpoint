@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.statistics.StructuredTaskProgress;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.apache.commons.lang.StringUtils;
@@ -6686,8 +6687,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void dumpStatistics(Task task) {
-        OperationStatsType stats = task.getStoredOperationStats();
+        OperationStatsType stats = task.getStoredOperationStatsOrClone();
         displayValue("Iterative information", IterativeTaskInformation.format(stats.getIterativeTaskInformation()));
+        displayValue("Structured progress", StructuredTaskProgress.format(task.getStructuredProgressOrClone()));
         SynchronizationInformationType synchronizationInfo = stats.getSynchronizationInformation();
         displayValue("Synchronization information", SynchronizationInformation.format(synchronizationInfo));
     }

@@ -11,8 +11,6 @@ import static org.testng.Assert.assertNull;
 
 import java.io.File;
 
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-
 import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -124,7 +122,7 @@ public class TestThresholdsReconFull extends TestThresholds {
 
         assertTaskSchedulingState(TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, TaskSchedulingStateType.READY);
 
-        assertEquals(TaskTypeUtil.getItemsProcessedWithFailure(taskAfter.getStoredOperationStats()), 0);
+        assertEquals(TaskTypeUtil.getItemsProcessedWithFailure(taskAfter.getStoredOperationStatsOrClone()), 0);
 
         PrismObject<UserType> user10 = findUserByUsername("user10");
         assertNull(user10);
@@ -150,7 +148,7 @@ public class TestThresholdsReconFull extends TestThresholds {
     protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) {
         assertEquals(getFailureCount(taskAfter), 1);
 
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
 
         assertEquals((int) syncInfo.getCountUnmatched(), 5);
         assertEquals((int) syncInfo.getCountDeleted(), 0);
@@ -172,7 +170,7 @@ public class TestThresholdsReconFull extends TestThresholds {
     protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
         assertEquals(getFailureCount(taskAfter), 1);
 
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
 
         assertEquals((int) syncInfo.getCountUnmatched(), 5);
         assertEquals((int) syncInfo.getCountDeleted(), 0);
@@ -188,7 +186,7 @@ public class TestThresholdsReconFull extends TestThresholds {
     protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
         assertEquals(getFailureCount(taskAfter), 1);
 
-        SynchronizationInformationType synchronizationInformation = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+        SynchronizationInformationType synchronizationInformation = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
         dumpSynchronizationInformation(synchronizationInformation);
 
         assertEquals((int) synchronizationInformation.getCountUnmatched(), 0);

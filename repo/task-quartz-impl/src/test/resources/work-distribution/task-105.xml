@@ -7,9 +7,7 @@
   -->
 
 <task oid="44444444-2222-2222-2222-105000000000"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>task-105-0-single</name>
     <taskIdentifier>44444444-2222-2222-2222-105000000000</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>

@@ -6,12 +6,10 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="44444444-2222-2222-2222-300c00000000"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-    <name>task-300-c-single</name>
-    <taskIdentifier>44444444-2222-2222-2222-300c00000000</taskIdentifier>
+<task oid="44444444-2222-2222-2222-210c00000000"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>task-210-c-single</name>
+    <taskIdentifier>44444444-2222-2222-2222-210c00000000</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>waiting</executionStatus>
     <waitingReason>otherTasks</waitingReason>
@@ -19,8 +17,7 @@
         <taskKind>coordinator</taskKind>
         <buckets>
             <numericSegmentation>
-                <discriminator>iteration</discriminator>
-                <numberOfBuckets>3</numberOfBuckets>
+                <to>107</to>
                 <bucketSize>10</bucketSize>
             </numericSegmentation>
         </buckets>

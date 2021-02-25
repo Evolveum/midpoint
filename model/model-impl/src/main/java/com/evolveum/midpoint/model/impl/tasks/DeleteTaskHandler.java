@@ -214,10 +214,8 @@ public class DeleteTaskHandler implements TaskHandler {
                 }
 
                 opResult.summarize();
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Search returned {} objects, {} skipped, progress: {} (interrupted: {}), result:\n{}",
-                            objects.size(), skipped, task.getProgress(), !task.canRun(), opResult.debugDump());
-                }
+                LOGGER.trace("Search returned {} objects, {} skipped, progress: {} (interrupted: {}), result:\n{}",
+                        objects.size(), skipped, task.getProgress(), !task.canRun(), opResult.debugDumpLazily());
 
                 if (objects.size() == skipped) {
                     break;

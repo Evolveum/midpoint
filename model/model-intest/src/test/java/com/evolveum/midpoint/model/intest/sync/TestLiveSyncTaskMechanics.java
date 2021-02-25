@@ -704,7 +704,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         stabilize();
         Task taskAfter = taskManager.getTaskWithResult(TASK_NO_POLICY.oid, result);
         display("Task after", taskAfter);
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
         displayValue("Sync info", SynchronizationInformation.format(syncInfo));
         assertSuccess(taskAfter.getResult());
         assertTaskClosed(taskAfter);
@@ -983,7 +983,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         stabilize();
         Task taskAfter = taskManager.getTaskWithResult(TASK_MULTI_CHANGES.oid, result);
         display("Task after", taskAfter);
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
         displayValue("Sync info", SynchronizationInformation.format(syncInfo));
         assertSuccess(taskAfter.getResult());
         assertTaskClosed(taskAfter);

@@ -43,12 +43,13 @@ public class IterativeTaskInformationPrinter extends AbstractStatisticsPrinter<I
 
     private void createData(IterativeTaskPartItemsProcessingInformationType component) {
         List<ProcessedItemSetType> processed = new ArrayList<>(component.getProcessed());
-        processed.sort(Comparator.comparing(StatisticsUtil::getOutcome));
+        processed.sort(Comparator.comparing(StatisticsUtil::getOutcomeSortingKey)); // FIXME
 
         for (ProcessedItemSetType set : processed) {
             Data.Record record = data.createRecord();
             record.add(component.getPartUri());
             record.add(StatisticsUtil.getOutcome(set));
+            record.add(StatisticsUtil.getOutcomeQualifierUri(set));
             record.add(set.getCount());
             record.add(set.getDuration());
             record.add(div(set.getDuration(), set.getCount()));
@@ -87,6 +88,7 @@ public class IterativeTaskInformationPrinter extends AbstractStatisticsPrinter<I
         initFormatting();
         addColumn("Part", LEFT, formatString());
         addColumn("Outcome", LEFT, formatString());
+        addColumn("Qualifier", LEFT, formatString());
         addColumn("Count", RIGHT, formatInt());
         addColumn("Total time (ms)", RIGHT, formatInt());
         addColumn("Per object", RIGHT, formatFloat1());

@@ -6,14 +6,12 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="44444444-2222-2222-2222-200w00000000"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-    <name>task-200-w-single</name>
-    <taskIdentifier>44444444-2222-2222-2222-200w00000000</taskIdentifier>
+<task oid="44444444-2222-2222-2222-210100000000"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>task-210-1-single</name>
+    <taskIdentifier>44444444-2222-2222-2222-210100000000</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <parent>44444444-2222-2222-2222-200c00000000</parent>
+    <parent>44444444-2222-2222-2222-210c00000000</parent>
     <executionStatus>suspended</executionStatus>
     <handlerUri>http://midpoint.evolveum.com/test/single-wb-task-handler</handlerUri>
     <workManagement>
