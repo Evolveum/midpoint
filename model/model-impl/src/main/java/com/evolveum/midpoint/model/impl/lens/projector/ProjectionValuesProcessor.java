@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
@@ -480,14 +480,14 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             return LensUtil.formatIterationTokenDefault(iteration);
         }
         IterationSpecificationType iterationType = accDef.getIteration();
-        ExpressionVariables variables = createExpressionVariables(context, accountContext);
+        VariablesMap variables = createVariablesMap(context, accountContext);
         return LensUtil.formatIterationToken(context, accountContext, iterationType, iteration,
                 expressionFactory, variables, task, result);
     }
 
-    private <F extends ObjectType> ExpressionVariables createExpressionVariables(LensContext<F> context,
+    private <F extends ObjectType> VariablesMap createVariablesMap(LensContext<F> context,
             LensProjectionContext projectionContext) {
-        return ModelImplUtils.getDefaultExpressionVariables(context.getFocusContext().getObjectNew(), projectionContext.getObjectNew(),
+        return ModelImplUtils.getDefaultVariablesMap(context.getFocusContext().getObjectNew(), projectionContext.getObjectNew(),
                 projectionContext.getResourceShadowDiscriminator(), projectionContext.getResource().asPrismObject(),
                 context.getSystemConfiguration(), projectionContext, prismContext);
     }
@@ -501,7 +501,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             return true;
         }
         IterationSpecificationType iterationType = accDef.getIteration();
-        ExpressionVariables variables = createExpressionVariables(context, accountContext);
+        VariablesMap variables = createVariablesMap(context, accountContext);
         return LensUtil.evaluateIterationCondition(context, accountContext, iterationType,
                 iteration, iterationToken, beforeIteration, expressionFactory, variables, task, result);
     }

@@ -52,11 +52,11 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -579,12 +579,12 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         Task task = getPageBase().createSimpleTask(OPERATION_EVALUATE_EXPRESSION);
         OperationResult result = task.getResult();
         try {
-            ExpressionVariables expressionVariables = new ExpressionVariables();
-            expressionVariables.put(ExpressionConstants.VAR_OBJECT, rowValue, rowValue.getClass());
+            VariablesMap variablesMap = new VariablesMap();
+            variablesMap.put(ExpressionConstants.VAR_OBJECT, rowValue, rowValue.getClass());
             if (columnItem != null) {
-                expressionVariables.put(ExpressionConstants.VAR_INPUT, columnItem, columnItem.getDefinition().getTypeClass());
+                variablesMap.put(ExpressionConstants.VAR_INPUT, columnItem, columnItem.getDefinition().getTypeClass());
             }
-            Collection<String> evaluatedValues = ExpressionUtil.evaluateStringExpression(expressionVariables, getPageBase().getPrismContext(), expression,
+            Collection<String> evaluatedValues = ExpressionUtil.evaluateStringExpression(variablesMap, getPageBase().getPrismContext(), expression,
                     MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
                     task, result);
             String stringValue = null;

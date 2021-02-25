@@ -13,7 +13,7 @@ import com.evolveum.midpoint.notifications.impl.EventHandlerRegistry;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.impl.helpers.NotificationExpressionHelper;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.notifications.api.EventHandler;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.impl.NotificationManagerImpl;
@@ -91,17 +91,17 @@ public abstract class BaseHandler<E extends Event, C extends EventHandlerType> i
         logger.trace("Finishing processing event {}, result = {}", event, result);
     }
 
-    protected List<String> evaluateExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
+    protected List<String> evaluateExpressionChecked(ExpressionType expressionType, VariablesMap VariablesMap,
             String shortDesc, Task task, OperationResult result) {
-        return expressionHelper.evaluateExpressionChecked(expressionType, expressionVariables, shortDesc, task, result);
+        return expressionHelper.evaluateExpressionChecked(expressionType, VariablesMap, shortDesc, task, result);
     }
 
-    protected List<NotificationMessageAttachmentType> evaluateNotificationMessageAttachmentTypeExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
+    protected List<NotificationMessageAttachmentType> evaluateNotificationMessageAttachmentTypeExpressionChecked(ExpressionType expressionType, VariablesMap VariablesMap,
             String shortDesc, Task task, OperationResult result) {
-        return expressionHelper.evaluateNotificationMessageAttachmentTypeExpressionChecked(expressionType, expressionVariables, shortDesc, task, result);
+        return expressionHelper.evaluateNotificationMessageAttachmentTypeExpressionChecked(expressionType, VariablesMap, shortDesc, task, result);
     }
 
-    protected ExpressionVariables getDefaultVariables(E event, OperationResult result) {
+    protected VariablesMap getDefaultVariables(E event, OperationResult result) {
         return expressionHelper.getDefaultVariables(event, result);
     }
 

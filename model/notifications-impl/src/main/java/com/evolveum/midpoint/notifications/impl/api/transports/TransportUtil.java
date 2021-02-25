@@ -13,7 +13,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -98,7 +98,7 @@ public class TransportUtil {
         }
         ExpressionType filter = transportConfigurationType.getRecipientFilterExpression();
         if (filter != null) {
-            ExpressionVariables variables = new ExpressionVariables();
+            VariablesMap variables = new VariablesMap();
             variables.put("recipientAddress", recipient, String.class);
             try {
                 PrismPropertyValue<Boolean> allowedRecipient = ExpressionUtil.evaluateCondition(variables, filter, expressionProfile,

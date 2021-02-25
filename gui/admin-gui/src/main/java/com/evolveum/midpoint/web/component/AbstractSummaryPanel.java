@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -27,12 +25,13 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.model.FlexibleLabelModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -217,7 +216,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         List<SummaryTag<C>> summaryTags = getSummaryTagComponentList();
 
 //        if (getArchetypeSummaryTag() != null) {
-            summaryTags.add(getArchetypeSummaryTag());
+        summaryTags.add(getArchetypeSummaryTag());
 //        }
         summaryTags.forEach(summaryTag -> {
             WebMarkupContainer summaryTagPanel = new WebMarkupContainer(tagBox.newChildId());
@@ -266,9 +265,9 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void addAdditionalExpressionVariables(ExpressionVariables variables) {
-                super.addAdditionalExpressionVariables(variables);
-                AbstractSummaryPanel.this.addAdditionalExpressionVariables(variables);
+            protected void addAdditionalVariablesMap(VariablesMap variables) {
+                super.addAdditionalVariablesMap(variables);
+                AbstractSummaryPanel.this.addAdditionalVariablesMap(variables);
             }
         };
     }
@@ -295,24 +294,24 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 //        String archetypeIconColor = getArchetypePolicyAdditionalCssClass();
 //        String archetypeLabel = getArchetypeLabel();
 //        if (StringUtils.isNotEmpty(archetypeLabel)) {
-            SummaryTag<C> archetypeSummaryTag = new SummaryTag<C>(ID_SUMMARY_TAG, getModel()) {
-                private static final long serialVersionUID = 1L;
+        SummaryTag<C> archetypeSummaryTag = new SummaryTag<C>(ID_SUMMARY_TAG, getModel()) {
+            private static final long serialVersionUID = 1L;
 
-                @Override
-                protected void initialize(C object) {
-                    setIconCssClass(getArchetypeIconCssClass());
-                    setLabel(createStringResource(getArchetypeLabel()).getString());
-                    setColor(getArchetypePolicyAdditionalCssClass());
-                }
+            @Override
+            protected void initialize(C object) {
+                setIconCssClass(getArchetypeIconCssClass());
+                setLabel(createStringResource(getArchetypeLabel()).getString());
+                setColor(getArchetypePolicyAdditionalCssClass());
+            }
 
-            };
-            archetypeSummaryTag.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getArchetypeLabel())));
-            return archetypeSummaryTag;
+        };
+        archetypeSummaryTag.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getArchetypeLabel())));
+        return archetypeSummaryTag;
 //        }
 //        return null;
     }
 
-    protected void addAdditionalExpressionVariables(ExpressionVariables variables) {
+    protected void addAdditionalVariablesMap(VariablesMap variables) {
 
     }
 

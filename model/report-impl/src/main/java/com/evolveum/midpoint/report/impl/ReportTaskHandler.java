@@ -7,9 +7,18 @@
 package com.evolveum.midpoint.report.impl;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.io.FilenameUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.report.api.ReportConstants;
@@ -19,29 +28,22 @@ import com.evolveum.midpoint.report.impl.controller.engine.EngineController;
 import com.evolveum.midpoint.report.impl.controller.fileformat.CsvController;
 import com.evolveum.midpoint.report.impl.controller.fileformat.FileFormatController;
 import com.evolveum.midpoint.report.impl.controller.fileformat.HtmlController;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.*;
-
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.io.FilenameUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author skublik
@@ -125,7 +127,6 @@ public class ReportTaskHandler implements TaskHandler {
                 saveReportDataType(reportDataFilePath, report, fileFormatController, task, result);
                 LOGGER.trace("create report output type : {}", reportDataFilePath);
             }
-
 
             if (report.getPostReportScript() != null) {
                 processPostReportScript(report, reportDataFilePath, task, result);
@@ -222,7 +223,6 @@ public class ReportTaskHandler implements TaskHandler {
             reportDataType.setFileFormat(fileFormatController.getFileFormatConfiguration().getType());
         }
 
-
         SearchResultList<PrismObject<NodeType>> nodes = reportService.getModelService().searchObjects(NodeType.class, reportService.getPrismContext()
                 .queryFor(NodeType.class).item(NodeType.F_NODE_IDENTIFIER).eq(task.getNode()).build(), null, task, parentResult);
         if (nodes == null || nodes.isEmpty()) {
@@ -263,14 +263,14 @@ public class ReportTaskHandler implements TaskHandler {
             return;
         }
 
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_OBJECT, parentReport, parentReport.asPrismObject().getDefinition());
         PrismObject<TaskType> taskObject = task.getUpdatedOrClonedTaskObject();
         variables.put(ExpressionConstants.VAR_TASK, taskObject.asObjectable(), taskObject.getDefinition());
         variables.put(ExpressionConstants.VAR_FILE, reportService.getCommandLineScriptExecutor().getOsSpecificFilePath(reportOutputFilePath), String.class);
 
         try {
-            reportService.getCommandLineScriptExecutor().executeScript(scriptType, variables, "post-report script in "+parentReport, task, parentResult);
+            reportService.getCommandLineScriptExecutor().executeScript(scriptType, variables, "post-report script in " + parentReport, task, parentResult);
         } catch (Exception e) {
             LOGGER.error("An exception has occurred during post report script execution {}", e.getLocalizedMessage(), e);
         }

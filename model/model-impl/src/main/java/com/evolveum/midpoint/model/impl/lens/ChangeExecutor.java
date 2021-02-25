@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentSpec;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 
 import org.apache.commons.lang.BooleanUtils;
@@ -1684,7 +1685,7 @@ public class ChangeExecutor {
         ResourceShadowDiscriminator discr = ((LensProjectionContext) objectContext)
                 .getResourceShadowDiscriminator();
 
-        ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(user, shadow, discr,
+        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(user, shadow, discr,
                 resource.asPrismObject(), context.getSystemConfiguration(), objectContext, prismContext);
         // Having delta in provisioning scripts may be very useful. E.g. the script can optimize execution of expensive operations.
         variables.put(ExpressionConstants.VAR_DELTA, projectionCtx.getCurrentDelta(), ObjectDelta.class);
@@ -1700,7 +1701,7 @@ public class ChangeExecutor {
 
     private OperationProvisioningScriptsType evaluateScript(OperationProvisioningScriptsType resourceScripts,
             ResourceShadowDiscriminator discr, ProvisioningOperationTypeType operation, BeforeAfterType order,
-            ExpressionVariables variables, ExpressionProfile expressionProfile, LensContext<?> context,
+            VariablesMap variables, ExpressionProfile expressionProfile, LensContext<?> context,
             LensElementContext<?> objectContext, Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -1744,7 +1745,7 @@ public class ChangeExecutor {
     }
 
     private boolean evaluateScriptCondition(OperationProvisioningScriptType script,
-            ExpressionVariables variables, ExpressionProfile expressionProfile, Task task, OperationResult result)
+            VariablesMap variables, ExpressionProfile expressionProfile, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return ExpressionUtil.evaluateConditionDefaultTrue(variables, script.getCondition(), expressionProfile,
@@ -1752,7 +1753,7 @@ public class ChangeExecutor {
     }
 
     private void evaluateScriptArgument(ProvisioningScriptArgumentType argument,
-            ExpressionVariables variables, LensContext<?> context,
+            VariablesMap variables, LensContext<?> context,
             LensElementContext<?> objectContext, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
@@ -1857,7 +1858,7 @@ public class ChangeExecutor {
             shadow = projContext.getObjectCurrent();
         }
 
-        ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(user, shadow,
+        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(user, shadow,
                 projContext.getResourceShadowDiscriminator(), resource.asPrismObject(),
                 context.getSystemConfiguration(), projContext, prismContext);
         Object scriptResult = null;

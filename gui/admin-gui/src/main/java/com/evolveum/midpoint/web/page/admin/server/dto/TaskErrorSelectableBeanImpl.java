@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,17 +29,24 @@ public class TaskErrorSelectableBeanImpl<O extends ObjectType> extends Selectabl
     public static final String F_STATUS = "status";
     public static final String F_MESSAGE = "message";
     public static final String F_ERROR_TIMESTAMP = "errorTimestamp";
+    public static final String F_RECORD_TYPE = "recordType";
+    public static final String F_REAL_OWNER = "realOwner";
 
     private String objectRefName;
     private OperationResultStatusType status;
     private String message;
     private String taskOid;
     private XMLGregorianCalendar errorTimestamp;
+    private OperationExecutionRecordTypeType recordType;
+    private String realOwner;
 
     public TaskErrorSelectableBeanImpl() {
     }
 
     public TaskErrorSelectableBeanImpl(@NotNull O object, @NotNull String taskOid) {
+        //TODO: better identification? e.g. if it is shadow, display also resource for the shadow?
+        // if it is user, display type? or rather 'midpoint' representing local repo?
+        // of would it be better to have sepparate column for it?
         objectRefName = object.getName().getOrig();
 
         for (OperationExecutionType execution : object.getOperationExecution()) {
@@ -48,6 +56,8 @@ public class TaskErrorSelectableBeanImpl<O extends ObjectType> extends Selectabl
             status = execution.getStatus();
             message = extractMessages(execution);
             errorTimestamp = execution.getTimestamp();
+            recordType = execution.getRecordType();
+            realOwner = extractRealOwner(execution);
         }
     }
 
@@ -69,6 +79,30 @@ public class TaskErrorSelectableBeanImpl<O extends ObjectType> extends Selectabl
 
     public XMLGregorianCalendar getErrorTimestamp() {
         return errorTimestamp;
+    }
+
+    private String extractRealOwner(@NotNull  OperationExecutionType execution) {
+        OperationExecutionRecordRealOwnerType realOwnerType = execution.getRealOwner();
+        if (realOwnerType == null) {
+            return null;
+        }
+
+        String identification = realOwnerType.getIdentification();
+        String type = getOwnerType(realOwnerType);
+        if (identification == null) {
+            return type;
+        }
+
+        return identification + "(" + type + ")";
+    }
+
+    private String getOwnerType(@NotNull  OperationExecutionRecordRealOwnerType realOwnerType) {
+        QName objectType = realOwnerType.getObjectType();
+        if (objectType == null) {
+            return "Unknown type";
+        }
+        return objectType.getLocalPart();
+
     }
 
 }

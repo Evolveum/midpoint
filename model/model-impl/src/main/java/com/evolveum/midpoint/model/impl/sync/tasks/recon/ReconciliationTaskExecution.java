@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.task.AbstractTaskExecution;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskPartExecution;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -247,7 +247,7 @@ public class ReconciliationTaskExecution
             return query;
         }
 
-        ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(taskFilter, new ExpressionVariables(),
+        ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(taskFilter, new VariablesMap(),
                 MiscSchemaUtil.getExpressionProfile(), taskHandler.expressionFactory, getPrismContext(),
                 "collection filter", localCoordinatorTask, opResult);
 

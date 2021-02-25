@@ -48,7 +48,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -925,7 +925,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             if (filter == null) {
                 return null;
             }
-            ExpressionVariables variables = new ExpressionVariables();
+            VariablesMap variables = new VariablesMap();
             PrismObject<? extends FocusType> subject = principal != null ? principal.getFocus().asPrismObject() : null;
             PrismObjectDefinition<? extends FocusType> def;
             if (subject != null) {

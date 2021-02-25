@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.prism.wrapper;
 
+import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.*;
@@ -40,6 +41,7 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 
     List<ItemWrapper<?, ?>> getNonContainers();
 
+    @Deprecated
     List<? extends ItemWrapper<?, ?>> getItems();
 
     <T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path) throws SchemaException;
@@ -83,5 +85,9 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
     PrismContainerWrapper<? extends Containerable> getSelectedChild();
 
     void addItem(ItemWrapper<?, ?> newItem);
+
+    void clearItems();
+    void addItems(Collection<ItemWrapper<?, ?>> items);
+    int size();
 }
 

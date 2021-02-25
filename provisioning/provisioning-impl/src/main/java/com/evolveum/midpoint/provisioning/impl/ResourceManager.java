@@ -39,7 +39,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
@@ -606,7 +606,7 @@ public class ResourceManager {
             ExpressionType expressionType = (ExpressionType) expressionWrapper.getExpression();
 
             Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> expression = expressionFactory.makeExpression(expressionType, propDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
-            ExpressionVariables variables = new ExpressionVariables();
+            VariablesMap variables = new VariablesMap();
 
             SystemConfigurationType systemConfiguration = getSystemConfiguration();
             variables.put(ExpressionConstants.VAR_CONFIGURATION, PrismObject.asPrismObject(systemConfiguration),

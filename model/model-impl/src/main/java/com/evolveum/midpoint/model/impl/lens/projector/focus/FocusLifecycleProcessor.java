@@ -26,7 +26,7 @@ import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -108,7 +108,7 @@ public class FocusLifecycleProcessor implements ProjectorProcessor {
         }
         String desc = "condition for transition to state "+targetLifecycleState+" for "+context.getFocusContext().getHumanReadableName();
 
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_OBJECT, context.getFocusContext().getObjectNew(), context.getFocusContext().getObjectNew().getDefinition());
         // TODO: more variables?
 

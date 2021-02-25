@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfiles;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -119,7 +120,7 @@ public class TestExpression extends AbstractModelCommonTest {
 
         ExpressionType expressionType = parseExpression(EXPRESSION_ASIS_FILE);
         Collection<Source<?, ?>> sources = prepareStringSources();
-        ExpressionVariables variables = prepareBasicVariables();
+        VariablesMap variables = prepareBasicVariables();
         ExpressionEvaluationContext expressionContext =
                 new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
@@ -147,7 +148,7 @@ public class TestExpression extends AbstractModelCommonTest {
 
         ExpressionType expressionType = parseExpression(EXPRESSION_PATH_FILE);
         Collection<Source<?, ?>> sources = prepareStringSources();
-        ExpressionVariables variables = prepareBasicVariables();
+        VariablesMap variables = prepareBasicVariables();
         ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN
@@ -173,7 +174,7 @@ public class TestExpression extends AbstractModelCommonTest {
 
         ExpressionType expressionType = parseExpression(EXPRESSION_VALUE_FILE);
         Collection<Source<?, ?>> sources = prepareStringSources();
-        ExpressionVariables variables = prepareBasicVariables();
+        VariablesMap variables = prepareBasicVariables();
         ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN
@@ -199,7 +200,7 @@ public class TestExpression extends AbstractModelCommonTest {
 
         ExpressionType expressionType = parseExpression(EXPRESSION_CONST_FILE);
         Collection<Source<?, ?>> sources = prepareStringSources();
-        ExpressionVariables variables = prepareBasicVariables();
+        VariablesMap variables = prepareBasicVariables();
         ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN
@@ -225,7 +226,7 @@ public class TestExpression extends AbstractModelCommonTest {
 
         ExpressionType expressionType = parseExpression(EXPRESSION_SCRIPT_GROOVY_SIMPLE_FILE);
         Collection<Source<?, ?>> sources = prepareStringSources();
-        ExpressionVariables variables = prepareBasicVariables();
+        VariablesMap variables = prepareBasicVariables();
         ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN
@@ -251,7 +252,7 @@ public class TestExpression extends AbstractModelCommonTest {
 
         ExpressionType expressionType = parseExpression(EXPRESSION_SCRIPT_GROOVY_SYSTEM_ALLOW_FILE);
         Collection<Source<?, ?>> sources = prepareStringSources();
-        ExpressionVariables variables = prepareBasicVariables();
+        VariablesMap variables = prepareBasicVariables();
         ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN
@@ -277,7 +278,7 @@ public class TestExpression extends AbstractModelCommonTest {
 
         ExpressionType expressionType = parseExpression(EXPRESSION_SCRIPT_GROOVY_SYSTEM_DENY_FILE);
         Collection<Source<?, ?>> sources = prepareStringSources();
-        ExpressionVariables variables = prepareBasicVariables();
+        VariablesMap variables = prepareBasicVariables();
         ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN
@@ -303,7 +304,7 @@ public class TestExpression extends AbstractModelCommonTest {
 
         ExpressionType expressionType = parseExpression(EXPRESSION_SCRIPT_JAVASCRIPT_FILE);
         Collection<Source<?, ?>> sources = prepareStringSources();
-        ExpressionVariables variables = prepareBasicVariables();
+        VariablesMap variables = prepareBasicVariables();
         ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN
@@ -338,7 +339,7 @@ public class TestExpression extends AbstractModelCommonTest {
         account.setDefinition(shadowDef);
         IntegrationTestTools.display("Account", account);
 
-        ExpressionVariables variables = prepareBasicVariables();
+        VariablesMap variables = prepareBasicVariables();
         variables.put(ExpressionConstants.VAR_PROJECTION, account, shadowDef);
         variables.put(ExpressionConstants.VAR_ITERATION, 1,
                 TestUtil.createPrimitivePropertyDefinition(prismContext, ExpressionConstants.VAR_ITERATION, PrimitiveType.INT));
@@ -380,8 +381,8 @@ public class TestExpression extends AbstractModelCommonTest {
         return sources;
     }
 
-    protected ExpressionVariables prepareBasicVariables() throws SchemaException, IOException {
-        ExpressionVariables variables = new ExpressionVariables();
+    protected VariablesMap prepareBasicVariables() throws SchemaException, IOException {
+        VariablesMap variables = new VariablesMap();
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
         variables.put(ExpressionConstants.VAR_FOCUS, user, user.getDefinition());
         variables.put(VAR_FOO_NAME, VAR_FOO_VALUE, String.class);

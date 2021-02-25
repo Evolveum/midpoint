@@ -7,24 +7,27 @@
 
 package com.evolveum.midpoint.wf.impl.util;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.common.ExpressionEvaluationHelper;
 import com.evolveum.midpoint.wf.util.PerformerCommentsFormatter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class PerformerCommentsFormatterImpl implements PerformerCommentsFormatter {
 
@@ -59,7 +62,7 @@ public class PerformerCommentsFormatterImpl implements PerformerCommentsFormatte
             return output.getComment();
         }
         ObjectType performer = getPerformer(performerRef, result);
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_PERFORMER, performer, performer.asPrismObject().getDefinition());
         variables.put(ExpressionConstants.VAR_OUTPUT, output, AbstractWorkItemOutputType.class);
         variables.put(ExpressionConstants.VAR_WORK_ITEM, workItem, AbstractWorkItemType.class);

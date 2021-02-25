@@ -21,7 +21,7 @@ import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -135,8 +135,8 @@ public class UnassignExecutor extends AssignmentOperationsExecutor<UnassignParam
         }
     }
 
-    private ExpressionVariables createVariables(AssignmentHolderType input, PipelineItem item) {
-        ExpressionVariables variables = createVariables(item.getVariables());
+    private VariablesMap createVariables(AssignmentHolderType input, PipelineItem item) {
+        VariablesMap variables = createVariables(item.getVariables());
         variables.put(ExpressionConstants.VAR_INPUT, input, AssignmentHolderType.class);
         return variables;
     }

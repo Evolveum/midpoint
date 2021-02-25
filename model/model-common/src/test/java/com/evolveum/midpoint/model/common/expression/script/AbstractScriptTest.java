@@ -33,7 +33,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -224,7 +224,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     // TODO: user + numeric
     // TODO: user + no property value
 
-    private ExpressionVariables createUserScriptVariables() {
+    private VariablesMap createUserScriptVariables() {
         return createVariables(
                 ExpressionConstants.VAR_USER,
                 MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
@@ -287,7 +287,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
 
     private <T> List<PrismPropertyValue<T>> evaluateExpression(
             ScriptExpressionEvaluatorType scriptType, ItemDefinition<?> outputDefinition,
-            ExpressionVariables variables, String shortDesc, OperationResult result)
+            VariablesMap variables, String shortDesc, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         ScriptExpression scriptExpression = createScriptExpression(scriptType, outputDefinition);
@@ -343,7 +343,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
 
     private <T> List<PrismPropertyValue<T>> evaluateExpression(
             ScriptExpressionEvaluatorType scriptType, QName typeName, boolean scalar,
-            ExpressionVariables variables, String shortDesc, OperationResult opResult)
+            VariablesMap variables, String shortDesc, OperationResult opResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         MutableItemDefinition<?> outputDefinition = PrismTestUtil.getPrismContext()
@@ -366,7 +366,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     }
 
     protected void evaluateAndAssertStringScalarExpression(
-            String fileName, String testName, ExpressionVariables variables, String expectedValue)
+            String fileName, String testName, VariablesMap variables, String expectedValue)
             throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
         List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpression(fileName, testName, variables);
@@ -376,7 +376,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     }
 
     protected void evaluateAndAssertStringScalarExpressionRestricted(
-            String fileName, String testName, ExpressionVariables variables)
+            String fileName, String testName, VariablesMap variables)
             throws ObjectNotFoundException, CommunicationException, SchemaException, IOException,
             ExpressionEvaluationException, ConfigurationException {
         try {
@@ -388,7 +388,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     }
 
     private void evaluateAndAssertStringListExpression(String fileName, String testName,
-            ExpressionVariables variables, String... expectedValues)
+            VariablesMap variables, String... expectedValues)
             throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
         List<PrismPropertyValue<String>> expressionResultList =
@@ -398,7 +398,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     }
 
     protected void evaluateAndAssertBooleanScalarExpression(String fileName,
-            String testName, ExpressionVariables variables, Boolean expectedValue)
+            String testName, VariablesMap variables, Boolean expectedValue)
             throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
         List<PrismPropertyValue<Boolean>> expressionResultList = evaluateBooleanExpression(fileName, testName, variables);
@@ -408,7 +408,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     }
 
     private List<PrismPropertyValue<String>> evaluateStringExpression(
-            String fileName, String testName, ExpressionVariables variables)
+            String fileName, String testName, VariablesMap variables)
             throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
         ScriptExpressionEvaluatorType scriptType = parseScriptType(fileName);
@@ -418,7 +418,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     }
 
     private List<PrismPropertyValue<Boolean>> evaluateBooleanExpression(
-            String fileName, String testName, ExpressionVariables variables)
+            String fileName, String testName, VariablesMap variables)
             throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
         ScriptExpressionEvaluatorType scriptType = parseScriptType(fileName);
@@ -427,7 +427,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         return evaluateExpression(scriptType, DOMUtil.XSD_BOOLEAN, true, variables, testName, opResult);
     }
 
-    protected ExpressionVariables createVariables(Object... params) {
-        return ExpressionVariables.create(prismContext, params);
+    protected VariablesMap createVariables(Object... params) {
+        return VariablesMap.create(prismContext, params);
     }
 }

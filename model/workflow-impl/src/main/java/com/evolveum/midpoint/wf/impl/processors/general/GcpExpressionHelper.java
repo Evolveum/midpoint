@@ -10,7 +10,7 @@ package com.evolveum.midpoint.wf.impl.processors.general;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -60,7 +60,7 @@ public class GcpExpressionHelper {
             return true;
         }
 
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_MODEL_CONTEXT, context, ModelContext.class);
 
         boolean start;
@@ -72,13 +72,13 @@ public class GcpExpressionHelper {
         return start;
     }
 
-    private boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, String opContext, Task taskFromModel, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private boolean evaluateBooleanExpression(ExpressionType expressionType, VariablesMap VariablesMap, String opContext, Task taskFromModel, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         PrismContext prismContext = expressionFactory.getPrismContext();
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<Boolean> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN);
         Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), opContext, taskFromModel, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, opContext, taskFromModel);
+        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, VariablesMap, opContext, taskFromModel);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = ModelExpressionThreadLocalHolder
                 .evaluateExpressionInContext(expression, params, taskFromModel, result);
 

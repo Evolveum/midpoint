@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -112,7 +113,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition> {
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        ExpressionVariables processedVariables = null;
+        VariablesMap processedVariables = null;
 
         if (context.getExpressionProfile() == null) {
             context.setExpressionProfile(expressionProfile);
@@ -246,7 +247,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition> {
         }
     }
 
-    private void traceSuccess(ExpressionEvaluationContext context, ExpressionVariables processedVariables, PrismValueDeltaSetTriple<V> outputTriple) {
+    private void traceSuccess(ExpressionEvaluationContext context, VariablesMap processedVariables, PrismValueDeltaSetTriple<V> outputTriple) {
         if (!isTrace()) {
             return;
         }
@@ -263,7 +264,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition> {
         trace(sb.toString());
     }
 
-    private void traceFailure(ExpressionEvaluationContext context, ExpressionVariables processedVariables, Throwable e) {
+    private void traceFailure(ExpressionEvaluationContext context, VariablesMap processedVariables, Throwable e) {
         LOGGER.error("Error evaluating expression in {}: {}-{}", context.getContextDescription(), e.getMessage(), e);
         if (!isTrace()) {
             return;
@@ -289,7 +290,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition> {
         }
     }
 
-    private void appendTraceHeader(StringBuilder sb, ExpressionEvaluationContext context, ExpressionVariables processedVariables) {
+    private void appendTraceHeader(StringBuilder sb, ExpressionEvaluationContext context, VariablesMap processedVariables) {
         sb.append("---[ EXPRESSION in ");
         sb.append(context.getContextDescription());
         sb.append("]---------------------------");
@@ -317,14 +318,14 @@ public class Expression<V extends PrismValue, D extends ItemDefinition> {
         sb.append("\n------------------------------------------------------");
     }
 
-    private ExpressionVariables processInnerVariables(
-            ExpressionVariables variables, String contextDescription, Task task, OperationResult result)
+    private VariablesMap processInnerVariables(
+            VariablesMap variables, String contextDescription, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (expressionType == null) {
             // shortcut
             return variables;
         }
-        ExpressionVariables newVariables = new ExpressionVariables();
+        VariablesMap newVariables = new VariablesMap();
 
         // We need to add actor variable before we switch user identity (runAs)
         ExpressionUtil.addActorVariable(newVariables, securityContextManager, prismContext);

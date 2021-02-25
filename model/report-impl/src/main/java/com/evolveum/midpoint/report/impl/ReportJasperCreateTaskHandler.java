@@ -18,7 +18,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -589,7 +589,7 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
             return;
         }
 
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_OBJECT, parentReport, parentReport.asPrismObject().getDefinition());
         PrismObject<TaskType> taskObject = task.getUpdatedOrClonedTaskObject();
         variables.put(ExpressionConstants.VAR_TASK, taskObject.asObjectable(), taskObject.getDefinition());

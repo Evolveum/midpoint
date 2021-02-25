@@ -6,21 +6,20 @@
  */
 package com.evolveum.midpoint.repo.common.expression;
 
-import com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil;
-import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
-
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
@@ -38,9 +37,9 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
     private final Task task;
     private final OperationResult result;
     private ValueSetDefinitionPredefinedType predefinedRange;
-    private ExpressionVariables additionalVariables;
-    private Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> condition;
-    private Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> yieldCondition;
+    private VariablesMap additionalVariables;
+    private Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> condition;
+    private Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> yieldCondition;
 
     public ValueSetDefinition(ValueSetDefinitionType setDefinitionBean, D itemDefinition,
             PrismContainerDefinition<ValueMetadataType> valueMetadataDefinition,
@@ -73,7 +72,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
         }
     }
 
-    public void setAdditionalVariables(ExpressionVariables additionalVariables) {
+    public void setAdditionalVariables(VariablesMap additionalVariables) {
         this.additionalVariables = additionalVariables;
     }
 
@@ -87,7 +86,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
                 case MATCHING_PROVENANCE:
                     return isOfMatchingProvenance(pval);
                 default:
-                    throw new IllegalStateException("Unknown pre value: "+ predefinedRange);
+                    throw new IllegalStateException("Unknown pre value: " + predefinedRange);
             }
         } else {
             return condition == null || evalCondition(pval);
@@ -131,7 +130,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
     }
 
     private boolean evalCondition(IV pval) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         Object value = getInputValue(pval);
         variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, value, itemDefinition);
         if (additionalVariableName != null) {
@@ -156,7 +155,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
     // TODO deduplicate with evalCondition
     private boolean evalYieldCondition(IV pval, ValueMetadataType metadata) throws SchemaException, ExpressionEvaluationException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         Object value = getInputValue(pval);
         variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, value, itemDefinition);
         variables.addVariableDefinition(ExpressionConstants.VAR_METADATA, metadata, valueMetadataDefinition);

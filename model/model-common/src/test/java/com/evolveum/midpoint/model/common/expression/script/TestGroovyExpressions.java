@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -465,7 +465,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     }
 
-    protected ExpressionVariables createPoisonVariables(Poison poison) {
+    protected VariablesMap createPoisonVariables(Poison poison) {
         return createVariables(
                 VAR_POISON, poison, Poison.class);
     }

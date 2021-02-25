@@ -239,7 +239,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                             return;
                         }
                         ObjectReferenceType targetRef = assignmentType.getTargetRef();
-                        if (targetRef == null || targetRef.getObject() != null) {
+                        if (targetRef == null || targetRef.getOid() == null || targetRef.getObject() != null) {
                             return;
                         }
 
@@ -462,7 +462,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         }
 
         ObjectReferenceType targetRef = assignmentType.getTargetRef();
-        if (targetRef == null) {
+        if (targetRef == null || targetRef.getOid() == null) {
             return null;
         }
 

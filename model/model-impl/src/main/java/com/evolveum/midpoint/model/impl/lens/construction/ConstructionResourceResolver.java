@@ -13,7 +13,7 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -113,8 +113,8 @@ class ConstructionResourceResolver {
     private ResourceType resolveResourceRefFilter(String sourceDescription, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        ExpressionVariables variables = ModelImplUtils
-                .getDefaultExpressionVariables(construction.getFocusOdoAbsolute().getNewObject().asObjectable(),
+        VariablesMap variables = ModelImplUtils
+                .getDefaultVariablesMap(construction.getFocusOdoAbsolute().getNewObject().asObjectable(),
                         null, null, null, beans.prismContext);
         ModelImplUtils.addAssignmentPathVariables(construction.getAssignmentPathVariables(), variables, beans.prismContext);
         LOGGER.debug("Expression variables for filter evaluation: {}", variables);
