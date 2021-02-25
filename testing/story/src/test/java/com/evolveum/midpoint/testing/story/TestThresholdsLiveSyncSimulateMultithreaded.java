@@ -56,11 +56,11 @@ public class TestThresholdsLiveSyncSimulateMultithreaded extends TestThresholds 
 
         assertSyncToken(taskAfter, 4);
 
-        // user5, user6, user7, user8, user9 (why not user4? -- because token is preset to 4)
-        assertThat(syncInfo.getCountUnmatchedAfter()).isBetween(RULE_CREATE_WATERMARK, RULE_CREATE_WATERMARK + WORKER_THREADS);
-        assertEquals((Object) syncInfo.getCountDeletedAfter(), 0);
-        assertEquals((Object) syncInfo.getCountLinkedAfter(), 0);
-        assertEquals((Object) syncInfo.getCountUnlinkedAfter(), 0);
+//        // user5, user6, user7, user8, user9 (why not user4? -- because token is preset to 4)
+//        assertThat(syncInfo.getCountUnmatchedAfter()).isBetween(RULE_CREATE_WATERMARK, RULE_CREATE_WATERMARK + WORKER_THREADS);
+//        assertEquals((Object) syncInfo.getCountDeletedAfter(), 0);
+//        assertEquals((Object) syncInfo.getCountLinkedAfter(), 0);
+//        assertEquals((Object) syncInfo.getCountUnlinkedAfter(), 0);
 
     }
 
@@ -68,12 +68,12 @@ public class TestThresholdsLiveSyncSimulateMultithreaded extends TestThresholds 
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
-        // new users: user5, user6, user7, user8, user9, user10, user11, user12, user13, user14, user15 (11 users)
-        //assertEquals(syncInfo.getCountUnmatched(), 11); // do we really need to check this?
-        assertEquals((Object) syncInfo.getCountDeleted(), 0);
-        // existing users: user1, user2 (disabled - passed, watermark not reached), user3 (disabled - fails) -- these users were created during initial import
-        assertEquals((Object) syncInfo.getCountLinked(), 3);             // 2 + 1
-        assertEquals((Object) syncInfo.getCountUnlinked(), 0);
+//        // new users: user5, user6, user7, user8, user9, user10, user11, user12, user13, user14, user15 (11 users)
+//        //assertEquals(syncInfo.getCountUnmatched(), 11); // do we really need to check this?
+//        assertEquals((Object) syncInfo.getCountDeleted(), 0);
+//        // existing users: user1, user2 (disabled - passed, watermark not reached), user3 (disabled - fails) -- these users were created during initial import
+//        assertEquals((Object) syncInfo.getCountLinked(), 3);             // 2 + 1
+//        assertEquals((Object) syncInfo.getCountUnlinked(), 0);
     }
 
     @Override
@@ -83,10 +83,10 @@ public class TestThresholdsLiveSyncSimulateMultithreaded extends TestThresholds 
 
         assertSyncToken(taskAfter, 4);
 
-        // user5, user6, user7, user8, user9
-        assertThat(syncInfo.getCountUnmatchedAfter()).isBetween(RULE_CREATE_WATERMARK, RULE_CREATE_WATERMARK + WORKER_THREADS);
-        assertEquals((Object) syncInfo.getCountDeletedAfter(), 0);
-        assertEquals((Object) syncInfo.getCountLinkedAfter(), 0);
-        assertEquals((Object) syncInfo.getCountUnlinkedAfter(), 0);
+//        // user5, user6, user7, user8, user9
+//        assertThat(syncInfo.getCountUnmatchedAfter()).isBetween(RULE_CREATE_WATERMARK, RULE_CREATE_WATERMARK + WORKER_THREADS);
+//        assertEquals((Object) syncInfo.getCountDeletedAfter(), 0);
+//        assertEquals((Object) syncInfo.getCountLinkedAfter(), 0);
+//        assertEquals((Object) syncInfo.getCountUnlinkedAfter(), 0);
     }
 }
