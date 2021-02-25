@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import java.util.Collection;
@@ -129,7 +128,7 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         // Hack. TODO: we need to add definitions to Pipeline items.
-        //noinspection unchecked
+        @SuppressWarnings({ "unchecked", "rawtypes" })
         TypedValue<?> typedValue = new TypedValue(value, value == null ? Object.class : value.getClass());
         Object outObject = executeScript(parameters.scriptExpression, typedValue, item.getVariables(), context, result);
         if (outObject != null) {
@@ -192,7 +191,7 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
 
     private void addToData(@NotNull Object outObject, @NotNull OperationResult result, PipelineData output) {
         if (outObject instanceof Collection) {
-            for (Object o : (Collection) outObject) {
+            for (Object o : (Collection<?>) outObject) {
                 addToData(o, result, output);
             }
         } else {
@@ -212,12 +211,12 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
 
     private ItemDefinition<?> getItemDefinition(String uri) throws ScriptExecutionException {
         QName name = QNameUtil.uriToQName(uri, true);
-        ItemDefinition byName = prismContext.getSchemaRegistry().findItemDefinitionByElementName(name);
+        ItemDefinition<?> byName = prismContext.getSchemaRegistry().findItemDefinitionByElementName(name);
         if (byName != null) {
             return byName;
         }
 
-        ItemDefinition byType = prismContext.getSchemaRegistry().findItemDefinitionByType(name);
+        ItemDefinition<?> byType = prismContext.getSchemaRegistry().findItemDefinitionByType(name);
         if (byType != null) {
             return byType;
         }
@@ -234,7 +233,7 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
     }
 
     private ItemDefinition<?> getItemDefinitionFromTypeName(QName typeName) throws ScriptExecutionException {
-        ItemDefinition byType = prismContext.getSchemaRegistry().findItemDefinitionByType(typeName);
+        ItemDefinition<?> byType = prismContext.getSchemaRegistry().findItemDefinitionByType(typeName);
         if (byType != null) {
             return byType;
         }
@@ -282,7 +281,7 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
     // TODO implement seriously! This implementation requires custom modelContext variable that might or might not be present
     //  (it is set e.g. for policy rule script execution)
     private LensContext<?> getLensContext(VariablesMap externalVariables) {
-        TypedValue modelContextTypedValue = externalVariables.get(ExpressionConstants.VAR_MODEL_CONTEXT);
+        TypedValue<?> modelContextTypedValue = externalVariables.get(ExpressionConstants.VAR_MODEL_CONTEXT);
         return modelContextTypedValue != null ? (LensContext<?>) modelContextTypedValue.getValue() : null;
     }
 
