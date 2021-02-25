@@ -122,6 +122,7 @@ public class ClockworkAuditHelper {
             } else {
                 primaryObject = projection.getObjectNew();
             }
+            // TODO couldn't we determine primary object from object ADD delta? See e.g. TestModelServiceContract.test120.
             primaryDelta = projection.getCurrentDelta();
         }
 
