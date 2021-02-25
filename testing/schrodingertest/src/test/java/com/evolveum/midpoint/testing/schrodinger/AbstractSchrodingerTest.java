@@ -385,21 +385,25 @@ public abstract class AbstractSchrodingerTest extends AbstractTestNGSpringContex
 
     protected void addObjectFromFile(File file, boolean overwrite) {
         try {
-            PrismObject object = prismContext.parseObject(file);
-            if (object == null) {
-                return;
-            }
+//            PrismObject object = prismContext.parseObject(file);
+            List<PrismObject<?>> objects = prismContext.parserFor(file).parseObjects();
             RestPrismServiceBuilder builder = RestPrismServiceBuilder.create();
             RestPrismService service = builder
                     .baseUrl(getConfigurationPropertyValue(startMidpoint ? "base_url" : "base_url_mp_already_started") + "/ws/rest")
                     .username(getConfigurationPropertyValue("username"))
                     .password(getConfigurationPropertyValue("password"))
                     .build();
-            List<String> options = null;
+            final List<String> options = new ArrayList<>();
             if (overwrite) {
-                options = Collections.singletonList("overwrite");
+                options.add("overwrite");
             }
-            addObjectService(service, object).setOptions(options).post();
+            objects.forEach(object -> {
+                try {
+                    addObjectService(service, object).setOptions(options).post();
+                } catch (CommonException e) {
+                    LOG.error("Unable to add object, {}", e);
+                }
+            });
         } catch (CommonException | SchemaException | IOException ex) {
             LOG.error("Unable to add object, {}", ex);
         }
