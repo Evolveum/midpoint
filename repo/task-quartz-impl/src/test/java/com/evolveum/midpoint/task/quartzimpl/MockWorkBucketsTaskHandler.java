@@ -136,7 +136,6 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
         runResult.setOperationResult(opResult);
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
         runResult.setBucketComplete(true);
-        runResult.setShouldContinue(true);
 
         hasRun = true;
         runningTask = null;

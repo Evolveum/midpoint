@@ -199,7 +199,6 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
         logger.trace("{} run finished (task {}, run result {})", processShortNameCapitalized, localCoordinatorTask, runResult);
         runResult.setBucketComplete(localCoordinatorTask.canRun()); // TODO
-        runResult.setShouldContinue(localCoordinatorTask.canRun()); // TODO
         return runResult;
     }
 
