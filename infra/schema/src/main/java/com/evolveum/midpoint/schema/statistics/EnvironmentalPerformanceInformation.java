@@ -8,9 +8,9 @@
 package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.namespace.QName;
@@ -158,7 +158,10 @@ public class EnvironmentalPerformanceInformation {
         return rv;
     }
 
-    public static void addTo(EnvironmentalPerformanceInformationType rv, EnvironmentalPerformanceInformationType delta) {
+    public static void addTo(EnvironmentalPerformanceInformationType rv, @Nullable EnvironmentalPerformanceInformationType delta) {
+        if (delta == null) {
+            return;
+        }
         addProvisioningTo(rv, delta.getProvisioningStatistics());
         addMappingsTo(rv, delta.getMappingsStatistics());
         addNotificationsTo(rv, delta.getNotificationsStatistics());

@@ -83,7 +83,4 @@ public class TestReconTask extends AbstractSynchronizationStoryTest {
     protected int getNumberOfExtraDummyUsers() {
         return 1;
     }
-
-
-
 }

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections.buffer.CircularFifoBuffer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.Objects;
@@ -165,8 +166,10 @@ public class IterativeTaskInformation {
     }
 
     /** Updates specified summary with given delta. */
-    public static void addTo(@NotNull IterativeTaskInformationType sum, @NotNull IterativeTaskInformationType delta) {
-        addMatchingParts(sum.getPart(), delta.getPart());
+    public static void addTo(@NotNull IterativeTaskInformationType sum, @Nullable IterativeTaskInformationType delta) {
+        if (delta != null) {
+            addMatchingParts(sum.getPart(), delta.getPart());
+        }
     }
 
     /** Looks for matching parts (created if necessary) and adds them. */

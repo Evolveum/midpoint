@@ -106,10 +106,9 @@ public class SynchronizationInformation {
     }
 
     public static void addTo(SynchronizationInformationType sum, @Nullable SynchronizationInformationType delta) {
-        if (delta == null) {
-            return;
+        if (delta != null) {
+            addTransitions(sum, delta);
         }
-        addTransitions(sum, delta);
     }
 
     private static void addTransitions(SynchronizationInformationType sum, @NotNull SynchronizationInformationType delta) {
