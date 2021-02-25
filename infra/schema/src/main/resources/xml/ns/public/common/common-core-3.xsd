@@ -17347,6 +17347,14 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="expression" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional expression to be executed to amend AuditEventRecord.
+                        Expression must return the record, return null to skip auditing for this record.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="property" type="tns:SystemConfigurationAuditEventRecordingPropertyType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
