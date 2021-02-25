@@ -172,15 +172,14 @@
         <spring.security.saml2.version>2.0.0.M30</spring.security.saml2.version>
         <cache2k.version>1.2.1.Final</cache2k.version>
         <cas.client.version>3.5.0</cas.client.version>
-        <testng.version>6.14.3</testng.version>
-        <!--<testng.version>7.3.0</testng.version> TODO: upgrade possible, works fine after "https" upgrade of DOCTYPE in suite XMLs -->
+        <testng.version>7.3.0</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
         <xmlunit.version>2.1.1</xmlunit.version>
         <cron4j.version>2.2.3</cron4j.version>
         <!-- We can't upgrade to 5.3 unless we get rid of EntityRegionAccessStrategy -->
         <hibernate.version>5.2.12.Final</hibernate.version>
         <!--
-        Default Spring Boot 2.3.3 uses H2 1.4.200 but that one has NPE bug:
+        Default Spring Boot 2.4.3 uses H2 1.4.200 but that one has NPE bug:
         https://github.com/h2database/h2database/issues/1808
         Sometimes occurs on heavy concurrent test, e.g. on TestDummyParallelism, but also during app run.
         This bug was introduced in 1.4.198, which was major version that also changed queries in OrgClosureManager.
@@ -199,20 +198,8 @@
         <jasper.version>6.5.0</jasper.version>
         <derby.version>10.11.1.1</derby.version>
         <wro4j.version>1.9.0</wro4j.version>
-        <!--
-        TODO: Jackson and snakeyaml are also in Spring Boot BOM, and some of the jackson deps are
-        already on 2.11.x line. However, aligning all jackson to 2.11 with or without upgrading
-        snakeyaml version results in:
-        [ERROR] testParseObjects_1_ListOfThree_ReadFirstTwo(com.evolveum.midpoint.prism.lex.TestYamlParser)  Time elapsed: 0.004 s  <<< FAILURE!
-        org.yaml.snakeyaml.emitter.EmitterException: expected NodeEvent, but got <org.yaml.snakeyaml.events.DocumentEndEvent()>
-        It is unclear now what the core problem is.
-        -->
-        <!--<jackson.version>2.10.0</jackson.version>-->
-        <!--<snakeyaml.version>1.27</snakeyaml.version>-->
         <surefire.version>3.0.0-M3</surefire.version>
         <reflections.version>0.9.11</reflections.version>
-        <!--<guava.version>28.1-jre</guava.version>-->
-        <!--TODO: possible upgrade, passes tests-->
         <guava.version>30.1-jre</guava.version>
         <jcommander.version>1.72</jcommander.version>
         <failsafe.version>3.0.0-M3</failsafe.version>
