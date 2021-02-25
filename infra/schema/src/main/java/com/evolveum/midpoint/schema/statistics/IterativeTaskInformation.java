@@ -23,6 +23,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * This is "live" iterative task information.
  *
@@ -66,10 +68,16 @@ public class IterativeTaskInformation {
         }
     }
 
+    /** Returns a current value of this statistics. It is copied because of thread safety issues. */
     public synchronized IterativeTaskInformationType getValueCopy() {
         return value.clone();
     }
 
+    /**
+     * Records an operation that has been just started. Stores it into the list of current operations.
+     * Returns an object that should receive the status of the operation, in order to record
+     * the operation end.
+     */
     public synchronized Operation recordOperationStart(IterativeOperation operation) {
         IterationItemInformation item = operation.getItem();
         ProcessedItemType processedItem = new ProcessedItemType(prismContext)
@@ -85,11 +93,14 @@ public class IterativeTaskInformation {
         List<ProcessedItemType> currentList = matchingPart.getCurrent();
 
         currentList.add(processedItem);
-        LOGGER.info("Recorded current operation. Current list size: {}. Operation: {}", currentList.size(), operation);
+        LOGGER.trace("Recorded current operation. Current list size: {}. Operation: {}", currentList.size(), operation);
         return new OperationImpl(operation, processedItem);
     }
 
-    /** Must be synchronized because it is called externally (through Operation interface) */
+    /**
+     * Records the operation end. It is private because it is called externally (through Operation interface).
+     * Must be synchronized because of this external access.
+     */
     private synchronized void recordOperationEnd(IterativeOperation operation, long operationId,
             ProcessedItemType processedItem, QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
         Optional<IterativeTaskPartItemsProcessingInformationType> matchingPartOptional =
@@ -102,12 +113,14 @@ public class IterativeTaskInformation {
         }
     }
 
+    /** The actual recording of operation end. */
     private void recordToPart(IterativeTaskPartItemsProcessingInformationType part, IterativeOperation operation,
             long operationId, ProcessedItemType processedItem, QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
         removeFromCurrentOperations(part, operationId);
         addToProcessedItemSet(part, operation, processedItem, outcome, exception);
     }
 
+    /** Updates the corresponding `processed` statistics. Creates and stores appropriate `lastItem` record. */
     private void addToProcessedItemSet(IterativeTaskPartItemsProcessingInformationType part, IterativeOperation operation,
             ProcessedItemType processedItem, QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
         ProcessedItemSetType itemSet = findOrCreateProcessedItemSet(part, outcome);
@@ -123,6 +136,7 @@ public class IterativeTaskInformation {
         itemSet.setLastItem(processedItemClone);
     }
 
+    /** Finds item set, creating _and adding to the list_ if necessary. */
     private ProcessedItemSetType findOrCreateProcessedItemSet(IterativeTaskPartItemsProcessingInformationType part,
             QualifiedItemProcessingOutcomeType outcome) {
         return part.getProcessed().stream()
@@ -132,6 +146,13 @@ public class IterativeTaskInformation {
                         () -> add(part.getProcessed(), new ProcessedItemSetType(prismContext).outcome(outcome.clone())));
     }
 
+    /** Like {@link List#add(Object)} but returns the value. */
+    private static <T> T add(List<T> list, T value) {
+        list.add(value);
+        return value;
+    }
+
+    /** Removes operation (given by id) from current operations in given task part. */
     private void removeFromCurrentOperations(IterativeTaskPartItemsProcessingInformationType part, long operationId) {
         boolean removed = part.getCurrent().removeIf(item -> Objects.equals(operationId, item.getOperationId()));
         if (!removed) {
@@ -143,19 +164,18 @@ public class IterativeTaskInformation {
         return ID_COUNTER.getAndIncrement();
     }
 
-    /**
-     * sum += delta
-     */
+    /** Updates specified summary with given delta. */
     public static void addTo(@NotNull IterativeTaskInformationType sum, @NotNull IterativeTaskInformationType delta) {
         addMatchingParts(sum.getPart(), delta.getPart());
     }
 
+    /** Looks for matching parts (created if necessary) and adds them. */
     private static void addMatchingParts(List<IterativeTaskPartItemsProcessingInformationType> sumParts,
             List<IterativeTaskPartItemsProcessingInformationType> deltaParts) {
         for (IterativeTaskPartItemsProcessingInformationType deltaPart : deltaParts) {
             IterativeTaskPartItemsProcessingInformationType matchingPart =
                     findOrCreateMatchingPart(sumParts, deltaPart.getPartUri());
-            addInternal(matchingPart, deltaPart);
+            addPartInformation(matchingPart, deltaPart);
         }
     }
 
@@ -166,11 +186,6 @@ public class IterativeTaskInformation {
                         () -> add(list, new IterativeTaskPartItemsProcessingInformationType().partUri(partUri)));
     }
 
-    private static <T> T add(List<T> list, T value) {
-        list.add(value);
-        return value;
-    }
-
     private static Optional<IterativeTaskPartItemsProcessingInformationType> findMatchingPart(
             @NotNull List<IterativeTaskPartItemsProcessingInformationType> list, String partUri) {
         return list.stream()
@@ -178,17 +193,19 @@ public class IterativeTaskInformation {
                 .findFirst();
     }
 
-    private static void addInternal(@NotNull IterativeTaskPartItemsProcessingInformationType sum,
+    /** Adds two "part information" */
+    private static void addPartInformation(@NotNull IterativeTaskPartItemsProcessingInformationType sum,
             @NotNull IterativeTaskPartItemsProcessingInformationType delta) {
         addProcessed(sum.getProcessed(), delta.getProcessed());
         addCurrent(sum.getCurrent(), delta.getCurrent());
     }
 
+    /** Adds `processed` items information */
     private static void addProcessed(@NotNull List<ProcessedItemSetType> sumSets, @NotNull List<ProcessedItemSetType> deltaSets) {
         for (ProcessedItemSetType deltaSet : deltaSets) {
             ProcessedItemSetType matchingSet =
                     findOrCreateMatchingSet(sumSets, deltaSet.getOutcome());
-            addCounters(matchingSet, deltaSet);
+            addMatchingProcessedItemSets(matchingSet, deltaSet);
         }
     }
 
@@ -201,11 +218,8 @@ public class IterativeTaskInformation {
                         () -> add(list, new ProcessedItemSetType().outcome(outcome)));
     }
 
-    private static void addCurrent(List<ProcessedItemType> sum, List<ProcessedItemType> delta) {
-        sum.addAll(CloneUtil.cloneCollectionMembers(delta)); // to avoid problems with parent
-    }
-
-    private static void addCounters(@NotNull ProcessedItemSetType sum, @NotNull ProcessedItemSetType delta) {
+    /** Adds matching processed item sets: adds counters and determines the latest `lastItem`. */
+    private static void addMatchingProcessedItemSets(@NotNull ProcessedItemSetType sum, @NotNull ProcessedItemSetType delta) {
         sum.setCount(or0(sum.getCount()) + or0(delta.getCount()));
         sum.setDuration(or0(sum.getDuration()) + or0(delta.getDuration()));
         if (delta.getLastItem() != null) {
@@ -216,9 +230,14 @@ public class IterativeTaskInformation {
         }
     }
 
+    /** Adds `current` items information (simply concatenates the lists). */
+    private static void addCurrent(List<ProcessedItemType> sum, List<ProcessedItemType> delta) {
+        sum.addAll(CloneUtil.cloneCollectionMembers(delta)); // to avoid problems with parent
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Deprecated
     public List<String> getLastFailures() {
-        //noinspection unchecked
         return new ArrayList<>(lastFailures);
     }
 
@@ -235,40 +254,16 @@ public class IterativeTaskInformation {
         return sb.toString();
     }
 
+    /** Formats the information. */
     public static String format(IterativeTaskInformationType source, AbstractStatisticsPrinter.Options options) {
         IterativeTaskInformationType information = source != null ? source : new IterativeTaskInformationType();
-        return new IterativeTaskInformationPrinter(information, null).print();
+        return new IterativeTaskInformationPrinter(information, options).print();
     }
 
-    public class OperationImpl implements Operation {
-
-        private final long operationId;
-        @NotNull private final IterativeOperation operation;
-        @NotNull private final ProcessedItemType processedItem;
-
-        public OperationImpl(@NotNull IterativeOperation operation, @NotNull ProcessedItemType processedItem) {
-            this.operationId = processedItem.getOperationId();
-            this.operation = operation;
-            this.processedItem = processedItem;
-        }
-
-        public void done(ItemProcessingOutcomeType outcome, Throwable exception) {
-            QualifiedItemProcessingOutcomeType qualifiedOutcome =
-                    new QualifiedItemProcessingOutcomeType(prismContext)
-                            .outcome(outcome);
-            recordOperationEnd(operation, operationId, processedItem, qualifiedOutcome, exception);
-        }
-    }
-
-    private static class NoneOperation implements Operation {
-        public static final Operation INSTANCE = new NoneOperation();
-
-        @Override
-        public void done(ItemProcessingOutcomeType outcome, Throwable exception) {
-            // no op
-        }
-    }
-
+    /**
+     * Operation being recorded: represents an object to which the client reports the end of the operation.
+     * It is called simply {@link Operation} to avoid confusing the clients.
+     */
     public interface Operation {
 
         void done(ItemProcessingOutcomeType outcome, Throwable exception);
@@ -282,11 +277,58 @@ public class IterativeTaskInformation {
         }
 
         default void failed(Throwable t) {
-            done(ItemProcessingOutcomeType.FAILURE, null);
+            done(ItemProcessingOutcomeType.FAILURE, t);
         }
 
         static Operation none() {
             return NoneOperation.INSTANCE;
+        }
+    }
+
+    /**
+     * Real implementation of the {@link Operation} interface.
+     */
+    public class OperationImpl implements Operation {
+
+        /** Generated ID used for finding the operation among current operations. */
+        private final long operationId;
+
+        /** Client-supplied operation information. */
+        @NotNull private final IterativeOperation operation;
+
+        /**
+         * The processed item structure generated when recording operation start.
+         * It is stored in the list of current operations.
+         */
+        @NotNull private final ProcessedItemType processedItem;
+
+        public OperationImpl(@NotNull IterativeOperation operation, @NotNull ProcessedItemType processedItem) {
+            // The processedItem is stored only in memory; so there is no way of having null here.
+            this.operationId = requireNonNull(processedItem.getOperationId());
+            this.operation = operation;
+            this.processedItem = processedItem;
+        }
+
+        public void done(ItemProcessingOutcomeType outcome, Throwable exception) {
+            // Eventually the qualifier will be added to the API.
+            QualifiedItemProcessingOutcomeType qualifiedOutcome =
+                    new QualifiedItemProcessingOutcomeType(prismContext)
+                            .outcome(outcome);
+            recordOperationEnd(operation, operationId, processedItem, qualifiedOutcome, exception);
+        }
+    }
+
+    /**
+     * Dummy "no-op" operation that is used when recording is not available.
+     * We avoid returning null in order to allow clients safely call {@link Operation} methods
+     * without the ugly nullity checks.
+     */
+    private static class NoneOperation implements Operation {
+        public static final Operation INSTANCE = new NoneOperation();
+
+        @Override
+        public void done(ItemProcessingOutcomeType outcome, Throwable exception) {
+            // no op
         }
     }
 }
