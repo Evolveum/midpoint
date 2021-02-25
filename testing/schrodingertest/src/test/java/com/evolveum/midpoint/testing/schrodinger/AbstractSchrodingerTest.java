@@ -17,9 +17,6 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.ex.ElementNotFound;
 import com.codeborne.selenide.testng.BrowserPerClass;
 import com.codeborne.selenide.testng.annotations.Report;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -32,12 +29,12 @@ import org.testng.Assert;
 import org.testng.ITestResult;
 import org.testng.annotations.*;
 
+import com.evolveum.midpoint.client.api.ObjectAddService;
 import com.evolveum.midpoint.client.api.exception.CommonException;
+import com.evolveum.midpoint.client.impl.prism.RestPrismObjectAddService;
 import com.evolveum.midpoint.client.impl.prism.RestPrismService;
 import com.evolveum.midpoint.client.impl.prism.RestPrismServiceBuilder;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schrodinger.EnvironmentConfiguration;
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -62,9 +59,9 @@ import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.testing.schrodinger.reports.SchrodingerTextReport;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.boot.MidPointSpringApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -124,7 +121,7 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
     protected void initSystem(Task task, OperationResult initResult) throws Exception {
         super.initSystem(task, initResult);
 //        addObjectFromFile(SYSTEM_CONFIG_INITIAL, true, initResult);
-        getObjectListToImport().forEach(objFile -> addObjectFromFile(objFile, true, initResult));
+        getObjectListToImport().forEach(objFile -> addObjectFromFile(objFile, true));
     }
 
     protected List<File> getObjectListToImport(){
@@ -364,50 +361,55 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
     }
 
     protected void addObjectFromFile(File file) {
-        addObjectFromFile(file, true);
+        addObjectFromFile(file, false);
     }
 
     protected void addObjectFromFile(File file, boolean overwrite) {
-        addObjectFromFile(file, overwrite, new OperationResult("addObjectFromFile." + file.getName()));
-    }
-
-    protected void addObjectFromFile(File file, boolean overwrite, OperationResult result) {
         try {
+            PrismObject object = prismContext.parseObject(file);
+            if (object == null) {
+                return;
+            }
             RestPrismServiceBuilder builder = RestPrismServiceBuilder.create();
             RestPrismService service = builder
                     .baseUrl(getConfigurationPropertyValue(startMidpoint ? "base_url" : "base_url_mp_already_started") + "/ws/rest")
                     .username(getConfigurationPropertyValue("username"))
                     .password(getConfigurationPropertyValue("password"))
                     .build();
-
-            PrismObject object = prismContext.parseObject(file);
-            if (object == null) {
-                return;
+            List<String> options = null;
+            if (overwrite) {
+                options = Collections.singletonList("overwrite");
             }
-            if (object.isOfType(UserType.class)) {
-                service.users().add((UserType) object.asObjectable()).post();
-            } else if (object.isOfType(RoleType.class)) {
-                service.roles().add((RoleType) object.asObjectable()).post();
-            }else if (object.isOfType(OrgType.class)) {
-                service.orgs().add((OrgType) object.asObjectable()).post();
-            }else if (object.isOfType(ArchetypeType.class)) {
-                service.archetypes().add((ArchetypeType) object.asObjectable()).post();
-            }else if (object.isOfType(LookupTableType.class)) {
-                service.lookupTables().add((LookupTableType) object.asObjectable()).post();
-            }else if (object.isOfType(ObjectTemplateType.class)) {
-                service.objectTemplates().add((ObjectTemplateType) object.asObjectable()).post();
-            }else if (object.isOfType(ResourceType.class)) {
-                service.resources().add((ResourceType) object.asObjectable()).post();
-            }else if (object.isOfType(SystemConfigurationType.class)) {
-                service.systemConfigurations().add((SystemConfigurationType) object.asObjectable()).post();
-            } else if (object.isOfType(TaskType.class)) {
-                service.tasks().add((TaskType) object.asObjectable()).post();
-            } else if (object.isOfType(ValuePolicyType.class)) {
-                service.valuePolicies().add((ValuePolicyType) object.asObjectable()).post();
-            }
+            addObjectService(service, object).setOptions(options).post();
         } catch (CommonException | SchemaException | IOException ex) {
-            LOG.error("Unable to add object, {}", result.getUserFriendlyMessage(), ex);
+            LOG.error("Unable to add object, {}", ex);
         }
+    }
+
+    private RestPrismObjectAddService addObjectService(RestPrismService service, PrismObject object) {
+        ObjectAddService<? extends ObjectType> addService = null;
+        if (object.isOfType(UserType.class)) {
+            addService = service.users().add((UserType) object.asObjectable());
+        } else if (object.isOfType(RoleType.class)) {
+            addService = service.roles().add((RoleType) object.asObjectable());
+        } else if (object.isOfType(OrgType.class)) {
+            addService = service.orgs().add((OrgType) object.asObjectable());
+        } else if (object.isOfType(ArchetypeType.class)) {
+            addService = service.archetypes().add((ArchetypeType) object.asObjectable());
+        } else if (object.isOfType(LookupTableType.class)) {
+            addService = service.lookupTables().add((LookupTableType) object.asObjectable());
+        } else if (object.isOfType(ObjectTemplateType.class)) {
+            addService = service.objectTemplates().add((ObjectTemplateType) object.asObjectable());
+        } else if (object.isOfType(ResourceType.class)) {
+            addService = service.resources().add((ResourceType) object.asObjectable());
+        } else if (object.isOfType(SystemConfigurationType.class)) {
+            addService = service.systemConfigurations().add((SystemConfigurationType) object.asObjectable());
+        } else if (object.isOfType(TaskType.class)) {
+            addService = service.tasks().add((TaskType) object.asObjectable());
+        } else if (object.isOfType(ValuePolicyType.class)) {
+            addService = service.valuePolicies().add((ValuePolicyType) object.asObjectable());
+        }
+        return (RestPrismObjectAddService) addService;
     }
 
     public UserPage showUser(String userName){
