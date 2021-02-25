@@ -1077,6 +1077,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             return false;
         }
 
+        if (object == null) {
+            logger.trace("{} null object", logMessagePrefix);
+            return false;
+        }
+
         SearchFilterType specFilterType = objectSelector.getFilter();
         ObjectReferenceType specOrgRef = objectSelector.getOrgRef();
         QName specTypeQName = objectSelector.getType(); // now it does not matter if it's unqualified

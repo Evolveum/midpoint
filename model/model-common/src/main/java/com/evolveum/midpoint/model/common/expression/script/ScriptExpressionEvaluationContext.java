@@ -12,7 +12,7 @@ import java.util.function.Function;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -30,7 +30,7 @@ public class ScriptExpressionEvaluationContext {
     private static final ThreadLocal<ScriptExpressionEvaluationContext> THREAD_LOCAL_CONTEXT = new ThreadLocal<>();
 
     private ScriptExpressionEvaluatorType expressionType;
-    private ExpressionVariables variables;
+    private VariablesMap variables;
     private ItemDefinition outputDefinition;
     private Function<Object, Object> additionalConvertor;
     private ScriptExpressionReturnTypeType suggestedReturnType;
@@ -56,11 +56,11 @@ public class ScriptExpressionEvaluationContext {
         this.expressionType = expressionType;
     }
 
-    public ExpressionVariables getVariables() {
+    public VariablesMap getVariables() {
         return variables;
     }
 
-    public void setVariables(ExpressionVariables variables) {
+    public void setVariables(VariablesMap variables) {
         this.variables = variables;
     }
 

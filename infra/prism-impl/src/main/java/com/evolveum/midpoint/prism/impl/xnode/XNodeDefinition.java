@@ -194,6 +194,8 @@ public abstract class XNodeDefinition {
         @Override
         public abstract XNodeDefinition metadataDef();
 
+        public abstract @NotNull PrismNamespaceContext staticNamespaceContext();
+
     }
 
     private static class SchemaRoot extends Root {
@@ -205,6 +207,10 @@ public abstract class XNodeDefinition {
             registry = reg;
         }
 
+        @Override
+        public @NotNull PrismNamespaceContext staticNamespaceContext() {
+            return registry.staticNamespaceContext();
+        }
 
         public @NotNull XNodeDefinition fromType(@NotNull QName name, QName typeName, boolean inherited) {
             var definition = Optional.ofNullable(registry.findComplexTypeDefinitionByType(typeName));
@@ -384,6 +390,10 @@ public abstract class XNodeDefinition {
             return new SchemaIgnorant(JsonInfraItems.PROP_METADATA_QNAME);
         }
 
+        @Override
+        public @NotNull PrismNamespaceContext staticNamespaceContext() {
+            return PrismNamespaceContext.EMPTY;
+        }
     }
 
     private static class Value extends XNodeDefinition {

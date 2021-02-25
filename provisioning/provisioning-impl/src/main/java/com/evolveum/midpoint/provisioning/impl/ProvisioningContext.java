@@ -16,7 +16,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -201,7 +201,7 @@ public class ProvisioningContext extends StateReporter {
             if (filter == null) {
                 continue;
             }
-            ExpressionVariables variables = new ExpressionVariables();
+            VariablesMap variables = new VariablesMap();
             variables.put(ExpressionConstants.VAR_RESOURCE, resource, ResourceType.class);
             variables.put(ExpressionConstants.VAR_CONFIGURATION, resourceManager.getSystemConfiguration(), SystemConfigurationType.class);
             ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(filter, variables, MiscSchemaUtil.getExpressionProfile(), expressionFactory, getPrismContext(), "protected filter", getTask(), result);

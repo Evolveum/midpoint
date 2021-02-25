@@ -250,14 +250,14 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ValueMetadataTy
             return true;
         }
 
-        if (childValue.getItems().size() == 1) {
+        if (childValue.size() == 1) {
             ItemWrapper childChild = childValue.getItems().get(0);
             if (!(childChild instanceof PrismContainerWrapper)) {
                 return false;
             }
         }
 
-        return childValue.getItems().size() > 1;
+        return childValue.size() > 1;
 
     }
 

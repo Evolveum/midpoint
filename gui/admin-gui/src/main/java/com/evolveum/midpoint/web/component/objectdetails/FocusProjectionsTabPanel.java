@@ -187,10 +187,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                             IModel<PrismContainerValueWrapper<ShadowType>> rowModel,
                             List<PrismContainerValueWrapper<ShadowType>> listItems) {
 
-                        if (rowModel != null && rowModel.getObject() != null
-                                && ((ShadowWrapper) rowModel.getObject().getParent()).isLoadWithNoFetch()) {
-                            ((PageAdminFocus) getPage()).loadFullShadow((PrismObjectValueWrapper) rowModel.getObject(), target);
-                        }
+                        loadShadowIfNeeded(rowModel, target);
 
                         if (listItems != null) {
                             listItems.forEach(value -> {
@@ -220,6 +217,26 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                 };
         add(multivalueContainerListPanel);
         setOutputMarkupId(true);
+    }
+
+    private void loadShadowIfNeeded(IModel<PrismContainerValueWrapper<ShadowType>> rowModel, AjaxRequestTarget target) {
+        if (rowModel == null) {
+            return;
+        }
+
+        PrismContainerValueWrapper<ShadowType> shadow = rowModel.getObject();
+        if (shadow == null) {
+            return;
+        }
+
+        ShadowWrapper shadowWrapper = shadow.getParent();
+        if (shadowWrapper == null) {
+            return;
+        }
+
+        if (shadowWrapper.isLoadWithNoFetch()) {
+            ((PageAdminFocus) getPage()).loadFullShadow((PrismObjectValueWrapper)rowModel.getObject(), target);
+        }
     }
 
     private MultivalueContainerDetailsPanel<ShadowType> getMultivalueContainerDetailsPanel(

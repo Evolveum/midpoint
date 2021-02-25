@@ -37,7 +37,7 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -96,7 +96,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 
     @NotNull
     @Override
-    protected List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination, boolean useNew,
+    protected List<V> transformSingleValue(VariablesMap variables, PlusMinusZero valueDestination, boolean useNew,
             ExpressionEvaluationContext context, String contextDescription, Task task, OperationResult result)
                     throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -368,7 +368,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 
     protected abstract V createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<V, D>> additionalAttributeDeltas, ExpressionEvaluationContext params);
 
-    private <O extends ObjectType> String createOnDemand(Class<O> targetTypeClass, ExpressionVariables variables,
+    private <O extends ObjectType> String createOnDemand(Class<O> targetTypeClass, VariablesMap variables,
             ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result)
                     throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (LOGGER.isTraceEnabled()) {

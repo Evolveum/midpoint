@@ -23,7 +23,18 @@
             Version: 4.0
             Default prefix: a
         </xsd:documentation>
+        <xsd:appinfo>
+            <a:defaultPrefix>a</a:defaultPrefix>
+        </xsd:appinfo>
     </xsd:annotation>
+
+    <xsd:element name="defaultPrefix">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines constant prefix, which should be used for namespace defined in XSD schema
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
 
     <xsd:element name="container">
         <xsd:annotation>

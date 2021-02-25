@@ -10,7 +10,7 @@ import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalH
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -65,7 +65,7 @@ public class ExpressionHandler {
 
         ResourceType resource = resolveResource(shadow, result);
 
-        ExpressionVariables variables = getDefaultXPathVariables(null, shadow, resource);
+        VariablesMap variables = getDefaultXPathVariables(null, shadow, resource);
 
         PrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
                 DOMUtil.XSD_STRING);
@@ -96,7 +96,7 @@ public class ExpressionHandler {
         Validate.notNull(result, "Operation result must not be null.");
 
         ResourceType resource = resolveResource(shadow, result);
-        ExpressionVariables variables = getDefaultXPathVariables(user, shadow, resource);
+        VariablesMap variables = getDefaultXPathVariables(user, shadow, resource);
         String shortDesc = "confirmation expression for "+resource.asPrismObject();
 
         PrismPropertyDefinition<Boolean> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
@@ -142,10 +142,10 @@ public class ExpressionHandler {
         return modelObjectResolver.getObjectSimple(ResourceType.class, ref.getOid(), null, null, result);
     }
 
-    public static ExpressionVariables getDefaultXPathVariables(UserType user,
+    public static VariablesMap getDefaultXPathVariables(UserType user,
             ShadowType shadow, ResourceType resource) {
 
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         if (user != null) {
             variables.put(ExpressionConstants.VAR_FOCUS, user.asPrismObject(), user.asPrismObject().getDefinition());
             variables.put(ExpressionConstants.VAR_USER, user.asPrismObject(), user.asPrismObject().getDefinition());

@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -91,7 +91,7 @@ public class SynchronizationServiceUtils {
         }
         ExpressionType conditionExpressionBean = synchronizationPolicy.getCondition();
         String desc = "condition in object synchronization " + synchronizationPolicy.getName();
-        ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, syncCtx.getApplicableShadow(), null,
+        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(null, syncCtx.getApplicableShadow(), null,
                 syncCtx.getResource(), syncCtx.getSystemConfiguration(), null, syncCtx.getPrismContext());
         try {
             ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(syncCtx.getTask(), result));

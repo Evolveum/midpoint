@@ -24,10 +24,10 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -282,11 +282,11 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return this.createObjectQuery(null, pageBase);
     }
 
-    public ObjectQuery createObjectQuery(ExpressionVariables variables, PageBase pageBase) {
+    public ObjectQuery createObjectQuery(VariablesMap variables, PageBase pageBase) {
         return this.createObjectQuery(variables, pageBase, null);
     }
 
-    public ObjectQuery createObjectQuery(ExpressionVariables variables, PageBase pageBase, ObjectQuery customizeContentQuery) {
+    public ObjectQuery createObjectQuery(VariablesMap variables, PageBase pageBase, ObjectQuery customizeContentQuery) {
         LOGGER.debug("Creating query from {}", this);
         ObjectQuery query;
         if (SearchBoxModeType.OID.equals(searchType)) {
@@ -315,7 +315,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return query;
     }
 
-    private ObjectQuery createQueryFromDefaultItems(PageBase pageBase, ExpressionVariables variables) {
+    private ObjectQuery createQueryFromDefaultItems(PageBase pageBase, VariablesMap variables) {
         List<SearchItem> specialItems = getSpecialItems();
         if (specialItems.isEmpty()) {
             return null;
@@ -383,7 +383,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return origQuery;
     }
 
-    private ObjectQuery createObjectQuerySimple(ExpressionVariables defaultVariables, PageBase pageBase) {
+    private ObjectQuery createObjectQuerySimple(VariablesMap defaultVariables, PageBase pageBase) {
         List<SearchItem> searchItems = getItems();
         if (searchItems.isEmpty()) {
             return null;
@@ -399,7 +399,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             }
         }
 
-        ExpressionVariables variables = defaultVariables == null ? new ExpressionVariables() : defaultVariables;
+        VariablesMap variables = defaultVariables == null ? new VariablesMap() : defaultVariables;
         for (FilterSearchItem item : getFilterItems()) {
             SearchFilterParameterType functionParameter = item.getPredefinedFilter().getParameter();
             QName returnType = functionParameter.getType();

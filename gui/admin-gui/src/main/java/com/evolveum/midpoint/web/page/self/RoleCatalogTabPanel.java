@@ -25,7 +25,7 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
@@ -170,7 +170,7 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
     private SearchItem createScopeItem(Search search) {
         return new SpecialSearchItem(search) {
             @Override
-            public ObjectFilter createFilter(PageBase pageBase, ExpressionVariables variables) {
+            public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
                 return null;
             }
 

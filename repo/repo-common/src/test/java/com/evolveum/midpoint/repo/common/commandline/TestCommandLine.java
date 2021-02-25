@@ -23,7 +23,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -88,7 +88,7 @@ public class TestCommandLine extends AbstractIntegrationTest {
 
         CommandLineScriptType scriptType = getScript(REPORT_REDIR_ECHO_FILE);
 
-        ExpressionVariables variables = ExpressionVariables.create(prismContext,
+        VariablesMap variables = VariablesMap.create(prismContext,
             VAR_HELLOTEXT, "Hello World", PrimitiveType.STRING);
 
         // WHEN

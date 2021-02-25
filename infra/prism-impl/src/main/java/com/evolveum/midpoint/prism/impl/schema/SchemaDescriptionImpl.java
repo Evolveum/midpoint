@@ -38,15 +38,19 @@ public final class SchemaDescriptionImpl extends AbstractFreezable implements Sc
     private PrismSchema schema;
     private Package compileTimeClassesPackage;
 
+    private String defaultPrefix;
+
     SchemaDescriptionImpl(String sourceDescription, String path) {
         this.sourceDescription = sourceDescription;
         this.path = path;
     }
 
+    @Override
     public String getPath() {
         return path;
     }
 
+    @Override
     public String getNamespace() {
         return namespace;
     }
@@ -66,6 +70,7 @@ public final class SchemaDescriptionImpl extends AbstractFreezable implements Sc
         this.node = node;
     }
 
+    @Override
     public String getUsualPrefix() {
         return usualPrefix;
     }
@@ -75,10 +80,12 @@ public final class SchemaDescriptionImpl extends AbstractFreezable implements Sc
         this.usualPrefix = usualPrefix;
     }
 
+    @Override
     public String getSourceDescription() {
         return sourceDescription;
     }
 
+    @Override
     public boolean isPrismSchema() {
         return isPrismSchema;
     }
@@ -89,6 +96,7 @@ public final class SchemaDescriptionImpl extends AbstractFreezable implements Sc
         this.isPrismSchema = value;
     }
 
+    @Override
     public boolean isDefault() {
         return isDefault;
     }
@@ -98,6 +106,7 @@ public final class SchemaDescriptionImpl extends AbstractFreezable implements Sc
         this.isDefault = isDefault;
     }
 
+    @Override
     public boolean isDeclaredByDefault() {
         return isDeclaredByDefault;
     }
@@ -107,6 +116,7 @@ public final class SchemaDescriptionImpl extends AbstractFreezable implements Sc
         this.isDeclaredByDefault = isDeclaredByDefault;
     }
 
+    @Override
     public PrismSchema getSchema() {
         return schema;
     }
@@ -116,6 +126,7 @@ public final class SchemaDescriptionImpl extends AbstractFreezable implements Sc
         this.schema = schema;
     }
 
+    @Override
     public Package getCompileTimeClassesPackage() {
         return compileTimeClassesPackage;
     }
@@ -125,10 +136,12 @@ public final class SchemaDescriptionImpl extends AbstractFreezable implements Sc
         this.compileTimeClassesPackage = compileTimeClassesPackage;
     }
 
+    @Override
     public boolean canInputStream() {
         return streamable != null;
     }
 
+    @Override
     public InputStream openInputStream() {
         if (!canInputStream()) {
             throw new IllegalStateException("Schema "+sourceDescription+" cannot provide input stream");
@@ -136,6 +149,7 @@ public final class SchemaDescriptionImpl extends AbstractFreezable implements Sc
         return streamable.openInputStream();
     }
 
+    @Override
     public Source getSource() {
         Source source;
         if (canInputStream()) {
@@ -150,6 +164,7 @@ public final class SchemaDescriptionImpl extends AbstractFreezable implements Sc
         return source;
     }
 
+    @Override
     public Element getDomElement() {
         if (node instanceof Element) {
             return (Element)node;
@@ -190,5 +205,13 @@ public final class SchemaDescriptionImpl extends AbstractFreezable implements Sc
                 ", namespace='" + namespace + '\'' +
                 ", schema=" + schema +
                 '}';
+    }
+
+    public void setDefaultPrefix(String prefix) {
+        this.defaultPrefix = prefix;
+    }
+
+    public String getDefaultPrefix() {
+        return defaultPrefix;
     }
 }

@@ -7,19 +7,28 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
-import com.evolveum.midpoint.model.api.*;
+import static com.evolveum.midpoint.model.impl.scripting.VariablesUtil.cloneIfNecessary;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.PipelineItem;
+import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.impl.scripting.*;
 import com.evolveum.midpoint.model.impl.scripting.helpers.ExpressionHelper;
 import com.evolveum.midpoint.model.impl.scripting.helpers.OperationsHelper;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -34,14 +43,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-
-import static com.evolveum.midpoint.model.impl.scripting.VariablesUtil.cloneIfNecessary;
 
 /**
  * Superclass for all action executors.
@@ -107,7 +109,7 @@ public abstract class BaseActionExecutor implements ActionExecutor {
 
     @FunctionalInterface
     public interface ItemProcessor {
-        void process(PrismValue value, PipelineItem item, OperationResult result) throws ScriptExecutionException, CommonException;
+        void process(PrismValue value, PipelineItem item, OperationResult result) throws CommonException;
     }
 
     @FunctionalInterface
@@ -161,8 +163,8 @@ public abstract class BaseActionExecutor implements ActionExecutor {
      * plus some generic ones (prism context, actor).
      */
     @NotNull
-    protected ExpressionVariables createVariables(VariablesMap externalVariables) {
-        ExpressionVariables variables = new ExpressionVariables();
+    protected VariablesMap createVariables(VariablesMap externalVariables) {
+        VariablesMap variables = new VariablesMap();
 
         variables.put(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext, PrismContext.class);
         ExpressionUtil.addActorVariable(variables, securityContextManager, prismContext);

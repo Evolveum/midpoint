@@ -6,14 +6,14 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemWrapperComparator;
+import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -66,7 +66,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     public PrismContainerValue<C> getValueToAdd() throws SchemaException {
         Collection<ItemDelta> modifications = new ArrayList<>();
         for (ItemWrapper<?, ?> itemWrapper : items) {
-            Collection<ItemDelta> subDelta = itemWrapper.getDelta();
+            Collection<ItemDelta<?, ?>> subDelta = itemWrapper.getDelta();
 
             if (subDelta != null && !subDelta.isEmpty()) {
                 modifications.addAll(subDelta);
@@ -123,7 +123,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
             return name;
         }
 
-        return WebComponentUtil.getDisplayName(getNewValue());
+        return GuiDisplayNameUtil.getDisplayName(getNewValue());
     }
 
     @Override
@@ -140,18 +140,6 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     public void setExpanded(boolean expanded) {
         this.expanded = expanded;
     }
-
-//    @Override
-//    public boolean hasMetadata() {
-//        for (ItemWrapper<?,?> container : items) {
-//            if (container.getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
-//                return true;
-//            }
-//        }
-//
-//        return false;
-//    }
-//
 
     @Override
     public List<ItemWrapper<?, ?>> getItems() {
@@ -238,13 +226,11 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
         if (!containers.isEmpty()) {
             return containers;
         }
-//        List<PrismContainerWrapper<T>> containers = new ArrayList<>();
         for (ItemWrapper<?, ?> container : items) {
 
             collectExtensionItems(container, true, containers);
 
             if (container instanceof PrismContainerWrapper && !ObjectType.F_EXTENSION.equivalent(container.getItemName())) {
-                //noinspection unchecked
                 containers.add((PrismContainerWrapper) container);
             }
         }
@@ -256,7 +242,15 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
         if (!nonContainers.isEmpty()) {
             return nonContainers;
         }
-//        List<ItemWrapper<?,?>> nonContainers = new ArrayList<>();
+
+        collectContainers();
+        collectVirtualContainers();
+        sortContainers();
+
+        return nonContainers;
+    }
+
+    private void collectContainers() {
         for (ItemWrapper<?,?> item : items) {
 
             collectExtensionItems(item, false, nonContainers);
@@ -265,20 +259,22 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
                 nonContainers.add(item);
             }
         }
+    }
 
+    private void collectVirtualContainers() {
         if (getVirtualItems() == null) {
-            return nonContainers;
+            return;
         }
 
         if (getParent() == null) {
             LOGGER.trace("Parent null, skipping virtual items");
-            return nonContainers;
+            return;
         }
 
         PrismObjectWrapper objectWrapper = getParent().findObjectWrapper();
         if (objectWrapper == null) {
             LOGGER.trace("No object wrapper found. Skipping virtual items.");
-            return nonContainers;
+            return;
         }
 
         for (VirtualContainerItemSpecificationType virtualItem : getVirtualItems()) {
@@ -300,7 +296,13 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
                 LOGGER.error("Cannot find wrapper with path {}, error occurred {}", virtualItem, e.getMessage(), e);
             }
         }
-        return nonContainers;
+    }
+
+    private void sortContainers() {
+        ItemWrapperComparator<?> comparator = new ItemWrapperComparator<>(WebComponentUtil.getCollator(), sorted);
+        if (CollectionUtils.isNotEmpty(nonContainers)) {
+            nonContainers.sort((Comparator) comparator);
+        }
     }
 
     private ItemPath getVirtualItemPath(VirtualContainerItemSpecificationType virtualItem) throws SchemaException {
@@ -318,8 +320,8 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
         }
 
         try {
-            PrismContainerValueWrapper<ExtensionType> extenstion = (PrismContainerValueWrapper<ExtensionType>) item.getValue();
-            List<? extends ItemWrapper<?, ?>> extensionItems = extenstion.getItems();
+            PrismContainerValueWrapper<ExtensionType> extension = (PrismContainerValueWrapper<ExtensionType>) item.getValue();
+            List<? extends ItemWrapper<?, ?>> extensionItems = extension.getItems();
             for (ItemWrapper<?, ?> extensionItem : extensionItems) {
                 if (extensionItem instanceof PrismContainerWrapper) {
                     if (containers) {
@@ -532,5 +534,22 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
         }
 
         return null;
+    }
+
+    @Override
+    public void clearItems() {
+        items.clear();
+        nonContainers.clear();
+    }
+
+    @Override
+    public void addItems(Collection<ItemWrapper<?, ?>> newItems) {
+        items.addAll(newItems);
+        nonContainers.clear();
+    }
+
+    @Override
+    public int size() {
+        return items.size();
     }
 }

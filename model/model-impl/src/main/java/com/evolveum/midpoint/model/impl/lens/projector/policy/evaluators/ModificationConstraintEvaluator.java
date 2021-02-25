@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import javax.xml.bind.JAXBElement;
 
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +54,7 @@ public abstract class ModificationConstraintEvaluator<T extends ModificationPoli
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         T constraint = constraintElement.getValue();
-        ExpressionVariables variables = evaluatorHelper.createExpressionVariables(ctx, constraintElement);
+        VariablesMap variables = evaluatorHelper.createVariablesMap(ctx, constraintElement);
         String contextDescription = "expression in modification constraint " + constraint.getName() + " (" + ctx.state + ")";
         return evaluatorHelper.evaluateBoolean(constraint.getExpression(), variables, contextDescription, ctx.task, result);
     }

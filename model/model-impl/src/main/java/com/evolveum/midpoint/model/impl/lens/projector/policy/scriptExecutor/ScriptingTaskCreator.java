@@ -19,7 +19,7 @@ import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalH
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -101,7 +101,7 @@ abstract class ScriptingTaskCreator {
             ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
                     new ExpressionEnvironment<>(actx.context, null, actx.task, result1));
             try {
-                ExpressionVariables variables = createVariables();
+                VariablesMap variables = createVariables();
                 ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
                 return ExpressionUtil.evaluateFilterExpressions(rawFilter, variables, expressionProfile,
                         beans.expressionFactory, beans.prismContext,
@@ -112,8 +112,8 @@ abstract class ScriptingTaskCreator {
         };
     }
 
-    private ExpressionVariables createVariables() throws SchemaException {
-        ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(actx.context, null, true);
+    private VariablesMap createVariables() throws SchemaException {
+        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(actx.context, null, true);
         actx.putIntoVariables(variables);
         return variables;
     }
@@ -130,7 +130,7 @@ abstract class ScriptingTaskCreator {
             try {
                 PrismObjectDefinition<TaskType> taskDefinition = preparedTask.asPrismObject().getDefinition();
 
-                ExpressionVariables variables = createVariables();
+                VariablesMap variables = createVariables();
                 variables.addVariableDefinition(VAR_PREPARED_TASK, preparedTask, taskDefinition);
                 ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
                 PrismValue customizedTaskValue = ExpressionUtil.evaluateExpression(variables, taskDefinition,

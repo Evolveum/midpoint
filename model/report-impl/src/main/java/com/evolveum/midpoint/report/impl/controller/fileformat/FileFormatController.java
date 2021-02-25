@@ -11,21 +11,19 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.util.DashboardUtils;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.ReportUtils;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
@@ -187,7 +185,7 @@ public abstract class FileFormatController {
                     stringValue = "";
                 } else if (realObject instanceof Collection) {
                     stringValue = processListOfRealValues((Collection) realObject);
-                } else if (realObject instanceof Enum){
+                } else if (realObject instanceof Enum) {
                     stringValue = ReportUtils.prettyPrintForReport((Enum) realObject);
                 } else if (realObject instanceof XMLGregorianCalendar) {
                     stringValue = ReportUtils.prettyPrintForReport((XMLGregorianCalendar) realObject);
@@ -245,7 +243,7 @@ public abstract class FileFormatController {
 
     private Object evaluateExportExpression(ExpressionType expression, Object valueObject, Task task, OperationResult result) {
 
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         if (valueObject == null) {
             variables.put(ExpressionConstants.VAR_OBJECT, null, Object.class);
         } else {
@@ -266,18 +264,18 @@ public abstract class FileFormatController {
     }
 
     protected Object evaluateImportExpression(ExpressionType expression, String input, Task task, OperationResult result) {
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_INPUT, input, String.class);
         return evaluateImportExpression(expression, variables, task, result);
     }
 
     protected Object evaluateImportExpression(ExpressionType expression, List<String> input, Task task, OperationResult result) {
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_INPUT, input, List.class);
         return evaluateImportExpression(expression, variables, task, result);
     }
 
-    private Object evaluateImportExpression(ExpressionType expression, ExpressionVariables variables, Task task, OperationResult result) {
+    private Object evaluateImportExpression(ExpressionType expression, VariablesMap variables, Task task, OperationResult result) {
         Object value = null;
         try {
             value = ExpressionUtil.evaluateExpression(null, variables, null, expression,
@@ -379,9 +377,9 @@ public abstract class FileFormatController {
 
     public abstract List<VariablesMap> createVariablesFromFile(ReportType report, ReportDataType reportData, boolean useImportScript, Task task, OperationResult result) throws IOException;
 
-    protected  <T extends Object> boolean evaluateCondition(ExpressionType condition, T value, Task task, OperationResult result)
+    protected <T extends Object> boolean evaluateCondition(ExpressionType condition, T value, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        ExpressionVariables variables = new ExpressionVariables();
+        VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_OBJECT, value, value.getClass());
         PrismPropertyValue<Boolean> conditionValue = ExpressionUtil.evaluateCondition(variables, condition, null, getReportService().getExpressionFactory(),
                 "Evaluate condition", task, result);

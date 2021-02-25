@@ -30,6 +30,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -481,12 +482,11 @@ public class ContextLoader implements ProjectorProcessor {
 
     private <F extends ObjectType> void loadFromSystemConfig(LensContext<F> context, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
-        PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+        PrismObject<SystemConfigurationType> systemConfiguration = updateSystemConfigurationInContext(context, result);
         if (systemConfiguration == null) {
             // This happens in some tests. And also during first startup.
             return;
         }
-        context.setSystemConfiguration(systemConfiguration);
         SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
 
         if (context.getFocusContext() != null) {
@@ -512,6 +512,17 @@ public class ContextLoader implements ProjectorProcessor {
         }
 
         loadSecurityPolicy(context, task, result);
+    }
+
+    // TODO find a better home for this method
+    @Nullable
+    public <F extends ObjectType> PrismObject<SystemConfigurationType> updateSystemConfigurationInContext(LensContext<F> context,
+            OperationResult result) throws SchemaException {
+        PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+        if (systemConfiguration != null) {
+            context.setSystemConfiguration(systemConfiguration);
+        }
+        return systemConfiguration;
     }
 
     private <F extends ObjectType> ArchetypePolicyType determineArchetypePolicy(LensContext<F> context, Task task, OperationResult result) throws SchemaException, ConfigurationException {

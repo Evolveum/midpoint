@@ -8,17 +8,22 @@
 package com.evolveum.midpoint.web.component.prism.show;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.api.visualizer.SceneDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.SceneItem;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.web.security.factory.channel.AbstractChannelFactory;
+
 import org.apache.wicket.Component;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -31,9 +36,11 @@ public class SceneDto implements Serializable {
     public static final java.lang.String F_DESCRIPTION = "description";
     public static final java.lang.String F_ITEMS = "items";
     public static final java.lang.String F_PARTIAL_SCENES = "partialScenes";
+    public static final java.lang.String F_SORTED = "sorted";
 
     @NotNull private final Scene scene;
     private boolean minimized;
+    private boolean sorted = false;
 
     private String boxClassOverride;
 
@@ -71,6 +78,19 @@ public class SceneDto implements Serializable {
     }
 
     public List<SceneItemDto> getItems() {
+        if (isSorted()) {
+            List<SceneItemDto> itemsClone = new ArrayList<>();
+            itemsClone.addAll(items);
+            Collator collator = WebComponentUtil.getCollator();
+            Comparator<? super SceneItemDto> comparator =
+                    (s1, s2) -> {
+                        String name1 = PageBase.createStringResourceStatic(null, s1.getName()).getString();
+                        String name2 = PageBase.createStringResourceStatic(null, s2.getName()).getString();
+                        return collator.compare(name1, name2);
+                    };
+            itemsClone.sort(comparator);
+            return itemsClone;
+        }
         return items;
     }
 
@@ -135,6 +155,14 @@ public class SceneDto implements Serializable {
 
     public void setBoxClassOverride(String boxClassOverride) {
         this.boxClassOverride = boxClassOverride;
+    }
+
+    public boolean isSorted() {
+        return sorted;
+    }
+
+    public void setSorted(boolean sorted) {
+        this.sorted = sorted;
     }
 
     // minimized is NOT included in equality check - because the SceneDto's are compared in order to determine

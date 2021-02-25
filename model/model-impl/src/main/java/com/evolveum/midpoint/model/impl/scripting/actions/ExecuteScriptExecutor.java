@@ -1,14 +1,22 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
+import java.util.Collection;
+import java.util.List;
+import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -19,7 +27,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
@@ -27,27 +34,10 @@ import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptActionExpressionType;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.List;
-
-import static com.evolveum.midpoint.model.impl.scripting.VariablesUtil.cloneIfNecessary;
 
 /**
  * Executes "execute-script" (s:execute) actions.
@@ -113,7 +103,7 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
         try {
             TypedValue<PipelineData> inputTypedValue = new TypedValue<>(input, PipelineData.class);
             Object outObject = executeScript(parameters.scriptExpression, inputTypedValue, context.getInitialVariables(), context, result);
-            if (outObject != null ) {
+            if (outObject != null) {
                 addToData(outObject, PipelineData.newOperationResult(), output);
             } else {
                 // no definition means we don't plan to provide any output - so let's just copy the input item to the output
@@ -138,7 +128,7 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         // Hack. TODO: we need to add definitions to Pipeline items.
-        //noinspection unchecked
+        @SuppressWarnings({ "unchecked", "rawtypes" })
         TypedValue<?> typedValue = new TypedValue(value, value == null ? Object.class : value.getClass());
         Object outObject = executeScript(parameters.scriptExpression, typedValue, item.getVariables(), context, result);
         if (outObject != null) {
@@ -201,7 +191,7 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
 
     private void addToData(@NotNull Object outObject, @NotNull OperationResult result, PipelineData output) {
         if (outObject instanceof Collection) {
-            for (Object o : (Collection) outObject) {
+            for (Object o : (Collection<?>) outObject) {
                 addToData(o, result, output);
             }
         } else {
@@ -221,12 +211,12 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
 
     private ItemDefinition<?> getItemDefinition(String uri) throws ScriptExecutionException {
         QName name = QNameUtil.uriToQName(uri, true);
-        ItemDefinition byName = prismContext.getSchemaRegistry().findItemDefinitionByElementName(name);
+        ItemDefinition<?> byName = prismContext.getSchemaRegistry().findItemDefinitionByElementName(name);
         if (byName != null) {
             return byName;
         }
 
-        ItemDefinition byType = prismContext.getSchemaRegistry().findItemDefinitionByType(name);
+        ItemDefinition<?> byType = prismContext.getSchemaRegistry().findItemDefinitionByType(name);
         if (byType != null) {
             return byType;
         }
@@ -243,7 +233,7 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
     }
 
     private ItemDefinition<?> getItemDefinitionFromTypeName(QName typeName) throws ScriptExecutionException {
-        ItemDefinition byType = prismContext.getSchemaRegistry().findItemDefinitionByType(typeName);
+        ItemDefinition<?> byType = prismContext.getSchemaRegistry().findItemDefinitionByType(typeName);
         if (byType != null) {
             return byType;
         }
@@ -272,12 +262,12 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
     private <I> Object executeScript(ScriptExpression scriptExpression, TypedValue<I> inputTypedValue,
             VariablesMap externalVariables, ExecutionContext context, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ExpressionVariables variables = createVariables(externalVariables);
+        VariablesMap variables = createVariables(externalVariables);
 
         variables.put(ExpressionConstants.VAR_INPUT, inputTypedValue);
 
         LensContext<?> lensContext = getLensContext(externalVariables);
-        List<?> rv = ModelImplUtils.evaluateScript(scriptExpression, lensContext, variables, true, "in '"+NAME+"' action", context.getTask(), result);
+        List<?> rv = ModelImplUtils.evaluateScript(scriptExpression, lensContext, variables, true, "in '" + NAME + "' action", context.getTask(), result);
 
         if (rv.isEmpty()) {
             return null;
@@ -291,7 +281,7 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
     // TODO implement seriously! This implementation requires custom modelContext variable that might or might not be present
     //  (it is set e.g. for policy rule script execution)
     private LensContext<?> getLensContext(VariablesMap externalVariables) {
-        TypedValue modelContextTypedValue = externalVariables.get(ExpressionConstants.VAR_MODEL_CONTEXT);
+        TypedValue<?> modelContextTypedValue = externalVariables.get(ExpressionConstants.VAR_MODEL_CONTEXT);
         return modelContextTypedValue != null ? (LensContext<?>) modelContextTypedValue.getValue() : null;
     }
 

@@ -58,7 +58,7 @@ import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -459,7 +459,7 @@ public class LensUtil {
 
     public static <F extends ObjectType> String formatIterationToken(LensContext<F> context,
             LensElementContext<?> accountContext, IterationSpecificationType iterationType,
-            int iteration, ExpressionFactory expressionFactory, ExpressionVariables variables,
+            int iteration, ExpressionFactory expressionFactory, VariablesMap variables,
             Task task, OperationResult result)
                     throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (iterationType == null) {
@@ -511,7 +511,7 @@ public class LensUtil {
     public static <F extends ObjectType> boolean evaluateIterationCondition(LensContext<F> context,
             LensElementContext<?> accountContext, IterationSpecificationType iterationSpecification,
             int iteration, String iterationToken, boolean beforeIteration,
-            ExpressionFactory expressionFactory, ExpressionVariables variables, Task task, OperationResult result)
+            ExpressionFactory expressionFactory, VariablesMap variables, Task task, OperationResult result)
                     throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (iterationSpecification == null) {
             return true;
@@ -721,19 +721,20 @@ public class LensUtil {
     }
 
     public static <V extends PrismValue,D extends ItemDefinition> MappingBuilder<V,D> addAssignmentPathVariables(MappingBuilder<V,D> builder, AssignmentPathVariables assignmentPathVariables, PrismContext prismContext) {
-        ExpressionVariables expressionVariables = new ExpressionVariables();
-        ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, expressionVariables, prismContext);
-        return builder.addVariableDefinitions(expressionVariables);
+        VariablesMap variablesMap = new VariablesMap();
+        ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variablesMap, prismContext);
+        return builder.addVariableDefinitions(variablesMap);
     }
 
-    public static ExpressionVariables getAssignmentPathExpressionVariables(AssignmentPathVariables assignmentPathVariables, PrismContext prismContext) {
-        ExpressionVariables expressionVariables = new ExpressionVariables();
-        ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, expressionVariables, prismContext);
-        return expressionVariables;
+    public static VariablesMap getAssignmentPathVariablesMap(AssignmentPathVariables assignmentPathVariables, PrismContext prismContext) {
+        VariablesMap variablesMap = new VariablesMap();
+        ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variablesMap, prismContext);
+        return variablesMap;
     }
 
-    public static <F extends ObjectType> void checkContextSanity(LensContext<F> context, String activityDescription,
-            OperationResult result) throws SchemaException, PolicyViolationException {
+    public static <F extends ObjectType> void checkContextSanity(
+            LensContext<F> context, String activityDescription, OperationResult result)
+            throws SchemaException, PolicyViolationException {
         LensFocusContext<F> focusContext = context.getFocusContext();
         if (focusContext != null) {
             PrismObject<F> focusObjectNew = focusContext.getObjectNew();
@@ -748,7 +749,7 @@ public class LensUtil {
         }
     }
 
-    private static <F extends ObjectType> void checkArchetypePolicy(LensFocusContext<F> focusContext, ArchetypePolicyType archetypePolicy) throws SchemaException, PolicyViolationException {
+    private static <F extends ObjectType> void checkArchetypePolicy(LensFocusContext<F> focusContext, ArchetypePolicyType archetypePolicy) throws PolicyViolationException {
         if (archetypePolicy == null) {
             return;
         }
@@ -974,25 +975,25 @@ public class LensUtil {
         return CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType);
     }
 
-    public static boolean evaluateBoolean(ExpressionType expressionBean, ExpressionVariables expressionVariables,
+    public static boolean evaluateBoolean(ExpressionType expressionBean, VariablesMap VariablesMap,
             String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return evaluateExpressionSingle(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
+        return evaluateExpressionSingle(expressionBean, VariablesMap, contextDescription, expressionFactory, prismContext,
                 task, result,
                 DOMUtil.XSD_BOOLEAN, false, null);
     }
 
-    public static String evaluateString(ExpressionType expressionBean, ExpressionVariables expressionVariables,
+    public static String evaluateString(ExpressionType expressionBean, VariablesMap VariablesMap,
             String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return evaluateExpressionSingle(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
+        return evaluateExpressionSingle(expressionBean, VariablesMap, contextDescription, expressionFactory, prismContext,
                 task, result,
                 DOMUtil.XSD_STRING, null, null);
     }
 
-    public static LocalizableMessageType evaluateLocalizableMessageType(ExpressionType expressionBean, ExpressionVariables expressionVariables,
+    public static LocalizableMessageType evaluateLocalizableMessageType(ExpressionType expressionBean, VariablesMap VariablesMap,
             String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -1005,11 +1006,11 @@ public class LensUtil {
                 return new SingleLocalizableMessageType().fallbackMessage(String.valueOf(o));
             }
         };
-        return evaluateExpressionSingle(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
+        return evaluateExpressionSingle(expressionBean, VariablesMap, contextDescription, expressionFactory, prismContext,
                 task, result, LocalizableMessageType.COMPLEX_TYPE, null, additionalConvertor);
     }
 
-    public static <T> T evaluateExpressionSingle(ExpressionType expressionBean, ExpressionVariables expressionVariables,
+    public static <T> T evaluateExpressionSingle(ExpressionType expressionBean, VariablesMap VariablesMap,
             String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
             OperationResult result, QName typeName,
             T defaultValue, Function<Object, Object> additionalConvertor)
@@ -1018,7 +1019,7 @@ public class LensUtil {
                 new QName(SchemaConstants.NS_C, "result"), typeName);
         Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression =
                 expressionFactory.makeExpression(expressionBean, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDescription, task, result);
-        ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, expressionVariables, contextDescription, task);
+        ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, VariablesMap, contextDescription, task);
         eeContext.setAdditionalConvertor(additionalConvertor);
         PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple = ModelExpressionThreadLocalHolder
                 .evaluateExpressionInContext(expression, eeContext, task, result);
@@ -1030,7 +1031,7 @@ public class LensUtil {
 
     @NotNull
     public static SingleLocalizableMessageType interpretLocalizableMessageTemplate(LocalizableMessageTemplateType template,
-            ExpressionVariables var, ExpressionFactory expressionFactory, PrismContext prismContext,
+            VariablesMap var, ExpressionFactory expressionFactory, PrismContext prismContext,
             Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
