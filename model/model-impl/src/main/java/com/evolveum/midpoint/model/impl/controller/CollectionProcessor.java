@@ -551,8 +551,44 @@ public class CollectionProcessor {
         if (newSearchBoxConfig == null) {
             return;
         }
-        // TODO: merge
-        if (existingView.getSearchBoxConfiguration() == null || replaceIfExist) {
+
+        SearchBoxConfigurationType oldSearchBoxConfig = existingView.getSearchBoxConfiguration();
+        if (oldSearchBoxConfig == null || replaceIfExist) {
+            if (oldSearchBoxConfig != null) {
+                if (newSearchBoxConfig.getDefaultObjectType() == null) {
+                    newSearchBoxConfig.setDefaultObjectType(oldSearchBoxConfig.getDefaultObjectType());
+                }
+                if (newSearchBoxConfig.getDefaultScope() == null) {
+                    newSearchBoxConfig.setDefaultScope(oldSearchBoxConfig.getDefaultScope());
+                }
+                if (newSearchBoxConfig.getSearchItems() == null) {
+                    newSearchBoxConfig.setSearchItems(oldSearchBoxConfig.getSearchItems());
+                }
+                if (newSearchBoxConfig.getDefaultMode() == null) {
+                    newSearchBoxConfig.setDefaultMode(oldSearchBoxConfig.getDefaultMode());
+                }
+                if (newSearchBoxConfig.getAllowedMode() == null) {
+                    newSearchBoxConfig.getAllowedMode().addAll(oldSearchBoxConfig.getAllowedMode());
+                }
+                if (newSearchBoxConfig.getIndirectConfiguration() == null) {
+                    newSearchBoxConfig.setIndirectConfiguration(oldSearchBoxConfig.getIndirectConfiguration());
+                }
+                if (newSearchBoxConfig.getObjectTypeConfiguration() == null) {
+                    newSearchBoxConfig.setObjectTypeConfiguration(oldSearchBoxConfig.getObjectTypeConfiguration());
+                }
+                if (newSearchBoxConfig.getProjectConfiguration() == null) {
+                    newSearchBoxConfig.setProjectConfiguration(oldSearchBoxConfig.getProjectConfiguration());
+                }
+                if (newSearchBoxConfig.getRelationConfiguration() == null) {
+                    newSearchBoxConfig.setRelationConfiguration(oldSearchBoxConfig.getRelationConfiguration());
+                }
+                if (newSearchBoxConfig.getScopeConfiguration() == null) {
+                    newSearchBoxConfig.setScopeConfiguration(oldSearchBoxConfig.getScopeConfiguration());
+                }
+                if (newSearchBoxConfig.getTenantConfiguration() == null) {
+                    newSearchBoxConfig.setTenantConfiguration(oldSearchBoxConfig.getTenantConfiguration());
+                }
+            }
             existingView.setSearchBoxConfiguration(newSearchBoxConfig);
         }
     }
