@@ -568,6 +568,7 @@ CREATE TABLE m_focus (
   validTo                 DATETIME2,
   validityChangeTimestamp DATETIME2,
   validityStatus          INT,
+  lockoutStatus           INT,
   costCenter              NVARCHAR(255) COLLATE database_default,
   emailAddress            NVARCHAR(255) COLLATE database_default,
   hasPhoto                BIT DEFAULT 0                     NOT NULL,

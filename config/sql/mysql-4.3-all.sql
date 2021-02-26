@@ -729,6 +729,7 @@ CREATE TABLE m_focus (
   validTo                 DATETIME(6),
   validityChangeTimestamp DATETIME(6),
   validityStatus          INTEGER,
+  lockoutStatus           INTEGER,
   costCenter              VARCHAR(255),
   emailAddress            VARCHAR(255),
   hasPhoto                BIT DEFAULT FALSE NOT NULL,

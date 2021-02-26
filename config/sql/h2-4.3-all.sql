@@ -572,6 +572,7 @@ CREATE TABLE m_focus (
   validTo                 TIMESTAMP,
   validityChangeTimestamp TIMESTAMP,
   validityStatus          INTEGER,
+  lockoutStatus           INTEGER,
   costCenter              VARCHAR(255),
   emailAddress            VARCHAR(255),
   hasPhoto                BOOLEAN DEFAULT FALSE NOT NULL,

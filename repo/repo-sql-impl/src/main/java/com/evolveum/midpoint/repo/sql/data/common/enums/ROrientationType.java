@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -14,15 +14,14 @@ public enum ROrientationType implements SchemaEnum<OrientationType> {
     LANDSCAPE(OrientationType.LANDSCAPE),
     PORTRAIT(OrientationType.PORTRAIT);
 
-    private OrientationType type;
+    private final OrientationType type;
 
     ROrientationType(OrientationType type) {
-            this.type = type;
-        }
+        this.type = type;
+    }
 
     @Override
     public OrientationType getSchemaValue() {
         return type;
     }
-
 }

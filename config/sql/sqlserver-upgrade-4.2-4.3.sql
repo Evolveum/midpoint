@@ -3,6 +3,9 @@
 -- MID-6417
 ALTER TABLE m_operation_execution ADD recordType INT;
 
+-- MID-3669
+ALTER TABLE m_focus ADD lockoutStatus INT;
+
 -- WRITE CHANGES ABOVE ^^
 GO
 UPDATE m_global_metadata SET value = '4.3' WHERE name = 'databaseSchemaVersion';
