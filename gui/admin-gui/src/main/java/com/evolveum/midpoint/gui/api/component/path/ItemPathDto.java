@@ -91,7 +91,7 @@ public class ItemPathDto implements Serializable{
     }
 
     public boolean isPathDefined() {
-        return (path != null && itemDef == null && parentPath == null);
+        return (path != null && !path.isEmpty() && itemDef == null && parentPath == null);
     }
 
     public String getPathStringValue(){
