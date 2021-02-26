@@ -589,7 +589,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public IterativeTaskInformation.@NotNull Operation recordIterativeOperationStart(IterativeOperation operation) {
+    public IterativeTaskInformation.@NotNull Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
         throw new UnsupportedOperationException();
     }
 

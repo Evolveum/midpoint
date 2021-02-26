@@ -9,19 +9,17 @@ package com.evolveum.midpoint.task.quartzimpl.nodes;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
+import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.util.TimeBoundary;
@@ -60,7 +58,10 @@ public class NodeCleaner {
                     XmlTypeConverter.compareMillis(node.asObjectable().getLastCheckInTime(), deleteNodesNotCheckedInAfter) <= 0) {
                 // This includes last check in time == null
                 LOGGER.info("Deleting dead node {}; last check in time = {}", node, node.asObjectable().getLastCheckInTime());
-                Operation op = task.recordIterativeOperationStart(node);
+                IterativeOperationStartInfo iterativeOperationStartInfo = new IterativeOperationStartInfo(
+                        new IterationItemInformation(node), SchemaConstants.DEAD_NODES_CLEANUP_TASK_PART_URI);
+                iterativeOperationStartInfo.setStructuredProgressCollector(task);
+                Operation op = task.recordIterativeOperationStart(iterativeOperationStartInfo);
                 try {
                     repositoryService.deleteObject(NodeType.class, node.getOid(), result);
                     op.succeeded();
@@ -68,6 +69,7 @@ public class NodeCleaner {
                     op.failed(t);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete dead node {}", t, node);
                 }
+                task.incrementProgressAndStoreStatsIfNeeded();
             }
         }
     }

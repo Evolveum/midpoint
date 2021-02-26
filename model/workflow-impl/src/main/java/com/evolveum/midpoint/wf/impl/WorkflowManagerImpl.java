@@ -13,6 +13,8 @@ import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
+import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
 
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
@@ -170,7 +172,10 @@ public class WorkflowManagerImpl implements WorkflowManager {
                     break;
                 }
 
-                Operation op = executionTask.recordIterativeOperationStart(parentCasePrism);
+                IterativeOperationStartInfo startInfo = new IterativeOperationStartInfo(
+                        new IterationItemInformation(parentCasePrism), SchemaConstants.CLOSED_CASES_CLEANUP_TASK_PART_URI);
+                startInfo.setStructuredProgressCollector(executionTask);
+                Operation op = executionTask.recordIterativeOperationStart(startInfo);
                 try {
                     deleteChildrenCases(parentCasePrism, counters, result);
                     op.succeeded();

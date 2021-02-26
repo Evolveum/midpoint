@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.task.api;
 
+import com.evolveum.midpoint.schema.statistics.StructuredProgressCollector;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingRootType;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +28,7 @@ import java.util.Collection;
  *  Some information related to task execution (e.g. list of lightweight asynchronous tasks, information on task thread, etc)
  *  is relevant only for running tasks. Therefore they are moved here.
  */
-public interface RunningTask extends Task {
+public interface RunningTask extends Task, StructuredProgressCollector {
 
     /**
      * Returns true if the task can run (was not interrupted).
@@ -104,10 +105,6 @@ public interface RunningTask extends Task {
     void setOperationStatsUpdateInterval(long interval);
 
     long getOperationStatsUpdateInterval();
-
-    void setStructuredProgressPartInformation(String partUri, Integer partNumber, Integer expectedParts);
-
-    void incrementStructuredProgress(String partUri, QualifiedItemProcessingOutcomeType outcome);
 
     /**
      * Increments the progress. Stores the stat to repo if the time interval came.
