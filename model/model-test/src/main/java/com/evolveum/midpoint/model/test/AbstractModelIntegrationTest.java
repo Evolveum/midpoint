@@ -2900,8 +2900,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         Task task = createPlainTask("purgeResourceSchema");
         OperationResult result = task.getResult();
 
-        ObjectDelta<ResourceType> resourceDelta = prismContext.deltaFactory().object().createModificationReplaceContainer(ResourceType.class,
-                resourceOid, ResourceType.F_SCHEMA, new PrismContainerValue[0]);
+        ObjectDelta<ResourceType> resourceDelta =
+                prismContext.deltaFactory().object().createModificationReplaceContainer(
+                        ResourceType.class, resourceOid, ResourceType.F_SCHEMA, new PrismContainerValue[0]);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
 
         modelService.executeChanges(deltas, null, task, result);
@@ -5447,6 +5448,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 params, task, result);
     }
 
+    protected List<AuditEventRecord> getAuditRecordsAfterId(
+            long afterId, Task task, OperationResult result)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        return modelAuditService.listRecords(
+                "select * from m_audit_event as aer where aer.id > :id order by aer.id asc",
+                Map.of("id", afterId), task, result);
+    }
+
+    protected long getAuditRecordsMaxId(Task task, OperationResult result)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        List<AuditEventRecord> latestEvent = modelAuditService.listRecords(
+                "select * from m_audit_event as aer order by aer.id desc limit 1",
+                Map.of(), task, result);
+        return latestEvent.size() == 1 ? latestEvent.get(0).getRepoId() : 0;
+    }
+
     protected void checkUserApprovers(String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
         checkApprovers(expectedApprovers, user.asObjectable().getMetadata().getModifyApproverRef());
@@ -5459,11 +5478,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             assertEquals("Unexpected target type in approverRef", UserType.COMPLEX_TYPE, approver.getType());
         }
         assertEquals("Mismatch in approvers in metadata", new HashSet<>(expectedApprovers), realApproversSet);
-    }
-
-    protected List<PrismObject<UserType>> findUserInRepoUnchecked(String name, OperationResult result) throws SchemaException {
-        ObjectQuery q = prismContext.queryFor(UserType.class).item(UserType.F_NAME).eqPoly(name).matchingOrig().build();
-        return repositoryService.searchObjects(UserType.class, q, null, result);
     }
 
     protected <F extends FocusType> void assertFocusModificationSanity(ModelContext<F> context) {
