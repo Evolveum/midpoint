@@ -504,6 +504,7 @@ CREATE TABLE m_operation_execution (
   initiatorRef_targetOid    VARCHAR(36),
   initiatorRef_targetType   INTEGER,
   status                    INTEGER,
+  recordType                INTEGER,
   taskRef_relation          VARCHAR(157),
   taskRef_targetOid         VARCHAR(36),
   taskRef_targetType        INTEGER,
@@ -1412,10 +1413,11 @@ ALTER TABLE m_user
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object (oid);
 
-INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.2');
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.3');
 
-# By: Ron Cordell - roncordell
-#  I didn't see this anywhere, so I thought I'd post it here. This is the script from Quartz to create the tables in a MySQL database, modified to use INNODB instead of MYISAM.
+-- By: Ron Cordell - roncordell
+-- I didn't see this anywhere, so I thought I'd post it here. This is the script from Quartz
+-- to create the tables in a MySQL database, modified to use INNODB instead of MYISAM.
 
 DROP TABLE IF EXISTS QRTZ_FIRED_TRIGGERS;
 DROP TABLE IF EXISTS QRTZ_PAUSED_TRIGGER_GRPS;

@@ -394,6 +394,7 @@ CREATE TABLE m_operation_execution (
   initiatorRef_targetOid    VARCHAR(36),
   initiatorRef_targetType   INT4,
   status                    INT4,
+  recordType                INT4,
   taskRef_relation          VARCHAR(157),
   taskRef_targetOid         VARCHAR(36),
   taskRef_targetType        INT4,
@@ -1209,7 +1210,7 @@ CREATE INDEX iOrgOrgTypeOid ON M_ORG_ORG_TYPE(ORG_OID);
 CREATE INDEX iServiceTypeOid ON M_SERVICE_TYPE(SERVICE_OID);
 CREATE INDEX iTaskDependentOid ON M_TASK_DEPENDENT(TASK_OID);
 
-INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.2');
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.3');
 
 -- Thanks to Patrick Lightbody for submitting this...
 --

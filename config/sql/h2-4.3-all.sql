@@ -398,6 +398,7 @@ CREATE TABLE m_operation_execution (
   initiatorRef_targetOid    VARCHAR(36),
   initiatorRef_targetType   INTEGER,
   status                    INTEGER,
+  recordType                INTEGER,
   taskRef_relation          VARCHAR(157),
   taskRef_targetOid         VARCHAR(36),
   taskRef_targetType        INTEGER,
@@ -1190,6 +1191,6 @@ ALTER TABLE m_user
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object;
 
-INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.2');
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.3');
 
 COMMIT;
