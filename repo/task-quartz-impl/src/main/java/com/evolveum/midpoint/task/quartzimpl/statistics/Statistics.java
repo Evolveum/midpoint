@@ -336,7 +336,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
     }
 
     @NotNull
-    public synchronized IterativeTaskInformation.Operation recordIterativeOperationStart(IterativeOperation operation) {
+    public synchronized IterativeTaskInformation.Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
         if (iterativeTaskInformation != null) {
             return iterativeTaskInformation.recordOperationStart(operation);
         } else {

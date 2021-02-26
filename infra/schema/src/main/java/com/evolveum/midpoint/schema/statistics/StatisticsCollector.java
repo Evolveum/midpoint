@@ -52,14 +52,14 @@ public interface StatisticsCollector {
     }
 
     @NotNull default Operation recordIterativeOperationStart(IterationItemInformation info) {
-        return recordIterativeOperationStart(new IterativeOperation(info));
+        return recordIterativeOperationStart(new IterativeOperationStartInfo(info));
     }
 
     /**
      * Records the start of iterative operation.
      * The operation end is recorded by calling appropriate method on the returned object.
      */
-    @NotNull Operation recordIterativeOperationStart(IterativeOperation operation);
+    @NotNull Operation recordIterativeOperationStart(IterativeOperationStartInfo operation);
 
     /**
      * Records information about repository (focal) events.

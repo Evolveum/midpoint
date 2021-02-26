@@ -11,7 +11,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
+import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
@@ -46,7 +49,6 @@ public class TaskCleaner {
     @Autowired private TaskInstantiator taskInstantiator;
     @Autowired private TaskStateManager taskStateManager;
 
-
     public void cleanupTasks(CleanupPolicyType policy, RunningTask executionTask, OperationResult result) throws SchemaException {
         if (policy.getMaxAge() == null) {
             return;
@@ -80,7 +82,10 @@ public class TaskCleaner {
                 break;
             }
 
-            Operation op = executionTask.recordIterativeOperationStart(rootTaskPrism);
+            IterativeOperationStartInfo iterativeOperationStartInfo = new IterativeOperationStartInfo(
+                    new IterationItemInformation(rootTaskPrism), SchemaConstants.CLOSED_TASKS_CLEANUP_TASK_PART_URI);
+            iterativeOperationStartInfo.setStructuredProgressCollector(executionTask);
+            Operation op = executionTask.recordIterativeOperationStart(iterativeOperationStartInfo);
             try {
                 // get whole tree
                 TaskQuartzImpl rootTask = taskInstantiator.createTaskInstance(rootTaskPrism, result);
@@ -114,6 +119,7 @@ public class TaskCleaner {
                 op.failed(t);
                 throw t;
             }
+            // structured progress is incremented with iterative operation reporting
             executionTask.incrementProgressAndStoreStatsIfNeeded();
         }
 

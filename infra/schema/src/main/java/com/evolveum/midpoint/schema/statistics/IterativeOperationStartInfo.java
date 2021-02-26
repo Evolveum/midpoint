@@ -15,21 +15,29 @@ import com.evolveum.midpoint.util.annotation.Experimental;
  * TODO better name
  */
 @Experimental
-public class IterativeOperation {
+public class IterativeOperationStartInfo {
 
     private final IterationItemInformation item;
     private final long startTimestamp;
     private final String partUri;
 
-    public IterativeOperation(IterationItemInformation item) {
+    /**
+     * If present, we use this object to increment the structured progress on operation completion.
+     * This is useful because there is a lot of shared information: part uri, and qualified outcome.
+     *
+     * TODO make this final?
+     */
+    private StructuredProgressCollector structuredProgressCollector;
+
+    public IterativeOperationStartInfo(IterationItemInformation item) {
         this(item, null);
     }
 
-    public IterativeOperation(IterationItemInformation item, String partUri) {
+    public IterativeOperationStartInfo(IterationItemInformation item, String partUri) {
         this(item, System.currentTimeMillis(), partUri);
     }
 
-    public IterativeOperation(IterationItemInformation item, long startTimestamp, String partUri) {
+    public IterativeOperationStartInfo(IterationItemInformation item, long startTimestamp, String partUri) {
         this.item = item;
         this.startTimestamp = startTimestamp;
         this.partUri = partUri;
@@ -47,12 +55,21 @@ public class IterativeOperation {
         return partUri;
     }
 
+    public StructuredProgressCollector getStructuredProgressCollector() {
+        return structuredProgressCollector;
+    }
+
+    public void setStructuredProgressCollector(StructuredProgressCollector structuredProgressCollector) {
+        this.structuredProgressCollector = structuredProgressCollector;
+    }
+
     @Override
     public String toString() {
-        return "IterativeOperation{" +
+        return getClass().getSimpleName() + "{" +
                 "item=" + item +
                 ", startTimestamp=" + startTimestamp +
                 ", partUri=" + partUri +
+                ", structuredProgressCollector=" + structuredProgressCollector +
                 '}';
     }
 }

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.metadata;
 
+import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.metadata.ValueMetadataAdapter;
 import com.evolveum.midpoint.prism.metadata.ValueMetadataFactory;
@@ -22,17 +23,18 @@ import org.jetbrains.annotations.NotNull;
 public class MidpointValueMetadataFactory implements ValueMetadataFactory {
 
     @NotNull private final PrismContext prismContext;
+    private final Lazy<PrismContainerDefinition<ValueMetadataType>> metadataType;
+
 
     public MidpointValueMetadataFactory(@NotNull PrismContext prismContext) {
         this.prismContext = prismContext;
+        metadataType = Lazy.from(() -> prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(ValueMetadataType.class));
     }
 
     @Override
     public @NotNull ValueMetadata createEmpty() {
         try {
-            return ValueMetadataAdapter.holding(
-                    prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(ValueMetadataType.class)
-                            .instantiate(PrismConstants.VALUE_METADATA_CONTAINER_NAME));
+            return ValueMetadataAdapter.holding(metadataType.get().instantiate(PrismConstants.VALUE_METADATA_CONTAINER_NAME));
         } catch (SchemaException e) {
             throw new SystemException("Unexpected schema exception while creating value metadata container: " + e.getMessage(), e);
         }
