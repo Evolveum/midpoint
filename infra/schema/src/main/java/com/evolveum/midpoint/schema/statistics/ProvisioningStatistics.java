@@ -70,7 +70,7 @@ public class ProvisioningStatistics {
                 .resourceRef(resourceRef)
                 .objectClass(objectClassName)
                 .beginOperation()
-                .operation(operation.name())
+                .operation(operation.getName())
                    .status(success ? OperationResultStatusType.SUCCESS : OperationResultStatusType.FATAL_ERROR)
                     .count(count)
                     .totalTime(duration)
