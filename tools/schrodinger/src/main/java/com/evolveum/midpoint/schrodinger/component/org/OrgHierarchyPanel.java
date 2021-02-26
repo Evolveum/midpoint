@@ -111,7 +111,7 @@ public class OrgHierarchyPanel<T> extends Component<T> {
     }
 
     public OrgHierarchyPanel<T> assertChildOrgExists(String parentOrg, Boolean expandParent, String... expectedChild){
-        Assert.assertTrue(containsChildOrg(parentOrg,expandParent, expectedChild), "Organization " + parentOrg + " doesn't contain expected children orgs.");
+        assertion.assertTrue(containsChildOrg(parentOrg,expandParent, expectedChild), "Organization " + parentOrg + " doesn't contain expected children orgs.");
         return this;
     }
 
@@ -120,7 +120,7 @@ public class OrgHierarchyPanel<T> extends Component<T> {
     }
 
     public OrgHierarchyPanel<T> assertChildOrgDoesntExist(String parentOrg, Boolean expandParent, String... expectedChild){
-        Assert.assertFalse(containsChildOrg(parentOrg, expectedChild), "Organization " + parentOrg + " doesn't contain expected children orgs.");
+        assertion.assertFalse(containsChildOrg(parentOrg, expectedChild), "Organization " + parentOrg + " doesn't contain expected children orgs.");
         return this;
     }
 }

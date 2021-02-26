@@ -40,7 +40,7 @@ public class SummaryPanel<T> extends Component<T> {
     }
 
     public SummaryPanel<T> assertDisplayNameEquals(String expectedValue) {
-        Assert.assertEquals(expectedValue, fetchDisplayName(), "Display name on Summary panel doesn't match");
+        assertion.assertEquals(expectedValue, fetchDisplayName(), "Display name on Summary panel doesn't match");
         return this;
     }
 

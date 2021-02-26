@@ -44,12 +44,12 @@ public class OperationRequestTab extends Component<CasePage> {
     }
 
     public OperationRequestTab assertChangesAreApplied() {
-        Assert.assertTrue(changesAreApplied(), "Changes are not applied");
+        assertion.assertTrue(changesAreApplied(), "Changes are not applied");
         return this;
     }
 
     public OperationRequestTab assertChangesAreRejected() {
-        Assert.assertTrue(changesAreRejected(), "Changes are not rejected");
+        assertion.assertTrue(changesAreRejected(), "Changes are not rejected");
         return this;
     }
 }
