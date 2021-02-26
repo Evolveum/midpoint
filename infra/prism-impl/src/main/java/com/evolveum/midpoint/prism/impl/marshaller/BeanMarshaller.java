@@ -104,7 +104,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
                 return (XNodeImpl) prismContext.xnodeSerializer().context(ctx).serializeRealValue(bean, new QName("dummy"))
                         .getSubnode();
             } else if (bean instanceof Enum) {
-                return marshalEnum((Enum) bean, ctx);
+                return marshalEnum((Enum<?>) bean, ctx);
             } else if (bean.getClass().getAnnotation(XmlType.class) != null) {
                 return marshalXmlType(bean, ctx);
             } else if (bean instanceof Referencable) {
@@ -156,13 +156,15 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
         if (!valueField.isAccessible()) {
             valueField.setAccessible(true);
         }
-        T value;
+        Object value;
         try {
-            value = (T) valueField.get(bean);
+            value = valueField.get(bean);
         } catch (IllegalArgumentException | IllegalAccessException e) {
             throw new SchemaException("Cannot get primitive value from field " + valueField.getName() + " of bean " + bean + ": "+e.getMessage(), e);
         }
-        PrimitiveXNodeImpl<T> xnode = new PrimitiveXNodeImpl<>(value);
+
+        @SuppressWarnings("unchecked")
+        PrimitiveXNodeImpl<T> xnode = new PrimitiveXNodeImpl<>((T) value);
         Class<?> fieldType = valueField.getType();
         QName xsdType = XsdTypeMapper.toXsdType(fieldType);
         xnode.setTypeQName(xsdType);
@@ -180,11 +182,11 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
                     + " does not contain a collection but " + MiscUtil.getObjectName(getterResult));
         }
         ListXNodeImpl xlist = new ListXNodeImpl();
-        for (Object value : (Collection) getterResult) {
+        for (Object value : (Collection<?>) getterResult) {
             if (!(value instanceof JAXBElement)) {
                 throw new IllegalStateException("Heterogeneous list contains a value that is not a JAXBElement: " + value);
             }
-            JAXBElement jaxbElement = (JAXBElement) value;
+            JAXBElement<?> jaxbElement = (JAXBElement<?>) value;
             Object realValue = jaxbElement.getValue();
             if (realValue == null) {
                 throw new IllegalStateException("Heterogeneous list contains a null value");        // TODO
@@ -255,8 +257,8 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
                 }
                 // elementName will be determined from the first item on the list
                 // TODO make sure it will be correct with respect to other items as well!
-                if (getterResultValue instanceof JAXBElement && ((JAXBElement) getterResultValue).getName() != null) {
-                    elementName = ((JAXBElement) getterResultValue).getName();
+                if (getterResultValue instanceof JAXBElement && ((JAXBElement<?>) getterResultValue).getName() != null) {
+                    elementName = ((JAXBElement<?>) getterResultValue).getName();
                     // We should update propDef with substitution if possible
                 }
 
@@ -284,7 +286,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
     private XNodeImpl marshalSingleValue(Object value, Field field, String namespace, boolean isAttribute, SerializationContext ctx, Method getter, ItemDefinition<?> propDef) throws SchemaException {
         Object valueToMarshal = value;
         if (value instanceof JAXBElement) {
-            valueToMarshal = ((JAXBElement) value).getValue();
+            valueToMarshal = ((JAXBElement<?>) value).getValue();
         }
         QName typeName = inspector.findTypeName(field, valueToMarshal.getClass(), namespace);
         // note: fieldTypeName is used only for attribute values here (when constructing PrimitiveXNode)
@@ -304,8 +306,8 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
         return getterResult;
     }
 
-    private XNodeImpl marshalEnum(Enum enumValue, SerializationContext ctx) {
-        Class<? extends Enum> enumClass = enumValue.getClass();
+    private XNodeImpl marshalEnum(Enum<?> enumValue, SerializationContext ctx) {
+        var enumClass = enumValue.getClass();
         String enumStringValue = inspector.findEnumFieldValue(enumClass, enumValue.toString());
         if (StringUtils.isEmpty(enumStringValue)){
             enumStringValue = enumValue.toString();
@@ -316,7 +318,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
     }
 
     private XNodeImpl marshalXmlAsStringType(Object bean, SerializationContext sc) {
-        PrimitiveXNodeImpl xprim = new PrimitiveXNodeImpl<>();
+        PrimitiveXNodeImpl<String> xprim = new PrimitiveXNodeImpl<>();
         xprim.setValue(((XmlAsStringType) bean).getContentAsString(), DOMUtil.XSD_STRING);
         return xprim;
     }
@@ -375,7 +377,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
             }
 
             if (getterResult instanceof Collection<?>) {
-                Collection col = (Collection)getterResult;
+                Collection<?> col = (Collection<?>)getterResult;
                 if (col.isEmpty()) {
                     continue;
                 }
@@ -393,7 +395,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
     private void visitValue(Object element, Handler<Object> handler) {
         Object elementToMarshall = element;
         if (element instanceof JAXBElement){
-            elementToMarshall = ((JAXBElement) element).getValue();
+            elementToMarshall = ((JAXBElement<?>) element).getValue();
         }
         visit(elementToMarshall, handler);
     }
@@ -598,6 +600,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
 
     // TODO create more appropriate interface to be able to simply serialize ProtectedStringType instances
     public <T> MapXNodeImpl marshalProtectedDataType(Object o, SerializationContext sc) throws SchemaException {
+        @SuppressWarnings("unchecked")
         ProtectedDataType<T> protectedType = (ProtectedDataType<T>) o;
         MapXNodeImpl xmap = new MapXNodeImpl();
         if (protectedType.getEncryptedDataType() != null) {
@@ -610,7 +613,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
             xmap.put(ProtectedDataType.F_HASHED_DATA, xHashedDataType);
         } else if (protectedType.getClearValue() != null){
             QName type = XsdTypeMapper.toXsdType(protectedType.getClearValue().getClass());
-            PrimitiveXNodeImpl xClearValue = createPrimitiveXNode(protectedType.getClearValue(), type);
+            PrimitiveXNodeImpl<?> xClearValue = createPrimitiveXNode(protectedType.getClearValue(), type);
             xmap.put(ProtectedDataType.F_CLEAR_VALUE, xClearValue);
         }
         // TODO: clearValue
