@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import java.util.HashSet;
@@ -137,39 +136,6 @@ public abstract class RAbstractRole extends RFocus {
 
     public void setAutoassign(RAutoassignSpecification autoassign) {
         this.autoassign = autoassign;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-        if (!super.equals(o)) { return false; }
-
-        RAbstractRole that = (RAbstractRole) o;
-
-        if (identifier != null ? !identifier.equals(that.identifier) : that.identifier != null) { return false; }
-        if (riskLevel != null ? !riskLevel.equals(that.riskLevel) : that.riskLevel != null) { return false; }
-        if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) { return false; }
-        if (requestable != null ? !requestable.equals(that.requestable) : that.requestable != null) { return false; }
-        if (approverRef != null ? !approverRef.equals(that.approverRef) : that.approverRef != null) { return false; }
-        if (approvalProcess != null ? !approvalProcess.equals(that.approvalProcess) : that.approvalProcess != null) {
-            return false;
-        }
-        if (ownerRef != null ? !ownerRef.equals(that.ownerRef) : that.ownerRef != null) { return false; }
-        return autoassign != null ? autoassign.equals(that.autoassign) : that.autoassign == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (identifier != null ? identifier.hashCode() : 0);
-        result = 31 * result + (riskLevel != null ? riskLevel.hashCode() : 0);
-        result = 31 * result + (displayName != null ? displayName.hashCode() : 0);
-        result = 31 * result + (requestable != null ? requestable.hashCode() : 0);
-        result = 31 * result + (approvalProcess != null ? approvalProcess.hashCode() : 0);
-        result = 31 * result + (ownerRef != null ? ownerRef.hashCode() : 0);
-        result = 31 * result + (autoassign != null ? autoassign.hashCode() : 0);
-        return result;
     }
 
     // dynamically called

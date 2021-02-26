@@ -1,11 +1,15 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common;
+
+import javax.persistence.*;
+
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -15,19 +19,10 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Persister;
 
-import javax.persistence.*;
-import java.util.Objects;
-
-/**
- *
- * @author mederly
- */
 @Entity
 @ForeignKey(name = "fk_object_collection")
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_object_collection_name", columnNames = {"name_norm"}),
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_object_collection_name", columnNames = { "name_norm" }),
         indexes = {
                 @Index(name = "iObjectCollectionNameOrig", columnList = "name_orig"),
         }
@@ -50,23 +45,6 @@ public class RObjectCollection extends RObject {
 
     public void setNameCopy(RPolyString nameCopy) {
         this.nameCopy = nameCopy;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof RObjectCollection))
-            return false;
-        if (!super.equals(o))
-            return false;
-        RObjectCollection that = (RObjectCollection) o;
-        return Objects.equals(nameCopy, that.nameCopy);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), nameCopy);
     }
 
     // dynamically called
