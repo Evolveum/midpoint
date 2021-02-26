@@ -93,7 +93,7 @@ public class TaskExceptionHandlingUtil {
         }
     }
 
-    static <TRR extends TaskRunResult> TRR processFinish(Trace logger,
+    public static <TRR extends TaskRunResult> TRR processFinish(Trace logger,
             TaskPartitionDefinitionType partition, String ctx, TRR runResult, ErrorState errorState) {
 
         if (errorState.isPermanentErrorEncountered()) {

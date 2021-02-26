@@ -660,4 +660,11 @@ public abstract class SchemaConstants {
     public static final QName D_LOGGING_LEVEL_TYPE = new QName(SchemaConstantsGenerated.NS_COMMON, "LoggingLevelType");
 
     public static final String TRACE_DICTIONARY_PREFIX = "#dictionary#";
+
+    public static final String AUDIT_RECORDS_CLEANUP_TASK_PART_URI = "auditRecords";
+    public static final String CLOSED_TASKS_CLEANUP_TASK_PART_URI = "closedTasks";
+    public static final String CLOSED_CASES_CLEANUP_TASK_PART_URI = "closedCases";
+    public static final String DEAD_NODES_CLEANUP_TASK_PART_URI = "deadNodes";
+    public static final String OUTPUT_REPORTS_CLEANUP_TASK_PART_URI = "outputReports";
+    public static final String CLOSED_CERTIFICATION_CAMPAIGNS_CLEANUP_TASK_PART_URI = "closedCertificationCampaigns";
 }

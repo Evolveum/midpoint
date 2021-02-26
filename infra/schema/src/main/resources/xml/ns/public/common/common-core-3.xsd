@@ -26336,6 +26336,16 @@
                            </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>
+                   <xsd:element name="allowedMode" type="tns:SearchBoxModeType" minOccurs="0" maxOccurs="unbounded">
+                       <xsd:annotation>
+                           <xsd:documentation>
+                               Configuration for allowed search modes for search. All search mode are allowed by default.
+                           </xsd:documentation>
+                           <xsd:appinfo>
+                               <a:displayName>SearchBoxConfigurationType.defaultMode</a:displayName>
+                           </xsd:appinfo>
+                       </xsd:annotation>
+                   </xsd:element>
                    <xsd:element name="scopeConfiguration" type="tns:ScopeSearchItemConfigurationType" minOccurs="0" maxOccurs="1">
                     <xsd:annotation>
                         <xsd:documentation>
