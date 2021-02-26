@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,6 +9,10 @@ package com.evolveum.midpoint.model.common.expression.script;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.ObjectUtils;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
@@ -23,32 +27,14 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.util.TraceUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptVariableEvaluationTraceType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueVariableModeType;
-
-import org.apache.commons.lang3.ObjectUtils;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
 
 /**
  * Expression evaluator that is using javax.script (JSR-223) engine.
- *
- * @author Radovan Semancik
- * @param <C> compiled code
- *
  */
 public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
-
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractScriptEvaluator.class);
 
     private final PrismContext prismContext;
     private final Protector protector;
@@ -80,26 +66,26 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
             return;
         }
         if (scriptExpressionProfile.hasRestrictions()) {
-            throw new SecurityViolationException("Script intepreter for language "+getLanguageName()
-                +" does not support restrictions as imposed by expression profile "+context.getExpressionProfile().getIdentifier()
-                +"; script execution prohibited in "+context.getContextDescription());
+            throw new SecurityViolationException("Script interpreter for language " + getLanguageName()
+                    + " does not support restrictions as imposed by expression profile " + context.getExpressionProfile().getIdentifier()
+                    + "; script execution prohibited in " + context.getContextDescription());
         }
         if (scriptExpressionProfile.getDecision() != AccessDecision.ALLOW) {
-            throw new SecurityViolationException("Script intepreter for language "+getLanguageName()
-            +" is not allowed in expression profile "+context.getExpressionProfile().getIdentifier()
-            +"; script execution prohibited in "+context.getContextDescription());
+            throw new SecurityViolationException("Script interpreter for language " + getLanguageName()
+                    + " is not allowed in expression profile " + context.getExpressionProfile().getIdentifier()
+                    + "; script execution prohibited in " + context.getContextDescription());
         }
     }
 
     /**
      * Returns simple variable map: name -> value.
      */
-    protected Map<String,Object> prepareScriptVariablesValueMap(ScriptExpressionEvaluationContext context)
-                    throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Map<String,Object> scriptVariableMap = new HashMap<>();
+    protected Map<String, Object> prepareScriptVariablesValueMap(ScriptExpressionEvaluationContext context)
+            throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        Map<String, Object> scriptVariableMap = new HashMap<>();
         // Functions
         if (context.getFunctions() != null) {
-            for (FunctionLibrary funcLib: context.getFunctions()) {
+            for (FunctionLibrary funcLib : context.getFunctions()) {
                 scriptVariableMap.put(funcLib.getVariableName(), funcLib.getGenericFunctions());
             }
         }
@@ -107,7 +93,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
         // Variables
         VariablesMap variables = context.getVariables();
         if (variables != null) {
-            for (Entry<String, TypedValue> variableEntry: variables.entrySet()) {
+            for (Entry<String, TypedValue> variableEntry : variables.entrySet()) {
                 if (variableEntry.getKey() == null) {
                     // This is the "root" node. We have no use for it in script expressions, just skip it
                     continue;
@@ -116,7 +102,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
                 ValueVariableModeType valueVariableMode = ObjectUtils.defaultIfNull(
                         context.getExpressionType().getValueVariableMode(), ValueVariableModeType.REAL_VALUE);
 
-                //noinspection unchecked
+                //noinspection rawtypes
                 TypedValue variableTypedValue = ExpressionUtil.convertVariableValue(variableEntry.getValue(), variableName,
                         context.getObjectResolver(), context.getContextDescription(),
                         context.getExpressionType().getObjectVariableMode(),

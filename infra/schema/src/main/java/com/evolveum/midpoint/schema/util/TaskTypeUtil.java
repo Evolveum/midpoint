@@ -9,18 +9,21 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformation;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 /**
- * @author mederly
+ * TODO
  */
 public class TaskTypeUtil {
 
@@ -72,53 +75,103 @@ public class TaskTypeUtil {
         }
     }
 
-    public static int getObjectsProcessed(TaskType task) {
-        OperationStatsType stats = task.getOperationStats();
-        if (stats == null) {
-            return 0;
-        }
-        IterativeTaskInformationType iterativeStats = stats.getIterativeTaskInformation();
-        if (iterativeStats == null) {
-            return 0;
-        }
-        return iterativeStats.getTotalSuccessCount() + iterativeStats.getTotalFailureCount();
+    /**
+     * Returns the number of item processing failures from this task and its subtasks.
+     */
+    public static int getItemsProcessedWithFailureFromTree(TaskType task, PrismContext prismContext) {
+        OperationStatsType stats = getOperationStatsFromTree(task, prismContext); // TODO avoid aggregation
+        return getItemsProcessedWithFailure(stats);
     }
 
-    public static int getObjectsProcessedFailures(TaskType task, PrismContext prismContext) {
-        OperationStatsType stats = getAggregatedOperationStats(task, prismContext);
-        if (stats == null) {
-            return 0;
-        }
-        IterativeTaskInformationType iterativeStats = stats.getIterativeTaskInformation();
-        if (iterativeStats == null) {
-            return 0;
-        }
-        return iterativeStats.getTotalFailureCount();
+    public static int getItemsProcessedWithSuccess(TaskType task) {
+        return getItemsProcessedWithSuccess(task.getOperationStats());
     }
 
-    public static OperationStatsType getAggregatedOperationStats(TaskType task, PrismContext prismContext) {
+    public static int getItemsProcessedWithFailure(TaskType task) {
+        return getItemsProcessedWithFailure(task.getOperationStats());
+    }
+
+    public static int getItemsProcessedWithSuccess(OperationStatsType stats) {
+        return stats != null ? getItemsProcessedWithSuccess(stats.getIterativeTaskInformation()) : 0;
+    }
+
+    public static int getItemsProcessedWithSuccess(IterativeTaskInformationType info) {
+        if (info != null) {
+            return getCounts(info.getPart(), OutcomeKeyedCounterTypeUtil::isSuccess);
+        } else {
+            return 0;
+        }
+    }
+
+    public static int getProgressForOutcome(StructuredTaskProgressType info, ItemProcessingOutcomeType outcome, boolean open) {
+        if (info != null) {
+            return getCounts(info.getPart(), getCounterFilter(outcome), open);
+        } else {
+            return 0;
+        }
+    }
+
+    private static Predicate<OutcomeKeyedCounterType> getCounterFilter(ItemProcessingOutcomeType outcome) {
+        switch (outcome) {
+            case SUCCESS:
+                return OutcomeKeyedCounterTypeUtil::isSuccess;
+            case FAILURE:
+                return OutcomeKeyedCounterTypeUtil::isFailure;
+            case SKIP:
+                return OutcomeKeyedCounterTypeUtil::isSkip;
+            default:
+                throw new AssertionError(outcome);
+        }
+    }
+
+    public static int getItemsProcessedWithFailure(OperationStatsType stats) {
+        return stats != null ? getItemsProcessedWithFailure(stats.getIterativeTaskInformation()) : 0;
+    }
+
+    public static int getItemsProcessedWithFailure(IterativeTaskInformationType info) {
+        if (info != null) {
+            return getCounts(info.getPart(), OutcomeKeyedCounterTypeUtil::isFailure);
+        } else {
+            return 0;
+        }
+    }
+
+    public static int getItemsProcessedWithSkip(IterativeTaskInformationType info) {
+        if (info != null) {
+            return getCounts(info.getPart(), OutcomeKeyedCounterTypeUtil::isSkip);
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * Provides aggregated operation statistics from this task and all its subtasks.
+     * Works with stored operation stats, obviously. (We have no task instances here.)
+     *
+     * Assumes that the task has all subtasks filled-in.
+     */
+    public static OperationStatsType getOperationStatsFromTree(TaskType task, PrismContext prismContext) {
         if (!isPartitionedMaster(task) && !isWorkStateHolder(task)) {
            return task.getOperationStats();
         }
 
-        IterativeTaskInformationType iterativeTaskInformation = new IterativeTaskInformationType();
-        SynchronizationInformationType synchronizationInformation = new SynchronizationInformationType();
-        ActionsExecutedInformationType actionsExecutedInformation = new ActionsExecutedInformationType();
+        OperationStatsType aggregate = new OperationStatsType(prismContext)
+                .iterativeTaskInformation(new IterativeTaskInformationType(prismContext))
+                .synchronizationInformation(new SynchronizationInformationType(prismContext))
+                .actionsExecutedInformation(new ActionsExecutedInformationType())
+                .environmentalPerformanceInformation(new EnvironmentalPerformanceInformationType());
 
         Stream<TaskType> subTasks = TaskTypeUtil.getAllTasksStream(task);
         subTasks.forEach(subTask -> {
-            OperationStatsType operationStatsType = subTask.getOperationStats();
-            if (operationStatsType != null) {
-                IterativeTaskInformation.addTo(iterativeTaskInformation, operationStatsType.getIterativeTaskInformation(), false);
-                SynchronizationInformation.addTo(synchronizationInformation, operationStatsType.getSynchronizationInformation());
-                ActionsExecutedInformation.addTo(actionsExecutedInformation, operationStatsType.getActionsExecutedInformation());
+            OperationStatsType operationStatsBean = subTask.getOperationStats();
+            if (operationStatsBean != null) {
+                IterativeTaskInformation.addTo(aggregate.getIterativeTaskInformation(), operationStatsBean.getIterativeTaskInformation());
+                SynchronizationInformation.addTo(aggregate.getSynchronizationInformation(), operationStatsBean.getSynchronizationInformation());
+                ActionsExecutedInformation.addTo(aggregate.getActionsExecutedInformation(), operationStatsBean.getActionsExecutedInformation());
+                EnvironmentalPerformanceInformation.addTo(aggregate.getEnvironmentalPerformanceInformation(), operationStatsBean.getEnvironmentalPerformanceInformation());
             }
         });
-
-        return new OperationStatsType(prismContext)
-                .iterativeTaskInformation(iterativeTaskInformation)
-                .synchronizationInformation(synchronizationInformation)
-                .actionsExecutedInformation(actionsExecutedInformation);
+        return aggregate;
     }
 
     public static TaskType findChild(TaskType parent, String childOid) {
@@ -156,4 +209,71 @@ public class TaskTypeUtil {
     public static boolean isManageableTreeRoot(TaskType taskType) {
         return isCoordinator(taskType) || isPartitionedMaster(taskType);
     }
+
+    /**
+     * Returns the number of "iterations" i.e. how many times an item was processed by this task.
+     * It is useful e.g. to provide average values for performance indicators.
+     */
+    public static Integer getItemsProcessed(TaskType task) {
+        return getItemsProcessed(task.getOperationStats());
+    }
+
+    /**
+     * Returns the number of "iterations" i.e. how many times an item was processed by this task.
+     * It is useful e.g. to provide average values for performance indicators.
+     */
+    public static Integer getItemsProcessed(OperationStatsType statistics) {
+        if (statistics == null || statistics.getIterativeTaskInformation() == null) {
+            return null;
+        } else {
+            return getCounts(statistics.getIterativeTaskInformation().getPart(), set -> true);
+        }
+    }
+
+    private static int getCounts(List<IterativeTaskPartItemsProcessingInformationType> parts,
+            Predicate<ProcessedItemSetType> itemSetFilter) {
+        return parts.stream()
+                .flatMap(component -> component.getProcessed().stream())
+                .filter(Objects::nonNull)
+                .filter(itemSetFilter)
+                .mapToInt(p -> or0(p.getCount()))
+                .sum();
+    }
+
+    private static int getCounts(List<TaskPartProgressType> parts,
+            Predicate<OutcomeKeyedCounterType> counterFilter, boolean open) {
+        return parts.stream()
+                .flatMap(part -> (open ? part.getOpen() : part.getClosed()).stream())
+                .filter(Objects::nonNull)
+                .filter(counterFilter)
+                .mapToInt(p -> or0(p.getCount()))
+                .sum();
+    }
+
+    /**
+     * Returns object that was last successfully processed by given task.
+     */
+    public static String getLastSuccessObjectName(TaskType task) {
+        OperationStatsType stats = task.getOperationStats();
+        if (stats == null || stats.getIterativeTaskInformation() == null) {
+            return null;
+        } else {
+            return getLastProcessedObjectName(stats.getIterativeTaskInformation(), OutcomeKeyedCounterTypeUtil::isSuccess);
+        }
+    }
+
+    public static String getLastProcessedObjectName(IterativeTaskInformationType info, Predicate<ProcessedItemSetType> itemSetFilter) {
+        if (info == null) {
+            return null;
+        }
+        ProcessedItemType lastSuccess = info.getPart().stream()
+                .flatMap(component -> component.getProcessed().stream())
+                .filter(itemSetFilter)
+                .map(ProcessedItemSetType::getLastItem)
+                .filter(Objects::nonNull)
+                .max(Comparator.nullsFirst(Comparator.comparing(item -> XmlTypeConverter.toMillis(item.getEndTimestamp()))))
+                .orElse(null);
+        return lastSuccess != null ? lastSuccess.getName() : null;
+    }
+
 }

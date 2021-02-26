@@ -16,6 +16,7 @@ import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.statistics.*;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -29,19 +30,24 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
+
 import static java.util.Collections.emptySet;
 
 /**
- *  Code to manage operational statistics. Originally it was a part of the TaskQuartzImpl
- *  but it is cleaner to keep it separate.
+ *  Code to manage operational statistics, including structured progress.
+ *  Originally it was a part of the TaskQuartzImpl but it is cleaner to keep it separate.
  *
  *  It is used for
+ *
  *  1) running background tasks (RunningTask) - both heavyweight and lightweight
  *  2) transient tasks e.g. those invoked from GUI
+ *
+ *  (The structured progress is used only for heavyweight running tasks.)
  */
 public class Statistics implements WorkBucketStatisticsCollector {
 
@@ -52,12 +58,15 @@ public class Statistics implements WorkBucketStatisticsCollector {
 
     public Statistics(@NotNull PrismContext prismContext) {
         this.prismContext = prismContext;
+        this.structuredProgress = new StructuredTaskProgress(prismContext);
     }
 
     private EnvironmentalPerformanceInformation environmentalPerformanceInformation = new EnvironmentalPerformanceInformation();
-    private SynchronizationInformation synchronizationInformation;                // has to be explicitly enabled
-    private IterativeTaskInformation iterativeTaskInformation;                    // has to be explicitly enabled
-    private ActionsExecutedInformation actionsExecutedInformation;            // has to be explicitly enabled
+    private SynchronizationInformation synchronizationInformation; // has to be explicitly enabled (by setting non-null value)
+    private IterativeTaskInformation iterativeTaskInformation; // has to be explicitly enabled (by setting non-null value)
+    private ActionsExecutedInformation actionsExecutedInformation; // has to be explicitly enabled (by setting non-null value)
+
+    @NotNull private final StructuredTaskProgress structuredProgress;
 
     /**
      * This data structure is synchronized explicitly. Because it is updated infrequently, it should be sufficient.
@@ -115,6 +124,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
     private volatile String cachingConfigurationDump;
 
     @NotNull
+    @Deprecated
     public List<String> getLastFailures() {
         return iterativeTaskInformation != null ? iterativeTaskInformation.getLastFailures() : Collections.emptyList();
     }
@@ -124,29 +134,29 @@ public class Statistics implements WorkBucketStatisticsCollector {
             return null;
         }
         EnvironmentalPerformanceInformationType rv = new EnvironmentalPerformanceInformationType();
-        EnvironmentalPerformanceInformation.addTo(rv, environmentalPerformanceInformation.getAggregatedValue());
+        EnvironmentalPerformanceInformation.addTo(rv, environmentalPerformanceInformation.getValueCopy());
         for (Statistics child : children) {
             EnvironmentalPerformanceInformation info = child.getEnvironmentalPerformanceInformation();
             if (info != null) {
-                EnvironmentalPerformanceInformation.addTo(rv, info.getAggregatedValue());
+                EnvironmentalPerformanceInformation.addTo(rv, info.getValueCopy());
             }
         }
         return rv;
     }
 
+    /** We assume that the children have compatible part numbers. */
     private IterativeTaskInformationType getAggregateIterativeTaskInformation(Collection<Statistics> children) {
         if (iterativeTaskInformation == null) {
             return null;
         }
-        IterativeTaskInformationType rv = new IterativeTaskInformationType();
-        IterativeTaskInformation.addTo(rv, iterativeTaskInformation.getAggregatedValue(), false);
+        IterativeTaskInformationType sum = iterativeTaskInformation.getValueCopy();
         for (Statistics child : children) {
             IterativeTaskInformation info = child.getIterativeTaskInformation();
             if (info != null) {
-                IterativeTaskInformation.addTo(rv, info.getAggregatedValue(), false);
+                IterativeTaskInformation.addTo(sum, info.getValueCopy());
             }
         }
-        return rv;
+        return sum;
     }
 
     private SynchronizationInformationType getAggregateSynchronizationInformation(Collection<Statistics> children) {
@@ -154,11 +164,11 @@ public class Statistics implements WorkBucketStatisticsCollector {
             return null;
         }
         SynchronizationInformationType rv = new SynchronizationInformationType();
-        SynchronizationInformation.addTo(rv, synchronizationInformation.getAggregatedValue());
+        SynchronizationInformation.addTo(rv, synchronizationInformation.getValueCopy());
         for (Statistics child : children) {
             SynchronizationInformation info = child.getSynchronizationInformation();
             if (info != null) {
-                SynchronizationInformation.addTo(rv, info.getAggregatedValue());
+                SynchronizationInformation.addTo(rv, info.getValueCopy());
             }
         }
         return rv;
@@ -221,7 +231,12 @@ public class Statistics implements WorkBucketStatisticsCollector {
         }
     }
 
-    public OperationStatsType getAggregatedLiveOperationStats(Collection<Statistics> children) {
+    /**
+     * Gets aggregated operation statistics from this object and provided child objects.
+     *
+     * We assume that the children have compatible part numbers.
+     */
+    public OperationStatsType getAggregatedOperationStats(Collection<Statistics> children) {
         EnvironmentalPerformanceInformationType env = getAggregateEnvironmentalPerformanceInformation(children);
         IterativeTaskInformationType itit = getAggregateIterativeTaskInformation(children);
         SynchronizationInformationType sit = getAggregateSynchronizationInformation(children);
@@ -246,6 +261,10 @@ public class Statistics implements WorkBucketStatisticsCollector {
         rv.setWorkBucketManagementPerformanceInformation(buckets);
         rv.setTimestamp(createXMLGregorianCalendar(new Date()));
         return rv;
+    }
+
+    public StructuredTaskProgressType getStructuredTaskProgress() {
+        return structuredProgress.getValueCopy();
     }
 
     private String getAggregateCachingConfiguration(Collection<Statistics> children) {
@@ -281,14 +300,6 @@ public class Statistics implements WorkBucketStatisticsCollector {
         environmentalPerformanceInformation.recordMappingOperation(objectOid, objectName, objectTypeName, mappingName, duration);
     }
 
-    public synchronized void onSyncItemProcessingEnd(SynchronizationInformation.LegacyCounters originalStateIncrement,
-            SynchronizationInformation.LegacyCounters newStateIncrement) {
-        if (synchronizationInformation != null) {
-            synchronizationInformation
-                    .recordSynchronizationOperationLegacy(originalStateIncrement, newStateIncrement);
-        }
-    }
-
     public synchronized void onSyncItemProcessingStart(@NotNull String processingIdentifier,
             @Nullable SynchronizationSituationType beforeOperation) {
         if (synchronizationInformation != null) {
@@ -318,34 +329,31 @@ public class Statistics implements WorkBucketStatisticsCollector {
     }
 
     public synchronized void onSyncItemProcessingEnd(@NotNull String processingIdentifier,
-            @NotNull SynchronizationInformation.Status status) {
+            @NotNull QualifiedItemProcessingOutcomeType outcome) {
         if (synchronizationInformation != null) {
-            synchronizationInformation.onSyncItemProcessingEnd(processingIdentifier, status);
+            synchronizationInformation.onSyncItemProcessingEnd(processingIdentifier, outcome);
         }
     }
 
-    public synchronized void recordIterativeOperationEnd(String objectName, String objectDisplayName, QName objectType,
-            String objectOid, long started, Throwable exception) {
+    @NotNull
+    public synchronized IterativeTaskInformation.Operation recordIterativeOperationStart(IterativeOperation operation) {
         if (iterativeTaskInformation != null) {
-            iterativeTaskInformation.recordOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception);
+            return iterativeTaskInformation.recordOperationStart(operation);
+        } else {
+            return Operation.none();
         }
     }
 
-    public void recordIterativeOperationEnd(ShadowType shadow, long started, Throwable exception) {
-        recordIterativeOperationEnd(PolyString.getOrig(shadow.getName()), StatisticsUtil.getDisplayName(shadow),
-                ShadowType.COMPLEX_TYPE, shadow.getOid(), started, exception);
+    public void setStructuredProgressPartInformation(String partUri, Integer partNumber, Integer expectedParts) {
+        structuredProgress.setPartInformation(partUri, partNumber, expectedParts);
     }
 
-    public void recordIterativeOperationStart(ShadowType shadow) {
-        recordIterativeOperationStart(PolyString.getOrig(shadow.getName()), StatisticsUtil.getDisplayName(shadow),
-                ShadowType.COMPLEX_TYPE, shadow.getOid());
+    public void incrementStructuredProgress(String partUri, QualifiedItemProcessingOutcomeType outcome) {
+        structuredProgress.increment(partUri, outcome);
     }
 
-    public synchronized void recordIterativeOperationStart(String objectName, String objectDisplayName, QName objectType,
-            String objectOid) {
-        if (iterativeTaskInformation != null) {
-            iterativeTaskInformation.recordOperationStart(objectName, objectDisplayName, objectType, objectOid);
-        }
+    public void updateStructuredProgressOnWorkBucketCompletion() {
+        structuredProgress.updateStructuredProgressOnWorkBucketCompletion();
     }
 
     public void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid,
@@ -365,7 +373,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
             String defaultOid, ChangeType changeType, String channel, Throwable exception) {
         if (actionsExecutedInformation != null) {
             String name, displayName, oid;
-            PrismObjectDefinition definition;
+            PrismObjectDefinition<?> definition;
             Class<T> clazz;
             if (object != null) {
                 name = PolyString.getOrig(object.getName());
@@ -408,11 +416,11 @@ public class Statistics implements WorkBucketStatisticsCollector {
     }
 
     public void resetSynchronizationInformation(SynchronizationInformationType value) {
-        synchronizationInformation = new SynchronizationInformation(value);
+        synchronizationInformation = new SynchronizationInformation(value, prismContext);
     }
 
     public void resetIterativeTaskInformation(IterativeTaskInformationType value) {
-        iterativeTaskInformation = new IterativeTaskInformation(value);
+        iterativeTaskInformation = new IterativeTaskInformation(value, prismContext);
     }
 
     public void resetActionsExecutedInformation(ActionsExecutedInformationType value) {
@@ -486,11 +494,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
         XMLGregorianCalendar now = createXMLGregorianCalendar(System.currentTimeMillis());
         String dump = "Caching configuration for thread " + Thread.currentThread().getName() + " on " + now + ":\n\n";
         String cfg = cacheConfigurationManager.dumpThreadLocalConfiguration(false);
-        if (cfg != null) {
-            dump += cfg;
-        } else {
-            dump += "(none defined)";
-        }
+        dump += Objects.requireNonNullElse(cfg, "(none defined)");
         cachingConfigurationDump = dump;
     }
 

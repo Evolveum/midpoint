@@ -10,9 +10,10 @@ package com.evolveum.midpoint.test.asserter;
 import static org.testng.AssertJUnit.assertEquals;
 
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
-
+import com.evolveum.midpoint.schema.statistics.OutcomeKeyedCounterTypeUtil;
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 
 /**
  *  Asserter that checks iterative task information.
@@ -27,34 +28,51 @@ public class IterativeTaskInfoAsserter<RA> extends AbstractAsserter<RA> {
         this.information = information;
     }
 
-    public IterativeTaskInfoAsserter<RA> assertTotalCounts(int success, int failure) {
-        assertSuccessCount(success);
+    public IterativeTaskInfoAsserter<RA> assertTotalCounts(int nonFailure, int failure) {
+        assertNonFailureCount(nonFailure);
         assertFailureCount(failure);
         return this;
     }
 
+    public IterativeTaskInfoAsserter<RA> assertTotalCounts(int success, int failure, int skip) {
+        assertSuccessCount(success);
+        assertFailureCount(failure);
+        assertSkipCount(skip);
+        return this;
+    }
+
+    public IterativeTaskInfoAsserter<RA> assertNonFailureCount(int success) {
+        assertEquals("Wrong value of total 'non-failure' counter", success, getNonFailureCount());
+        return this;
+    }
+
     public IterativeTaskInfoAsserter<RA> assertSuccessCount(int success) {
-        assertEquals("Wrong value of total success counter", success, information.getTotalSuccessCount());
+        assertEquals("Wrong value of total success counter", success, getSuccessCount());
+        return this;
+    }
+
+    public IterativeTaskInfoAsserter<RA> assertSkipCount(int skip) {
+        assertEquals("Wrong value of total skip counter", skip, getSkipCount());
         return this;
     }
 
     public IterativeTaskInfoAsserter<RA> assertSuccessCount(int min, int max) {
-        assertBetween(information.getTotalSuccessCount(), min, max, "Total success counter");
+        assertBetween(getSuccessCount(), min, max, "Total success counter");
         return this;
     }
 
     public IterativeTaskInfoAsserter<RA> assertFailureCount(int failure) {
-        assertEquals("Wrong value of total failure counter", failure, information.getTotalFailureCount());
+        assertEquals("Wrong value of total failure counter", failure, getFailureCount());
         return this;
     }
 
     public IterativeTaskInfoAsserter<RA> assertFailureCount(int min, int max) {
-        assertBetween(information.getTotalFailureCount(), min, max, "Total failure counter");
+        assertBetween(getFailureCount(), min, max, "Total failure counter");
         return this;
     }
 
     public IterativeTaskInfoAsserter<RA> assertLastFailureObjectName(String expected) {
-        assertEquals("Wrong 'last failure' object name", expected, information.getLastFailureObjectName());
+        assertEquals("Wrong 'last failure' object name", expected, getLastFailedObjectName());
         return this;
     }
 
@@ -74,5 +92,25 @@ public class IterativeTaskInfoAsserter<RA> extends AbstractAsserter<RA> {
     public IterativeTaskInfoAsserter<RA> display() {
         IntegrationTestTools.display(desc(), IterativeTaskInformation.format(information));
         return this;
+    }
+
+    private int getSuccessCount() {
+        return TaskTypeUtil.getItemsProcessedWithSuccess(information);
+    }
+
+    private int getFailureCount() {
+        return TaskTypeUtil.getItemsProcessedWithFailure(information);
+    }
+
+    private int getSkipCount() {
+        return TaskTypeUtil.getItemsProcessedWithSkip(information);
+    }
+
+    private int getNonFailureCount() {
+        return getSuccessCount() + getSkipCount();
+    }
+
+    private String getLastFailedObjectName() {
+        return TaskTypeUtil.getLastProcessedObjectName(information, OutcomeKeyedCounterTypeUtil::isFailure);
     }
 }

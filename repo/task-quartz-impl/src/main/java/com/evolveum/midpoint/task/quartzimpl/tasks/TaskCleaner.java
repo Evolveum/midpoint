@@ -9,10 +9,10 @@ package com.evolveum.midpoint.task.quartzimpl.tasks;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
@@ -80,10 +80,7 @@ public class TaskCleaner {
                 break;
             }
 
-            final String taskName = PolyString.getOrig(rootTaskPrism.getName());
-            final String taskOid = rootTaskPrism.getOid();
-            final long started = System.currentTimeMillis();
-            executionTask.recordIterativeOperationStart(taskName, null, TaskType.COMPLEX_TYPE, taskOid);
+            Operation op = executionTask.recordIterativeOperationStart(rootTaskPrism);
             try {
                 // get whole tree
                 TaskQuartzImpl rootTask = taskInstantiator.createTaskInstance(rootTaskPrism, result);
@@ -108,10 +105,13 @@ public class TaskCleaner {
                     }
                 }
                 // approximate solution (as the problem might be connected to a subtask)
-                executionTask
-                        .recordIterativeOperationEnd(taskName, null, TaskType.COMPLEX_TYPE, taskOid, started, lastProblem);
+                if (lastProblem != null) {
+                    op.failed(lastProblem);
+                } else {
+                    op.succeeded();
+                }
             } catch (Throwable t) {
-                executionTask.recordIterativeOperationEnd(taskName, null, TaskType.COMPLEX_TYPE, taskOid, started, t);
+                op.failed(t);
                 throw t;
             }
             executionTask.incrementProgressAndStoreStatsIfNeeded();

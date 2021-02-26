@@ -57,7 +57,6 @@ public class NoOpTaskHandler implements WorkBucketAwareTaskHandler {
         runResult.setOperationResult(opResult);
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);     // would be overwritten when problem is encountered
         runResult.setBucketComplete(false);     // overridden later
-        runResult.setShouldContinue(false);     // overridden later
 
         PrismProperty<Integer> delayProp = task.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME);
         PrismProperty<Integer> stepsProp = task.getExtensionPropertyOrClone(SchemaConstants.NOOP_STEPS_QNAME);
@@ -116,6 +115,7 @@ outer:  for (int o = objectFrom; o <= objectTo; o++) {
                     long delta = sleepUntil - System.currentTimeMillis();
                     if (delta > 0) {
                         try {
+                            //noinspection BusyWait
                             Thread.sleep(delta);
                         } catch (InterruptedException e) {
                             // ignore
@@ -138,7 +138,6 @@ outer:  for (int o = objectFrom; o <= objectTo; o++) {
 
         LOGGER.info("NoOpTaskHandler run finishing; progress = {} in task {}", task.getProgress(), task);
 
-        runResult.setShouldContinue(task.canRun());
         runResult.setBucketComplete(task.canRun());
         return runResult;
     }

@@ -12,8 +12,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -300,6 +299,11 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public StructuredTaskProgressType getStructuredProgressOrClone() {
+        return null;
+    }
+
+    @Override
     public void setProgress(Long value) {
         throw new UnsupportedOperationException();
     }
@@ -552,10 +556,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void recordSynchronizationOperationLegacy(SynchronizationInformation.LegacyCounters originalStateIncrement, SynchronizationInformation.LegacyCounters newStateIncrement) {
-    }
-
-    @Override
     public void onSyncItemProcessingStart(@NotNull String processingIdentifier, @Nullable SynchronizationSituationType situationBefore) {
     }
 
@@ -572,8 +572,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void onSyncItemProcessingEnd(@NotNull String processingIdentifier,
-            SynchronizationInformation.@NotNull Status status) {
+    public void onSyncItemProcessingEnd(@NotNull String processingIdentifier, @NotNull QualifiedItemProcessingOutcomeType outcome) {
     }
 
     @Override
@@ -589,19 +588,8 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void recordIterativeOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception) {
-    }
-
-    @Override
-    public void recordIterativeOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
-    }
-
-    @Override
-    public void recordIterativeOperationEnd(ShadowType shadow, long started, Throwable exception) {
-    }
-
-    @Override
-    public void recordIterativeOperationStart(ShadowType shadow) {
+    public IterativeTaskInformation.@NotNull Operation recordIterativeOperationStart(IterativeOperation operation) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -625,7 +613,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public OperationStatsType getStoredOperationStats() {
+    public OperationStatsType getStoredOperationStatsOrClone() {
         return null;
     }
 

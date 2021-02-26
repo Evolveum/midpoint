@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="44444444-2222-2222-2222-120000000000"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>task-120-0-single</name>
+    <taskIdentifier>44444444-2222-2222-2222-120000000000</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>suspended</executionStatus>
+    <handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
+    <workManagement>
+        <buckets>
+            <numericSegmentation>
+                <numberOfBuckets>1000</numberOfBuckets>
+            </numericSegmentation>
+        </buckets>
+    </workManagement>
+    <recurrence>single</recurrence>
+</task>

@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.apache.commons.lang.StringUtils;
@@ -105,9 +106,6 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -3205,7 +3203,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             ConfigurationException, ExpressionEvaluationException {
         PrismObject<TaskType> rootTask = getTaskTree(rootTaskOid);
         return TaskTypeUtil.getAllTasksStream(rootTask.asObjectable())
-                .map(t -> t.getOperationStats())
+                .map(TaskType::getOperationStats)
                 .reduce(StatisticsUtil::sum)
                 .orElse(null);
     }
@@ -6686,11 +6684,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void dumpStatistics(Task task) {
-        OperationStatsType stats = task.getStoredOperationStats();
-        IterativeTaskInformationType iterativeInfo = stats.getIterativeTaskInformation();
-        displayValue("Iterative information", IterativeTaskInformation.format(iterativeInfo));
+        OperationStatsType stats = task.getStoredOperationStatsOrClone();
+        displayValue("Iterative information", IterativeTaskInformation.format(stats.getIterativeTaskInformation()));
+        displayValue("Structured progress", StructuredTaskProgress.format(task.getStructuredProgressOrClone()));
         SynchronizationInformationType synchronizationInfo = stats.getSynchronizationInformation();
         displayValue("Synchronization information", SynchronizationInformation.format(synchronizationInfo));
+        displayValue("Provisioning statistics", ProvisioningStatistics.format(
+                stats.getEnvironmentalPerformanceInformation().getProvisioningStatistics()));
     }
 
     protected void dumpShadowSituations(String resourceOid, OperationResult result) throws SchemaException {

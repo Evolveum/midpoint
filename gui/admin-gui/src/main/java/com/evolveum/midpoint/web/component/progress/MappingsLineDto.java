@@ -74,7 +74,7 @@ public class MappingsLineDto {
     }
 
     public static List<MappingsLineDto> extractFromOperationalInformation(EnvironmentalPerformanceInformation environmentalPerformanceInformation) {
-        EnvironmentalPerformanceInformationType environmentalPerformanceInformationType = environmentalPerformanceInformation.getAggregatedValue();
+        EnvironmentalPerformanceInformationType environmentalPerformanceInformationType = environmentalPerformanceInformation.getValueCopy();
         MappingsStatisticsType mappingsStatisticsType = environmentalPerformanceInformationType.getMappingsStatistics();
         return extractFromOperationalInformation(mappingsStatisticsType);
     }

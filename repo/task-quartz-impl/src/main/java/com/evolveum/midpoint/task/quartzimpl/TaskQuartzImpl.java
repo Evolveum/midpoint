@@ -22,6 +22,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
+import com.evolveum.midpoint.schema.statistics.IterativeOperation;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.NotNull;
@@ -455,8 +457,7 @@ public class TaskQuartzImpl implements Task {
         return deltaFactory().property().createReplaceDeltaOrEmptyDelta(taskManager.getTaskObjectDefinition(), name, value);
     }
 
-    @Nullable
-    private <X extends Containerable> ContainerDelta<X> createContainerDeltaIfPersistent(ItemName name, X value)
+    @Nullable <X extends Containerable> ContainerDelta<X> createContainerDeltaIfPersistent(ItemName name, X value)
             throws SchemaException {
         if (isPersistent()) {
             //noinspection unchecked
@@ -661,6 +662,11 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
+    public StructuredTaskProgressType getStructuredProgressOrClone() {
+        return getContainerableOrClone(TaskType.F_STRUCTURED_PROGRESS);
+    }
+
+    @Override
     public void setProgressImmediate(Long value, OperationResult result) throws ObjectNotFoundException, SchemaException {
         setPropertyImmediate(TaskType.F_PROGRESS, value, result);
     }
@@ -670,12 +676,16 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public OperationStatsType getStoredOperationStats() {
+    public OperationStatsType getStoredOperationStatsOrClone() {
         return getContainerableOrClone(TaskType.F_OPERATION_STATS);
     }
 
     public void setOperationStats(OperationStatsType value) {
         setContainerable(TaskType.F_OPERATION_STATS, value);
+    }
+
+    public void setStructuredProgress(StructuredTaskProgressType value) {
+        setContainerable(TaskType.F_STRUCTURED_PROGRESS, value);
     }
 
     public void setOperationStatsTransient(OperationStatsType value) {
@@ -1762,7 +1772,7 @@ public class TaskQuartzImpl implements Task {
 
     @Override
     public OperationStatsType getAggregatedLiveOperationStats() {
-        return statistics.getAggregatedLiveOperationStats(emptyList());
+        return statistics.getAggregatedOperationStats(emptyList());
     }
 
     @Override
@@ -2088,31 +2098,8 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void recordIterativeOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
-        LOGGER.trace("recordIterativeOperationStart: {} in {}", objectDisplayName, this);
-        statistics.recordIterativeOperationStart(objectName, objectDisplayName, objectType, objectOid);
-    }
-
-    @Override
-    public void recordIterativeOperationStart(ShadowType shadow) {
-        statistics.recordIterativeOperationStart(shadow);
-    }
-
-    @Override
-    public void recordIterativeOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid,
-            long started, Throwable exception) {
-        statistics.recordIterativeOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception);
-    }
-
-    @Override
-    public void recordIterativeOperationEnd(ShadowType shadow, long started, Throwable exception) {
-        statistics.recordIterativeOperationEnd(shadow, started, exception);
-    }
-
-    @Override
-    public void recordSynchronizationOperationLegacy(SynchronizationInformation.LegacyCounters originalStateIncrement,
-            SynchronizationInformation.LegacyCounters newStateIncrement) {
-        statistics.onSyncItemProcessingEnd(originalStateIncrement, newStateIncrement);
+    public @NotNull Operation recordIterativeOperationStart(IterativeOperation operation) {
+        return statistics.recordIterativeOperationStart(operation);
     }
 
     @Override
@@ -2140,8 +2127,8 @@ public class TaskQuartzImpl implements Task {
 
     @Override
     public synchronized void onSyncItemProcessingEnd(@NotNull String processingIdentifier,
-            @NotNull SynchronizationInformation.Status status) {
-        statistics.onSyncItemProcessingEnd(processingIdentifier, status);
+            @NotNull QualifiedItemProcessingOutcomeType outcome) {
+        statistics.onSyncItemProcessingEnd(processingIdentifier, outcome);
     }
 
     @Override
@@ -2192,6 +2179,7 @@ public class TaskQuartzImpl implements Task {
 
     @NotNull
     @Override
+    @Deprecated
     public List<String> getLastFailures() {
         return statistics.getLastFailures();
     }

@@ -198,7 +198,7 @@ public class ProvisioningStatisticsLineDto {
     }
 
     public static List<ProvisioningStatisticsLineDto> extractFromOperationalInformation(EnvironmentalPerformanceInformation environmentalPerformanceInformation) {
-        EnvironmentalPerformanceInformationType environmentalPerformanceInformationType = environmentalPerformanceInformation.getAggregatedValue();
+        EnvironmentalPerformanceInformationType environmentalPerformanceInformationType = environmentalPerformanceInformation.getValueCopy();
         ProvisioningStatisticsType provisioningStatisticsType = environmentalPerformanceInformationType.getProvisioningStatistics();
         return extractFromOperationalInformation(provisioningStatisticsType);
     }

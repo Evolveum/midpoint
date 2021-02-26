@@ -8,6 +8,9 @@ package com.evolveum.midpoint.task.quartzimpl;
 
 import static org.testng.AssertJUnit.*;
 
+import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -71,19 +74,19 @@ public class MockParallelTaskHandler implements TaskHandler {
             while (System.currentTimeMillis() < end && task.canRun()) {
                 // hoping to get ConcurrentModificationException when setting operation result here (MID-5113)
                 task.getParentForLightweightAsynchronousTask().getUpdatedOrClonedTaskObject();
-                long started = System.currentTimeMillis();
-                task.recordIterativeOperationStart("o1", null, UserType.COMPLEX_TYPE, "oid1");
+                IterationItemInformation info = new IterationItemInformation("o1", null, UserType.COMPLEX_TYPE, "oid1");
+                Operation op = task.recordIterativeOperationStart(info);
                 try {
                     //noinspection BusyWait
                     Thread.sleep(STEP);
-                    task.recordIterativeOperationEnd("o1", null, UserType.COMPLEX_TYPE, "oid1", started, null);
+                    op.succeeded();
                     //noinspection SynchronizationOnLocalVariableOrMethodParameter
                     synchronized (parentTask) {
                         parentTask.incrementProgressAndStoreStatsIfNeeded();
                     }
                 } catch (InterruptedException e) {
                     LOGGER.trace("Handler for task {} interrupted", task);
-                    task.recordIterativeOperationEnd("o1", null, UserType.COMPLEX_TYPE, "oid1", started, e);
+                    op.failed(e);
                     break;
                 }
             }

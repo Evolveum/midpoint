@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 import java.util.Collection;
 import java.util.function.Function;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -60,6 +61,7 @@ class ReconciliationTaskThirdPartExecution
         //  invoked change processing.
         reportingOptions.setEnableSynchronizationStatistics(false);
 
+        setPartUri(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_PART_URI);
         setProcessShortNameCapitalized("Reconciliation (remaining shadows)");
         setContextDescription("for " + taskExecution.getTargetInfo().getContextDescription());
         setRequiresDirectRepositoryAccess();

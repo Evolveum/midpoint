@@ -1009,4 +1009,52 @@ public class MiscUtil {
             return Arrays.asList(values);
         }
     }
+
+    public static int or0(Integer value) {
+        return Objects.requireNonNullElse(value, 0);
+    }
+
+    public static long or0(Long value) {
+        return Objects.requireNonNullElse(value, 0L);
+    }
+
+    public static Integer min(Integer a, Integer b) {
+        if (a == null) {
+            return b;
+        } else if (b == null) {
+            return a;
+        } else {
+            return Math.min(a, b);
+        }
+    }
+
+    public static Long min(Long a, Long b) {
+        if (a == null) {
+            return b;
+        } else if (b == null) {
+            return a;
+        } else {
+            return Math.min(a, b);
+        }
+    }
+
+    public static Integer max(Integer a, Integer b) {
+        if (a == null) {
+            return b;
+        } else if (b == null) {
+            return a;
+        } else {
+            return Math.max(a, b);
+        }
+    }
+
+    public static Long max(Long a, Long b) {
+        if (a == null) {
+            return b;
+        } else if (b == null) {
+            return a;
+        } else {
+            return Math.max(a, b);
+        }
+    }
 }

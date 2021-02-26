@@ -16,14 +16,16 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 public class TaskWorkBucketProcessingResult extends TaskRunResult {
 
     /**
-     * TODO
+     * Can the task manager mark the bucket as complete?
+     *
+     * Notes:
+     *
+     * 1. Currently this is set to true iff {@link RunningTask#canRun()} is true. But these two may diverge in the future.
+     * 2. The default reaction on getting false by the executor is to stop the execution.
+     *
+     * TODO Consider if we should remove this field.
      */
-    private boolean bucketComplete; // "bucket not complete" implies "should not continue"
-
-    /**
-     * TODO
-     */
-    private boolean shouldContinue;
+    private boolean bucketComplete;
 
     public boolean isBucketComplete() {
         return bucketComplete;
@@ -33,19 +35,10 @@ public class TaskWorkBucketProcessingResult extends TaskRunResult {
         this.bucketComplete = bucketComplete;
     }
 
-    public boolean isShouldContinue() {
-        return shouldContinue;
-    }
-
-    public void setShouldContinue(boolean shouldContinue) {
-        this.shouldContinue = shouldContinue;
-    }
-
     @Override
     public String toString() {
         return "TaskWorkBucketProcessingResult{" +
                 "bucketComplete=" + bucketComplete +
-                ", shouldContinue=" + shouldContinue +
                 ", progress=" + progress +
                 ", runResultStatus=" + runResultStatus +
                 ", operationResult=" + operationResult +
