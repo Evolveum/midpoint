@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 
 /**
- *
+ * TODO reconsider usefulness of this class
  */
 public enum ProvisioningOperation {
 
@@ -37,5 +37,9 @@ public enum ProvisioningOperation {
                 .filter(v -> v.name.equals(name))
                 .findFirst()
                 .orElse(null);
+    }
+
+    public String getName() {
+        return name;
     }
 }

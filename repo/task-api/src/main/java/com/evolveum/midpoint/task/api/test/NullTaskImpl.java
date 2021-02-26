@@ -544,7 +544,8 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName, ProvisioningOperation operation, boolean success, int count, long duration) {
+    public void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName,
+            ProvisioningOperation operation, boolean success, int count, long duration) {
     }
 
     @Override

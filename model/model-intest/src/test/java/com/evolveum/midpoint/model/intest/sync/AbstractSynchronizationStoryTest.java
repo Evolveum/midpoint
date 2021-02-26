@@ -166,7 +166,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
             assertThat(provisioningStatistics.getEntry()).hasSize(1);
             assertThat(provisioningStatistics.getEntry().get(0).getResourceRef().getOid()).isEqualTo(RESOURCE_DUMMY_GREEN_OID);
             assertThat(getOrig(provisioningStatistics.getEntry().get(0).getResourceRef().getTargetName())).isEqualTo("Dummy Resource Green");
-            assertThat(provisioningStatistics.getEntry().get(0).getOperation()).hasSize(2); // get + search
+            assertThat(provisioningStatistics.getEntry().get(0).getOperation()).isNotEmpty(); // search and sometimes get
         }
 
         // notifications
