@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -17486,6 +17486,9 @@
                     <xsd:documentation>
                         Optional expression to be executed to amend AuditEventRecord.
                         Expression must return the record, return null to skip auditing for this record.
+                        Following variables are provided:
+                        - auditRecord of type AuditEventRecord (this or null is to be returned)
+                        - target (primary object), PrismObject, the type depends on the event
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -26333,6 +26336,16 @@
                     <xsd:annotation>
                            <xsd:appinfo>
                             <a:displayName>SearchBoxConfigurationType.defaultMode</a:displayName>
+                           </xsd:appinfo>
+                       </xsd:annotation>
+                   </xsd:element>
+                   <xsd:element name="allowedMode" type="tns:SearchBoxModeType" minOccurs="0" maxOccurs="unbounded">
+                       <xsd:annotation>
+                           <xsd:documentation>
+                               Configuration for allowed search modes for search. All search mode are allowed by default.
+                           </xsd:documentation>
+                           <xsd:appinfo>
+                               <a:displayName>SearchBoxConfigurationType.defaultMode</a:displayName>
                            </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>

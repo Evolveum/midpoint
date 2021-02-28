@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+
     <name>SystemConfiguration</name>
     <globalSecurityPolicyRef oid="28bf845a-b107-11e3-85bc-001e8c717e5b"/>
     <logging>
@@ -18,7 +19,7 @@
         <classLogger>
             <level>TRACE</level>
             <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
-          </classLogger>
+        </classLogger>
         <c:classLogger>
             <c:level>TRACE</c:level>
             <c:package>com.evolveum.midpoint.notifications</c:package>
@@ -597,11 +598,36 @@
     <audit>
         <eventRecording>
             <recordResourceOids>true</recordResourceOids>
+            <expression>
+                <script>
+                    <documentation>
+                        Causes some TestAudit tests skip and/or modify audit record.
+                    </documentation>
+                    <code>
+                        def mods = midpoint.focusContext?.primaryDelta?.modifications
+                        def mod = mods != null &amp;&amp; mods.size() == 1 ? mods[0] : null
+                        if (mod?.elementName?.lastName()?.localPart == "honorificSuffix") {
+                            // here are various TestAudit.test4xx cases
+                            def val = mods[0]?.anyRealValue?.orig
+                            if (val == "drop-request-audit" &amp;&amp; auditRecord.eventStage?.name() == "REQUEST"
+                                    || val == "drop-execution-audit" &amp;&amp; auditRecord.eventStage?.name() == "EXECUTION"
+                                    || val == "drop-audit") {
+                                return null // null skips audit
+                            }
+                            if (val == "change-parameter") {
+                                auditRecord.parameter = "modified in script"
+                            }
+                        }
+
+                        return auditRecord
+                    </code>
+                </script>
+            </expression>
             <property>
                 <name>foo</name>
                 <expression>
                     <script>
-                        <code> return "test"</code>
+                        <code>return "test"</code>
                     </script>
                 </expression>
             </property>

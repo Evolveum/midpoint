@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
-import static com.evolveum.midpoint.util.MiscUtil.or0;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -73,22 +71,22 @@ public class StructuredTaskProgress {
         TaskPartProgressType part =
                 findOrCreateMatchingPart(value.getPart(), partUri, prismContext);
         int count = OutcomeKeyedCounterTypeUtil.incrementCounter(part.getOpen(), outcome, prismContext);
-        LOGGER.info("Incremented structured progress to {}. Part uri = {}, outcome = {}", count, partUri, outcome);
+        LOGGER.trace("Incremented structured progress to {}. Part uri = {}, outcome = {}", count, partUri, outcome);
     }
 
     /**
      * Moves "open" counters to "closed" state.
      */
     public synchronized void updateStructuredProgressOnWorkBucketCompletion() {
-        LOGGER.info("Updating structured progress on work bucket completion. Part URI: {}", value.getCurrentPartUri()); // todo trace
+        LOGGER.trace("Updating structured progress on work bucket completion. Part URI: {}", value.getCurrentPartUri());
         Optional<TaskPartProgressType> partOptional = findMatchingPart(value.getPart(), value.getCurrentPartUri());
         if (partOptional.isPresent()) {
             TaskPartProgressType part = partOptional.get();
             OutcomeKeyedCounterTypeUtil.addCounters(part.getClosed(), part.getOpen());
             part.getOpen().clear();
         } else {
-            LOGGER.info("Didn't update structured progress for part {} as there are no records present for that part",
-                    value.getCurrentPartUri()); // todo trace
+            LOGGER.trace("Didn't update structured progress for part {} as there are no records present for that part",
+                    value.getCurrentPartUri());
         }
     }
 

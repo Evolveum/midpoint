@@ -1,13 +1,17 @@
 /*
- * Copyright (C) 2016-2020 Evolveum and contributors
+ * Copyright (C) 2016-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
+
+import static com.evolveum.midpoint.audit.api.AuditEventStage.EXECUTION;
+import static com.evolveum.midpoint.audit.api.AuditEventStage.REQUEST;
 
 import java.io.File;
 import java.util.Objects;
@@ -44,18 +48,26 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Test of Model Audit Service.
- * <p>
+ *
  * Two users, interlaced events: jack and herman.
- * <p>
- * Jack already exists, but there is no create audit record for him. This simulates trimmed
+ *
+ * * Jack already exists, but there is no create audit record for him. This simulates trimmed
  * audit log. There are several fresh modify operations.
- * <p>
- * Herman is properly created and modified. We have all the audit records.
- * <p>
+ *
+ * * Herman is properly created and modified. We have all the audit records.
+ *
  * The tests check if audit records are created and that they can be listed.
  * The other tests check that the state can be reconstructed by the time machine (object history).
+ * Some tests cover the functionality audit event recording expression (experimental!)
+ * that can modify the audit event record or even drop it altogether.
  *
- * @author Radovan Semancik
+ * IMPLEMENTATION NOTE: To isolate and assert relevant audit records
+ * {@link #assertRecordsFromInitial(XMLGregorianCalendar, int)} (using getAuditRecordsFromTo)
+ * is used which works in tandem with {@link #getTimeSafely()}.
+ * Consider also new alternative combination {@link #getAuditRecordsMaxId(Task, OperationResult)}
+ * and {@link #getAuditRecordsAfterId(long, Task, OperationResult)} which requires one more DB
+ * access for max ID (unless used in first method only), but is still much faster than
+ * {@link #getTimeSafely()} with sleeps.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -500,16 +512,21 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         return auditRecords.get(auditRecords.size() - 1).getEventIdentifier();
     }
 
-    private void assertRecordsFromPrevious(XMLGregorianCalendar from, XMLGregorianCalendar to,
-            int expectedNumberOfRecords) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    private List<AuditEventRecord> assertRecordsFromPrevious(
+            XMLGregorianCalendar from, XMLGregorianCalendar to, int expectedNumberOfRecords)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        List<AuditEventRecord> auditRecordsSincePrevious = getAuditRecordsFromTo(from, to, task, result);
-        display("From/to records (previous)", auditRecordsSincePrevious);
-        assertEquals("Wrong number of audit records (previous)", expectedNumberOfRecords, auditRecordsSincePrevious.size());
+        List<AuditEventRecord> auditRecords = getAuditRecordsFromTo(from, to, task, result);
+        display("From/to records (previous)", auditRecords);
+        assertEquals("Wrong number of audit records (previous)", expectedNumberOfRecords, auditRecords.size());
+        return auditRecords;
     }
 
-    private void assertRecordsFromInitial(XMLGregorianCalendar to, int expectedNumberOfRecords) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    private void assertRecordsFromInitial(XMLGregorianCalendar to, int expectedNumberOfRecords)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         List<AuditEventRecord> auditRecordsSincePrevious = getAuditRecordsFromTo(initialTs, to, task, result);
@@ -684,4 +701,80 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         }
     }
 
+    // Tests for MID-6839
+    @Test
+    public void test400RequestAuditDropped() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        long lastAuditId = getAuditRecordsMaxId(task, result);
+
+        when("modify action is audited with delta matching audit recording script");
+        // honorific suffix attribute is used to smuggle the instruction what to drop
+        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, task, result, createPolyString("drop-request-audit"));
+
+        then("request audit is skipped, only execution one is stored");
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        List<AuditEventRecord> records = getAuditRecordsAfterId(lastAuditId, task, result);
+
+        assertThat(records).hasSize(1);
+        assertThat(records.get(0).getEventStage()).isEqualTo(EXECUTION);
+    }
+
+    @Test
+    public void test401ExecutionAuditDropped() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        long lastAuditId = getAuditRecordsMaxId(task, result);
+
+        when("modify action is audited with delta matching audit recording script");
+        // honorific suffix attribute is used to smuggle the instruction what to drop
+        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, task, result, createPolyString("drop-execution-audit"));
+
+        then("execution audit is skipped, only request one is stored");
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        List<AuditEventRecord> records = getAuditRecordsAfterId(lastAuditId, task, result);
+
+        assertThat(records).hasSize(1);
+        assertThat(records.get(0).getEventStage()).isEqualTo(REQUEST);
+    }
+
+    @Test
+    public void test402AuditForBothStagesIsDropped() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        long lastAuditId = getAuditRecordsMaxId(task, result);
+
+        when("modify action is audited with delta matching audit recording script");
+        // honorific suffix attribute is used to smuggle the instruction what to drop
+        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, task, result, createPolyString("drop-audit"));
+
+        then("no audit is stored");
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        List<AuditEventRecord> records = getAuditRecordsAfterId(lastAuditId, task, result);
+
+        assertThat(records).isEmpty();
+    }
+
+    @Test
+    public void test403AuditHasChangedDescription() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        long lastAuditId = getAuditRecordsMaxId(task, result);
+
+        when("modify action is audited with delta matching audit recording script");
+        // honorific suffix attribute is used to smuggle the instruction what to drop
+        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, task, result, createPolyString("change-parameter"));
+
+        then("no audit is stored");
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        List<AuditEventRecord> records = getAuditRecordsAfterId(lastAuditId, task, result);
+
+        assertThat(records)
+                .hasSize(2)
+                .allMatch(r -> r.getParameter().equals("modified in script"));
+    }
 }

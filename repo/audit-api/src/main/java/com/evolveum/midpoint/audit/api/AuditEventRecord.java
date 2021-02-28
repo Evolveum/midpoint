@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.audit.api;
 
 import java.beans.Transient;
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -48,7 +49,7 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  *
  * @author Radovan Semancik
  */
-public class AuditEventRecord implements DebugDumpable {
+public class AuditEventRecord implements DebugDumpable, Serializable {
 
     /**
      * TODO: what is this?

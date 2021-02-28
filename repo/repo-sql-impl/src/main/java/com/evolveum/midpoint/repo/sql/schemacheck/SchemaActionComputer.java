@@ -46,21 +46,23 @@ class SchemaActionComputer {
      * For database schema versioning please see
      * <a href="https://wiki.evolveum.com/display/midPoint/Database+schema+versioning">wiki page about DB versioning</a>.
      */
-    public static final String REQUIRED_DATABASE_SCHEMA_VERSION = "4.2";
+    public static final String REQUIRED_DATABASE_SCHEMA_VERSION = "4.3";
 
     private static final Trace LOGGER = TraceManager.getTrace(SchemaActionComputer.class);
 
-    private static final String RELEASE_NOTES_URL_PREFIX = "https://wiki.evolveum.com/display/midPoint/Release+";
+    private static final String RELEASE_NOTES_URL_PREFIX = "https://docs.evolveum.com/midpoint/release/";
     private static final String SQL_SCHEMA_SCRIPTS_URL = "https://wiki.evolveum.com/display/midPoint/SQL+Schema+Scripts";
 
     @Autowired private SqlRepositoryConfiguration repositoryConfiguration;
 
+    // TODO we don't have scripts for the entries here anyway, we just need PREVIOUS_DATABASE_SCHEMA_VERSION
+    //  or UPGRADABLE_FROM_DATABASE_VERSION or something like that + REQUIRED (CURRENT?) version above.
     private static final Set<Pair<String, String>> AUTOMATICALLY_UPGRADEABLE = new HashSet<>(
             Arrays.asList(
                     new ImmutablePair<>("3.8", "3.9"),
                     new ImmutablePair<>("3.9", "4.0"),
-                    new ImmutablePair<>("4.0", "4.2"))
-    );
+                    new ImmutablePair<>("4.0", "4.2"),
+                    new ImmutablePair<>("4.2", "4.3")));
 
     enum State {
         COMPATIBLE, NO_TABLES, AUTOMATICALLY_UPGRADEABLE, MANUALLY_UPGRADEABLE, INCOMPATIBLE
