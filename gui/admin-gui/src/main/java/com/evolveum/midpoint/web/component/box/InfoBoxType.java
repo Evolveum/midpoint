@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Evolveum and contributors
+ * Copyright (c) 2016-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,7 +12,7 @@ import java.io.Serializable;
  * @author katkav
  * @author semancik
  */
-public class InfoBoxType implements Serializable{
+public class InfoBoxType implements Serializable {
     private static final long serialVersionUID = 1L;
 
     public static final String ICON_BACKGROUND_COLOR = "iconBackgroundColor";
