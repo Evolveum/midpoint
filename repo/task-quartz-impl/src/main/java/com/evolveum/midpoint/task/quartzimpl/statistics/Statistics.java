@@ -134,11 +134,11 @@ public class Statistics implements WorkBucketStatisticsCollector {
             return null;
         }
         EnvironmentalPerformanceInformationType rv = new EnvironmentalPerformanceInformationType();
-        EnvironmentalPerformanceInformation.addTo(rv, environmentalPerformanceInformation.getAggregatedValue());
+        EnvironmentalPerformanceInformation.addTo(rv, environmentalPerformanceInformation.getValueCopy());
         for (Statistics child : children) {
             EnvironmentalPerformanceInformation info = child.getEnvironmentalPerformanceInformation();
             if (info != null) {
-                EnvironmentalPerformanceInformation.addTo(rv, info.getAggregatedValue());
+                EnvironmentalPerformanceInformation.addTo(rv, info.getValueCopy());
             }
         }
         return rv;
@@ -336,7 +336,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
     }
 
     @NotNull
-    public synchronized IterativeTaskInformation.Operation recordIterativeOperationStart(IterativeOperation operation) {
+    public synchronized IterativeTaskInformation.Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
         if (iterativeTaskInformation != null) {
             return iterativeTaskInformation.recordOperationStart(operation);
         } else {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -17486,6 +17486,9 @@
                     <xsd:documentation>
                         Optional expression to be executed to amend AuditEventRecord.
                         Expression must return the record, return null to skip auditing for this record.
+                        Following variables are provided:
+                        - auditRecord of type AuditEventRecord (this or null is to be returned)
+                        - target (primary object), PrismObject, the type depends on the event
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -25503,43 +25506,128 @@
     <xsd:complexType name="ProvisioningStatisticsType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Statistical information on operations executed on resources.
+                It is meant to help diagnose performance problems induced by specific source or target resources.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="entry" type="tns:ProvisioningStatisticsEntryType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="entry" type="tns:ProvisioningStatisticsEntryType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Entries related to individual resources and their object classes.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ProvisioningStatisticsEntryType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Statistical information on operations executed on a specified resource, dealing with given object class.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="resource" type="xsd:string" minOccurs="0" />
+            <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the resource. It should have name filled-in.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
+                        <a:since>4.3</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="objectClass" type="xsd:QName" minOccurs="0" />
-            <xsd:element name="getSuccess" type="xsd:int" minOccurs="1" />
-            <xsd:element name="getFailure" type="xsd:int" minOccurs="1" />
-            <xsd:element name="searchSuccess" type="xsd:int" minOccurs="1" />
-            <xsd:element name="searchFailure" type="xsd:int" minOccurs="1" />
-            <xsd:element name="createSuccess" type="xsd:int" minOccurs="1" />
-            <xsd:element name="createFailure" type="xsd:int" minOccurs="1" />
-            <xsd:element name="updateSuccess" type="xsd:int" minOccurs="1" />
-            <xsd:element name="updateFailure" type="xsd:int" minOccurs="1" />
-            <xsd:element name="deleteSuccess" type="xsd:int" minOccurs="1" />
-            <xsd:element name="deleteFailure" type="xsd:int" minOccurs="1" />
-            <xsd:element name="syncSuccess" type="xsd:int" minOccurs="1" />
-            <xsd:element name="syncFailure" type="xsd:int" minOccurs="1" />
-            <xsd:element name="scriptSuccess" type="xsd:int" minOccurs="1" />
-            <xsd:element name="scriptFailure" type="xsd:int" minOccurs="1" />
-            <xsd:element name="otherSuccess" type="xsd:int" minOccurs="1" />
-            <xsd:element name="otherFailure" type="xsd:int" minOccurs="1" />
+            <xsd:element name="operation" type="tns:ProvisioningStatisticsOperationEntryType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Information on operations done on given resource and object class.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <!-- The following are deprecated and not used any more -->
+            <xsd:element name="resource" type="xsd:string" minOccurs="0" />
+            <xsd:element name="getSuccess" type="xsd:int" minOccurs="0" />
+            <xsd:element name="getFailure" type="xsd:int" minOccurs="0" />
+            <xsd:element name="searchSuccess" type="xsd:int" minOccurs="0" />
+            <xsd:element name="searchFailure" type="xsd:int" minOccurs="0" />
+            <xsd:element name="createSuccess" type="xsd:int" minOccurs="0" />
+            <xsd:element name="createFailure" type="xsd:int" minOccurs="0" />
+            <xsd:element name="updateSuccess" type="xsd:int" minOccurs="0" />
+            <xsd:element name="updateFailure" type="xsd:int" minOccurs="0" />
+            <xsd:element name="deleteSuccess" type="xsd:int" minOccurs="0" />
+            <xsd:element name="deleteFailure" type="xsd:int" minOccurs="0" />
+            <xsd:element name="syncSuccess" type="xsd:int" minOccurs="0" />
+            <xsd:element name="syncFailure" type="xsd:int" minOccurs="0" />
+            <xsd:element name="scriptSuccess" type="xsd:int" minOccurs="0" />
+            <xsd:element name="scriptFailure" type="xsd:int" minOccurs="0" />
+            <xsd:element name="otherSuccess" type="xsd:int" minOccurs="0" />
+            <xsd:element name="otherFailure" type="xsd:int" minOccurs="0" />
             <xsd:element name="averageTime" type="xsd:long" minOccurs="0" />
             <xsd:element name="minTime" type="xsd:long" minOccurs="0" />
             <xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="totalTime" type="xsd:long" minOccurs="1" />
+            <xsd:element name="totalTime" type="xsd:long" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ProvisioningStatisticsOperationEntryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information on operations of given type and result status.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="operation" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Plain operation name, e.g. get, search, etc. Intentionally a free-form string, not an enum.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Operation result status. Should not be null.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="count" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of operations of given type and status.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="totalTime" type="xsd:long" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Total execution time of operations of given type and status (in milliseconds).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="minTime" type="xsd:long" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Minimal execution time of an operation of given type and status (in milliseconds).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxTime" type="xsd:long" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Maximal execution time of an operation of given type and status (in milliseconds).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -26248,6 +26336,16 @@
                     <xsd:annotation>
                            <xsd:appinfo>
                             <a:displayName>SearchBoxConfigurationType.defaultMode</a:displayName>
+                           </xsd:appinfo>
+                       </xsd:annotation>
+                   </xsd:element>
+                   <xsd:element name="allowedMode" type="tns:SearchBoxModeType" minOccurs="0" maxOccurs="unbounded">
+                       <xsd:annotation>
+                           <xsd:documentation>
+                               Configuration for allowed search modes for search. All search mode are allowed by default.
+                           </xsd:documentation>
+                           <xsd:appinfo>
+                               <a:displayName>SearchBoxConfigurationType.defaultMode</a:displayName>
                            </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>

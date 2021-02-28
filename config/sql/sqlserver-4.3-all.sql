@@ -394,6 +394,7 @@ CREATE TABLE m_operation_execution (
   initiatorRef_targetOid    NVARCHAR(36) COLLATE database_default,
   initiatorRef_targetType   INT,
   status                    INT,
+  recordType                INT,
   taskRef_relation          NVARCHAR(157) COLLATE database_default,
   taskRef_targetOid         NVARCHAR(36) COLLATE database_default,
   taskRef_targetType        INT,
@@ -567,6 +568,7 @@ CREATE TABLE m_focus (
   validTo                 DATETIME2,
   validityChangeTimestamp DATETIME2,
   validityStatus          INT,
+  lockoutStatus           INT,
   costCenter              NVARCHAR(255) COLLATE database_default,
   emailAddress            NVARCHAR(255) COLLATE database_default,
   hasPhoto                BIT DEFAULT 0                     NOT NULL,
@@ -1213,7 +1215,7 @@ CREATE INDEX iServiceTypeOid ON m_service_type(service_oid);
 CREATE INDEX iTaskDependentOid ON m_task_dependent(task_oid);
 
 BEGIN TRANSACTION
-INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.2');
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.3');
 COMMIT;
 
 --# thanks to George Papastamatopoulos for submitting this ... and Marko Lahma for

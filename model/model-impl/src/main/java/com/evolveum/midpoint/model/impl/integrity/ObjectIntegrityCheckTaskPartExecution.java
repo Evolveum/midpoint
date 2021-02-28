@@ -34,7 +34,7 @@ public class ObjectIntegrityCheckTaskPartExecution
 
     final ObjectStatistics objectStatistics = new ObjectStatistics();
 
-    ObjectIntegrityCheckTaskPartExecution(ObjectIntegrityCheckTaskHandler.TaskExecution taskExecution) {
+    public ObjectIntegrityCheckTaskPartExecution(ObjectIntegrityCheckTaskHandler.TaskExecution taskExecution) {
         super(taskExecution);
         setRequiresDirectRepositoryAccess();
     }

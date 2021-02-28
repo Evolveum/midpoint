@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+
 import static org.testng.AssertJUnit.*;
 
 import java.io.FileNotFoundException;
@@ -14,6 +16,11 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -147,6 +154,20 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertLinked(userMancomb, accountMancomb);
 
         assertUsers(7);
+
+        String syncTaskOid = getSyncTaskOid(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
+        PrismObject<TaskType> syncTaskTree = getTaskTree(syncTaskOid);
+        OperationStatsType stats = TaskTypeUtil.getOperationStatsFromTree(syncTaskTree.asObjectable(), prismContext);
+        displayValue("sync task stats", StatisticsUtil.format(stats));
+        if (isReconciliation()) {
+            // Checking MID-6532 implementation (if multi-part tasks)
+            // TODO check for other kinds of sync tasks, improve asserts
+            ProvisioningStatisticsType provisioningStatistics = stats.getEnvironmentalPerformanceInformation().getProvisioningStatistics();
+            assertThat(provisioningStatistics.getEntry()).hasSize(1);
+            assertThat(provisioningStatistics.getEntry().get(0).getResourceRef().getOid()).isEqualTo(RESOURCE_DUMMY_GREEN_OID);
+            assertThat(getOrig(provisioningStatistics.getEntry().get(0).getResourceRef().getTargetName())).isEqualTo("Dummy Resource Green");
+            assertThat(provisioningStatistics.getEntry().get(0).getOperation()).isNotEmpty(); // search and sometimes get
+        }
 
         // notifications
         displayAllNotifications();
@@ -938,6 +959,11 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertLinked(userAfter, accountAfter);
 
         assertUsers(9 + getNumberOfExtraDummyUsers());
+
+        String syncTaskOid = getSyncTaskOid(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
+        PrismObject<TaskType> syncTaskTree = getTaskTree(syncTaskOid);
+        OperationStatsType stats = TaskTypeUtil.getOperationStatsFromTree(syncTaskTree.asObjectable(), prismContext);
+        displayValue("sync task stats", StatisticsUtil.format(stats));
 
         // notifications
         notificationManager.setDisabled(true);

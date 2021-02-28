@@ -16,7 +16,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultBuilder;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
-import com.evolveum.midpoint.schema.statistics.IterativeOperation;
+import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -304,7 +304,7 @@ class ItemProcessingGatekeeper<I> {
     private Operation recordIterativeOperationStart() {
         if (getReportingOptions().isEnableIterationStatistics()) {
             return workerTask.recordIterativeOperationStart(
-                    new IterativeOperation(iterationItemInformation, partExecution.getPartUri()));
+                    new IterativeOperationStartInfo(iterationItemInformation, partExecution.getPartUri()));
         } else {
             return Operation.none();
         }

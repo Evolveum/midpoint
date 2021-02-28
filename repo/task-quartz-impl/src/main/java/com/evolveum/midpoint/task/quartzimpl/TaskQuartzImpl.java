@@ -22,7 +22,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
-import com.evolveum.midpoint.schema.statistics.IterativeOperation;
+import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
@@ -39,7 +39,6 @@ import com.evolveum.midpoint.repo.api.ModificationPrecondition;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
@@ -2098,7 +2097,7 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public @NotNull Operation recordIterativeOperationStart(IterativeOperation operation) {
+    public @NotNull Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
         return statistics.recordIterativeOperationStart(operation);
     }
 

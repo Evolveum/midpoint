@@ -156,8 +156,10 @@ public class TaskTypeUtil {
         }
 
         OperationStatsType aggregate = new OperationStatsType(prismContext)
-                .synchronizationInformation(new SynchronizationInformationType())
-                .actionsExecutedInformation(new ActionsExecutedInformationType());
+                .iterativeTaskInformation(new IterativeTaskInformationType(prismContext))
+                .synchronizationInformation(new SynchronizationInformationType(prismContext))
+                .actionsExecutedInformation(new ActionsExecutedInformationType())
+                .environmentalPerformanceInformation(new EnvironmentalPerformanceInformationType());
 
         Stream<TaskType> subTasks = TaskTypeUtil.getAllTasksStream(task);
         subTasks.forEach(subTask -> {
@@ -166,6 +168,7 @@ public class TaskTypeUtil {
                 IterativeTaskInformation.addTo(aggregate.getIterativeTaskInformation(), operationStatsBean.getIterativeTaskInformation());
                 SynchronizationInformation.addTo(aggregate.getSynchronizationInformation(), operationStatsBean.getSynchronizationInformation());
                 ActionsExecutedInformation.addTo(aggregate.getActionsExecutedInformation(), operationStatsBean.getActionsExecutedInformation());
+                EnvironmentalPerformanceInformation.addTo(aggregate.getEnvironmentalPerformanceInformation(), operationStatsBean.getEnvironmentalPerformanceInformation());
             }
         });
         return aggregate;

@@ -394,6 +394,7 @@ CREATE TABLE m_operation_execution (
   initiatorRef_targetOid    VARCHAR2(36 CHAR),
   initiatorRef_targetType   NUMBER(10, 0),
   status                    NUMBER(10, 0),
+  recordType                NUMBER(10, 0),
   taskRef_relation          VARCHAR2(157 CHAR),
   taskRef_targetOid         VARCHAR2(36 CHAR),
   taskRef_targetType        NUMBER(10, 0),
@@ -567,6 +568,7 @@ CREATE TABLE m_focus (
   validTo                 TIMESTAMP,
   validityChangeTimestamp TIMESTAMP,
   validityStatus          NUMBER(10, 0),
+  lockoutStatus           NUMBER(10, 0),
   costCenter              VARCHAR2(255 CHAR),
   emailAddress            VARCHAR2(255 CHAR),
   hasPhoto                NUMBER(1, 0) DEFAULT 0 NOT NULL,
@@ -1214,7 +1216,7 @@ CREATE INDEX iOrgOrgTypeOid ON M_ORG_ORG_TYPE(ORG_OID) INITRANS 30;
 CREATE INDEX iServiceTypeOid ON M_SERVICE_TYPE(SERVICE_OID) INITRANS 30;
 CREATE INDEX iTaskDependentOid ON M_TASK_DEPENDENT(TASK_OID) INITRANS 30;
 
-INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.2');
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.3');
 
 --
 -- A hint submitted by a user: Oracle DB MUST be created as "shared" and the

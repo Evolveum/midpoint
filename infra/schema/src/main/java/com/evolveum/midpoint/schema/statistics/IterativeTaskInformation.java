@@ -16,6 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections.buffer.CircularFifoBuffer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.Objects;
@@ -78,7 +79,7 @@ public class IterativeTaskInformation {
      * Returns an object that should receive the status of the operation, in order to record
      * the operation end.
      */
-    public synchronized Operation recordOperationStart(IterativeOperation operation) {
+    public synchronized Operation recordOperationStart(IterativeOperationStartInfo operation) {
         IterationItemInformation item = operation.getItem();
         ProcessedItemType processedItem = new ProcessedItemType(prismContext)
                 .name(item.getObjectName())
@@ -101,8 +102,8 @@ public class IterativeTaskInformation {
      * Records the operation end. It is private because it is called externally (through Operation interface).
      * Must be synchronized because of this external access.
      */
-    private synchronized void recordOperationEnd(IterativeOperation operation, long operationId,
-            ProcessedItemType processedItem, QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
+    private synchronized void recordOperationEnd(IterativeOperationStartInfo operation, long operationId,
+                                                 ProcessedItemType processedItem, QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
         Optional<IterativeTaskPartItemsProcessingInformationType> matchingPartOptional =
                 findMatchingPart(value.getPart(), operation.getPartUri());
         if (matchingPartOptional.isPresent()) {
@@ -114,14 +115,14 @@ public class IterativeTaskInformation {
     }
 
     /** The actual recording of operation end. */
-    private void recordToPart(IterativeTaskPartItemsProcessingInformationType part, IterativeOperation operation,
+    private void recordToPart(IterativeTaskPartItemsProcessingInformationType part, IterativeOperationStartInfo operation,
             long operationId, ProcessedItemType processedItem, QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
         removeFromCurrentOperations(part, operationId);
         addToProcessedItemSet(part, operation, processedItem, outcome, exception);
     }
 
     /** Updates the corresponding `processed` statistics. Creates and stores appropriate `lastItem` record. */
-    private void addToProcessedItemSet(IterativeTaskPartItemsProcessingInformationType part, IterativeOperation operation,
+    private void addToProcessedItemSet(IterativeTaskPartItemsProcessingInformationType part, IterativeOperationStartInfo operation,
             ProcessedItemType processedItem, QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
         ProcessedItemSetType itemSet = findOrCreateProcessedItemSet(part, outcome);
         itemSet.setCount(or0(itemSet.getCount()) + 1);
@@ -165,8 +166,10 @@ public class IterativeTaskInformation {
     }
 
     /** Updates specified summary with given delta. */
-    public static void addTo(@NotNull IterativeTaskInformationType sum, @NotNull IterativeTaskInformationType delta) {
-        addMatchingParts(sum.getPart(), delta.getPart());
+    public static void addTo(@NotNull IterativeTaskInformationType sum, @Nullable IterativeTaskInformationType delta) {
+        if (delta != null) {
+            addMatchingParts(sum.getPart(), delta.getPart());
+        }
     }
 
     /** Looks for matching parts (created if necessary) and adds them. */
@@ -296,7 +299,7 @@ public class IterativeTaskInformation {
         private final long operationId;
 
         /** Client-supplied operation information. */
-        @NotNull private final IterativeOperation operation;
+        @NotNull private final IterativeOperationStartInfo operation;
 
         /**
          * The processed item structure generated when recording operation start.
@@ -304,7 +307,7 @@ public class IterativeTaskInformation {
          */
         @NotNull private final ProcessedItemType processedItem;
 
-        public OperationImpl(@NotNull IterativeOperation operation, @NotNull ProcessedItemType processedItem) {
+        public OperationImpl(@NotNull IterativeOperationStartInfo operation, @NotNull ProcessedItemType processedItem) {
             // The processedItem is stored only in memory; so there is no way of having null here.
             this.operationId = requireNonNull(processedItem.getOperationId());
             this.operation = operation;
@@ -321,6 +324,10 @@ public class IterativeTaskInformation {
         @Override
         public void done(QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
             recordOperationEnd(operation, operationId, processedItem, outcome, exception);
+            StructuredProgressCollector progressCollector = operation.getStructuredProgressCollector();
+            if (progressCollector != null) {
+                progressCollector.incrementStructuredProgress(operation.getPartUri(), outcome);
+            }
         }
     }
 

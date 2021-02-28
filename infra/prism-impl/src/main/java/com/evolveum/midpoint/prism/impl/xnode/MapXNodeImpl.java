@@ -51,7 +51,6 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
 
     @NotNull private List<MapXNode> metadataNodes = new ArrayList<>();
 
-    @Deprecated
     public MapXNodeImpl() {
         super();
     }
