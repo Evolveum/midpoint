@@ -18,7 +18,6 @@ public class ListXNodeImpl extends XNodeImpl implements List<XNodeImpl>, ListXNo
 
     private final List<XNodeImpl> subnodes = new ArrayList<>();
 
-    @Deprecated
     public ListXNodeImpl() {
         super();
     }
