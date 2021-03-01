@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
+import java.util.Objects;
 import javax.persistence.Embeddable;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -46,5 +47,20 @@ public class RFocusActivation extends RActivation {
         if (repo.getLockoutStatus() != null) {
             jaxb.setLockoutStatus(repo.getLockoutStatus().getSchemaValue());
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+        if (!super.equals(o)) { return false; }
+
+        RFocusActivation that = (RFocusActivation) o;
+        return lockoutStatus == that.lockoutStatus;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), lockoutStatus);
     }
 }

@@ -172,6 +172,23 @@
             <multiplicity>
                 <maxOccurs>unbounded</maxOccurs>
                 <tag>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.schema.constants.SchemaConstants
+                                import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME
+
+                                name = basic.getAttributeValue(projection, ICFS_NAME)
+                                matcher = name =~ /envoy-(\w+)-(.*)/
+                                log.info('tag determination: name = {}, matcher.size() = {}', name, matcher.size())
+                                if (matcher.size() == 1) {
+                                    matcher[0][2]
+                                } else {
+                                    null
+                                }
+                            </code>
+                        </script>
+                    </expression>
                     <outbound>
                         <source>
                             <path>$focus/organization</path>
@@ -191,7 +208,7 @@
                     </source>
                     <expression>
                         <script>
-                                <code>'envoy-' + name + '-' + tag.toLowerCase()</code>
+                            <code>'envoy-' + name + '-' + tag.toLowerCase()</code>
                         </script>
                     </expression>
                 </outbound>
@@ -254,6 +271,107 @@
         <avoidDuplicateValues>true</avoidDuplicateValues>
     </consistency>
 
+    <synchronization>
+        <objectSynchronization>
+            <kind>account</kind>
+            <intent>default</intent>
+            <enabled>true</enabled>
+            <condition>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.schema.constants.SchemaConstants
+                        import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME
 
+                        name = basic.getAttributeValue(projection, ICFS_NAME)
+                        log.info('condition for default: name = {}', name)
+                        !name?.startsWith('envoy')
+                    </code>
+                </script>
+            </condition>
+            <correlation>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <path>$projection/attributes/name</path> <!-- We ignore the iteration token here. -->
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+            </reaction>
+        </objectSynchronization>
+        <objectSynchronization>
+            <kind>account</kind>
+            <intent>envoy</intent>
+            <enabled>true</enabled>
+            <condition>
+                <script>
+                    <code>import com.evolveum.midpoint.schema.constants.SchemaConstants
+                    import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME
 
+                    name = basic.getAttributeValue(projection, ICFS_NAME)
+                    log.info('condition for envoy: name = {}', name)
+                    name?.startsWith('envoy')
+                    </code>
+                </script>
+            </condition>
+            <correlation>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.schema.constants.SchemaConstants
+                                import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME
+
+                                name = basic.getAttributeValue(projection, ICFS_NAME)
+                                matcher = name =~ /envoy-(\w+)-(.*)/
+                                log.info('correlation: name = {}, matcher.size() = {}', name, matcher.size())
+                                if (matcher.size() == 1) {
+                                    matcher[0][1]
+                                } else {
+                                    null
+                                }
+                            </code>
+                        </script>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
 </resource>

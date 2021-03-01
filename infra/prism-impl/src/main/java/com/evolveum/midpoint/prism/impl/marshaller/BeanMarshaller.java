@@ -33,6 +33,8 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.evolveum.midpoint.prism.SerializationOptions.getOptions;
+
 public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(BeanMarshaller.class);
@@ -41,7 +43,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
 
     @NotNull private final PrismBeanInspector inspector;
     @NotNull private final PrismContext prismContext;
-    @NotNull private final Map<Class,Marshaller> specialMarshallers = new HashMap<>();
+    @NotNull private final Map<Class<?>,Marshaller> specialMarshallers = new HashMap<>();
 
     @NotNull private final Map<QName, Boolean> canProcessCache = new ConcurrentHashMap<>();
 
@@ -104,7 +106,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
                 return (XNodeImpl) prismContext.xnodeSerializer().context(ctx).serializeRealValue(bean, new QName("dummy"))
                         .getSubnode();
             } else if (bean instanceof Enum) {
-                return marshalEnum((Enum) bean, ctx);
+                return marshalEnum((Enum<?>) bean, ctx);
             } else if (bean.getClass().getAnnotation(XmlType.class) != null) {
                 return marshalXmlType(bean, ctx);
             } else if (bean instanceof Referencable) {
@@ -128,7 +130,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
     }
 
     private XNodeImpl marshalToPrimitive(Object bean, SerializationContext ctx) {
-        return createPrimitiveXNode(bean, null, false);
+        return createPrimitiveXNode(bean, null, false, ctx);
     }
 
     private XNodeImpl marshalXmlType(Object bean, SerializationContext ctx) throws SchemaException {
@@ -145,7 +147,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
         if (ctd != null && ctd.isListMarker()) {
             return marshalHeterogeneousList(bean, ctx);
         } else {
-            return marshalXmlTypeToMap(bean, ctx);
+            return marshalXmlTypeToMap(bean, ctx, ctd);
         }
     }
 
@@ -156,13 +158,15 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
         if (!valueField.isAccessible()) {
             valueField.setAccessible(true);
         }
-        T value;
+        Object value;
         try {
-            value = (T) valueField.get(bean);
+            value = valueField.get(bean);
         } catch (IllegalArgumentException | IllegalAccessException e) {
             throw new SchemaException("Cannot get primitive value from field " + valueField.getName() + " of bean " + bean + ": "+e.getMessage(), e);
         }
-        PrimitiveXNodeImpl<T> xnode = new PrimitiveXNodeImpl<>(value);
+
+        @SuppressWarnings("unchecked")
+        PrimitiveXNodeImpl<T> xnode = new PrimitiveXNodeImpl<>((T) value);
         Class<?> fieldType = valueField.getType();
         QName xsdType = XsdTypeMapper.toXsdType(fieldType);
         xnode.setTypeQName(xsdType);
@@ -180,11 +184,11 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
                     + " does not contain a collection but " + MiscUtil.getObjectName(getterResult));
         }
         ListXNodeImpl xlist = new ListXNodeImpl();
-        for (Object value : (Collection) getterResult) {
+        for (Object value : (Collection<?>) getterResult) {
             if (!(value instanceof JAXBElement)) {
                 throw new IllegalStateException("Heterogeneous list contains a value that is not a JAXBElement: " + value);
             }
-            JAXBElement jaxbElement = (JAXBElement) value;
+            JAXBElement<?> jaxbElement = (JAXBElement<?>) value;
             Object realValue = jaxbElement.getValue();
             if (realValue == null) {
                 throw new IllegalStateException("Heterogeneous list contains a null value");        // TODO
@@ -198,7 +202,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
         return xlist;
     }
 
-    private XNodeImpl marshalXmlTypeToMap(Object bean, SerializationContext ctx) throws SchemaException {
+    private XNodeImpl marshalXmlTypeToMap(Object bean, SerializationContext ctx, @Nullable ComplexTypeDefinition ctd) throws SchemaException {
 
         Class<?> beanClass = bean.getClass();
         MapXNodeImpl xmap;
@@ -231,24 +235,35 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
             }
 
             Field field = inspector.findPropertyField(beanClass, fieldName);
-            boolean isAttribute = inspector.isAttribute(field, getter);
+            Map.Entry<QName,XNodeImpl> marshalled = marshallField(getterResult, field, fieldName, getter, namespace, ctd, beanClass, ctx);
+            if (marshalled != null) {
+                xmap.put(marshalled.getKey(), marshalled.getValue());
+            }
+        }
+        return xmap;
+    }
 
+    private Map.Entry<QName, XNodeImpl> marshallField(Object getterResult,Field field, String fieldName, Method getter, String namespace, @Nullable ComplexTypeDefinition ctd, Class<?> beanClass, SerializationContext ctx) throws SchemaException {
+
+            boolean isAttribute = inspector.isAttribute(field, getter);
             QName elementName = inspector.findFieldElementQName(fieldName, beanClass, namespace);
+            ItemDefinition<?> propDef = ctd != null ? ctd.findLocalItemDefinition(elementName) : null;
+
             if (getterResult instanceof Collection<?>) {
-                Collection collection = (Collection) getterResult;
+                Collection<?> collection = (Collection<?>) getterResult;
                 if (collection.isEmpty()) {
-                    continue;
+                    return null;
                 }
-                Iterator i = collection.iterator();
-                Object getterResultValue = i.next();
+                Object getterResultValue = collection.iterator().next();
                 if (getterResultValue == null) {
-                    continue;
+                    return null;
                 }
 
                 // elementName will be determined from the first item on the list
                 // TODO make sure it will be correct with respect to other items as well!
-                if (getterResultValue instanceof JAXBElement && ((JAXBElement) getterResultValue).getName() != null) {
-                    elementName = ((JAXBElement) getterResultValue).getName();
+                if (getterResultValue instanceof JAXBElement && ((JAXBElement<?>) getterResultValue).getName() != null) {
+                    elementName = ((JAXBElement<?>) getterResultValue).getName();
+                    // We should update propDef with substitution if possible
                 }
 
                 ListXNodeImpl xlist = new ListXNodeImpl();
@@ -256,45 +271,32 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
                     if (value == null) {
                         continue;
                     }
-                    Object valueToMarshal = value;
-                    if (value instanceof JAXBElement) {
-                        valueToMarshal = ((JAXBElement) value).getValue();
-                    }
-                    QName typeName = inspector.findTypeName(field, valueToMarshal.getClass(), namespace);
-                    // note: fieldTypeName is used only for attribute values here (when constructing PrimitiveXNode)
-                    XNodeImpl marshaled = marshallValue(valueToMarshal, typeName, isAttribute, ctx);
-                    setExplicitTypeDeclarationIfNeeded(marshaled, getter, valueToMarshal, typeName);
+                    XNodeImpl marshaled = marshalSingleValue(value, field, fieldName, isAttribute, ctx, getter, propDef);
                     xlist.add(marshaled);
                 }
-                xmap.put(elementName, xlist);
-            } else {
-                QName fieldTypeName = inspector.findTypeName(field, getterResult.getClass(), namespace);
-                Object valueToMarshall;
-                if (getterResult instanceof JAXBElement) {
-                    valueToMarshall = ((JAXBElement) getterResult).getValue();
-                    elementName = ((JAXBElement) getterResult).getName();
-                } else {
-                    valueToMarshall = getterResult;
-                }
-                XNodeImpl marshaled = marshallValue(valueToMarshall, fieldTypeName, isAttribute, ctx);
-                // TODO reconcile with setExplicitTypeDeclarationIfNeeded
-                if (!getter.getReturnType().equals(valueToMarshall.getClass()) && getter.getReturnType().isAssignableFrom(valueToMarshall.getClass()) && !(valueToMarshall instanceof Enum)) {
-                    TypeDefinition def = prismContext.getSchemaRegistry().findTypeDefinitionByCompileTimeClass(valueToMarshall.getClass(), TypeDefinition.class);
-                    if (def != null) {
-                        QName type = def.getTypeName();
-                        marshaled.setTypeQName(type);
-                        marshaled.setExplicitTypeDeclaration(true);
-                    }
-                }
-                if (marshaled != null) {
-                    xmap.put(elementName, marshaled);
-                }
-
-//                setExplicitTypeDeclarationIfNeeded(getter, valueToMarshall, xmap, fieldTypeName);
+                return new AbstractMap.SimpleEntry<>(elementName, xlist);
             }
-        }
+            // Value is not collection
+            if (getterResult instanceof JAXBElement) {
+                elementName = ((JAXBElement<?>) getterResult).getName();
+            }
+            XNodeImpl marshaled = marshalSingleValue(getterResult, field, fieldName, isAttribute, ctx, getter, propDef);
+            if (marshaled != null) {
+                return new AbstractMap.SimpleEntry<>(elementName, marshaled);
+            }
+            return null;
+    }
 
-        return xmap;
+    private XNodeImpl marshalSingleValue(Object value, Field field, String namespace, boolean isAttribute, SerializationContext ctx, Method getter, ItemDefinition<?> propDef) throws SchemaException {
+        Object valueToMarshal = value;
+        if (value instanceof JAXBElement) {
+            valueToMarshal = ((JAXBElement<?>) value).getValue();
+        }
+        QName typeName = inspector.findTypeName(field, valueToMarshal.getClass(), namespace);
+        // note: fieldTypeName is used only for attribute values here (when constructing PrimitiveXNode)
+        XNodeImpl marshaled = marshallValue(valueToMarshal, typeName, isAttribute, ctx);
+        updateExplicitType(marshaled, valueToMarshal.getClass(), typeName, unwrappedReturnType(getter), propDef);
+        return marshaled;
     }
 
     private Object getValue(Object bean, Method getter, String fieldOrPropertyName) {
@@ -307,19 +309,19 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
         return getterResult;
     }
 
-    private XNodeImpl marshalEnum(Enum enumValue, SerializationContext ctx) {
-        Class<? extends Enum> enumClass = enumValue.getClass();
+    private XNodeImpl marshalEnum(Enum<?> enumValue, SerializationContext ctx) {
+        var enumClass = enumValue.getClass();
         String enumStringValue = inspector.findEnumFieldValue(enumClass, enumValue.toString());
         if (StringUtils.isEmpty(enumStringValue)){
             enumStringValue = enumValue.toString();
         }
         QName fieldTypeName = inspector.findTypeName(null, enumClass, DEFAULT_PLACEHOLDER);
-        return createPrimitiveXNode(enumStringValue, fieldTypeName, false);
+        return createPrimitiveXNode(enumStringValue, fieldTypeName, false, ctx);
 
     }
 
     private XNodeImpl marshalXmlAsStringType(Object bean, SerializationContext sc) {
-        PrimitiveXNodeImpl xprim = new PrimitiveXNodeImpl<>();
+        PrimitiveXNodeImpl<String> xprim = new PrimitiveXNodeImpl<>();
         xprim.setValue(((XmlAsStringType) bean).getContentAsString(), DOMUtil.XSD_STRING);
         return xprim;
     }
@@ -378,7 +380,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
             }
 
             if (getterResult instanceof Collection<?>) {
-                Collection col = (Collection)getterResult;
+                Collection<?> col = (Collection<?>)getterResult;
                 if (col.isEmpty()) {
                     continue;
                 }
@@ -396,9 +398,61 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
     private void visitValue(Object element, Handler<Object> handler) {
         Object elementToMarshall = element;
         if (element instanceof JAXBElement){
-            elementToMarshall = ((JAXBElement) element).getValue();
+            elementToMarshall = ((JAXBElement<?>) element).getValue();
         }
         visit(elementToMarshall, handler);
+    }
+
+    private QName typeNameForClass(Class<?> jaxbClazz) {
+        // Primitive types
+        QName typeName = XsdTypeMapper.getJavaToXsdMapping(jaxbClazz);
+        if (typeName != null) {
+            return typeName;
+        }
+        return inspector.determineTypeForClass(jaxbClazz);
+    }
+
+    private void updateExplicitType(XNodeImpl marshaled, Class<? extends Object> valueClazz, QName valueType, Class<?> jaxbClazz,
+            ItemDefinition<?> propDef) {
+        if(marshaled == null || marshaled.isImmutable()) {
+            // RawType now return immutables
+            return;
+        }
+        if (valueType == null) {
+            // the idea is not to overwrite pre-existing explicit type declaration with null value
+            return;
+        }
+
+        if (marshaled.isExplicitTypeDeclaration()) {
+            // Explicit type already set
+            return;
+        }
+
+        if (marshaled.getTypeQName() == null && valueType != null) {
+            marshaled.setTypeQName(valueType);
+        }
+
+        QName schemaType = schemaTypeForClass(propDef, jaxbClazz);
+        if (Objects.equals(schemaType, valueType)) {
+            return;
+        }
+        if (DOMUtil.XSD_ANYTYPE.equals(schemaType)) {
+            // Field is anyType, lets record type to be safe.
+            marshaled.setExplicitTypeDeclaration(true);
+        }
+        if (!valueClazz.equals(jaxbClazz) && jaxbClazz.isAssignableFrom(valueClazz)) {
+            // It is subclass
+            marshaled.setExplicitTypeDeclaration(true);
+        }
+
+    }
+
+    private QName schemaTypeForClass(ItemDefinition<?> propDef, Class<?> jaxbClazz) {
+        QName schemaType = propDef != null ? propDef.getTypeName() : null;
+        if(schemaType != null) {
+            return schemaType;
+        }
+        return typeNameForClass(jaxbClazz);
     }
 
     private void setExplicitTypeDeclarationIfNeededForHeteroList(XNodeImpl node, Object realValue) {
@@ -411,21 +465,14 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
         }
     }
 
-    // TODO shouldn't we use here the same approach as above?
-    private void setExplicitTypeDeclarationIfNeeded(XNodeImpl node, Method getter, Object getterResult, QName typeName) {
-        if (typeName == null) {
-            // the idea is not to overwrite pre-existing explicit type declaration with null value
-            // TODO reconsider
-            return;
-        }
-        Class getterReturnType = getter.getReturnType();
-        Class getterType = null;
-        if (Collection.class.isAssignableFrom(getterReturnType)) {
+    private Class<?> unwrappedReturnType(Method getter) {
+        Class<?> getterType = getter.getReturnType();
+        if (Collection.class.isAssignableFrom(getterType)) {
             Type genericReturnType = getter.getGenericReturnType();
             if (genericReturnType instanceof ParameterizedType) {
                 Type actualType = inspector.getTypeArgument(genericReturnType, "explicit type declaration");
                 if (actualType instanceof Class) {
-                    getterType = (Class) actualType;
+                    getterType = (Class<?>) actualType;
                 } else if (actualType instanceof ParameterizedType) {
                     ParameterizedType parameterizedType = (ParameterizedType) actualType;
                     Type typeArgument = inspector.getTypeArgument(parameterizedType, "JAXBElement return type");
@@ -433,14 +480,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
                 }
             }
         }
-        if (getterType == null) {
-            getterType = getterReturnType;
-        }
-        Class getterResultReturnType = getterResult.getClass();
-        if (node != null && getterType != getterResultReturnType && getterType.isAssignableFrom(getterResultReturnType)) {
-            node.setExplicitTypeDeclaration(true);
-            node.setTypeQName(typeName);
-        }
+        return getterType;
     }
 
     // bean should have only two features: "list" attribute and multivalued property into which we should store the elements
@@ -471,21 +511,18 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
         }
         if (isAttribute) {
             // hoping the value fits into primitive!
-            return createPrimitiveXNode(value, valueType, true);
+            return createPrimitiveXNode(value, valueType, true, ctx);
         } else {
             return marshall(value, ctx);
         }
     }
 
-    private <T> PrimitiveXNodeImpl<T> createPrimitiveXNode(T value, QName valueType, boolean isAttribute) {
+    private <T> PrimitiveXNodeImpl<T> createPrimitiveXNode(T value, QName valueType, boolean isAttribute,
+            SerializationContext ctx) {
         PrimitiveXNodeImpl<T> xprim = new PrimitiveXNodeImpl<>();
-        xprim.setValue(value, valueType);
+        xprim.setValue(value, valueType, getOptions(ctx));
         xprim.setAttribute(isAttribute);
         return xprim;
-    }
-
-    private <T> PrimitiveXNodeImpl<T> createPrimitiveXNode(T val, QName type) {
-        return createPrimitiveXNode(val, type, false);
     }
 
     private XNodeImpl marshalRawType(Object value, SerializationContext sc) throws SchemaException {
@@ -563,6 +600,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
 
     // TODO create more appropriate interface to be able to simply serialize ProtectedStringType instances
     public <T> MapXNodeImpl marshalProtectedDataType(Object o, SerializationContext sc) throws SchemaException {
+        @SuppressWarnings("unchecked")
         ProtectedDataType<T> protectedType = (ProtectedDataType<T>) o;
         MapXNodeImpl xmap = new MapXNodeImpl();
         if (protectedType.getEncryptedDataType() != null) {
@@ -575,7 +613,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
             xmap.put(ProtectedDataType.F_HASHED_DATA, xHashedDataType);
         } else if (protectedType.getClearValue() != null){
             QName type = XsdTypeMapper.toXsdType(protectedType.getClearValue().getClass());
-            PrimitiveXNodeImpl xClearValue = createPrimitiveXNode(protectedType.getClearValue(), type);
+            PrimitiveXNodeImpl<?> xClearValue = createPrimitiveXNode(protectedType.getClearValue(), type, false, sc);
             xmap.put(ProtectedDataType.F_CLEAR_VALUE, xClearValue);
         }
         // TODO: clearValue
