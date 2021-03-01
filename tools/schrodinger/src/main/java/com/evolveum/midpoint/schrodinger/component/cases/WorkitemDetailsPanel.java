@@ -67,7 +67,7 @@ public class WorkitemDetailsPanel<P extends BasicPage> extends Component<P> {
     }
 
     public WorkitemDetailsPanel<P> assertApproverElementValueMatches(String approver){
-        Assert.assertTrue(getParentElement()
+        assertion.assertTrue(getParentElement()
                 .$(Schrodinger.byDataId("approver"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .$(byText(approver))

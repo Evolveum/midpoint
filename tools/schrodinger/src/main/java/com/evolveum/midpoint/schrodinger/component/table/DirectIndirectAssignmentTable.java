@@ -50,12 +50,12 @@ public class DirectIndirectAssignmentTable<T> extends Component<T> {
     }
 
     public DirectIndirectAssignmentTable<T> assertIndirectAssignmentsExist(String... expectedAssignments) {
-        Assert.assertTrue(containsIndirectAssignments(expectedAssignments));
+        assertion.assertTrue(containsIndirectAssignments(expectedAssignments));
         return this;
     }
 
     public DirectIndirectAssignmentTable<T> assertDirectAssignmentsExist(String... expectedAssignments) {
-        Assert.assertTrue(containsDirectAssignments(expectedAssignments));
+        assertion.assertTrue(containsDirectAssignments(expectedAssignments));
         return this;
     }
 

@@ -49,6 +49,9 @@ class UpdateDispatcher {
         } else if (ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
                 PasswordType.F_METADATA).equivalent(delta.getPath())) {
             new PasswordMetadataUpdate(object, delta, ctx).handlePropertyDelta();
+        } else if (ItemPath.create(FocusType.F_ACTIVATION,
+                ActivationType.F_LOCKOUT_STATUS).equivalent(delta.getPath())) {
+          new OverrideItemPathAttributeUpdate(object, delta, prismObject, mainEntityType, ctx).handleItemDelta();
         } else {
             if (object instanceof RShadow && ShadowType.F_PENDING_OPERATION.equivalent(delta.getPath())) {
                 ctx.shadowPendingOperationModified = true;

@@ -99,7 +99,7 @@ public class UsersPageTable extends AssignmentHolderObjectListTable<ListUsersPag
     }
 
     public UsersPageTable assertButtonToolBarExists() {
-        Assert.assertTrue($(Schrodinger.byDataId("buttonToolbar")).exists(), "Button toolbar is absent");
+        assertion.assertTrue($(Schrodinger.byDataId("buttonToolbar")).exists(), "Button toolbar is absent");
         return this;
     }
 }

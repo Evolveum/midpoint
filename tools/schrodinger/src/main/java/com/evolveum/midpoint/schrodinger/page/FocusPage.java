@@ -101,7 +101,7 @@ public class FocusPage<F extends FocusPage> extends AssignmentHolderDetailsPage<
     }
 
     public FocusPage<F> assertActivationStateEquals(String state) {
-        Assert.assertTrue(isActivationState(state), "Activation state doesn't equal to " + state);
+        assertion.assertTrue(isActivationState(state), "Activation state doesn't equal to " + state);
         return this;
     }
 }
