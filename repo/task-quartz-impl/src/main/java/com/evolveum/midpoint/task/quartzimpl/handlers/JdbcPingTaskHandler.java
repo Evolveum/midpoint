@@ -158,6 +158,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
             }
             task.incrementProgressAndStoreStatsIfNeeded();
             try {
+                //noinspection BusyWait
                 Thread.sleep(1000L * interval);
             } catch (InterruptedException e) {
                 break;

@@ -6,15 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
-import java.text.Collator;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -27,7 +21,6 @@ import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -63,9 +56,9 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
         WebMarkupContainer propertiesLabel = new WebMarkupContainer(ID_PROPERTIES_LABEL);
         propertiesLabel.setOutputMarkupId(true);
 
-        IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers = createNonContainerWrappersModel();
+        IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers = new PropertyModel<>(getModel(), "nonContainers");
 
-        ListView<ItemWrapper<?, ?>> properties = new ListView<ItemWrapper<?, ?>>("properties", nonContainerWrappers) {
+        ListView<ItemWrapper<?, ?>> properties = new ListView<>("properties", nonContainerWrappers) {
 
             @Override
             protected void populateItem(ListItem<ItemWrapper<?, ?>> item) {
@@ -103,9 +96,9 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
     }
 
     protected void createContainersPanel() {
-        WebMarkupContainer containersLable = new WebMarkupContainer(ID_CONTAINERS_LABEL);
-        add(containersLable);
-        ListView<PrismContainerWrapper<?>> containers = new ListView<PrismContainerWrapper<?>>("containers", new PropertyModel<>(getModel(), "containers")) {
+        WebMarkupContainer containersLabel = new WebMarkupContainer(ID_CONTAINERS_LABEL);
+        add(containersLabel);
+        ListView<PrismContainerWrapper<?>> containers = new ListView<>("containers", new PropertyModel<>(getModel(), "containers")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -116,30 +109,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
 
         containers.setReuseItems(true);
         containers.setOutputMarkupId(true);
-        containersLable.add(containers);
-    }
-
-    private IModel<List<ItemWrapper<?, ?>>> createNonContainerWrappersModel() {
-        return new IModel<List<ItemWrapper<?, ?>>>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public List<ItemWrapper<?, ?>> getObject() {
-                return getNonContainerWrappers();
-            }
-        };
-    }
-
-    private List<ItemWrapper<?, ?>> getNonContainerWrappers() {
-        CVW containerValueWrapper = getModelObject();
-        List<ItemWrapper<?, ?>> nonContainers = containerValueWrapper.getNonContainers();
-
-        ItemWrapperComparator<?> comparator = new ItemWrapperComparator<>(WebComponentUtil.getCollator(), getModelObject().isSorted());
-        if (CollectionUtils.isNotEmpty(nonContainers)) {
-            nonContainers.sort((Comparator) comparator);
-        }
-        return nonContainers;
+        containersLabel.add(containers);
     }
 
     private void populateNonContainer(ListItem<? extends ItemWrapper<?, ?>> item) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,16 +9,12 @@ package com.evolveum.midpoint.model.common.expression.script;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
@@ -26,15 +22,9 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Expression evaluator that is using javax.script (JSR-223) engine.
@@ -43,18 +33,18 @@ import org.jetbrains.annotations.NotNull;
  * @param <C> compiled code
  * @author Radovan Semancik
  */
-public abstract class AbstractCachingScriptEvaluator<I,C> extends AbstractScriptEvaluator {
+public abstract class AbstractCachingScriptEvaluator<I, C> extends AbstractScriptEvaluator {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractCachingScriptEvaluator.class);
 
-    private final ScriptCache<I,C> scriptCache;
+    private final ScriptCache<I, C> scriptCache;
 
     public AbstractCachingScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService) {
         super(prismContext, protector, localizationService);
         this.scriptCache = new ScriptCache<>();
     }
 
-    protected ScriptCache<I,C> getScriptCache() {
+    protected ScriptCache<I, C> getScriptCache() {
         return scriptCache;
     }
 
@@ -88,14 +78,15 @@ public abstract class AbstractCachingScriptEvaluator<I,C> extends AbstractScript
 
         if (context.getOutputDefinition() == null) {
             // No outputDefinition may mean "void" return type
-            // or it can mean that we do not have definition, because this is something non-prism (e.g. report template)
-            // Either way we can return immediately, without any value conversion. Just wrap the value in fake PrismPropertyValue
-            List<V> evalPrismValues = new ArrayList<>(1);
-            V evalPrismValue = null;
-            if (evalRawResult != null){
-                evalPrismValue = (V) getPrismContext().itemFactory().createPropertyValue(evalRawResult);
+            // or it can mean that we do not have definition, because this is something non-prism (e.g. report template).
+            // Either way we can return immediately, without any value conversion. Just wrap the value in fake PrismPropertyValue.
+            // For no value/null we return empty list.
+            List<V> evalPrismValues = new ArrayList<>();
+            if (evalRawResult != null) {
+                //noinspection unchecked
+                V evalPrismValue = (V) getPrismContext().itemFactory().createPropertyValue(evalRawResult);
+                evalPrismValues.add(evalPrismValue);
             }
-            evalPrismValues.add(evalPrismValue);
             return evalPrismValues;
         }
 
@@ -125,15 +116,17 @@ public abstract class AbstractCachingScriptEvaluator<I,C> extends AbstractScript
         // PrismReference? Shouldn't they be processed in the same way as
         // PrismProperty?
         if (evalRawResult instanceof Collection) {
-            for (Object evalRawResultElement : (Collection)evalRawResult) {
+            for (Object evalRawResultElement : (Collection) evalRawResult) {
                 T evalResult = convertScalarResult(javaReturnType, evalRawResultElement, context);
-                values.add((V) ExpressionUtil.convertToPrismValue(evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
+                values.add(ExpressionUtil.convertToPrismValue(
+                        evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
             }
         } else if (evalRawResult instanceof PrismProperty<?>) {
-            values.addAll((Collection<? extends V>) PrismValueCollectionsUtil.cloneCollection(((PrismProperty<T>)evalRawResult).getValues()));
+            values.addAll((Collection<? extends V>) PrismValueCollectionsUtil.cloneCollection(((PrismProperty<T>) evalRawResult).getValues()));
         } else {
             T evalResult = convertScalarResult(javaReturnType, evalRawResult, context);
-            values.add((V) ExpressionUtil.convertToPrismValue(evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
+            values.add(ExpressionUtil.convertToPrismValue(
+                    evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
         }
 
         return values;
@@ -159,7 +152,7 @@ public abstract class AbstractCachingScriptEvaluator<I,C> extends AbstractScript
     protected abstract C compileScript(String codeString, ScriptExpressionEvaluationContext context) throws Exception;
 
     protected abstract Object evaluateScript(C compiledScript, ScriptExpressionEvaluationContext context)
-                throws Exception;
+            throws Exception;
 
     private <T> T convertScalarResult(Class<T> expectedType, Object rawValue, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException {
         try {

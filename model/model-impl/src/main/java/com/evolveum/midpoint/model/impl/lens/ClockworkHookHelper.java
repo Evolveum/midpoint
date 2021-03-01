@@ -1,11 +1,15 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.impl.lens;
+
+import javax.xml.namespace.QName;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
@@ -17,22 +21,16 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFact
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.xml.namespace.QName;
 
 /**
  * Responsible for invoking hooks (both Java and scripting ones).
@@ -51,10 +49,9 @@ public class ClockworkHookHelper {
     /**
      * Invokes hooks, if there are any.
      *
-     * @return
-     *  - ERROR, if any hook reported error; otherwise returns
-     *  - BACKGROUND, if any hook reported switching to background; otherwise
-     *  - FOREGROUND (if all hooks reported finishing on foreground)
+     * @return - ERROR, if any hook reported error; otherwise returns
+     * - BACKGROUND, if any hook reported switching to background; otherwise
+     * - FOREGROUND (if all hooks reported finishing on foreground)
      */
     HookOperationMode invokeHooks(LensContext<?> context, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
         // TODO: following two parts should be merged together in later versions
@@ -67,10 +64,10 @@ public class ClockworkHookHelper {
             if (modelHooks != null) {
                 HookListType changeHooks = modelHooks.getChange();
                 if (changeHooks != null) {
-                    for (HookType hookType: changeHooks.getHook()) {
+                    for (HookType hookType : changeHooks.getHook()) {
                         String shortDesc;
                         if (hookType.getName() != null) {
-                            shortDesc = "hook '"+hookType.getName()+"'";
+                            shortDesc = "hook '" + hookType.getName() + "'";
                         } else {
                             shortDesc = "scripting hook in system configuration";
                         }
@@ -90,9 +87,9 @@ public class ClockworkHookHelper {
                             QName hookFocusTypeQname = hookType.getFocusType();
                             ObjectTypes hookFocusType = ObjectTypes.getObjectTypeFromTypeQName(hookFocusTypeQname);
                             if (hookFocusType == null) {
-                                throw new SchemaException("Unknown focus type QName "+hookFocusTypeQname+" in "+shortDesc);
+                                throw new SchemaException("Unknown focus type QName " + hookFocusTypeQname + " in " + shortDesc);
                             }
-                            Class focusClass = context.getFocusClass();
+                            Class<?> focusClass = context.getFocusClass();
                             Class<? extends ObjectType> hookFocusClass = hookFocusType.getClassDefinition();
                             if (!hookFocusClass.isAssignableFrom(focusClass)) {
                                 continue;
@@ -107,22 +104,22 @@ public class ClockworkHookHelper {
                             evaluateScriptingHook(context, scriptExpressionEvaluatorType, shortDesc, task, result);
                         } catch (ExpressionEvaluationException e) {
                             LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
-                            throw new ExpressionEvaluationException("Evaluation of "+shortDesc+" failed: "+e.getMessage(), e);
+                            throw new ExpressionEvaluationException("Evaluation of " + shortDesc + " failed: " + e.getMessage(), e);
                         } catch (ObjectNotFoundException e) {
                             LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
-                            throw new ObjectNotFoundException("Evaluation of "+shortDesc+" failed: "+e.getMessage(), e);
+                            throw new ObjectNotFoundException("Evaluation of " + shortDesc + " failed: " + e.getMessage(), e);
                         } catch (SchemaException e) {
                             LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
-                            throw new SchemaException("Evaluation of "+shortDesc+" failed: "+e.getMessage(), e);
+                            throw new SchemaException("Evaluation of " + shortDesc + " failed: " + e.getMessage(), e);
                         } catch (CommunicationException e) {
                             LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
-                            throw new CommunicationException("Evaluation of "+shortDesc+" failed: "+e.getMessage(), e);
+                            throw new CommunicationException("Evaluation of " + shortDesc + " failed: " + e.getMessage(), e);
                         } catch (ConfigurationException e) {
                             LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
-                            throw new ConfigurationException("Evaluation of "+shortDesc+" failed: "+e.getMessage(), e);
+                            throw new ConfigurationException("Evaluation of " + shortDesc + " failed: " + e.getMessage(), e);
                         } catch (SecurityViolationException e) {
                             LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
-                            throw new SecurityViolationException("Evaluation of "+shortDesc+" failed: "+e.getMessage(), e);
+                            throw new SecurityViolationException("Evaluation of " + shortDesc + " failed: " + e.getMessage(), e);
                         }
                     }
                 }
@@ -159,12 +156,11 @@ public class ClockworkHookHelper {
         VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext, PrismContext.class);
         variables.put(ExpressionConstants.VAR_MODEL_CONTEXT, context, ModelContext.class);
-        LensFocusContext focusContext = context.getFocusContext();
+        LensFocusContext<?> focusContext = context.getFocusContext();
         if (focusContext != null) {
             variables.put(ExpressionConstants.VAR_FOCUS, focusContext.getObjectAny(), focusContext.getObjectDefinition());
         } else {
-            PrismObjectDefinition<ObjectType> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
-            variables.put(ExpressionConstants.VAR_FOCUS, null, def);
+            variables.put(ExpressionConstants.VAR_FOCUS, null, FocusType.class);
         }
 
         ModelImplUtils.evaluateScript(scriptExpression, context, variables, false, shortDesc, task, result);

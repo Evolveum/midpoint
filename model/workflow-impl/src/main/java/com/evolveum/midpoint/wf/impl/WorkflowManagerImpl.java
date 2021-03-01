@@ -13,6 +13,12 @@ import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
+import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
+
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -166,21 +172,17 @@ public class WorkflowManagerImpl implements WorkflowManager {
                     break;
                 }
 
-                final String caseName = PolyString.getOrig(parentCasePrism.getName());
-                final String caseOid = parentCasePrism.getOid();
-                final long started = System.currentTimeMillis();
-
-                executionTask.recordIterativeOperationStart(caseName, null, CaseType.COMPLEX_TYPE, caseOid);
-                Throwable lastProblem = null;
+                IterativeOperationStartInfo startInfo = new IterativeOperationStartInfo(
+                        new IterationItemInformation(parentCasePrism), SchemaConstants.CLOSED_CASES_CLEANUP_TASK_PART_URI);
+                startInfo.setStructuredProgressCollector(executionTask);
+                Operation op = executionTask.recordIterativeOperationStart(startInfo);
                 try {
                     deleteChildrenCases(parentCasePrism, counters, result);
-               } catch (Throwable t) {
-                    lastProblem = t;
-                } finally {
-                    executionTask
-                            .recordIterativeOperationEnd(caseName, null, CaseType.COMPLEX_TYPE, caseOid, started, lastProblem);
+                    op.succeeded();
+                } catch (Throwable t) {
+                    op.failed(t);
+                    LoggingUtils.logException(LOGGER, "Couldn't delete children cases for {}", t, parentCasePrism);
                 }
-
                 executionTask.incrementProgressAndStoreStatsIfNeeded();
             }
 

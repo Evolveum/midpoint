@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.impl.lens;
 
 import static java.util.Collections.emptyList;
@@ -12,10 +11,6 @@ import static java.util.Collections.emptyList;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -26,19 +21,25 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -51,7 +52,10 @@ public class ClockworkAuditHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClockworkAuditHelper.class);
 
-    private static final String OP_EVALUATE_AUDIT_RECORD_PROPERTY = ClockworkAuditHelper.class.getName() + ".evaluateAuditRecordProperty";
+    private static final String OP_EVALUATE_AUDIT_RECORD_PROPERTY =
+            ClockworkAuditHelper.class.getName() + ".evaluateAuditRecordProperty";
+    private static final String OP_EVALUATE_RECORDING_SCRIPT =
+            ClockworkAuditHelper.class.getName() + ".evaluateRecordingScript";
 
     @Autowired private PrismContext prismContext;
     @Autowired private AuditHelper auditHelper;
@@ -85,7 +89,7 @@ public class ClockworkAuditHelper {
      * request without execution in the audit logs.
      */
     <F extends ObjectType> void auditFinalExecution(LensContext<F> context, Task task, OperationResult result,
-            OperationResult overallResult) throws SchemaException {
+            OperationResult overallResult) {
         if (context.isRequestAudited() && !context.isExecutionAudited()) {
             auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result, overallResult);
         }
@@ -95,9 +99,9 @@ public class ClockworkAuditHelper {
     // while "result" is - most of the time - related to the current clockwork click
     //
     // We provide "result" here just for completeness - if any of the called methods would like to record to it.
-    <F extends ObjectType> void auditEvent(LensContext<F> context, AuditEventStage stage,
-            XMLGregorianCalendar timestamp, boolean alwaysAudit, Task task, OperationResult result,
-            OperationResult overallResult) throws SchemaException {
+    <F extends ObjectType> void auditEvent(
+            LensContext<F> context, AuditEventStage stage, XMLGregorianCalendar timestamp,
+            boolean alwaysAudit, Task task, OperationResult result, OperationResult overallResult) {
 
         PrismObject<? extends ObjectType> primaryObject;
         ObjectDelta<? extends ObjectType> primaryDelta;
@@ -122,6 +126,7 @@ public class ClockworkAuditHelper {
             } else {
                 primaryObject = projection.getObjectNew();
             }
+            // TODO couldn't we determine primary object from object ADD delta? See e.g. TestModelServiceContract.test120.
             primaryDelta = projection.getCurrentDelta();
         }
 
@@ -132,11 +137,14 @@ public class ClockworkAuditHelper {
 
         boolean recordResourceOids;
         List<SystemConfigurationAuditEventRecordingPropertyType> propertiesToRecord;
+        ExpressionType eventRecordingExpression = null;
+
         SystemConfigurationType config = context.getSystemConfigurationType();
         if (config != null && config.getAudit() != null && config.getAudit().getEventRecording() != null) {
             SystemConfigurationAuditEventRecordingType eventRecording = config.getAudit().getEventRecording();
             recordResourceOids = Boolean.TRUE.equals(eventRecording.isRecordResourceOids());
             propertiesToRecord = eventRecording.getProperty();
+            eventRecordingExpression = eventRecording.getExpression();
         } else {
             recordResourceOids = false;
             propertiesToRecord = emptyList();
@@ -202,7 +210,15 @@ public class ClockworkAuditHelper {
             evaluateAuditRecordProperty(property, auditRecord, primaryObject, context, task, result);
         }
 
-        auditHelper.audit(auditRecord, context.getNameResolver(), task, result);
+        if (eventRecordingExpression != null) {
+            // MID-6839
+            auditRecord = evaluateRecordingExpression(eventRecordingExpression,
+                    auditRecord, primaryObject, context, task, result);
+        }
+
+        if (auditRecord != null) {
+            auditHelper.audit(auditRecord, context.getNameResolver(), task, result);
+        }
 
         if (stage == AuditEventStage.EXECUTION) {
             // We need to clean up so these deltas will not be audited again in next wave
@@ -212,6 +228,39 @@ public class ClockworkAuditHelper {
             assert stage == AuditEventStage.REQUEST;
             context.setRequestAudited(true);
         }
+    }
+
+    private <F extends ObjectType> AuditEventRecord evaluateRecordingExpression(
+            ExpressionType expression, AuditEventRecord auditRecord,
+            PrismObject<? extends ObjectType> primaryObject, LensContext<F> context,
+            Task task, OperationResult parentResult) {
+        OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE_RECORDING_SCRIPT);
+
+        try {
+            VariablesMap variables = new VariablesMap();
+            variables.put(ExpressionConstants.VAR_TARGET, primaryObject, PrismObject.class);
+            variables.put(ExpressionConstants.VAR_AUDIT_RECORD, auditRecord, AuditEventRecord.class);
+            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
+                    new ExpressionEnvironment<>(context, null, task, result));
+
+            PrismValue returnValue = ExpressionUtil.evaluateExpression(
+                    variables, null, expression, context.getPrivilegedExpressionProfile(),
+                    expressionFactory, OP_EVALUATE_RECORDING_SCRIPT, task, result);
+            return returnValue != null
+                    ? (AuditEventRecord) returnValue.getRealValue()
+                    : null;
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't evaluate audit recording expression", t);
+            // Copied from evaluateAuditRecordProperty: Intentionally not throwing the exception. The error is marked as partial.
+            // (It would be better to mark it as fatal and to derive overall result as partial, but we aren't that far yet.)
+            result.recordPartialError(t);
+        } finally {
+            result.recordSuccessIfUnknown();
+        }
+
+        // In case of failure we want to return original auditRecord, although it might be
+        // modified by some part of the script too - this we have to suffer.
+        return auditRecord;
     }
 
     private <F extends ObjectType> void evaluateAuditRecordProperty(SystemConfigurationAuditEventRecordingPropertyType propertyDef,

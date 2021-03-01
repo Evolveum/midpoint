@@ -78,7 +78,6 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
 
     private final PrismNamespaceContext namespaceContext;
 
-    @Deprecated
     public XNodeImpl() {
         this(PrismNamespaceContext.EMPTY);
     }

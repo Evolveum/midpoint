@@ -82,7 +82,7 @@ public class NotificationsLineDto {
     }
 
     public static List<NotificationsLineDto> extractFromOperationalInformation(EnvironmentalPerformanceInformation environmentalPerformanceInformation) {
-        EnvironmentalPerformanceInformationType environmentalPerformanceInformationType = environmentalPerformanceInformation.getAggregatedValue();
+        EnvironmentalPerformanceInformationType environmentalPerformanceInformationType = environmentalPerformanceInformation.getValueCopy();
         NotificationsStatisticsType notificationsStatisticsType = environmentalPerformanceInformationType.getNotificationsStatistics();
         return extractFromOperationalInformation(notificationsStatisticsType);
     }

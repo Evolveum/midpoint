@@ -161,7 +161,8 @@ public class StateReporter {
     }
 
     private void reportNoTask(String resourceOid, ProvisioningOperation operation) {
-        LOGGER.warn("Couldn't report execution of ICF operation {} on resource {} because there is no task assigned.", operation, resourceOid);
+        LOGGER.warn("Couldn't report execution of ICF operation {} on resource {} because there is no task assigned.",
+                operation, resourceOid);
     }
 
     private void recordState(String message) {

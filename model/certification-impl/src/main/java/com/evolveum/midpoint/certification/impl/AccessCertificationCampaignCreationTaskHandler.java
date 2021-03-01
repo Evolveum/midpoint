@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
@@ -73,34 +74,31 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
 
         opResult.addContext("definitionOid", definitionOid);
 
-        long started = 0;
-        String campaignName = null;
-        String campaignOid = null;
+        AccessCertificationCampaignType campaign;
         try {
             LOGGER.info("Creating campaign with definition of {}", definitionOid);
-            AccessCertificationCampaignType campaign = certificationManager.createCampaign(definitionOid, task, opResult);
+            campaign = certificationManager.createCampaign(definitionOid, task, opResult);
             LOGGER.info("Campaign {} was created.", ObjectTypeUtil.toShortString(campaign));
+        } catch (Exception e) {
+            LoggingUtils.logException(LOGGER, "Error while executing 'create campaign' task handler", e);
+            opResult.recordFatalError("Error while executing 'create campaign' task handler: " + e.getMessage(), e);
+            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+            return runResult;
+        }
 
-            // TODO split this try-catch to two pieces in order to correctly work with iterative op failure recording
-            started = System.currentTimeMillis();
-            campaignName = campaign.getName().getOrig();
-            campaignOid = campaign.getOid();
-            task.recordIterativeOperationStart(campaignName, campaignName, AccessCertificationCampaignType.COMPLEX_TYPE, campaignOid);
-
+        Operation op = task.recordIterativeOperationStart(campaign.asPrismObject());
+        try {
             certificationManager.openNextStage(campaign.getOid(), task, opResult);
             LOGGER.info("Campaign {} was started.", ObjectTypeUtil.toShortString(campaign));
 
-            task.recordIterativeOperationEnd(campaignName, campaignName, AccessCertificationCampaignType.COMPLEX_TYPE, campaignOid, started, null);
-
+            op.succeeded();
             opResult.computeStatus();
             runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
             runResult.setProgress(task.getProgress()+1);
             return runResult;
 
         } catch (CommonException | RuntimeException e) {
-            if (campaignOid != null) {
-                task.recordIterativeOperationEnd(campaignName, campaignName, AccessCertificationCampaignType.COMPLEX_TYPE, campaignOid, started, e);
-            }
+            op.failed(e);
             LoggingUtils.logException(LOGGER, "Error while executing 'create campaign' task handler", e);
             opResult.recordFatalError("Error while executing 'create campaign' task handler: "+e.getMessage(), e);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);

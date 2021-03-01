@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import com.evolveum.midpoint.model.api.PipelineItem;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
 import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
@@ -49,12 +50,12 @@ abstract class AbstractObjectBasedActionExecutor<T extends ObjectType> extends B
                 PrismObject<T> object = castToObject(value, getObjectType(), context);
                 if (object != null) {
                     T objectable = object.asObjectable();
-                    long started = operationsHelper.recordStart(context, objectable);
+                    Operation op = operationsHelper.recordStart(context, objectable);
                     try {
                         consumer.process(object, item, result);
-                        operationsHelper.recordEnd(context, objectable, started, null);
+                        operationsHelper.recordEnd(context, op, null);
                     } catch (Throwable e) {
-                        operationsHelper.recordEnd(context, objectable, started, e);
+                        operationsHelper.recordEnd(context, op, e);
                         Throwable exception = processActionException(e, getActionName(), value, context);
                         writer.write(object, exception);
                     }

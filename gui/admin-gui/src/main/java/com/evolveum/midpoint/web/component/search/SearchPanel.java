@@ -15,6 +15,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
@@ -86,6 +87,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     private static final String ID_SEARCH_CONTAINER = "searchContainer";
     private static final String ID_DEBUG = "debug";
     private static final String ID_SEARCH_BUTTON_BEFORE_DROPDOWN = "searchButtonBeforeDropdown";
+    private static final String ID_SEARCH_BUTTON_DROPDOWN = "menuDropdown";
     private static final String ID_MORE = "more";
     private static final String ID_POPOVER = "popover";
     private static final String ID_ADD_TEXT = "addText";
@@ -353,11 +355,12 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
             }
         };
 
-        IModel<String> buttonRightPaddingModel = new IModel<String>() {
-            @Override
-            public String getObject() {
-                return "padding-right: " + (SearchBoxModeType.BASIC.equals(getModelObject().getSearchType()) ? "23" : "16") + "px";
+        IModel<String> buttonRightPaddingModel = () -> {
+            String style = "padding-right: " + (SearchBoxModeType.BASIC.equals(getModelObject().getSearchType()) ? "23" : "16") + "px;";
+            if (getModelObject().getAllowedSearchType().size() == 1) {
+                style = style + "border-top-right-radius: 3px; border-bottom-right-radius: 3px;";
             }
+            return style;
         };
         searchButtonBeforeDropdown.add(AttributeAppender.append("style", buttonRightPaddingModel));
 
@@ -380,6 +383,10 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         searchContainer.add(searchButtonBeforeDropdown);
         form.setDefaultButton(searchButtonBeforeDropdown);
 
+        WebMarkupContainer dropdownButton = new WebMarkupContainer(ID_SEARCH_BUTTON_DROPDOWN);
+        dropdownButton.add(new VisibleBehaviour(() -> getModelObject().getAllowedSearchType().size() != 1));
+        searchContainer.add(dropdownButton);
+
         List<InlineMenuItem> searchItems = new ArrayList<>();
 
         InlineMenuItem searchItem = new InlineMenuItem(
@@ -397,6 +404,11 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                         searchTypeUpdated(target, SearchBoxModeType.BASIC);
                     }
                 };
+            }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                return Model.of(getModelObject().isAllowedSearchMode(SearchBoxModeType.BASIC));
             }
         };
         searchItems.add(searchItem);
@@ -416,6 +428,11 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                         searchTypeUpdated(target, SearchBoxModeType.ADVANCED);
                     }
                 };
+            }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                return Model.of(getModelObject().isAllowedSearchMode(SearchBoxModeType.ADVANCED));
             }
         };
         searchItems.add(searchItem);
@@ -439,7 +456,8 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
             @Override
             public IModel<Boolean> getVisible() {
-                return Model.of(isFullTextSearchEnabled());
+                return Model.of(isFullTextSearchEnabled()
+                        && getModelObject().isAllowedSearchMode(SearchBoxModeType.FULLTEXT));
             }
         };
         searchItems.add(searchItem);
@@ -463,7 +481,8 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
             @Override
             public IModel<Boolean> getVisible() {
-                return Model.of(getModelObject().isOidSearchEnabled());
+                return Model.of(getModelObject().isOidSearchEnabled()
+                        && getModelObject().isAllowedSearchMode(SearchBoxModeType.OID));
             }
         };
         searchItems.add(searchItem);
@@ -487,7 +506,8 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
             @Override
             public IModel<Boolean> getVisible() {
-                return Model.of(getPageBase().getCompiledGuiProfile().isEnableExperimentalFeatures());
+                return Model.of(WebModelServiceUtils.isEnableExperimentalFeature(getPageBase())
+                        && getModelObject().isAllowedSearchMode(SearchBoxModeType.QUERY_DSL));
             }
         };
         searchItems.add(searchItem);

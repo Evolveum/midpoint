@@ -119,7 +119,7 @@ public class EngineReportTabPanel extends ObjectBasicPanel<ReportType> {
 
     private List<ItemWrapper> getEngines() {
         List<ItemWrapper> items = new ArrayList<>();
-        for (ItemWrapper item : getModel ().getObject().getValue().getItems()) {
+        for (ItemWrapper item : getModel ().getObject().getValue().getContainers()) {
             if (item.getTypeClass() != null && AbstractReportEngineConfigurationType.class.isAssignableFrom(item.getTypeClass())) {
                 items.add(item);
             }

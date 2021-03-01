@@ -7,14 +7,17 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import javax.xml.namespace.QName;
 
 /**
- * TODO
+ * TODO better name
  */
 public class IterationItemInformation {
 
@@ -26,11 +29,37 @@ public class IterationItemInformation {
     public IterationItemInformation() {
     }
 
+    public IterationItemInformation(String objectName, String objectDisplayName, QName objectType, String objectOid) {
+        this.objectName = objectName;
+        this.objectDisplayName = objectDisplayName;
+        this.objectType = objectType;
+        this.objectOid = objectOid;
+    }
+
     public IterationItemInformation(PrismObject<? extends ObjectType> object) {
+        this(object, object.getPrismContext());
+    }
+
+    public IterationItemInformation(PrismObject<? extends ObjectType> object, PrismContext prismContext) {
         this.objectName = PolyString.getOrig(object.getName());
         this.objectDisplayName = StatisticsUtil.getDisplayName(object);
-        this.objectType = object.getDefinition().getTypeName();
+        this.objectType = determineTypeName(object, prismContext);
         this.objectOid = object.getOid();
+    }
+
+    private QName determineTypeName(PrismObject<? extends ObjectType> object, PrismContext prismContext) {
+        if (prismContext != null) {
+            return StatisticsUtil.getObjectType(object.asObjectable(), prismContext);
+        } else {
+            PrismObjectDefinition<? extends ObjectType> definition = object.getDefinition();
+            return definition != null ? definition.getTypeName() : null;
+        }
+    }
+
+    public IterationItemInformation(ShadowType shadow) {
+        this(PolyString.getOrig(shadow.getName()),
+                StatisticsUtil.getDisplayName(shadow.asPrismObject()),
+                ShadowType.COMPLEX_TYPE, shadow.getOid());
     }
 
     public String getObjectName() {

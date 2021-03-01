@@ -13,6 +13,8 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -85,7 +87,7 @@ public class DefaultColumnUtils {
                         new ColumnWrapper(TaskType.F_SCHEDULE, "pageTasks.task.scheduledToRunAgain"),
                         new ColumnWrapper(ItemPath.create(TaskType.F_OPERATION_STATS,
                                 OperationStatsType.F_ITERATIVE_TASK_INFORMATION,
-                                IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT), "pageTasks.task.errors"),
+                                IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT), "pageTasks.task.errors"), // TODO MID-6850
                         new ColumnWrapper(TaskType.F_RESULT_STATUS)))
                 .put(ShadowType.class, Arrays.asList(
                         new ColumnWrapper(ShadowType.F_NAME),
@@ -247,11 +249,8 @@ public class DefaultColumnUtils {
                 Object[] params = localizationObject.isEmpty() ? null : localizationObject.toArray();
                 return localization.translate(key, params, Locale.getDefault(), key);
             } else if (itemPath.equivalent(ItemPath.create(TaskType.F_OPERATION_STATS, OperationStatsType.F_ITERATIVE_TASK_INFORMATION,
-                    IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT))) {
-                if (task.getOperationStats() != null && task.getOperationStats().getIterativeTaskInformation() != null) {
-                    return String.valueOf(task.getOperationStats().getIterativeTaskInformation().getTotalFailureCount());
-                }
-                return "0";
+                    IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT))) { // TODO MID-6850
+                return String.valueOf(TaskTypeUtil.getItemsProcessedWithFailure(task)); // TODO or aggregated?
             } else if (itemPath.equivalent(TaskType.F_PROGRESS)) {
                 List<Object> localizationObject = new ArrayList<>();
                 String key = TaskUtil.getProgressDescription(task, localizationObject);
@@ -277,7 +276,7 @@ public class DefaultColumnUtils {
             return itemPath.equivalent(TaskType.F_COMPLETION_TIMESTAMP)
                     || itemPath.equivalent(TaskType.F_SCHEDULE)
                     || itemPath.equivalent(ItemPath.create(TaskType.F_OPERATION_STATS, OperationStatsType.F_ITERATIVE_TASK_INFORMATION,
-                    IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT))
+                    IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT)) // TODO MID-6850
                     || itemPath.equivalent(TaskType.F_PROGRESS);
         } else if (type.isAssignableFrom(AuditEventRecordType.class)) {
             for (AuditEventRecordCustomColumnPropertyType customColumn : ((AuditEventRecordType)object.getValue().asContainerable()).getCustomColumnProperty()) {

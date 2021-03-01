@@ -212,7 +212,6 @@ class TaskCycleExecutor {
                 }
             }
             task.setLastRunFinishTimestamp(System.currentTimeMillis());
-            task.storeOperationStatsDeferred(); // maybe redundant, but better twice than never at all
             task.flushPendingModifications(result);
             task.refresh(result);
         } catch (ObjectNotFoundException ex) {

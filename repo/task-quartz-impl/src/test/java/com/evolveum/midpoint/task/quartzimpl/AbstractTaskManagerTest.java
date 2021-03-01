@@ -7,7 +7,12 @@
 
 package com.evolveum.midpoint.task.quartzimpl;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType.SUCCESS;
+
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
@@ -17,6 +22,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
 
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
 import com.evolveum.midpoint.task.quartzimpl.tasks.TaskStateManager;
 
@@ -263,12 +269,26 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
         }
     }
 
-    void assertTotalSuccessCount(int expectedCount, Collection<? extends Task> workers) {
-        int total = 0;
-        for (Task worker : workers) {
-            total += worker.getStoredOperationStats().getIterativeTaskInformation().getTotalSuccessCount();
-        }
-        assertEquals("Wrong total success count", expectedCount, total);
+    void assertTotalSuccessCountInIterativeInfo(int expectedCount, Collection<? extends Task> workers) {
+        int successCount = workers.stream()
+                .mapToInt(w -> TaskTypeUtil.getItemsProcessedWithSuccess(w.getStoredOperationStatsOrClone()))
+                .sum();
+        assertThat(successCount).isEqualTo(expectedCount);
+    }
+
+    void assertTotalSuccessCountInProgress(int expectedClosed, int expectedOpen, Collection<? extends Task> workers) {
+        int successClosed = getSuccessClosed(workers);
+        assertThat(successClosed).isEqualTo(expectedClosed);
+        int successOpen = workers.stream()
+                .mapToInt(w -> TaskTypeUtil.getProgressForOutcome(w.getStructuredProgressOrClone(), SUCCESS, true))
+                .sum();
+        assertThat(successOpen).isEqualTo(expectedOpen);
+    }
+
+    private int getSuccessClosed(Collection<? extends Task> workers) {
+        return workers.stream()
+                    .mapToInt(w -> TaskTypeUtil.getProgressForOutcome(w.getStructuredProgressOrClone(), SUCCESS, false))
+                    .sum();
     }
 
     void assertNoWorkBuckets(TaskWorkStateType ws) {
@@ -331,19 +351,24 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
             List<? extends Task> tasks = coordinatorTask.listSubtasks(result);
             int total = 0;
             for (Task task : tasks) {
-                OperationStatsType opStat = task.getStoredOperationStats();
-                if (opStat == null) {
-                    continue;
-                }
-                IterativeTaskInformationType iti = opStat.getIterativeTaskInformation();
-                if (iti == null) {
-                    continue;
-                }
-                int count = iti.getTotalSuccessCount();
+                int count = or0(TaskTypeUtil.getItemsProcessed(task.getStoredOperationStatsOrClone()));
                 display("Task " + task + ": " + count + " items processed");
                 total += count;
             }
             return total;
+        } catch (Throwable t) {
+            throw new AssertionError("Unexpected exception", t);
+        }
+    }
+
+    int getTotalSuccessClosed(String coordinatorTaskOid) {
+        OperationResult result = new OperationResult("getTotalSuccessClosed");
+        try {
+            Task coordinatorTask = taskManager.getTaskPlain(coordinatorTaskOid, result);
+            List<? extends Task> tasks = coordinatorTask.listSubtasks(result);
+            int totalSuccessClosed = getSuccessClosed(tasks);
+            System.out.println("Total success closed: " + totalSuccessClosed);
+            return totalSuccessClosed;
         } catch (Throwable t) {
             throw new AssertionError("Unexpected exception", t);
         }

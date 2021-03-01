@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
@@ -125,21 +126,17 @@ public abstract class BaseActionExecutor implements ActionExecutor {
             OperationResult result = operationsHelper.createActionResult(item, this, globalResult);
 
             context.checkTaskStop();
-            long started;
+            Operation op;
             if (value instanceof PrismObjectValue) {
-                started = operationsHelper.recordStart(context, asObjectType(value));
+                op = operationsHelper.recordStart(context, asObjectType(value));
             } else {
-                started = 0;
+                op = null;
             }
             try {
                 itemProcessor.process(value, item, result);
-                if (value instanceof PrismObjectValue) {
-                    operationsHelper.recordEnd(context, asObjectType(value), started, null);
-                }
+                operationsHelper.recordEnd(context, op, null);
             } catch (Throwable ex) {
-                if (value instanceof PrismObjectValue) {
-                    operationsHelper.recordEnd(context, asObjectType(value), started, ex);
-                }
+                operationsHelper.recordEnd(context, op, ex);
                 Throwable exception = processActionException(ex, getActionName(), value, context);
                 writer.write(value, exception);
             }

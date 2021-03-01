@@ -20,6 +20,7 @@ import org.hibernate.annotations.*;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RLockoutStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
@@ -44,6 +45,7 @@ public abstract class RFocus extends RObject {
     private Set<RObjectReference<RShadow>> linkRef; // FocusType
     private Set<RObjectReference<RFocus>> personaRef; // FocusType
     private RActivation activation; // FocusType
+    private RLockoutStatus lockoutStatus; // FocusType
 
     //photo
     private boolean hasPhoto;
@@ -179,6 +181,16 @@ public abstract class RFocus extends RObject {
 
     public void setPasswordModifyTimestamp(XMLGregorianCalendar passwordModifyTimestamp) {
         this.passwordModifyTimestamp = passwordModifyTimestamp;
+    }
+
+    @JaxbPath(itemPath = {
+            @JaxbName(localPart = "activation"), @JaxbName(localPart = "lockoutStatus") })
+    public RLockoutStatus getLockoutStatus() {
+        return lockoutStatus;
+    }
+
+    public void setLockoutStatus(RLockoutStatus lockoutStatus) {
+        this.lockoutStatus = lockoutStatus;
     }
 
     @Override

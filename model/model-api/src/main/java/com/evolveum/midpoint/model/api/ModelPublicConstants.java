@@ -47,4 +47,8 @@ public class ModelPublicConstants {
     //not sure if this is correct place
     public static final String CLUSTER_REPORT_FILE_PATH = "/reportFiles";
     public static final String CLUSTER_REPORT_FILE_FILENAME_PARAMETER = "filename";
+
+    public static final String RECONCILIATION_OPERATION_COMPLETION_PART_URI = "operationCompletion";
+    public static final String RECONCILIATION_RESOURCE_OBJECTS_PART_URI = "resourceObjects";
+    public static final String RECONCILIATION_REMAINING_SHADOWS_PART_URI = "remainingShadows";
 }

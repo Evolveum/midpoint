@@ -33,7 +33,7 @@ public class ObjectIntegrityCheckItemProcessor
 
     private static final String CLASS_DOT = ObjectIntegrityCheckItemProcessor.class.getName() + ".";
 
-    ObjectIntegrityCheckItemProcessor(ObjectIntegrityCheckTaskPartExecution taskExecution) {
+    public ObjectIntegrityCheckItemProcessor(ObjectIntegrityCheckTaskPartExecution taskExecution) {
         super(taskExecution);
     }
 

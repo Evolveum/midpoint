@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,31 +10,26 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.expression.ExpressionPermissionProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.TraceUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptEvaluationTraceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
 /**
  * The expressions should be created by ExpressionFactory. They expect correct setting of
@@ -46,9 +41,10 @@ public class ScriptExpression {
 
     private static final String OP_EVALUATE = ScriptExpression.class.getName() + ".evaluate";
 
-    private ScriptExpressionEvaluatorType scriptType;
-    private ScriptEvaluator evaluator;
-    private ItemDefinition outputDefinition;
+    private final ScriptEvaluator evaluator;
+    private final ScriptExpressionEvaluatorType scriptType;
+
+    private ItemDefinition<?> outputDefinition;
     private Function<Object, Object> additionalConvertor;
     private ObjectResolver objectResolver;
     private Collection<FunctionLibrary> functions;
@@ -64,11 +60,11 @@ public class ScriptExpression {
         this.evaluator = evaluator;
     }
 
-    public ItemDefinition getOutputDefinition() {
+    public ItemDefinition<?> getOutputDefinition() {
         return outputDefinition;
     }
 
-    public void setOutputDefinition(ItemDefinition outputDefinition) {
+    public void setOutputDefinition(ItemDefinition<?> outputDefinition) {
         this.outputDefinition = outputDefinition;
     }
 
@@ -186,14 +182,14 @@ public class ScriptExpression {
         if (!isTrace()) {
             return;
         }
-        trace("Script expression trace:\n"+
-                "---[ SCRIPT expression {}]---------------------------\n"+
-                "Language: {}\n"+
-                "Relativity mode: {}\n"+
-                "Variables:\n{}\n"+
-                "Profile: {}\n" +
-                "Code:\n{}\n"+
-                "Result: {}", context.getContextDescription(), evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(context.getVariables()),
+        trace("Script expression trace:\n" +
+                        "---[ SCRIPT expression {}]---------------------------\n" +
+                        "Language: {}\n" +
+                        "Relativity mode: {}\n" +
+                        "Variables:\n{}\n" +
+                        "Profile: {}\n" +
+                        "Code:\n{}\n" +
+                        "Result: {}", context.getContextDescription(), evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(context.getVariables()),
                 formatProfile(), formatCode(), SchemaDebugUtil.prettyPrint(returnValue));
     }
 
@@ -202,15 +198,15 @@ public class ScriptExpression {
         if (!isTrace()) {
             return;
         }
-        trace("Script expression failure:\n"+
-                "---[ SCRIPT expression {}]---------------------------\n"+
-                "Language: {}\n"+
-                "Relativity mode: {}\n"+
-                "Variables:\n{}\n"+
-                "Profile: {}\n" +
-                "Code:\n{}\n"+
-                "Error: {}", context.getContextDescription(), evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(context.getVariables()),
-                formatProfile(),formatCode(), SchemaDebugUtil.prettyPrint(exception));
+        trace("Script expression failure:\n" +
+                        "---[ SCRIPT expression {}]---------------------------\n" +
+                        "Language: {}\n" +
+                        "Relativity mode: {}\n" +
+                        "Variables:\n{}\n" +
+                        "Profile: {}\n" +
+                        "Code:\n{}\n" +
+                        "Error: {}", context.getContextDescription(), evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(context.getVariables()),
+                formatProfile(), formatCode(), SchemaDebugUtil.prettyPrint(exception));
     }
 
     private boolean isTrace() {
@@ -257,5 +253,4 @@ public class ScriptExpression {
     public String toString() {
         return "ScriptExpression(" + formatCode() + ")";
     }
-
 }

@@ -40,12 +40,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class TaskBeans {
 
+    //region Beans in task manager
     @Autowired public TaskManagerConfiguration configuration;
-    @Autowired public SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
-    @Autowired public CacheConfigurationManager cacheConfigurationManager;
     @Autowired public Tracer tracer;
-    @Autowired public CacheRegistry cacheRegistry;
-    @Autowired public CounterManager counterManager;
     @Autowired public Schedulers schedulers;
     @Autowired public TaskThreadsDumper taskThreadsDumper;
     @Autowired public TaskStopper taskStopper;
@@ -63,18 +60,26 @@ public class TaskBeans {
     @Autowired public LocalNodeState localNodeState;
     @Autowired public NodeCleaner nodeCleaner;
     @Autowired public NodeRegistrar nodeRegistrar;
-    @Autowired public MidpointConfiguration midpointConfiguration;
-    @Autowired public RepositoryService repositoryService;
-    @Autowired(required = false) public SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
-    @Autowired public PrismContext prismContext;
-    @Autowired public SchemaHelper schemaHelper;
     @Autowired public WorkStateManager workStateManager;
     @Autowired public WorkersManager workersManager;
     @Autowired public UpAndDown upAndDown;
     @Autowired public LightweightTaskManager lightweightTaskManager;
     @Autowired public TaskSynchronizer taskSynchronizer;
+    @Autowired public ClusterStatusInformationRetriever clusterStatusInformationRetriever;
+    //endregion
+
+    //region Outside beans
+    @Autowired public PrismContext prismContext;
+    @Autowired public SchemaHelper schemaHelper;
+    @Autowired public RepositoryService repositoryService;
+    @Autowired(required = false) public SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
+    @Autowired public MidpointConfiguration midpointConfiguration;
+    @Autowired public SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
+    @Autowired public CacheConfigurationManager cacheConfigurationManager;
+    @Autowired public CacheRegistry cacheRegistry;
+    @Autowired public CounterManager counterManager;
     @Autowired
     @Qualifier("securityContextManager")
     public SecurityContextManager securityContextManager;
-    @Autowired public ClusterStatusInformationRetriever clusterStatusInformationRetriever;
+    //endregion
 }

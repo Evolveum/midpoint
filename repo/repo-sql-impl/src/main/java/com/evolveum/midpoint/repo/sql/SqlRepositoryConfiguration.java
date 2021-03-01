@@ -108,7 +108,7 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
          */
         WARN("warn"),
         /**
-         * An automatic upgrade is attempted, if possible. (If not possible, the startup is cancelled.) NOT SUPPORTED YET.
+         * An automatic upgrade is attempted, if possible. (If not possible, the startup is cancelled.)
          */
         UPGRADE("upgrade");
 

@@ -42,6 +42,7 @@ public class MockLongTaskHandler implements TaskHandler {
         while (task.canRun()) {
             task.incrementProgressAndStoreStatsIfNeeded();
             try {
+                //noinspection BusyWait
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 LOGGER.info("Interrupted: exiting", e);
