@@ -21,6 +21,7 @@
             <stringSegmentation>
                 <discriminator>name</discriminator>
                 <matchingRule>polyStringNorm</matchingRule>
+                <!-- legacy specification -->
                 <boundaryCharacters>a</boundaryCharacters>
                 <boundaryCharacters>\0-\1\a-\c</boundaryCharacters>
                 <boundaryCharacters>01abc</boundaryCharacters>

@@ -1602,21 +1602,37 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractWorkSegmentationType">
                 <xsd:sequence>
+                    <xsd:element name="boundary" type="tns:BoundarySpecificationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Characters that make up the boundaries at given string position(s).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.3</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="boundaryCharacters" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Characters that make up the boundaries. These characters must be sorted.
                                 Reserved characters: '-', '$' (to be implemented later)
                                 Escaping character: '\'
+
+                                DEPRECATED. Please use boundary instead.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.3</a:deprecatedSince>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="depth" type="xsd:int" minOccurs="0" default="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                If a value N greater than 1 is specified here, boundaryCharacters values are repeated N times
-                                (if values of V1, V2, ..., Vk are specified, the resulting sequence is V1, V2, ..., Vk, V1, V2,
-                                ... Vk, etc, with N repetitions - so N*k values in total).
+                                If a value N greater than 1 is specified here, values specified by boundary or boundaryCharacters
+                                are repeated N times (if values of V1, V2, ..., Vk are specified, the resulting sequence
+                                is V1, V2, ..., Vk, V1, V2, ... Vk, etc, with N repetitions - so N*k values in total).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1631,6 +1647,39 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+
+    <xsd:complexType name="BoundarySpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specification of how string-based segments are delineated.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="position" type="xsd:int" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Position(s) to which the boundary characters apply.
+                        Should be specified, because (1) the ordering of boundary specifications is undefined,
+                        (2) multiple definitions of the same boundary characters is not possible.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="characters" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Characters that make up the boundaries. These characters must be sorted.
+                        Reserved characters: '-', '$' (to be implemented later)
+                        Escaping character: '\'
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="boundarySpecification" type="tns:BoundarySpecificationType" />
 
     <xsd:complexType name="OidWorkSegmentationType">
         <xsd:annotation>
