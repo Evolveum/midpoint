@@ -10,69 +10,83 @@
 <body>
 <wicket:panel>
     <div wicket:id="contents">
-        <div class="box">
-            <div class="box-header">
-                <h3 class="box-title"><wicket:message key="Title.ProvisioningStatistics"/></h3>
-            </div>
-            <div class="box-body no-padding table-responsive">
-                <table class="table table-condensed table-bordered" style="font-size: smaller; width: 100%; max-width: 100%;">
-                    <thead>
-                        <tr>
-                            <th><wicket:message key="ProvisioningStatistics.Resource"/></th>
-                             <th><wicket:message key="ProvisioningStatistics.ObjectClass"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.GetSuccess"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.GetFailure"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.SearchSuccess"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.SearchFailure"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.CreateSuccess"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.CreateFailure"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.UpdateSuccess"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.UpdateFailure"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.DeleteSuccess"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.DeleteFailure"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.SyncSuccess"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.SyncFailure"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.ScriptSuccess"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.ScriptFailure"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.OtherSuccess"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.OtherFailure"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.TotalOperationsCount"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.AverageTime"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.MinTime"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.MaxTime"/></th>
-                            <th><wicket:message key="ProvisioningStatistics.TotalTime"/></th>
-                        </tr>
-                    </thead>
-                    <tbody class="tbody-word-break">
-                        <tr wicket:id="provisioningStatisticsLines">
-                            <td><span wicket:id="Provisioning.Resource"/></td>
-                            <td><span wicket:id="Provisioning.ObjectClass"/></td>
-                            <td><span wicket:id="Provisioning.GetSuccess"/></td>
-                            <td><span wicket:id="Provisioning.GetFailure"/></td>
-                            <td><span wicket:id="Provisioning.SearchSuccess"/></td>
-                            <td><span wicket:id="Provisioning.SearchFailure"/></td>
-                            <td><span wicket:id="Provisioning.CreateSuccess"/></td>
-                            <td><span wicket:id="Provisioning.CreateFailure"/></td>
-                            <td><span wicket:id="Provisioning.UpdateSuccess"/></td>
-                            <td><span wicket:id="Provisioning.UpdateFailure"/></td>
-                            <td><span wicket:id="Provisioning.DeleteSuccess"/></td>
-                            <td><span wicket:id="Provisioning.DeleteFailure"/></td>
-                            <td><span wicket:id="Provisioning.SyncSuccess"/></td>
-                            <td><span wicket:id="Provisioning.SyncFailure"/></td>
-                            <td><span wicket:id="Provisioning.ScriptSuccess"/></td>
-                            <td><span wicket:id="Provisioning.ScriptFailure"/></td>
-                            <td><span wicket:id="Provisioning.OtherSuccess"/></td>
-                            <td><span wicket:id="Provisioning.OtherFailure"/></td>
-                            <td><span wicket:id="Provisioning.TotalOperationsCount"/></td>
-                            <td><span wicket:id="Provisioning.AverageTime"/></td>
-                            <td><span wicket:id="Provisioning.MinTime"/></td>
-                            <td><span wicket:id="Provisioning.MaxTime"/></td>
-                            <td><span wicket:id="Provisioning.TotalTime"/></td>
-                        </tr>
-                    </tbody>
-                </table>
+        <div wicket:id="provisioningStatisticsLines">
+            <div class="box">
+                <div class="box-header">
+                    <h3 class="box-title">
+                        <wicket:message key="Title.ProvisioningStatistics"></wicket:message>:
+                        <span wicket:id="Provisioning.Resource"></span> -
+                        <span wicket:id="Provisioning.ObjectClass"></span>
+                    </h3>
+                </div>
+                <div class="box-body">
+                    <div wicket:id="provisioningOperations"></div>
+                </div>
             </div>
         </div>
+<!--        <div class="box">-->
+<!--            <div class="box-header">-->
+<!--                <h3 class="box-title"><wicket:message key="Title.ProvisioningStatistics"/></h3>-->
+<!--            </div>-->
+<!--            <div class="box-body no-padding table-responsive">-->
+<!--                <table class="table table-condensed table-bordered" style="font-size: smaller; width: 100%; max-width: 100%;">-->
+<!--                    <thead>-->
+<!--                        <tr>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.Resource"/></th>-->
+<!--                             <th><wicket:message key="ProvisioningStatistics.ObjectClass"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.GetSuccess"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.GetFailure"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.SearchSuccess"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.SearchFailure"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.CreateSuccess"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.CreateFailure"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.UpdateSuccess"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.UpdateFailure"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.DeleteSuccess"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.DeleteFailure"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.SyncSuccess"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.SyncFailure"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.ScriptSuccess"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.ScriptFailure"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.OtherSuccess"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.OtherFailure"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.TotalOperationsCount"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.AverageTime"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.MinTime"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.MaxTime"/></th>-->
+<!--                            <th><wicket:message key="ProvisioningStatistics.TotalTime"/></th>-->
+<!--                        </tr>-->
+<!--                    </thead>-->
+<!--                    <tbody class="tbody-word-break">-->
+<!--                        <tr wicket:id="provisioningStatisticsLines">-->
+<!--                            <td><span wicket:id="Provisioning.Resource"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.ObjectClass"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.GetSuccess"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.GetFailure"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.SearchSuccess"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.SearchFailure"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.CreateSuccess"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.CreateFailure"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.UpdateSuccess"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.UpdateFailure"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.DeleteSuccess"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.DeleteFailure"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.SyncSuccess"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.SyncFailure"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.ScriptSuccess"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.ScriptFailure"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.OtherSuccess"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.OtherFailure"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.TotalOperationsCount"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.AverageTime"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.MinTime"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.MaxTime"/></td>-->
+<!--                            <td><span wicket:id="Provisioning.TotalTime"/></td>-->
+<!--                        </tr>-->
+<!--                    </tbody>-->
+<!--                </table>-->
+<!--            </div>-->
+<!--        </div>-->
 
         <div class="box">
             <div class="box-header">

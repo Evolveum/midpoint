@@ -8,7 +8,20 @@
 package com.evolveum.midpoint.web.component.progress;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsOperationEntryType;
+
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -16,7 +29,10 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.jfree.data.statistics.Statistics;
 
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -71,6 +87,9 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
 
     private static final String ID_SOURCE = "source";
 
+
+    private static final String ID_PROVISIONING_OPERATIONS = "provisioningOperations";
+
     private WebMarkupContainer contentsPanel;
 
     public StatisticsPanel(String id) {
@@ -93,36 +112,60 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
         return label;
     }
 
+    private List<IColumn<ProvisioningStatisticsOperationEntryType, String>> createColumns() {
+        List<IColumn<ProvisioningStatisticsOperationEntryType, String>> columns = new ArrayList<>();
+        columns.add(createProvisioningStatisticsPropertyColumns(ProvisioningStatisticsOperationEntryType.F_OPERATION));
+        columns.add(createProvisioningStatisticsPropertyColumns(ProvisioningStatisticsOperationEntryType.F_COUNT));
+        columns.add(createProvisioningStatisticsPropertyColumns(ProvisioningStatisticsOperationEntryType.F_MAX_TIME));
+        columns.add(createProvisioningStatisticsPropertyColumns(ProvisioningStatisticsOperationEntryType.F_MIN_TIME));
+        columns.add(createProvisioningStatisticsPropertyColumns(ProvisioningStatisticsOperationEntryType.F_STATUS));
+        columns.add(createProvisioningStatisticsPropertyColumns(ProvisioningStatisticsOperationEntryType.F_TOTAL_TIME));
+        return columns;
+    }
+
+    private IColumn<ProvisioningStatisticsOperationEntryType, String> createProvisioningStatisticsPropertyColumns(QName column) {
+        String columnName = column.getLocalPart();
+        return new PropertyColumn<>(createStringResource("ProvisioningStatisticsOperationEntryType." + columnName), columnName);
+    }
     protected void initLayout() {
         contentsPanel = new WebMarkupContainer(ID_CONTENTS_PANEL);
         contentsPanel.setOutputMarkupId(true);
         add(contentsPanel);
 
-        ListView provisioningLines = new ListView<ProvisioningStatisticsLineDto>(ID_PROVISIONING_STATISTICS_LINES, new PropertyModel<>(getModel(), StatisticsDto.F_PROVISIONING_LINES)) {
+        ListView<ProvisioningStatisticsLineDto> provisioningLines = new ListView<ProvisioningStatisticsLineDto>(ID_PROVISIONING_STATISTICS_LINES, new PropertyModel<>(getModel(), StatisticsDto.F_PROVISIONING_LINES)) {
             protected void populateItem(final ListItem<ProvisioningStatisticsLineDto> item) {
-                item.add(new Label(ID_PROVISIONING_RESOURCE, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_RESOURCE)));
-                item.add(new Label(ID_PROVISIONING_OBJECT_CLASS, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_OBJECT_CLASS)));
-                item.add(new Label(ID_PROVISIONING_GET_SUCCESS, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_GET_SUCCESS)));
-                item.add(createFailureLabel(ID_PROVISIONING_GET_FAILURE, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_GET_FAILURE)));
-                item.add(new Label(ID_PROVISIONING_SEARCH_SUCCESS, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_SEARCH_SUCCESS)));
-                item.add(createFailureLabel(ID_PROVISIONING_SEARCH_FAILURE, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_SEARCH_FAILURE)));
-                item.add(new Label(ID_PROVISIONING_CREATE_SUCCESS, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_CREATE_SUCCESS)));
-                item.add(createFailureLabel(ID_PROVISIONING_CREATE_FAILURE, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_CREATE_FAILURE)));
-                item.add(new Label(ID_PROVISIONING_UPDATE_SUCCESS, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_UPDATE_SUCCESS)));
-                item.add(createFailureLabel(ID_PROVISIONING_UPDATE_FAILURE, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_UPDATE_FAILURE)));
-                item.add(new Label(ID_PROVISIONING_DELETE_SUCCESS, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_DELETE_SUCCESS)));
-                item.add(createFailureLabel(ID_PROVISIONING_DELETE_FAILURE, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_DELETE_FAILURE)));
-                item.add(new Label(ID_PROVISIONING_SYNC_SUCCESS, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_SYNC_SUCCESS)));
-                item.add(createFailureLabel(ID_PROVISIONING_SYNC_FAILURE, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_SYNC_FAILURE)));
-                item.add(new Label(ID_PROVISIONING_SCRIPT_SUCCESS, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_SCRIPT_SUCCESS)));
-                item.add(createFailureLabel(ID_PROVISIONING_SCRIPT_FAILURE, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_SCRIPT_FAILURE)));
-                item.add(new Label(ID_PROVISIONING_OTHER_SUCCESS, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_OTHER_SUCCESS)));
-                item.add(createFailureLabel(ID_PROVISIONING_OTHER_FAILURE, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_OTHER_FAILURE)));
-                item.add(new Label(ID_PROVISIONING_TOTAL_OPERATIONS_COUNT, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_TOTAL_OPERATIONS_COUNT)));
-                item.add(new Label(ID_PROVISIONING_AVERAGE_TIME, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_AVERAGE_TIME)));
-                item.add(new Label(ID_PROVISIONING_MIN_TIME, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_MIN_TIME)));
-                item.add(new Label(ID_PROVISIONING_MAX_TIME, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_MAX_TIME)));
-                item.add(new Label(ID_PROVISIONING_TOTAL_TIME, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_TOTAL_TIME)));
+
+                item.add(new Label(ID_PROVISIONING_RESOURCE, new ReadOnlyModel<>(() -> WebModelServiceUtils.resolveReferenceName(item.getModelObject().getResourceRef(), getPageBase()))));
+                item.add(new Label(ID_PROVISIONING_OBJECT_CLASS, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_OBJECT_CLASS + ".localPart")));
+
+                ListDataProvider<ProvisioningStatisticsOperationEntryType> provider = new ListDataProvider<>(StatisticsPanel.this, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_OPERATIONS));
+                BoxedTablePanel<ProvisioningStatisticsOperationEntryType> provisioningTable = new BoxedTablePanel<>(ID_PROVISIONING_OPERATIONS, provider, createColumns());
+                provisioningTable.setOutputMarkupId(true);
+                item.add(provisioningTable);
+
+//                item.add(new Label(ID_PROVISIONING_RESOURCE, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_RESOURCE)));
+//                item.add(new Label(ID_PROVISIONING_OBJECT_CLASS, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_OBJECT_CLASS)));
+//                item.add(new Label(ID_PROVISIONING_GET_SUCCESS, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_GET_SUCCESS)));
+//                item.add(createFailureLabel(ID_PROVISIONING_GET_FAILURE, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_GET_FAILURE)));
+//                item.add(new Label(ID_PROVISIONING_SEARCH_SUCCESS, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_SEARCH_SUCCESS)));
+//                item.add(createFailureLabel(ID_PROVISIONING_SEARCH_FAILURE, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_SEARCH_FAILURE)));
+//                item.add(new Label(ID_PROVISIONING_CREATE_SUCCESS, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_CREATE_SUCCESS)));
+//                item.add(createFailureLabel(ID_PROVISIONING_CREATE_FAILURE, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_CREATE_FAILURE)));
+//                item.add(new Label(ID_PROVISIONING_UPDATE_SUCCESS, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_UPDATE_SUCCESS)));
+//                item.add(createFailureLabel(ID_PROVISIONING_UPDATE_FAILURE, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_UPDATE_FAILURE)));
+//                item.add(new Label(ID_PROVISIONING_DELETE_SUCCESS, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_DELETE_SUCCESS)));
+//                item.add(createFailureLabel(ID_PROVISIONING_DELETE_FAILURE, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_DELETE_FAILURE)));
+//                item.add(new Label(ID_PROVISIONING_SYNC_SUCCESS, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_SYNC_SUCCESS)));
+//                item.add(createFailureLabel(ID_PROVISIONING_SYNC_FAILURE, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_SYNC_FAILURE)));
+//                item.add(new Label(ID_PROVISIONING_SCRIPT_SUCCESS, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_SCRIPT_SUCCESS)));
+//                item.add(createFailureLabel(ID_PROVISIONING_SCRIPT_FAILURE, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_SCRIPT_FAILURE)));
+//                item.add(new Label(ID_PROVISIONING_OTHER_SUCCESS, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_OTHER_SUCCESS)));
+//                item.add(createFailureLabel(ID_PROVISIONING_OTHER_FAILURE, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_OTHER_FAILURE)));
+//                item.add(new Label(ID_PROVISIONING_TOTAL_OPERATIONS_COUNT, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_TOTAL_OPERATIONS_COUNT)));
+//                item.add(new Label(ID_PROVISIONING_AVERAGE_TIME, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_AVERAGE_TIME)));
+//                item.add(new Label(ID_PROVISIONING_MIN_TIME, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_MIN_TIME)));
+//                item.add(new Label(ID_PROVISIONING_MAX_TIME, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_MAX_TIME)));
+//                item.add(new Label(ID_PROVISIONING_TOTAL_TIME, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_TOTAL_TIME)));
             }
         };
         contentsPanel.add(provisioningLines);
