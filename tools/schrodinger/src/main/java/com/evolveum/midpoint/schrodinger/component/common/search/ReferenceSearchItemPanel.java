@@ -113,7 +113,7 @@ public class ReferenceSearchItemPanel<T> extends Component<T> {
     }
 
     public ReferenceSearchItemPanel<T> assertRefSearchFieldValueMatch(String value) {
-        Assert.assertTrue(matchRefSearchFieldValue(value));
+        assertion.assertTrue(matchRefSearchFieldValue(value));
         return this;
 
     }

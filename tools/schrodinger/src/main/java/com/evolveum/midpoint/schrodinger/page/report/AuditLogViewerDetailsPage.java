@@ -22,7 +22,7 @@ public class AuditLogViewerDetailsPage extends BasicPage {
     }
 
     public AuditLogViewerDetailsPage assertAuditLogViewerDetailsPageIsOpened() {
-        Assert.assertTrue($(byText("Audit Log Details")).exists());
+        assertion.assertTrue($(byText("Audit Log Details")).exists());
         return this;
     }
 

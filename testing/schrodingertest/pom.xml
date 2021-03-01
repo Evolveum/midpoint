@@ -110,15 +110,25 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-test-util</artifactId>
+            <artifactId>task-api</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>task-api</artifactId>
-            <version>${project.version}</version>
+            <groupId>com.evolveum.midpoint.client</groupId>
+            <artifactId>midpoint-client-api</artifactId>
+            <version>4.3-SNAPSHOT</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.client</groupId>
+            <artifactId>midpoint-client-impl-prism</artifactId>
+            <version>4.3-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>

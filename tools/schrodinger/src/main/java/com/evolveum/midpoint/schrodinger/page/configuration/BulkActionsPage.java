@@ -41,7 +41,7 @@ public class BulkActionsPage extends BasicPage {
     }
 
     public BulkActionsPage assertAceEditorVisible() {
-        Assert.assertTrue(isAceEditorVisible(), "Ace editor should be visible.");
+        assertion.assertTrue(isAceEditorVisible(), "Ace editor should be visible.");
         return this;
     }
 }

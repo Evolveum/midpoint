@@ -6,15 +6,9 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OutcomeKeyedCounterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationTransitionType;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -26,15 +20,25 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OutcomeKeyedCounterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationTransitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 public class SynchronizationSituationTransitionPanel extends BasePanel<SynchronizationSituationTransitionType> {
 
     private static final String ID_PROCESSING_START = "processingStart";
     private static final String ID_SYNC_START =  "syncStart";
     private static final String ID_SYNC_END = "syncEnd";
+    private static final String ID_EXCLUSION_REASON = "exclusionReason";
     private static final String ID_TOTAL_COUNT = "totalCount";
     private static final String ID_OUTCOME_TABLE = "outcomeTable";
     private static final String ID_COLLAPSE_EXPAND = "collapseExpand";
@@ -54,9 +58,10 @@ public class SynchronizationSituationTransitionPanel extends BasePanel<Synchroni
     }
 
     private void initLayout() {
-        add(createLabelItem(ID_PROCESSING_START, getModel(), SynchronizationSituationTransitionType.F_ON_PROCESSING_START));
-        add(createLabelItem(ID_SYNC_START, getModel(), SynchronizationSituationTransitionType.F_ON_SYNCHRONIZATION_START));
-        add(createLabelItem(ID_SYNC_END, getModel(), SynchronizationSituationTransitionType.F_ON_SYNCHRONIZATION_END));
+        add(createLabelItem(ID_PROCESSING_START, createSituationLabel(getModel(), SynchronizationSituationTransitionType.F_ON_PROCESSING_START)));
+        add(createLabelItem(ID_SYNC_START, createSituationLabel(getModel(), SynchronizationSituationTransitionType.F_ON_SYNCHRONIZATION_START)));
+        add(createLabelItem(ID_SYNC_END, createSituationLabel(getModel(), SynchronizationSituationTransitionType.F_ON_SYNCHRONIZATION_END)));
+        add(createLabelItem(ID_EXCLUSION_REASON, new PropertyModel<>(getModel(), SynchronizationSituationTransitionType.F_EXCLUSION_REASON.getLocalPart())));
         add(new Label(ID_TOTAL_COUNT, new ReadOnlyModel<>(() -> getTotalCount(getModel()))));
 
         IModel<List<OutcomeKeyedCounterType>> outcomeCounterModel = new PropertyModel<>(getModel(), SynchronizationSituationTransitionType.F_COUNTER.getLocalPart());
@@ -103,14 +108,28 @@ public class SynchronizationSituationTransitionPanel extends BasePanel<Synchroni
         totalCount += counterCount;
         return totalCount;
     }
-    private Label createLabelItem(String id, IModel<SynchronizationSituationTransitionType> syncSituationModel, QName stage) {
-        Label label = new Label(id, createSituationLabel(syncSituationModel, stage.getLocalPart()));
+    private Label createLabelItem(String id, IModel<String> model) {
+        Label label = new Label(id, model);
         label.setRenderBodyOnly(true);
         return label;
     }
 
-    private IModel<String> createSituationLabel(IModel<SynchronizationSituationTransitionType> syncSituationModel, String stage) {
-        return new PropertyModel<>(syncSituationModel, stage);
+    private IModel<String> createSituationLabel(IModel<SynchronizationSituationTransitionType> syncSituationModel, QName stage) {
+        return new ReadOnlyModel<>(() -> {
+            SynchronizationSituationTransitionType transition = syncSituationModel.getObject();
+            if (transition == null) {
+                return null;
+            }
+            PrismProperty<SynchronizationSituationType> syncSituation = transition.asPrismContainerValue().findProperty(ItemPath.create(stage));
+            if (syncSituation == null) {
+                return "Unknown";
+            }
+            SynchronizationSituationType syncSituationType = syncSituation.getRealValue();
+            if (syncSituationType == null) {
+                return "Unknown";
+            }
+            return syncSituationType.value();
+        });
     }
 
 

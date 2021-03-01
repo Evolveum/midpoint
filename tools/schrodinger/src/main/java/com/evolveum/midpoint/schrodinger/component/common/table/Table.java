@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schrodinger.component.common.search.Search;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import org.testng.Assert;
+import org.testng.asserts.Assertion;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -201,52 +202,52 @@ public class Table<T> extends Component<T> {
     }
 
     public Table<T> assertColumnIndexMatches(String columnLabel, int expectedIndex) {
-        Assert.assertEquals(findColumnByLabel(columnLabel), expectedIndex, "'" + columnLabel + "' column index doesn't match to " + expectedIndex);
+        assertion.assertEquals(findColumnByLabel(columnLabel), expectedIndex, "'" + columnLabel + "' column index doesn't match to " + expectedIndex);
         return this;
     }
 
     public Table<T> assertTableRowExists(String columnLabel, String rowValue) {
-        Assert.assertNotNull(rowByColumnLabel(columnLabel, rowValue), "Row with value " + rowValue + " in " + columnLabel + " column doesn't exist.");
+        assertion.assertNotNull(rowByColumnLabel(columnLabel, rowValue), "Row with value " + rowValue + " in " + columnLabel + " column doesn't exist.");
         return this;
     }
 
     public Table<T> assertTableObjectsCountEquals(int expectedObjectsCount) {
-        Assert.assertEquals(countTableObjects(), expectedObjectsCount,"Table objects count doesn't equal to expected value " + expectedObjectsCount);
+        assertion.assertEquals(countTableObjects(), expectedObjectsCount,"Table objects count doesn't equal to expected value " + expectedObjectsCount);
         return this;
     }
 
     public Table<T> assertTableObjectsCountNotEquals(int objectsCount) {
-        Assert.assertNotEquals(countTableObjects(), objectsCount, "Table objects count equals to expected value " + objectsCount);
+        assertion.assertNotEquals(countTableObjects(), objectsCount, "Table objects count equals to expected value " + objectsCount);
         return this;
     }
 
     public Table<T> assertTableContainsText (String text) {
-        Assert.assertTrue(containsText(text), "Table doesn't contain text '" + text + "'.");
+        assertion.assertTrue(containsText(text), "Table doesn't contain text '" + text + "'.");
         return this;
     }
 
     public Table<T> assertTableDoesntContainText (String text) {
-        Assert.assertFalse(containsText(text), "Table shouldn't contain text '" + text + "'.");
+        assertion.assertFalse(containsText(text), "Table shouldn't contain text '" + text + "'.");
         return this;
     }
 
     public Table<T> assertTableContainsLinkTextPartially (String linkText) {
-        Assert.assertTrue(containsLinkTextPartially(linkText), "Table doesn't contain link text '" + linkText + "'.");
+        assertion.assertTrue(containsLinkTextPartially(linkText), "Table doesn't contain link text '" + linkText + "'.");
         return this;
     }
 
     public Table<T> assertTableDoesntContainLinkTextPartially (String linkText) {
-        Assert.assertFalse(containsLinkTextPartially(linkText), "Table shouldn't contain link text '" + linkText + "'.");
+        assertion.assertFalse(containsLinkTextPartially(linkText), "Table shouldn't contain link text '" + linkText + "'.");
         return this;
     }
 
     public Table<T> assertTableContainsLinksTextPartially (String... linkTextValues) {
-        Assert.assertTrue(containsLinksTextPartially(linkTextValues), "Table doesn't contain links text.");
+        assertion.assertTrue(containsLinksTextPartially(linkTextValues), "Table doesn't contain links text.");
         return this;
     }
 
     public Table<T> assertTableDoesntContainLinksTextPartially (String... linkTextValues) {
-        Assert.assertFalse(containsLinksTextPartially(linkTextValues), "Table shouldn't contain links text.");
+        assertion.assertFalse(containsLinksTextPartially(linkTextValues), "Table shouldn't contain links text.");
         return this;
     }
 
@@ -255,7 +256,7 @@ public class Table<T> extends Component<T> {
     }
 
     public Table<T> assertCurrentTableContains(String elementName, String elementValue) {
-        Assert.assertTrue(currentTableContains(elementName, elementValue), "Table doesn't contain element " + elementName + " with value " +
+        assertion.assertTrue(currentTableContains(elementName, elementValue), "Table doesn't contain element " + elementName + " with value " +
                 elementValue);
         return this;
     }
@@ -265,23 +266,23 @@ public class Table<T> extends Component<T> {
     }
 
     public Table<T> assertCurrentTableDoesntContain(String elementName, String elementValue) {
-        Assert.assertFalse(currentTableContains(elementName, elementValue), "Table shouldn't contain element " + elementName + " with value " +
+        assertion.assertFalse(currentTableContains(elementName, elementValue), "Table shouldn't contain element " + elementName + " with value " +
                 elementValue);
         return this;
     }
 
     public Table<T> assertTableContainsColumnWithValue(String columnResourceKey, String value) {
-        Assert.assertNotNull(rowByColumnResourceKey(columnResourceKey, value));
+        assertion.assertNotNull(rowByColumnResourceKey(columnResourceKey, value));
         return this;
     }
 
     public Table<T> assertTableColumnValueIsEmpty(String columnResourceKey) {
-        Assert.assertEquals(getTableCellValue(columnResourceKey, 1), "");
+        assertion.assertEquals(getTableCellValue(columnResourceKey, 1), "");
         return this;
     }
 
     public Table<T> assertButtonToolBarExists() {
-        Assert.assertTrue($(Schrodinger.byDataId("buttonToolbar")).exists(), "Button toolbar is absent");
+        assertion.assertTrue($(Schrodinger.byDataId("buttonToolbar")).exists(), "Button toolbar is absent");
         return this;
     }
 

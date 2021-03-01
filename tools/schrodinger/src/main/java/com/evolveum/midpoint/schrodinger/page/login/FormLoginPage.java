@@ -89,7 +89,7 @@ public class FormLoginPage extends LoginPage {
     }
 
     public FormLoginPage assertSignInButtonTitleMatch(String title) {
-        Assert.assertTrue(Objects.equals(title, $(By.cssSelector(".btn.btn-primary"))
+        assertion.assertTrue(Objects.equals(title, $(By.cssSelector(".btn.btn-primary"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .getValue()), "Sign in button title doesn't equal to " + title);
         return this;

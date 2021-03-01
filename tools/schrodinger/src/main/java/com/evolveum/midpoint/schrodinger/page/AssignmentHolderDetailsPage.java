@@ -50,7 +50,7 @@ public abstract class AssignmentHolderDetailsPage<P extends AssignmentHolderDeta
     }
 
     public AssignmentHolderDetailsPage assertPreviewButtonIsNotVisible() {
-        Assert.assertFalse(getPreviewButton().is(Condition.visible), "Preview button shouldn't be visible.");
+        assertion.assertFalse(getPreviewButton().is(Condition.visible), "Preview button shouldn't be visible.");
         return this;
     }
 

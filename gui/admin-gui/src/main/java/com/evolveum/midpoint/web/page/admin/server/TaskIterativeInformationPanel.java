@@ -59,11 +59,7 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
 
             @Override
             protected void populateItem(ListItem<IterativeTaskPartItemsProcessingInformationType> item) {
-                IModel<TaskIterativeProgressType> progressModel = new ReadOnlyModel<>(() -> {
-                    IterativeTaskPartItemsProcessingInformationType taskInfo = item.getModelObject();
-                    return new TaskIterativeProgressType(taskInfo);
-                });
-
+                IModel<TaskIterativeProgressType> progressModel = createProgressModel(item);
                 item.add(createInfoBoxPanel(new PropertyModel<>(progressModel, TaskIterativeProgressType.F_PROGRESS), ID_PROGRESS));
 
                 ListView<InfoBoxType> currentItems = new ListView<>(ID_CURRENT_ITEMS, new PropertyModel<>(progressModel, TaskIterativeProgressType.F_CURRENT_ITEMS)) {
@@ -84,6 +80,10 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
         };
         partsView.setOutputMarkupId(true);
         add(partsView);
+    }
+
+    protected IModel<TaskIterativeProgressType> createProgressModel(ListItem<IterativeTaskPartItemsProcessingInformationType> item) {
+        throw new UnsupportedOperationException("Not supported. Should be impelemnted in panel, which uses it");
     }
 
 }

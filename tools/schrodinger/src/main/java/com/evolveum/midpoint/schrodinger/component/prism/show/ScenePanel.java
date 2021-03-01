@@ -33,7 +33,7 @@ public class ScenePanel<T> extends Component<T> {
     public ScenePanel<T> assertExpanded() {
         SelenideElement minimizeButton = getParentElement().$x(".//a[@data-s-id='minimizeButton']").waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
         SelenideElement icon = minimizeButton.$(By.tagName("i"));
-        Assert.assertTrue(icon.has(Condition.cssClass("fa-chevron-down")), "Primary deltas should be expanded.");
+        assertion.assertTrue(icon.has(Condition.cssClass("fa-chevron-down")), "Primary deltas should be expanded.");
         return this;
     }
 
@@ -60,7 +60,7 @@ public class ScenePanel<T> extends Component<T> {
     }
 
     public ScenePanel<T> assertDeltasSizeEquals(int expectedSize) {
-        Assert.assertEquals(expectedSize, objectDeltas().size());
+        assertion.assertEquals(expectedSize, objectDeltas().size());
         return this;
     }
 

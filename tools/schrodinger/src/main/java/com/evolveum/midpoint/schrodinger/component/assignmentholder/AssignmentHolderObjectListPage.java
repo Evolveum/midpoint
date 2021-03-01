@@ -63,7 +63,7 @@ public abstract class AssignmentHolderObjectListPage<T extends AssignmentHolderO
     }
 
     public AssignmentHolderObjectListPage<T, D> assertObjectsCountEquals(int expectedCount) {
-        Assert.assertEquals(getCountOfObjects(), expectedCount, "Objects count doesn't equal to " + expectedCount);
+        assertion.assertEquals(getCountOfObjects(), expectedCount, "Objects count doesn't equal to " + expectedCount);
         return this;
     }
 

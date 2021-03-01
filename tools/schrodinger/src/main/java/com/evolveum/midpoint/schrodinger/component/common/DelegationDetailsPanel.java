@@ -144,62 +144,62 @@ public class DelegationDetailsPanel<T> extends Component<T> {
     }
 
     public DelegationDetailsPanel<T> assertApprovalWorkItemsSelected() {
-        Assert.assertTrue(isApprovalWorkItemsSelected(), "Workflow approvals (for approval work items) checkbox is not selected but should be.");
+        assertion.assertTrue(isApprovalWorkItemsSelected(), "Workflow approvals (for approval work items) checkbox is not selected but should be.");
         return this;
     }
 
     public DelegationDetailsPanel<T> assertApprovalWorkItemsNotSelected() {
-        Assert.assertTrue(isApprovalWorkItemsSelected(), "Workflow approvals (for approval work items) checkbox is selected but shouldn't be.");
+        assertion.assertTrue(isApprovalWorkItemsSelected(), "Workflow approvals (for approval work items) checkbox is selected but shouldn't be.");
         return this;
     }
 
     public DelegationDetailsPanel<T> assertAssignmentLimitationsSelected() {
-        Assert.assertTrue(isAssignmentLimitationsSelected(), "Assignment limitations checkbox is not selected but should be.");
+        assertion.assertTrue(isAssignmentLimitationsSelected(), "Assignment limitations checkbox is not selected but should be.");
         return this;
     }
 
     public DelegationDetailsPanel<T> assertAssignmentLimitationsNotSelected() {
-        Assert.assertFalse(isAssignmentLimitationsSelected(), "Assignment limitations checkbox is selected but shouldn't be.");
+        assertion.assertFalse(isAssignmentLimitationsSelected(), "Assignment limitations checkbox is selected but shouldn't be.");
         return this;
     }
 
     public DelegationDetailsPanel<T> assertAssignmentPrivilegesSelected() {
-        Assert.assertTrue(isAssignmentPrivilegesSelected(),"Assignment privileges checkbox is not selected but should be.");
+        assertion.assertTrue(isAssignmentPrivilegesSelected(),"Assignment privileges checkbox is not selected but should be.");
         return this;
     }
 
     public DelegationDetailsPanel<T> assertAssignmentPrivilegesNotSelected() {
-        Assert.assertFalse(isAssignmentPrivilegesSelected(),"Assignment privileges checkbox is selected but shouldn't be.");
+        assertion.assertFalse(isAssignmentPrivilegesSelected(),"Assignment privileges checkbox is selected but shouldn't be.");
         return this;
     }
 
     public DelegationDetailsPanel<T> assertCertificationWorkItemsSelected() {
-        Assert.assertTrue(isCertificationWorkItemsSelected(), "Workflow approvals (for certification work items) checkbox is not selected but should be.");
+        assertion.assertTrue(isCertificationWorkItemsSelected(), "Workflow approvals (for certification work items) checkbox is not selected but should be.");
         return this;
     }
 
     public DelegationDetailsPanel<T> assertCertificationWorkItemsNotSelected() {
-        Assert.assertFalse(isCertificationWorkItemsSelected(), "Workflow approvals (for certification work items) checkbox is selected but shouldn't be.");
+        assertion.assertFalse(isCertificationWorkItemsSelected(), "Workflow approvals (for certification work items) checkbox is selected but shouldn't be.");
         return this;
     }
 
     public DelegationDetailsPanel<T> assertDescriptionEnabled() {
-        Assert.assertTrue(isDescriptionEnabled());
+        assertion.assertTrue(isDescriptionEnabled());
         return this;
     }
 
     public DelegationDetailsPanel<T> assertDescriptionDisabled() {
-        Assert.assertFalse(isDescriptionEnabled());
+        assertion.assertFalse(isDescriptionEnabled());
         return this;
     }
 
     public DelegationDetailsPanel<T> assertValidFromPanelEnabled() {
-        Assert.assertTrue(isValidFromPanelEnabled());
+        assertion.assertTrue(isValidFromPanelEnabled());
         return this;
     }
 
     public DelegationDetailsPanel<T> assertValidFromPanelDisabled() {
-        Assert.assertFalse(isValidFromPanelEnabled());
+        assertion.assertFalse(isValidFromPanelEnabled());
         return this;
     }
 }

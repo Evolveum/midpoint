@@ -166,12 +166,12 @@ public class TestConnectionModal<T> extends ModalBox<T> {
     }
 
     public TestConnectionModal<T> assertIsTestSuccess() {
-        Assert.assertTrue(isTestSuccess());
+        assertion.assertTrue(isTestSuccess());
         return this;
     }
 
     public TestConnectionModal<T> assertIsTestFailure() {
-        Assert.assertTrue(isTestFailure());
+        assertion.assertTrue(isTestFailure());
         return this;
     }
 

@@ -52,7 +52,7 @@ public class SchemaStepSchemaTab extends TabWithContainerWrapper<SchemaWizardSte
     }
 
     public SchemaStepSchemaTab assertObjectClassPresent(String objectClassName) {
-        Assert.assertTrue(isObjectClassPresent(objectClassName), "Object class component isn't visible.");
+        assertion.assertTrue(isObjectClassPresent(objectClassName), "Object class component isn't visible.");
         return this;
     }
 
