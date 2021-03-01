@@ -29,6 +29,10 @@
                     <i class="fa fa-arrow-right"></i>
                     <span wicket:id="syncEnd"></span>
                     <wicket:message key="TaskOperationStatisticsPanel.transition.syncEnd"></wicket:message>
+                    <wicket:enclosure child="exclusionReason">
+                        <wicket:message key="TaskOperationStatisticsPanel.transition.exclusionReason"></wicket:message>
+                        <span wicket:id="exclusionReason"></span>
+                    </wicket:enclosure>
                     <wicket:message key="TaskOperationStatisticsPanel.transition.count"></wicket:message>
                     <span wicket:id="totalCount"></span>
                 </h3>

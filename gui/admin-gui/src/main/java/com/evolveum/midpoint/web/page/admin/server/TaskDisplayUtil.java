@@ -16,9 +16,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  * Intentionally package-private for now.
  */
 @Experimental
-class TaskDisplayUtil {
+public class TaskDisplayUtil {
 
-    static Long getExecutionTime(TaskType task) {
+    public static Long getExecutionTime(TaskType task) {
         Long started = WebComponentUtil.xgc2long(task.getLastRunStartTimestamp());
         if (started == null) {
             return null;
