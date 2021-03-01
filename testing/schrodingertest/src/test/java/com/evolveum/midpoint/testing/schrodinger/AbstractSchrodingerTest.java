@@ -359,7 +359,7 @@ public abstract class AbstractSchrodingerTest extends AbstractTestNGSpringContex
     }
 
     protected void addObjectFromFile(File file) {
-        addObjectFromFile(file, false);
+        addObjectFromFile(file, true);
     }
 
     protected void addObjectFromFile(File file, boolean overwrite) {
