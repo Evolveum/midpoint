@@ -9,15 +9,11 @@ package com.evolveum.midpoint.prism.impl;
 
 import javax.xml.namespace.QName;
 
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.prism.Hacks;
 import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.marshaller.XNodeProcessorUtil;
-import com.evolveum.midpoint.prism.impl.xnode.ListXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
-import com.evolveum.midpoint.prism.impl.xnode.PrimitiveXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -28,27 +24,9 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
  */
 public class HacksImpl implements Hacks, XNodeMutator {
 
-    @NotNull private final PrismContextImpl prismContext;
-
-    HacksImpl(@NotNull PrismContextImpl prismContext) {
-        this.prismContext = prismContext;
-    }
-
-    @Override
-    public <T> void setPrimitiveXNodeValue(PrimitiveXNode<T> node, T value, QName typeName) {
-        ((PrimitiveXNodeImpl<T>) node).setValue(value, typeName);
-    }
-
     @Override
     public void putToMapXNode(MapXNode map, QName key, XNode value) {
         ((MapXNodeImpl) map).put(key, (XNodeImpl) value);
-    }
-
-    @Override
-    public void addToListXNode(ListXNode list, XNode... nodes) {
-        for (XNode node : nodes) {
-            ((ListXNodeImpl) list).add((XNodeImpl) node);
-        }
     }
 
     @Override

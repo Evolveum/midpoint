@@ -39,11 +39,24 @@ public class SerializationOptions implements Cloneable {
 
     /**
      * Works around characters that cannot be serialized in XML by replacing them with acceptable form.
+     *
      * Because the result is not machine processable it should be used with caution; for example only
      * for logging, tracing, or maybe auditing purposes.
      */
     @Experimental
     private boolean escapeInvalidCharacters;
+
+    /**
+     * Works around data types that cannot be serialized in a standard way, like `AuditEventRecord`.
+     * Until we find serious way how to deal with these, this option enables their serialization as plain
+     * string values. We expect that the receiving side will either treat such values appropriately,
+     * or will simply ignore them.
+     *
+     * Because the result is not machine processable it should be used with caution; for example only
+     * for logging, tracing, or maybe auditing purposes.
+     */
+    @Experimental
+    private boolean serializeUnsupportedTypesAsString;
 
 //    private NameQualificationStrategy itemTypeQualificationStrategy;
 //    private NameQualificationStrategy itemPathQualificationStrategy;
@@ -154,6 +167,23 @@ public class SerializationOptions implements Cloneable {
         return options != null && options.isEscapeInvalidCharacters();
     }
 
+    public boolean isSerializeUnsupportedTypesAsString() {
+        return serializeUnsupportedTypesAsString;
+    }
+
+    public void setSerializeUnsupportedTypesAsString(boolean value) {
+        serializeUnsupportedTypesAsString = value;
+    }
+
+    public SerializationOptions serializeUnsupportedTypesAsString(boolean value) {
+        setSerializeUnsupportedTypesAsString(value);
+        return this;
+    }
+
+    public static boolean isSerializeUnsupportedTypesAsString(SerializationOptions options) {
+        return options != null && options.isSerializeUnsupportedTypesAsString();
+    }
+
     public void setSkipIndexOnly(boolean skipIndexOnly) {
         this.skipIndexOnly = skipIndexOnly;
     }
@@ -188,44 +218,9 @@ public class SerializationOptions implements Cloneable {
         return skipTransient;
     }
 
-    //    public ItemNameQualificationStrategy getItemNameQualificationStrategy() {
-//        return itemNameQualificationStrategy;
-//    }
-//
-//    public void setItemNameQualificationStrategy(ItemNameQualificationStrategy itemNameQualificationStrategy) {
-//        this.itemNameQualificationStrategy = itemNameQualificationStrategy;
-//    }
-//
-//    public NameQualificationStrategy getItemTypeQualificationStrategy() {
-//        return itemTypeQualificationStrategy;
-//    }
-//
-//    public void setItemTypeQualificationStrategy(NameQualificationStrategy itemTypeQualificationStrategy) {
-//        this.itemTypeQualificationStrategy = itemTypeQualificationStrategy;
-//    }
-//
-//    public NameQualificationStrategy getItemPathQualificationStrategy() {
-//        return itemPathQualificationStrategy;
-//    }
-//
-//    public void setItemPathQualificationStrategy(NameQualificationStrategy itemPathQualificationStrategy) {
-//        this.itemPathQualificationStrategy = itemPathQualificationStrategy;
-//    }
-//
-//    public NameQualificationStrategy getGenericQualificationStrategy() {
-//        return genericQualificationStrategy;
-//    }
-//
-//    public void setGenericQualificationStrategy(NameQualificationStrategy genericQualificationStrategy) {
-//        this.genericQualificationStrategy = genericQualificationStrategy;
-//    }
-
     public static SerializationOptions createQualifiedNames() {
         SerializationOptions opts = new SerializationOptions();
         opts.itemNameQualificationStrategy = ItemNameQualificationStrategy.ALWAYS_USE_FULL_URI;
-//        opts.itemPathQualificationStrategy = NameQualificationStrategy.ALWAYS;
-//        opts.itemTypeQualificationStrategy = NameQualificationStrategy.ALWAYS;
-//        opts.genericQualificationStrategy = NameQualificationStrategy.ALWAYS;
         return opts;
     }
 
@@ -235,6 +230,10 @@ public class SerializationOptions implements Cloneable {
 
     public static boolean isUseNsProperty(SerializationOptions opts) {
         return opts == null || opts.itemNameQualificationStrategy == null || opts.itemNameQualificationStrategy == ItemNameQualificationStrategy.USE_NS_PROPERTY;
+    }
+
+    public static SerializationOptions getOptions(SerializationContext sc) {
+        return sc != null ? sc.getOptions() : null;
     }
 
     @Override

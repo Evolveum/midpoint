@@ -758,6 +758,9 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         assertThat(records).isEmpty();
     }
 
+    /**
+     * Tests also the ability to write trace records (MID-6855).
+     */
     @Test
     public void test403AuditHasChangedDescription() throws Exception {
         Task task = getTestTask();
@@ -766,7 +769,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
         when("modify action is audited with delta matching audit recording script");
         // honorific suffix attribute is used to smuggle the instruction what to drop
-        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, task, result, createPolyString("change-parameter"));
+        traced(() -> modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, task, result, createPolyString("change-parameter")));
 
         then("no audit is stored");
         result.computeStatus();
@@ -776,5 +779,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         assertThat(records)
                 .hasSize(2)
                 .allMatch(r -> r.getParameter().equals("modified in script"));
+
+        // TODO assert trace readability
     }
 }

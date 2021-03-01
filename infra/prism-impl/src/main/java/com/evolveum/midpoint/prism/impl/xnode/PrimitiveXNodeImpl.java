@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Freezable;
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.impl.marshaller.PrismBeanInspector;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -126,18 +127,41 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
     }
 
     public void setValue(T value, QName typeQName) {
+        setValue(value, typeQName, null);
+    }
+
+    public void setValue(T value, QName typeQName, SerializationOptions options) {
+        if (value == null || typeQName != null) {
+            setValueInternal(value, typeQName);
+            return;
+        }
+
+        // last desperate attempt to determine type name from the value type
+        QName typeFromJava = XsdTypeMapper.getJavaToXsdMapping(value.getClass());
+        if (typeFromJava != null) {
+            setValueInternal(value, typeFromJava);
+            return;
+        }
+
+        // little hack
+        QName typeFromClassAnnotation =PrismBeanInspector.determineTypeForClassUncached(value.getClass());
+        if (typeFromClassAnnotation != null) {
+            setValueInternal(value, typeFromClassAnnotation);
+            return;
+        }
+
+        if (SerializationOptions.isSerializeUnsupportedTypesAsString(options)) {
+            //noinspection unchecked
+            setValueInternal((T) value.toString(), DOMUtil.XSD_STRING);
+            return;
+        }
+
+        throw new IllegalStateException("Cannot determine type QName for a value of '" + value + "'"); // todo show only class? (security/size reasons)
+    }
+
+    private void setValueInternal(T value, @NotNull QName typeQName) {
         checkMutable();
         if (value != null) {
-            if (typeQName == null) {
-                // last desperate attempt to determine type name from the value type
-                typeQName = XsdTypeMapper.getJavaToXsdMapping(value.getClass());
-                if (typeQName == null) {
-                    typeQName = PrismBeanInspector.determineTypeForClassUncached(value.getClass());     // little hack
-                }
-                if (typeQName == null) {
-                    throw new IllegalStateException("Cannot determine type QName for a value of '" + value + "'");            // todo show only class? (security/size reasons)
-                }
-            }
             this.setTypeQName(typeQName);
         }
         this.value = value;
