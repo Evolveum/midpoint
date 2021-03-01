@@ -123,13 +123,6 @@ public abstract class AbstractSchrodingerTest extends AbstractTestNGSpringContex
 
     @Autowired protected PrismContext prismContext;
 
-//    @Override
-//    protected void initSystem(Task task, OperationResult initResult) throws Exception {
-//        super.initSystem(task, initResult);
-////        addObjectFromFile(SYSTEM_CONFIG_INITIAL, true, initResult);
-//        getObjectListToImport().forEach(objFile -> addObjectFromFile(objFile, true));
-//    }
-
     protected List<File> getObjectListToImport(){
         return new ArrayList<>();
     }
@@ -160,20 +153,6 @@ public abstract class AbstractSchrodingerTest extends AbstractTestNGSpringContex
 
 
     }
-
-//    @BeforeMethod
-//    public void startTestContext(ITestResult testResult) throws SchemaException {
-//        if (startMidpoint) {
-//            super.startTestContext(testResult);
-//        }
-//    }
-//
-//    @AfterMethod
-//    public void finishTestContext(ITestResult testResult) {
-//        if (startMidpoint) {
-//            super.finishTestContext(testResult);
-//        }
-//    }
 
 
     @BeforeClass(dependsOnMethods = {"springTestContextPrepareTestInstance"})
@@ -431,6 +410,8 @@ public abstract class AbstractSchrodingerTest extends AbstractTestNGSpringContex
             addService = service.tasks().add((TaskType) object.asObjectable());
         } else if (object.isOfType(ValuePolicyType.class)) {
             addService = service.valuePolicies().add((ValuePolicyType) object.asObjectable());
+        } else if (object.isOfType(SecurityPolicyType.class)) {
+            addService = service.securityPolicies().add((SecurityPolicyType) object.asObjectable());
         }
         return (RestPrismObjectAddService) addService;
     }
