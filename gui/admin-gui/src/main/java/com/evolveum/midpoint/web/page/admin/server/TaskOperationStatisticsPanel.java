@@ -1,20 +1,26 @@
+/*
+ * Copyright (c) 2021 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -26,7 +32,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.TaskTypeUtil;
-import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -35,14 +40,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<TaskType>> implements RefreshableTabPanel {
 
     private static final String ID_PROCESSING_INFO = "processingInfo";
-    private static final String ID_SYNCHORNIZATION_SITUATIONS = "synchronizationSituation";
+    private static final String ID_SYNCHRONIZATION_STATISTICS = "synchronizationStatistics";
+    private static final String ID_SYNCHORNIZATION_SITUATIONS_TRANSITIONS = "synchronizationSituationTransitions";
+    private static final String ID_SYNCHORNIZATION_SITUATIONS_TRANSITION = "synchronizationSituationTransition";
     private static final String ID_ACTION_ENTRY = "actionEntry";
     private static final String ID_RESULTING_ENTRY = "resultingEntry";
-
-    private static final Collection<String> WALL_CLOCK_AVG_CATEGORIES = Arrays.asList(
-            TaskCategory.BULK_ACTIONS, TaskCategory.IMPORTING_ACCOUNTS, TaskCategory.RECOMPUTATION, TaskCategory.RECONCILIATION,
-            TaskCategory.UTIL       // this is a megahack: only utility tasks that count objects are DeleteTask and ShadowIntegrityCheck
-    );
 
     private LoadableModel<OperationStatsType> statisticsModel;
 
@@ -59,7 +61,7 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
            @Override
            protected OperationStatsType load() {
                PrismObject<TaskType> task = getModelObject().getObject();
-               return TaskTypeUtil.getAggregatedOperationStats(task.asObjectable(), getPrismContext());
+               return TaskTypeUtil.getOperationStatsFromTree(task.asObjectable(), getPrismContext());
            }
        };
     }
@@ -82,48 +84,31 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
     }
 
     private void addProcessingInfoPanel() {
-        TaskIterativeInformationPanel infoPanel = new TaskIterativeInformationPanel(ID_PROCESSING_INFO, new PropertyModel<>(statisticsModel, OperationStatsType.F_ITERATIVE_TASK_INFORMATION.getLocalPart())) {
 
-            @Override
-            protected Long getWallClockAverage(int objectsTotal) {
-                if (objectsTotal == 0) {
-                    return null;
-                }
-
-                TaskType task = TaskOperationStatisticsPanel.this.getModelObject().getObject().asObjectable();
-                if (!WALL_CLOCK_AVG_CATEGORIES.contains(task.getCategory())) {
-                    return null;
-                }
-
-                Long executionTime = TaskDisplayUtil.getExecutionTime(task);
-                return executionTime != null ? executionTime / objectsTotal : null;
-            }
-        };
+        TaskIterativeInformationPanel infoPanel = new TaskIterativeInformationPanel(ID_PROCESSING_INFO, new PropertyModel<>(statisticsModel, OperationStatsType.F_ITERATIVE_TASK_INFORMATION.getLocalPart()));
         infoPanel.setOutputMarkupId(true);
         add(infoPanel);
     }
 
     private void addSynchronizationTransitionPanel() {
+        WebMarkupContainer syncTransitionParent = new WebMarkupContainer(ID_SYNCHRONIZATION_STATISTICS);
+        syncTransitionParent.setOutputMarkupId(true);
+        add(syncTransitionParent);
+
         PropertyModel<List<SynchronizationSituationTransitionType>> syncInfoModel = new PropertyModel<>(statisticsModel, getSynchronizationTransitionExpression());
+        ListView<SynchronizationSituationTransitionType> transitions = new ListView<>(ID_SYNCHORNIZATION_SITUATIONS_TRANSITIONS, syncInfoModel) {
 
-        ListDataProvider<SynchronizationSituationTransitionType> syncDataProvider = new ListDataProvider<>(this, syncInfoModel) {
             @Override
-            public boolean isUseCache() {
-                return false;
+            protected void populateItem(ListItem<SynchronizationSituationTransitionType> item) {
+                IModel<SynchronizationSituationTransitionType> syncSituationTransitionModel = item.getModel();
+                SynchronizationSituationTransitionPanel synchronizationSituationTransitionPanel = new SynchronizationSituationTransitionPanel(ID_SYNCHORNIZATION_SITUATIONS_TRANSITION, syncSituationTransitionModel);
+                item.add(synchronizationSituationTransitionPanel);
             }
         };
 
-        BoxedTablePanel<SynchronizationSituationTransitionType> table =
-                new BoxedTablePanel<>(ID_SYNCHORNIZATION_SITUATIONS, syncDataProvider, createSynchronizationTransitionColumns()) {
-            @Override
-            protected boolean hideFooterIfSinglePage() {
-                return true;
-            }
-        };
+        transitions.setOutputMarkupId(true);
+        syncTransitionParent.add(transitions);
 
-        table.setOutputMarkupId(true);
-        table.add(new VisibleBehaviour(() -> syncInfoModel.getObject() != null));
-        add(table);
     }
 
     private void addActionsTablePanel() {
@@ -156,25 +141,14 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
         return OperationStatsType.F_SYNCHRONIZATION_INFORMATION.getLocalPart() + "." + SynchronizationInformationType.F_TRANSITION.getLocalPart();
     }
 
-    private List<IColumn<SynchronizationSituationTransitionType, String>> createSynchronizationTransitionColumns() {
-        List<IColumn<SynchronizationSituationTransitionType, String>> syncColumns = new ArrayList<>();
-        syncColumns.add(createEnumColumn("SynchronizationSituationTransitionType", SynchronizationSituationTransitionType.F_ON_PROCESSING_START));
-        syncColumns.add(createEnumColumn("SynchronizationSituationTransitionType", SynchronizationSituationTransitionType.F_ON_SYNCHRONIZATION_START));
-        syncColumns.add(createEnumColumn("SynchronizationSituationTransitionType", SynchronizationSituationTransitionType.F_ON_SYNCHRONIZATION_END));
-        syncColumns.add(createEnumColumn("SynchronizationSituationTransitionType", SynchronizationSituationTransitionType.F_EXCLUSION_REASON));
-        syncColumns.add(createPropertyColumn("SynchronizationSituationTransitionType", SynchronizationSituationTransitionType.F_COUNT_SUCCESS));
-        syncColumns.add(createPropertyColumn("SynchronizationSituationTransitionType", SynchronizationSituationTransitionType.F_COUNT_ERROR));
-        syncColumns.add(createPropertyColumn("SynchronizationSituationTransitionType", SynchronizationSituationTransitionType.F_COUNT_SKIP));
-        return syncColumns;
+    private <T> EnumPropertyColumn<T> createEnumColumn() {
+        String columnName = ObjectActionsExecutedEntryType.F_OPERATION.getLocalPart();
+        return new EnumPropertyColumn<>(createStringResource("ObjectActionsExecutedEntryType." + columnName), columnName);
     }
 
-    private <T> EnumPropertyColumn<T> createEnumColumn(String parentName, QName columnItem) {
+    private <T> PropertyColumn<T, String> createPropertyColumn(QName columnItem) {
         String columnName = columnItem.getLocalPart();
-        return new EnumPropertyColumn<>(createStringResource(parentName + "." + columnName), columnName);
-    }
-    private <T> PropertyColumn<T, String> createPropertyColumn(String parentName, QName columnItem) {
-        String columnName = columnItem.getLocalPart();
-        return new PropertyColumn<>(createStringResource(parentName + "." + columnName), columnName);
+        return new PropertyColumn<>(createStringResource("ObjectActionsExecutedEntryType." + columnName), columnName);
     }
 
     private ListDataProvider<ObjectActionsExecutedEntryType> createActionsEntryProvider(QName item) {
@@ -198,7 +172,7 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
                 item.add(new Label(id, createStringResource(objectType)));
             }
         });
-        resultingEntryColumns.add(createEnumColumn("ObjectActionsExecutedEntryType", ObjectActionsExecutedEntryType.F_OPERATION));
+        resultingEntryColumns.add(createEnumColumn());
         resultingEntryColumns.add(new AbstractColumn<>(createStringResource("ObjectActionsExecutedEntryType.chanel")) {
             @Override
             public void populateItem(Item<ICellPopulator<ObjectActionsExecutedEntryType>> item, String id, IModel<ObjectActionsExecutedEntryType> iModel) {
@@ -210,8 +184,8 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
                 item.add(new Label(id, createStringResource(key)));
             }
         });
-        resultingEntryColumns.add(createPropertyColumn("ObjectActionsExecutedEntryType", ObjectActionsExecutedEntryType.F_TOTAL_SUCCESS_COUNT));
-        resultingEntryColumns.add(createPropertyColumn("ObjectActionsExecutedEntryType", ObjectActionsExecutedEntryType.F_LAST_SUCCESS_OBJECT_DISPLAY_NAME));
+        resultingEntryColumns.add(createPropertyColumn(ObjectActionsExecutedEntryType.F_TOTAL_SUCCESS_COUNT));
+        resultingEntryColumns.add(createPropertyColumn(ObjectActionsExecutedEntryType.F_LAST_SUCCESS_OBJECT_DISPLAY_NAME));
         resultingEntryColumns.add(new AbstractColumn<>(createStringResource("ObjectActionsExecutedEntryType.lastSuccessTimestamp")) {
             @Override
             public void populateItem(Item<ICellPopulator<ObjectActionsExecutedEntryType>> item, String id, IModel<ObjectActionsExecutedEntryType> iModel) {
@@ -219,7 +193,7 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
                 item.add(new Label(id, WebComponentUtil.formatDate(timestamp)));
             }
         });
-        resultingEntryColumns.add(createPropertyColumn("ObjectActionsExecutedEntryType", ObjectActionsExecutedEntryType.F_TOTAL_FAILURE_COUNT));
+        resultingEntryColumns.add(createPropertyColumn(ObjectActionsExecutedEntryType.F_TOTAL_FAILURE_COUNT));
         return resultingEntryColumns;
     }
 
@@ -230,7 +204,7 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
         components.add(get(ID_ACTION_ENTRY));
         components.add(get(ID_PROCESSING_INFO));
         components.add(get(ID_RESULTING_ENTRY));
-        components.add(get(ID_SYNCHORNIZATION_SITUATIONS));
+        components.add(get(ID_SYNCHRONIZATION_STATISTICS));
         return components;
     }
 

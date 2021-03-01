@@ -163,6 +163,9 @@ public abstract class AbstractSearchItemPanel<S extends SearchItem> extends Base
 
             @Override
             public Object getDisplayValue(DisplayableValue val) {
+                if (val.getValue() instanceof Enum) {
+                    return getPageBase().createStringResource((Enum<?>) val.getValue()).getString();
+                }
                 return getPageBase().createStringResource(val.getLabel()).getString();
             }
 

@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.schema.constants.Channel;
 
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
@@ -1322,7 +1323,32 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
      * Only until maxAge.
      */
     @Test
-    public void test250ExistingPasswordReuse() throws Exception {
+    public void test250ExistingPasswordReuseFail() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
+                ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_ALLOW_EXISTING_PASSWORD_REUSE),
+                task, result, Boolean.FALSE);
+
+        // WHEN
+        when();
+
+        try {
+            modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_1, task, result); // modify with same pwd
+            AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+            displayExpectedException(e);
+        }
+
+        // THEN
+        then();
+        assertFailure(result);
+    }
+
+    @Test
+    public void test251ExistingPasswordReuseFailExpired() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1332,16 +1358,67 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
                 task, result, Boolean.TRUE);
         modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
                 ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MAX_AGE),
-                task, result, XmlTypeConverter.createDuration("PT10M"));
+                task, result, XmlTypeConverter.createDuration("P5D"));
+
+
+        clock.overrideDuration("P6D"); //move system clock so password is expired
 
         // WHEN
         when();
-        modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_1, task, result);
+
+        try {
+            modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_1, task, result); // modify with same pwd
+            AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+            displayExpectedException(e);
+        }
+
+        // THEN
+        then();
+        assertFailure(result);
+    }
+
+    @Test
+    public void test252ExistingPasswordReuseSucceed() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // WHEN
+        when();
+        clock.resetOverride(); // reset system clock, so passoword is not expired
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_1, task, result); // modify with same pwd
 
         // THEN
         then();
-        assertSuccess(result);
+        assertSuccess(result);;
+    }
+
+    @Test
+    public void test253ExistingPasswordReuseCheckMetadata() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+
+        PrismContainer<MetadataType> metadataContainer = user.findContainer(ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA));
+        assertNotNull("No password metadata in " + user, metadataContainer);
+        MetadataType metadataType = metadataContainer.getValue().asContainerable().clone();
+        XMLGregorianCalendar oldModifyTimestamp = metadataType.getModifyTimestamp();
+
+        // WHEN
+        when();
+        modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_1, task, result); // modify with same pwd
+
+        // THEN
+        then();
+        metadataContainer = user.findContainer(ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA));
+        assertNotNull("No password metadata in " + user, metadataContainer);
+        metadataType = metadataContainer.getValue().asContainerable();
+
+        // modifyTimestamp should not change when same pwd value is set
+        boolean modifyTimestampUnchanged = oldModifyTimestamp.compare(metadataType.getModifyTimestamp()) == 0;
+        assertTrue(modifyTimestampUnchanged);
     }
 
     private void doTestModifyUserJackPasswordSuccessWithHistory(

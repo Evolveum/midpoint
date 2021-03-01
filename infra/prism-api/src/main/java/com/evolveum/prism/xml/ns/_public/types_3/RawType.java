@@ -426,7 +426,8 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 
         @Override
         protected String extractString(Supplier<String> defaultValue) {
-            return String.valueOf(value.getRealValue());
+            String object = value.getRealValue();
+            return String.valueOf(object);
 
         }
 

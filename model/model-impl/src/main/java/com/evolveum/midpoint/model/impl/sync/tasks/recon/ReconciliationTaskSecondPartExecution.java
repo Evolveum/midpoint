@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 import java.util.Collection;
 import java.util.function.Function;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer;
 import com.evolveum.midpoint.model.impl.tasks.AbstractIterativeModelTaskPartExecution;
@@ -48,6 +49,7 @@ class ReconciliationTaskSecondPartExecution
 
     ReconciliationTaskSecondPartExecution(ReconciliationTaskExecution taskExecution) {
         super(taskExecution);
+        setPartUri(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_PART_URI);
         setProcessShortNameCapitalized("Reconciliation (on resource)");
         setContextDescription("on " + taskExecution.getTargetInfo().getContextDescription());
         this.synchronizer = createSynchronizer();

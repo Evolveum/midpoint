@@ -45,7 +45,6 @@ public class MockSingleTaskHandler implements TaskHandler {
 
         runResult.setOperationResult(opResult);
 
-        // TODO
         task.incrementProgressAndStoreStatsIfNeeded();
 
         if (delay > 0) {

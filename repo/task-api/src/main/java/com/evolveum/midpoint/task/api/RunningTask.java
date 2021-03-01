@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.task.api;
 
+import com.evolveum.midpoint.schema.statistics.StructuredProgressCollector;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingRootType;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +28,7 @@ import java.util.Collection;
  *  Some information related to task execution (e.g. list of lightweight asynchronous tasks, information on task thread, etc)
  *  is relevant only for running tasks. Therefore they are moved here.
  */
-public interface RunningTask extends Task {
+public interface RunningTask extends Task, StructuredProgressCollector {
 
     /**
      * Returns true if the task can run (was not interrupted).
@@ -71,6 +73,12 @@ public interface RunningTask extends Task {
 
     void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy, boolean initialExecution);
 
+    /**
+     * Stores operation stats to prism object and to pending modifications.
+     * Should be accompanied by flushing that modifications.
+     *
+     * TODO better name
+     */
     void storeOperationStatsDeferred();
 
     /**
@@ -78,13 +86,19 @@ public interface RunningTask extends Task {
      */
     void refreshLowLevelStatistics();
 
-    // CALL ONLY FROM THE THREAD EXECUTING THE TASK!
-    // stores operation statistics if the time has come
-    void storeOperationStats();
+    /**
+     * Stores operation stats and progress from current in-memory state to the repository.
+     * This is quite a hack: it accepts the fact that task in memory differs from the task in repository
+     * (in these aspects). The synchronization occurs only from time to time, in order to avoid
+     * wasting of the resources.
+     *
+     * CALL ONLY FROM THE THREAD EXECUTING THE TASK!
+     */
+    void storeOperationStatsAndProgress();
 
     // CALL ONLY FROM THE THREAD EXECUTING THE TASK!
     // stores operation statistics if the time has come
-    void storeOperationStatsIfNeeded();
+    void storeOperationStatsAndProgressIfNeeded();
 
     Long getLastOperationStatsUpdateTimestamp();
 
@@ -92,8 +106,13 @@ public interface RunningTask extends Task {
 
     long getOperationStatsUpdateInterval();
 
-    // CALL ONLY FROM THE THREAD EXECUTING THE TASK!
-    // stores operation statistics if the time has come
+    /**
+     * Increments the progress. Stores the stat to repo if the time interval came.
+     *
+     * Beware: ignores structured progress.
+     *
+     * CALL ONLY FROM THE THREAD EXECUTING THE TASK!
+     */
     void incrementProgressAndStoreStatsIfNeeded();
 
     void deleteLightweightAsynchronousSubtasks();

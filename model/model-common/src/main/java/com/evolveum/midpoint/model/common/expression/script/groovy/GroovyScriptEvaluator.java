@@ -7,8 +7,8 @@
 package com.evolveum.midpoint.model.common.expression.script.groovy;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import groovy.lang.Binding;
 import groovy.lang.GString;
@@ -145,7 +145,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
         compilerConfiguration.addCompilationCustomizers(sAstCustomizer);
 
         ASTTransformationCustomizer astTransCustomizer = new ASTTransformationCustomizer(
-                Collections.singletonMap("extensions", Collections.singletonList(SandboxTypeCheckingExtension.class.getName())),
+                Map.of("extensions", List.of(SandboxTypeCheckingExtension.class.getName())),
                 CompileStatic.class);
         compilerConfiguration.addCompilationCustomizers(astTransCustomizer);
     }

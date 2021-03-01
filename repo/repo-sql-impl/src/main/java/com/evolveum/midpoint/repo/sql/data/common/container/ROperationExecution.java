@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationExecutionRecordType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.query.definition.IdQueryProperty;
@@ -52,6 +53,7 @@ public class ROperationExecution implements Container<RObject> {
     private REmbeddedReference initiatorRef;
     private REmbeddedReference taskRef;
     private ROperationResultStatus status;
+    private ROperationExecutionRecordType recordType;
     private XMLGregorianCalendar timestamp;
 
     public ROperationExecution() {
@@ -133,6 +135,14 @@ public class ROperationExecution implements Container<RObject> {
         this.status = status;
     }
 
+    public ROperationExecutionRecordType getRecordType() {
+        return recordType;
+    }
+
+    public void setRecordType(ROperationExecutionRecordType recordType) {
+        this.recordType = recordType;
+    }
+
     @Column(name = "timestampValue")
     public XMLGregorianCalendar getTimestamp() {
         return timestamp;
@@ -175,6 +185,7 @@ public class ROperationExecution implements Container<RObject> {
         repo.setTaskRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTaskRef(), repositoryContext.relationRegistry));
         repo.setInitiatorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getInitiatorRef(), repositoryContext.relationRegistry));
         repo.setStatus(RUtil.getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
+        repo.setRecordType(RUtil.getRepoEnumValue(jaxb.getRecordType(), ROperationExecutionRecordType.class));
         repo.setTimestamp(jaxb.getTimestamp());
     }
 
@@ -205,6 +216,7 @@ public class ROperationExecution implements Container<RObject> {
                 ", initiatorRef=" + initiatorRef +
                 ", taskRef=" + taskRef +
                 ", status=" + status +
+                ", recordType=" + recordType +
                 ", timestamp=" + timestamp +
                 '}';
     }

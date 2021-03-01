@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.apache.commons.lang.StringUtils;
@@ -105,9 +106,6 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -2902,8 +2900,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         Task task = createPlainTask("purgeResourceSchema");
         OperationResult result = task.getResult();
 
-        ObjectDelta<ResourceType> resourceDelta = prismContext.deltaFactory().object().createModificationReplaceContainer(ResourceType.class,
-                resourceOid, ResourceType.F_SCHEMA, new PrismContainerValue[0]);
+        ObjectDelta<ResourceType> resourceDelta =
+                prismContext.deltaFactory().object().createModificationReplaceContainer(
+                        ResourceType.class, resourceOid, ResourceType.F_SCHEMA, new PrismContainerValue[0]);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
 
         modelService.executeChanges(deltas, null, task, result);
@@ -3205,7 +3204,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             ConfigurationException, ExpressionEvaluationException {
         PrismObject<TaskType> rootTask = getTaskTree(rootTaskOid);
         return TaskTypeUtil.getAllTasksStream(rootTask.asObjectable())
-                .map(t -> t.getOperationStats())
+                .map(TaskType::getOperationStats)
                 .reduce(StatisticsUtil::sum)
                 .orElse(null);
     }
@@ -5449,6 +5448,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 params, task, result);
     }
 
+    protected List<AuditEventRecord> getAuditRecordsAfterId(
+            long afterId, Task task, OperationResult result)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        return modelAuditService.listRecords(
+                "select * from m_audit_event as aer where aer.id > :id order by aer.id asc",
+                Map.of("id", afterId), task, result);
+    }
+
+    protected long getAuditRecordsMaxId(Task task, OperationResult result)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        List<AuditEventRecord> latestEvent = modelAuditService.listRecords(
+                "select * from m_audit_event as aer order by aer.id desc limit 1",
+                Map.of(), task, result);
+        return latestEvent.size() == 1 ? latestEvent.get(0).getRepoId() : 0;
+    }
+
     protected void checkUserApprovers(String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
         checkApprovers(expectedApprovers, user.asObjectable().getMetadata().getModifyApproverRef());
@@ -5461,11 +5478,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             assertEquals("Unexpected target type in approverRef", UserType.COMPLEX_TYPE, approver.getType());
         }
         assertEquals("Mismatch in approvers in metadata", new HashSet<>(expectedApprovers), realApproversSet);
-    }
-
-    protected List<PrismObject<UserType>> findUserInRepoUnchecked(String name, OperationResult result) throws SchemaException {
-        ObjectQuery q = prismContext.queryFor(UserType.class).item(UserType.F_NAME).eqPoly(name).matchingOrig().build();
-        return repositoryService.searchObjects(UserType.class, q, null, result);
     }
 
     protected <F extends FocusType> void assertFocusModificationSanity(ModelContext<F> context) {
@@ -6686,11 +6698,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void dumpStatistics(Task task) {
-        OperationStatsType stats = task.getStoredOperationStats();
-        IterativeTaskInformationType iterativeInfo = stats.getIterativeTaskInformation();
-        displayValue("Iterative information", IterativeTaskInformation.format(iterativeInfo));
+        OperationStatsType stats = task.getStoredOperationStatsOrClone();
+        displayValue("Iterative information", IterativeTaskInformation.format(stats.getIterativeTaskInformation()));
+        displayValue("Structured progress", StructuredTaskProgress.format(task.getStructuredProgressOrClone()));
         SynchronizationInformationType synchronizationInfo = stats.getSynchronizationInformation();
         displayValue("Synchronization information", SynchronizationInformation.format(synchronizationInfo));
+        displayValue("Provisioning statistics", ProvisioningStatistics.format(
+                stats.getEnvironmentalPerformanceInformation().getProvisioningStatistics()));
     }
 
     protected void dumpShadowSituations(String resourceOid, OperationResult result) throws SchemaException {

@@ -15,6 +15,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 
+import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -235,7 +239,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                             return;
                         }
                         ObjectReferenceType targetRef = assignmentType.getTargetRef();
-                        if (targetRef == null || targetRef.getObject() != null) {
+                        if (targetRef == null || targetRef.getOid() == null || targetRef.getObject() != null) {
                             return;
                         }
 
@@ -458,7 +462,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         }
 
         ObjectReferenceType targetRef = assignmentType.getTargetRef();
-        if (targetRef == null) {
+        if (targetRef == null || targetRef.getOid() == null) {
             return null;
         }
 
@@ -512,15 +516,22 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     }
 
     private IColumn<PrismContainerValueWrapper<AssignmentType>, String> createAssignmentIconColumn() {
-        return new IconColumn<>(Model.of("")) {
-
-            private static final long serialVersionUID = 1L;
+        return new CompositedIconColumn<PrismContainerValueWrapper<AssignmentType>>(Model.of("")) {
 
             @Override
-            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-                return loadIcon(rowModel.getObject().getRealValue());
+            protected CompositedIcon getCompositedIcon(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+                AssignmentType assignment = rowModel.getObject().getRealValue();
+                LOGGER.trace("Create icon for AssignmentType: " + assignment);
+                PrismObject<? extends FocusType> object = loadTargetObject(assignment);
+                if (object != null) {
+                    return WebComponentUtil.createCompositeIconForObject(object.asObjectable(),
+                            new OperationResult("create_assignment_composited_icon"), getPageBase());
+                }
+                String displayType = WebComponentUtil.createDefaultBlackIcon(AssignmentsUtil.getTargetType(assignment));
+                CompositedIconBuilder iconBuilder = new CompositedIconBuilder();
+                iconBuilder.setBasicIcon(displayType, IconCssStyle.IN_ROW_STYLE);
+                return iconBuilder.build();
             }
-
         };
     }
 

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
+import static com.evolveum.midpoint.prism.PrismProperty.getRealValue;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
@@ -467,8 +468,12 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
         if (queryType != null) {
             return queryType;
         } else {
-            return taskHandler.getObjectQueryTypeFromTaskExtension(task);
+            return getObjectQueryTypeFromTaskExtension(task);
         }
+    }
+
+    private QueryType getObjectQueryTypeFromTaskExtension(Task task) {
+        return getRealValue(task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY));
     }
 
     private QueryType getObjectQueryTypeFromTaskObjectRef(Task task) {

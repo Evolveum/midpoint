@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -2904,6 +2904,18 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="structuredProgress" type="tns:StructuredTaskProgressType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Process of the task in the structured form.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>TaskType.structuredProgress</a:displayName>
+                                <a:since>4.3</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="operationStats" type="tns:OperationStatsType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -3245,6 +3257,127 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="StructuredTaskProgressType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Task progress information in a structured form. It considers task parts and buckets.
+                It is named "structured" as opposed to single progress counter that has been present
+                in the task since early ages.
+            </xsd:documentation>
+           <xsd:appinfo>
+               <a:container>true</a:container>
+               <a:experimentaL>true</a:experimentaL>
+               <a:since>4.3</a:since>
+           </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="currentPartUri" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Current part URI.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="currentPartNumber" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Current part number, starting at 1. The numbering is relative to the parts processed by given physical task.
+                        An example: for simple reconciliation tasks there are parts 1, 2, and 3. For partitioned reconciliation
+                        task, i.e. such task that individual parts run in separate physical tasks, each task structured progress
+                        has only a single part, numbered 1.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="expectedParts" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many parts are in this physical task?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="part" type="tns:TaskPartProgressType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Progress in individual parts.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="structuredTaskProgress" type="tns:StructuredTaskProgressType" />
+
+    <xsd:complexType name="TaskPartProgressType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Progress of a given task part.
+            </xsd:documentation>
+           <xsd:appinfo>
+               <a:container>true</a:container>
+               <a:experimentaL>true</a:experimentaL>
+               <a:since>4.3</a:since>
+           </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="partUri" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        URI of the task part.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="closed" type="tns:OutcomeKeyedCounterType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Counters representing items that were processed and are stored in closed buckets.
+                        These items will not be re-processed if the task would start over.
+                        TODO better name
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="open" type="tns:OutcomeKeyedCounterType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Counters representing items that were processed but their bucket is not closed yet.
+                        In the case of task restart, these will be re-processed.
+                        TODO better name
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="taskPartProgress" type="tns:TaskPartProgressType" />
+
+    <!-- If needed, please create subtypes of this for particular uses. -->
+    <xsd:complexType name="OutcomeKeyedCounterType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Counter keyed by a qualified outcome. Used e.g. for structured progress or synchronization situation transitions.
+            </xsd:documentation>
+           <xsd:appinfo>
+               <a:container>true</a:container>
+               <a:experimentaL>true</a:experimentaL>
+               <a:since>4.3</a:since>
+           </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="outcome" type="tns:QualifiedItemProcessingOutcomeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Outcome of the processing (success, failure, skip) + optional qualification.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="count" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Count of items/situations/whatever for given qualified outcome.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="outcomeKeyedCounter" type="tns:OutcomeKeyedCounterType" />
+
     <xsd:complexType name="OperationStatsType">
         <xsd:annotation>
             <xsd:documentation>
@@ -3321,6 +3454,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="operationStats" type="tns:OperationStatsType" />
 
     <xsd:complexType name="RepositoryPerformanceInformationType">
         <xsd:annotation>
@@ -17347,6 +17481,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="expression" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional expression to be executed to amend AuditEventRecord.
+                        Expression must return the record, return null to skip auditing for this record.
+                        Following variables are provided:
+                        - auditRecord of type AuditEventRecord (this or null is to be returned)
+                        - target (primary object), PrismObject, the type depends on the event
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="property" type="tns:SystemConfigurationAuditEventRecordingPropertyType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -25361,43 +25506,128 @@
     <xsd:complexType name="ProvisioningStatisticsType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Statistical information on operations executed on resources.
+                It is meant to help diagnose performance problems induced by specific source or target resources.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="entry" type="tns:ProvisioningStatisticsEntryType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="entry" type="tns:ProvisioningStatisticsEntryType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Entries related to individual resources and their object classes.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ProvisioningStatisticsEntryType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Statistical information on operations executed on a specified resource, dealing with given object class.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="resource" type="xsd:string" minOccurs="0" />
+            <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the resource. It should have name filled-in.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
+                        <a:since>4.3</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="objectClass" type="xsd:QName" minOccurs="0" />
-            <xsd:element name="getSuccess" type="xsd:int" minOccurs="1" />
-            <xsd:element name="getFailure" type="xsd:int" minOccurs="1" />
-            <xsd:element name="searchSuccess" type="xsd:int" minOccurs="1" />
-            <xsd:element name="searchFailure" type="xsd:int" minOccurs="1" />
-            <xsd:element name="createSuccess" type="xsd:int" minOccurs="1" />
-            <xsd:element name="createFailure" type="xsd:int" minOccurs="1" />
-            <xsd:element name="updateSuccess" type="xsd:int" minOccurs="1" />
-            <xsd:element name="updateFailure" type="xsd:int" minOccurs="1" />
-            <xsd:element name="deleteSuccess" type="xsd:int" minOccurs="1" />
-            <xsd:element name="deleteFailure" type="xsd:int" minOccurs="1" />
-            <xsd:element name="syncSuccess" type="xsd:int" minOccurs="1" />
-            <xsd:element name="syncFailure" type="xsd:int" minOccurs="1" />
-            <xsd:element name="scriptSuccess" type="xsd:int" minOccurs="1" />
-            <xsd:element name="scriptFailure" type="xsd:int" minOccurs="1" />
-            <xsd:element name="otherSuccess" type="xsd:int" minOccurs="1" />
-            <xsd:element name="otherFailure" type="xsd:int" minOccurs="1" />
+            <xsd:element name="operation" type="tns:ProvisioningStatisticsOperationEntryType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Information on operations done on given resource and object class.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <!-- The following are deprecated and not used any more -->
+            <xsd:element name="resource" type="xsd:string" minOccurs="0" />
+            <xsd:element name="getSuccess" type="xsd:int" minOccurs="0" />
+            <xsd:element name="getFailure" type="xsd:int" minOccurs="0" />
+            <xsd:element name="searchSuccess" type="xsd:int" minOccurs="0" />
+            <xsd:element name="searchFailure" type="xsd:int" minOccurs="0" />
+            <xsd:element name="createSuccess" type="xsd:int" minOccurs="0" />
+            <xsd:element name="createFailure" type="xsd:int" minOccurs="0" />
+            <xsd:element name="updateSuccess" type="xsd:int" minOccurs="0" />
+            <xsd:element name="updateFailure" type="xsd:int" minOccurs="0" />
+            <xsd:element name="deleteSuccess" type="xsd:int" minOccurs="0" />
+            <xsd:element name="deleteFailure" type="xsd:int" minOccurs="0" />
+            <xsd:element name="syncSuccess" type="xsd:int" minOccurs="0" />
+            <xsd:element name="syncFailure" type="xsd:int" minOccurs="0" />
+            <xsd:element name="scriptSuccess" type="xsd:int" minOccurs="0" />
+            <xsd:element name="scriptFailure" type="xsd:int" minOccurs="0" />
+            <xsd:element name="otherSuccess" type="xsd:int" minOccurs="0" />
+            <xsd:element name="otherFailure" type="xsd:int" minOccurs="0" />
             <xsd:element name="averageTime" type="xsd:long" minOccurs="0" />
             <xsd:element name="minTime" type="xsd:long" minOccurs="0" />
             <xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="totalTime" type="xsd:long" minOccurs="1" />
+            <xsd:element name="totalTime" type="xsd:long" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ProvisioningStatisticsOperationEntryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information on operations of given type and result status.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="operation" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Plain operation name, e.g. get, search, etc. Intentionally a free-form string, not an enum.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Operation result status. Should not be null.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="count" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of operations of given type and status.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="totalTime" type="xsd:long" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Total execution time of operations of given type and status (in milliseconds).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="minTime" type="xsd:long" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Minimal execution time of an operation of given type and status (in milliseconds).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxTime" type="xsd:long" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Maximal execution time of an operation of given type and status (in milliseconds).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -25459,18 +25689,31 @@
     <xsd:complexType name="IterativeTaskInformationType">
         <xsd:annotation>
             <xsd:documentation>
-                High-level information about execution of actions that are carried out iteratively on a set of objects.
+                High-level information about execution of actions that are carried out iteratively on a set of items
+                (typically objects; but an item can be a change as well).
+
                 This may be any iterative task: live sync, reconciliation, focus recomputation, etc.
                 Even bulk actions can be seen as iterative tasks, even though they can contain multiple nested or subsequent
                 iterations.
-                In future, GUI actions on a set of selected objects can be also described in this structure.
 
-                This type describes processing of the objects as individual and atomic items: it says how many objects
-                were processed successfully or not, how long did it take, and what was last object in each category.
-                Also what is the currently processed object.
+                This type says how many items were processed successfully or not, how long did it take, and what was last item
+                in each category. Also what are the currently processed items.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+
+            <xsd:element name="part" type="tns:IterativeTaskPartItemsProcessingInformationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Iterative task information for individual task parts.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <!-- deprecated data - kept only to make parsers happy -->
             <xsd:element name="lastSuccessObjectName" type="xsd:string" minOccurs="0" />
             <xsd:element name="lastSuccessObjectDisplayName" type="xsd:string" minOccurs="0" />
             <xsd:element name="lastSuccessObjectType" type="xsd:QName" minOccurs="0" />
@@ -25498,16 +25741,162 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="IterativeTaskPartItemsProcessingInformationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information item processing within specified task part.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.3</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="partUri" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        URI of the part that this information pertains to.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="processed" type="tns:ProcessedItemSetType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Items that have been processed, with a given outcome.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="current" type="tns:ProcessedItemType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Items that are currently being processed by the task.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ProcessedItemSetType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes set of items that are or have been processed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.3</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:OutcomeKeyedCounterType">
+                <xsd:sequence>
+                    <!-- outcome and count are inherited -->
+                    <xsd:element name="duration" type="xsd:long" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Total time spent while processing items in this set.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="lastItem" type="tns:ProcessedItemType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Last item in this set.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ProcessedItemType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes an item (typically an object) that is or has been processed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.3</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of an item. Typically the object name.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="displayName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Display name of an item. For example, user name, org display name, and so on.
+                        Null if not present or not applicable for given item type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="type" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Related object type. For example, c:UserType or c:ShadowType.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="oid" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Related object OID, if known.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="startTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When the processing of the item started.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When the processing of the item finished. Null if the processing has not finished yet.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="message" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Message describing the processing. Typically here is the exception message for failed items.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="operationId" type="xsd:long" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Internal operation identifier. Has no meaning outside midPoint internal structures.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="SynchronizationInformationType">
         <xsd:annotation>
             <xsd:documentation>
                 Information about synchronization situations of objects processed by synchronization-related tasks:
                 live sync, import, reconciliation. Currently it shows just counters for possible sync situations.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="transition" type="tns:SynchronizationSituationTransitionType" minOccurs="0" maxOccurs="unbounded" />
 
+            <!-- The following is not used anymore -->
             <xsd:element name="countProtected" type="xsd:int" minOccurs="0" />
             <xsd:element name="countNoSynchronizationPolicy" type="xsd:int" minOccurs="0" />
             <xsd:element name="countSynchronizationDisabled" type="xsd:int" minOccurs="0" />
@@ -25532,10 +25921,10 @@
     <xsd:complexType name="SynchronizationSituationTransitionType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Describes how many times given synchronization situation transition has occurred.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container>false</a:container> <!-- parent is not a container yet -->
+                <a:container>true</a:container>
                 <a:experimental>true</a:experimental>
                 <a:since>4.3</a:since>
             </xsd:appinfo>
@@ -25545,9 +25934,7 @@
             <xsd:element name="onSynchronizationStart" type="tns:SynchronizationSituationType" minOccurs="0" />
             <xsd:element name="onSynchronizationEnd" type="tns:SynchronizationSituationType" minOccurs="0" />
             <xsd:element name="exclusionReason" type="tns:SynchronizationExclusionReasonType" minOccurs="0" />
-            <xsd:element name="countSuccess" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countError" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countSkip" type="xsd:int" minOccurs="0" />
+            <xsd:element name="counter" type="tns:OutcomeKeyedCounterType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="synchronizationSituationTransition" type="tns:SynchronizationSituationTransitionType"/>
@@ -25949,6 +26336,16 @@
                     <xsd:annotation>
                            <xsd:appinfo>
                             <a:displayName>SearchBoxConfigurationType.defaultMode</a:displayName>
+                           </xsd:appinfo>
+                       </xsd:annotation>
+                   </xsd:element>
+                   <xsd:element name="allowedMode" type="tns:SearchBoxModeType" minOccurs="0" maxOccurs="unbounded">
+                       <xsd:annotation>
+                           <xsd:documentation>
+                               Configuration for allowed search modes for search. All search mode are allowed by default.
+                           </xsd:documentation>
+                           <xsd:appinfo>
+                               <a:displayName>SearchBoxConfigurationType.defaultMode</a:displayName>
                            </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>
@@ -29738,4 +30135,78 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:simpleType name="ItemProcessingOutcomeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How item processing ended?
+                Similar to operation result status, but using a different categorization.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="success">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Item processing was considered to be successful.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SUCCESS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="failure">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Item processing is considered to be failed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FAILURE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="skip">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Item processing was skipped.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SKIP"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="QualifiedItemProcessingOutcomeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Item processing outcome plus optional qualification.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimentaL>true</a:experimentaL>
+                <a:container>true</a:container>
+                <a:since>4.3</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="outcome" type="tns:ItemProcessingOutcomeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Outcome of the processing (success, failure, skip).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="qualifierUri" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional qualifier, describing e.g. the reason for item being skipped.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 </xsd:schema>

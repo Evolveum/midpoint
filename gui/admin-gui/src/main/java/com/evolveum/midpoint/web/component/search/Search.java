@@ -63,6 +63,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     private SearchBoxModeType searchType;
+    private List<SearchBoxModeType> allowedSearchType = new ArrayList<>();
 
     private boolean isFullTextSearchEnabled;
     private boolean canConfigure = true; //TODO should be changed to false
@@ -85,11 +86,11 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private boolean isOidSearchEnabled = false;
 
     public Search(ContainerTypeSearchItem<C> typeSearchItem, List<SearchItemDefinition> allDefinitions) {
-        this(typeSearchItem, allDefinitions, false, null, false);
+        this(typeSearchItem, allDefinitions, false, null, null, false);
     }
 
-    public Search(ContainerTypeSearchItem<C> typeSearchItem, List<SearchItemDefinition> allDefinitions,
-            boolean isFullTextSearchEnabled, SearchBoxModeType searchBoxModeType, boolean isOidSearchenabled) {
+    public Search(ContainerTypeSearchItem<C> typeSearchItem, List<SearchItemDefinition> allDefinitions, boolean isFullTextSearchEnabled,
+            SearchBoxModeType searchBoxModeType, List<SearchBoxModeType> allowedSearchType, boolean isOidSearchenabled) {
         this.typeSearchItem = typeSearchItem;
         this.allDefinitions = allDefinitions;
         this.isOidSearchEnabled = isOidSearchenabled;
@@ -107,6 +108,22 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         } else {
             searchType = SearchBoxModeType.BASIC;
         }
+
+        if (allowedSearchType != null && !allowedSearchType.isEmpty()) {
+            this.allowedSearchType = allowedSearchType;
+            if (allowedSearchType.size() == 1) {
+                searchType = allowedSearchType.iterator().next();
+            } else if (!allowedSearchType.contains(searchType)) {
+                if (isFullTextSearchEnabled && allowedSearchType.contains(SearchBoxModeType.FULLTEXT)) {
+                    searchType = SearchBoxModeType.FULLTEXT;
+                } else if (allowedSearchType.contains(SearchBoxModeType.BASIC)){
+                    searchType = SearchBoxModeType.BASIC;
+                } else {
+                    searchType = allowedSearchType.iterator().next();
+                }
+            }
+        }
+
         availableDefinitions.addAll(allDefinitions);
     }
 
@@ -402,9 +419,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         VariablesMap variables = defaultVariables == null ? new VariablesMap() : defaultVariables;
         for (FilterSearchItem item : getFilterItems()) {
             SearchFilterParameterType functionParameter = item.getPredefinedFilter().getParameter();
-            QName returnType = functionParameter.getType();
-            if (returnType != null) {
-                Class<?> inputClass = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(returnType);
+            if (functionParameter != null && functionParameter.getType() != null) {
+                Class<?> inputClass = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(functionParameter.getType());
                 TypedValue value = new TypedValue(item.getInput() != null ? item.getInput().getValue() : null, inputClass);
                 variables.put(functionParameter.getName(), value);
             }
@@ -815,5 +831,16 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public boolean isOidSearchMode() {
         return SearchBoxModeType.OID.equals(getSearchType());
+    }
+
+    public boolean isAllowedSearchMode(SearchBoxModeType searchBoxModeType){
+        if (!allowedSearchType.isEmpty()) {
+            return allowedSearchType.contains(searchBoxModeType);
+        }
+        return true;
+    }
+
+    public List<SearchBoxModeType> getAllowedSearchType() {
+        return allowedSearchType;
     }
 }

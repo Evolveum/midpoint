@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
@@ -15,24 +16,24 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultBuilder;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.Tracer;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingRootType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
-import java.util.Objects;
 
-import static com.evolveum.midpoint.schema.statistics.SynchronizationInformation.Status.ERROR;
-import static com.evolveum.midpoint.schema.statistics.SynchronizationInformation.Status.SUCCESS;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Responsible for the necessary general procedures before and after processing of a single item.
@@ -81,9 +82,6 @@ class ItemProcessingGatekeeper<I> {
     /** Timing information related to the execution of this item. */
     @NotNull private final Timing timing;
 
-    /** TODO */
-    private RunningStatisticsSnapshot runningStatisticsSnapshot;
-
     /**
      * Tuple "name, display name, type, OID" that is to be written to the iterative task information.
      */
@@ -95,14 +93,8 @@ class ItemProcessingGatekeeper<I> {
      */
     private boolean tracingRequested;
 
-    /**
-     * Exception (either native or constructed) related to the error in processing.
-     * Always non-null if there is an error and null if there is no error! We can rely on this.
-     */
-    private Throwable resultException;
-
-    /** What was the status of processing of this item? */
-    private SynchronizationInformation.Status processingStatus;
+    /** What was the final processing result? */
+    private ProcessingResult processingResult;
 
     /**
      * True if the flow of new events can continue. It can be switched to false either if the item processor
@@ -131,23 +123,23 @@ class ItemProcessingGatekeeper<I> {
 
             startTracingAndDynamicProfiling();
             logOperationStart();
-            recordIterativeOperationStart();
+            Operation operation = recordIterativeOperationStart();
             onSyncItemProcessingStart();
 
             OperationResult result = doProcessItem(parentResult);
 
             stopTracingAndDynamicProfiling(result, parentResult);
             writeOperationExecutionRecord(result);
-            recordIterativeOperationEnd();
+            recordIterativeOperationEnd(operation);
             onSyncItemProcessingEnd();
 
             canContinue = checkIfCanContinue(result) && canContinue;
 
             acknowledgeItemProcessed(result);
 
-            computeStatistics();
-            recordStatistics(result);
-            logOperationEnd(result);
+            RunningStatisticsSnapshot stats = computeStatisticsSnapshot();
+            incrementProgressAndStoreTaskStats(stats, result);
+            logOperationEnd(stats, result);
 
             cleanupAndSummarizeResults(result, parentResult);
 
@@ -184,24 +176,19 @@ class ItemProcessingGatekeeper<I> {
 
             computeStatusIfNeeded(result);
 
-            if (result.isError()) {
-                // This is an error without visible top-level exception, so we have to find one.
-                resultException = RepoCommonUtils.getResultException(result);
-            }
+            processingResult = ProcessingResult.fromOperationResult(result, getPrismContext());
 
-        } catch (Exception e) {
+        } catch (Throwable t) {
 
-            result.recordFatalError(e);
+            result.recordFatalError(t);
 
             // This is an error with top-level exception.
             // Note that we intentionally do not rethrow the exception.
-            resultException = e;
+            processingResult = ProcessingResult.fromException(t, getPrismContext());
 
         } finally {
             RepositoryCache.exitLocalCaches();
         }
-
-        processingStatus = isError() ? ERROR : SUCCESS; // TODO: SKIPPED
 
         return result;
     }
@@ -220,8 +207,16 @@ class ItemProcessingGatekeeper<I> {
         return canContinue; // TODO some error handling here
     }
 
-    private boolean isError() {
-        return resultException != null;
+    public boolean isError() {
+        return processingResult.isError();
+    }
+
+    public boolean isSkipped() {
+        return processingResult.isSkip();
+    }
+
+    public boolean isSuccess() {
+        return processingResult.isSuccess();
     }
 
     private void cleanupAndSummarizeResults(OperationResult result, OperationResult parentResult) {
@@ -244,19 +239,19 @@ class ItemProcessingGatekeeper<I> {
         return partExecution.getProcessShortNameCapitalized();
     }
 
-    private void logOperationEnd(OperationResult result) {
+    private void logOperationEnd(RunningStatisticsSnapshot statSnapshot, OperationResult result) {
         // TODO make this configurable per task or per task type; or switch to DEBUG
         logger.info("{} of {} {} done with status {} (this one: {} ms, avg: {} ms) (total progress: {}, wall clock avg: {} ms)",
                 getProcessShortNameCapitalized(), iterationItemInformation,
                 getContextDesc(), result.getStatus(),
                 String.format(Locale.US, "%,.1f", timing.durationNanos / 1000000.0f),
-                String.format(Locale.US, "%,.1f", runningStatisticsSnapshot.totalTime / runningStatisticsSnapshot.totalProgress),
-                runningStatisticsSnapshot.totalProgress,
-                runningStatisticsSnapshot.totalTimeMillis / runningStatisticsSnapshot.totalProgress);
+                String.format(Locale.US, "%,.1f", statSnapshot.totalTime / statSnapshot.totalProgress),
+                statSnapshot.totalProgress,
+                statSnapshot.totalTimeMillis / statSnapshot.totalProgress);
 
         if (isError() && getReportingOptions().isLogErrors()) {
             logger.error("{} of object {} {} failed: {}", getProcessShortNameCapitalized(), iterationItemInformation,
-                    getContextDesc(), resultException.getMessage(), resultException);
+                    getContextDesc(), processingResult.getMessage(), processingResult.exception);
         }
 
         // TODO is this necessary?
@@ -274,14 +269,16 @@ class ItemProcessingGatekeeper<I> {
             return true;
         }
 
+        Throwable exception = processingResult.getExceptionRequired();
+
         TaskPartitionDefinitionType partDef = taskExecution.partDefinition;
         if (partDef == null) {
-            return getContinueOnError(result.getStatus(), resultException, request, result);
+            return getContinueOnError(result.getStatus(), exception, request, result);
         }
 
-        CriticalityType criticality = ExceptionUtil.getCriticality(partDef.getErrorCriticality(), resultException, CriticalityType.PARTIAL);
+        CriticalityType criticality = ExceptionUtil.getCriticality(partDef.getErrorCriticality(), exception, CriticalityType.PARTIAL);
         try {
-            RepoCommonUtils.processErrorCriticality(iterationItemInformation.getObjectName(), criticality, resultException, result);
+            RepoCommonUtils.processErrorCriticality(iterationItemInformation.getObjectName(), criticality, exception, result);
             return true; // If we are here, the error is not fatal and we can continue.
         } catch (Throwable e) {
             // Exception means fatal error.
@@ -304,17 +301,18 @@ class ItemProcessingGatekeeper<I> {
         }
     }
 
-    private void recordIterativeOperationStart() {
+    private Operation recordIterativeOperationStart() {
         if (getReportingOptions().isEnableIterationStatistics()) {
-            workerTask.recordIterativeOperationStart(iterationItemInformation);
+            return workerTask.recordIterativeOperationStart(
+                    new IterativeOperationStartInfo(iterationItemInformation, partExecution.getPartUri()));
+        } else {
+            return Operation.none();
         }
     }
 
-    private void recordIterativeOperationEnd() {
+    private void recordIterativeOperationEnd(Operation operation) {
         if (getReportingOptions().isEnableIterationStatistics()) {
-            // TODO consider result status of NOT_APPLICABLE (means skipped)
-            // resultException != null iff there was an error (even if not an exception)
-            workerTask.recordIterativeOperationEnd(iterationItemInformation, timing.startTimeMillis, resultException);
+            operation.done(processingResult.outcome, processingResult.exception);
         }
     }
 
@@ -326,7 +324,7 @@ class ItemProcessingGatekeeper<I> {
 
     private void onSyncItemProcessingEnd() {
         if (getReportingOptions().isEnableSynchronizationStatistics()) {
-            workerTask.onSyncItemProcessingEnd(request.getIdentifier(), Objects.requireNonNull(processingStatus));
+            workerTask.onSyncItemProcessingEnd(request.getIdentifier(), processingResult.outcome);
         }
     }
 
@@ -412,8 +410,8 @@ class ItemProcessingGatekeeper<I> {
         return getTaskHandler().taskOperationPrefix;
     }
 
-    private void computeStatistics() {
-        runningStatisticsSnapshot = new RunningStatisticsSnapshot();
+    private RunningStatisticsSnapshot computeStatisticsSnapshot() {
+        RunningStatisticsSnapshot runningStatisticsSnapshot = new RunningStatisticsSnapshot();
         timing.recordEnd();
 
         ItemProcessingStatistics runningStatistics = getStatistics();
@@ -424,21 +422,32 @@ class ItemProcessingGatekeeper<I> {
         if (isError()) {
             runningStatistics.incrementErrors();
         }
+        return runningStatisticsSnapshot;
     }
 
-    private void recordStatistics(OperationResult result) {
-        result.addContext(OperationResult.CONTEXT_PROGRESS, runningStatisticsSnapshot.totalProgress);
+    /**
+     * Increments the progress and gives a task a chance to update its statistics.
+     */
+    private void incrementProgressAndStoreTaskStats(RunningStatisticsSnapshot statSnapshot, OperationResult result) {
+        result.addContext(OperationResult.CONTEXT_PROGRESS, statSnapshot.totalProgress);
 
         // TODO TODO TODO
         synchronized (coordinatorTask) {
-            coordinatorTask.setProgress(runningStatisticsSnapshot.totalProgress);
+            coordinatorTask.setProgress(statSnapshot.totalProgress);
+            coordinatorTask.incrementStructuredProgress(partExecution.partUri,
+                    processingResult.outcome);
+
             if (partExecution.isMultithreaded()) {
                 workerTask.incrementProgressAndStoreStatsIfNeeded();
             }
-            // todo report current op result?
+            // TODO Should we update task operation result as well?
             // FIXME this should not be called from the worker task!
-            coordinatorTask.storeOperationStatsIfNeeded();  // includes flushPendingModifications
+            coordinatorTask.storeOperationStatsAndProgressIfNeeded(); // includes flushPendingModifications
         }
+    }
+
+    private PrismContext getPrismContext() {
+        return taskExecution.getPrismContext();
     }
 
     /** Information on the time aspect of the processing of this item. */
@@ -458,10 +467,72 @@ class ItemProcessingGatekeeper<I> {
         }
     }
 
-    /** Snapshot of selected overall statistics after applying a delta from this execution. */
+    /**
+     * Snapshot of selected overall statistics after applying a delta from this execution.
+     * It is used just to aggregate related parameters passed among methods in this call.
+     */
+    @Experimental
     private static class RunningStatisticsSnapshot {
         private double totalTime;
         private long totalProgress;
         private long totalTimeMillis;
+    }
+
+    @Experimental
+    private static class ProcessingResult {
+
+        /** Outcome of the processing */
+        @NotNull private final QualifiedItemProcessingOutcomeType outcome;
+
+        /**
+         * Exception (either native or constructed) related to the error in processing.
+         * Always non-null if there is an error and null if there is no error! We can rely on this.
+         */
+        @Nullable private final Throwable exception;
+
+        private ProcessingResult(@NotNull ItemProcessingOutcomeType outcome, @Nullable Throwable exception,
+                PrismContext prismContext) {
+            this.outcome = new QualifiedItemProcessingOutcomeType(prismContext)
+                    .outcome(outcome);
+            this.exception = exception;
+            argCheck(outcome != ItemProcessingOutcomeType.FAILURE || exception != null,
+                    "Error without exception");
+        }
+
+        public static ProcessingResult fromOperationResult(OperationResult result, PrismContext prismContext) {
+            if (result.isError()) {
+                // This is an error without visible top-level exception, so we have to find one.
+                Throwable exception = RepoCommonUtils.getResultException(result);
+                return new ProcessingResult(ItemProcessingOutcomeType.FAILURE, exception, prismContext);
+            } else if (result.isNotApplicable()) {
+                return new ProcessingResult(ItemProcessingOutcomeType.SKIP, null, prismContext);
+            } else {
+                return new ProcessingResult(ItemProcessingOutcomeType.SUCCESS, null, prismContext);
+            }
+        }
+
+        public static ProcessingResult fromException(Throwable e, PrismContext prismContext) {
+            return new ProcessingResult(ItemProcessingOutcomeType.FAILURE, e, prismContext);
+        }
+
+        public boolean isError() {
+            return outcome.getOutcome() == ItemProcessingOutcomeType.FAILURE;
+        }
+
+        public boolean isSuccess() {
+            return outcome.getOutcome() == ItemProcessingOutcomeType.SUCCESS;
+        }
+
+        public boolean isSkip() {
+            return outcome.getOutcome() == ItemProcessingOutcomeType.SKIP;
+        }
+
+        public String getMessage() {
+            return exception != null ? exception.getMessage() : null;
+        }
+
+        public Throwable getExceptionRequired() {
+            return requireNonNull(exception, "Error without exception");
+        }
     }
 }

@@ -274,7 +274,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
         }
 
         // in case that password is added and not replaced:
-        if (newPassword == null && valueDelta.getValuesToAdd() != null) {
+        if (newPassword == null && valueDelta != null && valueDelta.getValuesToAdd() != null) {
             for (PrismPropertyValue val : valueDelta.getValuesToAdd()) {
                 newPassword = (ProtectedStringType) val.getValue();
                 break; // password should have only one value
@@ -284,6 +284,12 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
         if (getOldCredential() == null) {
             return newPassword != null;
         }
+
+        if (!(getOldCredential() instanceof PasswordType)) {
+            // e.g. SecurityQuestionsCredentialsType
+            return true;
+        }
+
         oldPassword = ((PasswordType) getOldCredential()).getValue();
 
         if (newPassword == null) {

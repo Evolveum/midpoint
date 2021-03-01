@@ -16,6 +16,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import java.util.List;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
@@ -92,9 +94,9 @@ public class TaskProgressExtract implements DebugDumpable {
         assert !TaskTypeUtil.isPartitionedMaster(task);
         if (TaskTypeUtil.isCoordinator(task)) {
             List<TaskType> subtasks = TaskTypeUtil.getResolvedSubtasks(task);
-            return subtasks.stream().mapToInt(TaskTypeUtil::getObjectsProcessed).sum();
+            return subtasks.stream().mapToInt(t -> or0(TaskTypeUtil.getItemsProcessed(t))).sum();
         } else {
-            return TaskTypeUtil.getObjectsProcessed(task);
+            return TaskTypeUtil.getItemsProcessed(task);
         }
     }
 

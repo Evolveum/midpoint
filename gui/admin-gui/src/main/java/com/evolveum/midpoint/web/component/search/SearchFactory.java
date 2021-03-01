@@ -57,7 +57,8 @@ public class SearchFactory {
         SEARCHABLE_OBJECTS.put(FocusType.class, Arrays.asList(
                 ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
                 ItemPath.create(FocusType.F_ROLE_MEMBERSHIP_REF),
-                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)
+                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
+                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)
         ));
         SEARCHABLE_OBJECTS.put(UserType.class, Arrays.asList(
                 ItemPath.create(UserType.F_TITLE),
@@ -242,9 +243,14 @@ public class SearchFactory {
         boolean isFullTextSearchEnabled = isFullTextSearchEnabled(modelServiceLocator, type.getTypeClass());
 
         QName qNametype = WebComponentUtil.classToQName(modelServiceLocator.getPrismContext(), type.getTypeClass());
-        Search search = new Search(type, availableDefs, isFullTextSearchEnabled,
-                getDefaultSearchType(modelServiceLocator, qNametype, collectionViewName, panelType),
-                isOidSearchEnabled);
+        SearchBoxConfigurationType searchBox = getSearchBoxConfiguration(modelServiceLocator, qNametype, collectionViewName, panelType);
+        SearchBoxModeType searchMode = null;
+        List<SearchBoxModeType> allowedSearchModes = new ArrayList<>();
+        if (searchBox != null) {
+            searchMode = searchBox.getDefaultMode();
+            allowedSearchModes = searchBox.getAllowedMode();
+        }
+        Search search = new Search(type, availableDefs, isFullTextSearchEnabled, searchMode, allowedSearchModes, isOidSearchEnabled);
 
         SchemaRegistry registry = modelServiceLocator.getPrismContext().getSchemaRegistry();
         PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(type.getTypeClass());
@@ -393,15 +399,6 @@ public class SearchFactory {
         } catch (SchemaException | ObjectNotFoundException ex) {
             throw new SystemException(ex);
         }
-    }
-
-    private static <T extends ObjectType> SearchBoxModeType getDefaultSearchType(ModelServiceLocator modelServiceLocator, QName type,
-            String collectionViewName, Search.PanelType panelType) {
-        SearchBoxConfigurationType searchConfig = getSearchBoxConfiguration(modelServiceLocator, type, collectionViewName, panelType);
-        if (searchConfig == null) {
-            return null;
-        }
-        return searchConfig.getDefaultMode();
     }
 
     private static <T extends ObjectType> boolean isAllowToConfigureSearchItems(ModelServiceLocator modelServiceLocator, QName type,

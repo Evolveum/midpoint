@@ -131,6 +131,8 @@ public class Clockwork {
         try {
             trace = recordTraceAtStart(context, result);
 
+            contextLoader.updateSystemConfigurationInContext(context, result);
+
             LOGGER.trace("Running clockwork for context {}", context);
             context.checkConsistenceIfNeeded();
 

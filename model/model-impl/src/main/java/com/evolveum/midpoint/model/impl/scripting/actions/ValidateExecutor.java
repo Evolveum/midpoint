@@ -7,25 +7,31 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
+import static com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
+
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.model.api.validator.Scope;
 import com.evolveum.midpoint.model.api.validator.ValidationResult;
-import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 /**
  * Executes "validate" action.
@@ -60,7 +66,7 @@ public class ValidateExecutor extends BaseActionExecutor {
             if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof ResourceType) {
                 PrismObject<ResourceType> resourceTypePrismObject = ((PrismObjectValue) value).asPrismObject();
                 ResourceType resourceType = resourceTypePrismObject.asObjectable();
-                long started = operationsHelper.recordStart(context, resourceType);
+                Operation op = operationsHelper.recordStart(context, resourceType);
                 try {
                     ValidationResult validationResult = resourceValidator.validate(resourceTypePrismObject, Scope.THOROUGH, null, context.getTask(), result);
 
@@ -68,10 +74,10 @@ public class ValidateExecutor extends BaseActionExecutor {
                     pc.add(validationResult.toValidationResultType().asPrismContainerValue());
 
                     context.println("Validated " + resourceTypePrismObject + ": " + validationResult.getIssues().size() + " issue(s)");
-                    operationsHelper.recordEnd(context, resourceType, started, null);
+                    operationsHelper.recordEnd(context, op, null);
                     output.add(new PipelineItem(pc.getValue(), item.getResult()));
                 } catch (SchemaException|RuntimeException e) {
-                    operationsHelper.recordEnd(context, resourceType, started, e);
+                    operationsHelper.recordEnd(context, op, e);
                     context.println("Error validation " + resourceTypePrismObject + ": " + e.getMessage());
                     //noinspection ThrowableNotThrown
                     processActionException(e, NAME, value, context);

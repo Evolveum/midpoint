@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.PipelineItem;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
 import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
@@ -59,7 +60,7 @@ public class ReencryptExecutor extends BaseActionExecutor {
                 @SuppressWarnings({"unchecked", "raw"})
                 PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
                 ObjectType objectBean = prismObject.asObjectable();
-                long started = operationsHelper.recordStart(context, objectBean);
+                Operation op = operationsHelper.recordStart(context, objectBean);
                 try {
                     Collection<? extends ItemDelta<?, ?>> modifications = CryptoUtil.computeReencryptModifications(protector, prismObject);
                     if (!modifications.isEmpty()) {
@@ -72,10 +73,10 @@ public class ReencryptExecutor extends BaseActionExecutor {
                         }
                     }
                     result.computeStatus();
-                    operationsHelper.recordEnd(context, objectBean, started, null);
+                    operationsHelper.recordEnd(context, op, null);
                 } catch (Throwable ex) {
                     result.recordFatalError("Couldn't reencrypt object", ex);
-                    operationsHelper.recordEnd(context, objectBean, started, ex);
+                    operationsHelper.recordEnd(context, op, ex);
                     Throwable exception = processActionException(ex, NAME, value, context);
                     context.println("Couldn't reencrypt " + prismObject.toString() + drySuffix(dryRun) + exceptionSuffix(exception));
                 }

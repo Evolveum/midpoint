@@ -7,22 +7,15 @@
 
 package com.evolveum.midpoint.task.api;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-
-import static com.evolveum.midpoint.prism.PrismProperty.getRealValue;
 
 /**
- * TODO
+ * Task handler that supports bucketed tasks. Its `run` method provides bucket-related parameters
+ * that allow the implementation to (typically) narrow the query according to the current bucket.
+ * Also, the run result is enhanced with bucket-related properties.
  */
 public interface WorkBucketAwareTaskHandler extends TaskHandler {
-
-    @Override
-    default TaskRunResult run(RunningTask task) {
-        throw new UnsupportedOperationException("run with no work bucket is not supported here");
-    }
 
     @Override
     default TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partitionDefinition) {
@@ -35,9 +28,4 @@ public interface WorkBucketAwareTaskHandler extends TaskHandler {
     default TaskWorkBucketProcessingResult onNoMoreBuckets(Task task, TaskWorkBucketProcessingResult previousRunResult) {
         return previousRunResult;
     }
-
-    default QueryType getObjectQueryTypeFromTaskExtension(Task task) {
-        return getRealValue(task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY));
-    }
-
 }

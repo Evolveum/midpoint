@@ -64,6 +64,12 @@ public class QAuditEventRecordMapping
                 CanonicalItemPathItemFilterProcessor.mapper(
                         path(QAuditItem.class, ai -> ai.changedItemPath))));
 
+        addItemMapping(F_RESOURCE_OID, DetailTableItemFilterProcessor.mapper(
+                QAuditResource.class,
+                joinOn((r, i) -> r.id.eq(i.recordId)),
+                stringMapper(
+                        path(QAuditResource.class, ai -> ai.resourceOid))));
+
         /*
          * No need to map initiatorName, initiatorType, attorneyName for query, OID should suffice.
          * There is also no F_ATTORNEY_NAME and similar paths - unless these are "extension" columns?

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Evolveum and contributors
+ * Copyright (C) 2019-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -248,7 +248,7 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
                 def = (ItemDefinition) defObj;
                 put(name, value, def);
             } else if (defObj instanceof Class) {
-                put(name, value, (Class) defObj);
+                put(name, value, (Class<?>) defObj);
             } else {
                 throw new IllegalArgumentException("Unexpected def " + defObj);
             }
@@ -258,19 +258,6 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
 
     public static VariablesMap emptyMap() {
         return new VariablesMap(Collections.emptyMap());
-    }
-
-    public boolean equals(Object o) {
-        return variables.equals(o);
-    }
-
-    public int hashCode() {
-        return variables.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return variables.toString();
     }
 
     public String formatVariables() {
@@ -479,7 +466,7 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
         throw new SchemaException("Expected type " + type.getSimpleName() + " in variable " + name + ", but found type " + object.getClass());
     }
 
-    // TODO: do we need this?
+    @SuppressWarnings("unchecked")
     public <O extends ObjectType> PrismObject<O> getValueNew(String name) throws SchemaException {
         Object object = getValue(name);
         if (object == null) {
@@ -512,5 +499,23 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+        VariablesMap that = (VariablesMap) o;
+        return Objects.equals(variables, that.variables);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(variables);
+    }
+
+    @Override
+    public String toString() {
+        return variables.toString();
     }
 }

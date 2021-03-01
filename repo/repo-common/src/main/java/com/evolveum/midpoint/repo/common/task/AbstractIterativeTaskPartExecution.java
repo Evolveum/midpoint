@@ -10,6 +10,7 @@ package com.evolveum.midpoint.repo.common.task;
 import static com.evolveum.midpoint.repo.common.task.AnnotationSupportUtil.createFromAnnotation;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
@@ -123,6 +124,24 @@ public abstract class AbstractIterativeTaskPartExecution<I,
      */
     @NotNull protected final TaskReportingOptions reportingOptions;
 
+    /**
+     * URI of this task part (unique within the task).
+     */
+    @Experimental
+    String partUri;
+
+    /**
+     * Relative number of the part within this physical task. Starting at 1.
+     */
+    @Experimental
+    int partNumber;
+
+    /**
+     * Expected number of parts.
+     */
+    @Experimental
+    int expectedParts;
+
     protected AbstractIterativeTaskPartExecution(@NotNull TE taskExecution) {
         this.taskHandler = taskExecution.taskHandler;
         this.taskExecution = taskExecution;
@@ -146,6 +165,8 @@ public abstract class AbstractIterativeTaskPartExecution<I,
                 processShortNameCapitalized, localCoordinatorTask, taskExecution.previousRunResult);
 
         checkTaskPersistence();
+
+        setStructuredProgressPartInformation();
 
         initialize(opResult);
 
@@ -178,8 +199,11 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
         logger.trace("{} run finished (task {}, run result {})", processShortNameCapitalized, localCoordinatorTask, runResult);
         runResult.setBucketComplete(localCoordinatorTask.canRun()); // TODO
-        runResult.setShouldContinue(localCoordinatorTask.canRun()); // TODO
         return runResult;
+    }
+
+    private void setStructuredProgressPartInformation() {
+        taskExecution.localCoordinatorTask.setStructuredProgressPartInformation(partUri, partNumber, expectedParts);
     }
 
     // TODO finish this method
@@ -381,5 +405,29 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
     public String getRootTaskOid() {
         return taskExecution.getRootTaskOid();
+    }
+
+    public String getPartUri() {
+        return partUri;
+    }
+
+    public void setPartUri(String partUri) {
+        this.partUri = partUri;
+    }
+
+    public int getPartNumber() {
+        return partNumber;
+    }
+
+    public void setPartNumber(int partNumber) {
+        this.partNumber = partNumber;
+    }
+
+    public int getExpectedParts() {
+        return expectedParts;
+    }
+
+    public void setExpectedParts(int expectedParts) {
+        this.expectedParts = expectedParts;
     }
 }

@@ -133,7 +133,7 @@ class GeneralUpdate extends BaseUpdate {
         return false;
     }
 
-    private Attribute findAttributeForCurrentState() {
+    protected Attribute findAttributeForCurrentState() {
         Attribute attribute = findAttributeForName(currentItemName.getLocalPart());
         if (attribute != null) {
             return attribute;
@@ -155,7 +155,7 @@ class GeneralUpdate extends BaseUpdate {
 
     // try to search path overrides like metadata/* or assignment/metadata/* or assignment/construction/resourceRef
     @Nullable
-    private Attribute findAttributePathOverrideIfExists() {
+    protected Attribute findAttributePathOverrideIfExists() {
         ItemPath subPath = currentItemName;
         while (segmentsIterator.hasNext()) {
             if (beans.entityRegistry.hasAttributePathOverride(currentBeanType, subPath)) {

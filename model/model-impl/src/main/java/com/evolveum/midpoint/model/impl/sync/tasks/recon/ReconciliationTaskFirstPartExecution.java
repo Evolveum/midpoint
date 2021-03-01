@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.AbstractIterativeModelTaskPartExecution;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -41,6 +42,7 @@ class ReconciliationTaskFirstPartExecution
         super(taskExecution);
         reportingOptions.setEnableSynchronizationStatistics(false);
 
+        setPartUri(ModelPublicConstants.RECONCILIATION_OPERATION_COMPLETION_PART_URI);
         setProcessShortNameCapitalized("Reconciliation (operation completion)");
         setContextDescription("on " + taskExecution.getTargetInfo().getContextDescription());
         setRequiresDirectRepositoryAccess();

@@ -598,8 +598,11 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      */
     long getProgress();
 
+    /** Returns task structured progress. */
+    StructuredTaskProgressType getStructuredProgressOrClone();
+
     /**
-     * Record progress of the task, storing it persistently if needed.
+     * Records _legacy_ progress of the task, storing it persistently if needed.
      */
     void setProgress(Long value);
 
@@ -615,7 +618,7 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
      * Returns operation statistics from the task prism object (i.e. not the live ones).
      * Clones if running task.
      */
-    OperationStatsType getStoredOperationStats();
+    OperationStatsType getStoredOperationStatsOrClone();
 
     /**
      * Gets information from the current task and - for running task - its transient subtasks (aka worker threads).

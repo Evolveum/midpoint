@@ -9,6 +9,8 @@ package com.evolveum.midpoint.schema.statistics;
 
 import org.jetbrains.annotations.NotNull;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 /**
  * Prints statistics in selected format.
  */
@@ -90,15 +92,18 @@ public abstract class AbstractStatisticsPrinter<T> {
         formatting.addColumn(label, alignment, format);
     }
 
-    protected Number avg(Number total, int count) {
+    protected Number avg(Number total, Integer countObject) {
+        int count = or0(countObject);
         return total != null && count > 0 ? total.floatValue() / count : null;
     }
 
-    protected Number div(Number total, int count) {
+    protected Number div(Number total, Integer countObject) {
+        int count = or0(countObject);
         return total != null && count > 0 ? total.floatValue() / count : null;
     }
 
-    protected Number percent(Long value, long base) {
+    protected Number percent(Long value, Long baseObject) {
+        long base = or0(baseObject);
         if (value == null) {
             return null;
         } else if (base != 0) {
