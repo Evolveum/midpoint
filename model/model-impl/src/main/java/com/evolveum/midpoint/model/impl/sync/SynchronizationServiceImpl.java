@@ -212,6 +212,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
         SynchronizationType synchronization = resource.asObjectable().getSynchronization();
         if (synchronization == null) {
+            LOGGER.trace("No synchronization configuration, exiting");
             return syncCtx;
         }
 

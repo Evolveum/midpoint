@@ -7,17 +7,8 @@
 package com.evolveum.midpoint.model.intest.multi;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.net.ConnectException;
 import java.util.Collections;
 import javax.xml.namespace.QName;
-
-import com.evolveum.icf.dummy.resource.ConflictException;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.test.asserter.UserAsserter;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -26,17 +17,19 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Test multiple accounts with the same resource+kind+intent.
- * <p>
+ *
  * MID-3542
  *
  * @author Radovan Semancik
@@ -48,16 +41,14 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     public static final File TEST_DIR = new File("src/test/resources/multi-account");
 
     // Green dummy resource is authoritative. This version supports multiaccounts.
-    protected static final File RESOURCE_DUMMY_MULTI_GREEN_FILE = new File(TEST_DIR, "resource-dummy-multi-green.xml");
-    protected static final String RESOURCE_DUMMY_MULTI_GREEN_OID = "128469e0-6759-11e9-8520-db9fa0f25495";
-    protected static final String RESOURCE_DUMMY_MULTI_GREEN_NAME = "multi-green";
-    protected static final String RESOURCE_DUMMY_MULTI_GREEN_NAMESPACE = MidPointConstants.NS_RI;
+    private static final File RESOURCE_DUMMY_MULTI_GREEN_FILE = new File(TEST_DIR, "resource-dummy-multi-green.xml");
+    private static final String RESOURCE_DUMMY_MULTI_GREEN_OID = "128469e0-6759-11e9-8520-db9fa0f25495";
+    private static final String RESOURCE_DUMMY_MULTI_GREEN_NAME = "multi-green";
 
     // Clever HR resource. It has one account for every work contract. One of these contracts is the primary one.
-    protected static final File RESOURCE_DUMMY_CLEVER_HR_FILE = new File(TEST_DIR, "resource-dummy-clever-hr.xml");
-    protected static final String RESOURCE_DUMMY_CLEVER_HR_OID = "4b20aab4-99d2-11ea-b0ae-bfae68238f94";
-    protected static final String RESOURCE_DUMMY_CLEVER_HR_NAME = "clever-hr";
-    protected static final String RESOURCE_DUMMY_CLEVER_HR_NAMESPACE = MidPointConstants.NS_RI;
+    private static final File RESOURCE_DUMMY_CLEVER_HR_FILE = new File(TEST_DIR, "resource-dummy-clever-hr.xml");
+    private static final String RESOURCE_DUMMY_CLEVER_HR_OID = "4b20aab4-99d2-11ea-b0ae-bfae68238f94";
+    private static final String RESOURCE_DUMMY_CLEVER_HR_NAME = "clever-hr";
 
     private static final String CLEVER_HR_ATTRIBUTE_FIRST_NAME = "firstName";
     private static final String CLEVER_HR_ATTRIBUTE_LAST_NAME = "lastName";
@@ -66,43 +57,41 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     private static final String CLEVER_HR_ATTRIBUTE_LOCATION = "location";
     private static final String CLEVER_HR_ATTRIBUTE_OU = "ou";
 
-
     // Multi outbound dummy resource, target with multiaccounts.
-    protected static final File RESOURCE_DUMMY_MULTI_OUTBOUND_FILE = new File(TEST_DIR, "resource-dummy-multi-outbound.xml");
-    protected static final String RESOURCE_DUMMY_MULTI_OUTBOUND_OID = "d4da475e-8539-11ea-8343-dfdb4091c1dc";
-    protected static final String RESOURCE_DUMMY_MULTI_OUTBOUND_NAME = "multi-outbound";
-    protected static final String RESOURCE_DUMMY_MULTI_OUTBOUND_NAMESPACE = MidPointConstants.NS_RI;
+    private static final File RESOURCE_DUMMY_MULTI_OUTBOUND_FILE = new File(TEST_DIR, "resource-dummy-multi-outbound.xml");
+    private static final String RESOURCE_DUMMY_MULTI_OUTBOUND_OID = "d4da475e-8539-11ea-8343-dfdb4091c1dc";
+    private static final String RESOURCE_DUMMY_MULTI_OUTBOUND_NAME = "multi-outbound";
 
     private static final String USER_IDAHO_GIVEN_NAME = "Duncan";
     private static final String USER_IDAHO_FAMILY_NAME = "Idaho";
     private static final String USER_IDAHO_NAME = "idaho";
 
-    protected static final String ACCOUNT_PAUL_ATREIDES_ID = "001";
+    private static final String ACCOUNT_PAUL_ATREIDES_ID = "001";
 
-    protected static final String ACCOUNT_PAUL_ATREIDES_USERNAME = "paul";
-    protected static final String ACCOUNT_PAUL_ATREIDES_FULL_NAME = "Paul Atreides";
+    private static final String ACCOUNT_PAUL_ATREIDES_USERNAME = "paul";
+    private static final String ACCOUNT_PAUL_ATREIDES_FULL_NAME = "Paul Atreides";
 
-    protected static final String ACCOUNT_MUAD_DIB_USERNAME = "muaddib";
-    protected static final String ACCOUNT_MUAD_DIB_FULL_NAME = "Muad'Dib";
+    private static final String ACCOUNT_MUAD_DIB_USERNAME = "muaddib";
+    private static final String ACCOUNT_MUAD_DIB_FULL_NAME = "Muad'Dib";
 
-    protected static final String ACCOUNT_DUKE_USERNAME = "duke";
-    protected static final String ACCOUNT_DUKE_FULL_NAME = "Duke Paul Atreides";
-    protected static final String ACCOUNT_DUKE_TITLE = "duke";
+    private static final String ACCOUNT_DUKE_USERNAME = "duke";
+    private static final String ACCOUNT_DUKE_FULL_NAME = "Duke Paul Atreides";
+    private static final String ACCOUNT_DUKE_TITLE = "duke";
 
-    protected static final String ACCOUNT_MAHDI_USERNAME = "mahdi";
-    protected static final String ACCOUNT_MAHDI_FULL_NAME = "Mahdi Muad'Dib";
-    protected static final String ACCOUNT_MAHDI_TITLE = "mahdi";
+    private static final String ACCOUNT_MAHDI_USERNAME = "mahdi";
+    private static final String ACCOUNT_MAHDI_FULL_NAME = "Mahdi Muad'Dib";
+    private static final String ACCOUNT_MAHDI_TITLE = "mahdi";
 
-    protected static final String USER_ODRADE_USERNAME = "odrade";
-    protected static final String ACCOUNT_ODRADE_FIRST_NAME = "Darwi";
-    protected static final String ACCOUNT_ODRADE_LAST_NAME = "Odrade";
-    protected static final String ACCOUNT_ODRADE_PERSONAL_NUMBER = "54321";
-    protected static final String ACCOUNT_ODRADE_CONTRACT_NUMBER_APPRENTICE = "A007";
-    protected static final String ACCOUNT_ODRADE_CONTRACT_NUMBER_GUARDIAN = "G007";
-    protected static final String ACCOUNT_ODRADE_CONTRACT_NUMBER_MOTHER_SUPERIOR = "MS007";
-    protected static final String OU_MOTHER_SCHOOL = "Mother School";
-    protected static final String OU_MOTHER_SUPERIOR_OFFICE = "Mother Superior Office";
-    protected static final String OU_SECURITY = "Security";
+    private static final String USER_ODRADE_USERNAME = "odrade";
+    private static final String ACCOUNT_ODRADE_FIRST_NAME = "Darwi";
+    private static final String ACCOUNT_ODRADE_LAST_NAME = "Odrade";
+    private static final String ACCOUNT_ODRADE_PERSONAL_NUMBER = "54321";
+    private static final String ACCOUNT_ODRADE_CONTRACT_NUMBER_APPRENTICE = "A007";
+    private static final String ACCOUNT_ODRADE_CONTRACT_NUMBER_GUARDIAN = "G007";
+    private static final String ACCOUNT_ODRADE_CONTRACT_NUMBER_MOTHER_SUPERIOR = "MS007";
+    private static final String OU_MOTHER_SCHOOL = "Mother School";
+    private static final String OU_MOTHER_SUPERIOR_OFFICE = "Mother Superior Office";
+    private static final String OU_SECURITY = "Security";
 
     private static final String INTENT_ADMIN = "admin";
     private static final String INTENT_ENVOY = "envoy";
@@ -114,6 +103,8 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     private static final String PLANET_WALLACH_IX = "Wallach IX";
     private static final String PLANET_CHAPTERHOUSE = "Chapterhouse";
     private static final String PLANET_ARRAKIS = "Arrakis";
+
+    private static final String ACCOUNT_IDAHO_ENVOY_IX_USERNAME = "envoy-idaho-ix";
 
     private String accountPaulOid;
     private String accountMuaddibOid;
@@ -199,6 +190,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
 
+        // @formatter:off
         accountPaulOid = assertUserAfterByUsername(ACCOUNT_PAUL_ATREIDES_USERNAME)
                 .displayWithProjections()
                 .assertFullName(ACCOUNT_PAUL_ATREIDES_FULL_NAME)
@@ -206,13 +198,13 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                 .assertOrganizationalUnits(ACCOUNT_PAUL_ATREIDES_FULL_NAME)
                 .singleLink()
                 .resolveTarget()
-                .assertKind(ShadowKindType.ACCOUNT)
-                .assertIntent(SchemaConstants.INTENT_DEFAULT)
-                .assertTagIsOid()
-                .getOid();
+                    .assertKind(ShadowKindType.ACCOUNT)
+                    .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                    .assertTagIsOid()
+                    .getOid();
+        // @formatter:on
 
         assertUsers(getNumberOfUsers() + 1);
-
     }
 
     /**
@@ -240,33 +232,32 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
 
+        // @formatter:off
         accountMuaddibOid = assertUserAfterByUsername(ACCOUNT_PAUL_ATREIDES_USERNAME)
                 .displayWithProjections()
                 .assertFullName(ACCOUNT_PAUL_ATREIDES_FULL_NAME)
                 .assertEmployeeNumber(ACCOUNT_PAUL_ATREIDES_ID)
                 .assertOrganizationalUnits(ACCOUNT_PAUL_ATREIDES_FULL_NAME, ACCOUNT_MUAD_DIB_FULL_NAME)
                 .links()
-                .assertLinks(2)
-                .link(accountPaulOid)
-                .resolveTarget()
-                .display()
-                .assertKind(ShadowKindType.ACCOUNT)
-                .assertIntent(SchemaConstants.INTENT_DEFAULT)
-                .assertTag(accountPaulOid)
-                .end()
-                .end()
-                .by()
-                .notTags(accountPaulOid)
-                .find()
-                .resolveTarget()
-                .display()
-                .assertKind(ShadowKindType.ACCOUNT)
-                .assertIntent(SchemaConstants.INTENT_DEFAULT)
-                .assertTagIsOid()
-                .getOid();
+                    .assertLinks(2)
+                    .link(accountPaulOid)
+                        .resolveTarget()
+                            .display()
+                            .assertKind(ShadowKindType.ACCOUNT)
+                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertTag(accountPaulOid)
+                            .end()
+                        .end()
+                    .by().notTags(accountPaulOid).find()
+                        .resolveTarget()
+                            .display()
+                            .assertKind(ShadowKindType.ACCOUNT)
+                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertTagIsOid()
+                            .getOid();
+        // @formatter:on
 
         assertUsers(getNumberOfUsers() + 1);
-
     }
 
     @Test
@@ -284,6 +275,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
 
+        // @formatter:off
         accountMuaddibOid = assertUserAfter(userPaulOid)
                 .displayWithProjections()
                 .assertFullName(ACCOUNT_PAUL_ATREIDES_FULL_NAME)
@@ -291,27 +283,25 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                 // TODO
                 .assertOrganizationalUnits(ACCOUNT_PAUL_ATREIDES_FULL_NAME, ACCOUNT_MUAD_DIB_FULL_NAME)
                 .links()
-                .assertLinks(2)
-                .link(accountPaulOid)
-                .resolveTarget()
-                .display()
-                .assertKind(ShadowKindType.ACCOUNT)
-                .assertIntent(SchemaConstants.INTENT_DEFAULT)
-                .assertTag(accountPaulOid)
-                .end()
-                .end()
-                .by()
-                .notTags(accountPaulOid)
-                .find()
-                .resolveTarget()
-                .display()
-                .assertKind(ShadowKindType.ACCOUNT)
-                .assertIntent(SchemaConstants.INTENT_DEFAULT)
-                .assertTagIsOid()
-                .getOid();
+                    .assertLinks(2)
+                    .link(accountPaulOid)
+                        .resolveTarget()
+                            .display()
+                            .assertKind(ShadowKindType.ACCOUNT)
+                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertTag(accountPaulOid)
+                            .end()
+                        .end()
+                    .by().notTags(accountPaulOid).find()
+                        .resolveTarget()
+                            .display()
+                            .assertKind(ShadowKindType.ACCOUNT)
+                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertTagIsOid()
+                            .getOid();
+        // @formatter:on
 
         assertUsers(getNumberOfUsers() + 1);
-
     }
 
     /**
@@ -342,6 +332,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
 
+        // @formatter:off
         accountDukeOid = assertUserAfterByUsername(ACCOUNT_PAUL_ATREIDES_USERNAME)
                 .displayWithProjections()
                 .assertFullName(ACCOUNT_PAUL_ATREIDES_FULL_NAME)
@@ -349,35 +340,33 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                 // TODO
 //            .assertOrganizationalUnits(ACCOUNT_PAUL_ATREIDES_FULL_NAME, ACCOUNT_MUAD_DIB_FULL_NAME)
                 .links()
-                .assertLinks(3)
-                .link(accountPaulOid)
-                .resolveTarget()
-                .display()
-                .assertKind(ShadowKindType.ACCOUNT)
-                .assertIntent(SchemaConstants.INTENT_DEFAULT)
-                .assertTag(accountPaulOid)
-                .end()
-                .end()
-                .link(accountMuaddibOid)
-                .resolveTarget()
-                .display()
-                .assertKind(ShadowKindType.ACCOUNT)
-                .assertIntent(SchemaConstants.INTENT_DEFAULT)
-                .assertTag(accountMuaddibOid)
-                .end()
-                .end()
-                .by()
-                .notTags(accountPaulOid, accountMuaddibOid)
-                .find()
-                .resolveTarget()
-                .display()
-                .assertKind(ShadowKindType.ACCOUNT)
-                .assertIntent(INTENT_ADMIN)
-                .assertTag(ACCOUNT_DUKE_TITLE)
-                .getOid();
+                    .assertLinks(3)
+                    .link(accountPaulOid)
+                        .resolveTarget()
+                            .display()
+                            .assertKind(ShadowKindType.ACCOUNT)
+                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertTag(accountPaulOid)
+                        .end()
+                    .end()
+                    .link(accountMuaddibOid)
+                        .resolveTarget()
+                            .display()
+                            .assertKind(ShadowKindType.ACCOUNT)
+                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertTag(accountMuaddibOid)
+                        .end()
+                    .end()
+                    .by().notTags(accountPaulOid, accountMuaddibOid).find()
+                        .resolveTarget()
+                            .display()
+                            .assertKind(ShadowKindType.ACCOUNT)
+                            .assertIntent(INTENT_ADMIN)
+                            .assertTag(ACCOUNT_DUKE_TITLE)
+                            .getOid();
+        // @formatter:on
 
         assertUsers(getNumberOfUsers() + 1);
-
     }
 
     /**
@@ -406,52 +395,49 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
 
-        // TODO
-        //            .assertOrganizationalUnits(ACCOUNT_PAUL_ATREIDES_FULL_NAME, ACCOUNT_MUAD_DIB_FULL_NAME)
-        String accountMahdiOid = assertUserAfterByUsername(ACCOUNT_PAUL_ATREIDES_USERNAME)
+        // @formatter:off
+        assertUserAfterByUsername(ACCOUNT_PAUL_ATREIDES_USERNAME)
                 .displayWithProjections()
                 .assertFullName(ACCOUNT_PAUL_ATREIDES_FULL_NAME)
                 .assertEmployeeNumber(ACCOUNT_PAUL_ATREIDES_ID)
                 // TODO
 //            .assertOrganizationalUnits(ACCOUNT_PAUL_ATREIDES_FULL_NAME, ACCOUNT_MUAD_DIB_FULL_NAME)
                 .links()
-                .assertLinks(4)
-                .link(accountPaulOid)
-                .resolveTarget()
-                .display()
-                .assertKind(ShadowKindType.ACCOUNT)
-                .assertIntent(SchemaConstants.INTENT_DEFAULT)
-                .assertTag(accountPaulOid)
-                .end()
-                .end()
-                .link(accountMuaddibOid)
-                .resolveTarget()
-                .display()
-                .assertKind(ShadowKindType.ACCOUNT)
-                .assertIntent(SchemaConstants.INTENT_DEFAULT)
-                .assertTag(accountMuaddibOid)
-                .end()
-                .end()
-                .link(accountDukeOid)
-                .resolveTarget()
-                .display()
-                .assertKind(ShadowKindType.ACCOUNT)
-                .assertIntent(INTENT_ADMIN)
-                .assertTag(ACCOUNT_DUKE_TITLE)
-                .end()
-                .end()
-                .by()
-                .notTags(accountPaulOid, accountMuaddibOid, ACCOUNT_DUKE_TITLE)
-                .find()
-                .resolveTarget()
-                .display()
-                .assertKind(ShadowKindType.ACCOUNT)
-                .assertIntent(INTENT_ADMIN)
-                .assertTag(ACCOUNT_MAHDI_TITLE)
-                .getOid();
+                    .assertLinks(4)
+                    .link(accountPaulOid)
+                        .resolveTarget()
+                            .display()
+                            .assertKind(ShadowKindType.ACCOUNT)
+                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertTag(accountPaulOid)
+                            .end()
+                        .end()
+                    .link(accountMuaddibOid)
+                        .resolveTarget()
+                            .display()
+                            .assertKind(ShadowKindType.ACCOUNT)
+                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertTag(accountMuaddibOid)
+                            .end()
+                        .end()
+                    .link(accountDukeOid)
+                        .resolveTarget()
+                            .display()
+                            .assertKind(ShadowKindType.ACCOUNT)
+                            .assertIntent(INTENT_ADMIN)
+                            .assertTag(ACCOUNT_DUKE_TITLE)
+                            .end()
+                        .end()
+                    .by().notTags(accountPaulOid, accountMuaddibOid, ACCOUNT_DUKE_TITLE).find()
+                        .resolveTarget()
+                            .display()
+                            .assertKind(ShadowKindType.ACCOUNT)
+                            .assertIntent(INTENT_ADMIN)
+                            .assertTag(ACCOUNT_MAHDI_TITLE)
+                            .getOid();
+        // @formatter:on
 
         assertUsers(getNumberOfUsers() + 1);
-
     }
 
     /**
@@ -479,19 +465,23 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         then();
         assertSuccess(result);
 
+        // @formatter:off
         assertUserAfter(userIdahoOid)
                 .singleLink()
                     .target()
                         .assertResource(RESOURCE_DUMMY_MULTI_OUTBOUND_OID)
                         .assertKind(ShadowKindType.ACCOUNT)
                         .assertIntent(SchemaConstants.INTENT_DEFAULT);
-//                        .assertTagIsOid();
+                        //.assertTagIsOid();
+        // @formatter:on
 
         assertUsers(getNumberOfUsers() + 2);
     }
 
     /**
-     * Create Duncan Idaho user, assign default account on outbound resource, make sure that the usual use case works.
+     * Add Caladan and Kaitain organizations to Duncan Idaho.
+     * Appropriate Envoy accounts should be created.
+     *
      * MID-6242
      */
     @Test
@@ -525,6 +515,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
 
     /**
      * Remove Kaitain from Idaho's organization. His Kaitain envoy account should be deleted.
+     *
      * MID-6242
      */
     @Test
@@ -554,7 +545,8 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-     * Add Ix and Ginaz to Idaho's organization. New envoy account should be created.
+     * Add Ix and Ginaz to Idaho's organization. New envoy accounts should be created.
+     *
      * MID-6242
      */
     @Test
@@ -581,10 +573,12 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         assertEnvoyAccounts(userIdahoOid, USER_IDAHO_NAME, PLANET_CALADAN, PLANET_IX, PLANET_GINAZ);
 
         assertUsers(getNumberOfUsers() + 2);
-        display("Outbound dummy resource\n" + getDummyResource(RESOURCE_DUMMY_MULTI_OUTBOUND_NAME).debugDump(1));
+        displayDumpable("Outbound dummy resource", getDummyResource(RESOURCE_DUMMY_MULTI_OUTBOUND_NAME));
     }
 
     /**
+     * Unassign Envoy account from Idaho. All resource accounts should be deleted.
+     *
      * MID-6242
      */
     @Test
@@ -610,13 +604,18 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-     * MID-6242
+     * Assign Envoy account back to Idaho. Resource accounts corresponding to his organizations should be re-created.
+     * Moreover, envoy-idaho-ix is created "from the side", so it will be in fact discovered. See MID-6796.
      */
     @Test
     public void test350IdahoAssignOutboundMultiaccount() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
+
+        DummyAccount account = new DummyAccount(ACCOUNT_IDAHO_ENVOY_IX_USERNAME);
+        account.setEnabled(true);
+        getDummyResource(RESOURCE_DUMMY_MULTI_OUTBOUND_NAME).addAccount(account);
 
         // Preconditions
         assertUsers(getNumberOfUsers() + 2);
@@ -627,9 +626,10 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         then();
-        assertSuccess(result);
+        assertSuccess(result, 5); // There is discovery related fatal error deep inside
 
-        assertEnvoyAccounts(userIdahoOid, USER_IDAHO_NAME, PLANET_CALADAN, PLANET_IX, PLANET_GINAZ);
+        // Ix is lowercased, because it was tagged during discovery so the tag is derived from icfs:name (envoy-idaho-ix).
+        assertEnvoyAccounts(userIdahoOid, USER_IDAHO_NAME, PLANET_CALADAN, PLANET_IX.toLowerCase(), PLANET_GINAZ);
 
         assertUsers(getNumberOfUsers() + 2);
     }
@@ -637,6 +637,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     /**
      * Mostly just sanity. Make sure that "empty" import works and that the clever HR
      * resource configuration is sane.
+     *
      * MID-6080
      */
     @Test
@@ -708,6 +709,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     /**
      * Import the second account. It should correlate to Odrade user as well.
      * However, this contract is NOT primary. Therefore employee number and location should NOT be changed.
+     *
      * MID-6080
      */
     @Test
@@ -763,7 +765,6 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                         .end();
 
         assertUsers(getNumberOfUsers() + 3);
-
     }
 
     /**
@@ -837,7 +838,8 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         assertUsers(getNumberOfUsers() + 3);
     }
 
-    private void assertEnvoyAccounts(String userOid, String username, String... planets) throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, SecurityViolationException, ExpressionEvaluationException, InterruptedException, FileNotFoundException, ConnectException, SchemaViolationException, ConflictException {
+    @SuppressWarnings("SameParameterValue")
+    private void assertEnvoyAccounts(String userOid, String username, String... planets) throws Exception {
         UserAsserter<Void> asserter = assertUserAfter(userOid)
             .displayWithProjections()
             .links()
@@ -850,7 +852,6 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                         .assertResource(RESOURCE_DUMMY_MULTI_OUTBOUND_OID)
                         .assertKind(ShadowKindType.ACCOUNT)
                         .assertIntent(SchemaConstants.INTENT_DEFAULT)
-//                          .assertTagIsOid()
                     .end()
                 .end()
             .end();
