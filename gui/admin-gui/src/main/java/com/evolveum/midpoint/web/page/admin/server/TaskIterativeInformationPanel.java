@@ -6,39 +6,34 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
-import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Date;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.web.component.box.BasicInfoBoxPanel;
+import com.evolveum.midpoint.web.component.box.InfoBoxType;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskIterativeProgressType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskPartItemsProcessingInformationType;
 
 /**
  * TODO MID-6850 (whole class)
  */
 public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInformationType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TaskIterativeInformationPanel.class);
+    private static final String ID_PROGRESS = "progress";
 
-    private static final String ID_OBJECTS_PROCESSED_SUCCESS = "objectsProcessedSuccess";
-    private static final String ID_OBJECTS_PROCESSED_SUCCESS_TIME = "objectsProcessedSuccessTime";
-    private static final String ID_LAST_OBJECT_PROCESSED_SUCCESS = "lastObjectProcessedSuccess";
-    private static final String ID_LAST_OBJECT_PROCESSED_SUCCESS_TIME = "lastObjectProcessedSuccessTime";
-    private static final String ID_OBJECTS_PROCESSED_FAILURE = "objectsProcessedFailure";
-    private static final String ID_OBJECTS_PROCESSED_FAILURE_TIME = "objectsProcessedFailureTime";
-    private static final String ID_LAST_OBJECT_PROCESSED_FAILURE = "lastObjectProcessedFailure";
-    private static final String ID_LAST_OBJECT_PROCESSED_FAILURE_TIME = "lastObjectProcessedFailureTime";
-    private static final String ID_LAST_ERROR = "lastError";
-    private static final String ID_CURRENT_OBJECT_PROCESSED = "currentObjectProcessed";
-    private static final String ID_CURRENT_OBJECT_PROCESSED_TIME = "currentObjectProcessedTime";
-    private static final String ID_OBJECTS_TOTAL = "objectsTotal";
+    private static final String ID_PARTS = "parts";
+    private static final String ID_SUCESS_ITEM = "successItem";
+    private static final String ID_FAILED_ITEM = "failedItem";
+    private static final String ID_SKIPPED_ITEM = "skippedItem";
+
+    private static final String ID_CURRENT_ITEMS = "currentItems";
+    private static final String ID_CURRENT_ITEM = "currentItem";
 
     public TaskIterativeInformationPanel(String id, IModel<IterativeTaskInformationType> model) {
         super(id, model);
@@ -47,165 +42,48 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initLayout();
+        initLayoutNew();
     }
 
-    protected void initLayout() {
+    private BasicInfoBoxPanel createInfoBoxPanel(IModel<InfoBoxType> boxModel, String boxId) {
 
-        // TODO MID-6850
-        Label processedSuccess = new Label(ID_OBJECTS_PROCESSED_SUCCESS, new PropertyModel<>(getModel(), IterativeTaskInformationType.F_TOTAL_SUCCESS_COUNT.getLocalPart()));
-        add(processedSuccess);
-
-        Label processedSuccessTime = new Label(ID_OBJECTS_PROCESSED_SUCCESS_TIME, () -> {
-                IterativeTaskInformationType info = getModelObject();
-                if (info == null) {
-                    return null;
-                }
-                if (info.getTotalSuccessCount() == 0) {
-                    return null;
-                } else {
-                    return getString("TaskStatePanel.message.objectsProcessedTime",
-                            info.getTotalSuccessDuration()/1000,
-                            info.getTotalSuccessDuration()/info.getTotalSuccessCount());
-                }
-        });
-        add(processedSuccessTime);
-
-        // TODO MID-6850
-        Label lastProcessedSuccess = new Label(ID_LAST_OBJECT_PROCESSED_SUCCESS, new PropertyModel<>(getModel(), IterativeTaskInformationType.F_LAST_SUCCESS_OBJECT_DISPLAY_NAME.getLocalPart()));
-        add(lastProcessedSuccess);
-
-        Label lastProcessedSuccessTime = new Label(ID_LAST_OBJECT_PROCESSED_SUCCESS_TIME, (IModel<String>) () -> {
-            IterativeTaskInformationType info = getModelObject();
-            if (info == null) {
-                return null;
-            }
-            if (info.getLastSuccessEndTimestamp() == null) {
-                return null;
-            } else {
-                if (showAgo(getModelObject())) {
-                    return getString("TaskStatePanel.message.timeInfoWithDurationAndAgo",
-                            formatDate(info.getLastSuccessEndTimestamp(), getPageBase()),
-                            WebComponentUtil.formatDurationWordsForLocal(System.currentTimeMillis() -
-                                    XmlTypeConverter.toMillis(info.getLastSuccessEndTimestamp()), true, true, getPageBase()),
-                            info.getLastSuccessDuration());
-                } else {
-                    return getString("TaskStatePanel.message.timeInfoWithDuration",
-                            formatDate(info.getLastSuccessEndTimestamp(), getPageBase()),
-                            info.getLastSuccessDuration());
-                }
-            }
-        });
-        add(lastProcessedSuccessTime);
-
-        // TODO MID-6850
-        Label processedFailure = new Label(ID_OBJECTS_PROCESSED_FAILURE, new PropertyModel<>(getModel(), IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT.getLocalPart()));
-        add(processedFailure);
-
-        Label processedFailureTime = new Label(ID_OBJECTS_PROCESSED_FAILURE_TIME, (IModel<String>) () -> {
-            IterativeTaskInformationType info = getModelObject();
-            if (info == null) {
-                return null;
-            }
-            if (info.getTotalFailureCount() == 0) {
-                return null;
-            } else {
-                return getString("TaskStatePanel.message.objectsProcessedTime",
-                        info.getTotalFailureDuration()/1000,
-                        info.getTotalFailureDuration()/info.getTotalFailureCount());
-            }
-        });
-        add(processedFailureTime);
-
-        // TODO MID-6850
-        Label lastProcessedFailure = new Label(ID_LAST_OBJECT_PROCESSED_FAILURE, new PropertyModel<>(getModel(), IterativeTaskInformationType.F_LAST_FAILURE_OBJECT_DISPLAY_NAME.getLocalPart()));
-        add(lastProcessedFailure);
-
-        Label lastProcessedFailureTime = new Label(ID_LAST_OBJECT_PROCESSED_FAILURE_TIME, (IModel<String>) () -> {
-            IterativeTaskInformationType info = getModelObject();
-            if (info == null) {
-                return null;
-            }
-            if (info.getLastFailureEndTimestamp() == null) {
-                return null;
-            } else {
-                if (showAgo(info)) {
-                    return getString("TaskStatePanel.message.timeInfoWithDurationAndAgo",
-                            formatDate(info.getLastFailureEndTimestamp(), getPageBase()),
-                            WebComponentUtil.formatDurationWordsForLocal(System.currentTimeMillis() -
-                                    XmlTypeConverter.toMillis(info.getLastFailureEndTimestamp()), true, true, getPageBase()),
-                            info.getLastFailureDuration());
-                } else {
-                    return getString("TaskStatePanel.message.timeInfoWithDuration",
-                            formatDate(info.getLastFailureEndTimestamp(), getPageBase()),
-                            info.getLastFailureDuration());
-                }
-            }
-        });
-        add(lastProcessedFailureTime);
-
-        // TODO MID-6850
-        Label lastError = new Label(ID_LAST_ERROR, new PropertyModel<>(getModel(), IterativeTaskInformationType.F_LAST_FAILURE_EXCEPTION_MESSAGE.getLocalPart()));
-        add(lastError);
-
-        // TODO MID-6850
-        Label currentObjectProcessed = new Label(ID_CURRENT_OBJECT_PROCESSED, new PropertyModel<>(getModel(), IterativeTaskInformationType.F_CURRENT_OBJECT_DISPLAY_NAME.getLocalPart()));
-        add(currentObjectProcessed);
-
-        Label currentObjectProcessedTime = new Label(ID_CURRENT_OBJECT_PROCESSED_TIME, (IModel<String>) () -> {
-            IterativeTaskInformationType info = getModelObject();
-            if (info == null) {
-                return null;
-            }
-            if (info.getCurrentObjectStartTimestamp() == null) {
-                return null;
-            } else {
-                return getString("TaskStatePanel.message.timeInfoWithAgo",
-                        formatDate(info.getCurrentObjectStartTimestamp(), getPageBase()),
-                        WebComponentUtil.formatDurationWordsForLocal(System.currentTimeMillis() -
-                                XmlTypeConverter.toMillis(info.getCurrentObjectStartTimestamp()), true, true, getPageBase()));
-            }
-        });
-        add(currentObjectProcessedTime);
-
-        Label objectsTotal = new Label(ID_OBJECTS_TOTAL, (IModel<String>) () -> {
-            IterativeTaskInformationType info = getModelObject();
-            if (info == null) {
-                return null;
-            }
-            int objectsTotal1 = info.getTotalSuccessCount() + info.getTotalFailureCount();
-                Long avg = getWallClockAverage(objectsTotal1);
-                if (avg != null) {
-                    long throughput = avg != 0 ? 60000 / avg : 0;       // TODO what if avg == 0?
-                    return getString("TaskStatePanel.message.objectsTotal",
-                            objectsTotal1, avg, throughput);
-                }
-            return String.valueOf(objectsTotal1);
-        });
-        add(objectsTotal);
+        BasicInfoBoxPanel infoBoxPanel = new BasicInfoBoxPanel(boxId, boxModel);
+        infoBoxPanel.setOutputMarkupId(true);
+        infoBoxPanel.add(new VisibleBehaviour(() -> boxModel.getObject() != null));
+        return infoBoxPanel;
     }
 
-    private String formatDate(XMLGregorianCalendar date, PageBase pageBase) {
-        return formatDate(XmlTypeConverter.toDate(date), pageBase);
+    private void initLayoutNew() {
+
+        ListView<IterativeTaskPartItemsProcessingInformationType> partsView = new ListView<>(ID_PARTS, new PropertyModel<>(getModel(), IterativeTaskInformationType.F_PART.getLocalPart())) {
+
+            @Override
+            protected void populateItem(ListItem<IterativeTaskPartItemsProcessingInformationType> item) {
+                IModel<TaskIterativeProgressType> progressModel = createProgressModel(item);
+                item.add(createInfoBoxPanel(new PropertyModel<>(progressModel, TaskIterativeProgressType.F_PROGRESS), ID_PROGRESS));
+
+                ListView<InfoBoxType> currentItems = new ListView<>(ID_CURRENT_ITEMS, new PropertyModel<>(progressModel, TaskIterativeProgressType.F_CURRENT_ITEMS)) {
+
+                    @Override
+                    protected void populateItem(ListItem<InfoBoxType> item) {
+                        item.add(createInfoBoxPanel(item.getModel(), ID_CURRENT_ITEM));
+                    }
+                };
+                currentItems.setOutputMarkupId(true);
+                item.add(currentItems);
+
+                item.add(createInfoBoxPanel(new PropertyModel<>(progressModel, TaskIterativeProgressType.F_SUCCESS_BOX), ID_SUCESS_ITEM));
+                item.add(createInfoBoxPanel(new PropertyModel<>(progressModel, TaskIterativeProgressType.F_FAILED_BOX), ID_FAILED_ITEM));
+                item.add(createInfoBoxPanel(new PropertyModel<>(progressModel, TaskIterativeProgressType.F_SKIP_BOX), ID_SKIPPED_ITEM));
+
+            }
+        };
+        partsView.setOutputMarkupId(true);
+        add(partsView);
     }
 
-    private String formatDate(Date date, PageBase pageBase) {
-        if (date == null) {
-            return null;
-        }
-        return WebComponentUtil.getLongDateTimeFormattedValue(date, pageBase);
+    protected IModel<TaskIterativeProgressType> createProgressModel(ListItem<IterativeTaskPartItemsProcessingInformationType> item) {
+        throw new UnsupportedOperationException("Not supported. Should be impelemnted in panel, which uses it");
     }
 
-    protected boolean showAgo(IterativeTaskInformationType taskInfo) {
-        boolean showAgo = false;
-        if (taskInfo.getCurrentObjectDisplayName() != null) {
-            showAgo = true; // for all running tasks
-        }
-
-        return showAgo;
-    }
-
-    protected Long getWallClockAverage(int objectsTotal) {
-        return null;
-    }
 }

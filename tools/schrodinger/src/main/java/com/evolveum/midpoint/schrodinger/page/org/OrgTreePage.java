@@ -32,7 +32,7 @@ public class OrgTreePage extends BasicPage {
     }
 
     public OrgTreePage assertRootOrgExists(String rootOrgName) {
-        Assert.assertNotNull(getTabPanel().getParentElement().$(By.linkText(rootOrgName)));
+        assertion.assertNotNull(getTabPanel().getParentElement().$(By.linkText(rootOrgName)));
         return this;
     }
 

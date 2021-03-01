@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2021 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,26 +17,70 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <h2>
-        <wicket:message key="TaskOperationStatisticsPanel.processingInfo"/>
-    </h2>
-    <div wicket:id="processingInfo"></div>
-    <wicket:enclosure child="synchronizationSituation">
-        <h2>
-            <wicket:message key="TaskOperationStatisticsPanel.synchronization.situation"/>
-        </h2>
-        <div wicket:id="synchronizationSituation"></div>
-    </wicket:enclosure>
-    <h2>
-        <wicket:message key="TaskOperationStatisticsPanel.resultingEntry"/>
-    </h2>
-    <wicket:message key="TaskOperationStatisticsPanel.resultingEntry.info"/>
-    <div wicket:id="resultingEntry"></div>
-    <h2>
-        <wicket:message key="TaskOperationStatisticsPanel.actionEntry"/>
-    </h2>
-    <wicket:message key="TaskOperationStatisticsPanel.actionEntry.info"/>
-    <div wicket:id="actionEntry"></div>
+
+    <div class="box box-default">
+        <div class="box-header with-border">
+            <h3 class="box-title"><wicket:message key="TaskOperationStatisticsPanel.processingInfo"/></h3>
+        </div>
+
+        <div class="box-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <div wicket:id="processingInfo"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div wicket:id="synchronizationStatistics">
+        <div class="box box-default">
+            <wicket:enclosure child="synchronizationSituationTransitions">
+                <div class="box-header with-border">
+                    <h3 class="box-title"><wicket:message key="TaskOperationStatisticsPanel.synchronization.situation"/></h3>
+                </div>
+
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div wicket:id="synchronizationSituationTransitions">
+                                <div wicket:id="synchronizationSituationTransition"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </wicket:enclosure>
+        </div>
+    </div>
+
+    <div class="box box-default">
+        <div class="box-header with-border">
+            <h3 class="box-title"><wicket:message key="TaskOperationStatisticsPanel.resultingEntry"/></h3>
+        </div>
+
+        <div class="box-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <wicket:message key="TaskOperationStatisticsPanel.resultingEntry.info"/>
+                    <div wicket:id="resultingEntry"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="box box-default">
+        <div class="box-header with-border">
+            <h3 class="box-title"><wicket:message key="TaskOperationStatisticsPanel.actionEntry"/></h3>
+        </div>
+
+        <div class="box-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <wicket:message key="TaskOperationStatisticsPanel.actionEntry.info"/>
+                    <div wicket:id="actionEntry"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </wicket:panel>
 </body>

@@ -39,7 +39,7 @@ public class ManagerPanel<T> extends Component<T> {
     }
 
     public ManagerPanel<T> assertContainsManager(String... expectedManagers) {
-        Assert.assertTrue(containsManager(expectedManagers));
+        assertion.assertTrue(containsManager(expectedManagers));
         return this;
     }
 }

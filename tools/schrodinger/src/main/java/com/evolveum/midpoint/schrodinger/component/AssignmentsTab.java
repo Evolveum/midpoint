@@ -128,13 +128,13 @@ public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends TabWi
     }
 
     public AssignmentsTab<P> assertAssignmentsWithRelationExist(String relation, String... expectedAssignments) {
-        Assert.assertTrue(containsAssignmentsWithRelation(relation, expectedAssignments), "Assignments doesn't exist.");
+        assertion.assertTrue(containsAssignmentsWithRelation(relation, expectedAssignments), "Assignments doesn't exist.");
         return this;
     }
 
     public AssignmentsTab<P> assertAssignmentsCountLabelEquals(String expectedValue) {
         SelenideElement el = $(By.partialLinkText("Assignments"));
-        Assert.assertEquals(el.$x(".//small[@data-s-id='count']").getText(), expectedValue, "Assignments count label doesn't equal to expected value");
+        assertion.assertEquals(el.$x(".//small[@data-s-id='count']").getText(), expectedValue, "Assignments count label doesn't equal to expected value");
         return this;
     }
 }

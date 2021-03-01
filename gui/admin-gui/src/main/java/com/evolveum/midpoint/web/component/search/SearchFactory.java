@@ -57,7 +57,8 @@ public class SearchFactory {
         SEARCHABLE_OBJECTS.put(FocusType.class, Arrays.asList(
                 ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
                 ItemPath.create(FocusType.F_ROLE_MEMBERSHIP_REF),
-                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)
+                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
+                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)
         ));
         SEARCHABLE_OBJECTS.put(UserType.class, Arrays.asList(
                 ItemPath.create(UserType.F_TITLE),

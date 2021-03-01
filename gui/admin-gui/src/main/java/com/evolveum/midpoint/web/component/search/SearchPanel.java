@@ -15,6 +15,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
@@ -505,7 +506,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
             @Override
             public IModel<Boolean> getVisible() {
-                return Model.of(getPageBase().getCompiledGuiProfile().isEnableExperimentalFeatures()
+                return Model.of(WebModelServiceUtils.isEnableExperimentalFeature(getPageBase())
                         && getModelObject().isAllowedSearchMode(SearchBoxModeType.QUERY_DSL));
             }
         };

@@ -37,7 +37,8 @@ public class TraceWriter {
                 .options(
                         SerializationOptions
                                 .createSerializeReferenceNames()
-                                .escapeInvalidCharacters(true))
+                                .escapeInvalidCharacters(true)
+                                .serializeUnsupportedTypesAsString(true))
                 .serializeRealValue(tracingOutput);
         if (zip) {
             MiscUtil.writeZipFile(file, ZIP_ENTRY_NAME, xml, StandardCharsets.UTF_8);

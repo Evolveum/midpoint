@@ -47,7 +47,7 @@ public class BasicInfoBoxPanel extends InfoBoxPanel{
 
             @Override
             public boolean isVisible() {
-                return model.getObject().getProgress() != null;
+                return model.getObject() != null && model.getObject().getProgress() != null;
             }
         });
         ProgressbarPanel progressBar = new ProgressbarPanel(ID_PROGRESS_BAR, new PropertyModel<>(model, InfoBoxType.PROGRESS));

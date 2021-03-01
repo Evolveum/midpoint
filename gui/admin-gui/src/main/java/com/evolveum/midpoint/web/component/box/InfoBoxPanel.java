@@ -18,7 +18,7 @@ import org.apache.wicket.request.component.IRequestablePage;
  * @author katkav
  * @author semancik
  */
-public abstract class InfoBoxPanel extends Panel{
+public abstract class InfoBoxPanel extends Panel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_INFO_BOX = "infoBox";

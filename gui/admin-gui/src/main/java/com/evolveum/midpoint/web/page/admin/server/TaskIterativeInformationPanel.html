@@ -17,38 +17,57 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <table class="table table-condensed table-striped">
-        <tr>
-            <td><wicket:message key="TaskStatePanel.objectsProcessedSuccess"/></td>
-            <td><b><span wicket:id="objectsProcessedSuccess"/></b> <span wicket:id="objectsProcessedSuccessTime"/></td>
-        </tr>
-        <tr>
-            <td><wicket:message key="TaskStatePanel.lastObjectProcessedSuccess"/></td>
-            <td><b><span wicket:id="lastObjectProcessedSuccess"/></b><br/>
-            <span wicket:id="lastObjectProcessedSuccessTime"/></td>
-        </tr>
-        <tr>
-            <td><wicket:message key="TaskStatePanel.objectsProcessedFailure"/></td>
-            <td><b><span wicket:id="objectsProcessedFailure"/></b> <span wicket:id="objectsProcessedFailureTime"/></td>
-        </tr>
-        <tr>
-            <td><wicket:message key="TaskStatePanel.lastObjectProcessedFailure"/></td>
-            <td><b><span wicket:id="lastObjectProcessedFailure"/></b><br/>
-                <span wicket:id="lastObjectProcessedFailureTime"/></td>
-        </tr>
-        <tr>
-            <td><wicket:message key="TaskStatePanel.lastError"/></td>
-            <td><span wicket:id="lastError"/></td>
-        </tr>
-        <tr>
-            <td><wicket:message key="TaskStatePanel.currentObjectProcessed"/></td>
-            <td><b><span wicket:id="currentObjectProcessed"/></b><br/>
-                <span wicket:id="currentObjectProcessedTime"/></td>
-        </tr>
-        <tr>
-            <td><wicket:message key="TaskStatePanel.objectsTotal"/></td>
-            <td><span wicket:id="objectsTotal"/></td>
-        </tr>
-    </table>
+    <div wicket:id="parts">
+        <div class="row">
+            <div class="col-md-12">
+                <div wicket:id="progress"></div>
+                <div wicket:id="currentItems">
+                    <div wicket:id="currentItem"></div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div wicket:id="successItem"></div>
+                <div wicket:id="failedItem"></div>
+                <div wicket:id="skippedItem"></div>
+            </div>
+        </div>
+    </div>
+
+<!--    <div wicket:id="progress"></div>-->
+<!--    <table class="table table-condensed table-striped">-->
+<!--        <tr>-->
+<!--            <td><wicket:message key="TaskStatePanel.objectsProcessedSuccess"/></td>-->
+<!--            <td><b><span wicket:id="objectsProcessedSuccess"/></b> <span wicket:id="objectsProcessedSuccessTime"/></td>-->
+<!--        </tr>-->
+<!--        <tr>-->
+<!--            <td><wicket:message key="TaskStatePanel.lastObjectProcessedSuccess"/></td>-->
+<!--            <td><b><span wicket:id="lastObjectProcessedSuccess"/></b><br/>-->
+<!--            <span wicket:id="lastObjectProcessedSuccessTime"/></td>-->
+<!--        </tr>-->
+<!--        <tr>-->
+<!--            <td><wicket:message key="TaskStatePanel.objectsProcessedFailure"/></td>-->
+<!--            <td><b><span wicket:id="objectsProcessedFailure"/></b> <span wicket:id="objectsProcessedFailureTime"/></td>-->
+<!--        </tr>-->
+<!--        <tr>-->
+<!--            <td><wicket:message key="TaskStatePanel.lastObjectProcessedFailure"/></td>-->
+<!--            <td><b><span wicket:id="lastObjectProcessedFailure"/></b><br/>-->
+<!--                <span wicket:id="lastObjectProcessedFailureTime"/></td>-->
+<!--        </tr>-->
+<!--        <tr>-->
+<!--            <td><wicket:message key="TaskStatePanel.lastError"/></td>-->
+<!--            <td><span wicket:id="lastError"/></td>-->
+<!--        </tr>-->
+<!--        <tr>-->
+<!--            <td><wicket:message key="TaskStatePanel.currentObjectProcessed"/></td>-->
+<!--            <td><b><span wicket:id="currentObjectProcessed"/></b><br/>-->
+<!--                <span wicket:id="currentObjectProcessedTime"/></td>-->
+<!--        </tr>-->
+<!--        <tr>-->
+<!--            <td><wicket:message key="TaskStatePanel.objectsTotal"/></td>-->
+<!--            <td><span wicket:id="objectsTotal"/></td>-->
+<!--        </tr>-->
+<!--    </table>-->
 </wicket:panel>
 </html>

@@ -248,8 +248,11 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 if (jaxb != null) {
                     mAuditDelta.status = MiscUtil.enumOrdinal(
                             RUtil.getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
+                    // Note that escaping invalid characters and using toString for unsupported types is safe in the
+                    // context of operation result serialization.
                     String full = schemaService.createStringSerializer(PrismContext.LANG_XML)
-                            .options(SerializationOptions.createEscapeInvalidCharacters())
+                            .options(SerializationOptions.createEscapeInvalidCharacters()
+                                    .serializeUnsupportedTypesAsString(true))
                             .serializeRealValue(jaxb, SchemaConstantsGenerated.C_OPERATION_RESULT);
                     mAuditDelta.fullResult = RUtil.getBytesFromSerializedForm(
                             full, sqlConfiguration().isUseZipAudit());

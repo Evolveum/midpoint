@@ -14,12 +14,19 @@ import com.evolveum.midpoint.util.annotation.Experimental;
  */
 public class DeltaConversionOptions {
 
+    /**
+     * Should we serialize target names in object references?
+     */
     private boolean serializeReferenceNames;
 
     /**
      * Works around characters that cannot be serialized in XML by replacing them with appropriate
-     * form. The result will not be machine processable, so it should be used with caution: for example
+     * form.
+     *
+     * The result will not be machine processable, so it should be used with caution: for example
      * only for logging, tracing, or maybe auditing purposes.
+     *
+     * See analogous option in {@link com.evolveum.midpoint.prism.SerializationOptions}.
      */
     @Experimental
     private boolean escapeInvalidCharacters;

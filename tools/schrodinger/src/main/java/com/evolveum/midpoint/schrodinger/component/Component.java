@@ -9,7 +9,10 @@ package com.evolveum.midpoint.schrodinger.component;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import com.evolveum.midpoint.schrodinger.util.AssertionWithScreenshot;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+
+import org.testng.asserts.Assertion;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -19,6 +22,8 @@ public abstract class Component<T> {
     private T parent;
 
     private SelenideElement parentElement;
+
+    protected static AssertionWithScreenshot assertion = new AssertionWithScreenshot();
 
     public Component(T parent) {
         this(parent, null);

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -28,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author Radovan Semancik
  *
  */
-public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable {
+public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable, Serializable, Cloneable {
 
     private ObjectDelta<O> objectDelta;
     private OperationResult executionResult;

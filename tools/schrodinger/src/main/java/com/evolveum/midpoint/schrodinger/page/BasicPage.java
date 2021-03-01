@@ -15,10 +15,13 @@ import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import com.codeborne.selenide.ex.ElementShould;
 
+import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.component.common.UserMenuPanel;
 import com.evolveum.midpoint.schrodinger.page.objectcollection.ListObjectCollectionsPage;
 import com.evolveum.midpoint.schrodinger.page.objectcollection.ObjectCollectionPage;
 import com.evolveum.midpoint.schrodinger.page.service.ServicePage;
+
+import com.evolveum.midpoint.schrodinger.util.AssertionWithScreenshot;
 
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
@@ -66,6 +69,7 @@ public class BasicPage {
     public LoggedUser loggedUser() {
         return new LoggedUser();
     }
+    protected AssertionWithScreenshot assertion = new AssertionWithScreenshot();
 
     public HomePage home() {
         clickSelfServiceMenu("PageAdmin.menu.selfDashboard", null);
@@ -395,7 +399,7 @@ public class BasicPage {
 
     public BasicPage assertAdministrationMenuItemIconClassEquals(String mainMenuKey, String menuItemKey, String expectedIconClass){
         SelenideElement menuItem = getMenuItemElement(ConstantsUtil.ADMINISTRATION_MENU_ITEMS_SECTION_KEY, mainMenuKey, menuItemKey);
-        Assert.assertEquals(expectedIconClass, menuItem.parent().$(By.tagName("i")).getAttribute("class"),
+        assertion.assertEquals(expectedIconClass, menuItem.parent().$(By.tagName("i")).getAttribute("class"),
                 "Menu item icon (menu item key is '" + menuItemKey + "') doesn't match to value '" + expectedIconClass + "'.");
         return this;
     }
@@ -497,7 +501,7 @@ public class BasicPage {
     }
 
     public BasicPage assertMainHeaderPanelStyleMatch(String styleToCompare) {
-        Assert.assertTrue(getMainHeaderPanelElement().getCssValue("background-color").equals(styleToCompare),
+        assertion.assertTrue(getMainHeaderPanelElement().getCssValue("background-color").equals(styleToCompare),
                 "Main header panel background color doesn't match to " + styleToCompare);
         return this;
     }
@@ -508,7 +512,7 @@ public class BasicPage {
     }
 
     public BasicPage assertPageTitleStartsWith(String titleStartText) {
-        Assert.assertTrue(getPageTitleElement().getText().startsWith(titleStartText), "Page title doesn't start with " + titleStartText);
+        assertion.assertTrue(getPageTitleElement().getText().startsWith(titleStartText), "Page title doesn't start with " + titleStartText);
         return this;
     }
 
@@ -527,29 +531,29 @@ public class BasicPage {
     }
 
     public BasicPage assertElementWithTextExists(String text) {
-        Assert.assertTrue($(byText(text)).exists(), "Element with text '" + text + "' doesn't exist on the page.");
+        assertion.assertTrue($(byText(text)).exists(), "Element with text '" + text + "' doesn't exist on the page.");
         return this;
     }
 
     public BasicPage assertUserMenuExist() {
-        Assert.assertTrue(userMenuExists(), "User should be logged in, user menu should be visible.");
+        assertion.assertTrue(userMenuExists(), "User should be logged in, user menu should be visible.");
         return this;
     }
 
     public BasicPage assertUserMenuDoesntExist() {
-        Assert.assertFalse(userMenuExists(), "User should be logged out, user menu shouldn't be visible.");
+        assertion.assertFalse(userMenuExists(), "User should be logged out, user menu shouldn't be visible.");
         return this;
     }
 
     public BasicPage assertMenuItemActive(SelenideElement menuItemElement) {
         SelenideElement menuItemLi = menuItemElement.parent().parent();
-        Assert.assertTrue(menuItemLi.has(Condition.cssClass("active")), "Menu item should be active");
+        assertion.assertTrue(menuItemLi.has(Condition.cssClass("active")), "Menu item should be active");
         return this;
     }
 
     public BasicPage assertMenuItemDoesntActive(SelenideElement menuItemElement) {
         SelenideElement menuItemLi = menuItemElement.parent().parent();
-        Assert.assertFalse(menuItemLi.has(Condition.cssClass("active")), "Menu item shouldn't be active");
+        assertion.assertFalse(menuItemLi.has(Condition.cssClass("active")), "Menu item shouldn't be active");
         return this;
     }
 

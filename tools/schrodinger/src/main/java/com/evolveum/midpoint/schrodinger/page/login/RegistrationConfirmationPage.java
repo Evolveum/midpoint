@@ -19,7 +19,7 @@ import static com.codeborne.selenide.Selenide.$;
 public class RegistrationConfirmationPage extends BasicPage {
 
     public RegistrationConfirmationPage assertSuccessPanelExists() {
-        Assert.assertTrue($(Schrodinger.byDataId("successPanel")).exists());
+        assertion.assertTrue($(Schrodinger.byDataId("successPanel")).exists());
         return this;
     }
 

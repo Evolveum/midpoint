@@ -33,6 +33,8 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.evolveum.midpoint.prism.SerializationOptions.getOptions;
+
 public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(BeanMarshaller.class);
@@ -128,7 +130,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
     }
 
     private XNodeImpl marshalToPrimitive(Object bean, SerializationContext ctx) {
-        return createPrimitiveXNode(bean, null, false);
+        return createPrimitiveXNode(bean, null, false, ctx);
     }
 
     private XNodeImpl marshalXmlType(Object bean, SerializationContext ctx) throws SchemaException {
@@ -227,6 +229,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
                 throw new IllegalStateException("No getter for field "+fieldName+" in "+beanClass);
             }
             Object getterResult = getValue(bean, getter, fieldName);
+
             if (getterResult == null) {
                 continue;
             }
@@ -255,6 +258,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
                 if (getterResultValue == null) {
                     return null;
                 }
+
                 // elementName will be determined from the first item on the list
                 // TODO make sure it will be correct with respect to other items as well!
                 if (getterResultValue instanceof JAXBElement && ((JAXBElement<?>) getterResultValue).getName() != null) {
@@ -295,7 +299,6 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
         return marshaled;
     }
 
-
     private Object getValue(Object bean, Method getter, String fieldOrPropertyName) {
         Object getterResult;
         try {
@@ -313,7 +316,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
             enumStringValue = enumValue.toString();
         }
         QName fieldTypeName = inspector.findTypeName(null, enumClass, DEFAULT_PLACEHOLDER);
-        return createPrimitiveXNode(enumStringValue, fieldTypeName, false);
+        return createPrimitiveXNode(enumStringValue, fieldTypeName, false, ctx);
 
     }
 
@@ -508,21 +511,18 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
         }
         if (isAttribute) {
             // hoping the value fits into primitive!
-            return createPrimitiveXNode(value, valueType, true);
+            return createPrimitiveXNode(value, valueType, true, ctx);
         } else {
             return marshall(value, ctx);
         }
     }
 
-    private <T> PrimitiveXNodeImpl<T> createPrimitiveXNode(T value, QName valueType, boolean isAttribute) {
+    private <T> PrimitiveXNodeImpl<T> createPrimitiveXNode(T value, QName valueType, boolean isAttribute,
+            SerializationContext ctx) {
         PrimitiveXNodeImpl<T> xprim = new PrimitiveXNodeImpl<>();
-        xprim.setValue(value, valueType);
+        xprim.setValue(value, valueType, getOptions(ctx));
         xprim.setAttribute(isAttribute);
         return xprim;
-    }
-
-    private <T> PrimitiveXNodeImpl<T> createPrimitiveXNode(T val, QName type) {
-        return createPrimitiveXNode(val, type, false);
     }
 
     private XNodeImpl marshalRawType(Object value, SerializationContext sc) throws SchemaException {
@@ -613,7 +613,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
             xmap.put(ProtectedDataType.F_HASHED_DATA, xHashedDataType);
         } else if (protectedType.getClearValue() != null){
             QName type = XsdTypeMapper.toXsdType(protectedType.getClearValue().getClass());
-            PrimitiveXNodeImpl<?> xClearValue = createPrimitiveXNode(protectedType.getClearValue(), type);
+            PrimitiveXNodeImpl<?> xClearValue = createPrimitiveXNode(protectedType.getClearValue(), type, false, sc);
             xmap.put(ProtectedDataType.F_CLEAR_VALUE, xClearValue);
         }
         // TODO: clearValue

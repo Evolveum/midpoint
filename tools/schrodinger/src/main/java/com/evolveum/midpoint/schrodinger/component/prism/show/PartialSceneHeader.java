@@ -31,7 +31,7 @@ public class PartialSceneHeader extends Component<ScenePanel> {
 
     public PartialSceneHeader assertChangeTypeEquals(String expectedValue) {
         SelenideElement element = $(Schrodinger.byDataId("changeType"));
-        Assert.assertEquals(expectedValue, element.getText(), "Unexpected change type");
+        assertion.assertEquals(expectedValue, element.getText(), "Unexpected change type");
         return this;
     }
 
@@ -42,13 +42,13 @@ public class PartialSceneHeader extends Component<ScenePanel> {
         } else {
             element = getNameLabel();
         }
-        Assert.assertEquals(expectedValue, element.getText(), "Unexpected object name.");
+        assertion.assertEquals(expectedValue, element.getText(), "Unexpected object name.");
         return this;
     }
 
     public PartialSceneHeader assertChangedObjectTypeEquals(String expectedValue) {
         SelenideElement element = $(Schrodinger.byDataId("objectType"));
-        Assert.assertEquals(expectedValue, element.getText(), "Unexpected change object type");
+        assertion.assertEquals(expectedValue, element.getText(), "Unexpected change object type");
         return this;
     }
 
@@ -84,12 +84,12 @@ public class PartialSceneHeader extends Component<ScenePanel> {
     }
 
     public PartialSceneHeader assertIsLink() {
-        Assert.assertTrue(isLink(), "Link is expected.");
+        assertion.assertTrue(isLink(), "Link is expected.");
         return this;
     }
 
     public PartialSceneHeader assertIsNotLink() {
-        Assert.assertFalse(isLink(), "Link is not expected.");
+        assertion.assertFalse(isLink(), "Link is not expected.");
         return this;
     }
 
