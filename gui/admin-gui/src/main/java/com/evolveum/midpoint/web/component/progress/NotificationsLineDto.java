@@ -12,13 +12,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationsStatist
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationsStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author Pavol Mederly
  */
-public class NotificationsLineDto {
+public class NotificationsLineDto implements Serializable {
 
     public static final String F_TRANSPORT = "transport";
     public static final String F_COUNT_SUCCESS = "countSuccess";

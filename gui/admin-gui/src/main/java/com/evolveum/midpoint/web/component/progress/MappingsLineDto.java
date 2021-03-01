@@ -12,13 +12,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsStatisticsEn
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author Pavol Mederly
  */
-public class MappingsLineDto {
+public class MappingsLineDto implements Serializable {
 
     public static final String F_OBJECT = "object";
     public static final String F_COUNT = "count";
