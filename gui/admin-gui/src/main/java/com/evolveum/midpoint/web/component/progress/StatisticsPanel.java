@@ -102,6 +102,11 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
                         })));
                         return item;
                     }
+
+                    @Override
+                    protected boolean hideFooterIfSinglePage() {
+                        return true;
+                    }
                 };
                 provisioningTable.setOutputMarkupId(true);
                 item.add(provisioningTable);
@@ -117,6 +122,11 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
                 return new TableHeaderFragment(headerId, ID_MAPPINGS_TITLE, StatisticsPanel.this,
                         createStringResource("Title.MappingsStatistics"));
             }
+
+            @Override
+            protected boolean hideFooterIfSinglePage() {
+                return true;
+            }
         };
 
         mappingsLines.setOutputMarkupId(true);
@@ -129,6 +139,11 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
             protected WebMarkupContainer createHeader(String headerId) {
                 return new TableHeaderFragment(headerId, ID_NOTIFICATIONS_TITLE, StatisticsPanel.this,
                         createStringResource("Title.NotificationsStatistics"));
+            }
+
+            @Override
+            protected boolean hideFooterIfSinglePage() {
+                return true;
             }
 
         };
