@@ -445,14 +445,6 @@ public class ExpressionUtil {
         return values;
     }
 
-    public static void updateAssociationTargetSearchPath(ExpressionType expression, ItemPathType path, PrismContext prismContext) {
-        MapXNode values = getOrCreateAssociationTargetSearchValues(expression, prismContext);
-        PrimitiveXNode<ItemPathType> pathValue = (PrimitiveXNode<ItemPathType>) values.get(new QName("path"));
-        if (pathValue != null) {
-            prismContext.xnodeMutator().setPrimitiveXNodeValue(pathValue, path, null);
-        }
-    }
-
     public static void updateAssociationTargetSearchValue(ExpressionType expression, String newPath, String newValue,
             PrismContext prismContext) throws SchemaException {
         SearchObjectExpressionEvaluatorType associationTargetSearchType = new SearchObjectExpressionEvaluatorType();
