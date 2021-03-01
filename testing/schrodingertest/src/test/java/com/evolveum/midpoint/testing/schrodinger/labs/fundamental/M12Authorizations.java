@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.testing.schrodinger.labs;
+package com.evolveum.midpoint.testing.schrodinger.labs.fundamental;
 
 import com.codeborne.selenide.Selenide;
 
@@ -15,6 +15,8 @@ import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 
 import com.evolveum.midpoint.schrodinger.page.self.ProfilePage;
 import com.evolveum.midpoint.schrodinger.util.Utils;
+
+import com.evolveum.midpoint.testing.schrodinger.labs.AbstractLabTest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +31,7 @@ import java.io.IOException;
  * @author skublik
  */
 
-public class M12Authorizations extends AbstractLabTest{
+public class M12Authorizations extends AbstractLabTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(M12Authorizations.class);
     protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M12/";

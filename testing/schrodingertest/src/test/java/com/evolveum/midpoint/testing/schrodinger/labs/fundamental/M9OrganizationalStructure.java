@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.testing.schrodinger.labs;
+package com.evolveum.midpoint.testing.schrodinger.labs.fundamental;
 
 import com.codeborne.selenide.Selenide;
 
@@ -13,6 +13,7 @@ import com.evolveum.midpoint.schrodinger.page.org.OrgPage;
 import com.evolveum.midpoint.schrodinger.page.org.OrgTreePage;
 
 import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
+import com.evolveum.midpoint.testing.schrodinger.labs.AbstractLabTest;
 import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
 
 import org.apache.commons.io.FileUtils;
@@ -28,7 +29,7 @@ import java.util.List;
  * @author skublik
  */
 
-public class M9OrganizationalStructure extends AbstractLabTest{
+public class M9OrganizationalStructure extends AbstractLabTest {
 
     private static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M9/";
     private static final File ARCHETYPE_ORG_FUNCTIONAL_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-functional.xml");

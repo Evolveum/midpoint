@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.testing.schrodinger.labs;
+package com.evolveum.midpoint.testing.schrodinger.labs.fundamental;
 
 import com.codeborne.selenide.Selenide;
 
@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
+import com.evolveum.midpoint.testing.schrodinger.labs.AbstractLabTest;
 import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
 
 import org.apache.commons.io.FileUtils;
@@ -43,7 +44,7 @@ import java.util.List;
  * @author skublik
  */
 
-public class M10ObjectTemplate extends AbstractLabTest{
+public class M10ObjectTemplate extends AbstractLabTest {
 
     protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M10/";
     private static final File OBJECT_TEMPLATE_USER_FILE_10_3 = new File(LAB_OBJECTS_DIRECTORY + "objecttemplate/object-template-example-user-10-3.xml");

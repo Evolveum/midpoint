@@ -140,15 +140,15 @@
     </test>
     <test name="Schrodinger.mid-101.labs" preserve-order="true" parallel="false" verbose="3" enabled="true">
         <classes>
-            <class name="com.evolveum.midpoint.testing.schrodinger.labs.M3ResourcesAttributesAndMappingsTest"/>
-            <class name="com.evolveum.midpoint.testing.schrodinger.labs.M4ProvisioningToResources"/>
-            <class name="com.evolveum.midpoint.testing.schrodinger.labs.M5AccountsAssignmentsAndRoles"/>
-            <class name="com.evolveum.midpoint.testing.schrodinger.labs.M6ConfiguringMultipleAccountTypes"/>
-            <class name="com.evolveum.midpoint.testing.schrodinger.labs.M7SynchronizationFlavours"/>
-            <class name="com.evolveum.midpoint.testing.schrodinger.labs.M8ExtendingMidPointXMLSchema"/>
-            <class name="com.evolveum.midpoint.testing.schrodinger.labs.M9OrganizationalStructure"/>
-            <class name="com.evolveum.midpoint.testing.schrodinger.labs.M10ObjectTemplate"/>
-            <class name="com.evolveum.midpoint.testing.schrodinger.labs.M11SystemConfiguration"/>
+            <class name="com.evolveum.midpoint.testing.schrodinger.labs.fundamental.M3ResourcesAttributesAndMappingsTest"/>
+            <class name="com.evolveum.midpoint.testing.schrodinger.labs.fundamental.M4ProvisioningToResources"/>
+            <class name="com.evolveum.midpoint.testing.schrodinger.labs.fundamental.M5AccountsAssignmentsAndRoles"/>
+            <class name="com.evolveum.midpoint.testing.schrodinger.labs.fundamental.M6ConfiguringMultipleAccountTypes"/>
+            <class name="com.evolveum.midpoint.testing.schrodinger.labs.fundamental.M7SynchronizationFlavours"/>
+            <class name="com.evolveum.midpoint.testing.schrodinger.labs.fundamental.M8ExtendingMidPointXMLSchema"/>
+            <class name="com.evolveum.midpoint.testing.schrodinger.labs.fundamental.M9OrganizationalStructure"/>
+            <class name="com.evolveum.midpoint.testing.schrodinger.labs.fundamental.M10ObjectTemplate"/>
+            <class name="com.evolveum.midpoint.testing.schrodinger.labs.fundamental.M11SystemConfiguration"/>
         </classes>
     </test>
 </suite>

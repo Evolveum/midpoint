@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.testing.schrodinger.labs;
+package com.evolveum.midpoint.testing.schrodinger.labs.fundamental;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Utils;
 
+import com.evolveum.midpoint.testing.schrodinger.labs.AbstractLabTest;
 import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;

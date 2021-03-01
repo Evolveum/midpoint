@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.testing.schrodinger.labs;
+package com.evolveum.midpoint.testing.schrodinger.labs.fundamental;
 
 import com.codeborne.selenide.Selenide;
 
@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schrodinger.component.resource.ResourceAccountsTab;
 import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
+import com.evolveum.midpoint.testing.schrodinger.labs.AbstractLabTest;
 import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -35,7 +36,7 @@ import java.util.List;
  * @author skublik
  */
 
-public class M7SynchronizationFlavours extends AbstractLabTest{
+public class M7SynchronizationFlavours extends AbstractLabTest {
 
     protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M7/";
     private static final Logger LOG = LoggerFactory.getLogger(M7SynchronizationFlavours.class);
