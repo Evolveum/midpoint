@@ -7,10 +7,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
 import java.util.Objects;
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -26,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 
 @Embeddable
 @JaxbType(type = ActivationType.class)
+@MappedSuperclass
 public class RActivation {
 
     private RActivationStatus administrativeStatus;

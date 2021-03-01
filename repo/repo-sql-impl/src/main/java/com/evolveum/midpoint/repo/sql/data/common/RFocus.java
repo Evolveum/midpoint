@@ -18,9 +18,8 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RFocusActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RLockoutStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
@@ -44,8 +43,7 @@ public abstract class RFocus extends RObject {
 
     private Set<RObjectReference<RShadow>> linkRef; // FocusType
     private Set<RObjectReference<RFocus>> personaRef; // FocusType
-    private RActivation activation; // FocusType
-    private RLockoutStatus lockoutStatus; // FocusType
+    private RFocusActivation activation; // FocusType
 
     //photo
     private boolean hasPhoto;
@@ -85,7 +83,7 @@ public abstract class RFocus extends RObject {
     }
 
     @Embedded
-    public RActivation getActivation() {
+    public RFocusActivation getActivation() {
         return activation;
     }
 
@@ -171,7 +169,7 @@ public abstract class RFocus extends RObject {
         this.personaRef = personaRef;
     }
 
-    public void setActivation(RActivation activation) {
+    public void setActivation(RFocusActivation activation) {
         this.activation = activation;
     }
 
@@ -181,16 +179,6 @@ public abstract class RFocus extends RObject {
 
     public void setPasswordModifyTimestamp(XMLGregorianCalendar passwordModifyTimestamp) {
         this.passwordModifyTimestamp = passwordModifyTimestamp;
-    }
-
-    @JaxbPath(itemPath = {
-            @JaxbName(localPart = "activation"), @JaxbName(localPart = "lockoutStatus") })
-    public RLockoutStatus getLockoutStatus() {
-        return lockoutStatus;
-    }
-
-    public void setLockoutStatus(RLockoutStatus lockoutStatus) {
-        this.lockoutStatus = lockoutStatus;
     }
 
     @Override
@@ -243,8 +231,8 @@ public abstract class RFocus extends RObject {
                 RUtil.toRObjectReferenceSet(jaxb.getPersonaRef(), repo, RReferenceType.PERSONA, repositoryContext.relationRegistry));
 
         if (jaxb.getActivation() != null) {
-            RActivation activation = new RActivation();
-            RActivation.fromJaxb(jaxb.getActivation(), activation);
+            RFocusActivation activation = new RFocusActivation();
+            RFocusActivation.fromJaxb(jaxb.getActivation(), activation);
             repo.setActivation(activation);
         }
 
