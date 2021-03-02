@@ -607,7 +607,7 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
     private XNodeImpl marshalSchemaDefinition(Object o, SerializationContext ctx) {
         SchemaDefinitionType schemaDefinitionType = (SchemaDefinitionType) o;
         SchemaXNodeImpl xschema = new SchemaXNodeImpl();
-        xschema.setSchemaElement(schemaDefinitionType.getSchema());
+        xschema.setSchemaElement(schemaDefinitionType.schemaCopy());
         MapXNodeImpl xmap = new MapXNodeImpl();
         xmap.put(DOMUtil.XSD_SCHEMA_ELEMENT, xschema);
         return xmap;

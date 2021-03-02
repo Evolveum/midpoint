@@ -1561,4 +1561,10 @@ public class DOMUtil {
             }
         }
     }
+
+    public static Element dettachedCopy(Element schema) {
+        Element target = (Element) DOMUtil.getDocument().importNode(schema, true);
+        fixNamespaceDeclarations(target, schema);
+        return target;
+    }
 }

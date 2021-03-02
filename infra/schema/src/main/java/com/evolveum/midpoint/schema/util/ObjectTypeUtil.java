@@ -455,7 +455,7 @@ public class ObjectTypeUtil {
             return null;
         }
 
-        return schemaDefinition.getSchema();
+        return schemaDefinition.schemaCopy();
 
 //        List<Element> schemaElements = DOMUtil.listChildElements(definitionElement);
 //        for (Element e : schemaElements) {

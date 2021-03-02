@@ -29,8 +29,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.JaxbVisitable;
 import com.evolveum.midpoint.prism.JaxbVisitor;
-import org.w3c.dom.Element;
 
+import org.jetbrains.annotations.TestOnly;
+import org.w3c.dom.Element;
 import com.evolveum.midpoint.util.DOMUtil;
 
 
@@ -71,12 +72,18 @@ public class SchemaDefinitionType implements Cloneable, Serializable, JaxbVisita
     @XmlTransient
     protected Element schema;
 
+    @Deprecated
+    @TestOnly
     public Element getSchema() {
         return schema;
     }
 
+    public synchronized Element schemaCopy() {
+        return DOMUtil.dettachedCopy(schema);
+    }
+
     public void setSchema(Element schema) {
-        this.schema = schema;
+        this.schema = DOMUtil.dettachedCopy(schema);
     }
 
     public List<Element> getAny() {
@@ -115,6 +122,7 @@ public class SchemaDefinitionType implements Cloneable, Serializable, JaxbVisita
         return true;
     }
 
+    @Override
     public SchemaDefinitionType clone() throws CloneNotSupportedException {
         SchemaDefinitionType clone = (SchemaDefinitionType) super.clone();
         if (schema != null) {
