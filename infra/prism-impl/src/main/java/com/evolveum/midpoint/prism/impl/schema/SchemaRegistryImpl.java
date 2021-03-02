@@ -363,6 +363,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     /**
      * Must be called before call to initialize()
      */
+    @TestOnly
     public void registerSchema(Node node, String sourceDescription) throws SchemaException {
         registerSchemaDescription(SchemaDescriptionParser.parseNode(node, sourceDescription));
     }
@@ -510,8 +511,8 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         Source[] sources = new Source[schemaDescriptions.size()];
         int i = 0;
-        for (SchemaDescription schemaDescription : schemaDescriptions) {
-            Source source = schemaDescription.getSource();
+        for (SchemaDescriptionImpl schemaDescription : schemaDescriptions) {
+            Source source = schemaDescription.transformSource();
             sources[i] = source;
             i++;
         }

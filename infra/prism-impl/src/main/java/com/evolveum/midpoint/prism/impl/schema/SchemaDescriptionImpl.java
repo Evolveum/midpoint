@@ -154,8 +154,12 @@ public final class SchemaDescriptionImpl extends AbstractFreezable implements Sc
         return streamable.openInputStream();
     }
 
-    @Override
-    public Source getSource() {
+    /**
+     * Thread-unsafe if no stream is available, but method is called only
+     * during SchemaRegistryImpl.initialize, which is invoked from single thread.
+
+     */
+    Source transformSource() {
         Source source;
         if (canInputStream()) {
             InputStream inputStream = openInputStream();
@@ -169,8 +173,12 @@ public final class SchemaDescriptionImpl extends AbstractFreezable implements Sc
         return source;
     }
 
-    @Override
-    public Element getDomElement() {
+    /**
+     * Thread-unsafe, but used only during construction of SchemaDescriptionImpl
+     * in single threaded context
+     *
+     */
+    Element getDomElement() {
         return source.element();
     }
 

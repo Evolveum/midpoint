@@ -107,7 +107,6 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
             Collection<SchemaDescription> schemaDescriptions = schemaRegistry.getParsedSchemas().get(namespaceURI);
             if (schemaDescriptions.size() == 1) {
                 SchemaDescription schemaDescription = schemaDescriptions.iterator().next();
-                InputStream inputStream;
                 InputSource source = ((SchemaDescriptionImpl) schemaDescription).saxInputSource();
 
                 //source.setSystemId(schemaDescription.getPath());

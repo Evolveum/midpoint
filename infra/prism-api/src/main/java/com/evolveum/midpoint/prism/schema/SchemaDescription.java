@@ -9,9 +9,6 @@ package com.evolveum.midpoint.prism.schema;
 
 import com.evolveum.midpoint.prism.Freezable;
 import com.evolveum.midpoint.util.DebugDumpable;
-import org.w3c.dom.Element;
-
-import javax.xml.transform.Source;
 import java.io.InputStream;
 
 /**
@@ -53,7 +50,4 @@ public interface SchemaDescription extends DebugDumpable, Freezable {
 
     InputStream openInputStream();
 
-    Source getSource();
-
-    Element getDomElement();
 }

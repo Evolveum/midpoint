@@ -12,7 +12,7 @@ import org.xml.sax.InputSource;
 import com.evolveum.midpoint.prism.impl.schema.SchemaDescriptionImpl.InputStreamable;
 
 
-public abstract class SchemaSource {
+abstract class SchemaSource {
 
     private final Element element;
 
@@ -33,7 +33,7 @@ public abstract class SchemaSource {
 
     public abstract InputSource saxInputSource();
 
-    public Element element() {
+    Element element() {
         return element;
     }
 
@@ -44,7 +44,7 @@ public abstract class SchemaSource {
         }
 
         @Override
-        public InputSource saxInputSource() {
+        public synchronized InputSource saxInputSource() {
             InputSource inputSource = new InputSource(DomToSchemaProcessor.inputStreamFrom(this.element()));
             inputSource.setEncoding("UTF-8");
             return inputSource;

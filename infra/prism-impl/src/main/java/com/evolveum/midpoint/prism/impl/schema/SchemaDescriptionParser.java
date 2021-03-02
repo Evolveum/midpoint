@@ -16,6 +16,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import org.jetbrains.annotations.TestOnly;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -135,6 +137,7 @@ class SchemaDescriptionParser {
         fetchBasicInfoFromSchema(desc);
     }
 
+    @TestOnly
     static SchemaDescriptionImpl parseNode(Node node, String sourceDescription) throws SchemaException {
         SchemaDescriptionImpl desc = new SchemaDescriptionImpl(sourceDescription, null);
         desc.setNode(node);
