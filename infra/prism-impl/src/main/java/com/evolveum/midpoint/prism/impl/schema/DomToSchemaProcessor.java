@@ -31,6 +31,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -101,26 +102,13 @@ class DomToSchemaProcessor {
             // Make sure that the schema parser sees all the namespace declarations
             DOMUtil.fixNamespaceDeclarations(schema);
             try {
-                TransformerFactory transfac = DOMUtil.setupTransformerFactory();
-                Transformer trans = transfac.newTransformer();
-                trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-                trans.setOutputProperty(OutputKeys.INDENT, "yes");
-
-                DOMSource source = new DOMSource(schema);
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                StreamResult result = new StreamResult(out);
-
-                trans.transform(source, result);
-
-                XSOMParser parser = createSchemaParser();
-                InputSource inSource = new InputSource(new ByteArrayInputStream(out.toByteArray()));
+                InputSource inSource = new InputSource(inputStreamFrom(schema));
                 // XXX: hack: it's here to make entity resolver work...
                 inSource.setSystemId("SystemId");
                 // XXX: end hack
                 inSource.setEncoding("utf-8");
 
-                parser.parse(inSource);
-                return parser.getResult();
+                return parseSchema(inSource);
 
             } catch (SAXException e) {
                 throw new SchemaException("XML error during XSD schema parsing: " + e.getMessage()
@@ -141,6 +129,27 @@ class DomToSchemaProcessor {
         }
     }
 
+    private InputStream inputStreamFrom(Element schema) throws TransformerException {
+        // Consider unifying with DOMUtil.printDOM
+        TransformerFactory transfac = DOMUtil.setupTransformerFactory();
+        Transformer trans = transfac.newTransformer();
+        trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+        trans.setOutputProperty(OutputKeys.INDENT, "yes");
+
+        DOMSource source = new DOMSource(schema);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        StreamResult result = new StreamResult(out);
+
+        trans.transform(source, result);
+        return new ByteArrayInputStream(out.toByteArray());
+    }
+
+    private XSSchemaSet parseSchema(InputSource inSource) throws SAXException {
+        XSOMParser parser = createSchemaParser();
+        parser.parse(inSource);
+        return parser.getResult();
+    }
+
     private XSOMParser createSchemaParser() {
         XSOMParser parser = new XSOMParser();
         if (entityResolver == null) {
@@ -157,4 +166,5 @@ class DomToSchemaProcessor {
 
         return parser;
     }
+
 }
