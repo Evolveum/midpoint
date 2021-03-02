@@ -104,6 +104,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
     private static final TestResource<TaskType> TASK_SUSPENDED_TREE_CHILD_1 = new TestResource<>(TEST_DIR, "task-suspended-tree-child-1.xml", "10000000-76e0-59e2-86d6-556655660200");
     private static final TestResource<TaskType> TASK_SUSPENDED_TREE_CHILD_1_1 = new TestResource<>(TEST_DIR, "task-suspended-tree-child-1-1.xml", "11000000-76e0-59e2-86d6-556655660200");
     private static final TestResource<TaskType> TASK_SUSPENDED_TREE_CHILD_2 = new TestResource<>(TEST_DIR, "task-suspended-tree-child-2.xml", "20000000-76e0-59e2-86d6-556655660200");
+    private static final TestResource<TaskType> TASK_DUMMY = new TestResource<>(TEST_DIR, "task-dummy.xml", "89bf08ec-c5b8-4641-95ca-37559c1f3896");
 
     public static final ItemName SHIP_STATE_ITEM_NAME = new ItemName("http://myself.me/schemas/whatever", "shipState");
 
@@ -1063,6 +1064,22 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         TaskType searchObjects_rootWithChildren = extractSingleton(taskManager.searchObjects(TaskType.class, query, withChildren, result)).asObjectable();
         assertEquals("Wrong # of children", 0, searchObjects_rootNoChildren.getSubtaskRef().size());
         assertTaskTree(searchObjects_rootWithChildren, child1Oid, child2Oid, child11Oid);
+    }
+
+    @Test
+    public void test410CheckResultStatus() throws Exception {
+        given();
+
+        OperationResult result = createOperationResult();
+        add(TASK_DUMMY, result);
+
+        when();
+
+        PrismObject<TaskType> dummy = taskManager.getObject(TaskType.class, TASK_DUMMY.oid, null, result);
+
+        then();
+
+        assertEquals("Wrong result status", OperationResultStatusType.SUCCESS, dummy.asObjectable().getResultStatus());
     }
 
     private void assertTaskTree(TaskType rootWithChildren, String child1Oid, String child2Oid, String child11Oid) {

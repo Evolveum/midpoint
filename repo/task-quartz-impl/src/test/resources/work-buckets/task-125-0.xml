@@ -7,10 +7,7 @@
   -->
 
 <task oid="44444444-0000-0000-0000-125000000000"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>task-125-c-single</name>
     <taskIdentifier>44444444-0000-0000-0000-125000000000</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
@@ -21,9 +18,18 @@
             <stringSegmentation>
                 <discriminator>name</discriminator>
                 <matchingRule>polyStringNorm</matchingRule>
-                <boundaryCharacters>a</boundaryCharacters>
-                <boundaryCharacters>\0-\1\a-\c</boundaryCharacters>
-                <boundaryCharacters>01abc</boundaryCharacters>
+                <boundary>
+                    <position>0</position>
+                    <characters>a</characters>
+                </boundary>
+                <boundary>
+                    <position>1</position>
+                    <characters>\0-\1\a-\c</characters>
+                </boundary>
+                <boundary>
+                    <position>2</position>
+                    <characters>01abc</characters>
+                </boundary>
                 <comparisonMethod>exactMatch</comparisonMethod>
             </stringSegmentation>
         </buckets>

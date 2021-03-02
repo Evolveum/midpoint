@@ -1,0 +1,33 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="c903aee4-8726-47cd-99e9-8aad7a60b12f">
+    <name>class-less-values</name>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>strong</strength>
+                <source>
+                    <path>name</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>
+                            pcv = hacking.execute("createContainerValue", [name: name]).getValue().get(0)
+                            log.info('value = {}', pcv.debugDump())
+                            pcv
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>extension/myContainer</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+</role>

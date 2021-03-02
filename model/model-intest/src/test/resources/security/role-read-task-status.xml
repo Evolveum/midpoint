@@ -1,0 +1,20 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+  <!-- MID-6721 -->
+<role oid="bc2d0900-ac17-40c1-acf8-eb5466995aae"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Read task status</name>
+    <authorization>
+        <name>read-task-status</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>TaskType</type>
+        </object>
+        <item>name</item>
+        <item>resultStatus</item>
+    </authorization>
+</role>

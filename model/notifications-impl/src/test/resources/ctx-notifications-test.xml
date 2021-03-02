@@ -15,4 +15,20 @@
 
     <context:annotation-config/>
     <context:component-scan base-package="com.evolveum.midpoint.notifications.impl"/>
+    <context:spring-configured/>
+
+    <import resource="ctx-model.xml"/>
+    <import resource="ctx-model-common.xml"/>
+    <import resource="classpath*:ctx-repository-test.xml"/>
+    <import resource="ctx-repo-cache.xml"/>
+    <import resource="ctx-configuration-test.xml"/>
+    <import resource="ctx-provisioning.xml"/>
+    <import resource="ctx-repo-common.xml"/>
+    <import resource="ctx-common.xml"/>
+    <import resource="ctx-security.xml"/>
+    <import resource="ctx-security-enforcer.xml"/>
+    <import resource="ctx-task.xml"/>
+    <import resource="ctx-audit.xml"/>
+    <import resource="ctx-security.xml"/>
+    <import resource="ctx-notifications.xml"/>
 </beans>

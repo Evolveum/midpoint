@@ -14,6 +14,7 @@ import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.security.RunAsRunner;
 import com.evolveum.midpoint.model.impl.security.RunAsRunnerFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -29,7 +30,6 @@ import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -135,6 +135,15 @@ public class PolicyRuleScriptExecutor {
             throw t;
         } finally {
             result.computeStatusIfUnknown();
+            // This is really ugly hack (MID-6753). The operation result for the whole clockwork processing should not be
+            // FATAL_ERROR just because of scripts execution failure. On the other hand, this particular operation failed
+            // fatally. So, in theory, this fatal->partial switch should be done at the level of parent operation
+            // i.e. clockwork click. The traditional way of doing this is treating that operation result as "composite".
+            // However, we intentionally do not do it in that way,because it would change the whole error handling
+            // as we are used to. So this hack is definitely the lesser evil for now.
+            if (result.getStatus() == OperationResultStatus.FATAL_ERROR) {
+                result.setStatus(OperationResultStatus.PARTIAL_ERROR);
+            }
         }
     }
 

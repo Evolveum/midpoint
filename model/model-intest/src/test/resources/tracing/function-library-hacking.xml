@@ -1,0 +1,57 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<functionLibrary
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    oid="87b91749-5f92-4328-bcc3-6f1b6e6e8364">
+    <name>hacking</name>
+    <function>
+        <name>createContainerValue</name>
+        <parameter>
+            <name>name</name>
+            <type>xsd:string</type>
+        </parameter>
+        <returnType>t:ItemType</returnType>
+        <script>
+            <code>
+                import com.evolveum.midpoint.model.intest.misc.TestTracing
+                import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType
+                import com.evolveum.prism.xml.ns._public.types_3.ItemType
+                import com.evolveum.prism.xml.ns._public.types_3.RawType
+
+                import static com.evolveum.midpoint.model.intest.misc.TestTracing.NAME_EMBEDDED
+                import static com.evolveum.midpoint.model.intest.misc.TestTracing.NAME_VALUE
+                import static com.evolveum.midpoint.model.intest.misc.TestTracing.TYPE_MY_CONTAINER
+
+                itemFactory = midpoint.prismContext.itemFactory()
+                rootPcv = itemFactory.createContainerValue()
+
+                value1 = itemFactory.createProperty(NAME_VALUE)
+                value1.setRealValue('value1')
+                rootPcv.add(value1)
+
+                embedded = itemFactory.createContainer(NAME_EMBEDDED)
+                embeddedPcv = itemFactory.createContainerValue()
+                embedded.add(embeddedPcv)
+                rootPcv.add(embedded)
+
+                value2 = itemFactory.createProperty(NAME_VALUE)
+                value2.setRealValue('value2')
+                embedded.add(value2)
+
+                log.info('created PCV:\n{}', rootPcv.debugDump())
+                rootPcv
+
+                item = new ItemType()
+                item.value.add(rootPcv)
+                item
+            </code>
+        </script>
+    </function>
+</functionLibrary>

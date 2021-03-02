@@ -12,6 +12,7 @@ import java.util.function.Function;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
@@ -80,6 +81,16 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
         this.parentPage = parentPage;
         this.queryFilter = queryFilter;
         this.selectedObjectsList = selectedData;
+        if (defaultType == null) {
+            if (supportedTypes == null || supportedTypes.isEmpty()) {
+                this.defaultType = (Class<? extends O>) ObjectType.class;
+            }
+            this.defaultType =
+                    (Class<? extends O>) WebComponentUtil.qnameToClass(parentPage.getPrismContext(),
+                            supportedTypes.iterator().next());
+        } else {
+            this.defaultType = defaultType;
+        }
         typeModel = new LoadableModel<>(false) {
 
             private static final long serialVersionUID = 1L;
@@ -92,9 +103,14 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
                 return ObjectTypes.getObjectType(defaultType);
             }
 
+            @Override
+            public void setObject(ObjectTypes object) {
+                if (object == null) {
+                    object = ObjectTypes.getObjectType(ObjectBrowserPanel.this.defaultType);
+                }
+                super.setObject(object);
+            }
         };
-
-        this.defaultType = defaultType;
         this.supportedTypes = supportedTypes;
         this.multiselect = multiselect;
     }

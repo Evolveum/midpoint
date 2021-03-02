@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.task.api;
 
-import java.text.ParseException;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
@@ -91,7 +90,10 @@ public interface TaskManager {
     /**
      * TODO
      */
-    <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws ObjectNotFoundException, SchemaException;
+    @NotNull
+    <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+            throws ObjectNotFoundException, SchemaException;
 
     /**
      * Add new task.

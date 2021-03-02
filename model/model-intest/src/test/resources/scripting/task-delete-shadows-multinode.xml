@@ -1,0 +1,72 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+        xmlns:dummy="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+        oid="931e34be-5cf0-46c6-8cc1-90812a66d5cb">
+    <name>Delete shadows segmented, raw</name>
+    <extension>
+        <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
+            <s:action>
+                <s:type>delete</s:type>
+                <s:parameter>
+                    <s:name>raw</s:name>
+                    <c:value>true</c:value>
+                </s:parameter>
+            </s:action>
+        </scext:executeScript>
+        <mext:objectQuery>
+            <q:filter>
+                <q:and>
+                    <q:ref>
+                        <q:path>resourceRef</q:path>
+                        <q:value>
+                            <oid>10000000-0000-0000-0000-000000000004</oid>
+                        </q:value>
+                    </q:ref>
+                    <q:equal>
+                        <q:path>objectClass</q:path>
+                        <q:value>dummy:AccountObjectClass</q:value>
+                    </q:equal>
+                </q:and>
+            </q:filter>
+        </mext:objectQuery>
+        <mext:objectType>ShadowType</mext:objectType>
+        <mext:searchOptions>
+            <option>
+                <options>
+                    <noFetch>true</noFetch>
+                </options>
+            </option>
+        </mext:searchOptions>
+    </extension>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
+    <executionStatus>suspended</executionStatus> <!-- resumed by test method -->
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/workers-creation/handler-3</handlerUri>
+    <workManagement>
+        <taskKind>coordinator</taskKind>
+        <buckets>
+            <oidSegmentation>
+                <boundary>
+                    <characters>a</characters>
+                </boundary>
+            </oidSegmentation>
+        </buckets>
+        <workers>
+            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</handlerUri>
+            <workersPerNode>
+                <count>2</count>
+            </workersPerNode>
+        </workers>
+    </workManagement>
+    <recurrence>single</recurrence>
+</task>

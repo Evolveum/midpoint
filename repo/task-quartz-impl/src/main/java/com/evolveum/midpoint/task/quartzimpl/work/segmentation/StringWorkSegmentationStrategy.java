@@ -16,11 +16,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.StringWorkBucketsBoundaryMarkingType.INTERVAL;
+
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -199,21 +201,28 @@ public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy
     }
 
     private List<String> processBoundaries() {
-        List<String> configuredBoundaries;
-        if (bucketsConfiguration instanceof OidWorkSegmentationType && bucketsConfiguration.getBoundaryCharacters().isEmpty()) {
-            configuredBoundaries = singletonList(OID_BOUNDARIES);
-        } else {
-            configuredBoundaries = bucketsConfiguration.getBoundaryCharacters();
-        }
-        int depth = defaultIfNull(bucketsConfiguration.getDepth(), 1);
-        List<String> expanded = configuredBoundaries.stream()
+        List<String> expanded = getConfiguredBoundaries().stream()
                 .map(this::expand)
                 .collect(Collectors.toList());
+        int depth = defaultIfNull(bucketsConfiguration.getDepth(), 1);
         List<String> rv = new ArrayList<>(expanded.size() * depth);
         for (int i = 0; i < depth; i++) {
             rv.addAll(expanded);
         }
         return rv;
+    }
+
+    private List<String> getConfiguredBoundaries() {
+        if (!bucketsConfiguration.getBoundary().isEmpty()) {
+            return new Boundaries(bucketsConfiguration.getBoundary())
+                    .getConfiguredBoundaries();
+        } else if (!bucketsConfiguration.getBoundaryCharacters().isEmpty()) {
+            return bucketsConfiguration.getBoundaryCharacters();
+        } else if (bucketsConfiguration instanceof OidWorkSegmentationType) {
+            return singletonList(OID_BOUNDARIES);
+        } else {
+            return emptyList();
+        }
     }
 
     private static class Scanner {
@@ -296,5 +305,56 @@ public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy
     @NotNull
     public List<String> getBoundaries() {
         return boundaries;
+    }
+
+    private static class Boundaries {
+
+        private final List<BoundarySpecificationType> specifications;
+        private final List<String> configuredBoundaries = new ArrayList<>();
+
+        private Boundaries(List<BoundarySpecificationType> specifications) {
+            this.specifications = specifications;
+        }
+
+        public List<String> getConfiguredBoundaries() {
+            for (BoundarySpecificationType specification : specifications) {
+                process(specification);
+            }
+            checkConsistency();
+            return configuredBoundaries;
+        }
+
+        private void process(BoundarySpecificationType specification) {
+            if (specification.getPosition().isEmpty()) {
+                configuredBoundaries.add(specification.getCharacters());
+                return;
+            }
+            for (Integer position : specification.getPosition()) {
+                argCheck(position != null, "Position is null in %s", specification);
+                extendIfNeeded(position);
+                set(position, specification.getCharacters());
+            }
+        }
+
+        private void extendIfNeeded(int position) {
+            while (configuredBoundaries.size() <= position) {
+                configuredBoundaries.add(null);
+            }
+        }
+
+        private void set(int position, String characters) {
+            assert configuredBoundaries.size() > position;
+            argCheck(configuredBoundaries.get(position) == null,
+                    "Boundary characters for position %d defined more than once: %s", position, configuredBoundaries);
+            configuredBoundaries.set(position, characters);
+        }
+
+        private void checkConsistency() {
+            for (int i = 0; i < configuredBoundaries.size(); i++) {
+                String configuredBoundary = configuredBoundaries.get(i);
+                argCheck(configuredBoundary != null, "Boundary characters for position %d are not defined: %s",
+                        i, configuredBoundaries);
+            }
+        }
     }
 }
