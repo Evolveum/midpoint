@@ -49,7 +49,7 @@ class DomToSchemaProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(DomToSchemaProcessor.class);
 
-    private static final Object SCHEMA_PARSING = new Object();
+    //private static final Object SCHEMA_PARSING = new Object();
 
     private EntityResolver entityResolver;
     private final PrismContext prismContext;
@@ -100,12 +100,14 @@ class DomToSchemaProcessor {
     }
 
     private XSSchemaSet parseSchema(SchemaSource schema) throws SchemaException {
-        // Synchronization here is a brutal workaround for MID-5648. We need to synchronize on parsing schemas globally, because
-        // it looks like there are many fragments (referenced schemas) that get resolved during parsing.
+        // XmlENtityResolverImpl in combination with SchemaSource creates InputSources
+        // in thread-safe fashion:
+        //   - if we have input stream - stream is opened
+        //   - if schema is dynamic - creation is done in synchronized block for particular schema
+        //   - schema in parameter is always owned by current thread (be it during initial parsing, or is
+        //     copy via SchemaDefinitionType.schemaCopy()
         //
-        // Unfortunately, this is not sufficient by itself -- there is a pre-processing that must be synchronized as well.
-        synchronized (SCHEMA_PARSING) {
-            // Make sure that the schema parser sees all the namespace declarations
+        //synchronized (SCHEMA_PARSING) {
 
 
             try {
@@ -129,7 +131,7 @@ class DomToSchemaProcessor {
                 throw new SchemaException(
                         "XML error during XSD schema parsing: " + e.getMessage() + " in " + shortDescription, e);
             }
-        }
+        //}
     }
 
     static InputStream inputStreamFrom(Element schema) {
