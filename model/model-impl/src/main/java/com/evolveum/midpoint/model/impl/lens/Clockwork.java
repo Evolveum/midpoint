@@ -82,6 +82,9 @@ public class Clockwork {
 
     private static final Trace LOGGER = TraceManager.getTrace(Clockwork.class);
 
+    private static final String OP_RUN = Clockwork.class.getName() + ".run";
+    private static final String OP_CLICK = Clockwork.class.getName() + ".click";
+
     @Autowired private Projector projector;
     @Autowired private ContextLoader contextLoader;
     @Autowired private ChangeExecutor changeExecutor;
@@ -117,7 +120,7 @@ public class Clockwork {
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
 
-        OperationResultBuilder builder = parentResult.subresult(Clockwork.class.getName() + ".run");
+        OperationResultBuilder builder = parentResult.subresult(OP_RUN);
         boolean tracingRequested = startTracingIfRequested(context, task, builder, parentResult);
         OperationResult result = builder.build();
 
@@ -387,7 +390,7 @@ public class Clockwork {
             context.setInspector(medic.getClockworkInspector());
         }
 
-        OperationResult result = parentResult.subresult(Clockwork.class.getName() + ".click")
+        OperationResult result = parentResult.subresult(OP_CLICK)
                 .addQualifier(context.getOperationQualifier())
                 .addArbitraryObjectAsContext("context", context)
                 .addArbitraryObjectAsContext("task", task)
@@ -451,7 +454,7 @@ public class Clockwork {
                 }
                 trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
             }
-            result.computeStatusIfUnknown();
+            result.computeStatusIfUnknown(); // Maybe this should be "composite" instead.
             result.cleanupResultDeeply();
         }
     }

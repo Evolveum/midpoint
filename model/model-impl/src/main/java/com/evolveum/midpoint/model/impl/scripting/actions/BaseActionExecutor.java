@@ -136,6 +136,7 @@ public abstract class BaseActionExecutor implements ActionExecutor {
                 itemProcessor.process(value, item, result);
                 operationsHelper.recordEnd(context, op, null);
             } catch (Throwable ex) {
+                result.recordFatalError(ex);
                 operationsHelper.recordEnd(context, op, ex);
                 Throwable exception = processActionException(ex, getActionName(), value, context);
                 writer.write(value, exception);

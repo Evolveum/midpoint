@@ -1012,6 +1012,14 @@ public class OperationResult
         }
     }
 
+    // TODO maybe we should declare the whole operation result as "composite"
+    public void computeStatusIfUnknownComposite() {
+        recordEnd();
+        if (isUnknown()) {
+            computeStatusComposite();
+        }
+    }
+
     public void recomputeStatus() {
         recordEnd();
         // Only recompute if there are subresults, otherwise keep original status

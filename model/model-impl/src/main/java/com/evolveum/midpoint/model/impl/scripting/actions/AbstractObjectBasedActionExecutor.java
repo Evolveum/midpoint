@@ -55,6 +55,7 @@ abstract class AbstractObjectBasedActionExecutor<T extends ObjectType> extends B
                         consumer.process(object, item, result);
                         operationsHelper.recordEnd(context, op, null);
                     } catch (Throwable e) {
+                        result.recordFatalError(e);
                         operationsHelper.recordEnd(context, op, e);
                         Throwable exception = processActionException(e, getActionName(), value, context);
                         writer.write(object, exception);
