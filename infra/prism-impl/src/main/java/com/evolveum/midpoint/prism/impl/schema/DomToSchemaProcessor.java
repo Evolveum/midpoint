@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.sun.xml.xsom.XSSchemaSet;
@@ -64,7 +65,7 @@ class DomToSchemaProcessor {
      */
     void parseSchema(@NotNull PrismSchemaImpl prismSchema, @NotNull Element xsdSchema, boolean isRuntime,
             boolean allowDelayedItemDefinitions, String shortDescription) throws SchemaException {
-        parseSchema(new SchemaSource(xsdSchema, this::inputStreamFrom));
+        parseSchema(prismSchema,SchemaSource.from(xsdSchema), isRuntime, allowDelayedItemDefinitions, shortDescription);
     }
 
     void parseSchema(@NotNull PrismSchemaImpl prismSchema, @NotNull SchemaSource xsdSchema, boolean isRuntime,
@@ -84,7 +85,7 @@ class DomToSchemaProcessor {
      */
     void parseSchemas(List<SchemaDescription> schemaDescriptions, Element wrapper,
             boolean allowDelayedItemDefinitions, String shortDescription) throws SchemaException {
-        parseSchemas(schemaDescriptions, new SchemaSource(wrapper, this::inputStreamFrom), allowDelayedItemDefinitions, shortDescription);
+        parseSchemas(schemaDescriptions, SchemaSource.from(wrapper), allowDelayedItemDefinitions, shortDescription);
     }
 
     void parseSchemas(List<SchemaDescription> schemaDescriptions, SchemaSource wrapper,
@@ -113,10 +114,12 @@ class DomToSchemaProcessor {
 
 
             try {
-                InputSource inSource = schema.xsomInputSource();
+                InputSource inSource = schema.saxInputSource();
                 // XXX: hack: it's here to make entity resolver work...
                 inSource.setSystemId("SystemId");
                 // XXX: end hack
+
+
                 return parseSchema(inSource);
 
             } catch (SAXException e) {
@@ -134,7 +137,7 @@ class DomToSchemaProcessor {
         }
     }
 
-    InputStream inputStreamFrom(Element schema) throws SchemaException {
+    static InputStream inputStreamFrom(Element schema) {
         DOMUtil.fixNamespaceDeclarations(schema);
         // Consider unifying with DOMUtil.printDOM
         try {
@@ -150,9 +153,7 @@ class DomToSchemaProcessor {
             trans.transform(source, result);
             return new ByteArrayInputStream(out.toByteArray());
         } catch (TransformerException e) {
-            throw new SchemaException("XML transformer error during XSD schema parsing: " + e.getMessage()
-            + "(locator: " + e.getLocator() + ", embedded exception:" + e.getException() + ") in "
-            + shortDescription, e);
+            throw new SystemException("Error in XML transformation: " + e.getMessage(), e);
         }
     }
 

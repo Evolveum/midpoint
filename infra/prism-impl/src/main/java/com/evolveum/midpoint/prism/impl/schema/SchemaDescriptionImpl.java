@@ -13,6 +13,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
@@ -30,6 +31,9 @@ public final class SchemaDescriptionImpl extends AbstractFreezable implements Sc
     private final String sourceDescription;
     private String usualPrefix;
     private String namespace;
+
+    private SchemaSource source;
+
     private InputStreamable streamable;
     private Node node;
     private boolean isPrismSchema = false;
@@ -68,6 +72,7 @@ public final class SchemaDescriptionImpl extends AbstractFreezable implements Sc
     public void setNode(Node node) {
         checkMutable();
         this.node = node;
+        this.source = SchemaSource.from(element(node), streamable);
     }
 
     @Override
@@ -166,6 +171,10 @@ public final class SchemaDescriptionImpl extends AbstractFreezable implements Sc
 
     @Override
     public Element getDomElement() {
+        return source.element();
+    }
+
+    private static Element element(Node node) {
         if (node instanceof Element) {
             return (Element)node;
         } else {
@@ -213,5 +222,13 @@ public final class SchemaDescriptionImpl extends AbstractFreezable implements Sc
 
     public String getDefaultPrefix() {
         return defaultPrefix;
+    }
+
+    public InputSource saxInputSource() {
+        return source.saxInputSource();
+    }
+
+    public SchemaSource schemaSource() {
+        return source;
     }
 }

@@ -9,7 +9,6 @@ package com.evolveum.midpoint.prism.impl.schema;
 
 import com.evolveum.midpoint.prism.impl.XmlEntityResolver;
 import com.evolveum.midpoint.prism.schema.SchemaDescription;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.w3c.dom.ls.LSInput;
@@ -109,15 +108,8 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
             if (schemaDescriptions.size() == 1) {
                 SchemaDescription schemaDescription = schemaDescriptions.iterator().next();
                 InputStream inputStream;
-                if (schemaDescription.canInputStream()) {
-                    inputStream = schemaDescription.openInputStream();
-                } else {
-                    DOMUtil.fixNamespaceDeclarations(schemaDescription.getDomElement());
-                    String xml = DOMUtil.serializeDOMToString(schemaDescription.getDomElement());
-                    inputStream = new ByteArrayInputStream(xml.getBytes());
-                }
-                InputSource source = new InputSource();
-                source.setByteStream(inputStream);
+                InputSource source = ((SchemaDescriptionImpl) schemaDescription).saxInputSource();
+
                 //source.setSystemId(schemaDescription.getPath());
                 // Make sure that both publicId and systemId are always set to schema namespace
                 // this helps to avoid double processing of the schemas
@@ -170,34 +162,42 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
             this.inputStream = new BufferedInputStream(input);
         }
 
+        @Override
         public String getPublicId() {
             return publicId;
         }
 
+        @Override
         public void setPublicId(String publicId) {
             this.publicId = publicId;
         }
 
+        @Override
         public String getBaseURI() {
             return null;
         }
 
+        @Override
         public InputStream getByteStream() {
             return null;
         }
 
+        @Override
         public boolean getCertifiedText() {
             return false;
         }
 
+        @Override
         public Reader getCharacterStream() {
             return null;
         }
 
+        @Override
         public String getEncoding() {
             return null;
         }
 
+        @Override
         public String getStringData() {
             synchronized (inputStream) {
                 try {
@@ -213,28 +213,36 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
             }
         }
 
+        @Override
         public void setBaseURI(String baseURI) {
         }
 
+        @Override
         public void setByteStream(InputStream byteStream) {
         }
 
+        @Override
         public void setCertifiedText(boolean certifiedText) {
         }
 
+        @Override
         public void setCharacterStream(Reader characterStream) {
         }
 
+        @Override
         public void setEncoding(String encoding) {
         }
 
+        @Override
         public void setStringData(String stringData) {
         }
 
+        @Override
         public String getSystemId() {
             return systemId;
         }
 
+        @Override
         public void setSystemId(String systemId) {
             this.systemId = systemId;
         }
