@@ -46,20 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificatio
 /**
  *
  */
-@ContextConfiguration(locations = {"classpath:ctx-task.xml",
-        "classpath:ctx-repo-cache.xml",
-        "classpath:ctx-provisioning.xml",
-        "classpath*:ctx-repository-test.xml",
-        "classpath:ctx-configuration-test.xml",
-        "classpath:ctx-common.xml",
-        "classpath:ctx-repo-common.xml",
-        "classpath:ctx-security.xml",
-        "classpath:ctx-security-enforcer.xml",
-        "classpath:ctx-audit.xml",
-        "classpath:ctx-model.xml",
-        "classpath:ctx-model-common.xml",
-        "classpath:ctx-notifications-test.xml",
-        "classpath*:ctx-notifications.xml"})
+@ContextConfiguration(locations = {"classpath:ctx-notifications-test.xml"})
 public class TestTextFormatter extends AbstractSpringTest {
 
     private static final String OBJECTS_DIR_NAME = "src/test/resources/objects";
