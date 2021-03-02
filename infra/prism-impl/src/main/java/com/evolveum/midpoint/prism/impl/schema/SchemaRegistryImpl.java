@@ -31,6 +31,7 @@ import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.EntityResolver;
@@ -608,12 +609,11 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     private void parsePrismSchema(SchemaDescriptionImpl schemaDescription, boolean allowDelayedItemDefinitions) throws SchemaException {
         String namespace = schemaDescription.getNamespace();
 
-        Element domElement = schemaDescription.getDomElement();
         boolean isRuntime = schemaDescription.getCompileTimeClassesPackage() == null;
         long started = System.currentTimeMillis();
         LOGGER.trace("Parsing schema {}, namespace: {}, isRuntime: {}",
                 schemaDescription.getSourceDescription(), namespace, isRuntime);
-        PrismSchema schema = PrismSchemaImpl.parse(domElement, entityResolver, isRuntime,
+        PrismSchema schema = PrismSchemaImpl.parse(schemaDescription.schemaSource(), entityResolver, isRuntime,
                 schemaDescription.getSourceDescription(), allowDelayedItemDefinitions, getPrismContext());
         if (StringUtils.isEmpty(namespace)) {
             namespace = schema.getNamespace();
@@ -752,6 +752,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
     //region Schemas and type maps (TODO)
     @Override
+    @TestOnly
     public javax.xml.validation.Schema getJavaxSchema() {
         return javaxSchema;
     }
