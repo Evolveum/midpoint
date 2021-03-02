@@ -169,11 +169,6 @@ public class PrismSchemaImpl extends AbstractFreezable implements MutablePrismSc
     }
 
     // used for parsing prism schemas; only in exceptional cases
-    public static PrismSchema parse(Element element, EntityResolver resolver, boolean isRuntime, String shortDescription,
-            boolean allowDelayedItemDefinitions, PrismContext prismContext) throws SchemaException {
-        return parse(SchemaSource.from(element), resolver, isRuntime, shortDescription,allowDelayedItemDefinitions, prismContext);
-    }
-
     public static PrismSchema parse(SchemaSource element, EntityResolver resolver, boolean isRuntime, String shortDescription,
             boolean allowDelayedItemDefinitions, PrismContext prismContext) throws SchemaException {
         PrismSchemaImpl schema = new PrismSchemaImpl(DOMUtil.getSchemaTargetNamespace(element.element()), prismContext);

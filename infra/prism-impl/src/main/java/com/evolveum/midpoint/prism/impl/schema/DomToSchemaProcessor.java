@@ -63,11 +63,6 @@ class DomToSchemaProcessor {
     /**
      * Parses single schema.
      */
-    void parseSchema(@NotNull PrismSchemaImpl prismSchema, @NotNull Element xsdSchema, boolean isRuntime,
-            boolean allowDelayedItemDefinitions, String shortDescription) throws SchemaException {
-        parseSchema(prismSchema,SchemaSource.from(xsdSchema), isRuntime, allowDelayedItemDefinitions, shortDescription);
-    }
-
     void parseSchema(@NotNull PrismSchemaImpl prismSchema, @NotNull SchemaSource xsdSchema, boolean isRuntime,
             boolean allowDelayedItemDefinitions, String shortDescription) throws SchemaException {
         this.shortDescription = shortDescription;
