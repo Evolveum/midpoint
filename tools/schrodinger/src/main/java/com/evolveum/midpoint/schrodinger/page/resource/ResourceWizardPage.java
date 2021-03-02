@@ -49,7 +49,7 @@ public class ResourceWizardPage extends BasicPage {
     }
 
     public ResourceWizardPage assertReadonlyMode() {
-        Assert.assertTrue(isReadonlyMode());
+        assertion.assertTrue(isReadonlyMode());
         return this;
     }
 }

@@ -14,11 +14,7 @@ import javax.xml.namespace.QName;
  */
 public interface XNodeMutator {
 
-    <T> void setPrimitiveXNodeValue(PrimitiveXNode<T> node, T value, QName typeName);
-
     void putToMapXNode(MapXNode map, QName key, XNode value);
-
-    void addToListXNode(ListXNode list, XNode... nodes);
 
     void setXNodeType(XNode node, QName explicitTypeName, boolean explicitTypeDeclaration);
 

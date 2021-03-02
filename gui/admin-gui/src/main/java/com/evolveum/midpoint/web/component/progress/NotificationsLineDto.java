@@ -12,13 +12,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationsStatist
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationsStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author Pavol Mederly
  */
-public class NotificationsLineDto {
+public class NotificationsLineDto implements Serializable {
 
     public static final String F_TRANSPORT = "transport";
     public static final String F_COUNT_SUCCESS = "countSuccess";
@@ -81,12 +82,6 @@ public class NotificationsLineDto {
         return totalTime;
     }
 
-    public static List<NotificationsLineDto> extractFromOperationalInformation(EnvironmentalPerformanceInformation environmentalPerformanceInformation) {
-        EnvironmentalPerformanceInformationType environmentalPerformanceInformationType = environmentalPerformanceInformation.getValueCopy();
-        NotificationsStatisticsType notificationsStatisticsType = environmentalPerformanceInformationType.getNotificationsStatistics();
-        return extractFromOperationalInformation(notificationsStatisticsType);
-    }
-
     protected static List<NotificationsLineDto> extractFromOperationalInformation(NotificationsStatisticsType notificationsStatisticsType) {
         List<NotificationsLineDto> retval = new ArrayList<>();
         if (notificationsStatisticsType == null) {
@@ -98,28 +93,4 @@ public class NotificationsLineDto {
         }
         return retval;
     }
-
-//    private static NotificationsLineDto findLineDto(List<NotificationsLineDto> list, String transport) {
-//        for (NotificationsLineDto lineDto : list) {
-//            if (StringUtils.equals(lineDto.getTransport(), transport)) {
-//                return lineDto;
-//            }
-//        }
-//        return null;
-//    }
-//
-//    private void setValue(boolean success, int count, long min, long max, long totalDuration) {
-//        if (success) {
-//            this.countSuccess += count;
-//        } else {
-//            this.countFailure += count;
-//        }
-//        if (minTime == null || min < minTime) {
-//            minTime = min;
-//        }
-//        if (maxTime == null || max > maxTime) {
-//            maxTime = max;
-//        }
-//        totalTime += totalDuration;
-//    }
 }

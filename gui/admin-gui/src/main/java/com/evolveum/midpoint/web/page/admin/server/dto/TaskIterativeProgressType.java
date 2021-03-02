@@ -11,9 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.box.InfoBoxType;
+import com.evolveum.midpoint.web.page.admin.server.TaskDisplayUtil;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class TaskIterativeProgressType implements Serializable {
@@ -32,7 +35,7 @@ public class TaskIterativeProgressType implements Serializable {
 
     private InfoBoxType progress;
 
-    public TaskIterativeProgressType(IterativeTaskPartItemsProcessingInformationType processingInfoType) {
+    public TaskIterativeProgressType(IterativeTaskPartItemsProcessingInformationType processingInfoType, TaskType taskType, PageBase pageBase) {
         for (ProcessedItemSetType processedItem : processingInfoType.getProcessed()) {
             QualifiedItemProcessingOutcomeType outcome = processedItem.getOutcome();
             if (outcome == null) {
@@ -41,10 +44,10 @@ public class TaskIterativeProgressType implements Serializable {
             parseItemForOutcome(outcome.getOutcome(), processedItem);
         }
         for (ProcessedItemType currentItem : processingInfoType.getCurrent()) {
-            currentItems.add(createInfoBoxType(currentItem, "bg-grey", "fa fa-question"));
+            currentItems.add(createInfoBoxType(currentItem, "bg-aqua", "fa fa-question"));
         }
 
-        createProgressInfo();
+        createProgressInfo(taskType, pageBase);
     }
 
     private void parseItemForOutcome(ItemProcessingOutcomeType outcome, ProcessedItemSetType processedItem) {
@@ -70,7 +73,7 @@ public class TaskIterativeProgressType implements Serializable {
     }
 
     public InfoBoxType getSkipBox() {
-        return createInfoBoxType(skippedProcessedItemSetType, "bg-orange", "fa fa-warning");
+        return createInfoBoxType(skippedProcessedItemSetType, "bg-gray", "fa fa-ban");
     }
 
     private InfoBoxType createInfoBoxType(ProcessedItemSetType processedsetType, String background, String icon) {
@@ -87,7 +90,7 @@ public class TaskIterativeProgressType implements Serializable {
         Long end = getTimestampAsLong(processedItem.getEndTimestamp());
         Long start = getTimestampAsLong(processedItem.getStartTimestamp());
 
-        if (end != null) {
+        if (end != 0) {
             infoBoxType.setNumber("Took: " + (end - start) + "ms");
         } else {
             infoBoxType.setNumber("Started at: " + WebComponentUtil.formatDate(processedItem.getStartTimestamp()));
@@ -102,13 +105,20 @@ public class TaskIterativeProgressType implements Serializable {
         }
         return calAsLong;
     }
-    private void createProgressInfo() {
+    private void createProgressInfo(TaskType taskType, PageBase pageBase) {
         int success = getCount(successProcessedItemSetType);
         int failure = getCount(failureProcessedItemSetType);
         int skipped = getCount(skippedProcessedItemSetType);
 
         progress = new InfoBoxType("bg-black", "fa fa-pie-chart", "Success / Failure / Skip");
         progress.setNumber(success + " / " + failure + " / " + skipped);
+
+
+        int objectsTotal = success + failure + skipped;
+        Long wallClock = computeWallClock(objectsTotal, taskType);
+        long throughput = computeThroughput(wallClock);
+        progress.setDescription(pageBase.getString("TaskStatePanel.message.objectsTotal",
+                objectsTotal, wallClock, throughput));
 
     }
 
@@ -123,6 +133,34 @@ public class TaskIterativeProgressType implements Serializable {
         }
 
         return count;
+    }
+
+    private Long computeWallClock(int totalCount, TaskType taskType) {
+//        Long success = getDuration(successProcessedItemSetType);
+//        Long failure = getDuration(failureProcessedItemSetType);
+//        Long skipped = getDuration(skippedProcessedItemSetType);
+        if (totalCount == 0) {
+            return 0L;
+        }
+        Long executionTime = TaskDisplayUtil.getExecutionTime(taskType);
+        return executionTime != null ? executionTime/totalCount : 0;
+    }
+
+    private long computeThroughput(Long avg) {
+        return avg != 0 ? 60000 / avg : 0;
+    }
+
+    private Long getDuration(ProcessedItemSetType item) {
+        if (item == null) {
+            return 0L;
+        }
+
+        Long duration = item.getDuration();
+        if (duration == null) {
+            return 0L;
+        }
+
+        return duration;
     }
 
 }

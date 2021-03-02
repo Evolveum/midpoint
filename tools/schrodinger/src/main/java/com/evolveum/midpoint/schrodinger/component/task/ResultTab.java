@@ -68,25 +68,25 @@ public class ResultTab extends Component<TaskPage> {
 
     public ResultTab assertOperationValueByTokenMatch(String tokenValue, String expectedValue) {
         String realValue = getOperationValueByToken(tokenValue);
-        Assert.assertEquals(realValue, expectedValue, "'Operation' value doesn't match to " + expectedValue);
+        assertion.assertEquals(realValue, expectedValue, "'Operation' value doesn't match to " + expectedValue);
         return this;
     }
 
     public ResultTab assertStatusValueByTokenMatch(String tokenValue, String expectedValue) {
         String realValue = getStatusValueByToken(tokenValue);
-        Assert.assertEquals(realValue, expectedValue, "'Status' value doesn't match to " + expectedValue);
+        assertion.assertEquals(realValue, expectedValue, "'Status' value doesn't match to " + expectedValue);
         return this;
     }
 
     public ResultTab assertTimestampValueByTokenMatch(String tokenValue, String expectedValue) {
         String realValue = getTimestampValueByToken(tokenValue);
-        Assert.assertEquals(realValue, expectedValue, "'Timestamp' value doesn't match to " + expectedValue);
+        assertion.assertEquals(realValue, expectedValue, "'Timestamp' value doesn't match to " + expectedValue);
         return this;
     }
 
     public ResultTab assertMessageValueByTokenMatch(String tokenValue, String expectedValue) {
         String realValue = getMessageValueByToken(tokenValue);
-        Assert.assertEquals(realValue, expectedValue, "'Message' value doesn't match to " + expectedValue);
+        assertion.assertEquals(realValue, expectedValue, "'Message' value doesn't match to " + expectedValue);
         return this;
     }
 

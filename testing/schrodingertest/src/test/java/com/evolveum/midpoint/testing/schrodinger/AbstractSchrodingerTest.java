@@ -16,54 +16,56 @@ import java.util.*;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.ex.ElementNotFound;
 import com.codeborne.selenide.testng.BrowserPerClass;
-
-import com.codeborne.selenide.testng.TextReport;
-
 import com.codeborne.selenide.testng.annotations.Report;
-
-import com.evolveum.midpoint.schrodinger.component.TabWithContainerWrapper;
-import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
-import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
-import com.evolveum.midpoint.schrodinger.component.resource.ResourceAccountsTab;
-import com.evolveum.midpoint.schrodinger.component.resource.ResourceShadowTable;
-import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
-import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
-import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
-import com.evolveum.midpoint.schrodinger.page.user.UserPage;
-
-import com.evolveum.midpoint.testing.schrodinger.reports.SchrodingerTextReport;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
-import org.testng.ITestResult;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Listeners;
+import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.client.api.ObjectAddService;
+import com.evolveum.midpoint.client.api.exception.CommonException;
+import com.evolveum.midpoint.client.impl.prism.RestPrismObjectAddService;
+import com.evolveum.midpoint.client.impl.prism.RestPrismService;
+import com.evolveum.midpoint.client.impl.prism.RestPrismServiceBuilder;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismContextFactory;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schrodinger.EnvironmentConfiguration;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.WebDriver;
+import com.evolveum.midpoint.schrodinger.component.TabWithContainerWrapper;
+import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
+import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
+import com.evolveum.midpoint.schrodinger.component.resource.ResourceAccountsTab;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceConfigurationTab;
+import com.evolveum.midpoint.schrodinger.component.resource.ResourceShadowTable;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
 import com.evolveum.midpoint.schrodinger.page.configuration.ImportObjectPage;
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
+import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
+import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
+import com.evolveum.midpoint.schrodinger.page.user.UserPage;
+import com.evolveum.midpoint.testing.schrodinger.reports.SchrodingerTextReport;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.boot.MidPointSpringApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -74,7 +76,7 @@ import com.evolveum.midpoint.web.boot.MidPointSpringApplication;
 @TestPropertySource(properties = { "server.port=8180", "midpoint.schrodinger=true" })
 @Listeners({ BrowserPerClass.class, SchrodingerTextReport.class })
 @Report
-public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
+public abstract class AbstractSchrodingerTest extends AbstractTestNGSpringContextTests {
 
     public static final String PROPERTY_NAME_MIDPOINT_HOME = "-Dmidpoint.home";
     public static final String PROPERTY_NAME_USER_HOME = "user.home";
@@ -117,12 +119,16 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
         return startMidpoint;
     }
 
-    @Override
-    protected void initSystem(Task task, OperationResult initResult) throws Exception {
-        super.initSystem(task, initResult);
-//        addObjectFromFile(SYSTEM_CONFIG_INITIAL, true, initResult);
-        getObjectListToImport().forEach(objFile -> addObjectFromFile(objFile, true, initResult));
-    }
+    private Properties props = null;
+
+    @Autowired protected PrismContext prismContext;
+
+//    @Override
+//    protected void initSystem(Task task, OperationResult initResult) throws Exception {
+//        super.initSystem(task, initResult);
+////        addObjectFromFile(SYSTEM_CONFIG_INITIAL, true, initResult);
+//        getObjectListToImport().forEach(objFile -> addObjectFromFile(objFile, true));
+//    }
 
     protected List<File> getObjectListToImport(){
         return new ArrayList<>();
@@ -133,34 +139,41 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
             dependsOnMethods = {"springTestContextBeforeTestClass"}
     )
     protected void springTestContextPrepareTestInstance() throws Exception {
-        String startMidpointStr = System.getProperty("startMidpoint");
-        if (startMidpointStr == null) {
-            Properties props = new Properties();
-            InputStream is = new FileInputStream(new File(SCHRODINGER_PROPERTIES));
-            props.load(is);
-            startMidpointStr = props.getProperty("startMidpoint");
-        }
+        String startMidpointStr = getConfigurationPropertyValue("startMidpoint");
         if (!StringUtils.isEmpty(startMidpointStr) && startMidpointStr.equals("false")) {
             startMidpoint = false;
         }
         if (startMidpoint) {
             super.springTestContextPrepareTestInstance();
+        } else if (prismContext == null) {
+            PrismContextFactory pcf = new MidPointPrismContextFactory();
+            try {
+                prismContext = pcf.createPrismContext();
+                prismContext.initialize();
+            } catch (SchemaException | SAXException | IOException e) {
+                throw new com.evolveum.midpoint.client.api.exception.SchemaException(e);
+            }
         }
+
+        getObjectListToImport().forEach(objFile -> addObjectFromFile(objFile, true));
+
+
+
     }
 
-    @BeforeMethod
-    public void startTestContext(ITestResult testResult) throws SchemaException {
-        if (startMidpoint) {
-            super.startTestContext(testResult);
-        }
-    }
-
-    @AfterMethod
-    public void finishTestContext(ITestResult testResult) {
-        if (startMidpoint) {
-            super.finishTestContext(testResult);
-        }
-    }
+//    @BeforeMethod
+//    public void startTestContext(ITestResult testResult) throws SchemaException {
+//        if (startMidpoint) {
+//            super.startTestContext(testResult);
+//        }
+//    }
+//
+//    @AfterMethod
+//    public void finishTestContext(ITestResult testResult) {
+//        if (startMidpoint) {
+//            super.finishTestContext(testResult);
+//        }
+//    }
 
 
     @BeforeClass(dependsOnMethods = {"springTestContextPrepareTestInstance"})
@@ -168,15 +181,11 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
         LOG.info("Starting tests in class {}", getClass().getName());
 
         if (midPoint == null) {
-            Properties props = new Properties();
-            InputStream is = new FileInputStream(new File(SCHRODINGER_PROPERTIES));
-            props.load(is);
-
-            configuration = buildEnvironmentConfiguration(props);
+            configuration = buildEnvironmentConfiguration();
             midPoint = new MidPoint(configuration);
 
-            username = props.getProperty("username");
-            password = props.getProperty("password");
+            username = getConfigurationPropertyValue("username");
+            password = getConfigurationPropertyValue("password");
         }
 
         FormLoginPage login = midPoint.formLogin();
@@ -184,30 +193,15 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
         basicPage = login.loginIfUserIsNotLog(username, password);
     }
 
-    protected EnvironmentConfiguration buildEnvironmentConfiguration(Properties props) {
+    protected EnvironmentConfiguration buildEnvironmentConfiguration() throws IOException {
         EnvironmentConfiguration config = new EnvironmentConfiguration();
-        config.driver(WebDriver.valueOf(props.getProperty("webdriver")));
+        config.driver(WebDriver.valueOf(getConfigurationPropertyValue("webdriver")));
 
-        String webdriverLocation = System.getProperty("webdriverLocation");
-        if (webdriverLocation == null) {
-            webdriverLocation = props.getProperty("webdriverLocation");
-        }
-        config.driverLocation(webdriverLocation);
+        config.driverLocation(getConfigurationPropertyValue("webdriverLocation"));
+        config.headless(Boolean.parseBoolean(getConfigurationPropertyValue("headlessStart")));
 
-        String headlessStart = System.getProperty("headlessStart");
-        if (headlessStart == null) {
-            headlessStart = props.getProperty("headlessStart");
-        }
-
-        config.headless(Boolean.parseBoolean(headlessStart));
-
-        String baseUrl;
         String urlPropertyName = startMidpoint ? "base_url" :  "base_url_mp_already_started";
-        baseUrl = System.getProperty(urlPropertyName);
-        if (baseUrl == null) {
-            baseUrl = props.getProperty(urlPropertyName);
-        }
-        config.baseUrl(baseUrl);
+        config.baseUrl(getConfigurationPropertyValue(urlPropertyName));
 
         return config;
     }
@@ -386,23 +380,59 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
     }
 
     protected void addObjectFromFile(File file) {
-        addObjectFromFile(file, true);
+        addObjectFromFile(file, false);
     }
 
     protected void addObjectFromFile(File file, boolean overwrite) {
-        addObjectFromFile(file, overwrite, new OperationResult("addObjectFromFile." + file.getName()));
+        try {
+//            PrismObject object = prismContext.parseObject(file);
+            List<PrismObject<?>> objects = prismContext.parserFor(file).parseObjects();
+            RestPrismServiceBuilder builder = RestPrismServiceBuilder.create();
+            RestPrismService service = builder
+                    .baseUrl(getConfigurationPropertyValue(startMidpoint ? "base_url" : "base_url_mp_already_started") + "/ws/rest")
+                    .username(getConfigurationPropertyValue("username"))
+                    .password(getConfigurationPropertyValue("password"))
+                    .build();
+            final List<String> options = new ArrayList<>();
+            if (overwrite) {
+                options.add("overwrite");
+            }
+            objects.forEach(object -> {
+                try {
+                    addObjectService(service, object).setOptions(options).post();
+                } catch (CommonException e) {
+                    LOG.error("Unable to add object, {}", e);
+                }
+            });
+        } catch (CommonException | SchemaException | IOException ex) {
+            LOG.error("Unable to add object, {}", ex);
+        }
     }
 
-    protected void addObjectFromFile(File file, boolean overwrite, OperationResult result) {
-//        try {
-//            RepoAddOptions options = null;
-//            if (overwrite) {
-//                options = RepoAddOptions.createOverwrite();
-//            }
-//            repoAddObjectsFromFile(file, null, options, result);
-//        } catch (SchemaException | ObjectAlreadyExistsException | EncryptionException | IOException ex) {
-//            LOG.error("Unable to add object, {}", result.getUserFriendlyMessage(), ex);
-//        }
+    private RestPrismObjectAddService addObjectService(RestPrismService service, PrismObject object) {
+        ObjectAddService<? extends ObjectType> addService = null;
+        if (object.isOfType(UserType.class)) {
+            addService = service.users().add((UserType) object.asObjectable());
+        } else if (object.isOfType(RoleType.class)) {
+            addService = service.roles().add((RoleType) object.asObjectable());
+        } else if (object.isOfType(OrgType.class)) {
+            addService = service.orgs().add((OrgType) object.asObjectable());
+        } else if (object.isOfType(ArchetypeType.class)) {
+            addService = service.archetypes().add((ArchetypeType) object.asObjectable());
+        } else if (object.isOfType(LookupTableType.class)) {
+            addService = service.lookupTables().add((LookupTableType) object.asObjectable());
+        } else if (object.isOfType(ObjectTemplateType.class)) {
+            addService = service.objectTemplates().add((ObjectTemplateType) object.asObjectable());
+        } else if (object.isOfType(ResourceType.class)) {
+            addService = service.resources().add((ResourceType) object.asObjectable());
+        } else if (object.isOfType(SystemConfigurationType.class)) {
+            addService = service.systemConfigurations().add((SystemConfigurationType) object.asObjectable());
+        } else if (object.isOfType(TaskType.class)) {
+            addService = service.tasks().add((TaskType) object.asObjectable());
+        } else if (object.isOfType(ValuePolicyType.class)) {
+            addService = service.valuePolicies().add((ValuePolicyType) object.asObjectable());
+        }
+        return (RestPrismObjectAddService) addService;
     }
 
     public UserPage showUser(String userName){
@@ -514,5 +544,18 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
                 .clickSave()
                 .feedback()
                 .assertSuccess();
+    }
+
+    private String getConfigurationPropertyValue(String propertyName) throws IOException {
+        if (props == null) {
+            props = new Properties();
+            InputStream is = new FileInputStream(new File(SCHRODINGER_PROPERTIES));
+            props.load(is);
+        }
+        String headlessStart = System.getProperty(propertyName);
+        if (headlessStart == null) {
+            headlessStart = props.getProperty(propertyName);
+        }
+        return headlessStart;
     }
 }

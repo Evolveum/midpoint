@@ -12,6 +12,9 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskIterativeProgressType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -85,7 +88,16 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
 
     private void addProcessingInfoPanel() {
 
-        TaskIterativeInformationPanel infoPanel = new TaskIterativeInformationPanel(ID_PROCESSING_INFO, new PropertyModel<>(statisticsModel, OperationStatsType.F_ITERATIVE_TASK_INFORMATION.getLocalPart()));
+        TaskIterativeInformationPanel infoPanel = new TaskIterativeInformationPanel(ID_PROCESSING_INFO, new PropertyModel<>(statisticsModel, OperationStatsType.F_ITERATIVE_TASK_INFORMATION.getLocalPart())) {
+
+            @Override
+            protected IModel<TaskIterativeProgressType> createProgressModel(ListItem<IterativeTaskPartItemsProcessingInformationType> item) {
+                return new ReadOnlyModel<>(() -> {
+                    IterativeTaskPartItemsProcessingInformationType taskInfo = item.getModelObject();
+                    return new TaskIterativeProgressType(taskInfo, TaskOperationStatisticsPanel.this.getModelObject().getObject().asObjectable(), getPageBase());
+                });
+            }
+        };
         infoPanel.setOutputMarkupId(true);
         add(infoPanel);
     }

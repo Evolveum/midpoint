@@ -155,7 +155,7 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
     }
 
     public AssignmentHolderObjectListTable<P, PD> assertNewObjectDropdownButtonsCountEquals(String mainButtonIconCssClass, int expectedButtonsCount) {
-        Assert.assertEquals(expectedButtonsCount, countDropdownButtonChildrenButtons(mainButtonIconCssClass), "The number of the dropdown buttons "
+        assertion.assertEquals(expectedButtonsCount, countDropdownButtonChildrenButtons(mainButtonIconCssClass), "The number of the dropdown buttons "
                 + "for the button with '" + mainButtonIconCssClass + "' css class doesn't match to " + expectedButtonsCount);
         return this;
     }

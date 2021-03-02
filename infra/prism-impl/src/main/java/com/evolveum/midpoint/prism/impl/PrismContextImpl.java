@@ -136,7 +136,7 @@ public final class PrismContextImpl implements PrismContext {
         this.prismUnmarshaller = new PrismUnmarshaller(this, beanUnmarshaller, schemaRegistry);
         this.prismMarshaller = new PrismMarshaller(beanMarshaller);
         this.jaxbDomHack = new JaxbDomHackImpl(lexicalProcessorRegistry.domProcessor(), this);
-        this.hacks = new HacksImpl(this);
+        this.hacks = new HacksImpl();
         this.xnodeFactory = new XNodeFactoryImpl();
         this.deltaFactory = new DeltaFactoryImpl(this);
         this.queryFactory = new QueryFactoryImpl(this);
