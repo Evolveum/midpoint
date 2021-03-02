@@ -1,5 +1,5 @@
-MidPoint 4.3 Development Branch
--------------------------------
+MidPoint 4.3 Milestone 3
+------------------------
 
 General information:
 

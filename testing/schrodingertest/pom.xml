@@ -14,7 +14,7 @@
     <parent>
         <artifactId>testing</artifactId>
         <groupId>com.evolveum.midpoint.testing</groupId>
-        <version>4.3-SNAPSHOT</version>
+        <version>4.3-M3</version>
     </parent>
 
     <artifactId>schrodingertest</artifactId>
@@ -117,13 +117,27 @@
         <dependency>
             <groupId>com.evolveum.midpoint.client</groupId>
             <artifactId>midpoint-client-api</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.client</groupId>
             <artifactId>midpoint-client-impl-prism</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.evolveum.midpoint.infra</groupId>
+                    <artifactId>schema</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.evolveum.midpoint.infra</groupId>
+                    <artifactId>prism-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.evolveum.midpoint.infra</groupId>
+                    <artifactId>prism-impl</artifactId>
+                </exclusion>
+            </exclusions>
             <scope>test</scope>
         </dependency>
         <dependency>

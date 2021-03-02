@@ -11,7 +11,7 @@
     <parent>
         <artifactId>gui</artifactId>
         <groupId>com.evolveum.midpoint.gui</groupId>
-        <version>4.3-SNAPSHOT</version>
+        <version>4.3-M3</version>
     </parent>
 
     <artifactId>admin-gui</artifactId>
