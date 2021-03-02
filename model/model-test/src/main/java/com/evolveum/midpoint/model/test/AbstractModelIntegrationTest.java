@@ -143,7 +143,8 @@ import com.evolveum.prism.xml.ns._public.types_3.*;
 public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 
     protected static final int DEFAULT_TASK_WAIT_TIMEOUT = 250000;
-    protected static final long DEFAULT_TASK_SLEEP_TIME = 200;
+    private static final long DEFAULT_TASK_SLEEP_TIME = 200;
+    private static final long DEFAULT_TASK_TREE_SLEEP_TIME = 1000;
 
     protected static final String CONNECTOR_DUMMY_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
     protected static final String CONNECTOR_DUMMY_VERSION = "2.0";
@@ -3040,6 +3041,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     // TASKS
 
+    protected void waitForTaskFinish(Task task) throws Exception {
+        waitForTaskFinish(task, false, DEFAULT_TASK_WAIT_TIMEOUT);
+    }
+
     protected void waitForTaskFinish(Task task, boolean checkSubresult) throws Exception {
         waitForTaskFinish(task, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
     }
@@ -3473,9 +3478,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return freshTask;
     }
 
+    // BEWARE of race conditions: if the task starts "by itself", lastRunFinishTimestamp can be updated before waiting starts
     protected OperationResult waitForTaskTreeNextFinishedRun(String rootTaskOid, int timeout) throws Exception {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskTreeNextFinishedRun");
         Task origRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
+        return waitForTaskTreeNextFinishedRun(origRootTask, timeout, waitResult);
+    }
+
+    protected OperationResult runTaskTreeAndWaitForFinish(String rootTaskOid, int timeout) throws Exception {
+        final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".runTaskTreeAndWaitForFinish");
+        Task origRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
+        restartTask(rootTaskOid, waitResult);
         return waitForTaskTreeNextFinishedRun(origRootTask, timeout, waitResult);
     }
 
@@ -3490,7 +3503,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             Task freshRootTask = taskManager.getTaskWithResult(origRootTask.getOid(), waitResult);
 
             displayValue("task tree", TaskDebugUtil.dumpTaskTree(freshRootTask, waitResult));
-            displayValue("task-tree-alt", TaskDebugUtil.dumpTaskTree(freshRootTask, freshRootTask.getResult()));
 
             long waiting = (System.currentTimeMillis() - start) / 1000;
             String description =
@@ -3506,7 +3518,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                             || lastRunFinishTimestamp == null
                             || lastRunFinishTimestamp.equals(origLastRunFinishTimestamp)
                             || lastRunStartTimestamp >= lastRunFinishTimestamp)) {
-                display("Root (triggering) task next run has not been completed yet: " + description
+                display("Current root task run has not been completed yet: " + description
                         + "\n  lastRunStartTimestamp=" + lastRunStartTimestamp
                         + ", origLastRunStartTimestamp=" + origLastRunStartTimestamp
                         + ", lastRunFinishTimestamp=" + lastRunFinishTimestamp
@@ -3560,9 +3572,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 display("Found WAITING root task during wait for next finished run => continuing waiting: " + description);
                 return false;
             }
-            return true;        // all executive subtasks are closed
+            return true; // all executive subtasks are closed
         };
-        IntegrationTestTools.waitFor("Waiting for task tree " + origRootTask + " next finished run", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+        IntegrationTestTools.waitFor("Waiting for task tree " + origRootTask + " next finished run", checker, timeout, DEFAULT_TASK_TREE_SLEEP_TIME);
 
         Task freshTask = taskManager.getTaskWithResult(origRootTask.getOid(), waitResult);
         logger.debug("Final root task:\n{}", freshTask.debugDump());
@@ -3621,11 +3633,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return subresult == null || subresult.isInProgress();        // "true" if there are no subresults
     }
 
-    private static OperationResult getSubresult(OperationResult result, boolean checkSubresult) {
-        // FIXME
-//        if (checkSubresult) {
-//            return result != null ? result.getLastSubresult() : null;
-//        }
+    private static OperationResult getSubresult(OperationResult result, boolean checkSubresult) { // TODO delete unused parameter
         return result;
     }
 
