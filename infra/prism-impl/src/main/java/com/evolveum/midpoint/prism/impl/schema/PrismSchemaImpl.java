@@ -164,14 +164,19 @@ public class PrismSchemaImpl extends AbstractFreezable implements MutablePrismSc
     // used for report, connector, resource schemas
     public static PrismSchema parse(Element element, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
         PrismSchemaImpl schema = new PrismSchemaImpl(DOMUtil.getSchemaTargetNamespace(element), prismContext);
-        return parse(element, ((PrismContextImpl) prismContext).getEntityResolver(), schema, isRuntime, shortDescription,
+        return parse(SchemaSource.from(element), ((PrismContextImpl) prismContext).getEntityResolver(), schema, isRuntime, shortDescription,
                 false, prismContext);
     }
 
     // used for parsing prism schemas; only in exceptional cases
     public static PrismSchema parse(Element element, EntityResolver resolver, boolean isRuntime, String shortDescription,
             boolean allowDelayedItemDefinitions, PrismContext prismContext) throws SchemaException {
-        PrismSchemaImpl schema = new PrismSchemaImpl(DOMUtil.getSchemaTargetNamespace(element), prismContext);
+        return parse(SchemaSource.from(element), resolver, isRuntime, shortDescription,allowDelayedItemDefinitions, prismContext);
+    }
+
+    public static PrismSchema parse(SchemaSource element, EntityResolver resolver, boolean isRuntime, String shortDescription,
+            boolean allowDelayedItemDefinitions, PrismContext prismContext) throws SchemaException {
+        PrismSchemaImpl schema = new PrismSchemaImpl(DOMUtil.getSchemaTargetNamespace(element.element()), prismContext);
         return parse(element, resolver, schema, isRuntime, shortDescription, allowDelayedItemDefinitions, prismContext);
     }
 
@@ -187,10 +192,10 @@ public class PrismSchemaImpl extends AbstractFreezable implements MutablePrismSc
     @Override
     public void parseThis(Element element, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
         checkMutable();
-        parse(element, ((PrismContextImpl) prismContext).getEntityResolver(), this, isRuntime, shortDescription, false, prismContext);
+        parse(SchemaSource.from(element), ((PrismContextImpl) prismContext).getEntityResolver(), this, isRuntime, shortDescription, false, prismContext);
     }
 
-    private static PrismSchema parse(Element element, EntityResolver resolver, PrismSchemaImpl schema, boolean isRuntime,
+    private static PrismSchema parse(SchemaSource element, EntityResolver resolver, PrismSchemaImpl schema, boolean isRuntime,
             String shortDescription, boolean allowDelayedItemDefinitions, PrismContext prismContext) throws SchemaException {
         if (element == null) {
             throw new IllegalArgumentException("Schema element must not be null in "+shortDescription);
