@@ -8,13 +8,21 @@ package com.evolveum.midpoint.web.component.search;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.api.component.PopupObjectListPanel;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.TextField;
@@ -39,6 +47,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
     private static final String ID_NAME = "name";
     private static final String ID_TYPE = "type";
     private static final String ID_RELATION = "relation";
+    private static final String ID_SELECT_OBJECT_BUTTON = "selectObject";
 
     public ReferenceValueSearchPopupPanel(String id, IModel<ObjectReferenceType> model) {
         super(id, model);
@@ -134,6 +143,43 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
         });
         relation.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         midpointForm.add(relation);
+
+        AjaxButton selectObject = new AjaxButton(ID_SELECT_OBJECT_BUTTON,
+                createStringResource("ReferenceValueSearchPopupPanel.selectObject")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                List<QName> supportedTypes = getSupportedTargetList();
+                if (CollectionUtils.isEmpty(supportedTypes)) {
+                    supportedTypes = WebComponentUtil.createObjectTypeList();
+                }
+                ObjectBrowserPanel<O> objectBrowserPanel = new ObjectBrowserPanel<O>(
+                        getPageBase().getMainPopupBodyId(), null, supportedTypes, false, getPageBase(),
+                        null) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void onSelectPerformed(AjaxRequestTarget target, O object) {
+                        getPageBase().hideMainPopup(target);
+                        if (ReferenceValueSearchPopupPanel.this.getModel().getObject() == null) {
+                            ReferenceValueSearchPopupPanel.this.getModel().setObject(new ObjectReferenceType());
+                        }
+                        ReferenceValueSearchPopupPanel.this.getModelObject().setOid(object.getOid());
+                        ReferenceValueSearchPopupPanel.this.getModelObject().setTargetName(object.getName());
+                        ReferenceValueSearchPopupPanel.this.getModelObject().setType(
+                                object.asPrismObject().getComplexTypeDefinition().getTypeName());
+                        target.add(oidField);
+                        target.add(nameField);
+                        target.add(type);
+                    }
+                };
+
+                getPageBase().showMainPopup(objectBrowserPanel, target);
+            }
+        };
+        midpointForm.add(selectObject);
     }
 
     protected List<QName> getAllowedRelations() {
