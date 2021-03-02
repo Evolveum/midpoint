@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.intest.scripting;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -25,6 +27,8 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
@@ -205,6 +209,11 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
                     .assertRole(ROLE_SUPERUSER_OID);
     }
 
+    /**
+     * Deletes shadows while searching for them using noFetch option. (Tests for correct options application by tasks: MID-6717).
+     *
+     * Also check correct task OID in audit messages: MID-6713.
+     */
     @Test
     public void test910DeleteShadowsMultinode() throws Exception {
         given();
@@ -220,11 +229,20 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
                 .end();
         addObject(user.asPrismObject(), task, result);
 
+        String shadowOid = assertUser(user.getOid(), "after creation")
+                .display()
+                .links()
+                    .single()
+                        .getOid();
+
         int before = countDummyAccountShadows(result);
         displayValue("account shadows before", before);
         assertThat(before).isEqualTo(3);
 
+        dummyAuditService.clear();
+
         when();
+
         addObject(TASK_DELETE_SHADOWS_MULTINODE, task, result);
         runTaskTreeAndWaitForFinish(TASK_DELETE_SHADOWS_MULTINODE.oid, 15000);
 
@@ -235,6 +253,15 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
         int after = countDummyAccountShadows(result);
         displayValue("account shadows after", after);
         assertThat(after).isEqualTo(0);
+
+        displayDumpable("Audit", dummyAuditService);
+        List<AuditEventRecord> records = dummyAuditService.getRecords().stream()
+                .filter(record -> record.getEventStage() == AuditEventStage.EXECUTION)
+                .filter(record -> record.getTargetRef() != null && shadowOid.equals(record.getTargetRef().getOid()))
+                .collect(Collectors.toList());
+        assertThat(records).as("Shadow " + shadowOid + " deletion records").hasSize(1);
+        AuditEventRecord record = records.get(0);
+        assertThat(record.getTaskOid()).as("task OID in audit record").isEqualTo(TASK_DELETE_SHADOWS_MULTINODE.oid);
     }
 
     private int countDummyAccountShadows(OperationResult result) throws SchemaException {

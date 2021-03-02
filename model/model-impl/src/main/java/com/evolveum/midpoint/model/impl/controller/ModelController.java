@@ -1778,7 +1778,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     @Override
     public boolean suspendTasks(Collection<String> taskOids, long waitForStop, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOpertion(taskOids, ModelAuthorizationAction.SUSPEND_TASK, AuditEventType.SUSPEND_TASK, operationTask, parentResult);
+        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOperation(taskOids, ModelAuthorizationAction.SUSPEND_TASK, AuditEventType.SUSPEND_TASK, operationTask, parentResult);
         boolean suspended = taskManager.suspendTasks(taskOids, waitForStop, parentResult);
         postprocessTaskCollectionOperation(resolvedTasks, AuditEventType.SUSPEND_TASK, operationTask, parentResult);
         return suspended;
@@ -1802,7 +1802,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     @Override
     public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOpertion(taskOids, ModelAuthorizationAction.DELETE, AuditEventType.DELETE_OBJECT, operationTask, parentResult);
+        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOperation(taskOids, ModelAuthorizationAction.DELETE, AuditEventType.DELETE_OBJECT, operationTask, parentResult);
         taskManager.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, parentResult);
         postprocessTaskCollectionOperation(resolvedTasks, AuditEventType.DELETE_OBJECT, operationTask, parentResult);
     }
@@ -1816,7 +1816,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     @Override
     public void resumeTasks(Collection<String> taskOids, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOpertion(taskOids, ModelAuthorizationAction.RESUME_TASK, AuditEventType.RESUME_TASK, operationTask, parentResult);
+        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOperation(taskOids, ModelAuthorizationAction.RESUME_TASK, AuditEventType.RESUME_TASK, operationTask, parentResult);
         taskManager.resumeTasks(taskOids, parentResult);
         postprocessTaskCollectionOperation(resolvedTasks, AuditEventType.RESUME_TASK, operationTask, parentResult);
     }
@@ -1837,7 +1837,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     @Override
     public void scheduleTasksNow(Collection<String> taskOids, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOpertion(taskOids, ModelAuthorizationAction.RUN_TASK_IMMEDIATELY, AuditEventType.RUN_TASK_IMMEDIATELY, operationTask, parentResult);
+        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOperation(taskOids, ModelAuthorizationAction.RUN_TASK_IMMEDIATELY, AuditEventType.RUN_TASK_IMMEDIATELY, operationTask, parentResult);
         taskManager.scheduleTasksNow(taskOids, parentResult);
         postprocessTaskCollectionOperation(resolvedTasks, AuditEventType.RUN_TASK_IMMEDIATELY, operationTask, parentResult);
     }
@@ -1930,10 +1930,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     private List<PrismObject<TaskType>> preprocessTaskOperation(String oid, ModelAuthorizationAction action, AuditEventType event, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        return preprocessTaskCollectionOpertion(singletonList(oid), action, event, task, result);
+        return preprocessTaskCollectionOperation(singletonList(oid), action, event, task, result);
     }
 
-    private List<PrismObject<TaskType>> preprocessTaskCollectionOpertion(Collection<String> oids, ModelAuthorizationAction action, AuditEventType event, Task task, OperationResult parentResult) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    private List<PrismObject<TaskType>> preprocessTaskCollectionOperation(Collection<String> oids, ModelAuthorizationAction action, AuditEventType event, Task task, OperationResult parentResult) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         List<PrismObject<TaskType>> tasks = createTaskList(oids, parentResult);
         authorizeResolvedTaskCollectionOperation(action, tasks, task, parentResult);
         auditTaskCollectionOperation(tasks, event, AuditEventStage.REQUEST, task, parentResult);
