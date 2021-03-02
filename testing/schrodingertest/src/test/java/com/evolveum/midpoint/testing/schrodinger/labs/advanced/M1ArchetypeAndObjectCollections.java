@@ -3,12 +3,16 @@ package com.evolveum.midpoint.testing.schrodinger.labs.advanced;
 import com.evolveum.midpoint.schrodinger.util.Utils;
 import com.evolveum.midpoint.testing.schrodinger.labs.AbstractLabTest;
 
+import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
+
 import org.apache.commons.io.FileUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 public class M1ArchetypeAndObjectCollections extends AbstractLabTest {
     protected static final String LAB_OBJECTS_DIRECTORY = LAB_ADVANCED_DIRECTORY + "M1/";
@@ -37,8 +41,19 @@ public class M1ArchetypeAndObjectCollections extends AbstractLabTest {
         FileUtils.copyFile(CSV_3_SOURCE_FILE, csv3TargetFile);
     }
 
+    @Override
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(OBJECT_COLLECTION_ACTIVE_EMP_FILE, OBJECT_COLLECTION_INACTIVE_EMP_FILE, OBJECT_COLLECTION_FORMER_EMP_FILE,
+                ARCHETYPE_EMPLOYEE_FILE, ARCHETYPE_EXTERNAL_FILE, KIRK_USER_FILE, SECRET_I_ROLE_FILE, SECRET_II_ROLE_FILE, INTERNAL_EMPLOYEE_ROLE_FILE,
+                CSV_1_SIMPLE_RESOURCE_FILE, CSV_2_RESOURCE_FILE, CSV_3_RESOURCE_FILE);
+    }
+
     @Test(groups={"advancedM1"})
     public void mod01test01environmentInitialization() {
+        changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
+        changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
+        changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
+
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Internal Employee");
         basicPage.listUsers()
                 .table()
@@ -49,12 +64,14 @@ public class M1ArchetypeAndObjectCollections extends AbstractLabTest {
                     .and()
                     .clickByName("kirk")
                         .selectTabProjections()
-                        .assertProjectionExist("")
-                        .assertProjectionExist("")
-                        .assertProjectionExist("");
+                        .assertProjectionExist("jkirk")
+                        .assertProjectionExist("cn=Jim Kirk,ou=ExAmPLE,dc=example,dc=com")
+                        .assertProjectionExist("kirk");
 
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Secret Projects I", "Secret Projects II");
         //TODO check CSV-1 groups
+        showUser("kirk")
+                .selectTabProjections();
         Utils.removeAssignments(showUser("kirk").selectTabAssignments(), "Secret Projects I", "Secret Projects II");
         //TODO check CSV-1 groups
         Utils.removeAllAssignments(showUser("kirk").selectTabAssignments());

@@ -364,7 +364,6 @@ public abstract class AbstractSchrodingerTest extends AbstractTestNGSpringContex
 
     protected void addObjectFromFile(File file, boolean overwrite) {
         try {
-//            PrismObject object = prismContext.parseObject(file);
             List<PrismObject<?>> objects = prismContext.parserFor(file).parseObjects();
             RestPrismServiceBuilder builder = RestPrismServiceBuilder.create();
             RestPrismService service = builder
@@ -413,9 +412,9 @@ public abstract class AbstractSchrodingerTest extends AbstractTestNGSpringContex
         } else if (object.isOfType(SecurityPolicyType.class)) {
             addService = service.securityPolicies().add((SecurityPolicyType) object.asObjectable());
         } else if (object.isOfType(ObjectCollectionType.class)) {
-//            addService = service.objectCollections().add((ObjectCollectionType) object.asObjectable());
+            addService = service.objectCollections().add((ObjectCollectionType) object.asObjectable());
         } else if (object.isOfType(FormType.class)) {
-//            addService = service.forms().add((FormType) object.asObjectable());
+            addService = service.forms().add((FormType) object.asObjectable());
         }
         return (RestPrismObjectAddService) addService;
     }
