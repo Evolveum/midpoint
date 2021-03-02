@@ -504,6 +504,10 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
     }
 
+    protected int getNumberOfTasks() {
+        return 2;
+    }
+
     @Test
     public void test010SanitySelf() throws Exception {
         assertLoggedInUsername(USER_ADMINISTRATOR_USERNAME);
@@ -558,10 +562,10 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertModifyAllow();
         assertDeleteAllow();
 
-        assertSearch(AccessCertificationCampaignType.class, null, 2);        // 2 campaigns there
+        assertSearch(AccessCertificationCampaignType.class, null, 2); // 2 campaigns there
         assertReadCertCasesAllow();
         assertReadCasesAllow();
-        assertSearch(TaskType.class, null, 2);
+        assertSearch(TaskType.class, null, getNumberOfTasks());
 
         assertAssignableRoleSpecification(getUser(USER_JACK_OID))
                 .relationDefault()

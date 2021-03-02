@@ -153,10 +153,15 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         repoAdd(TASK_DUMMY, initResult);
     }
 
-    protected static final int NUMBER_OF_IMPORTED_ROLES = 20;
+    private static final int NUMBER_OF_IMPORTED_ROLES = 20;
+    private static final int NUMBER_OF_IMPORTED_TASKS = 1;
 
     protected int getNumberOfRoles() {
         return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
+    }
+
+    protected int getNumberOfTasks() {
+        return super.getNumberOfTasks() + NUMBER_OF_IMPORTED_TASKS;
     }
 
     /**
