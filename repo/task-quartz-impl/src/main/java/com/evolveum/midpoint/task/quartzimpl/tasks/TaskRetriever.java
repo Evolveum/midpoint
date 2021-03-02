@@ -126,7 +126,7 @@ public class TaskRetriever {
             if (SelectorOptions.hasToLoadPath(TaskType.F_SUBTASK_REF, options)) {
                 fillInSubtasks(task, csi, options, result);
             }
-            fillOperationExecutionState(task);
+            updateFromTaskInMemory(task);
             return task;
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -165,7 +165,10 @@ public class TaskRetriever {
         return taskPrism.getValue();
     }
 
-    private void fillOperationExecutionState(Task task0) {
+    /**
+     * Updates selected fields (operation statistics, progress, result) from in-memory running task.
+     */
+    private void updateFromTaskInMemory(Task task0) {
         TaskQuartzImpl task = (TaskQuartzImpl) task0;
 
         if (task.getTaskIdentifier() == null) {
@@ -183,6 +186,7 @@ public class TaskRetriever {
         }
         task.setOperationStatsTransient(operationStats);
         task.setProgressTransient(taskInMemory.getProgress());
+        task.setStructuredProgressTransient(taskInMemory.getStructuredProgressOrClone());
 
         OperationResult result = taskInMemory.getResult();
         if (result != null) {
@@ -194,6 +198,7 @@ public class TaskRetriever {
                 LOGGER.warn("Concurrent access to operation result denied; using data from the repository (see MID-3954/MID-4088): {}", task, e);
             }
         } else {
+            // Actually this should not occur. TODO Consider leaving task result "as is" (i.e. having value from the prism).
             task.setResultTransient(null);
         }
     }
