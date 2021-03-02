@@ -197,12 +197,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, parentResult);
             rootOptions = SelectorOptions.findRootOptions(options);
 
-            if (GetOperationOptions.isRaw(rootOptions)) {       // MID-2218
+            if (GetOperationOptions.isRaw(rootOptions)) { // MID-2218
                 QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
             }
-            ObjectReferenceType ref = new ObjectReferenceType();
-            ref.setOid(oid);
-            ref.setType(ObjectTypes.getObjectType(clazz).getTypeQName());
             ModelImplUtils.clearRequestee(task);
 
 //            Special-purpose code to hunt down read-write resource fetch from GUI.
@@ -212,6 +209,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 //                        LoggingUtils.dumpStackTrace());
 //            }
 
+            //noinspection unchecked
             object = (PrismObject<T>) objectResolver.getObject(clazz, oid, options, task, result).asPrismObject();
 
             object = object.cloneIfImmutable();
@@ -812,7 +810,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             logQuery(processedQuery);
 
             try {
-                if (GetOperationOptions.isRaw(rootOptions)) {       // MID-2218
+                if (GetOperationOptions.isRaw(rootOptions)) { // MID-2218
                     QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
                 }
                 switch (searchProvider) {

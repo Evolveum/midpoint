@@ -522,7 +522,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     //region Getting and searching for tasks and nodes
 
     @Override
-    public <T extends ObjectType> PrismObject<T> getObject(Class<T> type,
+    public @NotNull <T extends ObjectType> PrismObject<T> getObject(Class<T> type,
             String oid,
             Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult parentResult) throws SchemaException, ObjectNotFoundException {

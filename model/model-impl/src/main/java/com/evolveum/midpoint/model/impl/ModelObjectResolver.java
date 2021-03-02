@@ -6,11 +6,10 @@
  */
 package com.evolveum.midpoint.model.impl;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
@@ -121,8 +120,7 @@ public class ModelObjectResolver implements ObjectResolver {
         T objectType;
         try {
             PrismObject<T> object;
-            ObjectTypes.ObjectManager manager = ObjectTypes.getObjectManagerForClass(clazz);
-            switch (defaultIfNull(manager, ObjectTypes.ObjectManager.REPOSITORY)) {
+            switch (getObjectManager(clazz, options)) {
                 case PROVISIONING:
                     object = provisioning.getObject(clazz, oid, options, task, result);
                     if (object == null) {
@@ -132,17 +130,9 @@ public class ModelObjectResolver implements ObjectResolver {
                     break;
                 case TASK_MANAGER:
                     object = taskManager.getObject(clazz, oid, options, result);
-                    if (object == null) {
-                        throw new SystemException("Got null result from taskManager.getObject while looking for " + clazz.getSimpleName()
-                                + " with OID " + oid + "; using task manager implementation " + taskManager.getClass().getName());
-                    }
                     break;
                 default:
                     object = cacheRepositoryService.getObject(clazz, oid, options, result);
-                    if (object == null) {
-                        throw new SystemException("Got null result from repository.getObject while looking for " + clazz.getSimpleName()
-                                + " with OID " + oid + "; using repository implementation " + cacheRepositoryService.getClass().getName());
-                    }
             }
             objectType = object.asObjectable();
             if (!clazz.isInstance(objectType)) {
@@ -161,6 +151,17 @@ public class ModelObjectResolver implements ObjectResolver {
             throw new SystemException("Error resolving object with oid '" + oid + "': " + ex.getMessage(), ex);
         }
         return objectType;
+    }
+
+    private <T extends ObjectType> ObjectTypes.ObjectManager getObjectManager(Class<T> clazz,
+            Collection<SelectorOptions<GetOperationOptions>> options) {
+        if (GetOperationOptions.isRaw(SelectorOptions.findRootOptions(options))) {
+            return ObjectTypes.ObjectManager.REPOSITORY;
+        } else {
+            return Objects.requireNonNullElse(
+                    ObjectTypes.getObjectManagerForClass(clazz),
+                    ObjectTypes.ObjectManager.REPOSITORY);
+        }
     }
 
     @Override
