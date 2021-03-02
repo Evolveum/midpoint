@@ -64,6 +64,11 @@ class DomToSchemaProcessor {
      */
     void parseSchema(@NotNull PrismSchemaImpl prismSchema, @NotNull Element xsdSchema, boolean isRuntime,
             boolean allowDelayedItemDefinitions, String shortDescription) throws SchemaException {
+        parseSchema(new SchemaSource(xsdSchema, this::inputStreamFrom));
+    }
+
+    void parseSchema(@NotNull PrismSchemaImpl prismSchema, @NotNull SchemaSource xsdSchema, boolean isRuntime,
+            boolean allowDelayedItemDefinitions, String shortDescription) throws SchemaException {
         this.shortDescription = shortDescription;
         XSSchemaSet xsSchemaSet = parseSchema(xsdSchema);
         if (xsSchemaSet == null) {
@@ -79,6 +84,11 @@ class DomToSchemaProcessor {
      */
     void parseSchemas(List<SchemaDescription> schemaDescriptions, Element wrapper,
             boolean allowDelayedItemDefinitions, String shortDescription) throws SchemaException {
+        parseSchemas(schemaDescriptions, new SchemaSource(wrapper, this::inputStreamFrom), allowDelayedItemDefinitions, shortDescription);
+    }
+
+    void parseSchemas(List<SchemaDescription> schemaDescriptions, SchemaSource wrapper,
+            boolean allowDelayedItemDefinitions, String shortDescription) throws SchemaException {
         this.shortDescription = shortDescription;
         XSSchemaSet xsSchemaSet = parseSchema(wrapper);
         if (xsSchemaSet == null) {
@@ -93,35 +103,30 @@ class DomToSchemaProcessor {
         }
     }
 
-    private XSSchemaSet parseSchema(Element schema) throws SchemaException {
+    private XSSchemaSet parseSchema(SchemaSource schema) throws SchemaException {
         // Synchronization here is a brutal workaround for MID-5648. We need to synchronize on parsing schemas globally, because
         // it looks like there are many fragments (referenced schemas) that get resolved during parsing.
         //
         // Unfortunately, this is not sufficient by itself -- there is a pre-processing that must be synchronized as well.
         synchronized (SCHEMA_PARSING) {
             // Make sure that the schema parser sees all the namespace declarations
-            DOMUtil.fixNamespaceDeclarations(schema);
+
+
             try {
-                InputSource inSource = new InputSource(inputStreamFrom(schema));
+                InputSource inSource = schema.xsomInputSource();
                 // XXX: hack: it's here to make entity resolver work...
                 inSource.setSystemId("SystemId");
                 // XXX: end hack
-                inSource.setEncoding("utf-8");
-
                 return parseSchema(inSource);
 
             } catch (SAXException e) {
                 throw new SchemaException("XML error during XSD schema parsing: " + e.getMessage()
                         + "(embedded exception " + e.getException() + ") in " + shortDescription, e);
-            } catch (TransformerException e) {
-                throw new SchemaException("XML transformer error during XSD schema parsing: " + e.getMessage()
-                        + "(locator: " + e.getLocator() + ", embedded exception:" + e.getException() + ") in "
-                        + shortDescription, e);
             } catch (RuntimeException e) {
                 // This sometimes happens, e.g. NPEs in Saxon
                 if (LOGGER.isErrorEnabled()) {
                     LOGGER.error("Unexpected error {} during parsing of schema:\n{}", e.getMessage(),
-                            DOMUtil.serializeDOMToString(schema));
+                            DOMUtil.serializeDOMToString(schema.element()));
                 }
                 throw new SchemaException(
                         "XML error during XSD schema parsing: " + e.getMessage() + " in " + shortDescription, e);
@@ -129,19 +134,26 @@ class DomToSchemaProcessor {
         }
     }
 
-    private InputStream inputStreamFrom(Element schema) throws TransformerException {
+    InputStream inputStreamFrom(Element schema) throws SchemaException {
+        DOMUtil.fixNamespaceDeclarations(schema);
         // Consider unifying with DOMUtil.printDOM
-        TransformerFactory transfac = DOMUtil.setupTransformerFactory();
-        Transformer trans = transfac.newTransformer();
-        trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-        trans.setOutputProperty(OutputKeys.INDENT, "yes");
+        try {
+            TransformerFactory transfac = DOMUtil.setupTransformerFactory();
+            Transformer trans = transfac.newTransformer();
+            trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+            trans.setOutputProperty(OutputKeys.INDENT, "yes");
 
-        DOMSource source = new DOMSource(schema);
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        StreamResult result = new StreamResult(out);
+            DOMSource source = new DOMSource(schema);
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            StreamResult result = new StreamResult(out);
 
-        trans.transform(source, result);
-        return new ByteArrayInputStream(out.toByteArray());
+            trans.transform(source, result);
+            return new ByteArrayInputStream(out.toByteArray());
+        } catch (TransformerException e) {
+            throw new SchemaException("XML transformer error during XSD schema parsing: " + e.getMessage()
+            + "(locator: " + e.getLocator() + ", embedded exception:" + e.getException() + ") in "
+            + shortDescription, e);
+        }
     }
 
     private XSSchemaSet parseSchema(InputSource inSource) throws SAXException {
