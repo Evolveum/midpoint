@@ -43,7 +43,7 @@ import java.util.List;
 public class M4ProvisioningToResources extends AbstractLabTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(M4ProvisioningToResources.class);
-    protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M4/";
+    protected static final String LAB_OBJECTS_DIRECTORY = LAB_FUNDAMENTAL_DIRECTORY + "M4/";
 
     private static final File CSV_1_RESOURCE_FILE_4_2 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-4-2.xml");
     private static final File CSV_3_RESOURCE_FILE_4_2 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-4-2.xml");

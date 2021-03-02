@@ -34,7 +34,7 @@ import java.util.List;
 public class M6ConfiguringMultipleAccountTypes extends AbstractLabTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(M6ConfiguringMultipleAccountTypes.class);
-    protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M6/";
+    protected static final String LAB_OBJECTS_DIRECTORY = LAB_FUNDAMENTAL_DIRECTORY + "M6/";
 
     private static final File CSV_1_RESOURCE_FILE_6_1 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-6-1.xml");
     private static final File CSV_2_RESOURCE_FILE_6_1 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-2-canteen-6-1.xml");

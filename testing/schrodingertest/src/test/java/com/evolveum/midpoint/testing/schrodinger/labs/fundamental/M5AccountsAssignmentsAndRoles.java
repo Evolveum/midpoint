@@ -50,7 +50,7 @@ import javax.xml.namespace.QName;
 public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(M5AccountsAssignmentsAndRoles.class);
-    protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M5/";
+    protected static final String LAB_OBJECTS_DIRECTORY = LAB_FUNDAMENTAL_DIRECTORY + "M5/";
 
     private static final File TOP_SECRET_I_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-top-secret-i.xml");
     private static final File CSV_1_RESOURCE_FILE_5_5 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-5-5.xml");
