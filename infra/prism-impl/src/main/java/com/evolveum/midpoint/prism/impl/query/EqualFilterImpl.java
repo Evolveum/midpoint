@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,7 +21,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
@@ -141,18 +141,8 @@ public class EqualFilterImpl<T> extends PropertyValueFilterImpl<T> implements Eq
                 }
             }
         } catch (SchemaException e) {
-            // At least one of the values is invalid. But we do not want to throw exception from
-            // a comparison operation. That will make the system very fragile. Let's fall back to
-            // ordinary equality mechanism instead.
-            // TODO this can be quite dangerous, however. See MID-5459.
-            //  For example, when comparing objects to determine the need for cache invalidation we should be 100% certain
-            //  that we get the correct result. Otherwise we might keep outdated object in the cache.
-            //  Matching during authorization evaluation is a similar theme.
-            if (Objects.equals(filterRealValue, objectRealValue)) {
-                return true;
-            }
+            throw new SystemException("Schema exception while comparing objects: " + e.getMessage(), e);
         }
-        return false;
     }
 
     @Override
