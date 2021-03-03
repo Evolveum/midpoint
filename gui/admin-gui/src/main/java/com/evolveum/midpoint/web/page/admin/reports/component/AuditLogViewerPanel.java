@@ -413,6 +413,11 @@ public class AuditLogViewerPanel extends BasePanel {
             }
 
             @Override
+            public IModel<String> getDataModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
+                return createLinkModel(rowModel);
+            }
+
+            @Override
             public boolean isEnabled(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                 return unwrapModel(rowModel) != null;
             }
