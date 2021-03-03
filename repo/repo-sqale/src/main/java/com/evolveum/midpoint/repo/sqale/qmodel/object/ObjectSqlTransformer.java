@@ -68,8 +68,10 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
 
     /**
      * Override this to fill additional row attributes after calling this super version.
-     * <p>
+     *
      * *This must be called with active JDBC session* so it can create new {@link QUri} rows.
+     * As this is intended for inserts *DO NOT* set {@link MObject#objectType} to any value,
+     * it must be NULL otherwise the DB will complain about the value for the generated column.
      */
     @NotNull
     public R toRowObjectWithoutFullObject(S schemaObject, JdbcSession jdbcSession) {
