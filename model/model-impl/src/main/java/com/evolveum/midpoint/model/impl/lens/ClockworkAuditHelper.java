@@ -242,13 +242,16 @@ public class ClockworkAuditHelper {
             variables.put(ExpressionConstants.VAR_AUDIT_RECORD, auditRecord, AuditEventRecord.class);
             ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
                     new ExpressionEnvironment<>(context, null, task, result));
-
-            PrismValue returnValue = ExpressionUtil.evaluateExpression(
-                    variables, null, expression, context.getPrivilegedExpressionProfile(),
-                    expressionFactory, OP_EVALUATE_RECORDING_SCRIPT, task, result);
-            return returnValue != null
-                    ? (AuditEventRecord) returnValue.getRealValue()
-                    : null;
+            try {
+                PrismValue returnValue = ExpressionUtil.evaluateExpression(
+                        variables, null, expression, context.getPrivilegedExpressionProfile(),
+                        expressionFactory, OP_EVALUATE_RECORDING_SCRIPT, task, result);
+                return returnValue != null
+                        ? (AuditEventRecord) returnValue.getRealValue()
+                        : null;
+            } finally {
+                ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+            }
         } catch (Throwable t) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't evaluate audit recording expression", t);
             // Copied from evaluateAuditRecordProperty: Intentionally not throwing the exception. The error is marked as partial.
