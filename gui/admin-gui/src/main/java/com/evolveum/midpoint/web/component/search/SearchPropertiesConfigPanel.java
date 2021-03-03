@@ -348,7 +348,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
                 if (ObjectType.class.isAssignableFrom(type)) {
                     PrismObjectDefinition objectDef = SearchFactory.findObjectDefinition(getType(), null, getPageBase());
                     List<SearchItemDefinition> availableDefs =
-                            SearchFactory.getAvailableDefinitions(objectDef, null, true);
+                            SearchFactory.getAvailableDefinitions(objectDef, null, true, getPageBase());
                     List<Property> propertiesList = new ArrayList<>();
                     availableDefs.forEach(searchItemDef -> {
                         if (!isPropertyAlreadyAdded(searchItemDef.getPath())) {
