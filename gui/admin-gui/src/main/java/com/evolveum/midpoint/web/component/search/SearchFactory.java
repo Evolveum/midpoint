@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.search;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
@@ -175,7 +176,6 @@ public class SearchFactory {
                 ItemPath.create(AuditEventRecordType.F_HOST_IDENTIFIER),
                 ItemPath.create(AuditEventRecordType.F_REQUEST_IDENTIFIER),
                 ItemPath.create(AuditEventRecordType.F_REFERENCE),
-                ItemPath.create(AuditEventRecordType.F_RESOURCE_OID),
                 ItemPath.create(AuditEventRecordType.F_TASK_IDENTIFIER)
         ));
     }
@@ -195,7 +195,7 @@ public class SearchFactory {
                 .findContainerDefinitionByCompileTimeClass(type.getTypeClass());
         List<SearchItemDefinition> availableDefs = defaultAvailableDefs;
         if (CollectionUtils.isEmpty(defaultAvailableDefs)) {
-            availableDefs = getAvailableDefinitions(containerDef, null, true);
+            availableDefs = getAvailableDefinitions(containerDef, null, true, modelServiceLocator);
         }
 
         Search search = new Search(type, availableDefs);
@@ -239,7 +239,7 @@ public class SearchFactory {
             boolean isOidSearchEnabled) {
 
         PrismObjectDefinition objectDef = findObjectDefinition(type.getTypeClass(), discriminator, modelServiceLocator);
-        List<SearchItemDefinition> availableDefs = getAvailableDefinitions(objectDef, availableItemPath, useDefsFromSuperclass);
+        List<SearchItemDefinition> availableDefs = getAvailableDefinitions(objectDef, availableItemPath, useDefsFromSuperclass, modelServiceLocator);
         boolean isFullTextSearchEnabled = isFullTextSearchEnabled(modelServiceLocator, type.getTypeClass());
 
         QName qNametype = WebComponentUtil.classToQName(modelServiceLocator.getPrismContext(), type.getTypeClass());
@@ -355,7 +355,7 @@ public class SearchFactory {
     }
 
     public static <C extends Containerable> List<SearchItemDefinition> getAvailableDefinitions(
-            PrismContainerDefinition<C> objectDef, List<ItemPath> availableItemPath, boolean useDefsFromSuperclass) {
+            PrismContainerDefinition<C> objectDef, List<ItemPath> availableItemPath, boolean useDefsFromSuperclass, ModelServiceLocator modelServiceLocator) {
         List<SearchItemDefinition> definitions = new ArrayList<>();
 
         if (objectDef == null) {
@@ -366,7 +366,7 @@ public class SearchFactory {
 
         Class<C> typeClass = objectDef.getCompileTimeClass();
         while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(typeClass)) {
-            List<ItemPath> paths = CollectionUtils.isEmpty(availableItemPath) ? getAvailableSearchableItems(typeClass) : availableItemPath;
+            List<ItemPath> paths = CollectionUtils.isEmpty(availableItemPath) ? getAvailableSearchableItems(typeClass, modelServiceLocator) : availableItemPath;
             if (paths != null) {
                 for (ItemPath path : paths) {
                     ItemDefinition def = objectDef.findItemDefinition(path);
@@ -387,8 +387,25 @@ public class SearchFactory {
         return definitions;
     }
 
-    public static List<ItemPath> getAvailableSearchableItems(Class<?> typeClass) {
-        return SEARCHABLE_OBJECTS.get(typeClass);
+    public static List<ItemPath> getAvailableSearchableItems(Class<?> typeClass, ModelServiceLocator modelServiceLocator) {
+        List<ItemPath> items = SEARCHABLE_OBJECTS.get(typeClass);
+        if (AuditEventRecordType.class.equals(typeClass)) {
+            SystemConfigurationType systemConfigurationType = null;
+            try {
+                systemConfigurationType = modelServiceLocator.getModelInteractionService().getSystemConfiguration(new OperationResult("load_system_config"));
+            } catch (SchemaException | ObjectNotFoundException e) {
+                throw new SystemException(e);
+            }
+            if (systemConfigurationType != null && systemConfigurationType.getAudit() != null
+                    && systemConfigurationType.getAudit().getEventRecording() != null &&
+                    Boolean.TRUE.equals(systemConfigurationType.getAudit().getEventRecording().isRecordResourceOids())) {
+                ArrayList<ItemPath> auditItems = new ArrayList<ItemPath>();
+                auditItems.addAll(items);
+                auditItems.add(ItemPath.create(AuditEventRecordType.F_RESOURCE_OID));
+                items = auditItems;
+            }
+        }
+        return items;
     }
 
     private static <T extends ObjectType> boolean isFullTextSearchEnabled(ModelServiceLocator modelServiceLocator, Class<T> type) {
