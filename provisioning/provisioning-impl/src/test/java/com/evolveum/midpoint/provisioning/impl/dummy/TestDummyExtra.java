@@ -45,8 +45,10 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapa
 
 /**
  * Almost the same as TestDummy but with some extra things, such as:
- * * readable password
- * * account-account associations
+ *
+ * 1. readable password,
+ * 2. account-account associations,
+ * 3. configured `cap:activation` section to reproduce MID-6656.
  *
  * @author Radovan Semancik
  *

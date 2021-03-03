@@ -1538,11 +1538,16 @@ public class ResourceObjectConverter {
             }
             LockoutStatusType status = lockoutPropertyDelta.getPropertyNewMatchingPath().getRealValue();
             LOGGER.trace("Found activation lockoutStatus change to: {}", status);
+            PropertyModificationOperation simulatedLockoutAttributeModification;
             if (ctx.hasConfiguredCapability(ActivationCapabilityType.class)) {
                 // Try to simulate lockout capability
-                PropertyModificationOperation activationAttribute = convertToSimulatedActivationLockoutStatusAttribute(
-                        ctx, lockoutPropertyDelta, shadow, status, activationCapability, result);
-                operations.add(activationAttribute);
+                simulatedLockoutAttributeModification = convertToSimulatedActivationLockoutStatusAttribute(ctx,
+                        lockoutPropertyDelta, shadow, status, activationCapability, result); // may be still null
+            } else {
+                simulatedLockoutAttributeModification = null;
+            }
+            if (simulatedLockoutAttributeModification != null) {
+                operations.add(simulatedLockoutAttributeModification);
             } else {
                 operations.add(new PropertyModificationOperation<>(lockoutPropertyDelta));
             }
