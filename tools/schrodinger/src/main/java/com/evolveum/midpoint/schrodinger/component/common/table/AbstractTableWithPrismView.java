@@ -21,5 +21,9 @@ public abstract class AbstractTableWithPrismView<T> extends Table<T> {
 
     public abstract AbstractTableWithPrismView<T> selectCheckboxByName(String name);
 
+    public abstract AbstractTableWithPrismView<T> selectHeaderCheckbox();
+
     public abstract AbstractTableWithPrismView<T> removeByName(String name);
+
+    public abstract AbstractTableWithPrismView<T> clickHeaderActionButton(String actionButtonStyle);
 }

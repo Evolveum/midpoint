@@ -68,7 +68,10 @@ public class Utils {
     }
 
     public static <P extends AssignmentHolderDetailsPage> void removeAllAssignments(AssignmentsTab<P> tab) {
-        //todo implement
+        tab
+                .table()
+                    .selectHeaderCheckbox()
+                    .clickHeaderActionButton("fa fa-minus fa-fw");
     }
 
     public static <P extends AssignmentHolderDetailsPage> void addAsignments(AssignmentsTab<P> tab, String... assignments){
