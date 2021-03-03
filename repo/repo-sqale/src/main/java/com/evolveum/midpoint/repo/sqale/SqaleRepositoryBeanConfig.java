@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.QCaseMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.QDashboardMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObjectCollectionMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHostMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
@@ -98,7 +99,7 @@ public class SqaleRepositoryBeanConfig {
             SqaleRepositoryConfiguration repositoryConfiguration,
             DataSource dataSource) {
         QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry()
-                // ordered alphabetically here
+                // ordered alphabetically here, mappings without schema type at the end
                 .register(AbstractRoleType.COMPLEX_TYPE, QAbstractRoleMapping.INSTANCE)
                 .register(ArchetypeType.COMPLEX_TYPE, QArchetypeMapping.INSTANCE)
                 .register(AssignmentHolderType.COMPLEX_TYPE, QAssignmentHolderMapping.INSTANCE)
@@ -123,6 +124,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(TriggerType.COMPLEX_TYPE, QTriggerMapping.INSTANCE)
                 .register(UserType.COMPLEX_TYPE, QUserMapping.INSTANCE)
                 .register(ValuePolicyType.COMPLEX_TYPE, QValuePolicyMapping.INSTANCE)
+                .register(QContainerMapping.INSTANCE)
                 .seal();
 
         return new SqaleRepoContext(repositoryConfiguration, dataSource, mappingRegistry);

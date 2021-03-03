@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
 import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleModelMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
@@ -15,7 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
  * Mapping between {@link QTrigger} and {@link TriggerType}.
  */
 public class QTriggerMapping
-        extends SqaleModelMapping<TriggerType, QTrigger, MTrigger> {
+        extends QContainerMapping<TriggerType, QTrigger, MTrigger> {
 
     public static final String DEFAULT_ALIAS_NAME = "trg";
 
@@ -25,7 +25,6 @@ public class QTriggerMapping
         super(QTrigger.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 TriggerType.class, QTrigger.class);
 
-        // TODO (how) is CID queried?
         addItemMapping(TriggerType.F_HANDLER_URI,
                 UriItemFilterProcessor.mapper(path(q -> q.handlerUriId)));
         addItemMapping(TriggerType.F_TIMESTAMP,
