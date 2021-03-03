@@ -21,7 +21,9 @@
     </assignment>
     <credentials>
         <password>
-            <value>5ecr3t</value>
+            <value>
+                <clearValue>123456</clearValue>
+            </value>
         </password>
     </credentials>
 </user>
