@@ -8,11 +8,17 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="row">
-        <div class="col-md-11 ace-editor-left-aligning" wicket:id="aceEditorField"/>
-        <div class="col-md-1">
-            <a class="btn btn-sm btn-primary" wicket:id="configureButton">
+        <div style="padding-right: 0px;" wicket:id="aceEditorContainer">
+            <div class="ace-editor-left-aligning" wicket:id="aceEditorField"/>
+        </div>
+        <div class="col-md-12" style="padding: 0px;" wicket:id="textFieldContainer">
+            <div wicket:id="textField"/>
+        </div>
+        <div>
+            <a class="btn btn-xs btn-primary" style="float: right;" wicket:id="configureButton">
                 <i class="fa fa-cog"/>
             </a>
+<!--            <a class="btn btn-xs btn-primary" style="margin-right: 5px; float: right;" wicket:id="fieldTypeButton"/>-->
         </div>
     </div>
 </wicket:panel>

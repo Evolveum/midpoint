@@ -6,9 +6,9 @@
  */
 package com.evolveum.midpoint.web.component.search;
 
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.factory.panel.SearchFilterTypeModel;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -18,14 +18,12 @@ import com.evolveum.midpoint.web.component.search.filter.BasicSearchFilter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
-import org.apache.wicket.model.IModel;
-
 /**
  * @author honchar
  */
 public class BasicSearchFilterModel<O extends ObjectType> implements IModel<BasicSearchFilter<O>> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SearchFilterTypeModel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(BasicSearchFilterModel.class);
 
     private static final long serialVersionUID = 1L;
 
@@ -48,13 +46,13 @@ public class BasicSearchFilterModel<O extends ObjectType> implements IModel<Basi
 
     @Override
     public BasicSearchFilter<O> getObject() {
-        if (basicSearchFilter == null){
+        if (basicSearchFilter == null) {
             basicSearchFilter = loadBasicSearchFilter();
         }
         return basicSearchFilter;
     }
 
-    private BasicSearchFilter<O> loadBasicSearchFilter(){
+    private BasicSearchFilter<O> loadBasicSearchFilter() {
         try {
 //            SearchFilterType value = baseModel.getObject();
 //            if (value == null) {

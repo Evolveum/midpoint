@@ -12,6 +12,8 @@ import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -60,6 +62,7 @@ public class AceEditorPanel extends BasePanel<String> {
         editor.setResizeToMaxHeight(minSize == 0);
 //        editor.setResizeToMaxHeight(isResizeToMaxHeight());
         add(editor);
+        editor.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
     }
 
     public AceEditor getEditor(){
