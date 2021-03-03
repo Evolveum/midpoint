@@ -1,13 +1,11 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import java.util.Arrays;
 import java.util.Set;
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -254,70 +252,6 @@ public class RTask extends RObject implements OperationResultFull {
 
     public void setWaitingReason(RTaskWaitingReason waitingReason) {
         this.waitingReason = waitingReason;
-    }
-
-    @SuppressWarnings("RedundantIfStatement")
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-        if (!super.equals(o)) { return false; }
-
-        RTask rTask = (RTask) o;
-
-        if (nameCopy != null ? !nameCopy.equals(rTask.nameCopy) : rTask.nameCopy != null) { return false; }
-        if (binding != rTask.binding) { return false; }
-        if (executionStatus != rTask.executionStatus) { return false; }
-        if (handlerUri != null ? !handlerUri.equals(rTask.handlerUri) : rTask.handlerUri != null) { return false; }
-        if (lastRunFinishTimestamp != null ? !lastRunFinishTimestamp.equals(rTask.lastRunFinishTimestamp) : rTask.lastRunFinishTimestamp != null) {
-            return false;
-        }
-        if (completionTimestamp != null ? !completionTimestamp.equals(rTask.completionTimestamp) : rTask.completionTimestamp != null) {
-            return false;
-        }
-        if (lastRunStartTimestamp != null ? !lastRunStartTimestamp.equals(rTask.lastRunStartTimestamp) : rTask.lastRunStartTimestamp != null) {
-            return false;
-        }
-        if (node != null ? !node.equals(rTask.node) : rTask.node != null) { return false; }
-        if (objectRef != null ? !objectRef.equals(rTask.objectRef) : rTask.objectRef != null) { return false; }
-        if (ownerRefTask != null ? !ownerRefTask.equals(rTask.ownerRefTask) : rTask.ownerRefTask != null) { return false; }
-        if (recurrence != rTask.recurrence) { return false; }
-        if (taskIdentifier != null ? !taskIdentifier.equals(rTask.taskIdentifier) : rTask.taskIdentifier != null) {
-            return false;
-        }
-        if (threadStopAction != null ? !threadStopAction.equals(rTask.threadStopAction) :
-                rTask.threadStopAction != null) { return false; }
-        if (category != null ? !category.equals(rTask.category) : rTask.category != null) { return false; }
-        if (parent != null ? !parent.equals(rTask.parent) : rTask.parent != null) { return false; }
-        if (dependent != null ? !dependent.equals(rTask.dependent) : rTask.dependent != null) { return false; }
-        if (waitingReason != null ? !waitingReason.equals(rTask.waitingReason) : rTask.waitingReason != null) { return false; }
-        if (status != rTask.status) { return false; }
-        if (fullResult != null ? !Arrays.equals(fullResult, rTask.fullResult) : rTask.fullResult != null) { return false; }
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result1 = super.hashCode();
-        result1 = 31 * result1 + (nameCopy != null ? nameCopy.hashCode() : 0);
-        result1 = 31 * result1 + (taskIdentifier != null ? taskIdentifier.hashCode() : 0);
-        result1 = 31 * result1 + (executionStatus != null ? executionStatus.hashCode() : 0);
-        result1 = 31 * result1 + (node != null ? node.hashCode() : 0);
-        result1 = 31 * result1 + (handlerUri != null ? handlerUri.hashCode() : 0);
-        result1 = 31 * result1 + (lastRunStartTimestamp != null ? lastRunStartTimestamp.hashCode() : 0);
-        result1 = 31 * result1 + (completionTimestamp != null ? completionTimestamp.hashCode() : 0);
-        result1 = 31 * result1 + (lastRunFinishTimestamp != null ? lastRunFinishTimestamp.hashCode() : 0);
-        result1 = 31 * result1 + (recurrence != null ? recurrence.hashCode() : 0);
-        result1 = 31 * result1 + (binding != null ? binding.hashCode() : 0);
-        result1 = 31 * result1 + (threadStopAction != null ? threadStopAction.hashCode() : 0);
-        result1 = 31 * result1 + (category != null ? category.hashCode() : 0);
-        result1 = 31 * result1 + (parent != null ? parent.hashCode() : 0);
-        result1 = 31 * result1 + (waitingReason != null ? waitingReason.hashCode() : 0);
-        result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
-        result1 = 31 * result1 + (fullResult != null ? Arrays.hashCode(fullResult) : 0);
-
-        return result1;
     }
 
     // dynamically called

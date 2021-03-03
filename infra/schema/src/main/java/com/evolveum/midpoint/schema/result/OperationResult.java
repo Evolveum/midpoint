@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.schema.result;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
@@ -1012,6 +1014,14 @@ public class OperationResult
         }
     }
 
+    // TODO maybe we should declare the whole operation result as "composite"
+    public void computeStatusIfUnknownComposite() {
+        recordEnd();
+        if (isUnknown()) {
+            computeStatusComposite();
+        }
+    }
+
     public void recomputeStatus() {
         recordEnd();
         // Only recompute if there are subresults, otherwise keep original status
@@ -1634,7 +1644,7 @@ public class OperationResult
         }
 
         OperationResult opResult = new OperationResult(result.getOperation(), params, context, returns,
-                OperationResultStatus.parseStatusType(result.getStatus()), result.getToken(),
+                OperationResultStatus.parseStatusType(result.getStatus()), or0(result.getToken()),
                 result.getMessageCode(), result.getMessage(), localizableMessage, null,
                 subresults);
         opResult.operationKind(result.getOperationKind());

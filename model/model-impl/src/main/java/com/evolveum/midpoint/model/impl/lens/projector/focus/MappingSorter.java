@@ -75,12 +75,13 @@ class MappingSorter {
                     .filter(i -> CollectionUtils.isSubCollection(dependencyMap.get(i), processed))    // cannot depend on yet-unprocessed mappings
                     .findFirst().orElse(null);
             if (available == null) {
-                LOGGER.warn("Cannot sort mappings according to dependencies, there is a cycle involving mappings {}:\n{}",
-                        toProcess, dumpMappings(selectRequests(requests, toProcess)));
+                LOGGER.warn("Cannot sort mappings according to dependencies, because there is a cycle involving mappings #{}. "
+                        + "Computation results may be incorrect. Please enable DEBUG logging to see the details.", toProcess);
+                LOGGER.debug("Mappings that cannot be sorted:\n{}", lazy(() -> dumpMappings(selectRequests(requests, toProcess))));
                 List<Integer> finalOrder = new ArrayList<>(processed);
                 finalOrder.addAll(toProcess);
                 List<? extends FocalMappingEvaluationRequest<?, ?>> rv = selectRequests(requests, finalOrder);
-                LOGGER.warn("Processing mappings in partially satisfying order: {}\n{}", finalOrder, dumpMappings(rv));
+                LOGGER.debug("Processing mappings in partially satisfying order: {}\n{}", finalOrder, lazy(() -> dumpMappings(rv)));
                 return rv;
             }
             processed.add(available);
@@ -93,7 +94,7 @@ class MappingSorter {
         return rv;
     }
 
-    private String dumpMappings(List<? extends FocalMappingEvaluationRequest<?,?>> requests) {
+    private String dumpMappings(Iterable<? extends FocalMappingEvaluationRequest<?, ?>> requests) {
         StringBuilder sb = new StringBuilder();
         for (FocalMappingEvaluationRequest<?, ?> request : requests) {
             sb.append(" - ").append(request.shortDump()).append("\n");
@@ -102,9 +103,11 @@ class MappingSorter {
     }
 
     private List<? extends FocalMappingEvaluationRequest<?, ?>> selectRequests(
-            List<? extends FocalMappingEvaluationRequest<?, ?>> requests, List<Integer> numbers) {
+            List<? extends FocalMappingEvaluationRequest<?, ?>> requests, Collection<Integer> numbers) {
         if (numbers != null) {
-            return numbers.stream().map(index -> requests.get(index)).collect(Collectors.toList());
+            return numbers.stream()
+                    .map(requests::get)
+                    .collect(Collectors.toList());
         } else {
             return requests;
         }

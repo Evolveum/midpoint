@@ -39,10 +39,19 @@
         <buckets>
             <stringSegmentation>
                 <discriminator>name</discriminator>
-                <boundaryCharacters>r</boundaryCharacters>
-                <boundaryCharacters>x</boundaryCharacters>
-                <boundaryCharacters>0-9</boundaryCharacters>
-                <boundaryCharacters>0-9</boundaryCharacters>
+                <boundary>
+                    <position>0</position>
+                    <characters>r</characters>
+                </boundary>
+                <boundary>
+                    <position>1</position>
+                    <characters>x</characters>
+                </boundary>
+                <boundary>
+                    <position>2</position>
+                    <position>3</position>
+                    <characters>0-9</characters>
+                </boundary>
                 <comparisonMethod>prefix</comparisonMethod>
             </stringSegmentation>
         </buckets>

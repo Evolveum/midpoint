@@ -39,7 +39,9 @@
                     <buckets>
                         <stringSegmentation>
                             <discriminator>attributes/icfs:name</discriminator>
-                            <boundaryCharacters>abcdefghijklmnopqrstuvwxyz</boundaryCharacters>
+                            <boundary>
+                                <characters>abcdefghijklmnopqrstuvwxyz</characters>
+                            </boundary>
                         </stringSegmentation>
                     </buckets>
                     <workers>

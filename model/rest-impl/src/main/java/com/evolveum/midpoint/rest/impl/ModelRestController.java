@@ -250,22 +250,11 @@ public class ModelRestController extends AbstractRestController {
         try {
             PrismObject<? extends ObjectType> object;
             if (NodeType.class.equals(clazz) && CURRENT.equals(id)) {
-                String nodeId = taskManager.getNodeId();
-                ObjectQuery query = prismContext.queryFor(NodeType.class)
-                        .item(NodeType.F_NODE_IDENTIFIER).eq(nodeId)
-                        .build();
-                List<PrismObject<NodeType>> objects = model.searchObjects(NodeType.class, query, getOptions, task, result);
-                if (objects.isEmpty()) {
-                    throw new ObjectNotFoundException("Current node (id " + nodeId + ") couldn't be found.");
-                } else if (objects.size() > 1) {
-                    throw new IllegalStateException("More than one 'current' node (id " + nodeId + ") found.");
-                } else {
-                    object = objects.get(0);
-                }
+                object = getCurrentNodeObject(getOptions, task, result);
             } else {
                 object = model.getObject(clazz, id, getOptions, task, result);
             }
-            removeExcludes(object, exclude);        // temporary measure until fixed in repo
+            removeExcludes(object, exclude); // temporary measure until fixed in repo
 
             response = createResponse(HttpStatus.OK, object, result);
         } catch (Exception ex) {
@@ -275,6 +264,23 @@ public class ModelRestController extends AbstractRestController {
         result.computeStatus();
         finishRequest(task, result);
         return response;
+    }
+
+    private PrismObject<? extends ObjectType> getCurrentNodeObject(Collection<SelectorOptions<GetOperationOptions>> getOptions,
+            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        String nodeId = taskManager.getNodeId();
+        ObjectQuery query = prismContext.queryFor(NodeType.class)
+                .item(NodeType.F_NODE_IDENTIFIER).eq(nodeId)
+                .build();
+        List<PrismObject<NodeType>> objects = model.searchObjects(NodeType.class, query, getOptions, task, result);
+        if (objects.isEmpty()) {
+            throw new ObjectNotFoundException("Current node (id " + nodeId + ") couldn't be found.");
+        } else if (objects.size() > 1) {
+            throw new IllegalStateException("More than one 'current' node (id " + nodeId + ") found.");
+        } else {
+            return objects.get(0);
+        }
     }
 
     @GetMapping("/self")

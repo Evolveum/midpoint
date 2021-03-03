@@ -38,6 +38,7 @@
                         <resolutionTime>run</resolutionTime>
                     </approverRef>
                 </approval>
+                <record/>
             </policyActions>
         </policyRule>
     </inducement>

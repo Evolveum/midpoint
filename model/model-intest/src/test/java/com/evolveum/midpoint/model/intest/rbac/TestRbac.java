@@ -4447,6 +4447,32 @@ public class TestRbac extends AbstractRbacTest {
                 roleAfter.getDescription() != null && roleAfter.getDescription().startsWith("Modified by administrator on "));
     }
 
+    /**
+     * User that fails policy rule induced script.
+     *
+     * MID-6753
+     */
+    @Test
+    public void test910UserFailingScript() throws Exception {
+        given();
+
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = getTestTask();
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+
+        when();
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_DESCRIPTION).replace("modified")
+                .asObjectDeltaCast(USER_FAILING_SCRIPT.oid);
+        traced(() -> executeChanges(delta, null, task, result));
+
+        // THEN
+        then();
+        assertPartialError(result);
+    }
+
     protected boolean testMultiplicityConstraintsForNonDefaultRelations() {
         return true;
     }

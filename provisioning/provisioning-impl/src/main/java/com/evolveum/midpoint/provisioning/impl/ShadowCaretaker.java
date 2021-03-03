@@ -12,6 +12,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -131,7 +132,7 @@ public class ShadowCaretaker {
         }
     }
 
-    public PrismObject<ShadowType> applyAttributesDefinitionToImmutable(ProvisioningContext ctx,
+    @NotNull public PrismObject<ShadowType> applyAttributesDefinitionToImmutable(ProvisioningContext ctx,
             PrismObject<ShadowType> shadow) throws SchemaException, ConfigurationException,
             ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
         PrismObject<ShadowType> mutableShadow = shadow.clone();

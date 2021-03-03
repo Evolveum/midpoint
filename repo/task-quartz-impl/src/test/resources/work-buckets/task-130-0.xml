@@ -21,8 +21,14 @@
             <stringSegmentation>
                 <discriminator>name</discriminator>
                 <matchingRule>polyStringNorm</matchingRule>
-                <boundaryCharacters>05am</boundaryCharacters>
-                <boundaryCharacters>0am</boundaryCharacters>
+                <boundary>
+                    <position>0</position>
+                    <characters>05am</characters>
+                </boundary>
+                <boundary>
+                    <position>1</position>
+                    <characters>0am</characters>
+                </boundary>
                 <comparisonMethod>interval</comparisonMethod>
             </stringSegmentation>
         </buckets>

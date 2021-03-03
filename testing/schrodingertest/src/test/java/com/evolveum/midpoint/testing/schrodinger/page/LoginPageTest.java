@@ -83,7 +83,7 @@ public class LoginPageTest extends AbstractLoginPageTest {
         addObjectFromFile(SEC_QUES_RESET_PASS_SECURITY_POLICY);
         basicPage.loggedUser().logoutIfUserIsLogin();
         login.forgotPassword()
-                .setUsernameValue(NAME_OF_ENABLED_USER)
+//                .setUsernameValue(NAME_OF_ENABLED_USER)
                 .setEmailValue(MAIL_OF_ENABLED_USER)
                 .clickSubmitButton();
         ForgetPasswordSecurityQuestionsPage securityQuestionsPage = new ForgetPasswordSecurityQuestionsPage();

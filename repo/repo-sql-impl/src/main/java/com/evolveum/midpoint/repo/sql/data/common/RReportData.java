@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import java.util.Objects;
 import javax.persistence.*;
 
 import org.hibernate.annotations.Cascade;
@@ -60,28 +59,6 @@ public class RReportData extends RObject {
 
     public void setReportRef(REmbeddedReference reportRef) {
         this.reportRef = reportRef;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        if (!super.equals(o)) {
-            return false;
-        }
-
-        RReportData object = (RReportData) o;
-        return Objects.equals(nameCopy, object.nameCopy)
-                && Objects.equals(reportRef, object.reportRef);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), nameCopy, reportRef);
     }
 
     // dynamically called

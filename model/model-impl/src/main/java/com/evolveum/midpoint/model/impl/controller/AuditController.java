@@ -60,9 +60,6 @@ public class AuditController implements ModelAuditService {
     @Autowired private ModelObjectResolver objectResolver;
     @Autowired private SecurityEnforcer securityEnforcer;
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.audit.api.AuditService#audit(com.evolveum.midpoint.audit.api.AuditEventRecord, com.evolveum.midpoint.task.api.Task)
-     */
     @Override
     public void audit(AuditEventRecord record, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         authorize(ModelAuthorizationAction.AUDIT_RECORD, task, result);
@@ -75,9 +72,6 @@ public class AuditController implements ModelAuditService {
         return auditService.listRecords(query, params, result);
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.audit.api.AuditService#countObjects(java.lang.String, java.util.Map)
-     */
     @Override
     public long countObjects(String query, Map<String, Object> params, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         authorize(ModelAuthorizationAction.AUDIT_READ, task, result);
@@ -90,9 +84,6 @@ public class AuditController implements ModelAuditService {
         auditService.cleanupAudit(policy, parentResult);
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.audit.api.AuditService#supportsRetrieval()
-     */
     @Override
     public boolean supportsRetrieval() {
         return auditService.supportsRetrieval();

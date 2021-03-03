@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -85,6 +86,8 @@ public abstract class AbstractRbacTest extends AbstractInitializedModelIntegrati
 
     protected static final File ROLE_DETECTING_MODIFICATIONS_FILE = new File(TEST_DIR, "role-detecting-modifications.xml");
     protected static final String ROLE_DETECTING_MODIFICATIONS_OID = "42ef2848-3793-4120-8d03-d8e5f8c23237";
+
+    protected static final TestResource<UserType> USER_FAILING_SCRIPT = new TestResource<>(TEST_DIR, "user-failing-script.xml", "46da40b7-5ecb-442b-92ce-a5f123af74e7");
 
     protected static final File ROLE_UNDELETABLE_FILE = new File(TEST_DIR, "role-undeletable.xml");
     protected static final String ROLE_UNDELETABLE_OID = "7ae7d616-1442-4295-9aee-5f5e339870af";
@@ -220,6 +223,8 @@ public abstract class AbstractRbacTest extends AbstractInitializedModelIntegrati
         repoAddObjectFromFile(ROLE_RICH_SAILOR_FILE, RoleType.class, initResult);
 
         repoAddObjectFromFile(USER_RAPP_FILE, initResult);
+
+        repoAdd(USER_FAILING_SCRIPT, initResult);
 
         dummyResourceCtl.addGroup(GROUP_FOOLS_NAME);
         dummyResourceCtl.addGroup(GROUP_SIMPLETONS_NAME);

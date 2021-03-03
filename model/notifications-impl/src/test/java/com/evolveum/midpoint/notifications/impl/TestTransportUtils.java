@@ -34,20 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationTranspor
 /**
  * @author skublik
  */
-@ContextConfiguration(locations = { "classpath:ctx-task.xml",
-        "classpath:ctx-repo-cache.xml",
-        "classpath:ctx-provisioning.xml",
-        "classpath*:ctx-repository-test.xml",
-        "classpath:ctx-configuration-test.xml",
-        "classpath:ctx-common.xml",
-        "classpath:ctx-repo-common.xml",
-        "classpath:ctx-security.xml",
-        "classpath:ctx-security-enforcer.xml",
-        "classpath:ctx-audit.xml",
-        "classpath:ctx-model.xml",
-        "classpath:ctx-model-common.xml",
-        "classpath:ctx-notifications-test.xml",
-        "classpath*:ctx-notifications.xml" })
+@ContextConfiguration(locations = {"classpath:ctx-notifications-test.xml"})
 public class TestTransportUtils extends AbstractSpringTest {
 
     @Autowired protected ExpressionFactory expressionFactory;

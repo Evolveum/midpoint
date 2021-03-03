@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -80,10 +79,6 @@ public class RAccessCertificationDefinition extends RObject {
         return lastCampaignClosedTimestamp;
     }
 
-//    public String getCampaignSchedulingInterval() {
-//        return campaignSchedulingInterval;
-//    }
-
     public void setHandlerUri(String handlerUri) {
         this.handlerUri = handlerUri;
     }
@@ -98,38 +93,6 @@ public class RAccessCertificationDefinition extends RObject {
 
     public void setLastCampaignClosedTimestamp(XMLGregorianCalendar lastCampaignClosedTimestamp) {
         this.lastCampaignClosedTimestamp = lastCampaignClosedTimestamp;
-    }
-
-//    public void setCampaignSchedulingInterval(String campaignSchedulingInterval) {
-//        this.campaignSchedulingInterval = campaignSchedulingInterval;
-//    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof RAccessCertificationDefinition)) return false;
-        if (!super.equals(o)) return false;
-
-        RAccessCertificationDefinition that = (RAccessCertificationDefinition) o;
-
-        if (nameCopy != null ? !nameCopy.equals(that.nameCopy) : that.nameCopy != null) return false;
-        if (handlerUri != null ? !handlerUri.equals(that.handlerUri) : that.handlerUri != null) return false;
-        if (ownerRefDefinition != null ? !ownerRefDefinition.equals(that.ownerRefDefinition) : that.ownerRefDefinition != null) return false;
-        if (lastCampaignStartedTimestamp != null ? !lastCampaignStartedTimestamp.equals(that.lastCampaignStartedTimestamp) : that.lastCampaignStartedTimestamp != null)
-            return false;
-        if (lastCampaignClosedTimestamp != null ? !lastCampaignClosedTimestamp.equals(that.lastCampaignClosedTimestamp) : that.lastCampaignClosedTimestamp != null)
-            return false;
-        //return !(campaignSchedulingInterval != null ? !campaignSchedulingInterval.equals(that.campaignSchedulingInterval) : that.campaignSchedulingInterval != null);
-        return true;
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
-        result = 31 * result + (handlerUri != null ? handlerUri.hashCode() : 0);
-        return result;
     }
 
     // dynamically called

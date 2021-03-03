@@ -8,10 +8,15 @@ package com.evolveum.midpoint.wf.impl.other;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -32,8 +37,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Testing approvals of role SoD: assigning roles that are in conflict.
- * <p>
- * Subclasses provide specializations regarding ways how rules and/or approvers are attached to roles.
  */
 @ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -64,9 +67,6 @@ public class TestSoD extends AbstractWfTestPolicy {
         roleThiefOid = repoAddObjectFromFile(ROLE_THIEF_FILE, initResult).getOid();
         roleRespectableOid = repoAddObjectFromFile(ROLE_RESPECTABLE_FILE, initResult).getOid();
         userSodApproverOid = addAndRecomputeUser(USER_SOD_APPROVER_FILE, initTask, initResult);
-
-//        setGlobalTracingOverride(createModelLoggingTracingProfile());
-        //DebugUtil.setDetailedDebugDump(true);
     }
 
     /**
@@ -74,15 +74,17 @@ public class TestSoD extends AbstractWfTestPolicy {
      */
     @Test
     public void test010AssignRoleJudge() throws Exception {
+        given();
+
         login(userAdministrator);
 
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        // WHEN
+        when();
         assignRole(userJackOid, roleJudgeOid, task, result);
 
-        // THEN
+        then();
         display("jack as a Judge", getUser(userJackOid));
         assertAssignedRole(userJackOid, roleJudgeOid, result);
     }
@@ -92,6 +94,7 @@ public class TestSoD extends AbstractWfTestPolicy {
      */
     @Test
     public void test020AssignRolePirate() throws Exception {
+        given();
         login(userAdministrator);
 
         OperationResult result = getTestOperationResult();
@@ -109,7 +112,7 @@ public class TestSoD extends AbstractWfTestPolicy {
                 .asObjectDelta(userJackOid);
         ObjectDelta<UserType> primaryDelta = ObjectDeltaCollectionsUtil.summarize(addPirateDelta, changeDescriptionDelta);
 
-        // WHEN+THEN
+        when();
         executeTest2(new TestDetails2<UserType>() {
             @Override
             protected PrismObject<UserType> getFocus(OperationResult result) {
@@ -133,13 +136,11 @@ public class TestSoD extends AbstractWfTestPolicy {
 
             @Override
             protected List<ObjectDelta<UserType>> getExpectedDeltasToApprove() {
-                return Arrays.asList(addPirateDelta.clone());
+                return Collections.singletonList(addPirateDelta.clone());
             }
 
             @Override
             protected ObjectDelta<UserType> getExpectedDelta0() {
-                //return ObjectDelta.createEmptyModifyDelta(UserType.class, jack.getOid(), prismContext);
-                //return ObjectDelta.createModifyDelta(jack.getOid(), Collections.emptyList(), UserType.class, prismContext);
                 return changeDescriptionDelta.clone();
             }
 
@@ -194,10 +195,19 @@ public class TestSoD extends AbstractWfTestPolicy {
 
         }, 1, false);
 
-        // THEN
+        then();
         display("jack as a Pirate + Judge", getUser(userJackOid));
-        assertAssignedRole(userJackOid, roleJudgeOid, result);
-        assertAssignedRole(userJackOid, rolePirateOid, result);
+        AssignmentType judgeAssignment = assertAssignedRole(userJackOid, roleJudgeOid, result);
+        assertExclusionViolationSituation(judgeAssignment);
+        AssignmentType pirateAssignment = assertAssignedRole(userJackOid, rolePirateOid, result);
+        assertExclusionViolationSituation(pirateAssignment);
+    }
+
+    private void assertExclusionViolationSituation(AssignmentType assignment) {
+        assertThat(assignment.getPolicySituation())
+                .as("policy situation in " + assignment)
+                .hasSize(1)
+                .containsExactly(SchemaConstants.MODEL_POLICY_SITUATION_EXCLUSION_VIOLATION);
     }
 
     /**

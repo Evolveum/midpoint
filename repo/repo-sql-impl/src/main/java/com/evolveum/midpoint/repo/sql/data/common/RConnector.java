@@ -1,11 +1,17 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common;
+
+import java.util.Set;
+import javax.persistence.*;
+
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
@@ -16,15 +22,7 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Persister;
-
-import javax.persistence.*;
-import java.util.Set;
 
 /**
  * @author lazyman
@@ -34,10 +32,9 @@ import java.util.Set;
 @Persister(impl = MidPointJoinedPersister.class)
 @Table(indexes = {
         @Index(name = "iConnectorNameOrig", columnList = "name_orig"),
-        @Index(name = "iConnectorNameNorm", columnList = "name_norm")})
+        @Index(name = "iConnectorNameNorm", columnList = "name_norm") })
 public class RConnector extends RObject {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RConnector.class);
     private RPolyString nameCopy;
     private String framework;
     private REmbeddedReference connectorHostRef;
@@ -68,7 +65,7 @@ public class RConnector extends RObject {
     @CollectionTable(name = "m_connector_target_system", joinColumns = {
             @JoinColumn(name = "connector_oid", referencedColumnName = "oid")
     })
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<String> getTargetSystemType() {
         return targetSystemType;
     }
@@ -114,42 +111,6 @@ public class RConnector extends RObject {
 
     public void setTargetSystemType(Set<String> targetSystemType) {
         this.targetSystemType = targetSystemType;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-
-        RConnector that = (RConnector) o;
-
-        if (nameCopy != null ? !nameCopy.equals(that.nameCopy) : that.nameCopy != null) return false;
-        if (connectorBundle != null ? !connectorBundle.equals(that.connectorBundle) : that.connectorBundle != null)
-            return false;
-        if (connectorHostRef != null ? !connectorHostRef.equals(that.connectorHostRef) : that.connectorHostRef != null)
-            return false;
-        if (connectorType != null ? !connectorType.equals(that.connectorType) : that.connectorType != null)
-            return false;
-        if (connectorVersion != null ? !connectorVersion.equals(that.connectorVersion) : that.connectorVersion != null)
-            return false;
-        if (framework != null ? !framework.equals(that.framework) : that.framework != null) return false;
-        if (targetSystemType != null ? !targetSystemType.equals(that.targetSystemType) : that.targetSystemType != null)
-            return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
-        result = 31 * result + (framework != null ? framework.hashCode() : 0);
-        result = 31 * result + (connectorType != null ? connectorType.hashCode() : 0);
-        result = 31 * result + (connectorVersion != null ? connectorVersion.hashCode() : 0);
-        result = 31 * result + (connectorBundle != null ? connectorBundle.hashCode() : 0);
-
-        return result;
     }
 
     // dynamically called

@@ -441,7 +441,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
 
     protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptionsFromTask() {
         return MiscSchemaUtil.optionsTypeToOptions(
-                getTaskPropertyRealValue(SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS),
+                getTaskContainerRealValue(SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS),
                 getPrismContext());
     }
 

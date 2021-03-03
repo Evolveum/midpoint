@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -188,52 +187,6 @@ public class RUser extends RFocus {
 
     public void setFullName(RPolyString fullName) {
         this.fullName = fullName;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-
-        RUser rUser = (RUser) o;
-
-        if (nameCopy != null ? !nameCopy.equals(rUser.nameCopy) : rUser.nameCopy != null) return false;
-        if (additionalName != null ? !additionalName.equals(rUser.additionalName) : rUser.additionalName != null)
-            return false;
-        if (employeeNumber != null ? !employeeNumber.equals(rUser.employeeNumber) : rUser.employeeNumber != null)
-            return false;
-        if (employeeType != null ? !employeeType.equals(rUser.employeeType) : rUser.employeeType != null) return false;
-        if (familyName != null ? !familyName.equals(rUser.familyName) : rUser.familyName != null) return false;
-        if (fullName != null ? !fullName.equals(rUser.fullName) : rUser.fullName != null) return false;
-        if (givenName != null ? !givenName.equals(rUser.givenName) : rUser.givenName != null) return false;
-        if (honorificPrefix != null ? !honorificPrefix.equals(rUser.honorificPrefix) : rUser.honorificPrefix != null)
-            return false;
-        if (honorificSuffix != null ? !honorificSuffix.equals(rUser.honorificSuffix) : rUser.honorificSuffix != null)
-            return false;
-        if (organizationalUnit != null ? !organizationalUnit.equals(rUser.organizationalUnit) : rUser.organizationalUnit != null)
-            return false;
-        if (title != null ? !title.equals(rUser.title) : rUser.title != null) return false;
-        if (nickName != null ? !nickName.equals(rUser.nickName) : rUser.nickName != null) return false;
-        if (organization != null ? !organization.equals(rUser.organization) : rUser.organization != null) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
-        result = 31 * result + (fullName != null ? fullName.hashCode() : 0);
-        result = 31 * result + (givenName != null ? givenName.hashCode() : 0);
-        result = 31 * result + (familyName != null ? familyName.hashCode() : 0);
-        result = 31 * result + (honorificPrefix != null ? honorificPrefix.hashCode() : 0);
-        result = 31 * result + (honorificSuffix != null ? honorificSuffix.hashCode() : 0);
-        result = 31 * result + (employeeNumber != null ? employeeNumber.hashCode() : 0);
-        result = 31 * result + (title != null ? title.hashCode() : 0);
-        result = 31 * result + (nickName != null ? nickName.hashCode() : 0);
-
-        return result;
     }
 
     // dynamically called

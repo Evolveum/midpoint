@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import com.evolveum.midpoint.schrodinger.util.Utils;
 
 import org.openqa.selenium.By;
+import org.testng.asserts.Assertion;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -124,6 +125,21 @@ public class ProjectionsTab<P extends AssignmentHolderDetailsPage> extends TabWi
                 .getParentElement()
                 .$(Schrodinger.byDataId("displayName"));
         return assignmentName.equals(assignmentSummaryDisplayName.getText());
+    }
+
+    public ProjectionsTab<P> assertProjectionExist(String projectionName) {
+        assertion.assertTrue(projectionExists(projectionName), "Projection " + projectionName + "should exist");
+        return this;
+    }
+
+    public ProjectionsTab<P> assertProjectionEnabled(String projectionName) {
+        //todo implement
+        return this;
+    }
+
+    public ProjectionsTab<P> assertProjectionDisabled(String projectionName) {
+        //todo implement
+        return this;
     }
 
     @Override

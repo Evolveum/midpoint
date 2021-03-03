@@ -1,11 +1,19 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common;
+
+import java.util.HashSet;
+import java.util.Set;
+import javax.persistence.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RCaseWorkItem;
@@ -19,15 +27,6 @@ import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Persister;
-
-import javax.persistence.*;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
 
 /**
  * @author mederly
@@ -41,8 +40,7 @@ import java.util.Set;
         @Index(name = "iCaseTypeParentRefTargetOid", columnList = "parentRef_targetOid"),
         @Index(name = "iCaseTypeRequestorRefTargetOid", columnList = "requestorRef_targetOid"),
         @Index(name = "iCaseTypeCloseTimestamp", columnList = "closeTimestamp")
-}
-)
+})
 @Persister(impl = MidPointJoinedPersister.class)
 public class RCase extends RObject {
 
@@ -128,37 +126,13 @@ public class RCase extends RObject {
     @JaxbName(localPart = "workItem")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @org.hibernate.annotations.ForeignKey(name = "none")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RCaseWorkItem> getWorkItems() {
         return workItems;
     }
 
     public void setWorkItems(Set<RCaseWorkItem> workItems) {
         this.workItems = workItems != null ? workItems : new HashSet<>();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof RCase))
-            return false;
-        if (!super.equals(o))
-            return false;
-        RCase rCase = (RCase) o;
-        return Objects.equals(nameCopy, rCase.nameCopy) &&
-                Objects.equals(objectRef, rCase.objectRef) &&
-                Objects.equals(targetRef, rCase.targetRef) &&
-                Objects.equals(parentRef, rCase.parentRef) &&
-                Objects.equals(requestorRef, rCase.requestorRef) &&
-                Objects.equals(closeTimestamp, rCase.closeTimestamp) &&
-                Objects.equals(workItems, rCase.workItems);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), nameCopy, objectRef, targetRef, parentRef, requestorRef,
-                closeTimestamp, workItems);
     }
 
     @Override
