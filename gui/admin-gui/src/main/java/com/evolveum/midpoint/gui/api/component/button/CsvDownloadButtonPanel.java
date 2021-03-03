@@ -10,6 +10,9 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
 
 import org.apache.commons.lang3.StringUtils;
@@ -83,7 +86,13 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
             @Override
             protected <T> IModel<T> wrapModel(IModel<T> model) {
                 if (model.getObject() == null) {
-                    return (IModel<T>) () -> (T) "";
+                    return () -> (T) "";
+                }
+                if (model.getObject() instanceof Referencable) {
+                    return () -> {
+                        String value = WebModelServiceUtils.resolveReferenceName((Referencable) model.getObject(), getPageBase());
+                        return (T) (value == null ? "" : value);
+                    };
                 }
                 return super.wrapModel(model);
             }
