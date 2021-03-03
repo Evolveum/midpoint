@@ -1316,6 +1316,9 @@ public class ResourceManager {
         return connectorSpec != null ? connectorManager.getConfiguredConnectorInstanceFromCache(connectorSpec) : null;
     }
 
+    /**
+     * Returns connector capabilities merged with capabilities defined at object class level.
+     */
     <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(ResourceType resource,
             RefinedObjectClassDefinition objectClassDefinition, Class<T> operationCapabilityClass) {
         if (resource == null) {
@@ -1336,12 +1339,18 @@ public class ResourceManager {
         CapabilitiesType finalCapabilities = applyObjectClassCapabilities(connectorCapabilities, objectClassDefinition);
         LOGGER.trace("Returning final capabilities:\n{} ", finalCapabilities);
         return finalCapabilities;
-
     }
 
-    private CapabilitiesType applyObjectClassCapabilities(CapabilitiesType connectorCapabilities, RefinedObjectClassDefinition objectClassDefinition) {
+    /**
+     * Merges object class specific capabilities with capabilities defined at connector level.
+     * The specific capabilities take precedence over the connector-level ones.
+     * (A unit of comparison is the whole capability, identified by its root level element.)
+     */
+    private CapabilitiesType applyObjectClassCapabilities(CapabilitiesType connectorCapabilities,
+            RefinedObjectClassDefinition objectClassDefinition) {
 
         if (objectClassDefinition == null) {
+            LOGGER.trace("No object class definition, skipping merge.");
             return connectorCapabilities;
         }
 
@@ -1351,31 +1360,30 @@ public class ResourceManager {
             return connectorCapabilities;
         }
 
-        CapabilityCollectionType configured = objectClassCapabilities.getConfigured();
-        if (configured == null) {
-            LOGGER.trace("Empty capabilities in {} specified, skipping merge", objectClassDefinition);
+        CapabilityCollectionType configuredObjectClassCapabilities = objectClassCapabilities.getConfigured();
+        if (configuredObjectClassCapabilities == null) {
+            LOGGER.trace("No configured capabilities in {} specified, skipping merge", objectClassDefinition);
             return connectorCapabilities;
         }
 
-        CapabilitiesType finalCapabilities = new CapabilitiesType();
+        CapabilitiesType finalCapabilities = new CapabilitiesType(prismContext);
         if (connectorCapabilities.getNative() != null) {
             finalCapabilities.setNative(connectorCapabilities.getNative());
         }
 
         if (!hasConfiguredCapabilities(connectorCapabilities)) {
             LOGGER.trace("No configured capabilities found for connector, replacing with capabilities defined for {}", objectClassDefinition);
-            finalCapabilities.setConfigured(configured);
+            finalCapabilities.setConfigured(configuredObjectClassCapabilities);
             return finalCapabilities;
         }
 
         for (Object capability : connectorCapabilities.getConfigured().getAny()) {
-
-            if (!CapabilityUtil.containsCapabilityWithSameElementName(configured.getAny(), capability)) {
-                configured.getAny().add(capability);
+            if (!CapabilityUtil.containsCapabilityWithSameElementName(configuredObjectClassCapabilities.getAny(), capability)) {
+                configuredObjectClassCapabilities.getAny().add(capability);
             }
         }
 
-        finalCapabilities.setConfigured(configured);
+        finalCapabilities.setConfigured(configuredObjectClassCapabilities);
         return finalCapabilities;
     }
 

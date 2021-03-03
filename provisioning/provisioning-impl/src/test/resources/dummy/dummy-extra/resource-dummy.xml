@@ -220,6 +220,14 @@
     </schemaHandling>
     <capabilities>
         <configured>
+            <!-- MID-6656 -->
+            <cap:activation>
+                <cap:enabled>true</cap:enabled>
+                <cap:status/>
+                <cap:validFrom/>
+                <cap:validTo/>
+                <cap:lockoutStatus/>
+            </cap:activation>
             <cap:countObjects>
                 <cap:simulate>pagedSearchEstimate</cap:simulate>
             </cap:countObjects>

@@ -970,9 +970,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             throw e;
         }
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("converted attributesDelta:\n {}", converter.debugDump(1));
-        }
+        LOGGER.trace("converted attributesDelta:\n {}", converter.debugDumpLazily(1));
 
         OperationResult connIdResult;
 
