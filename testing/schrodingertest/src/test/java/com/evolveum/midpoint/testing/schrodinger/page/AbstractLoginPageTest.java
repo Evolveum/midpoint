@@ -52,15 +52,16 @@ public abstract class AbstractLoginPageTest extends AbstractSchrodingerTest {
     @Override
     public void beforeClass() throws IOException{
         super.beforeClass();
-//        importObject(ENABLED_USER, true);
-//        importObject(DISABLED_USER, true);
-//        importObject(ENABLED_USER_WITHOUT_AUTHORIZATIONS, true);
-//        importObject(MAIL_NONCE_VALUE_POLICY, true);
-//        importObject(ARCHETYPE_NODE_GUI, true);
-//        importObject(getSecurityPolicyMailNonceResetPass(), true);
-//        importObject(USER_WITHOUT_SUPERUSER, true);
-//        importObject(CREATE_NAME_OBJECT_TEMPLATE, true);
-//        importObject(SYSTEM_CONFIG_WITH_NOTIFICATION, true);
+        addObjectFromFile(ENABLED_USER, true);
+        addObjectFromFile(DISABLED_USER, true);
+        addObjectFromFile(ENABLED_USER_WITHOUT_AUTHORIZATIONS, true);
+        addObjectFromFile(MAIL_NONCE_VALUE_POLICY, true);
+        addObjectFromFile(ARCHETYPE_NODE_GUI, true);
+        addObjectFromFile(getSecurityPolicyMailNonceResetPass(), true);
+        //todo smth goes wrong after security policy import
+        importObject(USER_WITHOUT_SUPERUSER, true);
+        importObject(CREATE_NAME_OBJECT_TEMPLATE, true);
+        importObject(SYSTEM_CONFIG_WITH_NOTIFICATION, true);
         basicPage.infrastructure();
         SystemPage systemPage = new SystemPage();
         PrismForm<InfrastructureTab> infrastructureForm = systemPage.infrastructureTab().form();
@@ -79,11 +80,11 @@ public abstract class AbstractLoginPageTest extends AbstractSchrodingerTest {
         systemPage.feedback().assertSuccess();
     }
 
-    @Override
-    protected List<File> getObjectListToImport(){
-        return Arrays.asList(ENABLED_USER, DISABLED_USER, ENABLED_USER_WITHOUT_AUTHORIZATIONS, MAIL_NONCE_VALUE_POLICY, ARCHETYPE_NODE_GUI,
-                getSecurityPolicyMailNonceResetPass(), USER_WITHOUT_SUPERUSER, CREATE_NAME_OBJECT_TEMPLATE, SYSTEM_CONFIG_WITH_NOTIFICATION);
-    }
+//    @Override
+//    protected List<File> getObjectListToImport(){
+//        return Arrays.asList(USER_WITHOUT_SUPERUSER, ENABLED_USER, DISABLED_USER, ENABLED_USER_WITHOUT_AUTHORIZATIONS, MAIL_NONCE_VALUE_POLICY, ARCHETYPE_NODE_GUI,
+//                getSecurityPolicyMailNonceResetPass(), CREATE_NAME_OBJECT_TEMPLATE, SYSTEM_CONFIG_WITH_NOTIFICATION);
+//    }
 
     @Test
     public void test001loginLockoutUser() {
