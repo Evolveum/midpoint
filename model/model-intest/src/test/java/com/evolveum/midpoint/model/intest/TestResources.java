@@ -172,9 +172,9 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         display("Resource", resource);
 
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  2);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  0);
 
-        assertResourceDummy(resource, false);
+        assertResourceDummy(resource, false, false);
 
         assertNull("Schema sneaked in", ResourceTypeUtil.getResourceXsdSchema(resource));
 
@@ -184,7 +184,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
-        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
     }
 
     /**
@@ -221,7 +221,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         display("Resource", resource);
 
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  1);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  3);
 
         assertResourceDummy(resource, false);
 
@@ -233,7 +233,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
-        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 1);
     }
 
     /**
@@ -682,7 +682,15 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     }
 
     private void assertResourceDummy(PrismObject<ResourceType> resource, boolean expectSchema) {
-        assertResource(resource, expectSchema);
+        assertResourceDummy(resource, expectSchema, true);
+    }
+
+    private void assertResourceDummy(PrismObject<ResourceType> resource, boolean expectSchema, boolean prohibitRaw) {
+        assertResource(resource, expectSchema, prohibitRaw);
+
+        if (!prohibitRaw) {
+            return;
+        }
 
         PrismContainer<ConnectorConfigurationType> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
         PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition = configurationContainer.getDefinition();
@@ -705,7 +713,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertNotNull("No object definition in resource", objectDefinition);
         PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinitionFromObjectDefinition = objectDefinition.findContainerDefinition(ResourceType.F_CONNECTOR_CONFIGURATION);
         assertDummyConfigurationContainerDefinition(configurationContainerDefinitionFromObjectDefinition, "from object definition");
-
     }
 
     private void assertDummyConfigurationContainerDefinition(
@@ -745,19 +752,25 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     }
 
     private void assertResource(PrismObject<ResourceType> resource, boolean expectSchema) {
+        assertResource(resource, expectSchema, true);
+    }
+
+    private void assertResource(PrismObject<ResourceType> resource, boolean expectSchema, boolean prohibitRaw) {
         display("Resource", resource);
         displayDumpable("Resource def", resource.getDefinition());
-        PrismContainer<ConnectorConfigurationType> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
-        assertNotNull("No Resource connector configuration def", configurationContainer);
-        PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition = configurationContainer.getDefinition();
-        displayDumpable("Resource connector configuration def", configurationContainerDefinition);
-        displayDumpable("Resource connector configuration def complex type def", configurationContainerDefinition.getComplexTypeDefinition());
-        assertNotNull("Empty Resource connector configuration def", configurationContainer.isEmpty());
-        assertEquals("Wrong compile-time class in Resource connector configuration in "+resource, ConnectorConfigurationType.class,
-                configurationContainer.getCompileTimeClass());
-        assertEquals("configurationContainer maxOccurs", 1, configurationContainerDefinition.getMaxOccurs());
+        if (prohibitRaw) {
+            PrismContainer<ConnectorConfigurationType> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+            assertNotNull("No Resource connector configuration def", configurationContainer);
+            PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition = configurationContainer.getDefinition();
+            displayDumpable("Resource connector configuration def", configurationContainerDefinition);
+            displayDumpable("Resource connector configuration def complex type def", configurationContainerDefinition.getComplexTypeDefinition());
+            assertNotNull("Empty Resource connector configuration def", configurationContainer.isEmpty());
+            assertEquals("Wrong compile-time class in Resource connector configuration in " + resource, ConnectorConfigurationType.class,
+                    configurationContainer.getCompileTimeClass());
+            assertEquals("configurationContainer maxOccurs", 1, configurationContainerDefinition.getMaxOccurs());
+        }
 
-        resource.checkConsistence(true, true);
+        resource.checkConsistence(true, prohibitRaw);
 
         Element schema = ResourceTypeUtil.getResourceXsdSchema(resource);
         if (expectSchema) {
@@ -858,7 +871,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  0);
 
-        assertResourceDummy(resource, true);
+        assertResourceDummy(resource, true, false);
 
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
