@@ -285,9 +285,10 @@ public class StartupConfiguration implements MidpointConfiguration {
                     LOGGER.trace("Property '{}' was read from '{}': '{}'", valueKey, filename, value);
                 } catch (IOException e) {
                     String message = "Couldn't read the value of configuration key '" + valueKey
-                            + "' from the file '" + filename + "': " + e.getMessage();
+                            + "' from the file '" + filename + "': " + e.toString();
                     LoggingUtils.logUnexpectedException(LOGGER, message, e);
                     System.err.println(message);
+                    throw new SystemException(e);
                 }
             }
         });
