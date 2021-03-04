@@ -316,6 +316,7 @@ public class SqaleRepositoryService implements RepositoryService {
             R row = transformer.toRowObjectWithoutFullObject(object.asObjectable(), jdbcSession);
             // first insert without full object, because we don't know the OID yet
             UUID oid = jdbcSession.newInsert(root)
+                    // default populate mapper ignores null, that's good, especially for objectType
                     .populate(row)
                     .executeWithKey(root.oid);
             String oidString =

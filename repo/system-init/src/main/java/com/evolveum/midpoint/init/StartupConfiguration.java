@@ -168,8 +168,8 @@ public class StartupConfiguration implements MidpointConfiguration {
 
     private void loadConfiguration() {
         File configFile = new File(midPointHomePath, this.getConfigFilename());
-        printToSysout("Loading midPoint configuration from file " + configFile);
-        LOGGER.info("Loading midPoint configuration from file {}", configFile);
+        printToSysout("Loading midPoint configuration from file " + configFile.getAbsolutePath());
+        LOGGER.info("Loading midPoint configuration from file {}", configFile.getAbsolutePath());
         try {
             if (!configFile.exists()) {
                 extractConfigurationFile(configFile);
@@ -259,6 +259,14 @@ public class StartupConfiguration implements MidpointConfiguration {
                                         .setFileName(filename)
                                         .setPrefixLookups(lookups)
                         );
+        /*
+        On debug level this shows stacktrace for:
+        DEBUG org.apache.commons.beanutils.FluentPropertyBeanIntrospector - Exception is:
+        java.beans.IntrospectionException: bad write method arg count:
+        public final void org.apache.commons.configuration2.AbstractConfiguration.setProperty
+        This is reportedly beanutils over-strictness issue but is nowhere close to be fixed.
+        Jira for commons-configuration can be also found, but they rely on beanutils fix.
+        */
         config = builder.getConfiguration();
         config.addProperty(MIDPOINT_HOME_PROPERTY, midPointHomePath);
         applyEnvironmentProperties();
