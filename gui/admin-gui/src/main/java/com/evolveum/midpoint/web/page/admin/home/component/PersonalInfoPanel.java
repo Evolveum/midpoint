@@ -68,8 +68,8 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
     }
 
     private PersonalInfoDto loadPersonalInfo() {
-        FocusType user = SecurityUtils.getPrincipalUser().getFocus();
-        AuthenticationBehavioralDataType behaviour = user.getBehavior() != null ? user.getBehavior().getAuthentication() : null;
+        FocusType focus = SecurityUtils.getPrincipalUser().getFocus();
+        AuthenticationBehavioralDataType behaviour = focus.getBehavior() != null ? focus.getBehavior().getAuthentication() : null;
         PersonalInfoDto dto = new PersonalInfoDto();
         if (behaviour != null) {
             if (behaviour.getPreviousSuccessfulLogin() != null) {
@@ -83,12 +83,12 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
             }
         }
         Task task = getPageBase().createSimpleTask(OPERATION_GET_CREDENTIALS_POLICY);
-        CredentialsPolicyType credentialsPolicyType = WebComponentUtil.getPasswordCredentialsPolicy(user.asPrismContainer(), getPageBase(), task);
+        CredentialsPolicyType credentialsPolicyType = WebComponentUtil.getPasswordCredentialsPolicy(focus.asPrismContainer(), getPageBase(), task);
         Duration maxAge = credentialsPolicyType != null && credentialsPolicyType.getPassword() != null ?
                 credentialsPolicyType.getPassword().getMaxAge() : null;
         if (maxAge != null) {
-            MetadataType credentialMetadata = user.getCredentials() != null && user.getCredentials().getPassword() != null ?
-                    user.getCredentials().getPassword().getMetadata() : null;
+            MetadataType credentialMetadata = focus.getCredentials() != null && focus.getCredentials().getPassword() != null ?
+                    focus.getCredentials().getPassword().getMetadata() : null;
             XMLGregorianCalendar changeTimestamp = MiscSchemaUtil.getChangeTimestamp(credentialMetadata);
             if (changeTimestamp != null) {
                 XMLGregorianCalendar passwordValidUntil = XmlTypeConverter.addDuration(changeTimestamp, maxAge);
