@@ -281,7 +281,7 @@ class ModifyHelper {
     ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> executeResourceModify(
             ProvisioningContext ctx,
             PrismObject<ShadowType> repoShadow,
-            Collection<? extends ItemDelta> modifications,
+            Collection<? extends ItemDelta<?, ?>> modifications,
             OperationProvisioningScriptsType scripts,
             ProvisioningOperationOptions options,
             XMLGregorianCalendar now,

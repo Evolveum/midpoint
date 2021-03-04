@@ -426,7 +426,7 @@ public class ResourceTypeUtil {
             activationCapability = CapabilityUtil.getCapability(resource.getCapabilities().getNative().getAny(),
                     ActivationCapabilityType.class);
         }
-        return CapabilityUtil.getEffectiveActivationStatus(activationCapability) != null;
+        return CapabilityUtil.getEnabledActivationStatus(activationCapability) != null;
     }
 
     public static boolean hasResourceNativeActivationLockoutCapability(ResourceType resource) {
@@ -437,21 +437,7 @@ public class ResourceTypeUtil {
             activationCapability = CapabilityUtil.getCapability(resource.getCapabilities().getNative().getAny(),
                     ActivationCapabilityType.class);
         }
-        return CapabilityUtil.getEffectiveActivationLockoutStatus(activationCapability) != null;
-    }
-
-    public static boolean hasResourceConfiguredActivationCapability(ResourceType resource) {
-        if (resource.getCapabilities() == null) {
-            return false;
-        }
-        if (resource.getCapabilities().getConfigured() != null) {
-            ActivationCapabilityType configuredCapability = CapabilityUtil.getCapability(resource.getCapabilities().getConfigured().getAny(), ActivationCapabilityType.class);
-            if (configuredCapability != null) {
-                return true;
-            }
-            // No configured capability entry, fallback to native capability
-        }
-        return false;
+        return CapabilityUtil.getEnabledActivationLockoutStatus(activationCapability) != null;
     }
 
     public static ResourceObjectTypeDefinitionType getResourceObjectTypeDefinitionType (
