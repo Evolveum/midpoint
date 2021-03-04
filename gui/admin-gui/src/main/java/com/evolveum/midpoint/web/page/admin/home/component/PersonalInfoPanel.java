@@ -6,22 +6,29 @@
  */
 package com.evolveum.midpoint.web.page.admin.home.component;
 
-import java.util.Date;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
+import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationBehavioralDataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
-import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.Date;
 
 /**
  * @author lazyman
@@ -33,6 +40,9 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
     private static final String ID_LAST_FAIL_DATE = "lastFailDate";
     private static final String ID_LAST_FAIL_FROM = "lastFailFrom";
     private static final String ID_PASSWORD_EXP = "passwordExp";
+
+    private static final String DOT_CLASS = PageSelfCredentials.class.getName() + ".";
+    private static final String OPERATION_GET_CREDENTIALS_POLICY = DOT_CLASS + "getCredentialsPolicy";
 
     public PersonalInfoPanel(String id) {
         super(id, null);
@@ -59,26 +69,32 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
 
     private PersonalInfoDto loadPersonalInfo() {
         FocusType user = SecurityUtils.getPrincipalUser().getFocus();
-        CredentialsType credentials = user.getCredentials();
+        AuthenticationBehavioralDataType behaviour = user.getBehavior() != null ? user.getBehavior().getAuthentication() : null;
         PersonalInfoDto dto = new PersonalInfoDto();
-        if (credentials != null) {
-            PasswordType password = credentials.getPassword();
-
-            if (password.getPreviousSuccessfulLogin() != null) {
-                dto.setLastLoginDate(MiscUtil.asDate(password.getPreviousSuccessfulLogin().getTimestamp()));
-                dto.setLastLoginFrom(password.getPreviousSuccessfulLogin().getFrom());
+        if (behaviour != null) {
+            if (behaviour.getPreviousSuccessfulLogin() != null) {
+                dto.setLastLoginDate(MiscUtil.asDate(behaviour.getPreviousSuccessfulLogin().getTimestamp()));
+                dto.setLastLoginFrom(behaviour.getPreviousSuccessfulLogin().getFrom());
             }
 
-            if (password.getLastFailedLogin() != null) {
-                dto.setLastFailDate(MiscUtil.asDate(password.getLastFailedLogin().getTimestamp()));
-                dto.setLastFailFrom(password.getLastFailedLogin().getFrom());
+            if (behaviour.getLastFailedLogin() != null) {
+                dto.setLastFailDate(MiscUtil.asDate(behaviour.getLastFailedLogin().getTimestamp()));
+                dto.setLastFailFrom(behaviour.getLastFailedLogin().getFrom());
             }
         }
-        if (user.getActivation() != null) {
-            //todo fix, this is not password expiration date...
-            dto.setPasswordExp(MiscUtil.asDate(user.getActivation().getValidTo()));
+        Task task = getPageBase().createSimpleTask(OPERATION_GET_CREDENTIALS_POLICY);
+        CredentialsPolicyType credentialsPolicyType = WebComponentUtil.getPasswordCredentialsPolicy(user.asPrismContainer(), getPageBase(), task);
+        Duration maxAge = credentialsPolicyType != null && credentialsPolicyType.getPassword() != null ?
+                credentialsPolicyType.getPassword().getMaxAge() : null;
+        if (maxAge != null) {
+            MetadataType credentialMetadata = user.getCredentials() != null && user.getCredentials().getPassword() != null ?
+                    user.getCredentials().getPassword().getMetadata() : null;
+            XMLGregorianCalendar changeTimestamp = MiscSchemaUtil.getChangeTimestamp(credentialMetadata);
+            if (changeTimestamp != null) {
+                XMLGregorianCalendar passwordValidUntil = XmlTypeConverter.addDuration(changeTimestamp, maxAge);
+                dto.setPasswordExp(MiscUtil.asDate(passwordValidUntil));
+            }
         }
-
         return dto;
     }
 
@@ -150,21 +166,20 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
         });
         add(lastFailFrom);
 
-        Label passwordExp = new Label(ID_PASSWORD_EXP, new IModel<String>() {
-
+        DateLabelComponent passwordExp = new DateLabelComponent(ID_PASSWORD_EXP, new IModel<Date>() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public String getObject() {
+            public Date getObject() {
+
                 if (getModel() == null) {
-                    return PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
+                    return null;
                 }
                 PersonalInfoDto dto = getModel().getObject();
-
-                return dto.getPasswordExp() != null ? WebComponentUtil.formatDate(dto.getPasswordExp()) :
-                        PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
+                return dto == null ? null : dto.getPasswordExp();
             }
-        });
+        }, WebComponentUtil.getLongDateTimeFormat(getPageBase()));
+        passwordExp.setBeforeTextOnDateNull(getPageBase().getString("PersonalInfoPanel.never"));
         add(passwordExp);
     }
 }
