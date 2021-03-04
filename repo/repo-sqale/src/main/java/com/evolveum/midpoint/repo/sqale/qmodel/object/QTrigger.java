@@ -12,25 +12,19 @@ import java.time.Instant;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.sql.ColumnMetadata;
-import com.querydsl.sql.PrimaryKey;
 
-import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QTrigger extends FlexibleRelationalPathBase<MTrigger> {
+public class QTrigger extends QContainer<MTrigger> {
 
     private static final long serialVersionUID = 2478404102829142213L;
 
     public static final String TABLE_NAME = "m_trigger";
 
-    public static final ColumnMetadata OWNER_OID =
-            ColumnMetadata.named("owner_oid").ofType(UuidPath.UUID_TYPE);
-    public static final ColumnMetadata CID =
-            ColumnMetadata.named("cid").ofType(Types.INTEGER);
     public static final ColumnMetadata HANDLER_URI_ID =
             ColumnMetadata.named("handlerUri_id").ofType(Types.INTEGER);
     public static final ColumnMetadata TIMESTAMP_VALUE =
@@ -38,13 +32,9 @@ public class QTrigger extends FlexibleRelationalPathBase<MTrigger> {
 
     // attributes
 
-    public final UuidPath ownerOid = createUuid("ownerOid", OWNER_OID);
-    public final NumberPath<Integer> cid = createInteger("cid", CID);
     public final NumberPath<Integer> handlerUriId = createInteger("handlerUriId", HANDLER_URI_ID);
     public final DateTimePath<Instant> timestampValue =
             createInstant("timestampValue", TIMESTAMP_VALUE);
-
-    public final PrimaryKey<MTrigger> id = createPrimaryKey(ownerOid, cid);
 
     public QTrigger(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

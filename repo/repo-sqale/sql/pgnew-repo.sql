@@ -157,7 +157,7 @@ CREATE TYPE TaskWaitingReasonType AS ENUM ('OTHER_TASKS', 'OTHER');
 -- See https://wiki.evolveum.com/display/midPoint/ObjectType
 -- Following is recommended for each concrete table (see m_resource just below for example):
 -- 1) override OID like this (PK+FK): oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
--- 2) define object type class (change value): objectTypeClass INTEGER GENERATED ALWAYS AS (5) STORED,
+-- 2) define object type class (change value): objectType INTEGER GENERATED ALWAYS AS (5) STORED,
 -- 3) add three triggers <table_name>_oid_{insert|update|delete}_tr as shown below
 -- 4) add indexes for name_norm and name_orig columns (name_norm as unique)
 -- 5) the rest varies on the concrete table, other indexes or constraints, etc.
@@ -165,8 +165,8 @@ CREATE TYPE TaskWaitingReasonType AS ENUM ('OTHER_TASKS', 'OTHER');
 CREATE TABLE m_object (
     -- Default OID value is covered by INSERT triggers. No PK defined on abstract tables.
     oid UUID NOT NULL,
-    -- objectTypeClass will be overridden with GENERATED value in concrete table
-    objectTypeClass INTEGER NOT NULL DEFAULT 3, -- soft-references m_objtype
+    -- objectType will be overridden with GENERATED value in concrete table
+    objectType INTEGER NOT NULL DEFAULT 3, -- soft-references m_objtype
     name_norm VARCHAR(255) NOT NULL,
     name_orig VARCHAR(255) NOT NULL,
     fullObject BYTEA,
@@ -218,10 +218,10 @@ CREATE TABLE m_container (
 
 -- region FOCUS related tables
 -- Represents FocusType (Users, Roles, ...), see https://wiki.evolveum.com/display/midPoint/Focus+and+Projections
--- extending m_object, but still abstract, hence DEFAULT for objectTypeClass and CHECK (false)
+-- extending m_object, but still abstract, hence DEFAULT for objectType and CHECK (false)
 CREATE TABLE m_focus (
     -- will be overridden with GENERATED value in concrete table
-    objectTypeClass INTEGER NOT NULL DEFAULT 17,
+    objectType INTEGER NOT NULL DEFAULT 17,
     costCenter VARCHAR(255),
     emailAddress VARCHAR(255),
     photo BYTEA, -- will be TOAST-ed if necessary
@@ -253,7 +253,7 @@ CREATE TABLE m_focus (
 -- Represents UserType, see https://wiki.evolveum.com/display/midPoint/UserType
 CREATE TABLE m_user (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (10) STORED,
+    objectType INTEGER GENERATED ALWAYS AS (10) STORED,
     additionalName_norm VARCHAR(255),
     additionalName_orig VARCHAR(255),
     employeeNumber VARCHAR(255),
@@ -294,7 +294,7 @@ CREATE INDEX m_user_employeeNumber_idx ON m_user (employeeNumber);
 -- Represents AbstractRoleType, see https://wiki.evolveum.com/display/midPoint/Abstract+Role
 CREATE TABLE m_abstract_role (
     -- will be overridden with GENERATED value in concrete table
-    objectTypeClass INTEGER NOT NULL DEFAULT 16,
+    objectType INTEGER NOT NULL DEFAULT 16,
     autoassign_enabled BOOLEAN,
     displayName_norm VARCHAR(255),
     displayName_orig VARCHAR(255),
@@ -312,7 +312,7 @@ CREATE TABLE m_abstract_role (
 -- Represents RoleType, see https://wiki.evolveum.com/display/midPoint/RoleType
 CREATE TABLE m_role (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (7) STORED,
+    objectType INTEGER GENERATED ALWAYS AS (7) STORED,
     roleType VARCHAR(255)
 )
     INHERITS (m_abstract_role);
@@ -330,7 +330,7 @@ ALTER TABLE m_role ADD CONSTRAINT m_role_name_norm_key UNIQUE (name_norm);
 -- Represents ServiceType, see https://wiki.evolveum.com/display/midPoint/Service+Account+Management
 CREATE TABLE m_service (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (24) STORED,
+    objectType INTEGER GENERATED ALWAYS AS (24) STORED,
     displayOrder INTEGER
 )
     INHERITS (m_abstract_role);
@@ -358,7 +358,7 @@ ALTER TABLE IF EXISTS m_service_type
 -- Represents ArchetypeType, see https://wiki.evolveum.com/display/midPoint/Archetypes
 CREATE TABLE m_archetype (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (29) STORED
+    objectType INTEGER GENERATED ALWAYS AS (29) STORED
 )
     INHERITS (m_abstract_role);
 
@@ -377,7 +377,7 @@ ALTER TABLE m_archetype ADD CONSTRAINT m_archetype_name_norm_key UNIQUE (name_no
 -- TODO not mapped yet (to the end of m_acc_cert* region)
 CREATE TABLE m_acc_cert_definition (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (21) STORED,
+    objectType INTEGER GENERATED ALWAYS AS (21) STORED,
     handlerUri_id INTEGER, -- soft-references m_uri
     lastCampaignClosedTimestamp TIMESTAMPTZ,
     lastCampaignStartedTimestamp TIMESTAMPTZ,
@@ -400,7 +400,7 @@ CREATE INDEX m_acc_cert_definition_ext_idx ON m_acc_cert_definition USING gin (e
 
 CREATE TABLE m_acc_cert_campaign (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (22) STORED,
+    objectType INTEGER GENERATED ALWAYS AS (22) STORED,
     definitionRef_targetOid UUID,
     definitionRef_targetType INTEGER, -- soft-references m_objtype
     definitionRef_relation_id INTEGER, -- soft-references m_uri
@@ -519,7 +519,7 @@ CREATE INDEX iCertWorkItemRefTargetOid ON m_acc_cert_wi_reference (targetOid);
 -- TODO not mapped yet
 CREATE TABLE m_resource (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (5) STORED,
+    objectType INTEGER GENERATED ALWAYS AS (5) STORED,
     administrativeState INTEGER,
     connectorRef_targetOid UUID,
     connectorRef_targetType INTEGER, -- soft-references m_objtype
@@ -541,7 +541,7 @@ ALTER TABLE m_resource ADD CONSTRAINT m_resource_name_norm_key UNIQUE (name_norm
 -- TODO not mapped yet
 CREATE TABLE m_shadow (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (6) STORED,
+    objectType INTEGER GENERATED ALWAYS AS (6) STORED,
     objectClass VARCHAR(157) NOT NULL,
     resourceRef_targetOid UUID,
     resourceRef_targetType INTEGER, -- soft-references m_uri
@@ -589,7 +589,7 @@ ALTER TABLE IF EXISTS m_shadow
 -- Represents NodeType, see https://wiki.evolveum.com/display/midPoint/Managing+cluster+nodes
 CREATE TABLE m_node (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (14) STORED,
+    objectType INTEGER GENERATED ALWAYS AS (14) STORED,
     nodeIdentifier VARCHAR(255)
 )
     INHERITS (m_object);
@@ -608,7 +608,7 @@ ALTER TABLE m_node ADD CONSTRAINT m_node_name_norm_key UNIQUE (name_norm);
 -- Represents SystemConfigurationType, see https://wiki.evolveum.com/display/midPoint/System+Configuration+Object
 CREATE TABLE m_system_configuration (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (8) STORED
+    objectType INTEGER GENERATED ALWAYS AS (8) STORED
 )
     INHERITS (m_object);
 
@@ -624,7 +624,7 @@ CREATE TRIGGER m_system_configuration_oid_delete_tr AFTER DELETE ON m_system_con
 -- Represents SecurityPolicyType, see https://wiki.evolveum.com/display/midPoint/Security+Policy+Configuration
 CREATE TABLE m_security_policy (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (19) STORED
+    objectType INTEGER GENERATED ALWAYS AS (19) STORED
 )
     INHERITS (m_object);
 
@@ -640,7 +640,7 @@ CREATE TRIGGER m_security_policy_oid_delete_tr AFTER DELETE ON m_security_policy
 -- Represents ObjectCollectionType, see https://wiki.evolveum.com/display/midPoint/Object+Collections+and+Views+Configuration
 CREATE TABLE m_object_collection (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (19) STORED
+    objectType INTEGER GENERATED ALWAYS AS (28) STORED
 )
     INHERITS (m_object);
 
@@ -657,7 +657,7 @@ ALTER TABLE m_object_collection ADD CONSTRAINT m_object_collection_name_norm_key
 -- Represents DashboardType, see https://wiki.evolveum.com/display/midPoint/Dashboard+configuration
 CREATE TABLE m_dashboard (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (30) STORED
+    objectType INTEGER GENERATED ALWAYS AS (30) STORED
 )
     INHERITS (m_object);
 
@@ -674,7 +674,7 @@ ALTER TABLE m_dashboard ADD CONSTRAINT m_dashboard_name_norm_key UNIQUE (name_no
 -- Represents ValuePolicyType
 CREATE TABLE m_value_policy (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (4) STORED
+    objectType INTEGER GENERATED ALWAYS AS (4) STORED
 )
     INHERITS (m_object);
 
@@ -691,7 +691,7 @@ ALTER TABLE m_value_policy ADD CONSTRAINT m_value_policy_name_norm_key UNIQUE (n
 -- Represents ReportType, see https://wiki.evolveum.com/display/midPoint/Report+Configuration
 CREATE TABLE m_report (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (11) STORED,
+    objectType INTEGER GENERATED ALWAYS AS (11) STORED,
     export INTEGER,
     orientation INTEGER,
     parent BOOLEAN,
@@ -713,7 +713,7 @@ ALTER TABLE m_report ADD CONSTRAINT m_report_name_norm_key UNIQUE (name_norm);
 -- Represents ReportDataType, see also m_report above
 CREATE TABLE m_report_data (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (12) STORED,
+    objectType INTEGER GENERATED ALWAYS AS (12) STORED,
     reportRef_targetOid UUID,
     reportRef_targetType INTEGER, -- soft-references m_objtype
     reportRef_relation_id INTEGER -- soft-references m_uri
@@ -726,7 +726,7 @@ ALTER TABLE m_report_data ADD CONSTRAINT m_report_data_name_norm_key UNIQUE (nam
 -- Represents LookupTableType, see https://wiki.evolveum.com/display/midPoint/Lookup+Tables
 CREATE TABLE m_lookup_table (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (20) STORED
+    objectType INTEGER GENERATED ALWAYS AS (20) STORED
 )
     INHERITS (m_object);
 
@@ -759,7 +759,7 @@ ALTER TABLE m_lookup_table_row
 -- Represents ConnectorType, see https://wiki.evolveum.com/display/midPoint/Identity+Connectors
 CREATE TABLE m_connector (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (0) STORED,
+    objectType INTEGER GENERATED ALWAYS AS (0) STORED,
     connectorBundle VARCHAR(255),
     connectorType VARCHAR(255),
     connectorVersion VARCHAR(255),
@@ -792,7 +792,7 @@ ALTER TABLE m_connector ADD CONSTRAINT m_connector_name_norm_key UNIQUE (name_no
 -- Represents ConnectorHostType, see https://wiki.evolveum.com/display/midPoint/Connector+Server
 CREATE TABLE m_connector_host (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (1) STORED,
+    objectType INTEGER GENERATED ALWAYS AS (1) STORED,
     hostname VARCHAR(255),
     port VARCHAR(32)
 )
@@ -811,7 +811,7 @@ ALTER TABLE m_connector_host ADD CONSTRAINT m_connector_host_name_norm_key UNIQU
 -- Represents persistent TaskType, see https://wiki.evolveum.com/display/midPoint/Task+Manager
 CREATE TABLE m_task (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (9) STORED,
+    objectType INTEGER GENERATED ALWAYS AS (9) STORED,
     binding INTEGER,
     category VARCHAR(255),
     completionTimestamp TIMESTAMPTZ,
@@ -863,7 +863,7 @@ CREATE INDEX iTaskDependentOid ON M_TASK_DEPENDENT(TASK_OID);
 -- TODO not mapped yet
 CREATE TABLE m_case (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectTypeClass INTEGER GENERATED ALWAYS AS (26) STORED,
+    objectType INTEGER GENERATED ALWAYS AS (26) STORED,
     state VARCHAR(255),
     closeTimestamp TIMESTAMPTZ,
     objectRef_targetOid UUID,
@@ -1552,8 +1552,6 @@ CREATE INDEX iObjectNameOrig
   ON m_object (name_orig);
 CREATE INDEX iObjectNameNorm
   ON m_object (name_norm);
-CREATE INDEX iObjectTypeClass
-  ON m_object (objectTypeClass);
 CREATE INDEX iObjectCreateTimestamp
   ON m_object (createTimestamp);
 CREATE INDEX iObjectLifecycleState

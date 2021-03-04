@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.QCaseMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.QDashboardMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObjectCollectionMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHostMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
@@ -56,16 +57,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * would happen when combined with alternative configurations (e.g. context XMLs for test).
  * {@link ConditionalOnExpression} class annotation activates this configuration only if midpoint
  * {@code config.xml} specifies the repository factory class from SQL package.
- * <p>
+ *
  * To choose this "new SQL" repository set {@code repositoryServiceFactoryClass} to a value starting
  * with (or equal to) {@code com.evolveum.midpoint.repo.sqale.} (including the dot at the end).
  * Alternatively simple {@code sqale} or {@code scale} will work too.
  * All values are case-insensitive.
+ *
+ * Any of the values also work with alternative key element {@code type}.
+ * The shortest form then looks like {@code <type>sqale</type>}.
  */
 @Configuration
 @ConditionalOnExpression("#{midpointConfiguration.keyMatches("
         + "'midpoint.repository.repositoryServiceFactoryClass',"
-        + " '(?i)com\\.evolveum\\.midpoint\\.repo\\.sqale\\..*', '(?i)s[qc]ale')}")
+        + " '(?i)com\\.evolveum\\.midpoint\\.repo\\.sqale\\..*', '(?i)s[qc]ale')"
+        + "|| midpointConfiguration.keyMatches("
+        + "'midpoint.repository.type',"
+        + " '(?i)com\\.evolveum\\.midpoint\\.repo\\.sqale\\..*', '(?i)s[qc]ale')"
+        + "}")
 @ComponentScan
 public class SqaleRepositoryBeanConfig {
 
@@ -98,7 +106,7 @@ public class SqaleRepositoryBeanConfig {
             SqaleRepositoryConfiguration repositoryConfiguration,
             DataSource dataSource) {
         QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry()
-                // ordered alphabetically here
+                // ordered alphabetically here, mappings without schema type at the end
                 .register(AbstractRoleType.COMPLEX_TYPE, QAbstractRoleMapping.INSTANCE)
                 .register(ArchetypeType.COMPLEX_TYPE, QArchetypeMapping.INSTANCE)
                 .register(AssignmentHolderType.COMPLEX_TYPE, QAssignmentHolderMapping.INSTANCE)
@@ -123,6 +131,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(TriggerType.COMPLEX_TYPE, QTriggerMapping.INSTANCE)
                 .register(UserType.COMPLEX_TYPE, QUserMapping.INSTANCE)
                 .register(ValuePolicyType.COMPLEX_TYPE, QValuePolicyMapping.INSTANCE)
+                .register(QContainerMapping.INSTANCE)
                 .seal();
 
         return new SqaleRepoContext(repositoryConfiguration, dataSource, mappingRegistry);

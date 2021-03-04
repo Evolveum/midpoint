@@ -368,12 +368,18 @@ public class ProvisioningContext extends StateReporter {
         }
     }
 
-
-    //check connector capabilities in this order :
-    // 1. take additional connector capabilieis if exist, if not, take resource capabilities
-    // 2. apply object class specific capabilities to the one selected in step 1.
-    // 3. in the returned capabilieties, check first configured capabilities and then native capabilities
-    public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    /**
+     * Check connector capabilities in this order:
+     *
+     * 1. take additional connector capabilities if exist, if not, take resource capabilities,
+     * 2. apply object class specific capabilities to the one selected in step 1,
+     * 3. in the returned capabilities, check first configured capabilities and then native capabilities.
+     *
+     * TODO why we call this method "effective"? It implies that the capability is enabled. But it is not the case
+     *  according to the code.
+     */
+    public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) throws SchemaException,
+            ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         CapabilitiesType capabilitiesType = getConnectorCapabilities(capabilityClass);
         if (capabilitiesType == null) {
             return null;
@@ -381,7 +387,7 @@ public class ProvisioningContext extends StateReporter {
         return CapabilityUtil.getEffectiveCapability(capabilitiesType, capabilityClass);
     }
 
-    public <T extends  CapabilityType> boolean hasNativeCapability(Class<T> capabilityClass) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public <T extends CapabilityType> boolean hasNativeCapability(Class<T> capabilityClass) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         CapabilitiesType connectorCapabilities = getConnectorCapabilities(capabilityClass);
         if (connectorCapabilities == null) {
             return false;
@@ -397,7 +403,9 @@ public class ProvisioningContext extends StateReporter {
         return CapabilityUtil.hasConfiguredCapability(connectorCapabilities, capabilityClass);
     }
 
-    private <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(Class<T> operationCapabilityClass) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(Class<T> operationCapabilityClass)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
         return resourceManager.getConnectorCapabilities(getResource(), getObjectClassDefinition(), operationCapabilityClass);
     }
 

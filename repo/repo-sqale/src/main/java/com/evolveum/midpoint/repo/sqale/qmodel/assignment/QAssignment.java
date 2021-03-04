@@ -14,25 +14,20 @@ import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
-import com.querydsl.sql.PrimaryKey;
 
-import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QAssignment extends FlexibleRelationalPathBase<MAssignment> {
+public class QAssignment extends QContainer<MAssignment> {
 
     private static final long serialVersionUID = 7068031681581618788L;
 
     public static final String TABLE_NAME = "m_assignment";
 
-    public static final ColumnMetadata OWNER_OID =
-            ColumnMetadata.named("owner_oid").ofType(UuidPath.UUID_TYPE);
-    public static final ColumnMetadata CID =
-            ColumnMetadata.named("cid").ofType(Types.INTEGER);
     public static final ColumnMetadata OWNER_TYPE =
             ColumnMetadata.named("owner_type").ofType(Types.INTEGER);
     public static final ColumnMetadata ASSIGNMENT_OWNER =
@@ -118,8 +113,6 @@ public class QAssignment extends FlexibleRelationalPathBase<MAssignment> {
 
     // attributes
 
-    public final UuidPath ownerOid = createUuid("ownerOid", OWNER_OID);
-    public final NumberPath<Integer> cid = createInteger("cid", CID);
     public final NumberPath<Integer> ownerType = createInteger("ownerType", OWNER_TYPE);
     public final NumberPath<Integer> assignmentOwner =
             createInteger("assignmentOwner", ASSIGNMENT_OWNER);
@@ -192,8 +185,6 @@ public class QAssignment extends FlexibleRelationalPathBase<MAssignment> {
             createInteger("modifyChannelId", MODIFY_CHANNEL_ID);
     public final DateTimePath<Instant> modifyTimestamp =
             createInstant("modifyTimestamp", MODIFY_TIMESTAMP);
-
-    public final PrimaryKey<MAssignment> id = createPrimaryKey(ownerOid, cid);
 
     public QAssignment(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

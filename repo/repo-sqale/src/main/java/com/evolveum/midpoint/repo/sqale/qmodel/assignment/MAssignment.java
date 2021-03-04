@@ -9,13 +9,13 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 import java.time.Instant;
 import java.util.UUID;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
+
 /**
  * Querydsl "row bean" type related to {@link QAssignment}.
  */
-public class MAssignment {
+public class MAssignment extends MContainer {
 
-    public UUID ownerOid;
-    public Integer cid;
     public Integer ownerType;
     public Integer assignmentOwner; // TODO necessary?
     public String lifecycleState;

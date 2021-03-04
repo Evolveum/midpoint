@@ -283,6 +283,12 @@ public class CapabilityUtil {
         return originalValue != null ? originalValue : defaultValue;
     }
 
+    /**
+     * Selects a matching capability:
+     *
+     * 1. first from configured capabilities,
+     * 2. if not present, then from native capabilities.
+     */
     public static <T extends CapabilityType> T getEffectiveCapability(CapabilitiesType capabilitiesType, Class<T> capabilityClass) {
         if (capabilitiesType == null) {
             return null;
@@ -292,8 +298,8 @@ public class CapabilityUtil {
             if (configuredCapability != null) {
                 return configuredCapability;
             }
-            // No configured capability entry, fallback to native capability
         }
+        // No configured capability entry, fallback to native capability
         if (capabilitiesType.getNative() != null) {
             T nativeCapability = CapabilityUtil.getCapability(capabilitiesType.getNative().getAny(), capabilityClass);
             if (nativeCapability != null) {
