@@ -4908,4 +4908,20 @@ public final class WebComponentUtil {
         QName type = classToQName(pageBase.getPrismContext(), assignmentHolder.getClass());
         return pageBase.getCompiledGuiProfile().findObjectCollectionView(type, null);
     }
+
+    public static CredentialsPolicyType getPasswordCredentialsPolicy(PrismObject<? extends FocusType> focus, PageBase pagebase, Task task) {
+        LOGGER.debug("Getting credentials policy");
+        CredentialsPolicyType credentialsPolicyType = null;
+        try {
+            credentialsPolicyType = pagebase.getModelInteractionService().getCredentialsPolicy(focus, task, task.getResult());
+            task.getResult().recordSuccessIfUnknown();
+        } catch (Exception ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load credentials policy", ex);
+            task.getResult().recordFatalError(
+                    pagebase.createStringResource("PageAbstractSelfCredentials.message.getPasswordCredentialsPolicy.fatalError", ex.getMessage()).getString(), ex);
+        } finally {
+            task.getResult().computeStatus();
+        }
+        return credentialsPolicyType;
+    }
 }

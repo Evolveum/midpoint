@@ -493,7 +493,8 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
     private MyPasswordsDto createMyPasswordsDto(PrismObject<? extends FocusType> focus) {
         MyPasswordsDto dto = new MyPasswordsDto();
         dto.setFocus(focus);
-        CredentialsPolicyType credentialsPolicyType = getPasswordCredentialsPolicy(focus);
+        Task task = getPageBase().createSimpleTask(OPERATION_GET_CREDENTIALS_POLICY);
+        CredentialsPolicyType credentialsPolicyType = WebComponentUtil.getPasswordCredentialsPolicy(focus, getPageBase(), task);
         dto.getAccounts().add(createDefaultPasswordAccountDto(focus, getPasswordPolicyOid(credentialsPolicyType)));
 
 
@@ -510,7 +511,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                 }
                 ObjectReferenceType valuePolicyRef = passwordCredentialsPolicy.getValuePolicyRef();
                 if (valuePolicyRef != null && valuePolicyRef.getOid() != null){
-                    Task task = getPageBase().createSimpleTask("load value policy");
+                    task = getPageBase().createSimpleTask("load value policy");
                     PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch(
                             valuePolicyRef, getPageBase(), task, task.getResult());
                     if (valuePolicy != null) {
@@ -530,24 +531,6 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                 WebComponentUtil.isActivationEnabled(focus, ActivationType.F_EFFECTIVE_STATUS), true);
         accountDto.setPasswordValuePolicyOid(passwordPolicyOid);
         return accountDto;
-    }
-
-    private CredentialsPolicyType getPasswordCredentialsPolicy(PrismObject<? extends FocusType> focus) {
-        LOGGER.debug("Getting credentials policy");
-        Task task = getPageBase().createSimpleTask(OPERATION_GET_CREDENTIALS_POLICY);
-        OperationResult result = new OperationResult(OPERATION_GET_CREDENTIALS_POLICY);
-        CredentialsPolicyType credentialsPolicyType = null;
-        try {
-            credentialsPolicyType = getPageBase().getModelInteractionService().getCredentialsPolicy(focus, task, result);
-            result.recordSuccessIfUnknown();
-        } catch (Exception ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load credentials policy", ex);
-            result.recordFatalError(
-                    getString("PageAbstractSelfCredentials.message.getPasswordCredentialsPolicy.fatalError", ex.getMessage()), ex);
-        } finally {
-            result.computeStatus();
-        }
-        return credentialsPolicyType;
     }
 
     private CredentialsPolicyType getPasswordCredentialsPolicy(RefinedObjectClassDefinition rOCDef) {

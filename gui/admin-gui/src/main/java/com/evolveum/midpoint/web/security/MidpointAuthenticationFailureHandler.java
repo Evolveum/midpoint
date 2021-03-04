@@ -49,6 +49,10 @@ public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticatio
         String urlSuffix = GuiConstants.DEFAULT_PATH_AFTER_LOGIN;
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            if (mpAuthentication.isAuthenticated()) {
+                getRedirectStrategy().sendRedirect(request, response, urlSuffix);
+                return;
+            }
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
             if (mpAuthentication.getAuthenticationChannel() != null) {
                 if (mpAuthentication.isLast(moduleAuthentication) && mpAuthentication.getAuthenticationChannel().isDefault()) {
