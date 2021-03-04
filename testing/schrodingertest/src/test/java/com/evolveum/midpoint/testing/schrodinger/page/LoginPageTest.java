@@ -12,6 +12,10 @@ import com.codeborne.selenide.Selenide;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.page.login.*;
 
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -25,6 +29,8 @@ import static com.codeborne.selenide.Selenide.*;
  * Created by Viliam Repan (lazyman).
  */
 public class LoginPageTest extends AbstractLoginPageTest {
+
+    private static final Logger LOG = LoggerFactory.getLogger(LoginPageTest.class);
 
     private static final File SEC_QUES_RESET_PASS_SECURITY_POLICY = new File("src/test/resources/configuration/objects/securitypolicies/policy-secururity-question-reset-pass.xml");
     private static final File MAIL_NONCE_RESET_PASS_SECURITY_POLICY = new File("src/test/resources/configuration/objects/securitypolicies/policy-nonce-reset-pass.xml");
@@ -94,6 +100,8 @@ public class LoginPageTest extends AbstractLoginPageTest {
                 .clickSendButton();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         String actualUrl = basicPage.getCurrentUrl();
+        LOG.info("LoginPageTest actualUrl = " + actualUrl);
+        Selenide.screenshot("resetPassowordSecurityQuestion");
         Assert.assertTrue(actualUrl.endsWith("/resetpasswordsuccess"));
     }
 

@@ -1,11 +1,22 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.data.common;
+
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.persistence.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
@@ -20,21 +31,10 @@ import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Persister;
-
-import javax.persistence.*;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-
-import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 
 @Entity
 @Table(name = RAccessCertificationCampaign.TABLE_NAME,
-        uniqueConstraints = @UniqueConstraint(name = "uc_acc_cert_campaign_name", columnNames = {"name_norm"}),
+        uniqueConstraints = @UniqueConstraint(name = "uc_acc_cert_campaign_name", columnNames = { "name_norm" }),
         indexes = {
                 @Index(name = "iCertCampaignNameOrig", columnList = "name_orig")
         }
@@ -159,32 +159,6 @@ public class RAccessCertificationCampaign extends RObject {
 
     public void setStageNumber(Integer stageNumber) {
         this.stageNumber = stageNumber;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof RAccessCertificationCampaign))
-            return false;
-        if (!super.equals(o))
-            return false;
-        RAccessCertificationCampaign that = (RAccessCertificationCampaign) o;
-        return Objects.equals(nameCopy, that.nameCopy) &&
-                Objects.equals(definitionRef, that.definitionRef) &&
-                Objects.equals(ownerRefCampaign, that.ownerRefCampaign) &&
-                Objects.equals(handlerUri, that.handlerUri) &&
-                Objects.equals(start, that.start) &&
-                Objects.equals(end, that.end) &&
-                state == that.state &&
-                Objects.equals(iteration, that.iteration) &&
-                Objects.equals(stageNumber, that.stageNumber);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), nameCopy, definitionRef, ownerRefCampaign, handlerUri, start, end, state, iteration,
-                stageNumber);
     }
 
     // dynamically called

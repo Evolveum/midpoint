@@ -146,7 +146,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
         search.resetBasicSearch();
         table.assertTableObjectsCountNotEquals(1);
         search.dropDownPanelByItemName(ADMINISTRATIVE_STATUS_ATTRIBUTE)
-                .inputDropDownValue("disabled")
+                .inputDropDownValue("Disabled")
                 .updateSearch();
         table.assertTableObjectsCountEquals(1);
     }

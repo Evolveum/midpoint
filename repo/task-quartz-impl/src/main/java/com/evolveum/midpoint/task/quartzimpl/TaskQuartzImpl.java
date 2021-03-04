@@ -132,8 +132,15 @@ public class TaskQuartzImpl implements Task {
      *
      * Basically, the result should be initialized only when a new transient task is created. It should be then persisted
      * into the repository. Tasks that are to execute handlers should be fetched from the repository with their results.
+     *
+     * FIXME what about synchronization?
      */
     protected OperationResult taskResult;
+
+    /**
+     * True if the task result is present in the bean but not complete. Applicable only if taskResult is null.
+     */
+    private boolean taskResultIncomplete;
 
     private PrismObject<UserType> requestee; // temporary information
 
@@ -230,23 +237,30 @@ public class TaskQuartzImpl implements Task {
     //region Result handling
     private void updateTaskResult() {
         synchronized (prismAccess) {
-            OperationResultType resultInPrism = taskPrism.asObjectable().getResult();
-            if (resultInPrism != null) {
-                taskResult = OperationResult.createOperationResult(resultInPrism);
+            PrismProperty<OperationResultType> resultInPrism = taskPrism.findProperty(TaskType.F_RESULT);
+            if (resultInPrism != null && !resultInPrism.isEmpty()) {
+                taskResult = OperationResult.createOperationResult(resultInPrism.getRealValue());
             } else {
                 taskResult = null;
+                taskResultIncomplete = resultInPrism != null && resultInPrism.isIncomplete();
             }
         }
     }
 
     private void updateTaskPrismResult(PrismObject<TaskType> target) {
+        // TODO in fact, we should synchronize on taskResult here - and synchronization
+        //  on prismAccess should be done by callers (where applicable)
         synchronized (prismAccess) {
             if (taskResult != null) {
                 target.asObjectable().setResult(taskResult.createOperationResultType());
                 target.asObjectable().setResultStatus(taskResult.getStatus().createStatusType());
             } else {
                 target.asObjectable().setResult(null);
-                target.asObjectable().setResultStatus(null);
+                if (taskResultIncomplete) {
+                    // We must not clear result status if the result is present but not known.
+                } else {
+                    target.asObjectable().setResultStatus(null);
+                }
             }
         }
     }
@@ -687,6 +701,10 @@ public class TaskQuartzImpl implements Task {
         setContainerable(TaskType.F_STRUCTURED_PROGRESS, value);
     }
 
+    public void setStructuredProgressTransient(StructuredTaskProgressType value) {
+        setContainerableTransient(TaskType.F_STRUCTURED_PROGRESS, value);
+    }
+
     public void setOperationStatsTransient(OperationStatsType value) {
         setContainerableTransient(TaskType.F_OPERATION_STATS, value != null ? value.clone() : null);
     }
@@ -730,6 +748,7 @@ public class TaskQuartzImpl implements Task {
     public void setResultTransient(OperationResult result) {
         synchronized (prismAccess) {
             taskResult = result;
+            taskResultIncomplete = false;
             taskPrism.asObjectable().setResult(result != null ? result.createOperationResultType() : null);
             taskPrism.asObjectable().setResultStatus(result != null ? result.getStatus().createStatusType() : null);
         }

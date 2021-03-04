@@ -108,7 +108,20 @@ public class SearchItemDefinition implements Serializable, Comparable<SearchItem
         SearchItemDefinition property = (SearchItemDefinition) o;
 
         if (isSelected != property.isSelected()) { return false; }
-        return !(getDef() != null ? !getDef().equals(property.getDef()) : property.getDef() != null);
+        if (getDef() != null || property.getDef() != null) {
+            if (getDef() != null) {
+                return getDef().equals(property.getDef());
+            }
+            return false;
+        }
+        if (getPredefinedFilter() != null) {
+            return getPredefinedFilter().equals(property.getPredefinedFilter());
+        } else {
+            if (property.getPredefinedFilter() != null) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

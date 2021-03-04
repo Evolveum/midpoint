@@ -54,7 +54,7 @@ public class Utils {
         checkBoxGroup.setOptionCheckedById(checked);
     }
 
-    public static <P extends AssignmentHolderDetailsPage> void removeAssignments(AssignmentsTab<P> tab, String... assignments){
+    public static <P extends AssignmentHolderDetailsPage> void removeAssignments(AssignmentsTab<P> tab, String... assignments) {
         AbstractTableWithPrismView<AssignmentsTab<P>> table = tab.table();
         for (String assignment : assignments) {
             table.removeByName(assignment);
@@ -65,6 +65,10 @@ public class Utils {
             .feedback()
                 .isSuccess();
 
+    }
+
+    public static <P extends AssignmentHolderDetailsPage> void removeAllAssignments(AssignmentsTab<P> tab) {
+        //todo implement
     }
 
     public static <P extends AssignmentHolderDetailsPage> void addAsignments(AssignmentsTab<P> tab, String... assignments){

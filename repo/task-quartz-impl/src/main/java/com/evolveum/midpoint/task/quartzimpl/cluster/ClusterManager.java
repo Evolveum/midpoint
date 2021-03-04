@@ -99,7 +99,6 @@ public class ClusterManager {
         return nodeRegistrar.isCurrentNode(node);
     }
 
-
     public void deleteNode(String nodeOid, OperationResult result) throws SchemaException, ObjectNotFoundException {
         nodeRegistrar.deleteNode(nodeOid, result);
     }

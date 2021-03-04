@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import java.util.HashSet;
@@ -109,29 +108,6 @@ public class RResource extends RObject {
 
     public void setConnectorRef(REmbeddedReference connectorRef) {
         this.connectorRef = connectorRef;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-        if (!super.equals(o)) { return false; }
-
-        RResource rResource = (RResource) o;
-
-        if (nameCopy != null ? !nameCopy.equals(rResource.nameCopy) : rResource.nameCopy != null) { return false; }
-        if (connectorRef != null ? !connectorRef.equals(rResource.connectorRef) : rResource.connectorRef != null) {
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
-        return result;
     }
 
     // dynamically called

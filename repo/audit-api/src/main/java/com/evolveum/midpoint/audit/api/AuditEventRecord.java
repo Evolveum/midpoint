@@ -112,7 +112,13 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
 
     /**
      * Task OID. This field is used for records that are executed in the context
-     * of a persistent task.
+     * of a persistent task, or an lightweight asynchronous subtask of a persistent task.
+     * In such cases, the OID of the whole task tree root is stored here. It is because the subtasks
+     * (corresponding to task parts or worker tasks), even if persistent, are often short-lived.
+     *
+     * The taskIdentifier then points to a different task from the taskOid. The former is an identifier
+     * of the task that carried out the work (and which can be persistent or transient), while the latter
+     * is the OID of the whole task tree root (if applicable).
      */
     private String taskOid;
 

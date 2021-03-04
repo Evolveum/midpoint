@@ -14,6 +14,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.test.TestResource;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -118,6 +120,9 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
     protected static final File ROLE_READ_RESOURCE_OPERATIONAL_STATE_FILE = new File(TEST_DIR, "role-read-resource-operational-state.xml");
     protected static final String ROLE_READ_RESOURCE_OPERATIONAL_STATE_OID = "18f17721-63e1-42cf-abaf-8a50a04e639f";
 
+    private static final TestResource<RoleType> ROLE_READ_TASK_STATUS = new TestResource<>(TEST_DIR, "role-read-task-status.xml", "bc2d0900-ac17-40c1-acf8-eb5466995aae");
+    private static final TestResource<TaskType> TASK_DUMMY = new TestResource<>(TEST_DIR, "task-dummy.xml", "89bf08ec-c5b8-4641-95ca-37559c1f3896");
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -144,13 +149,19 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         repoAddObjectFromFile(ROLE_READ_ROLE_MEMBERS_NONE_FILE, initResult);
         repoAddObjectFromFile(ROLE_READ_ORG_EXEC_FILE, initResult);
         repoAddObjectFromFile(ROLE_READ_RESOURCE_OPERATIONAL_STATE_FILE, initResult);
-
+        repoAdd(ROLE_READ_TASK_STATUS, initResult);
+        repoAdd(TASK_DUMMY, initResult);
     }
 
-    protected static final int NUMBER_OF_IMPORTED_ROLES = 19;
+    private static final int NUMBER_OF_IMPORTED_ROLES = 20;
+    private static final int NUMBER_OF_IMPORTED_TASKS = 1;
 
     protected int getNumberOfRoles() {
         return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
+    }
+
+    protected int getNumberOfTasks() {
+        return super.getNumberOfTasks() + NUMBER_OF_IMPORTED_TASKS;
     }
 
     /**
@@ -3179,6 +3190,34 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         List<MappingType> outbounds = accountSchemaHandling.getActivation().getAdministrativeStatus().getOutbound();
         assertEquals("Wrong # of admin status outbounds", 1, outbounds.size());
     }
+
+    /**
+     * Checks whether task status can be read.
+     *
+     * MID-6721
+     */
+    @Test
+    public void test360AutzJackTaskRead() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+
+        assignRole(USER_JACK_OID, ROLE_READ_TASK_STATUS.oid);
+
+        login(USER_JACK_USERNAME);
+
+        when();
+
+        PrismObject<TaskType> task = getObject(TaskType.class, TASK_DUMMY.oid);
+
+        then();
+
+        display("task", task);
+        assertEquals("task-dummy", task.asObjectable().getName().getOrig());
+        assertNull("result is present although it should not be", task.asObjectable().getResult());
+        assertEquals("resultStatus is wrong or missing", OperationResultStatusType.SUCCESS, task.asObjectable().getResultStatus());
+        assertEquals("Wrong # of items in task read", 2, task.getValue().size());
+    }
+
 
     private ObjectQuery createOrgSubtreeAndNameQuery(String orgOid, String name) {
         return queryFor(ObjectType.class)

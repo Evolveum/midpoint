@@ -107,6 +107,7 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
     public void setFilterClauseXNode(MapXNode filterClauseXNode) {
         checkMutable();
         this.filterClauseXNode = filterClauseXNode;
+        this.filterClauseXNode = filterClauseXNode;
     }
 
     public void setFilterClauseXNode(RootXNode filterClauseNode) {
@@ -153,7 +154,12 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
             setText(parseString(xmap, F_TEXT, "Text"));
             Map<QName, XNode> filterMap = new HashMap<>();
             for (QName key : xmap.keySet()) {
-                if (!QNameUtil.match(key, SearchFilterType.F_DESCRIPTION) && !QNameUtil.match(key, new QName("condition"))) {
+                if ((xmap.size() == 1 && QNameUtil.match(key, SearchFilterType.F_TEXT))) {
+                    filterMap.put(key, xmap.get(key));
+                    continue;
+                }
+                if (!QNameUtil.match(key, SearchFilterType.F_DESCRIPTION) && !QNameUtil.match(key, new QName("condition"))
+                        && !QNameUtil.match(key, SearchFilterType.F_TEXT)) {
                     filterMap.put(key, xmap.get(key));
                 }
             }
@@ -179,12 +185,17 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
 
     public MapXNode serializeToXNode(PrismContext prismContext) throws SchemaException {
         MapXNode xmap = getFilterClauseXNode();
-        if (description == null) {
+        if (description == null && text == null) {
             return xmap;
         } else {
-            // we have to serialize the map in correct order (see MID-1847): description first, filter clause next
+            // we have to serialize the map in correct order (see MID-1847): description first, text second, filter clause next
             Map<QName, XNode> newXMap = new HashMap<>();
-            newXMap.put(SearchFilterType.F_DESCRIPTION, prismContext.xnodeFactory().primitive(description));
+            if (description != null) {
+                newXMap.put(SearchFilterType.F_DESCRIPTION, prismContext.xnodeFactory().primitive(description));
+            }
+            if (text != null) {
+                newXMap.put(SearchFilterType.F_TEXT, prismContext.xnodeFactory().primitive(text));
+            }
             if (xmap != null && !xmap.isEmpty()) {
                 Map.Entry<QName, ? extends XNode> filter = xmap.getSingleSubEntry("search filter");
                 newXMap.put(filter.getKey(), filter.getValue());
@@ -231,6 +242,10 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
             if (that.filterClauseXNode != null) { return false; }
         } else if (!filterClauseXNode.equals(that.filterClauseXNode)) { return false; }
 
+        if (text == null) {
+            if (that.text != null) { return false; }
+        } else if (!text.equals(that.text)) { return false; }
+
         return true;
     }
 
@@ -256,6 +271,7 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
             throw new IllegalStateException("Couldn't instantiate " + this.getClass() + ": " + e.getMessage(), e);
         }
         clone.description = this.description;
+        clone.text = this.text;
         if (this.filterClauseXNode != null) {
             clone.filterClauseXNode = this.filterClauseXNode.clone();
         }
@@ -270,6 +286,10 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
         if (description != null) {
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, "description", description, indent + 1);
+        }
+        if (text != null) {
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, "text", text, indent + 1);
         }
         if (filterClauseXNode != null) {
             sb.append("\n");

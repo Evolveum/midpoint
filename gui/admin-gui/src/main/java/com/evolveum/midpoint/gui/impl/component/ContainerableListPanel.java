@@ -14,6 +14,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -503,7 +505,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         // because such sort will work according to data in repo and if the expression
         // somehow modify the data, it could be confusing
         if (pathNotEmpty(columnPath) && expressionType == null) {
-            List<ItemPath> searchablePaths = getSearchablePaths(getType());
+            List<ItemPath> searchablePaths = getSearchablePaths(getType(), getPageBase());
 
             for (ItemPath searchablePath : searchablePaths) {
                 if (searchablePath.size() > 1) {
@@ -518,8 +520,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return null;
     }
 
-    private List<ItemPath> getSearchablePaths(Class<C> type) {
-        List<ItemPath> availablePaths = SearchFactory.getAvailableSearchableItems(type);
+    private List<ItemPath> getSearchablePaths(Class<C> type, ModelServiceLocator modelServiceLocator) {
+        List<ItemPath> availablePaths = SearchFactory.getAvailableSearchableItems(type, modelServiceLocator);
         if (CollectionUtils.isEmpty(availablePaths)) {
             availablePaths = new ArrayList<>();
         }
@@ -533,7 +535,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             return typePaths;
         }
 
-        List<ItemPath> superPaths = SearchFactory.getAvailableSearchableItems(superClass);
+        List<ItemPath> superPaths = SearchFactory.getAvailableSearchableItems(superClass, getPageBase());
         if (CollectionUtils.isNotEmpty(superPaths)) {
             typePaths.addAll(superPaths);
         }

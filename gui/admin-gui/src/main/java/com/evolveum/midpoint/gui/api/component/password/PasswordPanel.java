@@ -201,7 +201,7 @@ public class PasswordPanel extends InputPanel {
             String s1 = password1.getModelObject();
             String s2 = password2.getValue();
 
-            if (StringUtils.isEmpty(s1) && StringUtils.isEmpty(s2)) {
+            if (StringUtils.isEmpty(s1) || StringUtils.isEmpty(s2)) {
                 return "";
             }
 

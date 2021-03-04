@@ -2844,7 +2844,12 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 A stack of handlers that should be called after the primary one (handlerUri) finishes.
+                                DEPRECATED. Not applied any more.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.3</a:deprecatedSince>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="result" type="tns:OperationResultType" minOccurs="0">
@@ -4182,6 +4187,10 @@
                 A stack of URIs (used e.g. for managing a stack of handlers to be called when a task is to be run).
                 Last URI is considered to be the top of the stack (i.e. the one that will be retrieved first).
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:deprecated>true</a:deprecated>
+                <a:deprecatedSince>4.3</a:deprecatedSince>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="uriStackEntry" type="tns:UriStackEntry" minOccurs="0" maxOccurs="unbounded">
@@ -4200,6 +4209,10 @@
                 An entry of the URI stack. It contains the handler URI as well as the schedule under which the handler should be run.
                 This allows e.g. to run a "main" handler once, and then run a subhandler under a different schedule (e.g. cyclically).
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:deprecated>true</a:deprecated>
+                <a:deprecatedSince>4.3</a:deprecatedSince>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="handlerUri" type="xsd:anyURI">
@@ -16741,7 +16754,6 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-
     <xsd:complexType name="OperationResultType">
         <xsd:annotation>
             <xsd:documentation>
@@ -16749,7 +16761,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="operation" type="xsd:string"/>
+            <xsd:element name="operation" type="xsd:string" minOccurs="0"/>
             <xsd:element name="qualifier" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -16763,7 +16775,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="operationKind" type="tns:OperationKindType">
+            <xsd:element name="operationKind" type="tns:OperationKindType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Kind of operation (e.g. clockwork execution, mapping evaluation, repository access). To be used
@@ -16775,7 +16787,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="status" type="tns:OperationResultStatusType"/>
+            <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0"/>
             <xsd:element name="importance" type="tns:OperationResultImportanceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

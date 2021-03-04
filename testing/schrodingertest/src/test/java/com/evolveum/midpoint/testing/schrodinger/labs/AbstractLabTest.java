@@ -26,6 +26,8 @@ public class AbstractLabTest extends AbstractSchrodingerTest {
 
     protected static final String LAB_DIRECTORY = "./src/test/resources/labs/";
     protected static final String LAB_SOURCES_DIRECTORY = LAB_DIRECTORY + "sources/";
+    protected static final String LAB_FUNDAMENTAL_DIRECTORY = LAB_DIRECTORY + "fundamental/";
+    protected static final String LAB_ADVANCED_DIRECTORY = LAB_DIRECTORY + "advanced/";
 
     protected static final File EXTENSION_SCHEMA_FILE = new File(LAB_DIRECTORY +"schema/extension-example.xsd");
     protected static final File CSV_1_SOURCE_FILE = new File(LAB_SOURCES_DIRECTORY + "csv-1.csv");

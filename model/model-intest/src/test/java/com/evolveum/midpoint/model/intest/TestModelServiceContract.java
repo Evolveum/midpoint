@@ -15,12 +15,15 @@ import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.constants.Channel;
 
+import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
 import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter;
 import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -270,7 +273,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
         List<Message> messages = dummyTransport.getMessages("dummy:accountPasswordNotifier");
-        Message message = messages.get(0);          // number of messages was already checked
+        Message message = messages.get(0); // number of messages was already checked
         assertEquals("Invalid list of recipients", Collections.singletonList("recipient@evolveum.com"), message.getTo());
         assertTrue("No account name in account password notification", message.getBody().contains("Password for account jack on Dummy Resource is:"));
 
@@ -363,18 +366,32 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSteadyResources();
     }
 
+    /**
+     * MID-6716
+     */
     @Test
     public void test103GetAccountRaw() throws Exception {
+        given();
 
-        // GIVEN
         Task task = getTestTask();
-        OperationResult result = task.getResult();
+        OperationResult parentResult = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder().raw().build();
 
-        // WHEN
+        when();
+
+        // Just to avoid result pruning.
+        CompiledTracingProfile tracingProfile = tracer.compileProfile(
+                new TracingProfileType(prismContext)
+                        .createTraceFile(false), parentResult);
+        OperationResult result = parentResult.subresult("get")
+                .tracingProfile(tracingProfile)
+                .build();
+
         PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountJackOid, options, task, result);
+
+        then();
 
         display("Account", account);
         displayDumpable("Account def", account.getDefinition());
@@ -387,6 +404,14 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess("getObject result", result);
 
         assertSteadyResources();
+
+        displayDumpable("result", result);
+
+        List<String> provisioningOperations = result.getResultStream()
+                .map(OperationResult::getOperation)
+                .filter(operation -> operation.startsWith(ProvisioningService.class.getName()))
+                .collect(Collectors.toList());
+        assertThat(provisioningOperations).as("provisioning operations").isEmpty();
     }
 
     @Test

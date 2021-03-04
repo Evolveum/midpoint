@@ -7,15 +7,14 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
 import java.time.Instant;
-import java.util.UUID;
+
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 
 /**
  * Querydsl "row bean" type related to {@link QTrigger}.
  */
-public class MTrigger {
+public class MTrigger extends MContainer {
 
-    public UUID ownerOid;
-    public Integer cid;
     public Integer handlerUriId;
     public Instant timestampValue;
 }

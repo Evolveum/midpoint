@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import java.util.Objects;
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -80,7 +79,7 @@ public class RShadow extends RObject implements OperationResult {
     }
 
     @Enumerated(EnumType.ORDINAL)
-    @Column(nullable = true)
+    @Column
     public RShadowKind getKind() {
         return kind;
     }
@@ -100,13 +99,13 @@ public class RShadow extends RObject implements OperationResult {
         return resourceRef;
     }
 
-    @Column(nullable = true)
+    @Column
     public Integer getAttemptNumber() {
         return attemptNumber;
     }
 
     @Enumerated(EnumType.ORDINAL)
-    @Column(nullable = true)
+    @Column
     public RFailedOperationType getFailedOperationType() {
         return failedOperationType;
     }
@@ -213,50 +212,8 @@ public class RShadow extends RObject implements OperationResult {
         this.pendingOperationCount = pendingOperationCount;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-        if (!super.equals(o)) { return false; }
-
-        RShadow that = (RShadow) o;
-
-        if (!Objects.equals(nameCopy, that.nameCopy)) { return false; }
-        if (!Objects.equals(attemptNumber, that.attemptNumber)) { return false; }
-        if (failedOperationType != that.failedOperationType) { return false; }
-        if (!Objects.equals(objectClass, that.objectClass)) { return false; }
-        if (!Objects.equals(primaryIdentifierValue, that.primaryIdentifierValue)) { return false; }
-        if (!Objects.equals(resourceRef, that.resourceRef)) { return false; }
-        if (!Objects.equals(intent, that.intent)) { return false; }
-        if (!Objects.equals(synchronizationSituation, that.synchronizationSituation)) { return false; }
-        if (!Objects.equals(kind, that.kind)) { return false; }
-        if (!Objects.equals(exists, that.exists)) { return false; }
-        if (status != that.status) { return false; }
-        if (!Objects.equals(pendingOperationCount, that.pendingOperationCount)) { return false; }
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result1 = super.hashCode();
-        result1 = 31 * result1 + (nameCopy != null ? nameCopy.hashCode() : 0);
-        result1 = 31 * result1 + (objectClass != null ? objectClass.hashCode() : 0);
-        result1 = 31 * result1 + (primaryIdentifierValue != null ? primaryIdentifierValue.hashCode() : 0);
-        result1 = 31 * result1 + (attemptNumber != null ? attemptNumber.hashCode() : 0);
-        result1 = 31 * result1 + (failedOperationType != null ? failedOperationType.hashCode() : 0);
-        result1 = 31 * result1 + (intent != null ? intent.hashCode() : 0);
-        result1 = 31 * result1 + (synchronizationSituation != null ? synchronizationSituation.hashCode() : 0);
-        result1 = 31 * result1 + (kind != null ? kind.hashCode() : 0);
-        result1 = 31 * result1 + (exists != null ? exists.hashCode() : 0);
-        result1 = 31 * result1 + (fullSynchronizationTimestamp != null ? fullSynchronizationTimestamp.hashCode() : 0);
-        result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
-
-        return result1;
-    }
-
     // dynamically called
-    public static <T extends ShadowType> void copyFromJAXB(ShadowType jaxb, RShadow repo,
+    public static void copyFromJAXB(ShadowType jaxb, RShadow repo,
             RepositoryContext repositoryContext, IdGeneratorResult generatorResult) throws DtoTranslationException {
         copyObjectInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 

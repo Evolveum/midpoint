@@ -37,8 +37,8 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
 
     public static final ColumnMetadata OID =
             ColumnMetadata.named("oid").ofType(UuidPath.UUID_TYPE).notNull();
-    public static final ColumnMetadata EVENT_TYPE =
-            ColumnMetadata.named("objectTypeClass").ofType(Types.INTEGER).notNull();
+    public static final ColumnMetadata OBJECT_TYPE =
+            ColumnMetadata.named("objectType").ofType(Types.INTEGER).notNull();
     public static final ColumnMetadata NAME_NORM =
             ColumnMetadata.named("name_norm").ofType(Types.VARCHAR).withSize(255).notNull();
     public static final ColumnMetadata NAME_ORIG =
@@ -83,6 +83,7 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
 
     // columns and relations
     public final UuidPath oid = createUuid("oid", OID);
+    public final NumberPath<Integer> objectType = createInteger("objectType", OBJECT_TYPE);
     public final StringPath nameNorm = createString("nameNorm", NAME_NORM);
     public final StringPath nameOrig = createString("nameOrig", NAME_ORIG);
     public final ArrayPath<byte[], Byte> fullObject = createByteArray("fullObject", FULL_OBJECT);

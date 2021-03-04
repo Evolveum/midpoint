@@ -1,13 +1,11 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import java.util.Arrays;
 import java.util.Set;
 import javax.persistence.*;
 
@@ -77,25 +75,6 @@ public class RService extends RAbstractRole {
 
     public void setServiceType(Set<String> serviceType) {
         this.serviceType = serviceType;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-        if (!super.equals(o)) { return false; }
-
-        RService rService = (RService) o;
-
-        if (nameCopy != null ? !nameCopy.equals(rService.nameCopy) : rService.nameCopy != null) { return false; }
-        if (serviceType != null ? !serviceType.equals(rService.serviceType) : rService.serviceType != null) { return false; }
-        return displayOrder != null ? displayOrder.equals(rService.displayOrder) : rService.displayOrder == null;
-
-    }
-
-    @Override
-    public int hashCode() {
-        return Arrays.hashCode(new Object[] { nameCopy, serviceType, displayOrder });
     }
 
     // dynamically called

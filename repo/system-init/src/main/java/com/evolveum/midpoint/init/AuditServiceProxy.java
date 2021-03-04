@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.apache.commons.lang.Validate;
@@ -35,10 +36,6 @@ import com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.task.api.LightweightIdentifier;
-import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -144,7 +141,11 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
             record.setTaskIdentifier(task.getTaskIdentifier());
         }
         if (record.getTaskOid() == null && task != null) {
-            record.setTaskOid(task.getOid());
+            if (task instanceof RunningTask) {
+                record.setTaskOid(((RunningTask) task).getRootTaskOid());
+            } else {
+                record.setTaskOid(task.getOid());
+            }
         }
         if (record.getChannel() == null && task != null) {
             record.setChannel(task.getChannel());

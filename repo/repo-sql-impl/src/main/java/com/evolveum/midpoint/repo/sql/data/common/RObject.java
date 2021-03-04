@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -546,79 +546,6 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
         this.policySituation = policySituation;
     }
 
-
-    /* TODO: remove in 2021, I believe id-based eq/hash is best for entities like this
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-        if (!super.equals(o)) { return false; }
-
-        RObject rObject = (RObject) o;
-
-        if (name != null ? !name.equals(rObject.name) : rObject.name != null) { return false; }
-        if (descendants != null ? !descendants.equals(rObject.descendants) : rObject.descendants != null) { return false; }
-        if (ancestors != null ? !ancestors.equals(rObject.ancestors) : rObject.ancestors != null) { return false; }
-        if (parentOrgRef != null ? !parentOrgRef.equals(rObject.parentOrgRef) : rObject.parentOrgRef != null) { return false; }
-        if (trigger != null ? !trigger.equals(rObject.trigger) : rObject.trigger != null) { return false; }
-        if (tenantRef != null ? !tenantRef.equals(rObject.tenantRef) : rObject.tenantRef != null) { return false; }
-        if (lifecycleState != null ? !lifecycleState.equals(rObject.lifecycleState) : rObject.lifecycleState != null) {
-            return false;
-        }
-        if (!MetadataFactory.equals(this, rObject)) { return false; }
-
-        if (dates != null ? !dates.equals(rObject.dates) : rObject.dates != null) { return false; }
-        if (longs != null ? !longs.equals(rObject.longs) : rObject.longs != null) { return false; }
-        if (polys != null ? !polys.equals(rObject.polys) : rObject.polys != null) { return false; }
-        if (references != null ? !references.equals(rObject.references) : rObject.references != null) { return false; }
-        if (strings != null ? !strings.equals(rObject.strings) : rObject.strings != null) { return false; }
-        if (booleans != null ? !booleans.equals(rObject.booleans) : rObject.booleans != null) { return false; }
-        if (textInfoItems != null ? !textInfoItems.equals(rObject.textInfoItems) : rObject.textInfoItems != null) {
-            return false;
-        }
-        if (operationExecutions != null ? !operationExecutions.equals(rObject.operationExecutions) : rObject.operationExecutions != null) {
-            return false;
-        }
-        if (subtype != null ? !subtype.equals(rObject.subtype) : rObject.subtype != null) { return false; }
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-
-        result = 31 * result + (createTimestamp != null ? createTimestamp.hashCode() : 0);
-        result = 31 * result + (creatorRef != null ? creatorRef.hashCode() : 0);
-        result = 31 * result + (createChannel != null ? createChannel.hashCode() : 0);
-        result = 31 * result + (modifyTimestamp != null ? modifyTimestamp.hashCode() : 0);
-        result = 31 * result + (modifierRef != null ? modifierRef.hashCode() : 0);
-        result = 31 * result + (modifyChannel != null ? modifyChannel.hashCode() : 0);
-        result = 31 * result + (lifecycleState != null ? lifecycleState.hashCode() : 0);
-
-        return result;
-    }
-    */
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        RObject rObject = (RObject) o;
-        return Objects.equals(oid, rObject.oid);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(oid);
-    }
-
     static void copyAssignmentHolderInformationFromJAXB(AssignmentHolderType jaxb, RObject repo,
             RepositoryContext repositoryContext, IdGeneratorResult generatorResult) throws DtoTranslationException {
 
@@ -688,11 +615,6 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
         }
     }
 
-    @Override
-    public String toString() {
-        return RUtil.getDebugString(this);
-    }
-
     static void copyExtensionOrAttributesFromJAXB(PrismContainerValue<?> containerValue, RObject repo,
             RepositoryContext repositoryContext, RObjectExtensionType ownerType, IdGeneratorResult generatorResult) throws DtoTranslationException {
         RAnyConverter converter = new RAnyConverter(repositoryContext.prismContext, repositoryContext.extItemDictionary);
@@ -730,5 +652,29 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
                 repo.getBooleans().add((ROExtBoolean) value);
             }
         }
+    }
+
+    // DO NOT override. All subclasses are "entities", not "values" and OID-based equals is good.
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        RObject rObject = (RObject) o;
+        return Objects.equals(oid, rObject.oid);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(oid);
+    }
+
+    @Override
+    public String toString() {
+        return RUtil.getDebugString(this);
     }
 }
