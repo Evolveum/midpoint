@@ -237,7 +237,7 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
 
         int before = countDummyAccountShadows(result);
         displayValue("account shadows before", before);
-        assertThat(before).isEqualTo(3);
+        assertThat(before).isGreaterThan(0);
 
         dummyAuditService.clear();
 
