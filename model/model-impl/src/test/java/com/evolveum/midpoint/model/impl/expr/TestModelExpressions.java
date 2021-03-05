@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
@@ -22,6 +23,12 @@ import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,10 +39,6 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -71,9 +74,13 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
     private static final String CHEF_OID = "00000003-0000-0000-0000-000000000000";
     private static final String CHEESE_OID = "00000002-0000-0000-0000-000000000000";
     private static final String CHEESE_JR_OID = "00000002-0000-0000-0000-000000000001";
-    private static final String ELAINE_OID = "00000001-0000-0000-0000-000000000000";
     private static final String LECHUCK_OID = "00000007-0000-0000-0000-000000000000";
     private static final String F0006_OID = "00000000-8888-6666-0000-100000000006";
+
+    private static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
+    private static final ItemName CUSTOM = new ItemName(NS_PIRACY, "custom");
+    private static final ItemName STRING_VALUE = new ItemName(NS_PIRACY, "stringValue");
+    private static final ItemName INT_VALUE = new ItemName(NS_PIRACY, "intValue");
 
     @Autowired
     private ScriptExpressionFactory scriptExpressionFactory;
@@ -83,6 +90,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
     private TaskManager taskManager;
 
     private static final File TEST_EXPRESSIONS_OBJECTS_FILE = new File(TEST_DIR, "orgstruct.xml");
+    private static final TestResource<FunctionLibraryType> FUNCTION_LIBRARY = new TestResource<>(TEST_DIR, "function-library.xml", "42c6fef1-370c-466b-a52e-747b52aacf0d");
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -95,6 +103,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         super.initSystem(initTask, initResult);
 
         importObjectFromFile(TEST_EXPRESSIONS_OBJECTS_FILE);
+        repoAdd(FUNCTION_LIBRARY, initResult);
     }
 
     @Test
@@ -104,9 +113,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
     private ScriptExpressionEvaluatorType parseScriptType(String fileName)
             throws SchemaException, IOException {
-        ScriptExpressionEvaluatorType expressionType = PrismTestUtil.parseAtomicValue(
-                new File(TEST_DIR, fileName), ScriptExpressionEvaluatorType.COMPLEX_TYPE);
-        return expressionType;
+        return PrismTestUtil.parseAtomicValue(new File(TEST_DIR, fileName), ScriptExpressionEvaluatorType.COMPLEX_TYPE);
     }
 
     @Test
@@ -124,7 +131,6 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
     @Test
     public void testGetManagersOids() throws Exception {
         // GIVEN
-        Task task = getTestTask();
         OperationResult result = createOperationResult();
         String shortTestName = getTestNameShort();
 
@@ -270,6 +276,53 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
     }
 
+    @Test
+    public void testCustomFunctionGood() throws Exception {
+        PrismContainerValue<Containerable> customPcv = createCustomValue();
+
+        VariablesMap variables = VariablesMap.create(prismContext,
+                "var1", customPcv.clone(), customPcv.getDefinition(),
+                "var2", "123", PrimitiveType.STRING);
+
+        assertExecuteScriptExpressionString(variables, "s-1-123");
+    }
+
+    @Test
+    public void testCustomFunctionWrongParameter() throws Exception {
+        PrismContainerValue<Containerable> customPcv = createCustomValue();
+
+        VariablesMap variables = VariablesMap.create(prismContext,
+                "var1", customPcv.clone(), customPcv.getDefinition(),
+                "var2", "123", PrimitiveType.STRING);
+
+        try {
+            executeScriptExpressionString(variables);
+            fail("Unexpected success");
+        } catch (ExpressionEvaluationException e) {
+            displayExpectedException(e);
+            assertThat(e.getMessage()).
+                    as("exception message")
+                    .isEqualTo("No parameter named 'customValueWrong' in function 'custom' found. "
+                            + "Known parameters are: 'customValue', 'extra'.");
+        }
+    }
+
+    @NotNull
+    private PrismContainerValue<Containerable> createCustomValue() throws SchemaException {
+        PrismContainerDefinition<Containerable> customDef =
+                prismContext.getSchemaRegistry().findContainerDefinitionByElementName(CUSTOM);
+        PrismContainer<Containerable> customPc = customDef.instantiate();
+        PrismContainerValue<Containerable> customPcv = customPc.createNewValue();
+        PrismProperty<String> stringPp = prismContext.itemFactory().createProperty(STRING_VALUE);
+        PrismProperty<Integer> intPp = prismContext.itemFactory().createProperty(INT_VALUE);
+        stringPp.setRealValue("s");
+        intPp.setRealValue(1);
+
+        customPcv.add(stringPp);
+        customPcv.add(intPp);
+        return customPcv;
+    }
+
     private void assertExecuteScriptExpressionString(
             VariablesMap variables, String expectedOutput)
             throws ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException,
@@ -282,12 +335,11 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
             throws SecurityViolationException, ExpressionEvaluationException, SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, IOException {
         // GIVEN
-        Task task = createPlainTask("executeScriptExpressionString");
         OperationResult result = createOperationResult();
         String shortTestName = getTestNameShort();
 
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + shortTestName + ".xml");
-        ItemDefinition outputDefinition =
+        ItemDefinition<?> outputDefinition =
                 getPrismContext().definitionFactory().createPropertyDefinition(
                         PROPERTY_NAME, DOMUtil.XSD_STRING);
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
@@ -320,6 +372,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
     }
 
+    @SuppressWarnings("SameParameterValue")
     private <T> List<PrismPropertyValue<T>> evaluate(ScriptExpression scriptExpression, VariablesMap variables, boolean useNew,
             String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (task == null) {
