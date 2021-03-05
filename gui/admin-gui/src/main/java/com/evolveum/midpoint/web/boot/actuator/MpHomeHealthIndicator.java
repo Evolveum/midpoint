@@ -28,9 +28,9 @@ public class MpHomeHealthIndicator implements HealthIndicator {
 
     @Override
     public Health health() {
-        String ErrorMessage = checkDirectoryExistence();
-        if (StringUtils.isNotEmpty(ErrorMessage)) {
-            return Health.down().withDetail("mP_home", ErrorMessage).build();
+        String errorMessage = checkDirectoryExistence();
+        if (StringUtils.isNotEmpty(errorMessage)) {
+            return Health.down().withDetail("mP_home", errorMessage).build();
         }
         return Health.up().build();
     }
