@@ -22,6 +22,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.quartz.*;
 import org.springframework.security.core.Authentication;
 
+import java.util.concurrent.Future;
+
 import static com.evolveum.midpoint.task.quartzimpl.run.GroupLimitsChecker.*;
 import static com.evolveum.midpoint.task.quartzimpl.run.StopJobException.Severity.*;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
@@ -382,15 +384,7 @@ public class JobExecutor implements InterruptableJob {
     }
 
     void waitForTransientChildrenAndCloseThem(OperationResult result) {
-        beans.lightweightTaskManager.waitForTransientChildren(task, result);
-
-        // at this moment, there should be no executing child tasks... we just clean-up all runnables that had not started
-        for (RunningTaskQuartzImpl subtask : task.getLightweightAsynchronousSubtasks()) {
-            if (subtask.isRunnable() && subtask.getLightweightHandlerFuture() == null) {
-                LOGGER.trace("Lightweight task handler for subtask {} has not started yet; closing the task.", subtask);
-                closeTask(subtask, result);
-            }
-        }
+        beans.lightweightTaskManager.waitForTransientChildrenAndCloseThem(task, result);
     }
 
     // returns true if the execution of the task should continue
@@ -467,11 +461,14 @@ public class JobExecutor implements InterruptableJob {
         if (task != null) {
             LOGGER.trace("Trying to shut down the task {}, executing in thread {}", task, task.getExecutingThread());
             task.unsetCanRun();
-            for (RunningTaskQuartzImpl subtask : task.getRunningLightweightAsynchronousSubtasks()) {
+            for (RunningTaskQuartzImpl subtask : task.getRunnableOrRunningLightweightAsynchronousSubtasks()) {
                 subtask.unsetCanRun();
                 // if we want to cancel the Future using interrupts, we have to do it now
                 // because after calling cancel(false) subsequent calls to cancel(true) have no effect whatsoever
-                subtask.getLightweightHandlerFuture().cancel(interruptsMaybe);
+                Future<?> future = subtask.getLightweightHandlerFuture();
+                if (future != null) {
+                    future.cancel(interruptsMaybe);
+                }
             }
             if (interruptsAlways) {
                 sendThreadInterrupt(false); // subtasks were interrupted by their futures

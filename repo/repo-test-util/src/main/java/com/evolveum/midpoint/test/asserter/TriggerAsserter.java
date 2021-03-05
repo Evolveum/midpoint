@@ -53,6 +53,11 @@ public class TriggerAsserter<R> extends AbstractAsserter<R> {
         return this;
     }
 
+    public TriggerAsserter<R> assertOriginDescription(String expected) {
+        assertEquals("Wrong origin description in " + desc(), expected, trigger.getOriginDescription());
+        return this;
+    }
+
     public TriggerAsserter<R> assertTimestamp() {
         assertNotNull("No timestamp in " + desc(), trigger.getTimestamp());
         return this;

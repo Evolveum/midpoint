@@ -1202,10 +1202,24 @@ public interface MidpointFunctions {
      */
     <O extends ObjectType> String getArchetypeOid(O object) throws SchemaException, ConfigurationException;
 
-    <O extends ObjectType> void addRecomputeTrigger(O object, Long timestamp)
-            throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException;
+    default <O extends ObjectType> void addRecomputeTrigger(O object, Long timestamp)
+            throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+        addRecomputeTrigger(object, timestamp, null);
+    }
 
-    <O extends ObjectType> void addRecomputeTrigger(PrismObject<O> object, Long timestamp)
+    default <O extends ObjectType> void addRecomputeTrigger(O object, Long timestamp,
+            TriggerCustomizer triggerCustomizer)
+            throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+        addRecomputeTrigger(object.asPrismObject(), timestamp, triggerCustomizer);
+    }
+
+    default <O extends ObjectType> void addRecomputeTrigger(PrismObject<O> object, Long timestamp)
+            throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+        addRecomputeTrigger(object, timestamp, null);
+    }
+
+    <O extends ObjectType> void addRecomputeTrigger(PrismObject<O> object, Long timestamp,
+            TriggerCustomizer triggerCustomizer)
             throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException;
 
     RepositoryService getRepositoryService();
@@ -1226,4 +1240,9 @@ public interface MidpointFunctions {
      */
     @Experimental
     void createRecomputeTrigger(Class<? extends ObjectType> type, String oid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
+
+    @FunctionalInterface
+    interface TriggerCustomizer {
+        void customize(TriggerType trigger) throws SchemaException;
+    }
 }

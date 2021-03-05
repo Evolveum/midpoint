@@ -56,6 +56,10 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 /**
  *
  * Responsibilities:
@@ -1125,9 +1129,7 @@ public class ResourceObjectConverter {
 
         Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap = new HashMap<>();
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("executeEntitlementChangesModify, old shadow:\n{}", subjectShadowBefore.debugDump(1));
-        }
+        LOGGER.trace("executeEntitlementChangesModify, old shadow:\n{}", subjectShadowBefore.debugDumpLazily(1));
 
         for (ItemDelta subjectDelta : subjectDeltas) {
             ItemPath subjectItemPath = subjectDelta.getPath();
@@ -1141,13 +1143,11 @@ public class ResourceObjectConverter {
 
                 ContainerDelta<ShadowAssociationType> associationDelta = prismContext.deltaFactory().container().createDelta(ShadowType.F_ASSOCIATION, subjectShadowBefore.getDefinition());
                 PrismContainer<ShadowAssociationType> associationContainer = subjectShadowBefore.findContainer(ShadowType.F_ASSOCIATION);
-                if (associationContainer == null || associationContainer.isEmpty()){
+                if (associationContainer == null || associationContainer.isEmpty()) {
                     LOGGER.trace("No shadow association container in old shadow. Skipping processing entitlements change for {}.", subjectItemPath);
                     continue;
                 }
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Processing association container in old shadow for {}:\n{}", subjectItemPath, associationContainer.debugDump(1));
-                }
+                LOGGER.trace("Processing association container in old shadow for {}:\n{}", subjectItemPath, associationContainer.debugDumpLazily(1));
 
                 // Delete + re-add association values that should ensure correct functioning in case of rename
                 // This has to be done only for associations that require explicit referential integrity.
@@ -1168,13 +1168,15 @@ public class ResourceObjectConverter {
                     if (!ShadowUtil.matchesAttribute(subjectItemPath, valueAttributeName)) {
                         continue;
                     }
-                    LOGGER.trace("Processing association {} on rename", associationName);
-                    associationDelta.addValuesToDelete(associationValue.clone());
-                    associationDelta.addValuesToAdd(associationValue.clone());
+                    if (isRenameReal(subjectShadowBefore, subjectShadowAfter, subjectItemPath)) {
+                        LOGGER.trace("Processing association {} on rename", associationName);
+                        associationDelta.addValuesToDelete(associationValue.clone());
+                        associationDelta.addValuesToAdd(associationValue.clone());
+                    } else {
+                        LOGGER.trace("NOT processing association {} because the rename is phantom", associationName);
+                    }
                 }
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Resulting association delta for {}:\n{}", subjectItemPath, associationDelta.debugDump(1));
-                }
+                LOGGER.trace("Resulting association delta for {}:\n{}", subjectItemPath, associationDelta.debugDumpLazily(1));
                 if (!associationDelta.isEmpty()) {
                     entitlementConverter.collectEntitlementsAsObjectOperation(ctx, roMap, associationDelta, subjectShadowBefore, subjectShadowAfter, parentResult);
                 }
@@ -1185,6 +1187,34 @@ public class ResourceObjectConverter {
         executeEntitlements(ctx, roMap, connOptions, parentResult);
 
         return subjectShadowAfter;
+    }
+
+    private <T> boolean isRenameReal(PrismObject<ShadowType> objectBefore, PrismObject<ShadowType> objectAfter, ItemPath itemPath) throws SchemaException {
+        PrismProperty<T> propertyBefore = objectBefore.findProperty(itemPath);
+        PrismProperty<T> propertyAfter = objectAfter.findProperty(itemPath);
+        boolean beforeIsNull = propertyBefore == null || propertyBefore.isEmpty();
+        boolean afterIsNull = propertyAfter == null || propertyAfter.isEmpty();
+        if (beforeIsNull) {
+            return !afterIsNull;
+        } else if (afterIsNull) {
+            return true;
+        }
+        MatchingRule<T> matchingRule = getMatchingRule(propertyAfter.getDefinition());
+        return !MiscUtil.unorderedCollectionEquals(propertyBefore.getValues(), propertyAfter.getValues(),
+                (v1, v2) -> {
+                    try {
+                        return matchingRule.match(getRealValue(v1), getRealValue(v2));
+                    } catch (SchemaException e) {
+                        throw new IllegalStateException(e);
+                    }
+                });
+    }
+
+    private <T> MatchingRule<T> getMatchingRule(PrismPropertyDefinition<T> definition) throws SchemaException {
+        QName matchingRuleName = defaultIfNull(
+                definition != null ? definition.getMatchingRuleQName() : null,
+                PrismConstants.DEFAULT_MATCHING_RULE_NAME);
+        return matchingRuleRegistry.getMatchingRule(matchingRuleName, null);
     }
 
     private void executeEntitlementChangesDelete(ProvisioningContext ctx, PrismObject<ShadowType> subjectShadow,
