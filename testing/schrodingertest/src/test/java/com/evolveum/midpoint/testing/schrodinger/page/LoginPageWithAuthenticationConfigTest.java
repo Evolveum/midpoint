@@ -90,7 +90,7 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
         open("/login");
         open("/");
         login.loginWithReloadLoginPage("administrator", "5ecr3t");
-        addObjectFromFile(FLEXIBLE_AUTHENTICATION_SEC_QUES_RESET_PASS_SECURITY_POLICY);
+        importObject(FLEXIBLE_AUTHENTICATION_SEC_QUES_RESET_PASS_SECURITY_POLICY, true);
         TimeUnit.SECONDS.sleep(4);
         basicPage.loggedUser().logoutIfUserIsLogin();
         SecurityQuestionsPage securityQuestion = (SecurityQuestionsPage) login.forgotPassword();
@@ -134,7 +134,7 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
         basicPage.loggedUser().logoutIfUserIsLogin();
 
         login.loginWithReloadLoginPage("administrator", "5ecr3t");
-        addObjectFromFile(BULK_TASK);
+        importObject(BULK_TASK);
         basicPage.listTasks().table().clickByName("Add archetype"); //.clickRunNow(); the task is running after import, no need to click run now button
         screenshot("addArchetypeBulkActionTask");
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
