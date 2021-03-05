@@ -94,9 +94,9 @@ public class BasicSearchFilter<C extends Containerable> extends SearchFilter<C> 
     @Override
     public ObjectFilter buildObjectFilter(){
         if (logicalFilterValue.equals(LogicalFilterValue.OR)){
-            return getPrismContext().queryFactory().createAnd(getObjectFilterList());
-        } else {
             return getPrismContext().queryFactory().createOr(getObjectFilterList());
+        } else {
+            return getPrismContext().queryFactory().createAnd(getObjectFilterList());
         }
     }
 

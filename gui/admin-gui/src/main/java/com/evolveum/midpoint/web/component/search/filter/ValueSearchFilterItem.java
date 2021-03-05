@@ -242,7 +242,9 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
                 } else if (value instanceof ObjectReferenceType) {
                     refVal = ((ObjectReferenceType) value).asReferenceValue();
                 }
-                if (refVal.getParent() instanceof RefFilter) {
+                if (refVal.isEmpty() && expression != null) {
+                    builtFilter = conditionEntry.ref(expression).buildFilter();
+                } else if (refVal.getParent() instanceof RefFilter) {
                     builtFilter = (RefFilter) refVal.getParent();
                 } else {
                     builtFilter = conditionEntry.ref(refVal).buildFilter();
