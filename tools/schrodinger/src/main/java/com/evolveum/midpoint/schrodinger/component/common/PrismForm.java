@@ -57,19 +57,17 @@ public class PrismForm<T> extends Component<T> {
         return this;
     }
 
-    public PrismForm<T> addProtectedAttributeValue(String protectedAttributeName, String value) {
-        SelenideElement property = findProperty(protectedAttributeName);
+    public PrismForm<T> addPasswordAttributeValue(String value) {
+        PrismForm passwordContainer = expandContainerPropertiesPanel("Password")
+                .getPrismContainerPanel("Password")
+                    .getContainerFormFragment();
 
-        boolean existValue = getParentElement().$(Schrodinger.byDataId("changePasswordLink")).exists();
+        boolean existValue = passwordContainer.getParentElement().$x("//a[@data-s-id='changePasswordLink']").exists();
         if (existValue) {
-            getParentElement().$(Schrodinger.byDataId("changePasswordLink")).click();
+            passwordContainer.getParentElement().$x("//a[@data-s-id='changePasswordLink']").click();
         }
-
-        ElementsCollection values = property.$$(By.xpath(".//input[contains(@class,\"form-control\")]"));
-        for (SelenideElement valueElemen : values) {
-            valueElemen.setValue(value).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
-        }
-
+        passwordContainer.getParentElement().$x("//input[@data-s-id='password1']").waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(value);
+        passwordContainer.getParentElement().$x("//input[@data-s-id='password2']").waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(value);
         return this;
     }
 
