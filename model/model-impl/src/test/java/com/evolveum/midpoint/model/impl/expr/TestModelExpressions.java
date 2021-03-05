@@ -307,8 +307,25 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         }
     }
 
+    @Test
+    public void testCustomFunctionUntyped() throws Exception {
+        PrismContainer<Containerable> customPc = createCustomContainer();
+        PrismContainerValue<Containerable> customPcv = createCustomValue();
+
+        VariablesMap variables = VariablesMap.create(prismContext,
+                "var1", customPc.clone().getValues(), customPc.getDefinition(),
+                "var2", customPcv.clone(), customPcv.getDefinition());
+
+        assertExecuteScriptExpressionString(variables, "s-1");
+    }
+
     @NotNull
     private PrismContainerValue<Containerable> createCustomValue() throws SchemaException {
+        return createCustomContainer().getValue();
+    }
+
+    @NotNull
+    private PrismContainer<Containerable> createCustomContainer() throws SchemaException {
         PrismContainerDefinition<Containerable> customDef =
                 prismContext.getSchemaRegistry().findContainerDefinitionByElementName(CUSTOM);
         PrismContainer<Containerable> customPc = customDef.instantiate();
@@ -320,7 +337,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
         customPcv.add(stringPp);
         customPcv.add(intPp);
-        return customPcv;
+        return customPc;
     }
 
     private void assertExecuteScriptExpressionString(
@@ -335,7 +352,8 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
             throws SecurityViolationException, ExpressionEvaluationException, SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, IOException {
         // GIVEN
-        OperationResult result = createOperationResult();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
         String shortTestName = getTestNameShort();
 
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + shortTestName + ".xml");
@@ -374,7 +392,8 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
     @SuppressWarnings("SameParameterValue")
     private <T> List<PrismPropertyValue<T>> evaluate(ScriptExpression scriptExpression, VariablesMap variables, boolean useNew,
-            String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException,
+            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (task == null) {
             task = taskManager.createTaskInstance();
         }
@@ -394,5 +413,4 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
             ModelExpressionThreadLocalHolder.popExpressionEnvironment();
         }
     }
-
 }
