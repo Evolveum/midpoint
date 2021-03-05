@@ -4473,6 +4473,43 @@ public class TestRbac extends AbstractRbacTest {
         assertPartialError(result);
     }
 
+    /**
+     * Tests role that adds recompute trigger with trigger customizer.
+     *
+     * MID-6076.
+     */
+    @Test
+    public void test920AddRecomputeTrigger() throws Exception {
+        given();
+
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = getTestTask();
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+
+        UserType user = new UserType(prismContext)
+                .name("test920")
+                .beginAssignment()
+                    .targetRef(ROLE_ADDING_RECOMPUTE_TRIGGER.oid, RoleType.COMPLEX_TYPE)
+                .end();
+        addObject(user.asPrismObject(), task, result);
+
+        when();
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_DESCRIPTION).replace("modified")
+                .asObjectDeltaCast(user.getOid());
+        executeChanges(delta, null, task, result);
+
+        then();
+        assertSuccess(result);
+
+        assertUserAfter(user.getOid())
+                .triggers()
+                    .single()
+                        .assertOriginDescription("added by role");
+    }
+
     protected boolean testMultiplicityConstraintsForNonDefaultRelations() {
         return true;
     }

@@ -1072,7 +1072,7 @@ public class ResourceManager {
         }
         ActivationCapabilityType activationCapability = CapabilityUtil.getCapability(resourceType
                 .getCapabilities().getConfigured().getAny(), ActivationCapabilityType.class);
-        if (CapabilityUtil.getEffectiveActivationStatus(activationCapability) != null) {
+        if (CapabilityUtil.getEnabledActivationStatus(activationCapability) != null) {
             QName attributeName = activationCapability.getStatus().getAttribute();
             Boolean ignore = activationCapability.getStatus().isIgnoreAttribute();
             if (attributeName != null) {

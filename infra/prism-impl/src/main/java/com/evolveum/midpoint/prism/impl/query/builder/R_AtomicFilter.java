@@ -279,6 +279,12 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     }
 
     @Override
+    public S_AtomicFilterExit ref(ExpressionWrapper expression) {
+        RefFilter filter = RefFilterImpl.createReferenceEqual(itemPath, referenceDefinition, expression);
+        return ref(filter);
+    }
+
+    @Override
     public S_AtomicFilterExit ref(String... oids) {
         if (oids.length == 0 || oids.length == 1 && oids[0] == null) {
             return isNull();

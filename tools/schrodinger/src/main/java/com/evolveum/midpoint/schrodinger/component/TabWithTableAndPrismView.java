@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schrodinger.component;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -49,8 +50,25 @@ abstract public class TabWithTableAndPrismView<P> extends Component<P> {
                 return this;
             }
 
+            @Override
+            public AbstractTableWithPrismView<T> selectHeaderCheckbox() {
+                $(Schrodinger.byFollowingSiblingEnclosedValue("th", "class", "check", "data-s-id", "3", ""))
+                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+                Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+                return this;
+            }
+
+            @Override
             public AbstractTableWithPrismView<T> removeByName(String name) {
                 rowByColumnLabel("Name", name).getInlineMenu().clickInlineMenuButtonByIconClass(".fa.fa-minus");
+                return this;
+            }
+
+            @Override
+            public AbstractTableWithPrismView<T> clickHeaderActionButton(String actionButtonStyle) {
+                $(Schrodinger.byDescendantElementAttributeValue("th", "class", actionButtonStyle))
+                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+                Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
                 return this;
             }
         };
