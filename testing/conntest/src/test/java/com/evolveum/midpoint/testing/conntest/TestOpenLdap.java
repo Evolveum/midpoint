@@ -128,7 +128,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
     protected void assertActivationCapability(ActivationCapabilityType activationCapabilityType) {
         assertNotNull("No activation capability", activationCapabilityType);
 
-        ActivationLockoutStatusCapabilityType lockoutCapability = CapabilityUtil.getEffectiveActivationLockoutStatus(activationCapabilityType);
+        ActivationLockoutStatusCapabilityType lockoutCapability = CapabilityUtil.getEnabledActivationLockoutStatus(activationCapabilityType);
         assertNotNull("No lockout capability", lockoutCapability);
         displayValue("Lockout capability", lockoutCapability);
     }

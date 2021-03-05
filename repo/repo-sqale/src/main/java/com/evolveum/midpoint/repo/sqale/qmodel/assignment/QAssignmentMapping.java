@@ -12,7 +12,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentTyp
 
 import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleModelMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -24,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
  * Mapping between {@link QAssignment} and {@link AssignmentType}.
  */
 public class QAssignmentMapping
-        extends SqaleModelMapping<AssignmentType, QAssignment, MAssignment> {
+        extends QContainerMapping<AssignmentType, QAssignment, MAssignment> {
 
     public static final String DEFAULT_ALIAS_NAME = "a";
 
@@ -34,7 +34,6 @@ public class QAssignmentMapping
         super(QAssignment.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 AssignmentType.class, QAssignment.class);
 
-        // TODO (how) is CID queried?
         // TODO OWNER_TYPE is new thing and can help avoid join to concrete object table
         //  But this will likely require special treatment/heuristic.
         // TODO ASSIGNMENT_OWNER - remove if possible, see RAssignmentOwner (FOCUS/ABSTRACT_ROLE)

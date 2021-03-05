@@ -172,6 +172,10 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 
     //region Capabilities ========================================================
 
+    /**
+     * Returns configured capabilities for given refined object class definition.
+     * Returned object is freely modifiable copy of the original information.
+     */
     CapabilitiesType getCapabilities();
 
     <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resourceType);

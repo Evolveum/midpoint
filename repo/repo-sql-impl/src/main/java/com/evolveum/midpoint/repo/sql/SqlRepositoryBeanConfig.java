@@ -45,17 +45,24 @@ import com.evolveum.midpoint.schema.SchemaHelper;
  * would happen when combined with alternative configurations (e.g. context XMLs for test).
  * {@link ConditionalOnExpression} class annotation activates this configuration only if midpoint
  * {@code config.xml} specifies the repository factory class from SQL package.
- * <p>
+ *
  * With current initialization not relying on system-init directly anymore, there is in fact
  * no "repository service factory" class and value of {@code com.evolveum.midpoint.repo.sql.}
  * for it is enough to initialize this SQL repository implementation.
  * Alternatively just value "sql" can be used.
  * Both values are now case-insensitive.
+ *
+ * Any of the values also work with alternative key element {@code type}.
+ * The shortest form then looks like {@code <type>sql</type>}.
  */
 @Configuration
 @ConditionalOnExpression("#{midpointConfiguration.keyMatches("
         + "'midpoint.repository.repositoryServiceFactoryClass',"
-        + " '(?i)com\\.evolveum\\.midpoint\\.repo\\.sql\\..*', '(?i)sql')}")
+        + " '(?i)com\\.evolveum\\.midpoint\\.repo\\.sql\\..*', '(?i)sql')"
+        + "|| midpointConfiguration.keyMatches("
+        + "'midpoint.repository.type',"
+        + " '(?i)com\\.evolveum\\.midpoint\\.repo\\.sql\\..*', '(?i)sql')"
+        + "}")
 @ComponentScan
 public class SqlRepositoryBeanConfig {
 

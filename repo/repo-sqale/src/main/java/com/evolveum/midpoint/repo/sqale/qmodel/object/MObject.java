@@ -17,7 +17,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 public class MObject {
 
     public UUID oid;
-    public int objectTypeClass; // defaults are set on DB level
+    // objectType is read-only, it must be null before insert/updates of the whole M-bean
+    public Integer objectType;
     public String nameNorm;
     public String nameOrig;
     public byte[] fullObject;

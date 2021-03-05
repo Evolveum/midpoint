@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.repo.cache;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayCollection;
-
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
 import java.io.IOException;
@@ -17,6 +15,7 @@ import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -94,7 +93,7 @@ public class CacheInvalidationPerformanceTest extends AbstractSpringTest impleme
 
         repositoryCache.dumpContent();
         Collection<SingleCacheStateInformationType> stateInformation = repositoryCache.getStateInformation();
-        displayCollection("cache state information", stateInformation);
+        displayValue("cache state information", DebugUtil.debugDump(stateInformation));
 
         when();
         modifyArchetypeName(archetype, "Modification duration with cache", 50, result);
