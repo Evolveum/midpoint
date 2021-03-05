@@ -156,6 +156,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     private static final TestResource TASK_RECONCILE_DUMMY_FILTER = new TestResource(TEST_DIR, "task-reconcile-dummy-filter.xml", "10000000-0000-0000-5656-565600000014");
     private static final TestResource TASK_RECONCILE_DUMMY_AZURE = new TestResource(TEST_DIR, "task-reconcile-dummy-azure.xml", "10000000-0000-0000-5656-56560000a204");
     private static final TestResource TASK_RECONCILE_DUMMY_LIME = new TestResource(TEST_DIR, "task-reconcile-dummy-lime.xml", "10000000-0000-0000-5656-565600131204");
+    private static final TestResource<TaskType> TASK_IMPORT_DUMMY_LIME_LIMITED = new TestResource<>(TEST_DIR, "task-import-dummy-lime-limited.xml", "4e2f83b8-5312-4924-af7e-52805ad20b3e");
     private static final TestResource TASK_DELETE_DUMMY_SHADOWS = new TestResource(TEST_DIR, "task-delete-dummy-shadows.xml", "abaab842-18be-11e5-9416-001e8c717e5b");
     private static final TestResource TASK_DELETE_DUMMY_ACCOUNTS = new TestResource(TEST_DIR, "task-delete-dummy-accounts.xml", "ab28a334-2aca-11e5-afe7-001e8c717e5b");
 
@@ -602,6 +603,47 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // Check audit
         assertImportAuditModifications(3);
+    }
+
+    /**
+     * Import limited to single object: MID-6798.
+     */
+    @Test
+    public void test161ImportFromResourceDummyLimeLimited() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+
+        // Preconditions
+        assertUsers(getNumberOfUsers() + 4);
+        dummyAuditService.clear();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
+
+        loginImportUser();
+
+        when();
+
+        addObject(TASK_IMPORT_DUMMY_LIME_LIMITED.file, task, result);
+        loginAdministrator();
+        waitForTaskFinish(TASK_IMPORT_DUMMY_LIME_LIMITED.oid, false);
+
+        then();
+
+        Task importTask = taskManager.getTaskPlain(TASK_IMPORT_DUMMY_LIME_LIMITED.oid, result);
+
+        dumpStatistics(importTask);
+        assertTask(importTask, "task after")
+                .display()
+                .iterativeTaskInformation()
+                    .display()
+                    .assertTotalCounts(1, 0)
+                    .end()
+                .structuredProgress()
+                    .display()
+                    .assertSuccessCount(1, false)
+                    .end()
+                .assertProgress(1);
     }
 
     /**
