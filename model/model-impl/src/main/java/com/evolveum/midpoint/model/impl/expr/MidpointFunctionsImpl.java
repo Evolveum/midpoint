@@ -1953,17 +1953,15 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public <O extends ObjectType> void addRecomputeTrigger(O object, Long timestamp) throws ObjectAlreadyExistsException,
-            SchemaException, ObjectNotFoundException {
-        addRecomputeTrigger(object.asPrismObject(), timestamp);
-    }
-
-    @Override
-    public <O extends ObjectType> void addRecomputeTrigger(PrismObject<O> object, Long timestamp)
+    public <O extends ObjectType> void addRecomputeTrigger(PrismObject<O> object, Long timestamp,
+            TriggerCustomizer triggerCustomizer)
             throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
         TriggerType trigger = new TriggerType(prismContext)
                 .handlerUri(RecomputeTriggerHandler.HANDLER_URI)
                 .timestamp(XmlTypeConverter.createXMLGregorianCalendar(timestamp != null ? timestamp : System.currentTimeMillis()));
+        if (triggerCustomizer != null) {
+            triggerCustomizer.customize(trigger);
+        }
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(object.asObjectable().getClass())
                 .item(ObjectType.F_TRIGGER).add(trigger)
                 .asItemDeltas();
