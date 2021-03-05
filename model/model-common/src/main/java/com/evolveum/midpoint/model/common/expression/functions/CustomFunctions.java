@@ -15,6 +15,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.Validate;
 
@@ -39,10 +41,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionParameterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionReturnMultiplicityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -94,7 +92,9 @@ public class CustomFunctions {
             throw new IllegalStateException("No ScriptExpressionEvaluationContext for current thread found");
         }
 
-        List<ExpressionType> functions = library.getFunction().stream().filter(expression -> functionName.equals(expression.getName())).collect(Collectors.toList());
+        List<ExpressionType> functions = library.getFunction().stream()
+                .filter(expression -> functionName.equals(expression.getName()))
+                .collect(Collectors.toList());
 
         LOGGER.trace("functions {}", functions);
         ExpressionType expressionType = functions.iterator().next();
@@ -169,16 +169,26 @@ public class CustomFunctions {
         return outputDefinition;
     }
 
-    private TypedValue convertInput(Map.Entry<String, Object> entry, ExpressionType expression) throws SchemaException {
+    private TypedValue<?> convertInput(Map.Entry<String, Object> entry, ExpressionType expression) throws SchemaException {
 
-        ExpressionParameterType expressionParam = expression.getParameter().stream().filter(param -> param.getName().equals(entry.getKey())).findAny().orElseThrow(SchemaException :: new);
+        String argName = entry.getKey();
+        Object argValue = entry.getValue();
+        LOGGER.trace("Converting argument: {} = {}", argName, argValue);
 
-        QName paramType = expressionParam.getType();
+        ExpressionParameterType matchingExpressionParameter = expression.getParameter().stream()
+                .filter(param -> param.getName().equals(argName))
+                .findAny()
+                .orElseThrow(() -> new SchemaException(getUnknownParameterMessage(expression, argName)));
+
+        QName paramType = matchingExpressionParameter.getType();
         Class<?> expressionParameterClass = prismContext.getSchemaRegistry().determineClassForType(paramType);
 
-        Object value = entry.getValue();
+        Object value;
         if (expressionParameterClass != null && !DOMUtil.XSD_ANYTYPE.equals(paramType) && XmlTypeConverter.canConvert(expressionParameterClass)) {
-            value = ExpressionUtil.convertValue(expressionParameterClass, null, entry.getValue(), prismContext.getDefaultProtector(), prismContext);
+            value = ExpressionUtil.convertValue(expressionParameterClass, null, argValue,
+                    prismContext.getDefaultProtector(), prismContext);
+        } else {
+            value = argValue;
         }
 
         Class<?> valueClass;
@@ -196,4 +206,12 @@ public class CustomFunctions {
         return new TypedValue<>(value, valueClass);
     }
 
+    @NotNull
+    private String getUnknownParameterMessage(ExpressionType expression, String argName) {
+        return String.format("No parameter named '%s' in function '%s' found. Known parameters are: %s.",
+                argName, expression.getName(),
+                expression.getParameter().stream()
+                        .map(p -> "'" + p.getName() + "'")
+                        .collect(Collectors.joining(", ")));
+    }
 }

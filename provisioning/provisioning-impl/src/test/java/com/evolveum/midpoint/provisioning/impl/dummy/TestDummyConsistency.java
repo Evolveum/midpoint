@@ -571,6 +571,10 @@ public class TestDummyConsistency extends AbstractDummyTest {
         assertSteadyResources();
     }
 
+    /**
+     * Tries to change the name to "Henry Morgan".
+     * Attempt will not succeed because of the communication failure.
+     */
     @Test
     public void test120ModifyMorganFullNameCommunicationFailure() throws Exception {
         Task task = getTestTask();
@@ -1990,6 +1994,73 @@ public class TestDummyConsistency extends AbstractDummyTest {
         // TODO: assert Murray
 
         assertSteadyResources();
+    }
+
+
+    /**
+     * Tries to change the name to "Henry Morgan" and then to "Captain Henry Morgan".
+     * Attempts will not succeed because of the communication failure.
+     *
+     * Then we make resource available and refresh the shadow.
+     * We verify that the operations are executed in the correct order.
+     *
+     * MID-6795
+     */
+    @Test
+    public void test910ModifyMorganFullNameTwiceCommunicationFailure() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        syncServiceMock.reset();
+
+        clock.resetOverride();
+
+        dummyResource.setBreakMode(BreakMode.NONE);
+
+        PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_MORGAN_FILE);
+        // Reset morgan OID. We cannot use the same OID, as there is a dead shadow with the original OID.
+        account.setOid(null);
+        account.checkConsistence();
+        display("Adding shadow", account);
+
+        shadowMorganOid = provisioningService.addObject(account, null, null, task, result);
+
+        dummyResource.setBreakMode(BreakMode.NETWORK);
+
+        ObjectDelta<ShadowType> delta1 = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+                shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), ACCOUNT_MORGAN_FULLNAME_HM);
+        displayDumpable("ObjectDelta", delta1);
+
+        ObjectDelta<ShadowType> delta2 = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+                shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), ACCOUNT_MORGAN_FULLNAME_CHM);
+        displayDumpable("ObjectDelta", delta2);
+
+        when("no connection");
+        provisioningService.modifyObject(ShadowType.class, delta1.getOid(), delta1.getModifications(),
+                null, null, task, result);
+        provisioningService.modifyObject(ShadowType.class, delta2.getOid(), delta2.getModifications(),
+                null, null, task, result);
+
+        when("no connection");
+        assertInProgress(result);
+
+        ShadowAsserter.forShadow(getShadowRepo(shadowMorganOid), "repository")
+                .display()
+                .pendingOperations()
+                    .assertOperations(2);
+
+        when("connection reestablished, shadow refresh");
+        dummyResource.setBreakMode(BreakMode.NONE);
+
+        clockForward("PT1H");
+
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, shadowMorganOid, null, task, result);
+        provisioningService.refreshShadow(shadow, null, task, result);
+
+        then("connection reestablished, shadow refresh");
+        assertShadowProvisioning(shadowMorganOid)
+                .display()
+                .attributes()
+                    .assertValue(dummyResourceCtl.getAttributeFullnameQName(), ACCOUNT_MORGAN_FULLNAME_CHM);
     }
 
     private void assertUncreatedMorgan(int expectedAttemptNumber) throws Exception {
