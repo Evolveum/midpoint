@@ -54,7 +54,7 @@ public class UserAccountTests extends AccountTests {
                         .selectTabBasic()
                             .form()
                             .showEmptyAttributes("Password")
-                            .addProtectedAttributeValue("Value","S36re7")
+                            .addPasswordAttributeValue("S36re7")
                         .and()
                     .and()
                     .checkKeepDisplayingResults()
