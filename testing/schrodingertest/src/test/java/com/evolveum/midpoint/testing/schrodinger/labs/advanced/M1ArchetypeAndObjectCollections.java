@@ -84,9 +84,9 @@ public class M1ArchetypeAndObjectCollections extends AbstractLabTest {
                         .and()
                     .clickByName("kirk")
                         .selectTabProjections()
-                            .assertProjectionDisabled("")
-                            .assertProjectionDisabled("")
-                            .assertProjectionDisabled("");
+                            .assertProjectionDisabled("jkirk")
+                            .assertProjectionDisabled("cn=Jim Kirk,ou=ExAmPLE,dc=example,dc=com")
+                            .assertProjectionDisabled("kirk");
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Internal Employee");
         basicPage.listUsers()
                 .table()
@@ -97,8 +97,8 @@ public class M1ArchetypeAndObjectCollections extends AbstractLabTest {
                         .and()
                     .clickByName("kirk")
                         .selectTabProjections()
-                            .assertProjectionEnabled("")
-                            .assertProjectionEnabled("")
-                            .assertProjectionEnabled("");
+                            .assertProjectionEnabled("jkirk")
+                            .assertProjectionEnabled("cn=Jim Kirk,ou=ExAmPLE,dc=example,dc=com")
+                            .assertProjectionEnabled("kirk");
     }
 }

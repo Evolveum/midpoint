@@ -186,7 +186,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
     }
 
     private Component getAceEditorContainer(){
-        return get(ID_ACE_EDITOR_XML_FIELD);
+        return get(createComponentPath(ID_ACE_EDITOR_XML_CONTAINER, ID_ACE_EDITOR_XML_FIELD));
     }
 
     private Component getTextFieldContainer(){
