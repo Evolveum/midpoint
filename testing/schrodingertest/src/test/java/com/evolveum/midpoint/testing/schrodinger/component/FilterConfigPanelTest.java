@@ -31,9 +31,9 @@ public class FilterConfigPanelTest extends AbstractSchrodingerTest {
 
     @Override
     protected List<File> getObjectListToImport(){
-        return Arrays.asList(TEST_OBJECT_COLLECTION, OBJECT_COLLECTION_TEST_USER, SYSTEM_CONFIG_WITH_OBJ_COLLECTIONS,
+        return Arrays.asList(TEST_OBJECT_COLLECTION, OBJECT_COLLECTION_TEST_USER,
                 NEW_OBJECT_COLLECTION_TEST_USER, OBJ_REF_PROPERTY_CONFIG_COLLECTION_TEST, OBJ_REF_PROPERTY_CONFIG_TEST_USER,
-                DROPDOWN_PROPERTY_CONFIG_COLLECTION_TEST, DROPDOWN_PROPERTY_CONFIG_TEST_USER);
+                DROPDOWN_PROPERTY_CONFIG_COLLECTION_TEST, DROPDOWN_PROPERTY_CONFIG_TEST_USER, SYSTEM_CONFIG_WITH_OBJ_COLLECTIONS);
     }
 
     @Test
@@ -143,7 +143,7 @@ public class FilterConfigPanelTest extends AbstractSchrodingerTest {
                             .and()
                             .configSearch()
                                 .setPropertyDropdownValue("Administrative status", "DISABLED", true)
-                                .setPropertyFilterValue("Name", "Equal", true)
+                                .setPropertyFilterValue("Administrative status", "Equal", false)
                                 .confirmConfiguration()
                             .clickSave()
                         .feedback()
