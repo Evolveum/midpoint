@@ -941,7 +941,7 @@ public class ShadowCache {
             options.setForceRetry(Boolean.TRUE);
         }
 
-        return modifyShadowAttempt(ctx, modifications, scripts, options, opState, task, parentResult);
+        return modifyShadowAttempt(ctx, modifications, scripts, options, opState, false, task, parentResult);
     }
 
     private String modifyShadowAttempt(ProvisioningContext ctx,
@@ -949,6 +949,7 @@ public class ShadowCache {
             OperationProvisioningScriptsType scripts,
             ProvisioningOperationOptions options,
             ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+            boolean inRefresh,
             Task task, OperationResult parentResult)
                     throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
                     SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, EncryptionException, ObjectAlreadyExistsException {
@@ -979,7 +980,7 @@ public class ShadowCache {
                 LOGGER.trace("MODIFY {}: resource modification, execution starting\n{}", repoShadow, DebugUtil.debugDumpLazily(modifications));
 
                 RefreshShadowOperation refreshShadowOperation = null;
-                if (shouldRefresh(repoShadow)) {
+                if (!inRefresh && shouldRefresh(repoShadow)) {
                     refreshShadowOperation = refreshShadow(repoShadow, options, task, parentResult);
                 }
 
@@ -1726,7 +1727,7 @@ public class ShadowCache {
         if (pendingDelta.isModify()) {
             modifyShadowAttempt(ctx, pendingDelta.getModifications(), scripts, options,
                     (ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>>) opState,
-                    task, result);
+                    true, task, result);
         }
 
         if (pendingDelta.isDelete()) {
