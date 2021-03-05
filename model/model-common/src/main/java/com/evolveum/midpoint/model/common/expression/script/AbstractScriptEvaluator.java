@@ -121,11 +121,16 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
             }
         }
 
-        String prismContextName = ExpressionConstants.VAR_PRISM_CONTEXT;
-        if (!scriptVariableMap.containsKey(prismContextName)) {
-            scriptVariableMap.put(prismContextName, prismContext);
-        }
+        putIfMissing(scriptVariableMap, ExpressionConstants.VAR_PRISM_CONTEXT, prismContext);
+        putIfMissing(scriptVariableMap, ExpressionConstants.VAR_LOCALIZATION_SERVICE, localizationService);
+
         return scriptVariableMap;
+    }
+
+    private void putIfMissing(Map<String, Object> scriptVariableMap, String key, Object value) {
+        if (!scriptVariableMap.containsKey(key)) {
+            scriptVariableMap.put(key, value);
+        }
     }
 
     /**
