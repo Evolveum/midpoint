@@ -128,6 +128,12 @@ public class TestOpenDj extends AbstractOpenDjTest {
             "sk", "Kapitán Džek Sperou"
     };
 
+    private static final QName QNAME_SN = new QName(RESOURCE_NS, "sn");
+    private static final ItemPath PATH_SN = ItemPath.create(ShadowType.F_ATTRIBUTES, QNAME_SN);
+
+    private static final QName QNAME_DN = new QName(RESOURCE_NS, "dn");
+    private static final ItemPath PATH_DN = ItemPath.create(ShadowType.F_ATTRIBUTES, QNAME_DN);
+
     private String groupSailorOid;
 
     @Autowired
@@ -928,7 +934,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         display("Object after change", accountType);
 
         String uid = ShadowUtil.getSingleStringAttributeValue(accountType, getPrimaryIdentifierQName());
-        List<Object> snValues = ShadowUtil.getAttributeValues(accountType, new QName(RESOURCE_NS, "sn"));
+        List<Object> snValues = ShadowUtil.getAttributeValues(accountType, QNAME_SN);
         assertNotNull("No 'sn' attribute", snValues);
         assertFalse("Surname attributes must not be empty", snValues.isEmpty());
         assertEquals(1, snValues.size());
@@ -1853,8 +1859,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
         ObjectPaging paging = prismContext.queryFactory().createPaging(null, 4);
-        paging.setOrdering(prismContext.queryFactory().createOrdering(
-                ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_NS, "sn")), OrderDirection.ASCENDING));
+        paging.setOrdering(prismContext.queryFactory().createOrdering(PATH_SN, OrderDirection.ASCENDING));
         query.setPaging(paging);
 
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
@@ -1889,8 +1894,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
         ObjectPaging paging = prismContext.queryFactory().createPaging(2, 4);
-        paging.setOrdering(prismContext.queryFactory().createOrdering(
-                ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_NS, "sn")), OrderDirection.ASCENDING));
+        paging.setOrdering(prismContext.queryFactory().createOrdering(PATH_SN, OrderDirection.ASCENDING));
         query.setPaging(paging);
 
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
@@ -2504,6 +2508,76 @@ public class TestOpenDj extends AbstractOpenDjTest {
         then();
         result.computeStatus();
         assertSuccess(result);
+        display("Shadow", shadow);
+
+        assertEntitlementGroup(shadow, GROUP_SWASHBUCKLERS_OID);
+        assertEntitlementGroup(shadow, groupSailorOid);
+        assertEntitlementGroup(shadow, GROUP_CORSAIRS_OID);
+
+        assertShadows(22);
+    }
+
+    /**
+     * MID-6770
+     */
+    @Test
+    public void test419PhantomRenameMorgan() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ObjectDelta<ShadowType> delta = deltaFor(ShadowType.class)
+                .item(PATH_DN, getAccountAttributeDefinition(QNAME_DN))
+                .replace("uid=morgan,ou=People,dc=example,dc=com")
+                .asObjectDelta(ACCOUNT_MORGAN_OID);
+
+        when();
+        provisioningService.modifyObject(ShadowType.class, ACCOUNT_MORGAN_OID, delta.getModifications(),
+                null, null, task, result);
+
+        then();
+        assertSuccess(result);
+
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, task, result);
+        display("Shadow", shadow);
+
+        assertEntitlementGroup(shadow, GROUP_SWASHBUCKLERS_OID);
+        assertEntitlementGroup(shadow, groupSailorOid);
+        assertEntitlementGroup(shadow, GROUP_CORSAIRS_OID);
+
+        assertShadows(22);
+    }
+
+    /**
+     * MID-6770
+     *
+     * The same as before, but now the DN attribute in shadow is out of date.
+     * We intentionally change it via direct repo call before the provisioning action.
+     */
+    @Test
+    public void test420PhantomRenameMorganRotten() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ObjectDelta<ShadowType> rotDelta = deltaFor(ShadowType.class)
+                .item(PATH_DN, getAccountAttributeDefinition(QNAME_DN))
+                .replace("uid=morgan-rotten,ou=People,dc=example,dc=com")
+                .asObjectDelta(ACCOUNT_MORGAN_OID);
+        repositoryService.modifyObject(ShadowType.class, ACCOUNT_MORGAN_OID, rotDelta.getModifications(), result);
+
+        // This is no-op on resource. (The DN on resource has not changed.)
+        ObjectDelta<ShadowType> delta = deltaFor(ShadowType.class)
+                .item(PATH_DN, getAccountAttributeDefinition(QNAME_DN))
+                .replace("uid=morgan,ou=People,dc=example,dc=com")
+                .asObjectDelta(ACCOUNT_MORGAN_OID);
+
+        when();
+        provisioningService.modifyObject(ShadowType.class, ACCOUNT_MORGAN_OID, delta.getModifications(),
+                null, null, task, result);
+
+        then();
+        assertSuccess(result);
+
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, task, result);
         display("Shadow", shadow);
 
         assertEntitlementGroup(shadow, GROUP_SWASHBUCKLERS_OID);
@@ -3316,5 +3390,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
     private void assertDescription(Entry entry, String expectedOrigValue, String... params) {
         OpenDJController.assertAttributeLang(entry, ATTRIBUTE_DESCRIPTION_NAME, expectedOrigValue, params);
+    }
+
+    private <T> ResourceAttributeDefinition<T> getAccountAttributeDefinition(QName attrName) throws SchemaException {
+        return RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext)
+                .findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS)
+                .findAttributeDefinition(attrName);
     }
 }
