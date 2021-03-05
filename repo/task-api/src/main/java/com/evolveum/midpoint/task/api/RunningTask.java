@@ -63,6 +63,8 @@ public interface RunningTask extends Task, StructuredProgressCollector {
 
     Collection<? extends RunningTask> getRunningLightweightAsynchronousSubtasks();
 
+    Collection<? extends RunningTask> getRunnableOrRunningLightweightAsynchronousSubtasks();
+
     boolean lightweightHandlerStartRequested();
 
     /**
