@@ -731,7 +731,10 @@ public interface TaskManager {
     @VisibleForTesting
     RunningTask getLocallyRunningTaskByIdentifier(String lightweightIdentifier);
 
-    void waitForTransientChildren(RunningTask task, OperationResult result);
+    /**
+     * Should be called only from the thread that created the children - to avoid race conditions.
+     */
+    void waitForTransientChildrenAndCloseThem(RunningTask task, OperationResult result);
 
     //endregion
 }

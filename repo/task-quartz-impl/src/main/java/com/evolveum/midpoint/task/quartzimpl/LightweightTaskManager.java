@@ -113,10 +113,10 @@ public class LightweightTaskManager {
         }
     }
 
-    public void waitForTransientChildren(RunningTask task, OperationResult result) {
-        for (RunningTaskQuartzImpl subtask : ((RunningTaskQuartzImpl) task).getRunningLightweightAsynchronousSubtasks()) {
+    public void waitForTransientChildrenAndCloseThem(RunningTask task, OperationResult result) {
+        for (RunningTaskQuartzImpl subtask : ((RunningTaskQuartzImpl) task).getRunnableOrRunningLightweightAsynchronousSubtasks()) {
             Future<?> future = subtask.getLightweightHandlerFuture();
-            if (future != null) { // should always be
+            if (future != null) {
                 LOGGER.debug("Waiting for subtask {} to complete.", subtask);
                 try {
                     future.get();
@@ -138,6 +138,19 @@ public class LightweightTaskManager {
                     result.recordWarning("Got exception while waiting for subtask " + subtask + " to complete: " + t.getMessage(), t);
                 }
                 LOGGER.debug("Waiting for subtask {} done.", subtask);
+            } else {
+                if (subtask.isRunnable()) {
+                    LOGGER.trace("Lightweight task handler for subtask {} has not started yet; closing the task.", subtask);
+                } else {
+                    LOGGER.warn("Lightweight task {} has not started yet and is in wrong state: {}/{}. Closing it.", subtask,
+                            subtask.getExecutingThread(), subtask.getSchedulingState());
+                }
+                try {
+                    taskStateManager.closeTask(subtask, result);
+                } catch (Exception e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't close transient subtask {}", e, subtask);
+                }
+                LOGGER.debug("Waiting for (not yet running) subtask {} done.", subtask);
             }
         }
     }

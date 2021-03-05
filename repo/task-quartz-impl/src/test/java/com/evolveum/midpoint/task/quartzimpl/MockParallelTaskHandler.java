@@ -137,7 +137,7 @@ public class MockParallelTaskHandler implements TaskHandler {
         }
 
         System.out.println("Waiting for threads to finish...");
-        taskManager.waitForTransientChildren(task, opResult);
+        taskManager.waitForTransientChildrenAndCloseThem(task, opResult);
         System.out.println("... done");
 
         opResult.recordSuccess();

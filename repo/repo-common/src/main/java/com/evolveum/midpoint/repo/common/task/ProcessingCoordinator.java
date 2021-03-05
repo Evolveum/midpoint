@@ -175,9 +175,9 @@ public class ProcessingCoordinator<I> {
     }
 
     private void waitForWorkersFinish(OperationResult result) {
-        logger.trace("Waiting for workers to finish");
-        taskManager.waitForTransientChildren(coordinatorTask, result);
-        logger.trace("Waiting for workers to finish done");
+        logger.debug("Waiting for workers to finish");
+        taskManager.waitForTransientChildrenAndCloseThem(coordinatorTask, result);
+        logger.debug("Waiting for workers to finish done");
     }
 
     private void nackQueuedRequests(OperationResult result) {
