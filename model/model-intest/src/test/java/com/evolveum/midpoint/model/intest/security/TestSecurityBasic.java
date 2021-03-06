@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -19,7 +19,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
@@ -44,6 +43,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.asserter.OperationResultRepoSearchAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -62,39 +62,42 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test200AutzJackNoRole() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
+        then();
         assertNoAccess(userJack);
-
         assertGlobalStateUntouched();
     }
 
     @Test
     public void test201AutzJackSuperuserRole() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
+        then();
         assertSuperuserAccess(NUMBER_OF_ALL_USERS);
-
         assertGlobalStateUntouched();
     }
 
     @Test
     public void test202AutzJackReadonlyRole() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READONLY_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
+        then();
         assertReadAllow();
         assertReadDenyRaw();
         assertAddDeny();
@@ -114,12 +117,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test202rAutzJackReadonlyReqRole() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READONLY_REQ_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
+        then();
         assertReadDeny();
         assertAddDeny();
         assertModifyDeny();
@@ -135,12 +140,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test202eAutzJackReadonlyExecRole() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READONLY_EXEC_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
+        then();
         assertReadDeny();
         assertAddDeny();
         assertModifyDeny();
@@ -153,12 +160,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test202reAutzJackReadonlyReqExecRole() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READONLY_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
+        then();
         assertReadAllow();
         assertReadDenyRaw();
         assertAddDeny();
@@ -172,12 +181,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test203AutzJackReadonlyDeepRole() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READONLY_DEEP_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
+        then();
         assertReadAllow();
         assertReadDenyRaw();
         assertAddDeny();
@@ -191,12 +202,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test203eAutzJackReadonlyDeepExecRole() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READONLY_DEEP_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
+        then();
         assertReadAllow();
         assertReadDenyRaw();
         assertAddDeny();
@@ -208,16 +221,16 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test204AutzJackSelfRole() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_SELF_OID);
         assignRole(USER_JACK_OID, ROLE_CASES_REQUESTOR_SELF_OID);
         assignRole(USER_JACK_OID, ROLE_READ_JACKS_CAMPAIGNS_OID);        // we cannot specify "own campaigns" yet
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         assertReadDenyRaw();
@@ -261,15 +274,15 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test204aAutzJackCaseObjectSelfRole() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_SELF_OID);
         assignRole(USER_JACK_OID, ROLE_CASES_OBJECT_SELF_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         assertReadDenyRaw();
@@ -313,15 +326,15 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test204bAutzJackCaseAssigneeSelfRole() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_SELF_OID);
         assignRole(USER_JACK_OID, ROLE_CASES_ASSIGNEE_SELF_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         assertReadDenyRaw();
@@ -365,7 +378,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test204cAutzJackCaseAssigneeSelfWithDelegatesRole() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_SELF_DELEGABLE_OID);
         assignRole(USER_JACK_OID, ROLE_CASES_ASSIGNEE_SELF_OID);
@@ -428,7 +441,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test204dAutzJackCaseAssigneeSelfWithNonWorkItemsDelegatesRole() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_SELF_DELEGABLE_OID);
         assignRole(USER_JACK_OID, ROLE_CASES_ASSIGNEE_SELF_OID);
@@ -491,14 +504,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test205AutzJackObjectFilterModifyCaribbeanRole() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_OBJECT_FILTER_MODIFY_CARIBBEAN_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadAllow();
         assertReadDenyRaw();
 
@@ -515,14 +528,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test207AutzJackObjectFilterCaribbeanRole() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_OBJECT_FILTER_CARIBBEAN_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -552,14 +565,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test207rAutzJackObjectFilterCaribbeanRole() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_OBJECT_FILTER_CARIBBEAN_RAW_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetAllow(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -605,14 +618,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
     }
 
     public void testAutzJackReadSomeRoles(String roleOid) throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, roleOid);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadDeny();
         assertReadDenyRaw();
         assertAddDeny();
@@ -643,7 +656,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test209AutzJackSuperuserAndGuiAccessRole() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID);
         assignRole(USER_JACK_OID, ROLE_APPROVER_OID);
@@ -660,14 +673,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test210AutzJackPropReadAllModifySome() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_READ_ALL_MODIFY_SOME_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadAllow();
         assertReadDenyRaw();
 
@@ -700,14 +713,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test211AutzJackPropReadAllModifySomeUser() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_READ_ALL_MODIFY_SOME_USER_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -747,14 +760,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test212AutzJackPropReadAllModifySomeUserPartial() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_READ_ALL_MODIFY_SOME_USER_PARTIAL_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -822,7 +835,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test216AutzJackPropReadSomeModifySomeUser() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_USER_OID);
         login(USER_JACK_USERNAME);
@@ -835,7 +848,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test217AutzJackPropGetSearchSomeModifySomeUser() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_GET_SEARCH_SOME_MODIFY_SOME_USER_OID);
         login(USER_JACK_USERNAME);
@@ -876,14 +889,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
     }
 
     public void testAutzJackPropReadSomeModifySome(String roleOid) throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, roleOid);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadSomeModifySome(1);
 
         assertGlobalStateUntouched();
@@ -891,14 +904,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test218AutzJackPropReadSomeModifySomeExecAll() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_EXEC_ALL_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadAllow();
 
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_ADDITIONAL_NAME, PrismTestUtil.createPolyString("Captain"));
@@ -969,15 +982,15 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test219AutzJackPropReadSomeModifySomeFullName() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_FULLNAME_OID);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadAllow();
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -1127,14 +1140,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test220AutzJackPropDenyModifySome() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_DENY_MODIFY_SOME_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadAllow();
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -1191,14 +1204,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test230AutzJackMasterMinistryOfRum() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_MASTER_MINISTRY_OF_RUM_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadDeny(3);
         assertAddDeny();
         assertModifyDeny();
@@ -1221,14 +1234,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test232AutzJackReadOrgMinistryOfRum() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ORG_READ_ORGS_MINISTRY_OF_RUM_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadDeny(0);
         assertAddDeny();
         assertModifyDeny();
@@ -1251,7 +1264,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test240AutzJackManagerFullControlNoOrg() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
 
         assignRole(USER_JACK_OID, ROLE_MANAGER_FULL_CONTROL_OID);
@@ -1260,11 +1273,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(user);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadDeny(0);
         assertAddDeny();
         assertModifyDeny();
@@ -1300,7 +1312,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test241AutzJackManagerFullControlMemberMinistryOfRum() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
 
         assignRole(USER_JACK_OID, ROLE_MANAGER_FULL_CONTROL_OID);
@@ -1310,11 +1322,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(user);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertJack24xMember(accountOid);
 
         assertGlobalStateUntouched();
@@ -1325,7 +1336,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test242AutzJackManagerFullControlManagerMinistryOfRum() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
 
         assignRole(USER_JACK_OID, ROLE_MANAGER_FULL_CONTROL_OID);
@@ -1337,11 +1348,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertNotNull(elaineShadow);
         display("Elaine's shadow", elaineShadow);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertJack24xManager(true);
 
         assertGlobalStateUntouched();
@@ -1352,7 +1362,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test243AutzJackManagerFullControlManagerMinistryOfRumAndDefense() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
 
         assignRole(USER_JACK_OID, ROLE_MANAGER_FULL_CONTROL_OID);
@@ -1367,11 +1377,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertNotNull(elaineShadow);
         display("Elaine's shadow", elaineShadow);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertJack24xManagerDefense(true);
 
         assertGlobalStateUntouched();
@@ -1382,7 +1391,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test245AutzJackManagerUserAdminMemberMinistryOfRum() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
 
         assignRole(USER_JACK_OID, ROLE_MANAGER_USER_ADMIN_OID);
@@ -1392,11 +1401,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(user);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertJack24xMember(accountOid);
 
         assertGlobalStateUntouched();
@@ -1407,7 +1415,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test246AutzJackManagerUserAdminManagerMinistryOfRum() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
 
         assignRole(USER_JACK_OID, ROLE_MANAGER_USER_ADMIN_OID);
@@ -1419,11 +1427,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertNotNull(elaineShadow);
         display("Elaine's shadow", elaineShadow);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertJack24xManager(false);
 
         assertGlobalStateUntouched();
@@ -1434,7 +1441,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test247AutzJackManagerUserAdminManagerMinistryOfRumAndDefense() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
 
         assignRole(USER_JACK_OID, ROLE_MANAGER_USER_ADMIN_OID);
@@ -1447,11 +1454,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertNotNull(elaineShadow);
         display("Elaine's shadow", elaineShadow);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertJack24xManagerDefense(false);
 
         assertGlobalStateUntouched();
@@ -1671,7 +1677,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test250AutzJackSelfAccountsRead() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
 
         // precondition
@@ -1686,11 +1692,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
 
@@ -1746,18 +1751,17 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test255AutzJackSelfAccountsReadWrite() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_SELF_ACCOUNTS_READ_WRITE_OID);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
 
@@ -1810,18 +1814,17 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test256AutzJackSelfAccountsPartialControl() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_OID);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
 
@@ -1868,18 +1871,17 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test258AutzJackSelfAccountsPartialControlPassword() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_PASSWORD_OID);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
 
@@ -1930,18 +1932,17 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test259AutzJackSelfAccountsPartialControl() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_PASSWORD_OID);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
 
@@ -1999,7 +2000,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test260AutzJackObjectFilterLocationShadowRole() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_FILTER_OBJECT_USER_LOCATION_SHADOWS_OID);
         login(USER_JACK_USERNAME);
@@ -2065,7 +2066,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test261AutzAngelicaObjectFilterLocationCreateUserShadowRole() throws Exception {
-        // GIVEN
+        given();
 
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_OID);
@@ -2095,17 +2096,16 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test270AutzJackAssignApplicationRoles() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ASSIGN_APPLICATION_ROLES_OID);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
@@ -2148,17 +2148,16 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test272AutzJackAssignAnyRoles() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ASSIGN_ANY_ROLES_OID);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
@@ -2206,17 +2205,16 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test273AutzJackRedyAssignmentExceptionRules() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ASSIGN_ANY_ROLES_OID);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
@@ -2257,17 +2255,16 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test274AutzJackAssignNonApplicationRoles() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ASSIGN_NON_APPLICATION_ROLES_OID);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
@@ -2303,17 +2300,16 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test275aAutzJackAssignRequestableRoles() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
@@ -2356,16 +2352,16 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test275bAutzJackAssignRequestableOrgs() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_END_USER_REQUESTABLE_ABSTRACTROLES_OID);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
+        then();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertAssignments(user, 1);
         assertAssignedRole(user, ROLE_END_USER_REQUESTABLE_ABSTRACTROLES_OID);
@@ -2399,18 +2395,17 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test275cAutzJackAssignRequestableRolesAndInduceAnyRole() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
         assignRole(USER_JACK_OID, ROLE_INDUCE_ANY_ROLE_OID);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
@@ -2454,17 +2449,16 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test276AutzJackAssignRequestableRolesWithOrgRef() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
@@ -2506,17 +2500,16 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test277AutzJackAssignRequestableRolesWithOrgRefSecondTime() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
@@ -2587,17 +2580,16 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test278AutzJackAssignRequestableRolesWithOrgRefTweakedDelta() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
@@ -2625,12 +2617,11 @@ public class TestSecurityBasic extends AbstractSecurityTest {
                     targetRef.getValue().setTargetType(RoleType.COMPLEX_TYPE);
                     targetRef.getValue().setRelation(null);
                     cval.setId(123L);
-                    ContainerDelta<AssignmentType> assignmentDelta = assignmentDelta1;
-                    modifications.add(assignmentDelta);
+                    modifications.add(assignmentDelta1);
                     ObjectDelta<UserType> userDelta1 = prismContext.deltaFactory().object()
                             .createModifyDelta(USER_JACK_OID, modifications, UserType.class);
-                    ObjectDelta<UserType> userDelta = userDelta1;
-                    Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+                    Collection<ObjectDelta<? extends ObjectType>> deltas =
+                            MiscSchemaUtil.createCollection(userDelta1);
                     modelService.executeChanges(deltas, null, task, result);
                 });
 
@@ -2654,17 +2645,16 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test279AutzJackAssignRequestableRolesWithTenantRef() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
@@ -2706,7 +2696,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test280AutzJackEndUser() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
 
         assignRole(USER_JACK_OID, ROLE_END_USER_OID);
@@ -2717,11 +2707,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
@@ -2792,18 +2781,17 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test281AutzJackEndUserSecondTime() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
 
         assignRole(USER_JACK_OID, ROLE_END_USER_OID);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertAssignments(user, 1);
 
@@ -2856,7 +2844,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test282AutzJackEndUserAndModify() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
 
         assignRole(USER_JACK_OID, ROLE_END_USER_OID);
@@ -2864,11 +2852,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyAllow();
@@ -2881,8 +2868,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
                 (t, r) -> modifyObjectReplaceProperty(UserType.class, USER_JACK_OID, UserType.F_FAMILY_NAME, t, r, PrismTestUtil.createPolyString("changed")));
         display("RESULT", result);
         // MID-5066, check for normal case. Search for personaRef is OK here.
-        assertOperationResult(result)
-                .repoSearches()
+        OperationResultRepoSearchAsserter.forResult(result)
                 .display()
                 .assertContainsQuerySubstring("personaRef");
 
@@ -2894,7 +2880,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test283AutzJackModifyAndEndUser() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
 
         assignRole(USER_JACK_OID, ROLE_USER_MODIFY_OID);
@@ -2902,11 +2888,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyAllow();
@@ -2926,7 +2911,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test285AutzJackEndUserAndAdd() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
 
         assignRole(USER_JACK_OID, ROLE_END_USER_OID);
@@ -2934,20 +2919,18 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
 
         OperationResult result = assertAddAllowTracing(USER_NOOID_FILE);
         display("RESULT", result);
         // MID-5066
-        assertOperationResult(result)
-                .repoSearches()
+        OperationResultRepoSearchAsserter.forResult(result)
                 .display()
-                .assertNotContainsQuerySubstring("personaRef");
+                .assertContainsQuerySubstring("personaRef");
 
         assertModifyDeny();
         assertDeleteDeny();
@@ -2957,17 +2940,16 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test295AutzJackAssignOrgRelation() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
 
         assignRole(USER_JACK_OID, ROLE_ASSIGN_ORGRELATION_OID);
         assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, null);
 
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         ObjectFilter jackAssignableRoleFilter = assertAssignableRoleSpecification(getUser(USER_JACK_OID))
                 .relationDefault()
                 .filter()
@@ -2996,25 +2978,26 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test300AutzAnonymous() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+
+        when();
         loginAnonymous();
 
-        // WHEN
+        then();
         assertNoAccess(userJack);
-
         assertGlobalStateUntouched();
     }
 
     @Test
     public void test310AutzJackNoRolePrivileged() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         login(USER_JACK_USERNAME);
 
-        // precondition
+        expect();
         assertNoAccess(userJack);
 
         // WHEN (security context elevated)
@@ -3038,7 +3021,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test312AutzAnonymousPrivileged() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         loginAnonymous();
@@ -3067,7 +3050,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test313AutzAnonymousPrivilegedRestore() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         loginAnonymous();
@@ -3088,7 +3071,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test360AutzJackAuditorRole() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_AUDITOR_OID);
         login(USER_JACK_USERNAME);
@@ -3112,14 +3095,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test370AutzJackLimitedUserAdmin() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_LIMITED_USER_ADMIN_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
 
@@ -3138,14 +3121,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     @Test
     public void test380AutzJackSelfTaskOwner() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_SELF_TASK_OWNER_OID);
+
+        when();
         login(USER_JACK_USERNAME);
 
-        // WHEN
-        when();
-
+        then();
         assertGetDeny(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
 
