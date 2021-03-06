@@ -2930,7 +2930,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         // MID-5066
         OperationResultRepoSearchAsserter.forResult(result)
                 .display()
-                .assertContainsQuerySubstring("personaRef");
+                .assertNotContainsQuerySubstring("personaRef");
 
         assertModifyDeny();
         assertDeleteDeny();
