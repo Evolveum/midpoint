@@ -53,7 +53,7 @@ public enum ReferenceType {
             QReferenceMapping.INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER,
             ResourceType.class, ResourceBusinessConfigurationType.F_APPROVER_REF),
 
-    ROLE_MEMBER(QReferenceMapping.INSTANCE_ROLE_MEMBER,
+    ROLE_MEMBERSHIP(QReferenceMapping.INSTANCE_ROLE_MEMBERSHIP,
             AssignmentHolderType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF),
 
     USER_ACCOUNT(QReferenceMapping.INSTANCE_USER_ACCOUNT,

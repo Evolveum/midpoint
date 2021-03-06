@@ -91,7 +91,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         // AssignmentHolderType
         addRefMapping(F_ARCHETYPE_REF, QReferenceMapping.INSTANCE_ARCHETYPE);
         addRefMapping(F_PARENT_ORG_REF, QReferenceMapping.INSTANCE_OBJECT_PARENT_ORG);
-        addRefMapping(F_ROLE_MEMBERSHIP_REF, QReferenceMapping.INSTANCE_ROLE_MEMBER);
+        addRefMapping(F_ROLE_MEMBERSHIP_REF, QReferenceMapping.INSTANCE_ROLE_MEMBERSHIP);
 
         // version/cid_seq is not mapped for queries or deltas, it's managed by repo explicitly
         // TODO ext mapping can't be done statically

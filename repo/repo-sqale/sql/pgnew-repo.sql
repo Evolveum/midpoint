@@ -145,7 +145,7 @@ CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ER
 
 CREATE TYPE ReferenceType AS ENUM ('ARCHETYPE', 'CREATE_APPROVER', 'DELEGATED', 'INCLUDE',
     'MODIFY_APPROVER', 'OBJECT_PARENT_ORG', 'PERSONA', 'RESOURCE_BUSINESS_CONFIGURATION_APPROVER',
-    'ROLE_MEMBER', 'USER_ACCOUNT');
+    'ROLE_MEMBERSHIP', 'USER_ACCOUNT');
 
 CREATE TYPE TaskExecutionStatusType AS ENUM ('RUNNABLE', 'WAITING', 'SUSPENDED', 'CLOSED');
 
@@ -1125,16 +1125,16 @@ CREATE TABLE m_ref_resource_business_configuration_approver (
 CREATE INDEX m_ref_resource_biz_config_approver_targetOid_relation_id_idx
     ON m_ref_resource_business_configuration_approver (targetOid, relation_id);
 
-CREATE TABLE m_ref_role_member (
+CREATE TABLE m_ref_role_membership (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
-    referenceType ReferenceType GENERATED ALWAYS AS ('ROLE_MEMBER') STORED,
+    referenceType ReferenceType GENERATED ALWAYS AS ('ROLE_MEMBERSHIP') STORED,
 
     PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
 )
     INHERITS (m_reference);
 
 CREATE INDEX m_ref_role_member_targetOid_relation_id_idx
-    ON m_ref_role_member (targetOid, relation_id);
+    ON m_ref_role_membership (targetOid, relation_id);
 
 CREATE TABLE m_ref_user_account (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
