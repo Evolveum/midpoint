@@ -29,9 +29,7 @@ $$;
 
 -- "OID pool", provides generated OID, can be referenced by FKs.
 CREATE TABLE m_object_oid (
-    oid UUID NOT NULL DEFAULT gen_random_uuid(),
-
-    PRIMARY KEY (oid)
+    oid UUID PRIMARY KEY DEFAULT gen_random_uuid()
 );
 -- endregion
 
@@ -203,6 +201,7 @@ CREATE TABLE m_object (
 -- Allows querying all separately persisted containers, but not necessary for the application.
 CREATE TABLE m_container (
     -- Default OID value is covered by INSERT triggers. No PK defined on abstract tables.
+    -- Owner does not have to be the direct parent of the container.
     owner_oid UUID NOT NULL,
     -- use like this on the concrete table:
     -- owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
