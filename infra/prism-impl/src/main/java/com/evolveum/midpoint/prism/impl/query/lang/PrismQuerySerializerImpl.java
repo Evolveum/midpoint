@@ -92,8 +92,8 @@ public class PrismQuerySerializerImpl implements PrismQuerySerializer {
             spaceRequired = true;
         }
 
-        public String prefixFor(String namespaceURI) {
-            return prefixes.assignPrefixFor(namespaceURI);
+        public String prefixFor(String namespaceURI, String prefix) {
+            return prefixes.assignPrefixFor(namespaceURI, prefix);
         }
 
         @Override

@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.axiom.concepts.Builder;
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.impl.marshaller.ItemPathSerialization;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -142,7 +143,7 @@ public class QueryWriter implements Builder<PrismQuerySerialization> {
 
     private void emitQName(QName filter, String additionalDefaultNs) {
         String prefix = resolvePrefix(filter, additionalDefaultNs);
-        if(prefix != null) {
+        if(!Strings.isNullOrEmpty(prefix)) {
             target.emit(prefix);
             target.emit(":");
         }
@@ -151,9 +152,9 @@ public class QueryWriter implements Builder<PrismQuerySerialization> {
 
     private String resolvePrefix(QName name, String additionalDefaultNs) {
         if (Strings.isNullOrEmpty(name.getNamespaceURI()) || Objects.equals(additionalDefaultNs, name.getNamespaceURI())) {
-            return null;
+            return PrismNamespaceContext.DEFAULT_PREFIX;
         }
-        return target.prefixFor(name.getNamespaceURI());
+        return target.prefixFor(name.getNamespaceURI(), name.getPrefix());
     }
 
 
