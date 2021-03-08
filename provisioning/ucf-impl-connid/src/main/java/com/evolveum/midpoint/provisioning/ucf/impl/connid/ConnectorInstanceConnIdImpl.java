@@ -1928,14 +1928,21 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                     // Only LDAP connector really supports base context. And this one will work better with
                     // DN. And DN is secondary identifier (__NAME__). This is ugly, but practical. It works around ConnId problems.
                     ResourceAttribute<?> secondaryIdentifier = baseContextIdentification.getSecondaryIdentifier();
+                    String identifierValue;
                     if (secondaryIdentifier == null) {
-                        SchemaException e = new SchemaException("No secondary identifier in base context identification "+baseContextIdentification);
-                        result.recordFatalError(e);
-                        throw e;
+                        if (objectClassDefinition.getSecondaryIdentifiers().isEmpty()) {
+                            // This object class obviously has __NAME__ and __UID__ the same. Primary identifier will work here.
+                            identifierValue = baseContextIdentification.getPrimaryIdentifier().getRealValue(String.class);
+                        } else {
+                            SchemaException e = new SchemaException("No secondary identifier in base context identification "+baseContextIdentification);
+                            result.recordFatalError(e);
+                            throw e;
+                        }
+                    } else {
+                        identifierValue = secondaryIdentifier.getRealValue(String.class);
                     }
-                    String secondaryIdentifierValue = secondaryIdentifier.getRealValue(String.class);
                     ObjectClass baseContextIcfObjectClass = connIdNameMapper.objectClassToConnId(baseContextIdentification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
-                    QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(secondaryIdentifierValue));
+                    QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(identifierValue));
                     optionsBuilder.setContainer(containerQualifiedUid);
                 }
                 SearchHierarchyScope scope = searchHierarchyConstraints.getScope();
