@@ -172,7 +172,7 @@ CREATE TABLE m_object (
     tenantRef_targetType INTEGER, -- soft-references m_objtype
     tenantRef_relation_id INTEGER, -- soft-references m_uri,
     lifecycleState VARCHAR(255), -- TODO what is this? how many distinct values?
-    cid_seq INTEGER NOT NULL DEFAULT 1, -- sequence for container id
+    cid_seq BIGINT NOT NULL DEFAULT 1, -- sequence for container id
     version INTEGER NOT NULL DEFAULT 1,
     -- add GIN index for concrete tables where more than hundreds of entries are expected (see m_user)
     ext JSONB,
@@ -208,7 +208,7 @@ CREATE TABLE m_container (
 
     -- Container ID, unique in the scope of the whole object (owner).
     -- While this provides it for sub-tables we will repeat this for clarity, it's part of PK.
-    cid INTEGER NOT NULL,
+    cid BIGINT NOT NULL,
 
     CHECK (FALSE) NO INHERIT
     -- add on concrete table (additional columns possible): PRIMARY KEY (owner_oid, cid)
@@ -428,7 +428,6 @@ CREATE INDEX m_acc_cert_campaign_ext_idx ON m_acc_cert_campaign USING gin (ext);
 
 CREATE TABLE m_acc_cert_case (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
-    cid INTEGER NOT NULL,
     administrativeStatus INTEGER,
     archiveTimestamp TIMESTAMPTZ,
     disableReason VARCHAR(255),
@@ -467,7 +466,6 @@ CREATE TABLE m_acc_cert_case (
 CREATE TABLE m_acc_cert_wi (
     owner_oid UUID NOT NULL, -- PK+FK
     acc_cert_case_cid INTEGER NOT NULL, -- PK+FK
-    cid INTEGER NOT NULL, -- PK
     closeTimestamp TIMESTAMPTZ,
     iteration INTEGER NOT NULL,
     outcome VARCHAR(255),
@@ -914,7 +912,6 @@ ALTER TABLE IF EXISTS m_case_wi_reference
 --0	48756229
 CREATE TABLE m_assignment (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
-    cid INTEGER NOT NULL, -- container id
     -- new column may avoid join to object for some queries
     owner_type INTEGER NOT NULL,
     assignmentOwner INTEGER, -- TODO rethink, not useful if inducements are separate

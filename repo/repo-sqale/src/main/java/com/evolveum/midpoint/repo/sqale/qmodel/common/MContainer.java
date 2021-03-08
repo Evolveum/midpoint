@@ -14,5 +14,5 @@ import java.util.UUID;
 public class MContainer {
 
     public UUID ownerOid;
-    public Integer cid;
+    public Long cid;
 }
