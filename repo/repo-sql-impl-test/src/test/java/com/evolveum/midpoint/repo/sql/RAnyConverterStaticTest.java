@@ -339,13 +339,4 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
         return objectDef.findItemDefinition(path);
     }
-
-    private Element createExtensionPath() {
-        Document document = DOMUtil.getDocument();
-        Element extension = DOMUtil.createElement(document, DeltaConvertor.PATH_ELEMENT_NAME);
-        extension.setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns:c", SchemaConstantsGenerated.NS_COMMON);
-        extension.setTextContent("c:extension");
-
-        return extension;
-    }
 }
