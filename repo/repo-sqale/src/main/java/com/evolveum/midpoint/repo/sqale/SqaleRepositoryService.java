@@ -60,7 +60,13 @@ public class SqaleRepositoryService implements RepositoryService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqaleRepositoryService.class);
 
+    /**
+     * Class name prefix for operation names, including the dot separator.
+     * Use with various `RepositoryService.OP_*` constants, not with constants without `OP_`
+     * prefix because they already contain class name of the service interface.
+     */
     private static final String OP_NAME_PREFIX = SqaleRepositoryService.class.getSimpleName() + '.';
+
     private static final int MAX_CONFLICT_WATCHERS = 10;
 
     private final SqaleRepoContext sqlRepoContext;
@@ -226,6 +232,7 @@ public class SqaleRepositoryService implements RepositoryService {
         Objects.requireNonNull(object, "Object must not be null.");
         PolyString name = object.getName();
         if (name == null || Strings.isNullOrEmpty(name.getOrig())) {
+            // TODO this throws exception but leaves the result unchanged, is it OK?
             throw new SchemaException("Attempt to add object without name.");
         }
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
@@ -487,7 +494,7 @@ public class SqaleRepositoryService implements RepositoryService {
         Objects.requireNonNull(type, "Object type must not be null.");
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
-        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + "countObjects")
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_COUNT_OBJECTS)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
                 .addParam("query", query)
@@ -516,7 +523,7 @@ public class SqaleRepositoryService implements RepositoryService {
         Objects.requireNonNull(type, "Object type must not be null.");
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
-        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + "searchObjects")
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_SEARCH_OBJECTS)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
                 .addParam("query", query)
@@ -600,7 +607,7 @@ public class SqaleRepositoryService implements RepositoryService {
         Objects.requireNonNull(type, "Container type must not be null.");
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
-        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + "searchContainers")
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + SEARCH_CONTAINERS)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
                 .addParam("query", query)

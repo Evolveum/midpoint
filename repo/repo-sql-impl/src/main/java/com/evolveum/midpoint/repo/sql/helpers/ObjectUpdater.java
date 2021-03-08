@@ -108,6 +108,7 @@ public class ObjectUpdater {
 
             RObject rObject = createDataObjectFromJAXB(object, idGenerator);
 
+            // ignore options.isOverwrite() here, it's not used
             closureContext = closureManager.onBeginTransactionAdd(session, object, options.isOverwrite());
 
             if (options.isOverwrite()) {

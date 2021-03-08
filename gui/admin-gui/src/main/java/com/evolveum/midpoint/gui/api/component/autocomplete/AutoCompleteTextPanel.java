@@ -62,12 +62,6 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
             }
 
             @Override
-            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-                super.updateAjaxAttributes(attributes);
-                attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ONE_SECOND, true)); //TODO move to the autocompelete settings
-            }
-
-            @Override
             public <C> IConverter<C> getConverter(Class<C> type) {
                 IConverter<C> converter = super.getConverter(type);
                 return getAutoCompleteConverter(type, converter);
@@ -87,7 +81,8 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
                 @Override
                 protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
                     super.updateAjaxAttributes(attributes);
-                    attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ONE_SECOND, true));
+                    AutoCompleteSettings settings = createAutoCompleteSettings();
+                    attributes.setThrottlingSettings(new ThrottlingSettings(Duration.milliseconds(settings.getThrottleDelay()), true));
                 }
             });
         }
@@ -153,6 +148,13 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
     }
 
     protected void updateFeedbackPanel(AutoCompleteTextField input, boolean isError, AjaxRequestTarget target) {
+    }
+
+    @Override
+    protected AutoCompleteSettings createAutoCompleteSettings() {
+        AutoCompleteSettings settings = super.createAutoCompleteSettings();
+        settings.setThrottleDelay(500);
+        return settings;
     }
 }
 

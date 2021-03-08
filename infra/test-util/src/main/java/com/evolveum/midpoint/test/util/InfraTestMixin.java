@@ -34,4 +34,12 @@ public interface InfraTestMixin extends MidpointTestMixin {
     }
 
     // TODO add displayValue(title, Object) based on PrettyPrinter, finish PrettyPrinter ideas
+
+    /**
+     * AssertJ-based asserter for {@link OperationResult}.
+     * Note: Name `assertThat` collides with static import of `Assertions.assertThat` from AssertJ.
+     */
+    default OperationResultAssert assertThatOperationResult(OperationResult operationResult) {
+        return new OperationResultAssert(operationResult);
+    }
 }

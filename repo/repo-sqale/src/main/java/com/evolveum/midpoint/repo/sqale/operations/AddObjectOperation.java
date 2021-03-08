@@ -9,7 +9,11 @@ package com.evolveum.midpoint.repo.sqale.operations;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.querydsl.core.QueryException;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.postgresql.util.PSQLException;
+import org.postgresql.util.PSQLState;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -21,6 +25,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -42,20 +47,30 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
     }
 
     /** Inserts the object provided to the constructor and returns its OID. */
-    public String execute(SqaleTransformerContext transformerContext) throws SchemaException {
-        // TODO utilize options and result
-        sqlRepoContext = transformerContext.sqlRepoContext();
-        SqaleModelMapping<S, Q, R> rootMapping = sqlRepoContext.getMappingBySchemaType(object.getCompileTimeClass());
-        root = rootMapping.defaultAlias();
-        transformer = (ObjectSqlTransformer<S, Q, R>)
-                rootMapping.createTransformer(transformerContext);
+    public String execute(SqaleTransformerContext transformerContext)
+            throws SchemaException, ObjectAlreadyExistsException {
+        try {
+            // TODO utilize options and result
+            sqlRepoContext = transformerContext.sqlRepoContext();
+            SqaleModelMapping<S, Q, R> rootMapping = sqlRepoContext.getMappingBySchemaType(object.getCompileTimeClass());
+            root = rootMapping.defaultAlias();
+            transformer = (ObjectSqlTransformer<S, Q, R>)
+                    rootMapping.createTransformer(transformerContext);
 
-        if (options.isOverwrite()) {
-            return overwriteObject();
-        } else if (object.getOid() != null) {
-            return addObjectWithOid();
-        } else {
-            return addObjectWithoutOid();
+            if (object.getOid() == null) {
+                return addObjectWithoutOid();
+            } else if (options.isOverwrite()) {
+                return overwriteObject();
+            } else {
+                // OID is not null, but it's not overwrite either
+                return addObjectWithOid();
+            }
+        } catch (QueryException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof PSQLException) {
+                handlePostgresException((PSQLException) cause);
+            }
+            throw e;
         }
     }
 
@@ -97,6 +112,21 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
                     .execute();
 
             return oidString;
+        }
+    }
+
+    /** Throws more specific exception or returns and then original exception should be rethrown. */
+    private void handlePostgresException(PSQLException psqlException)
+            throws ObjectAlreadyExistsException {
+        String state = psqlException.getSQLState();
+        String message = psqlException.getMessage();
+        if (PSQLState.UNIQUE_VIOLATION.getState().equals(state)) {
+            if (message.contains("m_object_oid_pkey")) {
+                String oid = StringUtils.substringBetween(message, "(oid)=(", ")");
+                throw new ObjectAlreadyExistsException(
+                        oid != null ? "Provided OID " + oid + " already exists" : message,
+                        psqlException);
+            }
         }
     }
 }
