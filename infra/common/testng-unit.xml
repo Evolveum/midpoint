@@ -26,4 +26,9 @@
             <class name="com.evolveum.midpoint.common.refinery.TestRefinedSchema" />
         </classes>
     </test>
+    <test name="Localization" preserve-order="false">
+        <classes>
+            <class name="com.evolveum.midpoint.common.LocalizationTest" />
+        </classes>
+    </test>
 </suite>
