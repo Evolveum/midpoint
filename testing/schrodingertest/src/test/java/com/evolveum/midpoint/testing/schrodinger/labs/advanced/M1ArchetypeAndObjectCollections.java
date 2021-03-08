@@ -112,7 +112,9 @@ public class M1ArchetypeAndObjectCollections extends AbstractLabTest {
                     .table()
                         .assertIconColumnExistsByNameColumnValue("janeway", "fa fa-user", "darkgreen");
 
-        //todo check summary panel
+        showUser("janeway")
+                .summary()
+                    .assertSummaryTagWithTextExists("Employee");
 
         basicPage
                 .listUsers("Employees")
