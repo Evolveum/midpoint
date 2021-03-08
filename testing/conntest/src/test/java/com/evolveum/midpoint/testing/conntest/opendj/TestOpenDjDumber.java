@@ -56,6 +56,12 @@ public class TestOpenDjDumber extends AbstractOpenDjNoiseTest {
     }
 
     @Override
+    protected boolean hasLdapGroupBaseContext() {
+        return false;
+    }
+
+
+    @Override
     protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd) throws ObjectNotFoundException, SchemaException {
         // TODO: assert timistamp
     }
