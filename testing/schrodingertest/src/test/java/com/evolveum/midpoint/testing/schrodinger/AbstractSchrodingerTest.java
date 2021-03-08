@@ -176,7 +176,12 @@ public abstract class AbstractSchrodingerTest extends AbstractTestNGSpringContex
         EnvironmentConfiguration config = new EnvironmentConfiguration();
         config.driver(WebDriver.valueOf(getConfigurationPropertyValue("webdriver")));
 
-        config.driverLocation(getConfigurationPropertyValue("webdriverLocation"));
+        if (Boolean.parseBoolean(getConfigurationPropertyValue("useRemoteWebdriver"))) {
+            config.useRemoteWebdriver(true);
+            config.remoteWebdriverUrl(getConfigurationPropertyValue("remoteWebdriverUrl"));
+        } else {
+            config.driverLocation(getConfigurationPropertyValue("webdriverLocation"));
+        }
         config.headless(Boolean.parseBoolean(getConfigurationPropertyValue("headlessStart")));
 
         String urlPropertyName = startMidpoint ? "base_url" :  "base_url_mp_already_started";
