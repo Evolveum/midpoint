@@ -230,30 +230,10 @@ public class SqaleRepositoryService implements RepositoryService {
             throws ObjectAlreadyExistsException, SchemaException {
 
         Objects.requireNonNull(object, "Object must not be null.");
-        PolyString name = object.getName();
-        if (name == null || Strings.isNullOrEmpty(name.getOrig())) {
-            // TODO this throws exception but leaves the result unchanged, is it OK?
-            throw new SchemaException("Attempt to add object without name.");
-        }
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
         if (options == null) {
             options = new RepoAddOptions();
-        }
-
-        //noinspection ConstantConditions
-        LOGGER.debug(
-                "Adding object type '{}', overwrite={}, allowUnencryptedValues={}, name={} - {}",
-                object.getCompileTimeClass().getSimpleName(), options.isOverwrite(),
-                options.isAllowUnencryptedValues(), name.getOrig(), name.getNorm());
-        if (InternalsConfig.encryptionChecks && !RepoAddOptions.isAllowUnencryptedValues(options)) {
-            CryptoUtil.checkEncrypted(object);
-        }
-
-        if (InternalsConfig.consistencyChecks) {
-            object.checkConsistence(ConsistencyCheckScope.THOROUGH);
-        } else {
-            object.checkConsistence(ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
         }
 
         OperationResult operationResult = parentResult.subresult(ADD_OBJECT)
@@ -262,12 +242,33 @@ public class SqaleRepositoryService implements RepositoryService {
                 .addParam("options", options.toString())
                 .build();
 
+        try {
+            PolyString name = object.getName();
+            if (name == null || Strings.isNullOrEmpty(name.getOrig())) {
+                throw new SchemaException("Attempt to add object without name.");
+            }
+
+            //noinspection ConstantConditions
+            LOGGER.debug(
+                    "Adding object type '{}', overwrite={}, allowUnencryptedValues={}, name={} - {}",
+                    object.getCompileTimeClass().getSimpleName(), options.isOverwrite(),
+                    options.isAllowUnencryptedValues(), name.getOrig(), name.getNorm());
+
+            if (InternalsConfig.encryptionChecks && !RepoAddOptions.isAllowUnencryptedValues(options)) {
+                CryptoUtil.checkEncrypted(object);
+            }
+
+            if (InternalsConfig.consistencyChecks) {
+                object.checkConsistence(ConsistencyCheckScope.THOROUGH);
+            } else {
+                object.checkConsistence(ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
+            }
+
 //        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
 //        long opHandle = pm.registerOperationStart(OP_ADD_OBJECT, object.getCompileTimeClass());
 //        int attempt = 1;
 //        int restarts = 0;
 //        boolean noFetchExtensionValueInsertionForbidden = false;
-        try {
             // TODO use executeAttempts
             final String operation = "adding";
 

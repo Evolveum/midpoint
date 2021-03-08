@@ -41,7 +41,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         then("operation is successful and user row for it is created");
         assertResult(result);
 
-        var u = aliasFor(QUser.class);
+        QUser u = aliasFor(QUser.class);
         List<MUser> users = select(u, u.nameOrig.eq(userName));
         assertThat(users).hasSize(1);
 
@@ -66,8 +66,8 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
                 .isInstanceOf(SchemaException.class)
                 .hasMessage("Attempt to add object without name.");
 
-        // TODO what is the reason for result when it's still OK unless I set it here - out of the called method?
-//        assertResult(result);
+        assertThatOperationResult(result).isFatalError()
+                .hasMessageContaining("Attempt to add object without name.");
         assertCount(QUser.class, baseCount);
     }
 
@@ -87,7 +87,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         then("operation is successful and user row for it is created, overwrite is meaningless");
         assertResult(result);
 
-        var u = aliasFor(QUser.class);
+        QUser u = aliasFor(QUser.class);
         List<MUser> users = select(u, u.nameOrig.eq(userName));
         assertThat(users).hasSize(1);
         assertThat(users.get(0).oid).isNotNull();
@@ -111,7 +111,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         then("operation is successful and user row with provided OID is created");
         assertResult(result);
 
-        var u = aliasFor(QUser.class);
+        QUser u = aliasFor(QUser.class);
         List<MUser> users = select(u, u.nameOrig.eq(userName));
         assertThat(users).hasSize(1);
 
