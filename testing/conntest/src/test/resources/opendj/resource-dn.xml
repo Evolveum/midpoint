@@ -210,6 +210,15 @@
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
             <objectClass>ri:groupOfUniqueNames</objectClass>
+            <baseContext> <!-- MID-6884 -->
+                <objectClass>ri:organizationalUnit</objectClass>
+                <filter>
+                    <q:equal>
+                        <q:path>attributes/dn</q:path>
+                        <q:value>ou=groups,dc=example,dc=com</q:value>
+                    </q:equal>
+                </filter>
+            </baseContext>
             <attribute>
                 <ref>ri:dn</ref>
                 <outbound>

@@ -7,13 +7,9 @@
 package com.evolveum.midpoint.testing.conntest.opendj;
 
 import java.io.File;
-import java.io.IOException;
 
 import com.evolveum.midpoint.testing.conntest.AbstractLdapConnTest;
 
-import org.apache.directory.api.ldap.model.entry.Entry;
-import org.apache.directory.api.ldap.model.exception.LdapException;
-import org.opends.server.util.LDIFException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Listeners;
 
@@ -125,6 +121,11 @@ public class TestOpenDj extends AbstractLdapConnTest {
 
     protected int getInitialSyncToken() {
         return INITIAL_SYNC_TOKEN;
+    }
+
+    @Override
+    protected boolean hasLdapGroupBaseContext() {
+        return true;
     }
 
     @Override
