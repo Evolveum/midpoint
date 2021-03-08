@@ -123,7 +123,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="key" type="xsd:string">
+            <xsd:element name="key" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Key used to look up the localized message format in the localization catalogs.
