@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.testing.schrodinger.labs.advanced;
 
+import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.util.Utils;
 import com.evolveum.midpoint.testing.schrodinger.labs.AbstractLabTest;
 
@@ -28,6 +29,7 @@ public class M1ArchetypeAndObjectCollections extends AbstractLabTest {
     private static final File CSV_1_SIMPLE_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-simple.xml");
     private static final File CSV_2_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-2-canteen.xml");
     private static final File CSV_3_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap.xml");
+    private static final File SYSTEM_CONFIGURATION_FILE_TEST01 = new File(LAB_OBJECTS_DIRECTORY + "systemconfiguration/system-configuration-test02.xml");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
@@ -44,7 +46,7 @@ public class M1ArchetypeAndObjectCollections extends AbstractLabTest {
     @Override
     protected List<File> getObjectListToImport(){
         return Arrays.asList(OBJECT_COLLECTION_ACTIVE_EMP_FILE, OBJECT_COLLECTION_INACTIVE_EMP_FILE, OBJECT_COLLECTION_FORMER_EMP_FILE,
-                ARCHETYPE_EMPLOYEE_FILE, ARCHETYPE_EXTERNAL_FILE, KIRK_USER_FILE, SECRET_I_ROLE_FILE, SECRET_II_ROLE_FILE, INTERNAL_EMPLOYEE_ROLE_FILE,
+                KIRK_USER_FILE, SECRET_I_ROLE_FILE, SECRET_II_ROLE_FILE, INTERNAL_EMPLOYEE_ROLE_FILE,
                 CSV_1_SIMPLE_RESOURCE_FILE, CSV_2_RESOURCE_FILE, CSV_3_RESOURCE_FILE);
     }
 
@@ -55,14 +57,7 @@ public class M1ArchetypeAndObjectCollections extends AbstractLabTest {
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
 
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Internal Employee");
-        basicPage.listUsers()
-                .table()
-                    .search()
-                        .byName()
-                        .inputValue("kirk")
-                        .updateSearch()
-                    .and()
-                    .clickByName("kirk")
+        showUser("kirk")
                         .selectTabProjections()
                         .assertProjectionExist("jkirk")
                         .assertProjectionExist("cn=Jim Kirk,ou=ExAmPLE,dc=example,dc=com")
@@ -75,30 +70,54 @@ public class M1ArchetypeAndObjectCollections extends AbstractLabTest {
         Utils.removeAssignments(showUser("kirk").selectTabAssignments(), "Secret Projects I", "Secret Projects II");
         //TODO check CSV-1 groups
         Utils.removeAllAssignments(showUser("kirk").selectTabAssignments());
-        basicPage.listUsers()
-                .table()
-                    .search()
-                        .byName()
-                        .inputValue("kirk")
-                        .updateSearch()
-                        .and()
-                    .clickByName("kirk")
+        showUser("kirk")
                         .selectTabProjections()
                             .assertProjectionDisabled("jkirk")
                             .assertProjectionDisabled("cn=Jim Kirk,ou=ExAmPLE,dc=example,dc=com")
                             .assertProjectionDisabled("kirk");
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Internal Employee");
-        basicPage.listUsers()
-                .table()
-                    .search()
-                        .byName()
-                        .inputValue("kirk")
-                        .updateSearch()
-                        .and()
-                    .clickByName("kirk")
+        showUser("kirk")
                         .selectTabProjections()
                             .assertProjectionEnabled("jkirk")
                             .assertProjectionEnabled("cn=Jim Kirk,ou=ExAmPLE,dc=example,dc=com")
                             .assertProjectionEnabled("kirk");
+    }
+
+    @Test(groups={"advancedM1"})
+    public void mod01test02ArchetypeAndObjectCollection() {
+        addObjectFromFile(ARCHETYPE_EMPLOYEE_FILE);
+        addObjectFromFile(SYSTEM_CONFIGURATION_FILE_TEST01);
+
+        basicPage.loggedUser().logout();
+        FormLoginPage loginPage = midPoint.formLogin();
+        loginPage.loginWithReloadLoginPage(getUsername(), getPassword());
+
+        basicPage.listUsers()
+                .newObjectCollection("New employee")
+                    .selectTabBasic()
+                        .form()
+                            .addAttributeValue("Name", "janeway")
+                            .addAttributeValue("Given name", "Kathryn")
+                            .addAttributeValue("Family name", "Janeway")
+                            .selectOption("Administrative status", "Enabled")
+                            .addAttributeValue("Password", "qwerty12345XXXX")
+                            .and()
+                        .and()
+                    .clickSave()
+                        .feedback()
+                            .assertSuccess();
+
+        basicPage
+                .listUsers()
+                    .table()
+                        .assertIconColumnExistsByNameColumnValue("janeway", "fa fa-user", "darkgreen");
+
+        //todo check summary panel
+
+        basicPage
+                .listUsers("Employees")
+                    .table()
+                        .assertTableObjectsCountEquals(1)
+                        .assertCurrentTableContains("janeway");
     }
 }
