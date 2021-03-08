@@ -172,7 +172,7 @@ CREATE TABLE m_object (
     tenantRef_targetType INTEGER, -- soft-references m_objtype
     tenantRef_relation_id INTEGER, -- soft-references m_uri,
     lifecycleState VARCHAR(255), -- TODO what is this? how many distinct values?
-    cid_seq BIGINT NOT NULL DEFAULT 1, -- sequence for container id
+    cid_seq BIGINT NOT NULL DEFAULT 1, -- sequence for container id, next free cid
     version INTEGER NOT NULL DEFAULT 1,
     -- add GIN index for concrete tables where more than hundreds of entries are expected (see m_user)
     ext JSONB,
@@ -1206,7 +1206,6 @@ CREATE TABLE m_object_ext_string (
 
 -- TODO other indexes, only PKs/FKs are defined at the moment
 
-/*
 -- TODO hopefully replaced by JSON ext column and not needed
 CREATE TABLE m_assignment_ext_boolean (
   item_id                      INTEGER        NOT NULL,
@@ -1481,11 +1480,6 @@ CREATE TABLE m_generic_object (
   oid        UUID NOT NULL,
   PRIMARY KEY (oid)
 );
-CREATE TABLE m_global_metadata (
-  name  VARCHAR(255) NOT NULL,
-  value VARCHAR(255),
-  PRIMARY KEY (name)
-);
 CREATE TABLE m_object_template (
   name_norm VARCHAR(255),
   name_orig VARCHAR(255),
@@ -1752,8 +1746,6 @@ CREATE INDEX iObjectExtStringItemId ON M_OBJECT_EXT_STRING(ITEM_ID);
 CREATE INDEX iObjectSubtypeOid ON M_OBJECT_SUBTYPE(OBJECT_OID);
 CREATE INDEX iOrgOrgTypeOid ON M_ORG_ORG_TYPE(ORG_OID);
 
-INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.2');
-
 -- Thanks to Patrick Lightbody for submitting this...
 --
 -- In your Quartz properties file, you'll need to set
@@ -1940,7 +1932,51 @@ create index idx_qrtz_ft_j_g on qrtz_fired_triggers(SCHED_NAME,JOB_NAME,JOB_GROU
 create index idx_qrtz_ft_jg on qrtz_fired_triggers(SCHED_NAME,JOB_GROUP);
 create index idx_qrtz_ft_t_g on qrtz_fired_triggers(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP);
 create index idx_qrtz_ft_tg on qrtz_fired_triggers(SCHED_NAME,TRIGGER_GROUP);
+*/
 
-commit;
+-- region Schema versioning and upgrading
+CREATE TABLE m_global_metadata (
+    name VARCHAR(255) PRIMARY KEY,
+    value VARCHAR(255)
+);
 
+/*
+Procedure applying a DB schema/data change. Use sequential change numbers to identify the changes.
+This protects re-execution of the same change on the same database instance.
+Use dollar-quoted string constant for a change, examples are lower, docs here:
+https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-DOLLAR-QUOTING
+The transaction is committed if the change is executed.
+The change number is NOT semantic and uses different key than original 'databaseSchemaVersion'.
+Semantic schema versioning is still possible, but now only for information purposes.
+
+Example of an DB upgrade script (stuff between $$ can be multiline, here compressed for brevity):
+CALL apply_change(1, $$ create table x(a int); insert into x values (1); $$);
+CALL apply_change(2, $$ alter table x add column b text; insert into x values (2, 'two'); $$);
+-- not a good idea in general, but "true" forces the execution; it never updates change # to lower
+CALL apply_change(1, $$ insert into x values (3, 'three'); $$, true);
  */
+CREATE OR REPLACE PROCEDURE apply_change(changeNumber int, change TEXT, force boolean = false)
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+    lastChange int;
+BEGIN
+    SELECT value INTO lastChange FROM m_global_metadata WHERE name = 'schemaChangeNumber';
+
+    -- change is executed if the changeNumber is newer - or if forced
+    IF lastChange IS NULL OR lastChange < changeNumber OR force THEN
+        EXECUTE change;
+        RAISE NOTICE 'Change #% executed!', changeNumber;
+
+        IF lastChange IS NULL THEN
+            INSERT INTO m_global_metadata (name, value) VALUES ('schemaChangeNumber', changeNumber);
+        ELSIF changeNumber > lastChange THEN
+            -- even with force we never want to set lower change number, hence the IF above
+            UPDATE m_global_metadata SET value = changeNumber WHERE name = 'schemaChangeNumber';
+        END IF;
+        COMMIT;
+    ELSE
+        RAISE NOTICE 'Change #% skipped, last change #% is newer!', changeNumber, lastChange;
+    END IF;
+END $$;
+-- endregion
