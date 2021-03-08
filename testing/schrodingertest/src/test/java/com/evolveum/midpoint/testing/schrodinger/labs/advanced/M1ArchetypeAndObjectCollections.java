@@ -29,7 +29,8 @@ public class M1ArchetypeAndObjectCollections extends AbstractLabTest {
     private static final File CSV_1_SIMPLE_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-simple.xml");
     private static final File CSV_2_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-2-canteen.xml");
     private static final File CSV_3_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap.xml");
-    private static final File SYSTEM_CONFIGURATION_FILE_TEST01 = new File(LAB_OBJECTS_DIRECTORY + "systemconfiguration/system-configuration-test02.xml");
+    private static final File SYSTEM_CONFIGURATION_FILE_TEST02 = new File(LAB_OBJECTS_DIRECTORY + "systemconfiguration/system-configuration-test02.xml");
+    private static final File HR_NO_EXTENSION_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-hr-noextension.xml");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
@@ -41,6 +42,9 @@ public class M1ArchetypeAndObjectCollections extends AbstractLabTest {
         FileUtils.copyFile(CSV_2_SOURCE_FILE, csv2TargetFile);
         csv3TargetFile = new File(getTestTargetDir(), CSV_3_FILE_SOURCE_NAME);
         FileUtils.copyFile(CSV_3_SOURCE_FILE, csv3TargetFile);
+
+        hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
+        FileUtils.copyFile(HR_SOURCE_FILE, hrTargetFile);
     }
 
     @Override
@@ -86,7 +90,7 @@ public class M1ArchetypeAndObjectCollections extends AbstractLabTest {
     @Test(groups={"advancedM1"})
     public void mod01test02ArchetypeAndObjectCollection() {
         addObjectFromFile(ARCHETYPE_EMPLOYEE_FILE);
-        addObjectFromFile(SYSTEM_CONFIGURATION_FILE_TEST01);
+        addObjectFromFile(SYSTEM_CONFIGURATION_FILE_TEST02);
 
         basicPage.loggedUser().logout();
         FormLoginPage loginPage = midPoint.formLogin();
@@ -121,5 +125,15 @@ public class M1ArchetypeAndObjectCollections extends AbstractLabTest {
                     .table()
                         .assertTableObjectsCountEquals(1)
                         .assertCurrentTableContains("janeway");
+    }
+
+    @Test(groups={"advancedM1"})
+    public void mod01test03EnvironmentExamination() {
+        addObjectFromFile(HR_NO_EXTENSION_RESOURCE_FILE, true);
+        changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);
+
+        getShadowTable(HR_RESOURCE_NAME, "Name", "001212")
+            .clickImport();
+        showUser("X001212");
     }
 }
