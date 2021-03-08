@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sqale;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import static com.evolveum.midpoint.repo.api.RepoAddOptions.createOverwrite;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -24,7 +26,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
 
     @Test
-    public void test100AddNamedUserWorksOk() throws ObjectAlreadyExistsException, SchemaException {
+    public void test100AddNamedUserWithoutOidWorksOk()
+            throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();
 
         given("user with a name");
@@ -45,7 +48,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         MUser mUser = users.get(0);
         assertThat(mUser.oid).isNotNull();
         assertThat(mUser.nameNorm).isNotNull(); // normalized name is stored
-        assertThat(mUser.version).isEqualTo(1); // base version is set
+        assertThat(mUser.version).isEqualTo(1); // initial version is set
         // read-only column with value generated/stored in the database
         assertThat(mUser.objectType).isEqualTo(MObjectTypeMapping.USER.code());
     }
@@ -69,7 +72,30 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test102AddUserWithProvidedOidWorksOk() throws ObjectAlreadyExistsException, SchemaException {
+    public void test102AddWithoutOidIgnoresOverwriteOption()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("user with a name but without OID");
+        String userName = "user" + getTestNumber();
+        UserType userType = new UserType(prismContext)
+                .name(userName);
+
+        when("adding it to the repository with overwrite option");
+        repositoryService.addObject(userType.asPrismObject(), createOverwrite(), result);
+
+        then("operation is successful and user row for it is created, overwrite is meaningless");
+        assertResult(result);
+
+        var u = aliasFor(QUser.class);
+        List<MUser> users = select(u, u.nameOrig.eq(userName));
+        assertThat(users).hasSize(1);
+        assertThat(users.get(0).oid).isNotNull();
+    }
+
+    @Test
+    public void test110AddUserWithProvidedOidWorksOk()
+            throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();
 
         given("user with provided OID");
@@ -91,7 +117,33 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
 
         MUser mUser = users.get(0);
         assertThat(mUser.oid).isEqualTo(providedOid);
-        assertThat(mUser.version).isEqualTo(1); // base version is set
+        assertThat(mUser.version).isEqualTo(1); // initial version is set
+    }
+
+    @Test
+    public void test111AddSecondObjectWithTheSameOidThrowsObjectAlreadyExists()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("user with provided OID already exists");
+        UUID providedOid = UUID.randomUUID();
+        UserType user1 = new UserType(prismContext)
+                .oid(providedOid.toString())
+                .name("user" + getTestNumber());
+        repositoryService.addObject(user1.asPrismObject(), null, result);
+
+        when("adding it another user with the same OID to the repository");
+        long baseCount = count(QUser.class);
+        UserType user2 = new UserType(prismContext)
+                .oid(providedOid.toString())
+                .name("user" + getTestNumber() + "-different-name");
+
+        then("operation fails and no new user row is created");
+        assertThatThrownBy(() -> repositoryService.addObject(user2.asPrismObject(), null, result))
+                .isInstanceOf(ObjectAlreadyExistsException.class);
+        assertThatOperationResult(result).isFatalError()
+                .hasMessageMatching("Provided OID .* already exists");
+        assertCount(QUser.class, baseCount);
     }
 
 }

@@ -479,7 +479,7 @@ class RefreshHelper {
         if (pendingDelta.isModify()) {
             modifyHelper.modifyShadowAttempt(ctx, pendingDelta.getModifications(), scripts, options,
                     (ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>>) opState,
-                    task, result);
+                    true, task, result);
         }
 
         if (pendingDelta.isDelete()) {

@@ -4334,9 +4334,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
         try {
             return dummyResource.getAccountByUsername(username);
-        } catch (ConnectException e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        } catch (FileNotFoundException e) {
+        } catch (ConnectException | FileNotFoundException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
     }
@@ -4345,9 +4343,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
         try {
             return dummyResource.getAccountById(id);
-        } catch (ConnectException e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        } catch (FileNotFoundException e) {
+        } catch (ConnectException | FileNotFoundException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
     }
@@ -6185,12 +6181,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected <O extends ObjectType> ModelContextAsserter<O, Void> assertPreviewContext(ModelContext<O> previewContext) {
         ModelContextAsserter<O, Void> asserter = ModelContextAsserter.forContext(previewContext, "preview context");
-        initializeAsserter(asserter);
-        return asserter;
-    }
-
-    protected OperationResultAsserter<Void> assertOperationResult(OperationResult result) {
-        OperationResultAsserter<Void> asserter = OperationResultAsserter.forResult(result);
         initializeAsserter(asserter);
         return asserter;
     }

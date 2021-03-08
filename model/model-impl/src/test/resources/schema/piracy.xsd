@@ -8,6 +8,7 @@
   -->
 <xsd:schema elementFormDefault="qualified"
             targetNamespace="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/samples/piracy"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
@@ -130,5 +131,17 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="CustomType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="stringValue" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="intValue" type="xsd:int" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="custom" type="tns:CustomType" />
 
 </xsd:schema>

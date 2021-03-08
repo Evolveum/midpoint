@@ -41,8 +41,8 @@ public class QReferenceMapping
             new QReferenceMapping("m_ref_persona", "refp");
     public static final QReferenceMapping INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER =
             new QReferenceMapping("m_ref_resource_business_configuration_approver", "refrbca");
-    public static final QReferenceMapping INSTANCE_ROLE_MEMBER =
-            new QReferenceMapping("m_ref_role_member", "refrm");
+    public static final QReferenceMapping INSTANCE_ROLE_MEMBERSHIP =
+            new QReferenceMapping("m_ref_role_membership", "refrm");
     public static final QReferenceMapping INSTANCE_USER_ACCOUNT =
             new QReferenceMapping("m_ref_user_account", "refua");
 
