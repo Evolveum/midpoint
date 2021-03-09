@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,12 +15,11 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author lazyman
  */
-public class PrismIdentifierGenerator<O extends ObjectType> implements DebugDumpable {
+public class PrismIdentifierGenerator implements DebugDumpable {
 
     public enum Operation {ADD, ADD_WITH_OVERWRITE, MODIFY}
 
@@ -30,7 +29,6 @@ public class PrismIdentifierGenerator<O extends ObjectType> implements DebugDump
     private Long lastId = null;
 
     public PrismIdentifierGenerator(@NotNull Operation operation) {
-        super();
         this.operation = operation;
     }
 
@@ -38,7 +36,7 @@ public class PrismIdentifierGenerator<O extends ObjectType> implements DebugDump
      * Method inserts id for prism container values, which didn't have ids,
      * also returns all container values which has generated id
      */
-    public IdGeneratorResult generate(@NotNull PrismObject<O> object) {
+    public IdGeneratorResult generate(@NotNull PrismObject<?> object) {
         IdGeneratorResult result = new IdGeneratorResult();
         boolean adding = Operation.ADD.equals(operation);
         result.setGeneratedOid(adding);
@@ -68,7 +66,8 @@ public class PrismIdentifierGenerator<O extends ObjectType> implements DebugDump
         return result;
     }
 
-    private <T extends Visitable<T>> List<PrismContainer<?>> listAllPrismContainers(Visitable<T> object) {
+    // used both for PrismObjects nad PrismContainerValues
+    private List<PrismContainer<?>> listAllPrismContainers(Visitable<?> object) {
         List<PrismContainer<?>> values = new ArrayList<>();
 
         object.accept(visitable -> {
@@ -92,7 +91,7 @@ public class PrismIdentifierGenerator<O extends ObjectType> implements DebugDump
         return values;
     }
 
-    public void collectUsedIds(@NotNull PrismObject<O> object) {
+    public void collectUsedIds(@NotNull PrismObject<?> object) {
         collectUsedIds(listAllPrismContainers(object));
     }
 
