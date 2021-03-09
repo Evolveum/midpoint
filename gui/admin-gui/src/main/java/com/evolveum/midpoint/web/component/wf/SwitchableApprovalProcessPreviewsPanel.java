@@ -10,11 +10,14 @@ package com.evolveum.midpoint.web.component.wf;
 import java.util.Collections;
 import java.util.Optional;
 
-import org.apache.commons.collections.CollectionUtils;
+import com.evolveum.midpoint.web.page.admin.workflow.EvaluatedTriggerGroupPanel;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -49,6 +52,7 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> {
     private static final String ID_SHOW_WHOLE_PROCESS_CONTAINER = "showWholeProcessContainer";
     private static final String ID_SHOW_WHOLE_PROCESS = "showWholeProcess";
     private static final String ID_SHOW_WHOLE_PROCESS_HELP = "showWholeProcessHelp";
+    private static final String ID_TRIGGERS = "triggers";
 
     private LoadableModel<ApprovalSchemaExecutionInformationType> approvalExecutionInfoModel;
     private LoadableModel<ApprovalProcessExecutionInformationDto> nextStagesModel;
@@ -137,6 +141,7 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> {
 
         WebMarkupContainer wholeProcessContainer = new WebMarkupContainer(ID_WHOLE_PROCESS_CONTAINER);
         wholeProcessContainer.add(new ApprovalProcessExecutionInformationPanel(ID_WHOLE_PROCESS, wholeProcessModel));
+        wholeProcessContainer.add(new EvaluatedTriggerGroupPanel(ID_TRIGGERS, new PropertyModel<>(wholeProcessModel, ApprovalProcessExecutionInformationDto.F_TRIGGERS)));
         wholeProcessContainer.add(WebComponentUtil.createHelp(ID_WHOLE_PROCESS_HELP));
         wholeProcessContainer.add(new VisibleBehaviour(() -> displayedProcessInfoBox == ProcessInfoBox.WHOLE_PROCESS));
         add(wholeProcessContainer);
