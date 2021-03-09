@@ -8,7 +8,7 @@ package com.evolveum.midpoint.repo.sqale;
 
 import com.querydsl.sql.SQLQuery;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleModelMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
@@ -22,7 +22,7 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     public static <S, Q extends FlexibleRelationalPathBase<R>, R> SqaleQueryContext<S, Q, R> from(
             Class<S> schemaType, SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
 
-        SqaleModelMapping<S, Q, R> rootMapping = sqlRepoContext.getMappingBySchemaType(schemaType);
+        SqaleTableMapping<S, Q, R> rootMapping = sqlRepoContext.getMappingBySchemaType(schemaType);
         Q rootPath = rootMapping.defaultAlias();
         SQLQuery<?> query = sqlRepoContext.newQuery().from(rootPath);
         // Turns on validations of aliases, does not ignore duplicate JOIN expressions,
@@ -34,7 +34,7 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
 
     private SqaleQueryContext(
             Q entityPath,
-            SqaleModelMapping<S, Q, R> mapping,
+            SqaleTableMapping<S, Q, R> mapping,
             SqlTransformerContext transformerContext,
             SqlRepoContext sqlRepoContext,
             SQLQuery<?> query) {
@@ -55,7 +55,7 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     protected <DQ extends FlexibleRelationalPathBase<DR>, DR> SqlQueryContext<?, DQ, DR>
     deriveNew(DQ newPath, QueryTableMapping<?, DQ, DR> newMapping) {
         return (SqlQueryContext<?, DQ, DR>) new SqaleQueryContext(
-                newPath, (SqaleModelMapping<?, ?, ?>) newMapping,
+                newPath, (SqaleTableMapping<?, ?, ?>) newMapping,
                 transformerContext, sqlRepoContext, sqlQuery);
     }
 }

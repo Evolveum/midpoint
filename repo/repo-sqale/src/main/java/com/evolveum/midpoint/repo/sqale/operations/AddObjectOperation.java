@@ -18,7 +18,7 @@ import org.postgresql.util.PSQLState;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.sqale.SqaleTransformerContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleModelMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
@@ -52,7 +52,8 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
         try {
             // TODO utilize options and result
             sqlRepoContext = transformerContext.sqlRepoContext();
-            SqaleModelMapping<S, Q, R> rootMapping = sqlRepoContext.getMappingBySchemaType(object.getCompileTimeClass());
+            SqaleTableMapping<S, Q, R> rootMapping =
+                    sqlRepoContext.getMappingBySchemaType(object.getCompileTimeClass());
             root = rootMapping.defaultAlias();
             transformer = (ObjectSqlTransformer<S, Q, R>)
                     rootMapping.createTransformer(transformerContext);

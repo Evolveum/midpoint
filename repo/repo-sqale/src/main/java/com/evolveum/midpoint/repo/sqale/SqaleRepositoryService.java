@@ -32,7 +32,7 @@ import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.sqale.operations.AddObjectOperation;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleModelMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
@@ -164,7 +164,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
 //        context.processOptions(options); TODO how to process option, is setting of select expressions enough?
 
-        SqaleModelMapping<S, Q, R> rootMapping =
+        SqaleTableMapping<S, Q, R> rootMapping =
                 sqlRepoContext.getMappingBySchemaType(schemaType);
         final Q root = rootMapping.defaultAlias();
 
@@ -197,7 +197,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
 //        context.processOptions(options); TODO how to process option, is setting of select expressions enough?
 
-        SqaleModelMapping<S, Q, R> rootMapping =
+        SqaleTableMapping<S, Q, R> rootMapping =
                 sqlRepoContext.getMappingBySchemaType(schemaType);
         final Q root = rootMapping.defaultAlias();
 
@@ -439,7 +439,7 @@ public class SqaleRepositoryService implements RepositoryService {
                         EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS, true);
         LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(narrowedModifications));
 
-        SqaleModelMapping<S, Q, R> rootMapping =
+        SqaleTableMapping<S, Q, R> rootMapping =
                 sqlRepoContext.getMappingBySchemaType(prismObject.getCompileTimeClass());
         Q root = rootMapping.defaultAlias();
         // TODO update will probably be replaced by some "update context" to be able to update multiple tables (+insert/delete of details)
