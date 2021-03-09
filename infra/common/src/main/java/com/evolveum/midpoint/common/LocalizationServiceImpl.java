@@ -90,10 +90,7 @@ public class LocalizationServiceImpl implements LocalizationService {
             try {
                 String value = source.getMessage(key, translated, locale);
                 if (StringUtils.isNotEmpty(value)) {
-                    if (LOG.isTraceEnabled()) {
-                        LOG.trace("Resolved key {} to value {} using message source {}", key, value, source);
-                    }
-
+                    LOG.trace("Resolved key {} to value {} using message source {}", key, value, source);
                     return value;
                 }
             } catch (NoSuchMessageException ex) {
@@ -246,16 +243,34 @@ public class LocalizationServiceImpl implements LocalizationService {
         }
     }
 
-    private String translate(PolyStringTranslationType polyStringTranslation, Locale locale) {
-        String key = polyStringTranslation.getKey();
+    private String translate(PolyStringTranslationType translation, Locale locale) {
+        String key = translation.getKey();
+
         if (StringUtils.isEmpty(key)) {
-            return key;
+            return translateFromFallback(translation, locale, key);
         }
-        List<PolyStringTranslationArgumentType> arguments = polyStringTranslation.getArgument();
+
+        String result;
+        List<PolyStringTranslationArgumentType> arguments = translation.getArgument();
         if (arguments == null) {
-            return translate(key, null, locale, polyStringTranslation.getFallback());
+            result = translate(key, null, locale, null);
         } else {
-            return translate(key, arguments.toArray(), locale, polyStringTranslation.getFallback());
+            result = translate(key, arguments.toArray(), locale, null);
+        }
+        if (result != null) {
+            return result;
+        } else {
+            return translateFromFallback(translation, locale, null);
+        }
+    }
+
+    private String translateFromFallback(PolyStringTranslationType translation, Locale locale, String defaultValue) {
+        if (translation.getFallbackTranslation() != null) {
+            return translate(translation.getFallbackTranslation(), locale);
+        } else if (translation.getFallback() != null) {
+            return translation.getFallback();
+        } else {
+            return defaultValue;
         }
     }
 

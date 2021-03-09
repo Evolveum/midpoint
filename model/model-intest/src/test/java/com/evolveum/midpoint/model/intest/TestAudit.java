@@ -782,4 +782,42 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
         // TODO assert trace readability
     }
+
+    /**
+     * MID-6886
+     */
+    @Test
+    public void test410TestAmbitiousDeleteDelta() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        UserType user = new UserType(prismContext)
+                .name("test410")
+                .description("single");
+        addObject(user.asPrismObject());
+
+        display("user before", user.asPrismObject());
+
+        when();
+
+        long lastAuditId = getAuditRecordsMaxId(task, result);
+
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_DESCRIPTION)
+                .delete("a", "b", "c")
+                .asObjectDelta(user.getOid());
+
+        executeChanges(delta, null, task, result);
+
+        List<AuditEventRecord> records = getAuditRecordsAfterId(lastAuditId, task, result);
+
+        then();
+
+        assertSuccess(result);
+        assertUserAfter(user.getOid())
+                .assertDescription("single");
+
+        displayCollection("audit records", records);
+    }
 }

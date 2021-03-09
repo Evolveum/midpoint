@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!-- MID-6881 -->
+<case xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        oid="f7c00237-262e-49cd-a1e4-3dd79c6ea46d">
+    <name>
+        <t:translation>
+            <t:key>AssignmentFailed</t:key>
+            <t:argument>
+                <t:translation>
+                    <t:fallback>Role</t:fallback>
+                </t:translation>
+            </t:argument>
+            <t:argument>
+                <t:translation>
+                    <t:fallback>User</t:fallback>
+                </t:translation>
+            </t:argument>
+        </t:translation>
+    </name>
+</case>

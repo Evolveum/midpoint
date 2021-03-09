@@ -18,7 +18,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table that contains all persisted object references.
- * This actually points to super-table, concrete tables are partitioned by {@link ReferenceType}.
+ * This actually points to super-table, concrete tables are partitioned by {@link MReferenceType}.
  */
 public class QReference extends FlexibleRelationalPathBase<MReference> {
 
@@ -38,8 +38,8 @@ public class QReference extends FlexibleRelationalPathBase<MReference> {
             ColumnMetadata.named("relation_id").ofType(Types.INTEGER).notNull();
 
     public final UuidPath ownerOid = createUuid("ownerOid", OWNER_OID);
-    public final EnumPath<ReferenceType> referenceType =
-            createEnum("referenceType", ReferenceType.class, REFERENCE_TYPE);
+    public final EnumPath<MReferenceType> referenceType =
+            createEnum("referenceType", MReferenceType.class, REFERENCE_TYPE);
     public final UuidPath targetOid = createUuid("targetOid", TARGET_OID);
     public final NumberPath<Integer> targetType = createInteger("targetType", TARGET_TYPE);
     public final NumberPath<Integer> relationId = createInteger("relationId", RELATION_ID);
