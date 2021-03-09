@@ -28,7 +28,6 @@ import com.evolveum.midpoint.task.quartzimpl.tasks.TaskStateManager;
 
 import com.evolveum.midpoint.test.TestResource;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeSuite;
 import org.xml.sax.SAXException;
@@ -58,17 +57,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class AbstractTaskManagerTest extends AbstractSpringTest implements InfraTestMixin {
 
     private static final String CYCLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/cycle-task-handler";
-    static final String SINGLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/single-task-handler";
-    private static final String SINGLE_TASK_HANDLER_2_URI = "http://midpoint.evolveum.com/test/single-task-handler-2";
-    private static final String SINGLE_TASK_HANDLER_3_URI = "http://midpoint.evolveum.com/test/single-task-handler-3";
+    private static final String SINGLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/single-task-handler";
     private static final String SINGLE_WB_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/single-wb-task-handler";
     private static final String PARTITIONED_WB_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/partitioned-wb-task-handler";
     private static final String PARTITIONED_WB_TASK_HANDLER_URI_1 = PARTITIONED_WB_TASK_HANDLER_URI + "#1";
     private static final String PARTITIONED_WB_TASK_HANDLER_URI_2 = PARTITIONED_WB_TASK_HANDLER_URI + "#2";
     private static final String PARTITIONED_WB_TASK_HANDLER_URI_3 = PARTITIONED_WB_TASK_HANDLER_URI + "#3";
-    private static final String L1_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/l1-task-handler";
-    static final String L2_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/l2-task-handler";
-    static final String L3_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/l3-task-handler";
     private static final String PARALLEL_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/parallel-task-handler";
     private static final String LONG_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/long-task-handler";
 
@@ -87,10 +81,9 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
     @Autowired protected PrismContext prismContext;
     @Autowired protected SchemaHelper schemaHelper;
 
-    MockSingleTaskHandler singleHandler1, singleHandler2, singleHandler3;
+    MockSingleTaskHandler singleHandler1;
     MockWorkBucketsTaskHandler workBucketsTaskHandler;
     MockWorkBucketsTaskHandler partitionedWorkBucketsTaskHandler;
-    MockSingleTaskHandler l1Handler, l2Handler, l3Handler;
     MockParallelTaskHandler parallelTaskHandler;
 
     private void initHandlers() {
@@ -99,10 +92,6 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
 
         singleHandler1 = new MockSingleTaskHandler("1", taskManager);
         taskManager.registerHandler(SINGLE_TASK_HANDLER_URI, singleHandler1);
-        singleHandler2 = new MockSingleTaskHandler("2", taskManager);
-        taskManager.registerHandler(SINGLE_TASK_HANDLER_2_URI, singleHandler2);
-        singleHandler3 = new MockSingleTaskHandler("3", taskManager);
-        taskManager.registerHandler(SINGLE_TASK_HANDLER_3_URI, singleHandler3);
 
         workBucketsTaskHandler = new MockWorkBucketsTaskHandler(null, taskManager);
         taskManager.registerHandler(SINGLE_WB_TASK_HANDLER_URI, workBucketsTaskHandler);
@@ -114,13 +103,6 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
         taskManager.registerHandler(PARTITIONED_WB_TASK_HANDLER_URI_1, partitionedWorkBucketsTaskHandler);
         taskManager.registerHandler(PARTITIONED_WB_TASK_HANDLER_URI_2, partitionedWorkBucketsTaskHandler);
         taskManager.registerHandler(PARTITIONED_WB_TASK_HANDLER_URI_3, partitionedWorkBucketsTaskHandler);
-
-        l1Handler = new MockSingleTaskHandler("L1", taskManager);
-        l2Handler = new MockSingleTaskHandler("L2", taskManager);
-        l3Handler = new MockSingleTaskHandler("L3", taskManager);
-        taskManager.registerHandler(L1_TASK_HANDLER_URI, l1Handler);
-        taskManager.registerHandler(L2_TASK_HANDLER_URI, l2Handler);
-        taskManager.registerHandler(L3_TASK_HANDLER_URI, l3Handler);
 
         parallelTaskHandler = new MockParallelTaskHandler("1", taskManager);
         taskManager.registerHandler(PARALLEL_TASK_HANDLER_URI, parallelTaskHandler);
@@ -143,11 +125,17 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
         return addObjectFromFile(testResource.file.getAbsolutePath(), result);
     }
 
+    <T extends ObjectType> String repoAdd(TestResource<T> testResource, OperationResult result) throws Exception {
+        PrismObject<T> object = PrismTestUtil.parseObject(testResource.file);
+        return repositoryService.addObject(object, null, result);
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
     <T extends ObjectType> PrismObject<T> addObjectFromFile(String filePath) throws Exception {
         return addObjectFromFile(filePath, createOperationResult("addObjectFromFile"));
     }
 
-    <T extends ObjectType> PrismObject<T> addObjectFromFile(String filePath, OperationResult result) throws Exception {
+    private <T extends ObjectType> PrismObject<T> addObjectFromFile(String filePath, OperationResult result) throws Exception {
         PrismObject<T> object = PrismTestUtil.parseObject(new File(filePath));
         try {
             add(object, result);
@@ -186,6 +174,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
         }, timeoutInterval, sleepInterval);
     }
 
+    @SuppressWarnings("SameParameterValue")
     void waitForTaskCloseOrDelete(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval)
             throws CommonException {
         waitFor("Waiting for task to close", () -> {
@@ -209,6 +198,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
         }, timeoutInterval, sleepInterval);
     }
 
+    @SuppressWarnings("SameParameterValue")
     void waitForTaskWaiting(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval) throws
             CommonException {
         waitFor("Waiting for task to become waiting", () -> {
@@ -398,8 +388,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
         PrismTestUtil.display(title, value);
     }
 
-    @NotNull
-    TaskQuartzImpl createTaskFromFile(String filePath, OperationResult result) throws Exception {
-        return taskManager.createTaskInstance(addObjectFromFile(filePath), result);
+    void assertSchedulingState(Task task, TaskSchedulingStateType expected) {
+        assertThat(task.getSchedulingState()).as("task scheduling state").isEqualTo(expected);
     }
 }
