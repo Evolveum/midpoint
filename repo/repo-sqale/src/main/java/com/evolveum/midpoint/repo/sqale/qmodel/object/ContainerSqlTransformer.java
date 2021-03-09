@@ -28,6 +28,7 @@ public class ContainerSqlTransformer
         R row = mapping.newRowObject();
         // owner id is set outside this call
         row.cid = schemaObject.asPrismContainerValue().getId();
+        // containerType is generated in DB, must be left null!
         return row;
     }
 }

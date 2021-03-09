@@ -98,12 +98,15 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
             S schemaObject = object.asObjectable();
             R row = transformer.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
             row.containerIdSeq = lastCid + 1;
-            transformer.storeRelatedEntities(row, schemaObject, jdbcSession);
             transformer.setFullObject(row, schemaObject);
+
             UUID oid = jdbcSession.newInsert(root)
                     // default populate mapper ignores null, that's good, especially for objectType
                     .populate(row)
                     .executeWithKey(root.oid);
+
+            transformer.storeRelatedEntities(row.oid, schemaObject, jdbcSession);
+
             return Objects.requireNonNull(oid, "OID of inserted object can't be null")
                     .toString();
         }
@@ -112,8 +115,10 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
     private String addObjectWithoutOid() throws SchemaException {
         long lastCid = new ContainerValueIdGenerator(object).generate();
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-            R row = transformer.toRowObjectWithoutFullObject(object.asObjectable(), jdbcSession);
+            S schemaObject = object.asObjectable();
+            R row = transformer.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
             row.containerIdSeq = lastCid + 1;
+
             // first insert without full object, because we don't know the OID yet
             UUID oid = jdbcSession.newInsert(root)
                     // default populate mapper ignores null, that's good, especially for objectType
@@ -125,11 +130,13 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
             object.setOid(oidString);
 
             // now to update full object with known OID
-            transformer.setFullObject(row, object.asObjectable());
+            transformer.setFullObject(row, schemaObject);
             jdbcSession.newUpdate(root)
                     .set(root.fullObject, row.fullObject)
                     .where(root.oid.eq(oid))
                     .execute();
+
+            transformer.storeRelatedEntities(oid, schemaObject, jdbcSession);
 
             return oidString;
         }
