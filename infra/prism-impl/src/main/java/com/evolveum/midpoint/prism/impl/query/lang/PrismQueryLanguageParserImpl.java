@@ -24,12 +24,13 @@ import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.impl.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.impl.query.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.OrgFilter.Scope;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import static com.evolveum.midpoint.prism.impl.query.lang.FilterNames.*;
 
 public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
 
@@ -69,7 +70,7 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
                 PrismPropertyDefinition<?> rightDef = findDefinition(parentDef, rightPath, PrismPropertyDefinition.class);
                 return propertyFilter(propDef, path, matchingRule, rightPath, rightDef);
             } else if (valueSpec.literalValue() != null) {
-                Object parsedValue = parseLiteral(propDef, valueSpec.literalValue());
+                Object parsedValue = parseLiteral(propDef.getTypeClass(), valueSpec.literalValue());
                 return valueFilter(propDef, path, matchingRule, parsedValue);
             }
             throw new IllegalStateException();
@@ -127,17 +128,6 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
         }
     }
 
-    private static final QName EQUALS_NAME = queryName("equal");
-
-    private static final Map<String, QName> ALIASES_TO_NAME = ImmutableMap.<String, QName>builder()
-            .put("=", queryName("equal"))
-            .put("<", queryName("less"))
-            .put(">", queryName("greater"))
-            .put("<=", queryName("lessOrEqual"))
-            .put(">=", queryName("greaterOrEqual"))
-            .put("!=", queryName("notEqual"))
-            .build();
-
     private final ItemFilterFactory equalFilter = new PropertyFilterFactory() {
         @Override
         public ObjectFilter valueFilter(PrismPropertyDefinition<?> definition, ItemPath path,
@@ -153,8 +143,8 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
     };
 
     private final Map<QName, ItemFilterFactory> filterFactories = ImmutableMap.<QName, ItemFilterFactory>builder()
-            .put(queryName("equal"), equalFilter)
-            .put(queryName("notEqual"), new ItemFilterFactory() {
+            .put(EQUAL, equalFilter)
+            .put(NOT_EQUAL, new ItemFilterFactory() {
 
                 @Override
                 public ObjectFilter create(PrismContainerDefinition<?> parentDef, ItemPath itemPath, ItemDefinition<?> itemDef,
@@ -162,7 +152,7 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
                     return NotFilterImpl.createNot(equalFilter.create(parentDef, itemPath, itemDef, matchingRule, subfilterOrValue));
                 }
             })
-            .put(queryName("greater"), new PropertyFilterFactory() {
+            .put(GREATER, new PropertyFilterFactory() {
                 @Override
                 ObjectFilter valueFilter(PrismPropertyDefinition<?> definition, ItemPath path, QName matchingRule,
                         Object value) {
@@ -175,7 +165,7 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
                     return GreaterFilterImpl.createGreater(path, definition, matchingRule, rightPath, rightDef, false);
                 }
             })
-            .put(queryName("greaterOrEqual"), new PropertyFilterFactory() {
+            .put(GREATER_OR_EQUAL, new PropertyFilterFactory() {
                 @Override
                 ObjectFilter valueFilter(PrismPropertyDefinition<?> definition, ItemPath path, QName matchingRule,
                         Object value) {
@@ -188,7 +178,7 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
                     return GreaterFilterImpl.createGreater(path, definition, matchingRule, rightPath, rightDef, true);
                 }
             })
-            .put(queryName("less"), new PropertyFilterFactory() {
+            .put(LESS, new PropertyFilterFactory() {
                 @Override
                 ObjectFilter valueFilter(PrismPropertyDefinition<?> definition, ItemPath path, QName matchingRule,
                         Object value) {
@@ -201,7 +191,7 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
                     return LessFilterImpl.createLess(path, definition, matchingRule, rightPath, rightDef, false);
                 }
             })
-            .put(queryName("lessOrEqual"), new PropertyFilterFactory() {
+            .put(LESS_OR_EQUAL, new PropertyFilterFactory() {
                 @Override
                 ObjectFilter valueFilter(PrismPropertyDefinition<?> definition, ItemPath path, QName matchingRule,
                         Object value) {
@@ -214,10 +204,11 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
                     return LessFilterImpl.createLess(path, definition, matchingRule, rightPath, rightDef, true);
                 }
             })
-            .put(queryName("contains"), new SubstringFilterFactory(false, false))
-            .put(queryName("startsWith"), new SubstringFilterFactory(true, false))
-            .put(queryName("endsWith"), new SubstringFilterFactory(false, true))
-            .put(queryName("matches"), this::matchesFilter).put(queryName("exists"), new ItemFilterFactory() {
+            .put(CONTAINS, new SubstringFilterFactory(false, false))
+            .put(STARTS_WITH, new SubstringFilterFactory(true, false))
+            .put(ENDS_WITH, new SubstringFilterFactory(false, true))
+            .put(MATCHES, this::matchesFilter)
+            .put(EXISTS, new ItemFilterFactory() {
                 @Override
                 public ObjectFilter create(PrismContainerDefinition<?> parentDef, ItemPath itemPath,
                         ItemDefinition<?> itemDef, QName matchingRule, SubfilterOrValueContext subfilterOrValue)
@@ -225,7 +216,7 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
                     return ExistsFilterImpl.createExists(itemPath, parentDef, null);
                 }
             })
-            .put(queryName("fullText"), new SelfFilterFactory("fullText") {
+            .put(FULL_TEXT, new SelfFilterFactory("fullText") {
 
                 @Override
                 protected ObjectFilter create(PrismContainerDefinition<?> parentDef, QName matchingRule,
@@ -233,7 +224,7 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
                     return FullTextFilterImpl.createFullText(requireLiterals(String.class, filterName, subfilterOrValue));
                 }
             })
-            .put(queryName("inOid"), new SelfFilterFactory("inOid") {
+            .put(IN_OID, new SelfFilterFactory("inOid") {
 
                 @Override
                 protected ObjectFilter create(PrismContainerDefinition<?> parentDef, QName matchingRule,
@@ -241,7 +232,7 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
                     return InOidFilterImpl.createInOid(requireLiterals(String.class, filterName, subfilterOrValue));
                 }
             })
-            .put(queryName("ownedByOid"), new SelfFilterFactory("ownedByOid") {
+            .put(OWNED_BY_OID, new SelfFilterFactory("ownedByOid") {
 
                 @Override
                 protected ObjectFilter create(PrismContainerDefinition<?> parentDef, QName matchingRule,
@@ -249,7 +240,7 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
                     return InOidFilterImpl.createOwnerHasOidIn(requireLiterals(String.class, filterName, subfilterOrValue));
                 }
             })
-            .put(queryName("inOrg"), new SelfFilterFactory("inOrg") {
+            .put(IN_ORG, new SelfFilterFactory("inOrg") {
 
                 @Override
                 protected ObjectFilter create(PrismContainerDefinition<?> parentDef, QName matchingRule,
@@ -257,7 +248,7 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
                     return OrgFilterImpl.createOrg(requireLiteral(String.class, filterName, subfilterOrValue.singleValue()), Scope.SUBTREE);
                 }
             })
-            .put(queryName("isRoot"), new SelfFilterFactory("isRoot") {
+            .put(IS_ROOT, new SelfFilterFactory("isRoot") {
 
                 @Override
                 protected ObjectFilter create(PrismContainerDefinition<?> parentDef, QName matchingRule,
@@ -268,7 +259,7 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
             .build();
 
     private final Map<QName, ItemFilterFactory> notFilterFactories = ImmutableMap.<QName, ItemFilterFactory>builder()
-            .put(queryName("exists"), new ItemFilterFactory() {
+            .put(EXISTS, new ItemFilterFactory() {
                 @Override
                 public ObjectFilter create(PrismContainerDefinition<?> parentDef, ItemPath itemPath,
                         ItemDefinition<?> itemDef, QName matchingRule, SubfilterOrValueContext subfilterOrValue)
@@ -338,10 +329,6 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
     public ObjectFilter parseQuery(PrismContainerDefinition<?> definition, AxiomQuerySource source)
             throws SchemaException {
         return parseFilter(definition, source.root());
-    }
-
-    private static QName queryName(String localName) {
-        return new QName(QUERY_NS, localName);
     }
 
     private ObjectFilter parseFilter(PrismContainerDefinition<?> complexType, FilterContext root)
@@ -424,13 +411,12 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
 
     private ItemPath path(PrismContainerDefinition<?> complexType, PathContext path) {
         // FIXME: Implement proper parsing of decomposed item path from Antlr
-        UniformItemPath ret = ItemPathHolder.parseFromString(path.getText(), namespaceContext);
-        return ret;
+        return ItemPathHolder.parseFromString(path.getText(), namespaceContext);
     }
 
     private QName filterName(FilterNameContext filterName) {
         if (filterName.filterNameAlias() != null) {
-            return ALIASES_TO_NAME.get(filterName.filterNameAlias().getText());
+            return FilterNames.fromAlias(filterName.filterNameAlias().getText()).orElseThrow();
         }
         return toFilterName(QUERY_NS, filterName.prefixedName());
     }
@@ -439,11 +425,6 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
         String ns = defaultNs;
         // FIXME: Add namespace detection
         return new QName(ns, itemName.localName.getText());
-    }
-
-    private Object parseLiteral(PrismPropertyDefinition<?> definition, LiteralValueContext string) {
-        Class<?> targetType = definition.getTypeClass();
-        return parseLiteral(targetType, string);
     }
 
     private <T> T parseLiteral(Class<T> targetType, LiteralValueContext string) {
@@ -499,7 +480,7 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
         String norm = (String) props.get(POLYSTRING_NORM);
         schemaCheck(orig != null || norm != null, "orig or norm must be defined in matches polystring filter.");
         if (orig != null && norm != null) {
-            return EqualFilterImpl.createEqual(path, definition, null, context, new PolyString(orig, norm));
+            return EqualFilterImpl.createEqual(path, definition, PrismConstants.POLY_STRING_STRICT_MATCHING_RULE_NAME, context, new PolyString(orig, norm));
         }
         if (orig != null) {
             return EqualFilterImpl.createEqual(path, definition, PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME, context, new PolyString(orig));
@@ -551,7 +532,7 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
             Map<String, Object> result) throws SchemaException {
         if (child instanceof GenFilterContext) {
             ItemFilterContext filter = ((GenFilterContext) child).itemFilter();
-            if (EQUALS_NAME.equals(filterName(filter.filterName()))) {
+            if (EQUAL.equals(filterName(filter.filterName()))) {
                 String name = filter.path().getText();
                 Class<?> propType = props.get(name);
                 schemaCheck(propType != null, "Unknown property %s for %s", name, typeName);
