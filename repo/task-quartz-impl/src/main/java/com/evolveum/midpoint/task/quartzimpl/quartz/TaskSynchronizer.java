@@ -15,6 +15,7 @@ import java.util.Set;
 
 import com.evolveum.midpoint.task.quartzimpl.execution.RemoteSchedulers;
 
+import com.evolveum.midpoint.task.quartzimpl.tasks.TaskMigrator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType;
 
 import org.quartz.JobKey;
@@ -71,6 +72,7 @@ public class TaskSynchronizer {
     @Autowired private TaskManagerQuartzImpl taskManager;
     @Autowired private RepositoryService repositoryService;
     @Autowired private LocalScheduler localScheduler;
+    @Autowired private TaskMigrator taskMigrator;
 
     /**
      * Checks for consistency between Quartz job store and midPoint repository.
@@ -178,7 +180,7 @@ public class TaskSynchronizer {
     public boolean synchronizeTask(TaskQuartzImpl task, OperationResult parentResult) {
 
         if (!task.isPersistent()) {
-            return false;               // transient tasks are not scheduled via Quartz!
+            return false; // transient tasks are not scheduled via Quartz!
         }
 
         boolean changed = false;
@@ -186,8 +188,9 @@ public class TaskSynchronizer {
 
         OperationResult result = parentResult.createSubresult(OP_SYNCHRONIZE_TASK);
         result.addArbitraryObjectAsParam("task", task);
-
         try {
+
+            taskMigrator.migrateIfNeeded(task, result);
 
             LOGGER.trace("Synchronizing task {}; isRecreateQuartzTrigger = {}", task, task.isRecreateQuartzTrigger());
 
@@ -286,15 +289,15 @@ public class TaskSynchronizer {
                     }
                 }
             }
-        } catch (Exception e) {         // todo make this more specific (originally here was SchedulerException but e.g. for negative repeat intervals here we get unchecked IllegalArgumentException...)
+        } catch (Exception e) {
             String message2 = "Cannot synchronize repository/Quartz Job Store information for task " + task;
             LoggingUtils.logUnexpectedException(LOGGER, message2, e);
             result.recordFatalError(message2, e);
-        }
-
-        if (result.isUnknown()) {
-            result.computeStatus();
-            result.recordStatus(result.getStatus(), message.toString());
+        } finally {
+            if (result.isUnknown()) {
+                result.computeStatus();
+                result.recordStatus(result.getStatus(), message.toString());
+            }
         }
 
         LOGGER.trace("synchronizeTask finishing (changed: {}) for {}", changed, task);

@@ -42,7 +42,7 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.SUCCESS;
 public class TaskCleaner {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskCleaner.class);
-    public static final String OP_STATISTICS = TaskManagerQuartzImpl.OP_CLEANUP_TASKS + ".statistics";
+    private static final String OP_STATISTICS = TaskManagerQuartzImpl.OP_CLEANUP_TASKS + ".statistics";
 
     @Autowired private PrismContext prismContext;
     @Autowired private RepositoryService repositoryService;
