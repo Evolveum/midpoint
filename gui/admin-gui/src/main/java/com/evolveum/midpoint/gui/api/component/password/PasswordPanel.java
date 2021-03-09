@@ -10,17 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Application;
 import org.apache.wicket.ajax.AjaxChannel;
@@ -39,12 +28,24 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.util.time.Duration;
-import org.apache.wicket.validation.*;
+import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.IValidator;
+import org.apache.wicket.validation.ValidationError;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
@@ -53,6 +54,11 @@ import com.evolveum.midpoint.web.page.self.PageRoleSelfProfile;
 import com.evolveum.midpoint.web.page.self.PageServiceSelfProfile;
 import com.evolveum.midpoint.web.page.self.PageUserSelfProfile;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -91,7 +97,7 @@ public class PasswordPanel extends InputPanel {
     }
 
     public <F extends FocusType> PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean isInputVisible) {
-        this(id, model,isReadOnly,isInputVisible, null, null);
+        this(id, model, isReadOnly, isInputVisible, null, null);
     }
 
     public <F extends FocusType> PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean isInputVisible,
@@ -149,10 +155,10 @@ public class PasswordPanel extends InputPanel {
                 + "container: $('#progress-bar-container'),\n"
                 + "hierarchy: {\n"
                 + "    '0': ['progress-bar-danger', '" + PageBase.createStringResourceStatic(null, "PasswordPanel.strength.veryWeak").getString() + "'],\n"
-                + "    '25': ['progress-bar-danger', '" + getPageBase().createStringResourceStatic(null, "PasswordPanel.strength.weak").getString() + "'],\n"
-                + "    '50': ['progress-bar-warning', '" + getPageBase().createStringResourceStatic(null, "PasswordPanel.strength.good").getString() + "'],\n"
-                + "    '75': ['progress-bar-success', '" + getPageBase().createStringResourceStatic(null, "PasswordPanel.strength.strong").getString() + "'],\n"
-                + "    '100': ['progress-bar-success', '" + getPageBase().createStringResourceStatic(null, "PasswordPanel.strength.veryStrong").getString() + "']\n"
+                + "    '25': ['progress-bar-danger', '" + PageBase.createStringResourceStatic(null, "PasswordPanel.strength.weak").getString() + "'],\n"
+                + "    '50': ['progress-bar-warning', '" + PageBase.createStringResourceStatic(null, "PasswordPanel.strength.good").getString() + "'],\n"
+                + "    '75': ['progress-bar-success', '" + PageBase.createStringResourceStatic(null, "PasswordPanel.strength.strong").getString() + "'],\n"
+                + "    '100': ['progress-bar-success', '" + PageBase.createStringResourceStatic(null, "PasswordPanel.strength.veryStrong").getString() + "']\n"
                 + "}\n"
                 + "})"));
         password1.setRequired(false);
@@ -206,7 +212,7 @@ public class PasswordPanel extends InputPanel {
             }
 
             if (!Objects.equals(s1, s2)) {
-                return getPageBase().createStringResource("passwordPanel.error").getString();
+                return PageBase.createStringResourceStatic(null, "passwordPanel.error").getString();
             }
             return "";
         };
@@ -318,23 +324,44 @@ public class PasswordPanel extends InputPanel {
     protected <F extends FocusType> ValuePolicyType getValuePolicy(PrismObject<F> object) {
         ValuePolicyType valuePolicyType = null;
         try {
-            if (object != null) {
-                Task task = getPageBase().createSimpleTask("load value policy");
-                CredentialsPolicyType credentials = getPageBase().getModelInteractionService().getCredentialsPolicy(object, task, task.getResult());
-                if (credentials != null && credentials.getPassword() != null
-                        && credentials.getPassword().getValuePolicyRef() != null) {
-                    PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch(
-                            credentials.getPassword().getValuePolicyRef(), getPageBase(), task, task.getResult());
-                    if (valuePolicy != null) {
-                        valuePolicyType = valuePolicy.asObjectable();
-                    }
+            MidPointPrincipal user = SecurityUtils.getPrincipalUser();
+            if (getPageBase() != null) {
+                if (user != null) {
+                    Task task = getPageBase().createSimpleTask("load value policy");
+                    valuePolicyType = searchValuePolicy(object, task);
+                } else {
+                    valuePolicyType = getPageBase().getSecurityContextManager().runPrivileged(new Producer<ValuePolicyType>() {
+                        private static final long serialVersionUID = 1L;
 
+                        @Override
+                        public ValuePolicyType run() {
+                            Task task = getPageBase().createAnonymousTask("load value policy");
+                            return searchValuePolicy(object, task);
+                        }
+                    });
                 }
             }
         } catch (Exception e) {
             LOGGER.warn("Couldn't load security policy for focus " + object, e);
         }
         return valuePolicyType;
+    }
+
+    private <F extends FocusType> ValuePolicyType searchValuePolicy(PrismObject<F> object, Task task) {
+        try {
+            CredentialsPolicyType credentials = getPageBase().getModelInteractionService().getCredentialsPolicy(object, task, task.getResult());
+            if (credentials != null && credentials.getPassword() != null
+                    && credentials.getPassword().getValuePolicyRef() != null) {
+                PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch(
+                        credentials.getPassword().getValuePolicyRef(), getPageBase(), task, task.getResult());
+                if (valuePolicy != null) {
+                    return valuePolicy.asObjectable();
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Couldn't load security policy for focus " + object, e);
+        }
+        return null;
     }
 
     private PageBase getPageBase() {
@@ -368,8 +395,8 @@ public class PasswordPanel extends InputPanel {
     }
 
     public List<StringLimitationResult> getLimitationsForActualPassword(ValuePolicyType valuePolicy, PrismObject<? extends ObjectType> object) {
-        if (valuePolicy != null && object != null) {
-            Task task = getPageBase().createSimpleTask("validation of password");
+        if (valuePolicy != null) {
+            Task task = getPageBase().createAnonymousTask("validation of password");
             try {
                 ProtectedStringType newValue = !setPasswordInput ? new ProtectedStringType() : model.getObject();
                 return getPageBase().getModelInteractionService().validateValue(
