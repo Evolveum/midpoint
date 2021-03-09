@@ -28,7 +28,7 @@ public class TaskMigrator {
     public void migrateIfNeeded(TaskQuartzImpl task, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
 
-        if (task.getSchedulingState() == null) {
+        if (task.getSchedulingState() == null && task.getExecutionState() != null) {
             task.setSchedulingState(determineSchedulingState(task.getExecutionState()));
             task.flushPendingModifications(result);
         }
