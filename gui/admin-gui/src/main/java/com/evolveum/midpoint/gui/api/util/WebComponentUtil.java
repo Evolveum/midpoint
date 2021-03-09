@@ -3818,7 +3818,7 @@ public final class WebComponentUtil {
             }
         }
 
-        return StringUtils.join(triggers, '\n');
+        return StringUtils.join(triggerTooltips, '\n');
     }
 
     private static <O extends ObjectType> void appendLifecycleState(StringBuilder title, IconType lifecycleStateIcon, O obj, PageBase pageBase) {

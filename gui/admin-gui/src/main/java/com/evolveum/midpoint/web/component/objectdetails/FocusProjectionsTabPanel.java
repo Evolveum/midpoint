@@ -375,7 +375,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
             PrismContainerWrapper<TriggerType> triggers = rowModel.getObject().findContainer(ShadowType.F_TRIGGER);
             if (triggers != null && !triggers.isEmpty()) {
                 for (PrismContainerValueWrapper<TriggerType> trigger : triggers.getValues()) {
-                    shadow.getTrigger().add(trigger.getRealValue());
+                    if (trigger != null) {
+                        shadow.getTrigger().add(trigger.getRealValue().clone());
+                    }
                 }
             }
         } catch (SchemaException e) {
