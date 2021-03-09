@@ -14,7 +14,7 @@ import java.util.UUID;
 public class MReference {
 
     public UUID ownerOid;
-    public ReferenceType referenceType;
+    public MReferenceType referenceType;
     public Integer relationId;
     public UUID targetOid;
     public Integer targetType;

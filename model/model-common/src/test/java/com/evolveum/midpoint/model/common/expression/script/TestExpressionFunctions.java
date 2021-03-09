@@ -6,9 +6,28 @@
  */
 package com.evolveum.midpoint.model.common.expression.script;
 
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.composeDn;
+import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.composeDnWithSuffix;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
+import javax.xml.datatype.DatatypeConstants;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -28,23 +47,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-
-import javax.naming.ldap.LdapName;
-import javax.naming.ldap.Rdn;
-import javax.xml.datatype.DatatypeConstants;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static org.testng.AssertJUnit.*;
-
 /**
  * @author semancik
  */
@@ -52,7 +54,7 @@ public class TestExpressionFunctions extends AbstractUnitTest {
 
     public static final File TEST_DIR = new File("src/test/resources/expression/functions");
     public static final File USER_JACK_FILE = new File(TEST_DIR, "user-jack.xml");
-    public static final File ACCOUNT_JACK_FILE = new File(TEST_DIR, "account-jack.xml");
+    private static final File ACCOUNT_JACK_FILE = new File(TEST_DIR, "account-jack.xml");
     public static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
     private static final String ATTR_FULLNAME_LOCAL_PART = "fullname";
     private static final String ATTR_WEAPON_LOCAL_PART = "weapon";
@@ -270,7 +272,6 @@ public class TestExpressionFunctions extends AbstractUnitTest {
         // GIVEN
         String dn = "cn=jack+uid=FooBar, ou=People, dc=example,dc=com";
         String attributeName = "uid";
-        Collection<String> values = MiscUtil.createCollection("heh");
 
         // WHEN
         String resultValue = basic.determineLdapSingleAttributeValue(dn, attributeName, null);
@@ -300,7 +301,7 @@ public class TestExpressionFunctions extends AbstractUnitTest {
     }
 
     @Test
-    public void testFormatDateTime() throws Exception {
+    public void testFormatDateTime() {
         System.out.println("\n===[ testFormatDateTime ]===\n");
 
         // GIVEN
@@ -338,7 +339,7 @@ public class TestExpressionFunctions extends AbstractUnitTest {
     }
 
     @Test
-    public void testStringify() throws Exception {
+    public void testStringify() {
         assertEquals("foo", basic.stringify("foo"));
         assertEquals("foo", basic.stringify(poly("foo")));
         assertEquals("foo", basic.stringify(PrismTestUtil.createPolyStringType("foo")));
@@ -348,7 +349,7 @@ public class TestExpressionFunctions extends AbstractUnitTest {
     }
 
     @Test
-    public void testConcatName() throws Exception {
+    public void testConcatName() {
         assertEquals("foo bar", basic.concatName("foo","bar"));
         assertEquals("foo bar", basic.concatName(poly("foo"),"bar"));
         assertEquals("foo bar", basic.concatName("foo",poly("bar")));
@@ -368,7 +369,7 @@ public class TestExpressionFunctions extends AbstractUnitTest {
     }
 
     @Test
-    public void testToAscii() throws Exception {
+    public void testToAscii() {
         assertEquals("foo", basic.toAscii("foo"));
         assertEquals("foo", basic.toAscii(poly("foo")));
         assertEquals("foo", basic.toAscii(PrismTestUtil.createPolyStringType("foo")));
@@ -381,50 +382,50 @@ public class TestExpressionFunctions extends AbstractUnitTest {
 
     @Test
     public void testComposeDn() throws Exception {
-        assertEquals("cn=foo,o=bar", basic.composeDn("cn","foo","o","bar"));
-        assertEquals("cn=foo,o=bar", basic.composeDn("cn",PrismTestUtil.createPolyString("foo"),"o","bar"));
-        assertEquals("cn=foo,o=bar", basic.composeDn("cn",PrismTestUtil.createPolyStringType("foo"),"o","bar"));
-        assertEquals("cn=foo,o=bar", basic.composeDn("cn","foo",new Rdn("o","bar")));
-        assertEquals("cn=foo,ou=baz,o=bar", basic.composeDn(new Rdn("cn","foo"),"ou","baz",new Rdn("o","bar")));
-        assertEquals("cn=foo,ou=baz,o=bar", basic.composeDn(new Rdn("cn","foo"),"ou","baz","o","bar"));
-        assertEquals("cn=foo,ou=baz,o=bar", basic.composeDn(new Rdn("cn","foo"),new LdapName("ou=baz,o=bar")));
-        assertEquals("cn=foo,ou=baz,o=bar", basic.composeDn("cn","foo",new LdapName("ou=baz,o=bar")));
-        assertEquals("cn=foo\\,foo,ou=baz,o=bar", basic.composeDn("cn","foo,foo",new LdapName("ou=baz,o=bar")));
-        assertEquals("cn=foo\\=foo,ou=baz,o=bar", basic.composeDn("cn","foo=foo",new LdapName("ou=baz,o=bar")));
-        assertEquals(null, basic.composeDn(null));
-        assertEquals(null, basic.composeDn());
-        assertEquals(null, basic.composeDn(""));
-        assertEquals(null, basic.composeDn("   "));
+        assertEquals("cn=foo,o=bar", composeDn("cn","foo","o","bar"));
+        assertEquals("cn=foo,o=bar", composeDn("cn",PrismTestUtil.createPolyString("foo"),"o","bar"));
+        assertEquals("cn=foo,o=bar", composeDn("cn",PrismTestUtil.createPolyStringType("foo"),"o","bar"));
+        assertEquals("cn=foo,o=bar", composeDn("cn","foo",new Rdn("o","bar")));
+        assertEquals("cn=foo,ou=baz,o=bar", composeDn(new Rdn("cn","foo"),"ou","baz",new Rdn("o","bar")));
+        assertEquals("cn=foo,ou=baz,o=bar", composeDn(new Rdn("cn","foo"),"ou","baz","o","bar"));
+        assertEquals("cn=foo,ou=baz,o=bar", composeDn(new Rdn("cn","foo"),new LdapName("ou=baz,o=bar")));
+        assertEquals("cn=foo,ou=baz,o=bar", composeDn("cn","foo",new LdapName("ou=baz,o=bar")));
+        assertEquals("cn=foo\\,foo,ou=baz,o=bar", composeDn("cn","foo,foo",new LdapName("ou=baz,o=bar")));
+        assertEquals("cn=foo\\=foo,ou=baz,o=bar", composeDn("cn","foo=foo",new LdapName("ou=baz,o=bar")));
+        assertNull(composeDn((Object) null));
+        assertNull(composeDn());
+        assertNull(composeDn(""));
+        assertNull(composeDn("   "));
     }
 
     @Test
     public void testComposeDnWithSuffix() throws Exception {
-        assertEquals("cn=foo,ou=baz,o=bar", basic.composeDnWithSuffix(new Rdn("cn","foo"),"ou=baz,o=bar"));
-        assertEquals("cn=foo,ou=baz,o=bar", basic.composeDnWithSuffix(new Rdn("cn","foo"),new LdapName("ou=baz,o=bar")));
-        assertEquals("cn=foo,ou=baz,o=bar", basic.composeDnWithSuffix("cn","foo","ou=baz,o=bar"));
-        assertEquals("cn=foo,ou=baz,o=bar", basic.composeDnWithSuffix("cn",PrismTestUtil.createPolyString("foo"),"ou=baz,o=bar"));
-        assertEquals("cn=foo,ou=baz,o=bar", basic.composeDnWithSuffix("cn",PrismTestUtil.createPolyStringType("foo"),"ou=baz,o=bar"));
-        assertEquals("cn=foo,ou=baz,o=bar", basic.composeDnWithSuffix("cn","foo",new LdapName("ou=baz,o=bar")));
-        assertEquals("cn=foo,ou=baz\\,baz,o=bar", basic.composeDnWithSuffix("cn","foo","ou=baz\\,baz,o=bar"));
-        assertEquals("cn=foo,ou=baz\\,baz,o=bar", basic.composeDnWithSuffix("cn","foo",new LdapName("ou=baz\\,baz,o=bar")));
-        assertEquals("cn=foo\\,foo,ou=baz,o=bar", basic.composeDnWithSuffix("cn","foo,foo","ou=baz,o=bar"));
-        assertEquals("cn=foo\\,foo,ou=baz,o=bar", basic.composeDnWithSuffix("cn","foo,foo",new LdapName("ou=baz,o=bar")));
-        assertEquals("cn=foo\\=foo,ou=baz,o=bar", basic.composeDnWithSuffix("cn","foo=foo","ou=baz,o=bar"));
-        assertEquals("cn=foo\\=foo,ou=baz,o=bar", basic.composeDnWithSuffix("cn","foo=foo",new LdapName("ou=baz,o=bar")));
-        assertEquals("ou=baz,o=bar", basic.composeDnWithSuffix("ou=baz,o=bar"));
-        assertEquals("ou=baz, o=bar", basic.composeDnWithSuffix("ou=baz, o=bar"));
-        assertEquals("OU=baz, o=bar", basic.composeDnWithSuffix("OU=baz, o=bar"));
-        assertEquals("ou=baz,o=bar", basic.composeDnWithSuffix(new LdapName("ou=baz,o=bar")));
-        assertEquals(null, basic.composeDnWithSuffix(null));
-        assertEquals(null, basic.composeDnWithSuffix());
-        assertEquals(null, basic.composeDnWithSuffix(""));
-        assertEquals(null, basic.composeDnWithSuffix("   "));
+        assertEquals("cn=foo,ou=baz,o=bar", composeDnWithSuffix(new Rdn("cn","foo"),"ou=baz,o=bar"));
+        assertEquals("cn=foo,ou=baz,o=bar", composeDnWithSuffix(new Rdn("cn","foo"),new LdapName("ou=baz,o=bar")));
+        assertEquals("cn=foo,ou=baz,o=bar", composeDnWithSuffix("cn","foo","ou=baz,o=bar"));
+        assertEquals("cn=foo,ou=baz,o=bar", composeDnWithSuffix("cn",PrismTestUtil.createPolyString("foo"),"ou=baz,o=bar"));
+        assertEquals("cn=foo,ou=baz,o=bar", composeDnWithSuffix("cn",PrismTestUtil.createPolyStringType("foo"),"ou=baz,o=bar"));
+        assertEquals("cn=foo,ou=baz,o=bar", composeDnWithSuffix("cn","foo",new LdapName("ou=baz,o=bar")));
+        assertEquals("cn=foo,ou=baz\\,baz,o=bar", composeDnWithSuffix("cn","foo","ou=baz\\,baz,o=bar"));
+        assertEquals("cn=foo,ou=baz\\,baz,o=bar", composeDnWithSuffix("cn","foo",new LdapName("ou=baz\\,baz,o=bar")));
+        assertEquals("cn=foo\\,foo,ou=baz,o=bar", composeDnWithSuffix("cn","foo,foo","ou=baz,o=bar"));
+        assertEquals("cn=foo\\,foo,ou=baz,o=bar", composeDnWithSuffix("cn","foo,foo",new LdapName("ou=baz,o=bar")));
+        assertEquals("cn=foo\\=foo,ou=baz,o=bar", composeDnWithSuffix("cn","foo=foo","ou=baz,o=bar"));
+        assertEquals("cn=foo\\=foo,ou=baz,o=bar", composeDnWithSuffix("cn","foo=foo",new LdapName("ou=baz,o=bar")));
+        assertEquals("ou=baz,o=bar", composeDnWithSuffix("ou=baz,o=bar"));
+        assertEquals("ou=baz, o=bar", composeDnWithSuffix("ou=baz, o=bar"));
+        assertEquals("OU=baz, o=bar", composeDnWithSuffix("OU=baz, o=bar"));
+        assertEquals("ou=baz,o=bar", composeDnWithSuffix(new LdapName("ou=baz,o=bar")));
+        assertNull(composeDnWithSuffix((Object) null));
+        assertNull(composeDnWithSuffix());
+        assertNull(composeDnWithSuffix(""));
+        assertNull(composeDnWithSuffix("   "));
     }
 
     @Test
-    public void testParseFullName() throws Exception {
-        assertEquals(null, basic.parseGivenName(null));
-        assertEquals(null, basic.parseGivenName("   "));
+    public void testParseFullName() {
+        assertNull(basic.parseGivenName(null));
+        assertNull(basic.parseGivenName("   "));
 
         assertEquals("Jack", basic.parseGivenName("Jack Sparrow"));
         assertEquals("Jack", basic.parseGivenName(" Jack     Sparrow  "));
@@ -461,7 +462,7 @@ public class TestExpressionFunctions extends AbstractUnitTest {
         String hash2 = basic.hashLdapPassword("whatever", "SSHA");
 
         assertNotNull("Null hash2", hash2);
-        assertFalse("Same hash generated twice: "+hash1, hash1.equals(hash2));
+        assertNotEquals("Same hash generated twice: " + hash1, hash1, hash2);
     }
 
     /**
@@ -481,7 +482,7 @@ public class TestExpressionFunctions extends AbstractUnitTest {
         String hash2 = basic.hashLdapPassword(protectedString, "SSHA");
 
         assertNotNull("Null hash2", hash2);
-        assertFalse("Same hash generated twice: "+hash1, hash1.equals(hash2));
+        assertNotEquals("Same hash generated twice: " + hash1, hash1, hash2);
     }
 
     /**
@@ -503,7 +504,7 @@ public class TestExpressionFunctions extends AbstractUnitTest {
         String hash2 = basic.hashLdapPassword(protectedString, "SSHA");
 
         assertNotNull("Null hash2", hash2);
-        assertFalse("Same hash generated twice: "+hash1, hash1.equals(hash2));
+        assertNotEquals("Same hash generated twice: " + hash1, hash1, hash2);
     }
 
     private void assertLdapHash(String hash) {

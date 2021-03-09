@@ -9,6 +9,8 @@ package com.evolveum.midpoint.prism.query.builder;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ExpressionWrapper;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -44,6 +46,7 @@ public interface S_ConditionEntry {
     S_AtomicFilterExit ref(Collection<PrismReferenceValue> values);
     S_AtomicFilterExit ref(Collection<PrismReferenceValue> values, boolean nullTypeAsAny);                          // beware, nullTypeAsAny=false is supported only by built-in match(..) method
     S_AtomicFilterExit ref(Collection<PrismReferenceValue> values, boolean nullOidAsAny, boolean nullTypeAsAny);    // beware, nullTypeAsAny=false and nullOidAsAny=false are supported only by built-in match(..) method
+    S_AtomicFilterExit ref(ExpressionWrapper expression);
     S_AtomicFilterExit ref(RefFilter filter);
 
     /**

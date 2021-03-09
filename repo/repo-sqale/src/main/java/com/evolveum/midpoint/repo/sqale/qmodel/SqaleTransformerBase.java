@@ -53,6 +53,10 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
         this.mapping = mapping;
     }
 
+    public R toRowObject(S schemaObject, JdbcSession jdbcSession) {
+        throw new UnsupportedOperationException("Not supported on object and abstract types");
+    }
+
     @Override
     public S toSchemaObject(R row) {
         throw new UnsupportedOperationException("Use toSchemaObject(Tuple,...)");

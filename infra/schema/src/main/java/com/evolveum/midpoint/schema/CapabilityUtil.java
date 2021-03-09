@@ -12,7 +12,6 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
@@ -21,14 +20,13 @@ import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
- * @author semancik
+ * TODO naming: effective vs. enabled
  *
+ * @author semancik
  */
 public class CapabilityUtil {
 
@@ -101,6 +99,7 @@ public class CapabilityUtil {
         return null;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean containsCapabilityWithSameElementName(List<Object> capabilities, Object capability) {
         return getCapabilityWithSameElementName(capabilities, capability) != null;
     }
@@ -109,7 +108,7 @@ public class CapabilityUtil {
         // TODO: look for schema annotation
         String className;
         if (capability instanceof JAXBElement) {
-            className = ((JAXBElement) capability).getDeclaredType().getSimpleName();
+            className = ((JAXBElement<?>) capability).getDeclaredType().getSimpleName();
         } else {
             className = capability.getClass().getSimpleName();
         }
@@ -155,7 +154,7 @@ public class CapabilityUtil {
         if (capability == null) {
             return false;
         }
-        ActivationStatusCapabilityType statusCap = getEffectiveActivationStatus(capability);
+        ActivationStatusCapabilityType statusCap = getEnabledActivationStatus(capability);
         if (statusCap == null) {
             return false;
         }
@@ -302,6 +301,7 @@ public class CapabilityUtil {
         // No configured capability entry, fallback to native capability
         if (capabilitiesType.getNative() != null) {
             T nativeCapability = CapabilityUtil.getCapability(capabilitiesType.getNative().getAny(), capabilityClass);
+            //noinspection RedundantIfStatement
             if (nativeCapability != null) {
                 return nativeCapability;
             }
@@ -309,32 +309,74 @@ public class CapabilityUtil {
         return null;
     }
 
-    public static ActivationStatusCapabilityType getEffectiveActivationStatus(ActivationCapabilityType act) {
-        if (act != null && act.getStatus() != null && !Boolean.FALSE.equals(act.getStatus().isEnabled())) {
+    // TODO what if act is disabled?
+    public static ActivationStatusCapabilityType getEnabledActivationStatus(ActivationCapabilityType act) {
+        if (act != null && isEnabled(act.getStatus())) {
             return act.getStatus();
         } else {
             return null;
         }
     }
 
-    public static ActivationValidityCapabilityType getEffectiveActivationValidFrom(ActivationCapabilityType act) {
-        if (act != null && act.getValidFrom() != null && !Boolean.FALSE.equals(act.getValidFrom().isEnabled())) {
+    /**
+     * As {@link #getEnabledActivationStatus(ActivationCapabilityType)} but checks also if the "root" capability is enabled.
+     */
+    public static ActivationStatusCapabilityType getEnabledActivationStatusStrict(ActivationCapabilityType act) {
+        if (isEnabled(act) && isEnabled(act.getStatus())) {
+            return act.getStatus();
+        } else {
+            return null;
+        }
+    }
+
+    private static boolean isEnabled(ActivationStatusCapabilityType cap) {
+        return cap != null && !Boolean.FALSE.equals(cap.isEnabled());
+    }
+
+    private static boolean isEnabled(ActivationValidityCapabilityType cap) {
+        return cap != null && !Boolean.FALSE.equals(cap.isEnabled());
+    }
+
+    private static boolean isEnabled(ActivationLockoutStatusCapabilityType cap) {
+        return cap != null && !Boolean.FALSE.equals(cap.isEnabled());
+    }
+
+    private static boolean isEnabled(ActivationCapabilityType cap) {
+        return cap != null && !Boolean.FALSE.equals(cap.isEnabled());
+    }
+
+    // TODO what if act is disabled?
+    public static ActivationValidityCapabilityType getEnabledActivationValidFrom(ActivationCapabilityType act) {
+        if (act != null && isEnabled(act.getValidFrom())) {
             return act.getValidFrom();
         } else {
             return null;
         }
     }
 
-    public static ActivationValidityCapabilityType getEffectiveActivationValidTo(ActivationCapabilityType act) {
-        if (act != null && act.getValidTo() != null && !Boolean.FALSE.equals(act.getValidTo().isEnabled())) {
+    // TODO what if act is disabled?
+    public static ActivationValidityCapabilityType getEnabledActivationValidTo(ActivationCapabilityType act) {
+        if (act != null && isEnabled(act.getValidTo())) {
             return act.getValidTo();
         } else {
             return null;
         }
     }
 
-    public static ActivationLockoutStatusCapabilityType getEffectiveActivationLockoutStatus(ActivationCapabilityType act) {
-        if (act != null && act.getLockoutStatus() != null && !Boolean.FALSE.equals(act.getLockoutStatus().isEnabled())) {
+    // TODO what if act is disabled?
+    public static ActivationLockoutStatusCapabilityType getEnabledActivationLockoutStatus(ActivationCapabilityType act) {
+        if (act != null && isEnabled(act.getLockoutStatus())) {
+            return act.getLockoutStatus();
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * As {@link #getEnabledActivationLockoutStatus(ActivationCapabilityType)} but checks also if the "root" capability is enabled.
+     */
+    public static ActivationLockoutStatusCapabilityType getEnabledActivationLockoutStrict(ActivationCapabilityType act) {
+        if (isEnabled(act) && isEnabled(act.getLockoutStatus())) {
             return act.getLockoutStatus();
         } else {
             return null;

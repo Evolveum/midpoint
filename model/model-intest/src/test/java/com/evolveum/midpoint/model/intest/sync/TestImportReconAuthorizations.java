@@ -14,6 +14,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.testng.SkipException;
+
 /**
  * Same test as TestImportRecon, but this is using logged-in user with limited
  * authorizations.
@@ -34,5 +36,13 @@ public class TestImportReconAuthorizations extends TestImportRecon {
     @Override
     protected void loginImportUser() throws CommonException {
         login(userImporter);
+    }
+
+    /**
+     * TODO Allow `importer` user to add a task explicitly.
+     */
+    @Override
+    public void test161ImportFromResourceDummyLimeLimited() {
+        throw new SkipException("TODO");
     }
 }

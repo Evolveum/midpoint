@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
+import com.evolveum.midpoint.repo.sqale.operations.AddObjectOperation;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleModelMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
@@ -59,7 +60,13 @@ public class SqaleRepositoryService implements RepositoryService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqaleRepositoryService.class);
 
+    /**
+     * Class name prefix for operation names, including the dot separator.
+     * Use with various `RepositoryService.OP_*` constants, not with constants without `OP_`
+     * prefix because they already contain class name of the service interface.
+     */
     private static final String OP_NAME_PREFIX = SqaleRepositoryService.class.getSimpleName() + '.';
+
     private static final int MAX_CONFLICT_WATCHERS = 10;
 
     private final SqaleRepoContext sqlRepoContext;
@@ -225,6 +232,7 @@ public class SqaleRepositoryService implements RepositoryService {
         Objects.requireNonNull(object, "Object must not be null.");
         PolyString name = object.getName();
         if (name == null || Strings.isNullOrEmpty(name.getOrig())) {
+            // TODO this throws exception but leaves the result unchanged, is it OK?
             throw new SchemaException("Attempt to add object without name.");
         }
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
@@ -266,7 +274,8 @@ public class SqaleRepositoryService implements RepositoryService {
             if (object.getVersion() == null) {
                 object.setVersion("1");
             }
-            String oid = addObjectAttempt(object, options, operationResult);
+            String oid = new AddObjectOperation<>(object, options, operationResult)
+                    .execute(transformerContext);
             return oid;
             /*
             String proposedOid = object.getOid();
@@ -298,40 +307,6 @@ public class SqaleRepositoryService implements RepositoryService {
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
-        }
-    }
-
-    private <S extends ObjectType, Q extends QObject<R>, R extends MObject> String addObjectAttempt(
-            PrismObject<S> object, RepoAddOptions options, OperationResult result)
-            throws SchemaException {
-        // TODO utilize options and result
-        SqaleModelMapping<S, Q, R> rootMapping =
-                sqlRepoContext.getMappingBySchemaType(object.getCompileTimeClass());
-        Q root = rootMapping.defaultAlias();
-
-        ObjectSqlTransformer<S, Q, R> transformer = (ObjectSqlTransformer<S, Q, R>)
-                rootMapping.createTransformer(transformerContext);
-
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-            R row = transformer.toRowObjectWithoutFullObject(object.asObjectable(), jdbcSession);
-            // first insert without full object, because we don't know the OID yet
-            UUID oid = jdbcSession.newInsert(root)
-                    // default populate mapper ignores null, that's good, especially for objectType
-                    .populate(row)
-                    .executeWithKey(root.oid);
-            String oidString =
-                    Objects.requireNonNull(oid, "OID of inserted object can't be null")
-                            .toString();
-            object.setOid(oidString);
-
-            // now to update full object with known OID
-            transformer.setFullObject(row, object.asObjectable());
-            jdbcSession.newUpdate(root)
-                    .set(root.fullObject, row.fullObject)
-                    .where(root.oid.eq(oid))
-                    .execute();
-
-            return oidString;
         }
     }
 
@@ -519,7 +494,7 @@ public class SqaleRepositoryService implements RepositoryService {
         Objects.requireNonNull(type, "Object type must not be null.");
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
-        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + "countObjects")
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_COUNT_OBJECTS)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
                 .addParam("query", query)
@@ -548,7 +523,7 @@ public class SqaleRepositoryService implements RepositoryService {
         Objects.requireNonNull(type, "Object type must not be null.");
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
-        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + "searchObjects")
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_SEARCH_OBJECTS)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
                 .addParam("query", query)
@@ -632,7 +607,7 @@ public class SqaleRepositoryService implements RepositoryService {
         Objects.requireNonNull(type, "Container type must not be null.");
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
-        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + "searchContainers")
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + SEARCH_CONTAINERS)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
                 .addParam("query", query)

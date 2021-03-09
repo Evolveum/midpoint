@@ -50,8 +50,4 @@ public interface Objectable extends Containerable {
     PrismObject asPrismObject();
 
     void setupContainer(PrismObject object);
-
-//    public <O extends Objectable> PrismObject<O> asPrismObject();
-//
-//    public <O extends Objectable> void setupContainer(PrismObject<O> object);
 }

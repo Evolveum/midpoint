@@ -514,8 +514,8 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
 
     //region Transient and lightweight tasks
     @Override
-    public void waitForTransientChildren(RunningTask task, OperationResult result) {
-        lightweightTaskManager.waitForTransientChildren(task, result);
+    public void waitForTransientChildrenAndCloseThem(RunningTask task, OperationResult result) {
+        lightweightTaskManager.waitForTransientChildrenAndCloseThem(task, result);
     }
     //endregion
 

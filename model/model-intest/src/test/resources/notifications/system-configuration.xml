@@ -211,6 +211,8 @@ Channel: $!event.channel</code>
                             m.setFrom("+421999000999")
                             m.getTo().add("+421905123456")
                             m.setBody(String.valueOf(event.object))
+                            log.info('prismContext = {}', prismContext)
+                            log.info('localizationService = {}', localizationService)
                             m
                         </code>
                     </script>

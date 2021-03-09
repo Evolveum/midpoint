@@ -6,10 +6,9 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import java.io.File;
-
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -79,6 +78,29 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
 
         then();
         assertFailure(result);
+    }
+
+    /**
+     * MID-6076
+     */
+    @Test
+    public void test120AddRecomputeTrigger() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> administrator = getUser(USER_ADMINISTRATOR_OID);
+
+        when();
+        execute(task, result, () -> libraryMidpointFunctions.addRecomputeTrigger(administrator, null,
+                trigger -> trigger.setOriginDescription("test120")));
+
+        then();
+        assertSuccess(result);
+        assertUserAfter(USER_ADMINISTRATOR_OID)
+                .triggers()
+                    .single()
+                        .assertOriginDescription("test120");
     }
 
     private void execute(Task task, OperationResult result, CheckedRunnable runnable) throws CommonException {

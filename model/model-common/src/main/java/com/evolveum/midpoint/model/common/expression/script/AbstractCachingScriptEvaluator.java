@@ -11,6 +11,9 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
@@ -90,25 +93,7 @@ public abstract class AbstractCachingScriptEvaluator<I, C> extends AbstractScrip
             return evalPrismValues;
         }
 
-        QName xsdReturnType = context.getOutputDefinition().getTypeName();
-
-        Class<T> javaReturnType = XsdTypeMapper.toJavaType(xsdReturnType);
-        if (javaReturnType == null) {
-            javaReturnType = getPrismContext().getSchemaRegistry().getCompileTimeClass(xsdReturnType);
-        }
-
-        if (javaReturnType == null && (context.getOutputDefinition() instanceof PrismContainerDefinition<?>)) {
-            // This is the case when we need a container, but we do not have compile-time class for that
-            // E.g. this may be container in object extension (MID-5080)
-            javaReturnType = (Class<T>) PrismContainerValue.class;
-        }
-
-        if (javaReturnType == null) {
-            // TODO quick and dirty hack - because this could be because of enums defined in schema extension (MID-2399)
-            // ...and enums (xsd:simpleType) are not parsed into ComplexTypeDefinitions
-            javaReturnType = (Class<T>) String.class;
-        }
-        LOGGER.trace("expected return type: XSD={}, Java={}", xsdReturnType, javaReturnType);
+        Class<T> javaReturnType = determineJavaReturnType(context);
 
         List<V> values = new ArrayList<>();
 
@@ -130,6 +115,36 @@ public abstract class AbstractCachingScriptEvaluator<I, C> extends AbstractScrip
         }
 
         return values;
+    }
+
+    @NotNull
+    private <T> Class<T> determineJavaReturnType(ScriptExpressionEvaluationContext context) {
+        QName xsdReturnType = context.getOutputDefinition().getTypeName();
+
+        // Ugly hack. Indented to allow xsd:anyType return type, see MID-6775.
+        if (QNameUtil.match(xsdReturnType, DOMUtil.XSD_ANYTYPE)) {
+            //noinspection unchecked
+            return (Class<T>) Object.class;
+        }
+
+        Class<T> javaReturnType = XsdTypeMapper.toJavaType(xsdReturnType);
+        if (javaReturnType == null) {
+            javaReturnType = getPrismContext().getSchemaRegistry().getCompileTimeClass(xsdReturnType);
+        }
+
+        if (javaReturnType == null && (context.getOutputDefinition() instanceof PrismContainerDefinition<?>)) {
+            // This is the case when we need a container, but we do not have compile-time class for that
+            // E.g. this may be container in object extension (MID-5080)
+            javaReturnType = (Class<T>) PrismContainerValue.class;
+        }
+
+        if (javaReturnType == null) {
+            // TODO quick and dirty hack - because this could be because of enums defined in schema extension (MID-2399)
+            //  ...and enums (xsd:simpleType) are not parsed into ComplexTypeDefinitions
+            javaReturnType = (Class<T>) String.class;
+        }
+        LOGGER.trace("expected return type: XSD={}, Java={}", xsdReturnType, javaReturnType);
+        return javaReturnType;
     }
 
     private C getCompiledScript(String codeString, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException, SecurityViolationException {

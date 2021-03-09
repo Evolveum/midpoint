@@ -328,10 +328,10 @@ public class ActivationProcessor implements ProjectorProcessor {
             return;
         }
 
-        ActivationStatusCapabilityType capStatus = CapabilityUtil.getEffectiveActivationStatus(capActivation);
-        ActivationValidityCapabilityType capValidFrom = CapabilityUtil.getEffectiveActivationValidFrom(capActivation);
-        ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEffectiveActivationValidTo(capActivation);
-        ActivationLockoutStatusCapabilityType capLockoutStatus = CapabilityUtil.getEffectiveActivationLockoutStatus(capActivation);
+        ActivationStatusCapabilityType capStatus = CapabilityUtil.getEnabledActivationStatus(capActivation);
+        ActivationValidityCapabilityType capValidFrom = CapabilityUtil.getEnabledActivationValidFrom(capActivation);
+        ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEnabledActivationValidTo(capActivation);
+        ActivationLockoutStatusCapabilityType capLockoutStatus = CapabilityUtil.getEnabledActivationLockoutStatus(capActivation);
 
         if (capStatus != null) {
             evaluateActivationMapping(context, projCtx,
@@ -483,9 +483,9 @@ public class ActivationProcessor implements ProjectorProcessor {
             return;
         }
 
-        ActivationStatusCapabilityType capStatus = CapabilityUtil.getEffectiveActivationStatus(capActivation);
-        ActivationValidityCapabilityType capValidFrom = CapabilityUtil.getEffectiveActivationValidFrom(capActivation);
-        ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEffectiveActivationValidTo(capActivation);
+        ActivationStatusCapabilityType capStatus = CapabilityUtil.getEnabledActivationStatus(capActivation);
+        ActivationValidityCapabilityType capValidFrom = CapabilityUtil.getEnabledActivationValidFrom(capActivation);
+        ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEnabledActivationValidTo(capActivation);
 
         if (capStatus != null) {
             evaluateActivationMapping(context, accCtx, activationType.getAdministrativeStatus(),
@@ -639,8 +639,8 @@ public class ActivationProcessor implements ProjectorProcessor {
                 ItemDeltaItem<PrismPropertyValue<T>,PrismPropertyDefinition<T>> sourceIdi = focusOdoAbsolute.findIdi(focusPropertyPath);
 
                 if (capActivation != null && focusPropertyPath.equivalent(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)) {
-                    ActivationValidityCapabilityType capValidFrom = CapabilityUtil.getEffectiveActivationValidFrom(capActivation);
-                    ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEffectiveActivationValidTo(capActivation);
+                    ActivationValidityCapabilityType capValidFrom = CapabilityUtil.getEnabledActivationValidFrom(capActivation);
+                    ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEnabledActivationValidTo(capActivation);
 
                     // Source: computedShadowStatus
                     ItemPath sourcePath;

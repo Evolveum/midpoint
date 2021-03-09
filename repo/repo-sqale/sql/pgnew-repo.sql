@@ -29,9 +29,7 @@ $$;
 
 -- "OID pool", provides generated OID, can be referenced by FKs.
 CREATE TABLE m_object_oid (
-    oid UUID NOT NULL DEFAULT gen_random_uuid(),
-
-    PRIMARY KEY (oid)
+    oid UUID PRIMARY KEY DEFAULT gen_random_uuid()
 );
 -- endregion
 
@@ -145,7 +143,7 @@ CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ER
 
 CREATE TYPE ReferenceType AS ENUM ('ARCHETYPE', 'CREATE_APPROVER', 'DELEGATED', 'INCLUDE',
     'MODIFY_APPROVER', 'OBJECT_PARENT_ORG', 'PERSONA', 'RESOURCE_BUSINESS_CONFIGURATION_APPROVER',
-    'ROLE_MEMBER', 'USER_ACCOUNT');
+    'ROLE_MEMBERSHIP', 'USER_ACCOUNT');
 
 CREATE TYPE TaskExecutionStatusType AS ENUM ('RUNNABLE', 'WAITING', 'SUSPENDED', 'CLOSED');
 
@@ -174,7 +172,7 @@ CREATE TABLE m_object (
     tenantRef_targetType INTEGER, -- soft-references m_objtype
     tenantRef_relation_id INTEGER, -- soft-references m_uri,
     lifecycleState VARCHAR(255), -- TODO what is this? how many distinct values?
-    cid_seq INTEGER NOT NULL DEFAULT 1, -- sequence for container id
+    cid_seq BIGINT NOT NULL DEFAULT 1, -- sequence for container id
     version INTEGER NOT NULL DEFAULT 1,
     -- add GIN index for concrete tables where more than hundreds of entries are expected (see m_user)
     ext JSONB,
@@ -203,13 +201,14 @@ CREATE TABLE m_object (
 -- Allows querying all separately persisted containers, but not necessary for the application.
 CREATE TABLE m_container (
     -- Default OID value is covered by INSERT triggers. No PK defined on abstract tables.
+    -- Owner does not have to be the direct parent of the container.
     owner_oid UUID NOT NULL,
     -- use like this on the concrete table:
     -- owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
 
     -- Container ID, unique in the scope of the whole object (owner).
     -- While this provides it for sub-tables we will repeat this for clarity, it's part of PK.
-    cid INTEGER NOT NULL,
+    cid BIGINT NOT NULL,
 
     CHECK (FALSE) NO INHERIT
     -- add on concrete table (additional columns possible): PRIMARY KEY (owner_oid, cid)
@@ -429,7 +428,6 @@ CREATE INDEX m_acc_cert_campaign_ext_idx ON m_acc_cert_campaign USING gin (ext);
 
 CREATE TABLE m_acc_cert_case (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
-    cid INTEGER NOT NULL,
     administrativeStatus INTEGER,
     archiveTimestamp TIMESTAMPTZ,
     disableReason VARCHAR(255),
@@ -468,7 +466,6 @@ CREATE TABLE m_acc_cert_case (
 CREATE TABLE m_acc_cert_wi (
     owner_oid UUID NOT NULL, -- PK+FK
     acc_cert_case_cid INTEGER NOT NULL, -- PK+FK
-    cid INTEGER NOT NULL, -- PK
     closeTimestamp TIMESTAMPTZ,
     iteration INTEGER NOT NULL,
     outcome VARCHAR(255),
@@ -915,7 +912,6 @@ ALTER TABLE IF EXISTS m_case_wi_reference
 --0	48756229
 CREATE TABLE m_assignment (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
-    cid INTEGER NOT NULL, -- container id
     -- new column may avoid join to object for some queries
     owner_type INTEGER NOT NULL,
     assignmentOwner INTEGER, -- TODO rethink, not useful if inducements are separate
@@ -1125,16 +1121,16 @@ CREATE TABLE m_ref_resource_business_configuration_approver (
 CREATE INDEX m_ref_resource_biz_config_approver_targetOid_relation_id_idx
     ON m_ref_resource_business_configuration_approver (targetOid, relation_id);
 
-CREATE TABLE m_ref_role_member (
+CREATE TABLE m_ref_role_membership (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
-    referenceType ReferenceType GENERATED ALWAYS AS ('ROLE_MEMBER') STORED,
+    referenceType ReferenceType GENERATED ALWAYS AS ('ROLE_MEMBERSHIP') STORED,
 
     PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
 )
     INHERITS (m_reference);
 
 CREATE INDEX m_ref_role_member_targetOid_relation_id_idx
-    ON m_ref_role_member (targetOid, relation_id);
+    ON m_ref_role_membership (targetOid, relation_id);
 
 CREATE TABLE m_ref_user_account (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),

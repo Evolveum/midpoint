@@ -37,10 +37,16 @@
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
         <icfc:configurationProperties>
-            <icfi:instanceId>lime</icfi:instanceId> <!-- Default instance. -->
+            <icfi:instanceId>lime</icfi:instanceId>
             <icfi:supportValidity>true</icfi:supportValidity>
             <icfi:passwordReadabilityMode>readable</icfi:passwordReadabilityMode>
         </icfc:configurationProperties>
+
+        <icfc:resultsHandlerConfiguration>
+            <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+            <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+        </icfc:resultsHandlerConfiguration>
 
     </connectorConfiguration>
 

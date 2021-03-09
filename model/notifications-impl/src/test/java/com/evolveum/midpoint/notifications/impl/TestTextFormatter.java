@@ -57,7 +57,7 @@ public class TestTextFormatter extends AbstractSpringTest {
     private static final String USER_JACK_MODIFICATION_FILE = CHANGES_DIR_NAME + "/user-jack-modification.xml";
 
     private static final List<ItemPath> auxiliaryPaths = Arrays.asList(
-            UserType.F_FAMILY_NAME,               // for testing purposes
+            UserType.F_FAMILY_NAME, // for testing purposes
             ShadowType.F_METADATA,
             ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),
             ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),

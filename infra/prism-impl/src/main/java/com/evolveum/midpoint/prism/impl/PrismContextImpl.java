@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.impl.polystring.ConfigurableNormalizer;
 import com.evolveum.midpoint.prism.impl.query.QueryFactoryImpl;
 import com.evolveum.midpoint.prism.impl.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.impl.query.lang.PrismQueryLanguageParserImpl;
+import com.evolveum.midpoint.prism.impl.query.lang.PrismQuerySerializerImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.impl.schema.SchemaFactoryImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
@@ -52,6 +53,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.PrismQueryLanguageParser;
+import com.evolveum.midpoint.prism.query.PrismQuerySerializer;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
@@ -707,5 +709,10 @@ public final class PrismContextImpl implements PrismContext {
     @Override
     public PrismQueryLanguageParser createQueryParser(Map<String, String> prefixToNamespace) {
         return new PrismQueryLanguageParserImpl(this);
+    }
+
+    @Override
+    public PrismQuerySerializer querySerializer() {
+        return new PrismQuerySerializerImpl();
     }
 }

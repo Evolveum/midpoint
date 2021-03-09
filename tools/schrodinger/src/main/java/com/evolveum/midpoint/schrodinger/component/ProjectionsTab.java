@@ -76,9 +76,26 @@ public class ProjectionsTab<P extends AssignmentHolderDetailsPage> extends TabWi
             }
 
             @Override
+            public AbstractTableWithPrismView<ProjectionsTab<P>> selectHeaderCheckbox() {
+                $(Schrodinger.byFollowingSiblingEnclosedValue("th", "class", "check", "data-s-id", "3", ""))
+                        .$(By.tagName("input"))
+                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+                Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+                return this;
+            }
+
+            @Override
             public AbstractTableWithPrismView<ProjectionsTab<P>> removeByName(String name) {
                 selectCheckboxByName(name);
                 clickHeaderActionDropDown().delete();
+                return this;
+            }
+
+            @Override
+            public AbstractTableWithPrismView<ProjectionsTab<P>> clickHeaderActionButton(String actionButtonStyle) {
+                $(Schrodinger.byDescendantElementAttributeValue("th", "class", actionButtonStyle))
+                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+                Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
                 return this;
             }
         };

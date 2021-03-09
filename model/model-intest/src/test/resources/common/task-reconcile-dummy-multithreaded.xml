@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!--Reconciliation task definition for dummy resource -->
+
+<task oid="74d4297d-cdeb-43e6-a7f9-0af38d36de12"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+
+    <name>Reconciliation: Dummy</name>
+
+    <extension>
+        <syncext:objectclass>ri:AccountObjectClass</syncext:objectclass>
+        <syncext:workerThreads>3</syncext:workerThreads>
+    </extension>
+
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000501" type="ArchetypeType"/> <!-- Reconciliation task archetype -->
+    </assignment>
+
+    <taskIdentifier>10000000-0000-0000-5656-565600000004</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
+    <objectRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>
+    <recurrence>recurring</recurrence>
+    <binding>tight</binding>
+    <schedule>
+        <interval>10</interval>
+    </schedule>
+</task>

@@ -220,7 +220,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
             if (deltaBean.getObjectType() == null) {
                 deltaBean.setObjectType(ShadowType.COMPLEX_TYPE);
             }
-            delta = DeltaConvertor.createObjectDelta(deltaBean, getPrismContext(), true);
+            delta = DeltaConvertor.createObjectDelta(deltaBean, getPrismContext());
         } else {
             delta = null;
         }

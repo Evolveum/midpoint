@@ -181,6 +181,14 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     }
 
     @Override
+    public Collection<? extends RunningTaskQuartzImpl> getRunnableOrRunningLightweightAsynchronousSubtasks() {
+        // beware: Do not touch task prism here, because of thread safety
+        return getLightweightAsynchronousSubtasks().stream()
+                .filter(subtask -> subtask.isRunnable() || subtask.isRunning())
+                .collect(Collectors.toUnmodifiableList());
+    }
+
+    @Override
     public void deleteLightweightAsynchronousSubtasks() {
         synchronized (lightweightAsynchronousSubtasks) {
             List<? extends RunningTask> livingSubtasks = lightweightAsynchronousSubtasks.values().stream()

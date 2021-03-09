@@ -23,8 +23,6 @@ import java.io.FileNotFoundException;
  *
  * Cannot be run under H2 because of too much contention.
  * Also, it takes a little longer than standard TestReconTask because of the overhead.
- *
- * @author mederly
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

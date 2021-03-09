@@ -15,7 +15,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Enumeration of various types of reference entities (subtypes of {@link QReference}).
+ * Enumeration of various types of object reference entities (subtypes of {@link QReference}).
  * Each value contains information about concrete Q-type (implying the concrete sub-table)
  * and what is mapped to that kind of reference (reference owner + item that stores it).
  *
@@ -23,8 +23,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * * Order of values is irrelevant.
  * * Constant names must match the custom enum type ReferenceType in the database schema.
+ *
+ * These are only types of references owned by object, see also {@link AssignmentReferenceType}.
  */
-public enum ReferenceType {
+public enum MReferenceType {
 
     ARCHETYPE(QReferenceMapping.INSTANCE_ARCHETYPE,
             AssignmentHolderType.class, AssignmentHolderType.F_ARCHETYPE_REF),
@@ -53,7 +55,7 @@ public enum ReferenceType {
             QReferenceMapping.INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER,
             ResourceType.class, ResourceBusinessConfigurationType.F_APPROVER_REF),
 
-    ROLE_MEMBER(QReferenceMapping.INSTANCE_ROLE_MEMBER,
+    ROLE_MEMBERSHIP(QReferenceMapping.INSTANCE_ROLE_MEMBERSHIP,
             AssignmentHolderType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF),
 
     USER_ACCOUNT(QReferenceMapping.INSTANCE_USER_ACCOUNT,
@@ -63,7 +65,7 @@ public enum ReferenceType {
     private final Class<? extends ObjectType> schemaType;
     private final QName itemName;
 
-    ReferenceType(
+    MReferenceType(
             @NotNull QReferenceMapping qReferenceMapping,
             @NotNull Class<? extends ObjectType> schemaType,
             @NotNull QName itemName) {
@@ -84,12 +86,12 @@ public enum ReferenceType {
         return itemName;
     }
 
-    public static ReferenceType getOwnerByQName(
+    public static MReferenceType getOwnerByQName(
             Class<? extends ObjectType> typeClass, QName itemName) {
         Objects.requireNonNull(typeClass, "Schema type class must not be null");
         Objects.requireNonNull(itemName, "QName must not be null");
 
-        for (ReferenceType referenceType : values()) {
+        for (MReferenceType referenceType : values()) {
             if (QNameUtil.match(itemName, referenceType.itemName)
                     && referenceType.schemaType.isAssignableFrom(typeClass)) {
                 return referenceType;
