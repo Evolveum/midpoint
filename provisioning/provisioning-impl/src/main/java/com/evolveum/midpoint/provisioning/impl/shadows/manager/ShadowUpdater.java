@@ -268,7 +268,7 @@ class ShadowUpdater {
         // TODO: reflect activation updates on cached shadow
     }
 
-    public PrismObject<ShadowType> recordDeleteResult(
+    PrismObject<ShadowType> recordDeleteResult(
             ProvisioningContext ctx,
             PrismObject<ShadowType> oldRepoShadow,
             ProvisioningOperationState<AsynchronousOperationResult> opState,
@@ -510,7 +510,7 @@ class ShadowUpdater {
         }
     }
 
-    public PrismObject<ShadowType> markShadowTombstone(PrismObject<ShadowType> repoShadow, OperationResult parentResult) throws SchemaException {
+    PrismObject<ShadowType> markShadowTombstone(PrismObject<ShadowType> repoShadow, OperationResult parentResult) throws SchemaException {
         if (repoShadow == null) {
             return null;
         }
@@ -829,7 +829,7 @@ class ShadowUpdater {
     }
 
     // returns conflicting operation (pending delta) if there is any
-    public PendingOperationType checkAndRecordPendingDeleteOperationBeforeExecution(ProvisioningContext ctx,
+    PendingOperationType checkAndRecordPendingDeleteOperationBeforeExecution(ProvisioningContext ctx,
             PrismObject<ShadowType> shadow,
             ProvisioningOperationState<AsynchronousOperationResult> opState,
             Task task, OperationResult parentResult)
@@ -839,7 +839,7 @@ class ShadowUpdater {
         return checkAndRecordPendingOperationBeforeExecution(ctx, shadow, proposedDelta, opState, task, parentResult);
     }
 
-    public PendingOperationType checkAndRecordPendingModifyOperationBeforeExecution(ProvisioningContext ctx,
+    PendingOperationType checkAndRecordPendingModifyOperationBeforeExecution(ProvisioningContext ctx,
             PrismObject<ShadowType> repoShadow,
             Collection<? extends ItemDelta> modifications,
             ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,

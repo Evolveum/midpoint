@@ -137,19 +137,17 @@ class RefreshHelper {
         ctx.assertDefinition();
         List<PendingOperationType> sortedOperations = shadowCaretaker.sortPendingOperations(shadowType.getPendingOperation());
 
-        repoShadow = refreshShadowAsyncStatus(ctx, repoShadow, sortedOperations, task, parentResult);
+        refreshShadowAsyncStatus(ctx, repoShadow, sortedOperations, task, parentResult);
 
-        RefreshShadowOperation refreshShadowOperation = refreshShadowRetryOperations(ctx, repoShadow, sortedOperations, options, task, parentResult);
-
-        return refreshShadowOperation;
+        return refreshShadowRetryOperations(ctx, repoShadow, sortedOperations, options, task, parentResult);
     }
 
     /**
      * Used to quickly and efficiently refresh shadow before GET operations.
      */
-    PrismObject<ShadowType> refreshShadowQuick(ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow,
-            XMLGregorianCalendar now, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
+    PrismObject<ShadowType> refreshShadowQuick(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
+            XMLGregorianCalendar now, Task task, OperationResult parentResult) throws ObjectNotFoundException,
+            SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         ObjectDelta<ShadowType> shadowDelta = repoShadow.createModifyDelta();
         expirePendingOperations(ctx, repoShadow, shadowDelta, now);
@@ -169,7 +167,7 @@ class RefreshHelper {
      * This method will get new status from resourceObjectConverter and it will process the
      * status in case that it has changed.
      */
-    private PrismObject<ShadowType> refreshShadowAsyncStatus(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
+    private void refreshShadowAsyncStatus(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
             List<PendingOperationType> sortedOperations, Task task, OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
@@ -333,11 +331,9 @@ class RefreshHelper {
             operationListener.notifySuccess(operationDescription, task, parentResult);
         }
 
-        if (shadowDelta.isEmpty()) {
-            return repoShadow;
+        if (!shadowDelta.isEmpty()) {
+            shadowDelta.applyTo(repoShadow);
         }
-        shadowDelta.applyTo(repoShadow);
-        return repoShadow;
     }
 
     private boolean needsRefresh(PendingOperationType pendingOperation) {
@@ -373,7 +369,7 @@ class RefreshHelper {
             }
             // We really want to get "now" here. Retrying operation may take some time. We want good timestamps that do not lie.
             XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-            if (!isAfterRetryPeriod(ctx, pendingOperation, retryPeriod, now)) {
+            if (!isAfterRetryPeriod(pendingOperation, retryPeriod, now)) {
                 if (PendingOperationTypeType.RETRY != pendingOperation.getType()) {
                     continue;
                 }
@@ -459,12 +455,11 @@ class RefreshHelper {
         return rso;
     }
 
-    private void retryOperation(ProvisioningContext ctx,
-            ObjectDelta<ShadowType> pendingDelta,
-            ProvisioningOperationState<? extends AsynchronousOperationResult> opState,
-            Task task,
-            OperationResult result)
-            throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, EncryptionException {
+    private void retryOperation(ProvisioningContext ctx, ObjectDelta<ShadowType> pendingDelta,
+            ProvisioningOperationState<? extends AsynchronousOperationResult> opState, Task task, OperationResult result)
+            throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
+            ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
+            ExpressionEvaluationException, EncryptionException {
 
         ProvisioningOperationOptions options = ProvisioningOperationOptions.createForceRetry(false);
         OperationProvisioningScriptsType scripts = null; // TODO
@@ -483,21 +478,62 @@ class RefreshHelper {
         }
 
         if (pendingDelta.isDelete()) {
-            deleteHelper.deleteShadowAttempt(ctx, options, scripts,
+            PrismObject<ShadowType> shadow = deleteHelper.deleteShadowAttempt(ctx, options, scripts,
                     (ProvisioningOperationState<AsynchronousOperationResult>) opState,
                     task, result);
+            if (shadow == null || ShadowUtil.isDead(shadow)) {
+                notifyObjectDeleted(ctx, shadow, opState.getRepoShadow(), task, result);
+            }
         }
     }
 
-    private boolean isAfterRetryPeriod(ProvisioningContext ctx, PendingOperationType pendingOperation, Duration retryPeriod, XMLGregorianCalendar now) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    /**
+     * We have to notify model that the shadow was deleted. This is mainly to unlink the shadow from its owner. (MID-6862)
+     *
+     * It is interesting that the provisioning normally does not need to notify model on shadow deletion: It is because during
+     * normal operation, the model itself requests the deletion, so it knows is has to do unlink the shadow. But this time
+     * it is different. Model does not unlink if the deletion is not successful, so we have to do that after successful retry.
+     */
+    private void notifyObjectDeleted(ProvisioningContext ctx, PrismObject<ShadowType> shadowAfter,
+            PrismObject<ShadowType> shadowBefore, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        PrismObject<ShadowType> shadow = getShadowForNotification(shadowAfter, shadowBefore);
+        ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
+        change.setObjectDelta(shadow.createDeleteDelta());
+        change.setResource(ctx.getResource().asPrismObject());
+        change.setShadowedResourceObject(shadow);
+        change.setSourceChannel(java.util.Objects.requireNonNullElse(task.getChannel(), SchemaConstants.CHANNEL_DISCOVERY_URI)); // TODO good channel?
+        changeNotificationDispatcher.notifyChange(change, task, result);
+    }
+
+    /**
+     * What shadow should we use for the notification?
+     *
+     * @param shadowAfter Shadow as returned from `deleteShadowAttempt` method. Dead, but sometimes null.
+     * @param shadowBefore Shadow as present in `opState`. Probably not dead? Not sure.
+     * @return Shadow that can be used for the notification.
+     */
+    private PrismObject<ShadowType> getShadowForNotification(PrismObject<ShadowType> shadowAfter,
+            PrismObject<ShadowType> shadowBefore) {
+        if (shadowAfter != null) {
+            return shadowAfter;
+        } else if (shadowBefore != null) {
+            return shadowBefore;
+        } else {
+            throw new IllegalStateException("No shadow to use for notification. Both 'before' and 'after' shadows are null.");
+        }
+    }
+
+    private boolean isAfterRetryPeriod(PendingOperationType pendingOperation, Duration retryPeriod, XMLGregorianCalendar now) {
         XMLGregorianCalendar lastAttemptTimestamp = pendingOperation.getLastAttemptTimestamp();
         XMLGregorianCalendar scheduledRetryTimestamp = XmlTypeConverter.addDuration(lastAttemptTimestamp, retryPeriod);
         return XmlTypeConverter.compare(now, scheduledRetryTimestamp) == DatatypeConstants.GREATER;
     }
 
-    private PrismObject<ShadowType> cleanUpDeadShadow(ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow,
-            XMLGregorianCalendar now, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
+    private PrismObject<ShadowType> cleanUpDeadShadow(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
+            XMLGregorianCalendar now, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         ShadowType shadowType = repoShadow.asObjectable();
         if (!ShadowUtil.isDead(shadowType)) {
             return repoShadow;

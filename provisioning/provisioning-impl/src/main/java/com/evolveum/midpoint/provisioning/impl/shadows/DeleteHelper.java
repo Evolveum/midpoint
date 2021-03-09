@@ -55,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @Experimental
 class DeleteHelper {
 
-    static final String OP_RESOURCE_OPERATION = ShadowsFacade.class.getName() + ".resourceOperation";
+    private static final String OP_RESOURCE_OPERATION = ShadowsFacade.class.getName() + ".resourceOperation";
 
     private static final Trace LOGGER = TraceManager.getTrace(AddHelper.class);
 
@@ -109,7 +109,6 @@ class DeleteHelper {
         return deleteShadowAttempt(ctx, options, scripts, opState, task, parentResult);
     }
 
-
     PrismObject<ShadowType> deleteShadowAttempt(ProvisioningContext ctx,
             ProvisioningOperationOptions options,
             OperationProvisioningScriptsType scripts,
@@ -122,7 +121,8 @@ class DeleteHelper {
         final PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
         shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
 
-        PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, repoShadow, opState, task, parentResult);
+        PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx,
+                repoShadow, opState, task, parentResult);
         if (duplicateOperation != null) {
             parentResult.recordInProgress();
             return repoShadow;

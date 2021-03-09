@@ -292,13 +292,10 @@ public class ChangeExecutor {
                         }
                     }
                     if (projDelta != null && projDelta.isDelete()) {
-
-                        shadowAfterModification = executeDelta(projDelta, projCtx, context, null, null, projCtx.getResource(), task,
-                                subResult);
-
+                        shadowAfterModification = executeDelta(projDelta, projCtx, context, null, null,
+                                projCtx.getResource(), task, subResult);
                     }
                 } else {
-
                     if (projDelta == null || projDelta.isEmpty()) {
                         LOGGER.trace("No change for {}", projCtx.getResourceShadowDiscriminator());
                         shadowAfterModification = projCtx.getObjectCurrent();
@@ -333,7 +330,6 @@ public class ChangeExecutor {
                     if (projCtx.isAdd() && shadowAfterModification != null) {
                         projCtx.setExists(true);
                     }
-
                 }
 
                 subResult.computeStatus();
@@ -703,7 +699,8 @@ public class ChangeExecutor {
         }
     }
 
-    private <F extends FocusType> boolean linkShouldExist(LensFocusContext<F> focusContext, LensProjectionContext projCtx, PrismObject<ShadowType> shadowAfterModification, OperationResult result) {
+    private <F extends FocusType> boolean linkShouldExist(LensFocusContext<F> focusContext, LensProjectionContext projCtx,
+            PrismObject<ShadowType> shadowAfterModification, OperationResult result) {
         if (focusContext.isDelete()) {
             // if we delete focus, link doesn't exist anymore, but be sure, that the situation is updated in shadow
             return false;
@@ -729,9 +726,6 @@ public class ChangeExecutor {
         }
         if (projCtx.isDelete()) {
             return shadowAfterModification != null;
-        }
-        if (projCtx.hasPendingOperations()) {
-            return true;
         }
         return true;
     }
@@ -934,10 +928,7 @@ public class ChangeExecutor {
         }
 
         objectDelta = computeDeltaToExecute(objectDelta, objectContext);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("computeDeltaToExecute returned:\n{}",
-                    objectDelta != null ? objectDelta.debugDump(1) : "(null)");
-        }
+        LOGGER.trace("computeDeltaToExecute returned:\n{}", DebugUtil.debugDumpLazily(objectDelta, 1));
 
         if (objectDelta == null || objectDelta.isEmpty()) {
             LOGGER.debug("Skipping execution of delta because it was already executed: {}", objectContext);
