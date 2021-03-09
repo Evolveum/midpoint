@@ -81,8 +81,11 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
 
     private String addObjectWithOid() throws SchemaException {
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-            R row = transformer.toRowObjectWithoutFullObject(object.asObjectable(), jdbcSession);
-            transformer.setFullObject(row, object.asObjectable());
+            S schemaObject = object.asObjectable();
+            R row = transformer.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
+            // TODO set row.containerIdSeq
+            transformer.storeRelatedEntities(row, schemaObject, jdbcSession);
+            transformer.setFullObject(row, schemaObject);
             UUID oid = jdbcSession.newInsert(root)
                     // default populate mapper ignores null, that's good, especially for objectType
                     .populate(row)
