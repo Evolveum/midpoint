@@ -17,6 +17,7 @@ import org.postgresql.util.PSQLState;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.midpoint.repo.sqale.ContainerValueIdGenerator;
 import com.evolveum.midpoint.repo.sqale.SqaleTransformerContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
@@ -29,6 +30,16 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+/*
+TODO: implementation note:
+ Typically I'd use "technical" dependencies in a constructor and then the object/options/result
+ would be parameters of execute(). Unfortunately I don't know how to do that AND capture
+ the parametric types in the operations object. I could hide it behind this object and then capture
+ it in another "actual operation" object, but that does not make any sense.
+ That's why the creation is with actual parameters and execute() takes technical ones (possibly
+ some richer "context" object later to provide more dependencies if necessary).
+ The "context" could go to construction too, but than it would be all mixed too much. Sorry.
+*/
 public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R extends MObject> {
 
     private final PrismObject<S> object;
@@ -58,6 +69,8 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
             transformer = (ObjectSqlTransformer<S, Q, R>)
                     rootMapping.createTransformer(transformerContext);
 
+            // we don't want CID generation here, because overwrite works different then normal add
+
             if (object.getOid() == null) {
                 return addObjectWithoutOid();
             } else if (options.isOverwrite()) {
@@ -80,10 +93,11 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
     }
 
     private String addObjectWithOid() throws SchemaException {
+        long lastCid = new ContainerValueIdGenerator(object).generate();
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             S schemaObject = object.asObjectable();
             R row = transformer.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
-            // TODO set row.containerIdSeq
+            row.containerIdSeq = lastCid + 1;
             transformer.storeRelatedEntities(row, schemaObject, jdbcSession);
             transformer.setFullObject(row, schemaObject);
             UUID oid = jdbcSession.newInsert(root)
@@ -96,8 +110,10 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
     }
 
     private String addObjectWithoutOid() throws SchemaException {
+        long lastCid = new ContainerValueIdGenerator(object).generate();
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             R row = transformer.toRowObjectWithoutFullObject(object.asObjectable(), jdbcSession);
+            row.containerIdSeq = lastCid + 1;
             // first insert without full object, because we don't know the OID yet
             UUID oid = jdbcSession.newInsert(root)
                     // default populate mapper ignores null, that's good, especially for objectType
@@ -133,4 +149,5 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
             }
         }
     }
+
 }

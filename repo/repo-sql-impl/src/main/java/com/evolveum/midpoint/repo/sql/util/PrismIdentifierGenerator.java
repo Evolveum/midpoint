@@ -85,7 +85,7 @@ public class PrismIdentifierGenerator implements DebugDumpable {
                 return;
             }
 
-            values.add((PrismContainer<?>) visitable);
+            values.add(container);
         });
 
         return values;
