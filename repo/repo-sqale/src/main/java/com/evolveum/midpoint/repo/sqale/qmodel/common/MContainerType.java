@@ -6,14 +6,11 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.common;
 
-import java.util.UUID;
-
 /**
- * Querydsl "row bean" type related to {@link QContainer}.
+ * Type for container stored in database, used for {@link MContainer#containerType}.
  */
-public class MContainer {
-
-    public UUID ownerOid;
-    public Long cid;
-    public MContainerType containerType;
+public enum MContainerType {
+    ACCESS_CERTIFICATION_CASE,
+    ACCESS_CERTIFICATION_WORK_ITEM,
+    ASSIGNMENT
 }

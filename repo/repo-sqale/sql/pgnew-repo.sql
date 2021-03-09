@@ -138,6 +138,9 @@ CREATE TABLE m_uri (
 -- region custom enum types
 -- The same names like schema enum classes are used for the types (I like the Type suffix here).
 -- Some enums are not schema based (e.g. ReferenceType).
+CREATE TYPE ContainerType AS ENUM ('ACCESS_CERTIFICATION_CASE','ACCESS_CERTIFICATION_WORK_ITEM',
+    'ASSIGNMENT');
+
 CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ERROR',
     'FATAL_ERROR', 'HANDLED_ERROR', 'NOT_APPLICABLE', 'IN_PROGRESS', 'UNKNOWN');
 
@@ -209,6 +212,8 @@ CREATE TABLE m_container (
     -- Container ID, unique in the scope of the whole object (owner).
     -- While this provides it for sub-tables we will repeat this for clarity, it's part of PK.
     cid BIGINT NOT NULL,
+    -- containerType will be overridden with GENERATED value in concrete table
+    containerType ContainerType NOT NULL,
 
     CHECK (FALSE) NO INHERIT
     -- add on concrete table (additional columns possible): PRIMARY KEY (owner_oid, cid)
@@ -428,6 +433,7 @@ CREATE INDEX m_acc_cert_campaign_ext_idx ON m_acc_cert_campaign USING gin (ext);
 
 CREATE TABLE m_acc_cert_case (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CASE') STORED,
     administrativeStatus INTEGER,
     archiveTimestamp TIMESTAMPTZ,
     disableReason VARCHAR(255),
@@ -466,6 +472,7 @@ CREATE TABLE m_acc_cert_case (
 CREATE TABLE m_acc_cert_wi (
     owner_oid UUID NOT NULL, -- PK+FK
     acc_cert_case_cid INTEGER NOT NULL, -- PK+FK
+    containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_WORK_ITEM') STORED,
     closeTimestamp TIMESTAMPTZ,
     iteration INTEGER NOT NULL,
     outcome VARCHAR(255),
@@ -912,6 +919,7 @@ ALTER TABLE IF EXISTS m_case_wi_reference
 --0	48756229
 CREATE TABLE m_assignment (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    containerType ContainerType GENERATED ALWAYS AS ('ASSIGNMENT') STORED,
     -- new column may avoid join to object for some queries
     owner_type INTEGER NOT NULL,
     assignmentOwner INTEGER, -- TODO rethink, not useful if inducements are separate
@@ -1001,12 +1009,12 @@ ALTER TABLE IF EXISTS m_assignment_reference
 -- region Other object containers
 CREATE TABLE m_trigger (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
-    id INTEGER NOT NULL,
     handlerUri_id INTEGER,
     timestampValue TIMESTAMPTZ,
 
-    PRIMARY KEY (owner_oid, id)
-);
+    PRIMARY KEY (owner_oid, cid)
+)
+    INHERITS(m_container);
 
 CREATE INDEX m_trigger_timestampValue_idx ON m_trigger (timestampValue);
 -- endregion
