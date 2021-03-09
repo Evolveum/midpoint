@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2010-2021 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.testing.schrodinger.labs.advanced;
 
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
@@ -11,9 +17,9 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-
+/**
+ * @author honchar
+ */
 public class M1ArchetypeAndObjectCollections extends AbstractAdvancedLabTest {
     protected static final String LAB_OBJECTS_DIRECTORY = LAB_ADVANCED_DIRECTORY + "M1/";
     private static final File OBJECT_COLLECTION_ACTIVE_EMP_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectcollections/objectCollection-active-employees.xml");

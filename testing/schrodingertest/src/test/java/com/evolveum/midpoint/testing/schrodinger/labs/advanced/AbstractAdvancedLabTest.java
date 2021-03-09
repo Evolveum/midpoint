@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2010-2021 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.testing.schrodinger.labs.advanced;
 
 import com.evolveum.midpoint.testing.schrodinger.labs.AbstractLabTest;
@@ -8,7 +14,9 @@ import org.testng.annotations.BeforeClass;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-
+/**
+ * @author honchar
+ */
 public class AbstractAdvancedLabTest extends AbstractLabTest {
 
     protected static final File EXTENSION_SCHEMA_FILE = new File(LAB_ADVANCED_DIRECTORY + "schema/extension-example.xsd");
