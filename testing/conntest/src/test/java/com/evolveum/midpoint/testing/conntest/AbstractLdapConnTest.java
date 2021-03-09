@@ -138,6 +138,11 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         return false;
     }
 
+    protected boolean hasLdapGroupBaseContext() {
+        return false;
+    }
+
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -1144,7 +1149,11 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         groupEvilShadowOid = shadow.getOid();
         assertNotNull(groupEvilShadowOid);
 
-        assertConnectorOperationIncrement(1, 1);
+        if (hasLdapGroupBaseContext()) {
+            assertConnectorOperationIncrement(2, 2);
+        } else {
+            assertConnectorOperationIncrement(1, 1);
+        }
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
         SearchResultMetadata metadata = shadows.getMetadata();

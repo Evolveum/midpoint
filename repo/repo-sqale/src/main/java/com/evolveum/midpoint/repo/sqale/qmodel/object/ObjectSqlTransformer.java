@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
+import java.util.UUID;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
@@ -72,6 +74,8 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
      * *This must be called with active JDBC session* so it can create new {@link QUri} rows.
      * As this is intended for inserts *DO NOT* set {@link MObject#objectType} to any value,
      * it must be NULL otherwise the DB will complain about the value for the generated column.
+     *
+     * OID may be null, hence the method does NOT create any sub-entities, see {@link }
      */
     @NotNull
     public R toRowObjectWithoutFullObject(S schemaObject, JdbcSession jdbcSession) {
@@ -84,6 +88,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         row.nameOrig = name.getOrig();
         row.nameNorm = name.getNorm();
 
+        // can this be reused? AbstractCredentialType, PasswordHistoryEntryType (is it stored?), AssignmentType... the rest is not in repo for sure
         MetadataType metadata = schemaObject.getMetadata();
         if (metadata != null) {
             ObjectReferenceType creatorRef = metadata.getCreatorRef();
@@ -94,6 +99,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
             }
             row.createChannelId = processCachedUri(metadata.getCreateChannel(), jdbcSession);
             row.createTimestamp = MiscUtil.asInstant(metadata.getCreateTimestamp());
+            // TODO metadata.getCreateApproverRef()
 
             ObjectReferenceType modifierRef = metadata.getModifierRef();
             if (modifierRef != null) {
@@ -103,8 +109,43 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
             }
             row.modifyChannelId = processCachedUri(metadata.getModifyChannel(), jdbcSession);
             row.modifyTimestamp = MiscUtil.asInstant(metadata.getModifyTimestamp());
+            // TODO metadata.getModifyApproverRef()
         }
 
+        /*
+        TODO, for ref lists see also RUtil.toRObjectReferenceSet
+        subtype? it's obsolete already
+        parentOrgRefs
+        triggers
+        repo.setPolicySituation(RUtil.listToSet(jaxb.getPolicySituation()));
+
+        if (jaxb.getExtension() != null) {
+            copyExtensionOrAttributesFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.EXTENSION, generatorResult);
+        }
+
+        repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, repositoryContext));
+        for (OperationExecutionType opExec : jaxb.getOperationExecution()) {
+            ROperationExecution rOpExec = new ROperationExecution(repo);
+            ROperationExecution.fromJaxb(opExec, rOpExec, jaxb, repositoryContext, generatorResult);
+            repo.getOperationExecutions().add(rOpExec);
+        }
+
+        repo.getRoleMembershipRef().addAll(
+                RUtil.toRObjectReferenceSet(jaxb.getRoleMembershipRef(), repo, RReferenceType.ROLE_MEMBER, repositoryContext.relationRegistry));
+
+        repo.getDelegatedRef().addAll(
+                RUtil.toRObjectReferenceSet(jaxb.getDelegatedRef(), repo, RReferenceType.DELEGATED, repositoryContext.relationRegistry));
+
+        repo.getArchetypeRef().addAll(
+                RUtil.toRObjectReferenceSet(jaxb.getArchetypeRef(), repo, RReferenceType.ARCHETYPE, repositoryContext.relationRegistry));
+
+        for (AssignmentType assignment : jaxb.getAssignment()) {
+            RAssignment rAssignment = new RAssignment(repo, RAssignmentOwner.FOCUS);
+            RAssignment.fromJaxb(assignment, rAssignment, jaxb, repositoryContext, generatorResult);
+
+            repo.getAssignments().add(rAssignment);
+        }
+        */
         ObjectReferenceType tenantRef = schemaObject.getTenantRef();
         if (tenantRef != null) {
             row.tenantRefTargetOid = oidToUUid(tenantRef.getOid());
@@ -115,9 +156,65 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         row.lifecycleState = schemaObject.getLifecycleState();
         row.version = SqaleUtils.objectVersionAsInt(schemaObject);
 
-        // TODO extensions
+        // TODO extensions stored inline (JSON)
 
         return row;
+    }
+
+    /**
+     * Stores other entities related to the main object row like containers, references, etc.
+     * This is not part of {@link #toRowObjectWithoutFullObject} because it requires know OID
+     * which is not assured before calling that method.
+     *
+     * @param row previously stored row, OID must not be null
+     * @param schemaObject schema objects for which the details are stored
+     * @param jdbcSession JDBC session used to insert related rows
+     */
+    public void storeRelatedEntities(R row, S schemaObject, JdbcSession jdbcSession) {
+        UUID oid = Objects.requireNonNull(row.oid);
+
+        MetadataType metadata = schemaObject.getMetadata();
+        if (metadata != null) {
+            // TODO metadata.getCreateApproverRef()
+            // TODO metadata.getModifyApproverRef()
+        }
+
+        /*
+        TODO, for ref lists see also RUtil.toRObjectReferenceSet
+        subtype? it's obsolete already
+        parentOrgRefs
+        triggers
+        repo.setPolicySituation(RUtil.listToSet(jaxb.getPolicySituation()));
+
+        if (jaxb.getExtension() != null) {
+            copyExtensionOrAttributesFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.EXTENSION, generatorResult);
+        }
+
+        repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, repositoryContext));
+        for (OperationExecutionType opExec : jaxb.getOperationExecution()) {
+            ROperationExecution rOpExec = new ROperationExecution(repo);
+            ROperationExecution.fromJaxb(opExec, rOpExec, jaxb, repositoryContext, generatorResult);
+            repo.getOperationExecutions().add(rOpExec);
+        }
+
+        repo.getRoleMembershipRef().addAll(
+                RUtil.toRObjectReferenceSet(jaxb.getRoleMembershipRef(), repo, RReferenceType.ROLE_MEMBER, repositoryContext.relationRegistry));
+
+        repo.getDelegatedRef().addAll(
+                RUtil.toRObjectReferenceSet(jaxb.getDelegatedRef(), repo, RReferenceType.DELEGATED, repositoryContext.relationRegistry));
+
+        repo.getArchetypeRef().addAll(
+                RUtil.toRObjectReferenceSet(jaxb.getArchetypeRef(), repo, RReferenceType.ARCHETYPE, repositoryContext.relationRegistry));
+
+        for (AssignmentType assignment : jaxb.getAssignment()) {
+            RAssignment rAssignment = new RAssignment(repo, RAssignmentOwner.FOCUS);
+            RAssignment.fromJaxb(assignment, rAssignment, jaxb, repositoryContext, generatorResult);
+
+            repo.getAssignments().add(rAssignment);
+        }
+        */
+
+        // TODO EAV extensions
     }
 
     /**

@@ -54,7 +54,7 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     public static final ColumnMetadata LIFECYCLE_STATE =
             ColumnMetadata.named("lifecycleState").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata CID_SEQ =
-            ColumnMetadata.named("cid_seq").ofType(Types.INTEGER).notNull();
+            ColumnMetadata.named("cid_seq").ofType(Types.BIGINT).notNull();
     public static final ColumnMetadata VERSION =
             ColumnMetadata.named("version").ofType(Types.INTEGER).notNull();
     public static final ColumnMetadata EXT =
@@ -94,7 +94,7 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     public final NumberPath<Integer> tenantRefRelationId =
             createInteger("tenantRefRelationId", TENANT_REF_RELATION_ID);
     public final StringPath lifecycleState = createString("lifecycleState", LIFECYCLE_STATE);
-    public final NumberPath<Integer> containerIdSeq = createInteger("containerIdSeq", CID_SEQ);
+    public final NumberPath<Long> containerIdSeq = createLong("containerIdSeq", CID_SEQ);
     public final NumberPath<Integer> version = createInteger("version", VERSION);
     public final ArrayPath<byte[], Byte> ext = createByteArray("ext", EXT); // TODO is byte[] the right type?
     // metadata attributes

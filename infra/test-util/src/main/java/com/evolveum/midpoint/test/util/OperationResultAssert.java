@@ -86,12 +86,20 @@ public class OperationResultAssert extends AbstractAssert<OperationResultAssert,
         return this;
     }
 
+    /** Use after asserting success or failure to propagate the message from subresult(s). */
+    public OperationResultAssert hasMessage(String message) {
+        objects.assertEqual(info, actual, message);
+        return this;
+    }
+
+    /** Use after asserting success or failure to propagate the message from subresult(s). */
     public OperationResultAssert hasMessageContaining(String message) {
         isNotNull();
         Strings.instance().assertContains(info, actual.getMessage(), message);
         return this;
     }
 
+    /** Use after asserting success or failure to propagate the message from subresult(s). */
     public OperationResultAssert hasMessageMatching(String regex) {
         isNotNull();
         Strings.instance().assertMatches(info, actual.getMessage(), regex);

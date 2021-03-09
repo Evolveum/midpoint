@@ -34,11 +34,11 @@ public class QContainer<T extends MContainer> extends FlexibleRelationalPathBase
     public static final ColumnMetadata OWNER_OID =
             ColumnMetadata.named("owner_oid").ofType(UuidPath.UUID_TYPE).notNull();
     public static final ColumnMetadata CID =
-            ColumnMetadata.named("cid").ofType(Types.INTEGER).notNull();
+            ColumnMetadata.named("cid").ofType(Types.BIGINT).notNull();
 
     // columns and relations
     public final UuidPath ownerOid = createUuid("ownerOid", OWNER_OID);
-    public final NumberPath<Integer> cid = createInteger("cid", CID);
+    public final NumberPath<Long> cid = createLong("cid", CID);
 
     public final PrimaryKey<T> pk = createPrimaryKey(ownerOid, cid);
 

@@ -26,6 +26,7 @@ public class MObject {
     public Integer tenantRefTargetType;
     public Integer tenantRefRelationId;
     public String lifecycleState;
+    public Long containerIdSeq;
     public Integer version;
     public byte[] ext;
     // metadata

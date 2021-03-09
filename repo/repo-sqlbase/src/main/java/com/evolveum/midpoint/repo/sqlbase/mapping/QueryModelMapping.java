@@ -88,7 +88,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
      * @param itemMapper mapper wrapping the information about column mappings working also
      * as a factory for {@link FilterProcessor}
      */
-    public final QueryModelMapping<S, Q, R> addItemMapping(
+    public QueryModelMapping<S, Q, R> addItemMapping(
             @NotNull QName itemName,
             @NotNull ItemSqlMapper itemMapper) {
         itemMapping.put(itemName, itemMapper);
@@ -102,7 +102,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
      * of the item path and helps with query interpretation.
      */
     // TODO add "to-many" option so the interpreter can use WHERE EXISTS instead of JOIN
-    public final QueryModelMapping<S, Q, R> addRelationResolver(
+    public QueryModelMapping<S, Q, R> addRelationResolver(
             @NotNull ItemName itemName,
             @NotNull ItemRelationResolver itemRelationResolver) {
         itemRelationResolvers.put(itemName, itemRelationResolver);
@@ -140,7 +140,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
      * Creates relation resolver for nested mapping and returns the mapping so the nested items
      * can be mapped in a fluent matter.
      */
-    public final <N> QueryModelMapping<N, Q, R> nestedMapping(
+    public <N> QueryModelMapping<N, Q, R> nestedMapping(
             @NotNull ItemName itemName,
             @NotNull Class<N> nestedSchemaType) {
         QueryModelMapping<N, Q, R> nestedMapping =

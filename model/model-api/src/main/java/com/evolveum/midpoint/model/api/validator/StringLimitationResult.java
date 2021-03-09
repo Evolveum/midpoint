@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.model.api.validator;
 
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import java.io.Serializable;

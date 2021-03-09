@@ -12,7 +12,7 @@
         <parameter name="namespaces" value="true"/>
         <classes>
             <class name="com.evolveum.midpoint.schema.parser.TestParseUser"/>
-            <class name="com.evolveum.midpoint.schema.parser.TestParseUserPolyString"/>     <!-- currently not in other variants -->
+            <class name="com.evolveum.midpoint.schema.parser.TestParseUserPolyString"/> <!-- currently not in other variants -->
             <class name="com.evolveum.midpoint.schema.parser.TestParseResource"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseShadow"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseShadowLegacy"/>

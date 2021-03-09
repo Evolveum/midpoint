@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -140,8 +141,11 @@ public class MidpointAuthFilter extends GenericFilterBean {
         AuthenticationSequenceType sequence =
                 getAuthenticationSequence(mpAuthentication, httpRequest, authenticationsPolicy);
         if (sequence == null) {
-            throw new IllegalArgumentException("Couldn't find sequence for URI '" + httpRequest.getRequestURI()
+            IllegalArgumentException ex = new IllegalArgumentException("Couldn't find sequence for URI '" + httpRequest.getRequestURI()
                     + "' in authentication of Security Policy with oid " + securityPolicy.getOid());
+            LOGGER.error(ex.getMessage(), ex);
+            ((HttpServletResponse) response).sendRedirect(httpRequest.getContextPath());
+            return;
         }
 
         //change generic logout path to logout path for actual module
@@ -259,6 +263,10 @@ public class MidpointAuthFilter extends GenericFilterBean {
         AuthenticationSequenceType sequence;
         // permitAll pages (login, select ID for saml ...) during processing of modules
         if (mpAuthentication != null && SecurityUtils.isLoginPage(httpRequest)) {
+            if (!mpAuthentication.getAuthenticationChannel().getChannelId().equals(SecurityUtils.findChannelByRequest(httpRequest))
+                    && SecurityUtils.getSequenceByPath(httpRequest, authenticationsPolicy, taskManager.getLocalNodeGroups()) == null) {
+                return null;
+            }
             sequence = mpAuthentication.getSequence();
         } else {
             sequence = SecurityUtils.getSequenceByPath(httpRequest, authenticationsPolicy, taskManager.getLocalNodeGroups());
