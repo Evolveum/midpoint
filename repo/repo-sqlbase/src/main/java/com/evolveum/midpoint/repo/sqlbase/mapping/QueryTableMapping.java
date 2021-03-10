@@ -179,6 +179,10 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     /**
      * Creates {@link SqlTransformer} of row bean to schema type, override if provided.
+     * TODO: rethink/confirm this create mechanism, currently the SqlTransformerContext is managed
+     *  component without any other state and so are transformers, perhaps we can pre-create them
+     *  or cache (I don't like the sound of that). On the other hand they are really lightweight
+     *  and short lived helpers too, so it shouldn't be a real GC problem.
      */
     public SqlTransformer<S, Q, R> createTransformer(
             SqlTransformerContext sqlTransformerContext) {

@@ -88,7 +88,8 @@ public class ObjectDeltaUpdater {
 
         // validate metadata/*, assignment/metadata/*, assignment/construction/resourceRef changes
 
-        PrismIdentifierGenerator<T> idGenerator = new PrismIdentifierGenerator<>(PrismIdentifierGenerator.Operation.MODIFY);
+        PrismIdentifierGenerator idGenerator =
+                new PrismIdentifierGenerator(PrismIdentifierGenerator.Operation.MODIFY);
         idGenerator.collectUsedIds(prismObject);
 
         UpdateContext ctx = new UpdateContext(this, modifyOptions, idGenerator, session, attemptContext);
@@ -132,7 +133,7 @@ public class ObjectDeltaUpdater {
     }
 
     private <T extends ObjectType> void handleObjectCommonAttributes(Class<T> type, Collection<? extends ItemDelta<?, ?>> modifications,
-            PrismObject<T> prismObject, RObject object, PrismIdentifierGenerator<T> idGenerator) throws SchemaException {
+            PrismObject<T> prismObject, RObject object, PrismIdentifierGenerator idGenerator) throws SchemaException {
 
         // update version
         String strVersion = prismObject.getVersion();

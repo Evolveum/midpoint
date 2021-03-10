@@ -9,13 +9,13 @@ package com.evolveum.midpoint.repo.sqale.qmodel.common;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleModelMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 
 /**
  * Mapping between {@link QContainer} and {@link Containerable}.
  */
 public class QContainerMapping<S extends Containerable, Q extends QContainer<R>, R extends MContainer>
-        extends SqaleModelMapping<S, Q, R> {
+        extends SqaleTableMapping<S, Q, R> {
 
     public static final String DEFAULT_ALIAS_NAME = "c";
 

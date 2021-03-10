@@ -59,6 +59,15 @@
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
     <logger name="org.hibernate.engine.jdbc.batch.internal.BatchingBatch" level="OFF"/>
     <logger name="org.hibernate.engine.jdbc.batch.internal.AbstractBatchImpl" level="WARN"/>
+
+    <!-- MID-6512: 
+        JAXPParser only logs configuration exception it - is causing (it proactivelly tries to 
+        disable secure entity processing), but works fine even if exception is thrown.
+        Behaviour is hardcoded, and can not be prevented, so we mute it off in logs to not cause
+        unnecessary concern.
+    -->
+    <logger name="com.sun.xml.xsom.parser.JAXPParser" level="OFF" />
+
     <logger name="PROFILING" level="INFO"/>
     <logger name="com.evolveum.midpoint" level="INFO" />
     <logger name="com.evolveum.midpoint.web.util.MidPointProfilingServletFilter" level="TRACE">

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) 2018-2020 Evolveum, All rights reserved -->
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" oid="28192faa-3d04-11e8-bbed-7f8f5ded1c39" version="1">
+        <name>bigbrother</name>
+        <assignment>
+            <targetRef oid="ca24e79a-f474-11e7-9a22-139aea34bb50" relation="org:default" type="c:RoleType">
+                <!-- Basic user -->
+            </targetRef>
+        </assignment>
+        <assignment>
+            <targetRef oid="19d47b1e-26d1-11e8-b701-170061581bbf" relation="org:default" type="c:RoleType">
+                <!-- Basic Approver -->
+            </targetRef>
+        </assignment>
+        <activation>
+            <administrativeStatus>enabled</administrativeStatus>
+        </activation>
+        <roleMembershipRef oid="ca24e79a-f474-11e7-9a22-139aea34bb50" relation="org:default" type="c:RoleType">
+            <!-- Basic user -->
+        </roleMembershipRef>
+        <roleMembershipRef oid="19d47b1e-26d1-11e8-b701-170061581bbf" relation="org:default" type="c:RoleType">
+            <!-- Basic Approver -->
+        </roleMembershipRef>
+        <fullName>Big Brother</fullName>
+        <givenName>Big</givenName>
+        <familyName>Brother</familyName>
+        <emailAddress>big@example.com</emailAddress>
+        <credentials>
+            <password>
+                <value>
+                    <t:clearValue>bbi3WingU</t:clearValue>
+                </value>
+            </password>
+        </credentials>
+    </user>
+</objects>

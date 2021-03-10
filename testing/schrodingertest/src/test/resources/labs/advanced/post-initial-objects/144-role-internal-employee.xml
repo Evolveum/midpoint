@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<!-- (c) 2011-2020 Evolveum, All rights reserved -->
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" oid="10000000-9999-9999-0000-a000d0000009">
+    <name>Internal Employee</name>
+    <description>
+     This role assigns CSV-1 (Document Access), CSV-2 (Canteen Ordering System) and
+CSV-3 (LDAP) resources and sets CSV-1 (Document Access) "groups"
+attribute to "Internal Employees" and "Essential Documents".
+    </description>
+    <inducement>
+        <construction>
+            <!-- The c: prefix in type must be there due to a JAXB bug -->
+            <resourceRef oid="10000000-9999-9999-0000-a000ff000002" type="c:ResourceType"/>
+            <attribute>
+                <ref>ri:groups</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <!-- To apply when reconciling/recomputing -->
+                    <expression>
+                        <value>Internal Employees</value>
+                        <value>Essential Documents</value>
+                    </expression>
+                </outbound>
+            </attribute>
+        </construction>
+    </inducement>
+    <inducement>
+        <construction>
+            <!-- The c: prefix in type must be there due to a JAXB bug -->
+            <resourceRef oid="10000000-9999-9999-0000-a000ff000003" type="c:ResourceType"/>
+        </construction>
+    </inducement>
+    <inducement>
+        <construction>
+            <!-- The c: prefix in type must be there due to a JAXB bug -->
+            <resourceRef oid="10000000-9999-9999-0000-a000ff000004" type="c:ResourceType"/>
+        </construction>
+    </inducement>
+    <!-- MID-102, LAB 2-3: uncomment the following section -->
+    <!--
+    <inducement>
+        <description>Inducement for New Corporate Directory Account role</description>
+        <targetRef oid="1a385122-2648-11e8-830e-df9bc9c3c29d" type="c:RoleType"/>
+    </inducement>
+    -->
+    <!-- MID-102, LAB 2-3: end of comment -->
+    <!-- MID-102, LAB 3-2: uncomment the following section and complete the oids -->
+    <!-- 
+    <inducement>
+        <description>Inducement for All Employees role</description>
+        <targetRef oid="PLACEHOLDER" type="c:RoleType"/>
+    </inducement>
+
+    <inducement>
+        <description>Inducement for Essential Documents role</description>
+        <targetRef oid="PLACEHOLDER" type="c:RoleType"/>
+    </inducement>
+
+-->
+    <!-- MID-102, LAB 3-2: end of comment -->
+    <!-- MID-102, LAB 3-1: uncomment the following section -->
+    <!--
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <name>mealCardNumber</name>
+                <description>Generate next card number and return it</description>
+                <strength>weak</strength>
+                <expression>
+                    <sequentialValue>
+                        <sequenceRef oid="fc847640-2608-11e8-95cb-6b5d942ef06a"/>
+                    </sequentialValue>
+                </expression>
+                <target>
+                    <path>extension/mealCardNumber</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+        -->
+    <!-- MID-102, LAB 3-1: end of comment -->
+    <!-- MID-102, LAB 4-1: uncomment this section -->
+    <!--
+    <inducement>
+        <description>Inducement for Basic user role</description>
+        <targetRef oid="ca24e79a-f474-11e7-9a22-139aea34bb50" type="c:RoleType"/>
+    </inducement>
+    -->
+    <!-- MID-102, LAB 4-1: end of comment -->
+</role>

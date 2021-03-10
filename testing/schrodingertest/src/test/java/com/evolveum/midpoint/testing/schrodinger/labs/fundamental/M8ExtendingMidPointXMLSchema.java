@@ -139,9 +139,9 @@ public class M8ExtendingMidPointXMLSchema extends AbstractLabTest {
                 .selectTabBasic()
                 .form();
 
-        form.assertPropertyInputValue("ouPath", "0300");
-        form.assertPropertySelectValue("isManager", "True");
-        form.assertPropertyInputValue("empStatus", "A");
+        form.assertPropertyInputValue("ouPath", "0300")
+                .assertPropertySelectValue("isManager", "True")
+                .assertPropertyInputValue("empStatus", "A");
 
         form.and()
                 .and()

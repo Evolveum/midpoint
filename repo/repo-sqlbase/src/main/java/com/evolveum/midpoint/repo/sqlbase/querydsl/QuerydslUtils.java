@@ -15,14 +15,10 @@ import com.querydsl.sql.Configuration;
 import com.querydsl.sql.H2Templates;
 import com.querydsl.sql.MySQLTemplates;
 import com.querydsl.sql.PostgreSQLTemplates;
-import com.querydsl.sql.types.EnumAsObjectType;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonType;
 
 // TODO MID-6318, MID-6319 review what needed (let's say in 2021), drop the rest
 public enum QuerydslUtils {
@@ -64,10 +60,7 @@ public enum QuerydslUtils {
         // Alternatively we may stick to Timestamp and go on with our miserable lives. ;-)
         querydslConfiguration.register(new InstantType());
 
-        // each enum type must be registered if we want to map it as objects (to PG enum types)
-        querydslConfiguration.register(new EnumAsObjectType<>(OperationResultStatusType.class));
-        querydslConfiguration.register(new EnumAsObjectType<>(TaskExecutionStateType.class));
-        querydslConfiguration.register(new EnumAsObjectType<>(TaskWaitingReasonType.class));
+        // register other repository implementation specific types (like enums) out of this call
 
         return querydslConfiguration;
     }
