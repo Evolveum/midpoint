@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 import java.time.Instant;
 import java.util.UUID;
 
+import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 
 /**
@@ -16,24 +17,25 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
  */
 public class MAssignment extends MContainer {
 
-    public Integer ownerType;
+    public MObjectType ownerType;
     public String lifecycleState;
     public Integer orderValue;
     public UUID orgRefTargetOid;
-    public Integer orgRefTargetType;
+    public MObjectType orgRefTargetType;
     public Integer orgRefRelationId;
-    public UUID resourceRefTargetOid;
-    public Integer resourceRefTargetType;
-    public Integer resourceRefRelationId;
     public UUID targetRefTargetOid;
-    public Integer targetRefTargetType;
+    public MObjectType targetRefTargetType;
     public Integer targetRefRelationId;
     public UUID tenantRefTargetOid;
-    public Integer tenantRefTargetType;
+    public MObjectType tenantRefTargetType;
     public Integer tenantRefRelationId;
     public Integer extId;
     public String extOid;
     public byte[] ext; // TODO JSONB?
+    // construction
+    public UUID resourceRefTargetOid;
+    public MObjectType resourceRefTargetType;
+    public Integer resourceRefRelationId;
     // activation
     public Integer administrativeStatus;
     public Integer effectiveStatus;
@@ -47,12 +49,12 @@ public class MAssignment extends MContainer {
     public Instant archiveTimestamp;
     // metadata
     public UUID creatorRefTargetOid;
-    public Integer creatorRefTargetType;
+    public MObjectType creatorRefTargetType;
     public Integer creatorRefRelationId;
     public Integer createChannelId;
     public Instant createTimestamp;
     public UUID modifierRefTargetOid;
-    public Integer modifierRefTargetType;
+    public MObjectType modifierRefTargetType;
     public Integer modifierRefRelationId;
     public Integer modifyChannelId;
     public Instant modifyTimestamp;

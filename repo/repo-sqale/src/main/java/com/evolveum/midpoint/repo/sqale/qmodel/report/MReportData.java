@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.report;
 
 import java.util.UUID;
 
+import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 
 /**
@@ -16,6 +17,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 public class MReportData extends MObject {
 
     public UUID reportRefTargetOid;
-    public Integer reportRefTargetType;
+    public MObjectType reportRefTargetType;
     public Integer reportRefRelationId;
 }

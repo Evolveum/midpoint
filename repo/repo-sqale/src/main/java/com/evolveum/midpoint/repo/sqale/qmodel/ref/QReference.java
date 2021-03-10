@@ -13,6 +13,7 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.PrimaryKey;
 
+import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
@@ -33,7 +34,7 @@ public class QReference extends FlexibleRelationalPathBase<MReference> {
     public static final ColumnMetadata TARGET_OID =
             ColumnMetadata.named("targetOid").ofType(UuidPath.UUID_TYPE).notNull();
     public static final ColumnMetadata TARGET_TYPE =
-            ColumnMetadata.named("targetType").ofType(Types.INTEGER).notNull();
+            ColumnMetadata.named("targetType").ofType(Types.OTHER).notNull();
     public static final ColumnMetadata RELATION_ID =
             ColumnMetadata.named("relation_id").ofType(Types.INTEGER).notNull();
 
@@ -41,7 +42,8 @@ public class QReference extends FlexibleRelationalPathBase<MReference> {
     public final EnumPath<MReferenceType> referenceType =
             createEnum("referenceType", MReferenceType.class, REFERENCE_TYPE);
     public final UuidPath targetOid = createUuid("targetOid", TARGET_OID);
-    public final NumberPath<Integer> targetType = createInteger("targetType", TARGET_TYPE);
+    public final EnumPath<MObjectType> targetType =
+            createEnum("targetType", MObjectType.class, TARGET_TYPE);
     public final NumberPath<Integer> relationId = createInteger("relationId", RELATION_ID);
 
     public final PrimaryKey<MReference> pk =

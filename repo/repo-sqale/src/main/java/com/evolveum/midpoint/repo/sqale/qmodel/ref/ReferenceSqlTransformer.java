@@ -26,7 +26,7 @@ public class ReferenceSqlTransformer
         // TODO ownerOid, referenceType
         row.relationId = resolveRelationToId(schemaObject.getRelation());
         row.targetOid = UUID.fromString(schemaObject.getOid());
-        row.targetType = schemaTypeToCode(schemaObject.getType());
+        row.targetType = schemaTypeToObjectType(schemaObject.getType());
         return row;
     }
 }

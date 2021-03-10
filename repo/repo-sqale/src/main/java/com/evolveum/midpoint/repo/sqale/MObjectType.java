@@ -107,12 +107,6 @@ public enum MObjectType {
     }
 
     @NotNull
-    public static MObjectType fromCode(int code) {
-        return Objects.requireNonNull(CODE_TO_ENUM.get(code),
-                "No MObjectTypeMapping found for object type code " + code);
-    }
-
-    @NotNull
     public static MObjectType fromTypeQName(QName typeQName) {
         return fromSchemaType(ObjectTypes.getObjectTypeClass(typeQName));
     }

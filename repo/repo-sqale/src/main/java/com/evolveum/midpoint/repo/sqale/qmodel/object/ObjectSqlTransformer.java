@@ -129,13 +129,13 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
      * This is not part of {@link #toRowObjectWithoutFullObject} because it requires know OID
      * which is not assured before calling that method.
      *
-     * @param oid oid of added object (owner)
+     * @param objectRow master row for added object
      * @param schemaObject schema objects for which the details are stored
      * @param jdbcSession JDBC session used to insert related rows
      */
     public void storeRelatedEntities(
-            @NotNull UUID oid, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) {
-        Objects.requireNonNull(oid);
+            @NotNull MObject objectRow, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) {
+        Objects.requireNonNull(objectRow.oid);
 
         MetadataType metadata = schemaObject.getMetadata();
         if (metadata != null) {
@@ -171,21 +171,20 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
                 RUtil.toRObjectReferenceSet(jaxb.getArchetypeRef(), repo, RReferenceType.ARCHETYPE, repositoryContext.relationRegistry));
         */
         if (schemaObject instanceof AssignmentHolderType) {
-            storeAssignmentHolderEntities(oid, (AssignmentHolderType) schemaObject, jdbcSession);
+            storeAssignmentHolderEntities(objectRow, (AssignmentHolderType) schemaObject, jdbcSession);
         }
 
         // TODO EAV extensions
     }
 
     private void storeAssignmentHolderEntities(
-            UUID oid, AssignmentHolderType schemaObject, JdbcSession jdbcSession) {
+            MObject objectRow, AssignmentHolderType schemaObject, JdbcSession jdbcSession) {
         List<AssignmentType> assignments = schemaObject.getAssignment();
         if (!assignments.isEmpty()) {
             QAssignmentMapping mapping = QAssignmentMapping.INSTANCE;
             AssignmentSqlTransformer transformer = mapping.createTransformer(transformerSupport);
             for (AssignmentType assignment : assignments) {
-                MAssignment row = transformer.toRowObject(assignment, jdbcSession);
-                row.ownerOid = oid;
+                MAssignment row = transformer.toRowObject(assignment, objectRow);
                 jdbcSession.newInsert(mapping.defaultAlias())
                         .populate(row)
                         .execute();

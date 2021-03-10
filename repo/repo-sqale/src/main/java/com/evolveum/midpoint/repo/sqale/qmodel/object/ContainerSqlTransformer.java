@@ -11,7 +11,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTransformerBase;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
-import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 
 public class ContainerSqlTransformer
@@ -23,7 +22,7 @@ public class ContainerSqlTransformer
         super(transformerSupport, mapping);
     }
 
-    public R toRowObject(S schemaObject, JdbcSession jdbcSession) {
+    public R toRowObject(S schemaObject) {
         R row = mapping.newRowObject();
         // owner id is set outside this call
         row.cid = schemaObject.asPrismContainerValue().getId();
