@@ -13,11 +13,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
+
 /**
  * @author semancik
  *
  */
-public interface EvaluatedAssignmentTarget extends DebugDumpable {
+public interface EvaluatedAssignmentTarget extends DebugDumpable, Serializable {
 
     @NotNull
     PrismObject<? extends AssignmentHolderType> getTarget();

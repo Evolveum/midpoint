@@ -8,6 +8,7 @@ package com.evolveum.midpoint.prism.util;
 
 import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
@@ -33,7 +34,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  * @author Radovan Semancik
  */
-public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implements DebugDumpable {
+public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implements DebugDumpable, Serializable {
 
     private Item<V,D> itemOld;
     private ItemDelta<V,D> delta;

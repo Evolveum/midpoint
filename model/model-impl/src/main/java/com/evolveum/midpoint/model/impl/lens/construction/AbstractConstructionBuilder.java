@@ -7,15 +7,14 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
-import com.evolveum.midpoint.model.impl.ModelBeans;
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Builder for all the constructions (resource object and persona).
@@ -32,7 +31,6 @@ public class AbstractConstructionBuilder
     OriginType originType;
     LensContext<AH> lensContext;
     XMLGregorianCalendar now;
-    ModelBeans modelBeans;
     boolean valid;
 
     public RT constructionBean(ACT val) {
@@ -62,11 +60,6 @@ public class AbstractConstructionBuilder
 
     public RT now(XMLGregorianCalendar val) {
         now = val;
-        return typedThis();
-    }
-
-    public RT modelBeans(ModelBeans val) {
-        modelBeans = val;
         return typedThis();
     }
 

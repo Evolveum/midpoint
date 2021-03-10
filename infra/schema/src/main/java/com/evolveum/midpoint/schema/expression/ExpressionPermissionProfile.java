@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.schema.expression;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionPermission
  *
  * @author Radovan Semancik
  */
-public class ExpressionPermissionProfile {
+public class ExpressionPermissionProfile implements Serializable {
 
     private final String identifier;
     private AccessDecision decision;

@@ -9,8 +9,11 @@ package com.evolveum.midpoint.test.util;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
+import java.io.Serializable;
 import java.util.Collection;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.util.SerializationUtil;
 
 import org.apache.commons.lang.StringUtils;
 import org.testng.AssertJUnit;
@@ -110,5 +113,15 @@ public class MidPointAsserts {
         assertThat(current).as(desc)
                 .isNotNull()
                 .matches(s -> QNameUtil.matchUri(s, expected), "is " + expected);
+    }
+
+    public static void assertSerializable(Serializable serializable) {
+        try {
+            String s = SerializationUtil.toString(serializable);
+            System.out.println("Checked that " + serializable.getClass() + " is really serializable: size is " + s.length());
+        } catch (Throwable e) {
+            e.printStackTrace();
+            fail(serializable.getClass() + " is not serializable: " + e.getMessage());
+        }
     }
 }

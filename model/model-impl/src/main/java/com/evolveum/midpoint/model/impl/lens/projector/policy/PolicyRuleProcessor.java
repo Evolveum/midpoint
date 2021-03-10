@@ -302,7 +302,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             ObjectSelectorType focusSelector = globalPolicyRule.getFocusSelector();
             if (repositoryService.selectorMatches(focusSelector, focus, null, LOGGER, "Global policy rule "+globalPolicyRule.getName()+": ")) {
                 if (isRuleConditionTrue(globalPolicyRule, focus, null, context, task, result)) {
-                    rules.add(new EvaluatedPolicyRuleImpl(globalPolicyRule.clone(), null, null, prismContext));
+                    rules.add(new EvaluatedPolicyRuleImpl(globalPolicyRule.clone(), null, null));
                     globalRulesFound++;
                 } else {
                     LOGGER.trace("Skipping global policy rule {} because the condition evaluated to false: {}", globalPolicyRule.getName(), globalPolicyRule);
@@ -539,7 +539,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                         continue;
                     }
                     EvaluatedPolicyRuleImpl evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule.clone(),
-                            target.getAssignmentPath().clone(), evaluatedAssignment, prismContext);
+                            target.getAssignmentPath().clone(), evaluatedAssignment);
                     boolean direct = target.isDirectlyAssigned();
                     if (direct) {
                         evaluatedAssignment.addThisTargetPolicyRule(evaluatedRule);

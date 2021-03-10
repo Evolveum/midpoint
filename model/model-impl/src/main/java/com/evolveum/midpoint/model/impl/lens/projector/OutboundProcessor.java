@@ -61,7 +61,6 @@ public class OutboundProcessor {
                 .source(projCtx.getResource())
                 .lensContext(context)
                 .now(clock.currentTimeXMLGregorianCalendar()) // todo
-                .modelBeans(modelBeans)
                 .originType(OriginType.ASSIGNMENTS) // fixme
                 .valid(true);
 

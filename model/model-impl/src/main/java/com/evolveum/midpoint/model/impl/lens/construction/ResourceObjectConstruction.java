@@ -16,6 +16,7 @@ import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
@@ -127,8 +128,8 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
         }
     }
 
-    protected void createEvaluatedConstructions(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        evaluatedConstructionTriple = beans.prismContext.deltaFactory().createDeltaSetTriple();
+    private void createEvaluatedConstructions(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        evaluatedConstructionTriple = PrismContext.get().deltaFactory().createDeltaSetTriple();
 
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> tagTriple = evaluateTagTriple(task, result);
         if (tagTriple == null) {
@@ -159,7 +160,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
         }
 
         MappingBuilder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder =
-                beans.mappingFactory.createMappingBuilder(tagMappingBean, "for outbound tag mapping in " + getSource());
+                getMappingFactory().createMappingBuilder(tagMappingBean, "for outbound tag mapping in " + getSource());
 
         builder = initializeMappingBuilder(builder, ShadowType.F_TAG, ShadowType.F_TAG, createTagDefinition(), null);
         if (builder == null) {
@@ -167,7 +168,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
         }
         MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> mapping = builder.build();
 
-        beans.mappingEvaluator.evaluateMapping(mapping, getLensContext(), null, task, result);
+        getMappingEvaluator().evaluateMapping(mapping, getLensContext(), null, task, result);
 
         return mapping.getOutputTriple();
     }
@@ -175,7 +176,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
     @NotNull
     private MutablePrismPropertyDefinition<String> createTagDefinition() {
         MutablePrismPropertyDefinition<String> outputDefinition =
-                beans.mappingFactory.getExpressionFactory().getPrismContext().definitionFactory()
+                getMappingFactory().getExpressionFactory().getPrismContext().definitionFactory()
                         .createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.STRING.getQname());
         outputDefinition.setMaxOccurs(-1);
         return outputDefinition;
@@ -247,7 +248,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
                     assocTargetObjectClassDefinition, RefinedObjectClassDefinition.class);
         }
         builder = builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, getResource(), ResourceType.class);
-        builder = LensUtil.addAssignmentPathVariables(builder, getAssignmentPathVariables(), beans.prismContext);
+        builder = LensUtil.addAssignmentPathVariables(builder, getAssignmentPathVariables(), PrismContext.get());
         builder = builder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, lensContext.getSystemConfiguration(), SystemConfigurationType.class);
         // TODO: other variables ?
 
@@ -369,11 +370,11 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
     }
 
     public MappingFactory getMappingFactory() {
-        return beans.mappingFactory;
+        return ModelBeans.get().mappingFactory;
     }
 
     public MappingEvaluator getMappingEvaluator() {
-        return beans.mappingEvaluator;
+        return ModelBeans.get().mappingEvaluator;
     }
 
     public XMLGregorianCalendar getNow() {
@@ -494,7 +495,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
 
     public PrismContainerDefinition<ShadowAssociationType> getAssociationContainerDefinition() {
         if (associationContainerDefinition == null) {
-            PrismObjectDefinition<ShadowType> shadowDefinition = beans.prismContext.getSchemaRegistry()
+            PrismObjectDefinition<ShadowType> shadowDefinition = PrismContext.get().getSchemaRegistry()
                     .findObjectDefinitionByCompileTimeClass(ShadowType.class);
             associationContainerDefinition = shadowDefinition.findContainerDefinition(ShadowType.F_ASSOCIATION);
         }
@@ -506,7 +507,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
     protected void loadFullShadow(LensProjectionContext projectionContext, String desc, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        beans.contextLoader.loadFullShadow(getLensContext(), projectionContext, desc, task, result);
+        ModelBeans.get().contextLoader.loadFullShadow(getLensContext(), projectionContext, desc, task, result);
     }
     //endregion
 }

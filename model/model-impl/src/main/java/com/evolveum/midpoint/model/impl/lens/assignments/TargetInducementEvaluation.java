@@ -84,8 +84,6 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
                 .assignment(inducement)
                 .isAssignment(false)
                 .isHierarchy(archetypeHierarchy)
-                .relationRegistry(ctx.ae.relationRegistry)
-                .prismContext(ctx.ae.prismContext)
                 .pathToSourceValid(targetActivation.pathAndTargetActive)
                 .pathToSourceConditionState(targetOverallConditionState)
                 .evaluationOrder(adjustment.evaluationOrder)

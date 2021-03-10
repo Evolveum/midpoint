@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +28,17 @@ public class SchemaService {
 
     @Autowired private PrismContext prismContext;
     @Autowired private RelationRegistry relationRegistry;
+
+    private static SchemaService instance;
+
+    @PostConstruct
+    public void init() {
+        instance = this;
+    }
+
+    public static SchemaService get() {
+        return instance;
+    }
 
     public PrismContext prismContext() {
         return prismContext;

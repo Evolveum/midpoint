@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
@@ -220,7 +221,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
                         if (object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null) {
                             ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
                             try {
-                                ValuePolicyType valuePolicyType = construction.beans.modelObjectResolver.resolve(ref, ValuePolicyType.class,
+                                ValuePolicyType valuePolicyType = ModelBeans.get().modelObjectResolver.resolve(ref, ValuePolicyType.class,
                                         null, "resolving value policy for generate attribute "+ outputDefinition.getItemName()+"value",
                                         constructionEvaluation.task, result);
                                 if (valuePolicyType != null) {
