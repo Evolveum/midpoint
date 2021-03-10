@@ -12,6 +12,7 @@ import static org.apache.commons.lang3.BooleanUtils.isTrue;
 import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.REAL_VALUE;
 import static com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil.hasMappingSpec;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -57,8 +58,12 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  *
  * TODO document evaluation of time constraints ...
  *
- * <p>
  * Configuration properties are unmodifiable. They are to be set via Mapping.Builder.
+ *
+ * Serializability:
+ *
+ * The mapping is technically serializable. However, it is NOT expected to be evaluable after deserialization.
+ * Only already computed results are to be fetched from such mapping object.
  *
  * @param <V> type of mapping output value
  * @param <D> type of mapping output value definition (property, container, ...)
@@ -92,8 +97,10 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
     /**
      * (Context) variables to be used during mapping evaluation.
+     *
+     * Transient. No evaluation will be possible after deserialization.
      */
-    final VariablesMap variables;
+    transient final VariablesMap variables;
 
     /**
      * Default source object. Used for resolution of paths that have no variable specification.
@@ -104,7 +111,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     /**
      * Typified version of {@link #sourceContext}. Lazily evaluated.
      */
-    private TypedValue<ObjectDeltaObject<?>> typedSourceContext;
+    transient private TypedValue<ObjectDeltaObject<?>> typedSourceContext;
 
     /**
      * One of the sources can be denoted as default.
@@ -178,7 +185,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * Provider of the value policy (used for "generate" expressions).
      * See {@link ExpressionEvaluationContext#valuePolicySupplier}.
      */
-    final ConfigurableValuePolicySupplier valuePolicySupplier;
+    transient final ConfigurableValuePolicySupplier valuePolicySupplier;
 
     /**
      * Mapping pre-expression is invoked just before main mapping expression.
@@ -224,8 +231,10 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     /**
      * Producer of extra variables. It is not directly used in mapping evaluation:
      * it is propagated to {@link ExpressionEvaluationContext#variableProducer}.
+     *
+     * Transient. No evaluation will be possible after deserialization.
      */
-    private final VariableProducer variableProducer;
+    transient private final VariableProducer<?> variableProducer;
 
     /**
      * This is sometimes used to identify the element that mapping produces
@@ -271,9 +280,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     private MappingEvaluationState state = MappingEvaluationState.UNINITIALIZED;
 
     /**
-     * Evaluated mapping expression. Once evaluated it is not used any more it is remembered only for tracing purposes.
+     * Evaluated mapping expression. Once evaluated it is not used any more.
      */
-    private Expression<V, D> expression;
+    transient private Expression<V, D> expression;
 
     /**
      * Result of the mapping evaluation: values that will be added, deleted and kept in the target item.
@@ -343,17 +352,17 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * Mapping state properties that are exposed to the expressions. They can be used by the expressions to "communicate".
      * E.g. one expression setting the property and other expression checking the property.
      */
-    private Map<String, Object> stateProperties;
+    private Map<String, Serializable> stateProperties;
 
     /**
      * Task stored during the evaluation, removed afterwards.
      */
-    Task task;
+    transient Task task;
 
     /**
      * Value metadata computer to be used when expression is evaluated.
      */
-    private TransformationValueMetadataComputer valueMetadataComputer;
+    transient private TransformationValueMetadataComputer valueMetadataComputer;
     //endregion
 
     //region Constructors and (relatively) simple getters
@@ -569,13 +578,13 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     @Override
-    public <T> T getStateProperty(String propertyName) {
+    public <T extends Serializable> T getStateProperty(String propertyName) {
         //noinspection unchecked
         return stateProperties != null ? (T) stateProperties.get(propertyName) : null;
     }
 
     @Override
-    public <T> T setStateProperty(String propertyName, T value) {
+    public <T extends Serializable> T setStateProperty(String propertyName, T value) {
         if (stateProperties == null) {
             stateProperties = new HashMap<>();
         }

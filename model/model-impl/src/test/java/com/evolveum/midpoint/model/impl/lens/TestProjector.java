@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
+
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
@@ -219,6 +221,8 @@ public class TestProjector extends AbstractLensTest {
                 getDummyResourceController().getAttributeFullnameQName(), "Jack Sparrow");
         IntegrationTestTools.assertAttribute(accountNew,
                 getDummyResourceController().getAttributeWeaponQName(), "mouth", "pistol");
+
+        assertSerializable(context);
     }
 
     @Test
@@ -242,6 +246,8 @@ public class TestProjector extends AbstractLensTest {
 
         // THEN
         assertAssignAccountToJack(context);
+
+        assertSerializable(context);
     }
 
     /**
@@ -271,6 +277,8 @@ public class TestProjector extends AbstractLensTest {
 
         // THEN
         assertAssignAccountToJack(context);
+
+        assertSerializable(context);
     }
 
     private void assertAssignAccountToJack(LensContext<UserType> context) {
@@ -349,6 +357,7 @@ public class TestProjector extends AbstractLensTest {
 
         PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.ASSIGNMENTS, OriginType.OUTBOUND);
 
+        assertSerializable(context);
     }
 
     /**
@@ -398,6 +407,8 @@ public class TestProjector extends AbstractLensTest {
 
         PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(getFullNameAttributePath()), OriginType.OUTBOUND);
         PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(getWeaponAttributePath()), OriginType.ASSIGNMENTS);
+
+        assertSerializable(context);
     }
 
     /**
@@ -458,6 +469,8 @@ public class TestProjector extends AbstractLensTest {
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
         end.add(XmlTypeConverter.createDuration(true, 0, 0, 35, 0, 0, 0));
         TestUtil.assertBetween("Wrong trigger timestamp", start, end, triggerType.getTimestamp());
+
+        assertSerializable(context);
     }
 
     /**
@@ -509,6 +522,8 @@ public class TestProjector extends AbstractLensTest {
         PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(getQuoteAttributePath()), OriginType.ASSIGNMENTS);
         PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(ShadowType.F_ITERATION), OriginType.OUTBOUND);
         PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(ShadowType.F_ITERATION_TOKEN), OriginType.OUTBOUND);
+
+        assertSerializable(context);
     }
 
     /**
@@ -541,6 +556,8 @@ public class TestProjector extends AbstractLensTest {
         // THEN
         then();
         assertPartialError(result);
+
+        assertSerializable(context);
     }
 
     /**
@@ -601,6 +618,8 @@ public class TestProjector extends AbstractLensTest {
         PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(getWeaponAttributePath()), OriginType.ASSIGNMENTS);
         PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(ShadowType.F_ITERATION), OriginType.OUTBOUND);
         PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(ShadowType.F_ITERATION_TOKEN), OriginType.OUTBOUND);
+
+        assertSerializable(context);
     }
 
     /**
@@ -637,6 +656,7 @@ public class TestProjector extends AbstractLensTest {
             displayExpectedException(e);
         }
 
+        assertSerializable(context);
     }
 
     @Test
@@ -680,6 +700,8 @@ public class TestProjector extends AbstractLensTest {
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         // iteration & iterationToken & sword
         assertEquals("Unexpected number of account secondary changes", 3, accountSecondaryDelta.getModifications().size());
+
+        assertSerializable(context);
     }
 
     @Test
@@ -725,6 +747,8 @@ public class TestProjector extends AbstractLensTest {
         LensProjectionContext accContext = accountContexts.iterator().next();
         assertNull(accContext.getPrimaryDelta());
         assertEquals(SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
+
+        assertSerializable(context);
     }
 
     @Test
@@ -770,6 +794,8 @@ public class TestProjector extends AbstractLensTest {
                 getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
                 "Damned mutineer");
         PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.ASSIGNMENTS);
+
+        assertSerializable(context);
     }
 
     @Test
@@ -816,6 +842,8 @@ public class TestProjector extends AbstractLensTest {
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
 
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, getDummyResourceController().getAttributeFullnamePath(), "Jack Sparrow");
+
+        assertSerializable(context);
     }
 
     @Test
@@ -871,6 +899,8 @@ public class TestProjector extends AbstractLensTest {
             }
         }
         assertOriginWithSideEffectChanges(userSecondaryDelta, OriginType.INBOUND);
+
+        assertSerializable(context);
     }
 
     @Test
@@ -915,6 +945,8 @@ public class TestProjector extends AbstractLensTest {
         assertEquals("Unexpected number of account secondary changes", 2, accountSecondaryDelta.getModifications().size());
 
         assertOriginWithSideEffectChanges(userSecondaryDelta, OriginType.INBOUND);
+
+        assertSerializable(context);
     }
 
     @Test
@@ -947,6 +979,8 @@ public class TestProjector extends AbstractLensTest {
         PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_ORGANIZATIONAL_UNIT,
                 PrismTestUtil.createPolyString("The crew of Black Pearl"));
         assertOriginWithSideEffectChanges(userSecondaryDelta, OriginType.INBOUND);
+
+        assertSerializable(context);
     }
 
     @Test
@@ -985,6 +1019,8 @@ public class TestProjector extends AbstractLensTest {
         PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_ORGANIZATIONAL_UNIT,
                 PrismTestUtil.createPolyString("The crew of The Sea Monkey"));
         assertOriginWithSideEffectChanges(userSecondaryDelta, OriginType.INBOUND);
+
+        assertSerializable(context);
     }
 
     @Test
@@ -1044,6 +1080,8 @@ public class TestProjector extends AbstractLensTest {
 
         // now the value is applied by the IvwoConsolidator, not waiting for the reconciliation
         PrismAsserts.assertOrigin(locationDelta, OriginType.OUTBOUND);
+
+        assertSerializable(context);
     }
 
     /**
@@ -1085,6 +1123,8 @@ public class TestProjector extends AbstractLensTest {
                 PrismTestUtil.createPolyString("Largo LaGrande"));
         PrismAsserts.assertPropertyReplace(userSecondaryDelta, UserType.F_NICK_NAME,
                 PrismTestUtil.createPolyString("Largo LaGrande"));        // MID-2149
+
+        assertSerializable(context);
     }
 
     private void assertNoJackShadow() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {

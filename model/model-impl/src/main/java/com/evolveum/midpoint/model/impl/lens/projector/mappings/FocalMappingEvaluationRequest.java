@@ -6,25 +6,20 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 
+import java.io.Serializable;
+import java.util.stream.Collectors;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.common.mapping.MappingPreExpression;
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.Source;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.ShortDumpable;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.stream.Collectors;
 
 /**
  * Contains some of the information necessary to evaluate a mapping. It is used when mappings are collected e.g. from
@@ -34,13 +29,14 @@ import java.util.stream.Collectors;
  *
  * @author semancik
  */
-public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO extends ObjectType> implements ShortDumpable {
+public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO extends ObjectType>
+        implements ShortDumpable, Serializable {
 
     @NotNull protected final MT mapping;
     @NotNull protected final MappingKindType mappingKind;
     @NotNull protected final OO originObject;
 
-    private String mappingInfo;                           // lazily computed
+    private String mappingInfo; // lazily computed
 
     FocalMappingEvaluationRequest(@NotNull MT mapping, @NotNull MappingKindType mappingKind, @NotNull OO originObject) {
         this.mapping = mapping;

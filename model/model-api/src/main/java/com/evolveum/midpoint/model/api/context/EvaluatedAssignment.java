@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.api.context;
 
+import java.io.Serializable;
 import java.util.Collection;
 
 import javax.xml.namespace.QName;
@@ -17,6 +18,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
@@ -24,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import org.jetbrains.annotations.NotNull;
 
-public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends DebugDumpable {
+public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends ShortDumpable, DebugDumpable, Serializable {
 
     AssignmentType getAssignmentType();
 

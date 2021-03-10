@@ -100,7 +100,6 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
                 .source(segment.source)
                 .lensContext(ctx.ae.lensContext)
                 .now(ctx.ae.now)
-                .modelBeans(ctx.ae.beans)
                 .originType(OriginType.ASSIGNMENTS)
                 .valid(segment.isFullPathActive() && segment.getOverallConditionState().isNewTrue());
     }
@@ -150,7 +149,7 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
 
     @NotNull
     private EvaluatedPolicyRuleImpl createEvaluatedPolicyRule(PolicyRuleType policyRuleBean) {
-        return new EvaluatedPolicyRuleImpl(policyRuleBean.clone(), ctx.assignmentPath.clone(), ctx.evalAssignment, ctx.ae.prismContext);
+        return new EvaluatedPolicyRuleImpl(policyRuleBean.clone(), ctx.assignmentPath.clone(), ctx.evalAssignment);
     }
 
     private boolean appliesDirectly(AssignmentPathImpl assignmentPath) {

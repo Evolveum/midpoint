@@ -18,7 +18,8 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 /**
  *
  */
-public class TemplateMappingEvaluationRequest extends FocalMappingEvaluationRequest<ObjectTemplateMappingType, ObjectTemplateType> {
+public class TemplateMappingEvaluationRequest
+        extends FocalMappingEvaluationRequest<ObjectTemplateMappingType, ObjectTemplateType> {
 
     public TemplateMappingEvaluationRequest(@NotNull ObjectTemplateMappingType mapping,
             @NotNull ObjectTemplateType objectTemplate) {

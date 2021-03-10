@@ -20,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -31,7 +32,7 @@ import java.util.List;
  * @author semancik
  * @author mederly
  */
-public interface AssignmentPath extends DebugDumpable, ShortDumpable, Cloneable {
+public interface AssignmentPath extends DebugDumpable, ShortDumpable, Cloneable, Serializable {
 
     List<? extends AssignmentPathSegment> getSegments();
 
@@ -45,8 +46,6 @@ public interface AssignmentPath extends DebugDumpable, ShortDumpable, Cloneable 
     boolean isEmpty();
 
     int size();
-
-//    EvaluationOrder getEvaluationOrder();
 
     AssignmentPathSegment last();
 
