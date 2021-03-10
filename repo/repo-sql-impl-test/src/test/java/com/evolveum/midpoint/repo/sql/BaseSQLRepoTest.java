@@ -114,7 +114,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     @Autowired protected BaseHelper baseHelper;
     @Autowired protected AuditService auditService;
     @Autowired protected PrismContext prismContext;
-    @Autowired protected SchemaHelper schemaHelper;
+    @Autowired protected SchemaService schemaService;
     @Autowired protected RelationRegistry relationRegistry;
     @Autowired protected SessionFactory factory;
     @Autowired protected ExtItemDictionary extItemDictionary;
@@ -227,7 +227,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     }
 
     protected GetOperationOptionsBuilder getOperationOptionsBuilder() {
-        return schemaHelper.getOperationOptionsBuilder();
+        return schemaService.getOperationOptionsBuilder();
     }
 
     protected ItemFactory itemFactory() {

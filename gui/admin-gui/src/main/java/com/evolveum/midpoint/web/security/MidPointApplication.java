@@ -79,7 +79,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -164,7 +164,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private TaskService taskService;
     @Autowired private PrismContext prismContext;
-    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private SchemaService schemaService;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private TaskManager taskManager;
     @Autowired private ModelAuditService auditService;
@@ -492,8 +492,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         return prismContext;
     }
 
-    public SchemaHelper getSchemaHelper() {
-        return schemaHelper;
+    public SchemaService getSchemaService() {
+        return schemaService;
     }
 
     public ExpressionFactory getExpressionFactory() {

@@ -19,7 +19,7 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -75,7 +75,7 @@ class ShadowFinder {
     @Autowired private PrismContext prismContext;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
     @Autowired private Helper helper;
-    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private SchemaService schemaService;
     @Autowired private ShadowUpdater shadowUpdater;
 
     /**
@@ -90,7 +90,7 @@ class ShadowFinder {
         LOGGER.trace("Searching for shadow by primary identifier (attributes) using filter:\n{}", DebugUtil.debugDumpLazily(query, 1));
 
         // Explicitly avoid all caches. We want to avoid shadow duplication.
-        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                 .staleness(0L)
                 .build();
 
@@ -152,7 +152,7 @@ class ShadowFinder {
         LOGGER.trace("Searching for shadow by primaryIdentifierValue using filter:\n{}", DebugUtil.debugDumpLazily(query, 1));
 
         // Explicitly avoid all caches. We want to avoid shadow duplication.
-        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                 .staleness(0L)
                 .build();
 

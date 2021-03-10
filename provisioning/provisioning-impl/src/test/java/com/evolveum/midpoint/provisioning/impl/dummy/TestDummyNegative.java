@@ -530,7 +530,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 
     @NotNull
     private Collection<SelectorOptions<GetOperationOptions>> createNoExceptionOptions() {
-        return schemaHelper.getOperationOptionsBuilder()
+        return schemaService.getOperationOptionsBuilder()
                 .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
                 .build();
     }

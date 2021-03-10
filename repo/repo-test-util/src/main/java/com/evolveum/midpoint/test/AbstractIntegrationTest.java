@@ -172,7 +172,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     @Autowired protected Protector protector;
     @Autowired protected Clock clock;
     @Autowired protected PrismContext prismContext;
-    @Autowired protected SchemaHelper schemaHelper;
+    @Autowired protected SchemaService schemaService;
     @Autowired protected MatchingRuleRegistry matchingRuleRegistry;
     @Autowired protected LocalizationService localizationService;
     @Autowired protected TestQueryListener queryListener;
@@ -2889,13 +2889,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected Collection<SelectorOptions<GetOperationOptions>> retrieveItemsNamed(Object... items) {
-        return schemaHelper.getOperationOptionsBuilder()
+        return schemaService.getOperationOptionsBuilder()
                 .items(items).retrieve()
                 .build();
     }
 
     protected GetOperationOptionsBuilder getOperationOptionsBuilder() {
-        return schemaHelper.getOperationOptionsBuilder();
+        return schemaService.getOperationOptionsBuilder();
     }
 
     @NotNull

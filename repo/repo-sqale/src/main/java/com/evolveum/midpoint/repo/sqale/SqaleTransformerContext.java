@@ -8,14 +8,14 @@ package com.evolveum.midpoint.repo.sqale;
 
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 
 /**
  * Extension of {@link SqlTransformerContext} adding Sqale features like {@link UriCache} support.
  */
 public class SqaleTransformerContext extends SqlTransformerContext {
 
-    public SqaleTransformerContext(SchemaHelper schemaService, SqaleRepoContext sqaleRepoContext) {
+    public SqaleTransformerContext(SchemaService schemaService, SqaleRepoContext sqaleRepoContext) {
         super(schemaService, sqaleRepoContext);
     }
 

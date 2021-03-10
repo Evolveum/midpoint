@@ -10,7 +10,7 @@ package com.evolveum.midpoint.task.quartzimpl;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.*;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Tracer;
@@ -70,7 +70,7 @@ public class TaskBeans {
 
     //region Outside beans
     @Autowired public PrismContext prismContext;
-    @Autowired public SchemaHelper schemaHelper;
+    @Autowired public SchemaService schemaService;
     @Autowired public RepositoryService repositoryService;
     @Autowired(required = false) public SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
     @Autowired public MidpointConfiguration midpointConfiguration;

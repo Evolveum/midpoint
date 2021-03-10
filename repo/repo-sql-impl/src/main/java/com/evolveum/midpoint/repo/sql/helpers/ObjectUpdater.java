@@ -43,7 +43,7 @@ import com.evolveum.midpoint.repo.sql.helpers.delta.ObjectDeltaUpdater;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -73,7 +73,7 @@ public class ObjectUpdater {
     @Autowired private OrgClosureManager closureManager;
     @Autowired private ObjectDeltaUpdater objectDeltaUpdater;
     @Autowired private PrismContext prismContext;
-    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private SchemaService schemaService;
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private ExtItemDictionary extItemDictionary;
 
@@ -394,7 +394,7 @@ public class ObjectUpdater {
                 //
                 // TODO handling of "externally stored" items (focus.jpegPhoto, task.result, lookupTable.row, ...)
                 //  is a kind of ugly magic. It needs to be reviewed and fixed.
-                GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder();
+                GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder();
                 boolean containsFocusPhotoModification = FocusType.class.isAssignableFrom(type) && containsPhotoModification(modifications);
                 if (containsFocusPhotoModification) {
                     LOGGER.trace("Setting 'retrieve' option on jpegPhoto for object fetching because containsFocusPhotoModification=true");

@@ -313,7 +313,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
             if (canReadFromResource && (!passiveCaching || isNotificationOnly())) {
                 // Either we don't use caching or we have a notification-only change. Such changes mean that we want to
                 // refresh the object from the resource.
-                Collection<SelectorOptions<GetOperationOptions>> options = beans.schemaHelper.getOperationOptionsBuilder()
+                Collection<SelectorOptions<GetOperationOptions>> options = beans.schemaService.getOperationOptionsBuilder()
                         .doNotDiscovery().build();
                 try {
                     // TODO why we use shadow cache and not resource object converter?!

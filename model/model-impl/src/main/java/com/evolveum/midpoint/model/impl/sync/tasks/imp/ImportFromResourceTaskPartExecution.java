@@ -69,7 +69,7 @@ public class ImportFromResourceTaskPartExecution
     @Override
     protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(
             OperationResult opResult) {
-        Collection<SelectorOptions<GetOperationOptions>> defaultOptions = getSchemaHelper().getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> defaultOptions = getSchemaService().getOperationOptionsBuilder()
                 .doNotDiscovery(false)
                 .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
                 .build();

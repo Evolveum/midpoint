@@ -129,7 +129,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @Autowired private RepositoryService repositoryService;
     @Autowired(required = false) private SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
     @Autowired private PrismContext prismContext;
-    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private SchemaService schemaService;
     @Autowired private WorkStateManager workStateManager;
     @Autowired private WorkersManager workersManager;
     @Autowired private UpAndDown upAndDown;
@@ -729,10 +729,6 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @NotNull
     public PrismContext getPrismContext() {
         return prismContext;
-    }
-
-    public SchemaHelper getSchemaHelper() {
-        return schemaHelper;
     }
 
     public ClusterManager getClusterManager() {

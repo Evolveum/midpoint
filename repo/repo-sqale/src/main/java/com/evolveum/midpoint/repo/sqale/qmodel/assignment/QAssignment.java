@@ -30,8 +30,6 @@ public class QAssignment extends QContainer<MAssignment> {
 
     public static final ColumnMetadata OWNER_TYPE =
             ColumnMetadata.named("owner_type").ofType(Types.INTEGER);
-    public static final ColumnMetadata ASSIGNMENT_OWNER =
-            ColumnMetadata.named("assignmentOwner").ofType(Types.INTEGER);
     public static final ColumnMetadata LIFECYCLE_STATE =
             ColumnMetadata.named("lifecycleState").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata ORDER_VALUE =
@@ -114,8 +112,6 @@ public class QAssignment extends QContainer<MAssignment> {
     // attributes
 
     public final NumberPath<Integer> ownerType = createInteger("ownerType", OWNER_TYPE);
-    public final NumberPath<Integer> assignmentOwner =
-            createInteger("assignmentOwner", ASSIGNMENT_OWNER);
     public final StringPath lifecycleState = createString("lifecycleState", LIFECYCLE_STATE);
     public final NumberPath<Integer> orderValue = createInteger("orderValue", ORDER_VALUE);
     public final UuidPath orgRefTargetOid =

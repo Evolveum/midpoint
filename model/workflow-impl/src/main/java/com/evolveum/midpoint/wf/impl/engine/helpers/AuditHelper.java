@@ -14,7 +14,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -60,7 +60,7 @@ public class AuditHelper {
     @Autowired private SecurityContextManager securityContextManager;
     @Autowired private PrismContext prismContext;
     @Autowired private MiscHelper miscHelper;
-    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private SchemaService schemaService;
     @Autowired private PrimaryChangeProcessor primaryChangeProcessor;   // todo
     @Autowired private com.evolveum.midpoint.model.impl.util.AuditHelper modelAuditHelper;
 
@@ -138,7 +138,7 @@ public class AuditHelper {
             return ref;
         }
         try {
-            Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+            Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                     .allowNotFound(optional)
                     .build();
             return ObjectTypeUtil.createObjectRef(

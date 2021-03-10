@@ -25,7 +25,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
@@ -171,7 +170,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 
         assertEquals("Incorrect number of subtasks", expectedSubTaskCount, subcases.size());
 
-        final Collection<SelectorOptions<GetOperationOptions>> options1 = schemaHelper.getOperationOptionsBuilder()
+        final Collection<SelectorOptions<GetOperationOptions>> options1 = schemaService.getOperationOptionsBuilder()
                 .item(T_PARENT, F_OBJECT_REF).resolve()
                 .item(T_PARENT, F_TARGET_REF).resolve()
                 .item(F_ASSIGNEE_REF).resolve()

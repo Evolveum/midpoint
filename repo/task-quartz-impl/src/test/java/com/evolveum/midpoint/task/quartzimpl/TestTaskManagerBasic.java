@@ -787,7 +787,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
             throws SchemaException, ObjectNotFoundException, InterruptedException {
         long start = System.currentTimeMillis();
         while (System.currentTimeMillis() < start + duration) {
-            Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+            Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                     .item(TaskType.F_SUBTASK_REF).retrieve()
                     .build();
             TaskType task = taskManager.getObject(TaskType.class, taskOid, options, result).asObjectable();
@@ -1035,7 +1035,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         String child11Oid = add(TASK_SUSPENDED_TREE_CHILD_1_1, result).getOid();
         String child2Oid = add(TASK_SUSPENDED_TREE_CHILD_2, result).getOid();
 
-        Collection<SelectorOptions<GetOperationOptions>> withChildren = schemaHelper.getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> withChildren = schemaService.getOperationOptionsBuilder()
                 .item(TaskType.F_SUBTASK_REF).retrieve()
                 .build();
 

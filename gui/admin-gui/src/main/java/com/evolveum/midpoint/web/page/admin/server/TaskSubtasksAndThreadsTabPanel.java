@@ -132,7 +132,7 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
         propertiesToGet.add(TaskType.F_SUBTASK_REF);
         propertiesToGet.add(TaskType.F_NODE_AS_OBSERVED);
 
-        GetOperationOptionsBuilder getOperationOptionsBuilder = getSchemaHelper().getOperationOptionsBuilder();
+        GetOperationOptionsBuilder getOperationOptionsBuilder = getSchemaService().getOperationOptionsBuilder();
         getOperationOptionsBuilder = getOperationOptionsBuilder.resolveNames();
         return getOperationOptionsBuilder
                 .items(propertiesToGet.toArray(new Object[0])).retrieve()

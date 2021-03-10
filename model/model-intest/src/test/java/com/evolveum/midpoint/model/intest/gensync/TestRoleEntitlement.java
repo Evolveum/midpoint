@@ -267,7 +267,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
-        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                 .item(UserType.F_LINK_REF).resolve()
                 .build();
 
@@ -323,7 +323,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
-        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                 .item(UserType.F_LINK_REF)
                 .resolve()
                 .noFetch()
