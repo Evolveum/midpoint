@@ -79,7 +79,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 
     @Autowired private DataModelVisualizer dataModelVisualizer;
     @Autowired private PrismContext prismContext;
-    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private SchemaService schemaService;
 
     @Autowired
     @Qualifier("repositoryService")
@@ -370,7 +370,7 @@ public class ModelDiagController implements ModelDiagnosticService {
         OperationResult subresult = result.createSubresult(result.getOperation() + ".getObject.key");
         try {
             // @formatter:off
-            GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
+            GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder()
                     .item(LookupTableType.F_ROW)
                     .retrieveQuery()
                             .item(LookupTableRowType.F_KEY)
@@ -395,7 +395,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 
         PrismObject<LookupTableType> lookupTableRetrieved;
         try {
-            Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+            Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                     .item(LookupTableType.F_ROW).retrieve()
                     .build();
             lookupTableRetrieved = repositoryService.getObject(LookupTableType.class, oid, options, subresult);

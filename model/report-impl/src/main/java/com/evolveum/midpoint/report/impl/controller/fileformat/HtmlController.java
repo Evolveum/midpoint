@@ -33,7 +33,6 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
@@ -328,7 +327,7 @@ public class HtmlController extends FileFormatController {
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         long startMillis = getReportService().getClock().currentTimeMillis();
         Class<ObjectType> type = resolveType(collection, compiledCollection);
-        Collection<SelectorOptions<GetOperationOptions>> options = DefaultColumnUtils.createOption(type, getReportService().getSchemaHelper());
+        Collection<SelectorOptions<GetOperationOptions>> options = DefaultColumnUtils.createOption(type, getReportService().getSchemaService());
         PrismObjectDefinition<ObjectType> def = getReportService().getPrismContext().getSchemaRegistry().findItemDefinitionByCompileTimeClass(type, PrismObjectDefinition.class);
 
         ContainerTag table = createTable();

@@ -131,7 +131,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private ArchetypeManager archetypeManager;
     @Autowired private TriggerCreatorGlobalState triggerCreatorGlobalState;
     @Autowired private TaskManager taskManager;
-    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private SchemaService schemaService;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -875,7 +875,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (objectDefinition == null) {
             throw new SchemaException("No definition for type " + type);
         }
-        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                 .executionPhase()
                 .allowNotFound(allowNotFound)
                 .build();

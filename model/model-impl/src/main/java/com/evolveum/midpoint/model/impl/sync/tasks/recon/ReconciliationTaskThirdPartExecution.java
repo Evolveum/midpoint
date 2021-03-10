@@ -90,7 +90,7 @@ class ReconciliationTaskThirdPartExecution
 
     @Override
     protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(OperationResult opResult) {
-        return taskHandler.schemaHelper.getOperationOptionsBuilder()
+        return taskHandler.schemaService.getOperationOptionsBuilder()
                 .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
                 .build();
     }

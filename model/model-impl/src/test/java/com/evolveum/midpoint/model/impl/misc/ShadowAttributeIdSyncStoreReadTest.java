@@ -98,7 +98,7 @@ public class ShadowAttributeIdSyncStoreReadTest extends AbstractInternalModelInt
 
         PrismObject<ShadowType> object = shadows.get(0);
         @NotNull
-        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder().raw().build();
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder().raw().build();
 
         PrismObject<ShadowType> raw = repositoryService.getObject(ShadowType.class, object.getOid(), options, result);
         PrismObject<ShadowType> provisioning = provisioningService.getObject(ShadowType.class, object.getOid(), null, null, result);

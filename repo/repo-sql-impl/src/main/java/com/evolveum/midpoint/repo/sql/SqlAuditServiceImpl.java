@@ -99,7 +99,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     private final BaseHelper baseHelper; // only for logging/exception handling
     private final SqlRepoContext sqlRepoContext;
-    private final SchemaHelper schemaService;
+    private final SchemaService schemaService;
 
     private final SqlQueryExecutor sqlQueryExecutor;
     private final SqlTransformerContext sqlTransformerContext;
@@ -109,7 +109,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     public SqlAuditServiceImpl(
             BaseHelper baseHelper,
             SqlRepoContext sqlRepoContext,
-            SchemaHelper schemaService) {
+            SchemaService schemaService) {
         this.baseHelper = baseHelper;
         this.sqlRepoContext = sqlRepoContext;
         this.schemaService = schemaService;
@@ -642,7 +642,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
                 ObjectDeltaType delta = schemaService.parserFor(serializedDelta)
                         .parseRealValue(ObjectDeltaType.class);
-                odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, schemaService.getPrismContext()));
+                odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, schemaService.prismContext()));
             }
             if (resultSet.getBytes(QAuditDelta.FULL_RESULT.getName()) != null) {
                 byte[] data = resultSet.getBytes(QAuditDelta.FULL_RESULT.getName());

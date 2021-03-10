@@ -713,8 +713,8 @@ public class WebModelServiceUtils {
         return null;
     }
 
-    public static Collection<SelectorOptions<GetOperationOptions>> createLookupTableRetrieveOptions(SchemaHelper schemaHelper) {
-        return schemaHelper.getOperationOptionsBuilder()
+    public static Collection<SelectorOptions<GetOperationOptions>> createLookupTableRetrieveOptions(SchemaService schemaService) {
+        return schemaService.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
                 .asc(LookupTableRowType.F_LABEL)

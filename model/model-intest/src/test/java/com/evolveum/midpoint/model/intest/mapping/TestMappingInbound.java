@@ -317,7 +317,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         assertSuccess(result);
 
         PrismObject<UserType> userMancombAfter = repositoryService.getObject(UserType.class, userMancomb.getOid(),
-                schemaHelper.getOperationOptionsBuilder().retrieve().build(), result);
+                schemaService.getOperationOptionsBuilder().retrieve().build(), result);
         display("user mancomb after", userMancombAfter);
 
         //assertJpegPhoto(UserType.class, userMancomb.getOid(), "beer".getBytes(StandardCharsets.UTF_8), result);

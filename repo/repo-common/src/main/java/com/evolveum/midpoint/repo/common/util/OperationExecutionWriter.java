@@ -16,7 +16,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -61,7 +61,7 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
 
     private static final Trace LOGGER = TraceManager.getTrace(OperationExecutionWriter.class);
 
-    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private SchemaService schemaService;
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired private PrismContext prismContext;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
@@ -183,7 +183,7 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
 
     private <O extends ObjectType> Collection<OperationExecutionType> loadExistingRecords(Class<O> objectType, String oid,
             OperationResult result) throws SchemaException, ObjectNotFoundException {
-        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                 .readOnly()
                 .build();
         return repositoryService.getObject(objectType, oid, options, result)

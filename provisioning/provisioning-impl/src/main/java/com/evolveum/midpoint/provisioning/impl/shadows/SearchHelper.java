@@ -64,7 +64,7 @@ class SearchHelper {
     private static final Trace LOGGER = TraceManager.getTrace(SearchHelper.class);
 
     @Autowired private PrismContext prismContext;
-    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private SchemaService schemaService;
     @Autowired private ResourceObjectConverter resourceObjectConverter;
     @Autowired private ShadowCaretaker shadowCaretaker;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
@@ -346,7 +346,7 @@ class SearchHelper {
                 paging.setOffset(0);
                 paging.setMaxSize(1);
                 query.setPaging(paging);
-                Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+                Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                         .item(ShadowType.F_ASSOCIATION).dontRetrieve()
                         .build();
                 int count;
@@ -369,7 +369,7 @@ class SearchHelper {
                 query.setPaging(null);
                 LOGGER.trace("countObjects: simulating counting with sequential search (likely performance impact)");
 
-                Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+                Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                         .item(ShadowType.F_ASSOCIATION).dontRetrieve()
                         .build();
 

@@ -70,7 +70,7 @@ public class SqaleRepositoryService implements RepositoryService {
     private static final int MAX_CONFLICT_WATCHERS = 10;
 
     private final SqaleRepoContext sqlRepoContext;
-    private final SchemaHelper schemaService;
+    private final SchemaService schemaService;
     private final SqlQueryExecutor sqlQueryExecutor;
     private final SqaleTransformerContext transformerContext;
     private final SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
@@ -82,7 +82,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
     public SqaleRepositoryService(
             SqaleRepoContext sqlRepoContext,
-            SchemaHelper schemaService,
+            SchemaService schemaService,
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         this.sqlRepoContext = sqlRepoContext;
         this.schemaService = schemaService;

@@ -176,7 +176,7 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
         };
 
         ModelService service = page.getModelService();
-        GetOperationOptionsBuilder optionsBuilder = page.getSchemaHelper().getOperationOptionsBuilder()
+        GetOperationOptionsBuilder optionsBuilder = page.getSchemaService().getOperationOptionsBuilder()
                 .raw()
                 .resolveNames();
         if (showAllItems) {

@@ -68,7 +68,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
     private SecurityContextManager securityContextManager;
 
     @Autowired private PrismContext prismContext;
-    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private SchemaService schemaService;
 
     private final List<AuditService> services = new ArrayList<>();
 
@@ -183,7 +183,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
             ObjectDelta<? extends ObjectType> delta = objectDeltaOperation.getObjectDelta();
 
             // currently this does not work as expected (retrieves all default items)
-            Collection<SelectorOptions<GetOperationOptions>> nameOnlyOptions = schemaHelper.getOperationOptionsBuilder()
+            Collection<SelectorOptions<GetOperationOptions>> nameOnlyOptions = schemaService.getOperationOptionsBuilder()
                     .item(ObjectType.F_NAME).retrieve()
                     .build();
             ObjectDeltaSchemaLevelUtil.NameResolver nameResolver = (objectClass, oid) -> {
