@@ -540,4 +540,10 @@ public class PrismForm<T> extends Component<T> {
         return this;
     }
 
+    public PrismForm<T> assertPropertyDropdownValue(String attributeName, String expectedValue) {
+        assertion.assertTrue(compareSelectAttributeValue(attributeName, expectedValue), "The value of the dropdown attribute " + attributeName
+                + " doesn't match to expected value '" + expectedValue + "'.");
+        return this;
+    }
+
 }

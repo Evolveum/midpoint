@@ -6,9 +6,6 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -19,7 +16,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
@@ -140,8 +137,8 @@ public class BasePanel<T> extends Panel {
         return getPageBase().getPrismContext();
     }
 
-    public SchemaHelper getSchemaHelper() {
-        return getPageBase().getSchemaHelper();
+    public SchemaService getSchemaService() {
+        return getPageBase().getSchemaService();
     }
 
     protected String createComponentPath(String... components) {

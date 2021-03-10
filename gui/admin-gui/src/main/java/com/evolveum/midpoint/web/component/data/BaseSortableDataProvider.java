@@ -12,7 +12,6 @@ import java.io.Serializable;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.session.PageStorage;
 
 import org.apache.commons.lang3.Validate;
@@ -35,14 +34,12 @@ import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DistinctSearchOptionType;
 
 /**
@@ -98,17 +95,17 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return application.getPrismContext();
     }
 
-    protected SchemaHelper getSchemaHelper() {
+    protected SchemaService getSchemaService() {
         MidPointApplication application = MidPointApplication.get();
-        return application.getSchemaHelper();
+        return application.getSchemaService();
     }
 
     protected GetOperationOptionsBuilder getOperationOptionsBuilder() {
-        return getSchemaHelper().getOperationOptionsBuilder();
+        return getSchemaService().getOperationOptionsBuilder();
     }
 
     protected GetOperationOptionsBuilder getOperationOptionsBuilder(Collection<SelectorOptions<GetOperationOptions>> createFrom) {
-        return getSchemaHelper().getOperationOptionsBuilder().setFrom(createFrom);
+        return getSchemaService().getOperationOptionsBuilder().setFrom(createFrom);
     }
 
     protected RelationRegistry getRelationRegistry() {

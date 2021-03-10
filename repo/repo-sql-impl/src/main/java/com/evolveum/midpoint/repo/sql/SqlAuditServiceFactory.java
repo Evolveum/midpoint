@@ -32,7 +32,7 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTableMetadata;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -54,13 +54,13 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
     private static final String CONF_AUDIT_SERVICE_EVENT_RECORD_PROPERTY_NAME = "eventRecordPropertyName";
 
     private final BaseHelper defaultBaseHelper;
-    private final SchemaHelper schemaService;
+    private final SchemaService schemaService;
 
     private SqlAuditServiceImpl auditService;
 
     public SqlAuditServiceFactory(
             BaseHelper defaultBaseHelper,
-            SchemaHelper schemaService) {
+            SchemaService schemaService) {
         this.defaultBaseHelper = defaultBaseHelper;
         this.schemaService = schemaService;
     }

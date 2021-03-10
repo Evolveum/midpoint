@@ -13,14 +13,14 @@ import com.evolveum.axiom.lang.antlr.query.AxiomQueryParser.StringValueContext;
 
 public class AxiomAntlrLiterals {
 
+    @Deprecated
     public static String convertSingleQuote(String text) {
-        int stop = text.length();
-        return text.substring(1, stop - 1);
+        return AxiomStrings.fromSingleQuoted(text);
     }
 
+    @Deprecated
     public static String convertDoubleQuote(String text) {
-        int stop = text.length();
-        return text.substring(1, stop - 1);
+        return AxiomStrings.fromDoubleQuoted(text);
     }
 
     public static String convertMultiline(String text) {

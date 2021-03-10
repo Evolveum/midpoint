@@ -10,7 +10,8 @@ import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterPr
 import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.uuidMapper;
 
 import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleModelMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
@@ -18,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  * The mapping is the same for all subtypes, see different `INSTANCE_*` constants below.
  */
 public class QReferenceMapping
-        extends SqaleModelMapping<ObjectReferenceType, QReference, MReference> {
+        extends SqaleTableMapping<ObjectReferenceType, QReference, MReference> {
 
     // see also subtype specific alias names defined for instances below
     public static final String DEFAULT_ALIAS_NAME = "ref";
@@ -62,11 +63,10 @@ public class QReferenceMapping
         return new QReference(alias);
     }
 
-//    @Override TODO
-//    public TriggerSqlTransformer createTransformer(
-//            SqlTransformerContext transformerContext) {
-//        return new TriggerSqlTransformer(transformerContext, this);
-//    }
+    @Override
+    public ReferenceSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
+        return new ReferenceSqlTransformer(transformerSupport, this);
+    }
 
     @Override
     public MReference newRowObject() {

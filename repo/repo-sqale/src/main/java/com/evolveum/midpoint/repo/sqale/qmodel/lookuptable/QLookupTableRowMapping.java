@@ -9,8 +9,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.lookuptable;
 import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType.*;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleModelMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
@@ -19,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
  * Mapping between {@link QLookupTableRow} and {@link LookupTableRowType}.
  */
 public class QLookupTableRowMapping
-        extends SqaleModelMapping<LookupTableRowType, QLookupTableRow, MLookupTableRow> {
+        extends SqaleTableMapping<LookupTableRowType, QLookupTableRow, MLookupTableRow> {
 
     public static final String DEFAULT_ALIAS_NAME = "ltr";
 
@@ -43,9 +43,8 @@ public class QLookupTableRowMapping
     }
 
     @Override
-    public LookupTableRowTransformer createTransformer(
-            SqlTransformerContext transformerContext) {
-        return new LookupTableRowTransformer(transformerContext, this);
+    public LookupTableRowSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
+        return new LookupTableRowSqlTransformer(transformerSupport, this);
     }
 
     @Override

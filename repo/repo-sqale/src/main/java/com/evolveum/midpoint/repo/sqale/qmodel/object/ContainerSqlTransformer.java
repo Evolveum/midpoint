@@ -12,22 +12,22 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 
 public class ContainerSqlTransformer
         <S extends Containerable, Q extends QContainer<R>, R extends MContainer>
         extends SqaleTransformerBase<S, Q, R> {
 
     public ContainerSqlTransformer(
-            SqlTransformerContext transformerContext, QContainerMapping<S, Q, R> mapping) {
-        super(transformerContext, mapping);
+            SqlTransformerSupport transformerSupport, QContainerMapping<S, Q, R> mapping) {
+        super(transformerSupport, mapping);
     }
 
-    @Override
     public R toRowObject(S schemaObject, JdbcSession jdbcSession) {
         R row = mapping.newRowObject();
         // owner id is set outside this call
         row.cid = schemaObject.asPrismContainerValue().getId();
+        // containerType is generated in DB, must be left null!
         return row;
     }
 }

@@ -60,7 +60,7 @@ public class TestPhotoAssignment extends AbstractStoryTest {
         assignService(USER_JOE.oid, SERVICE_CARD_10001.oid, task, result);
 
         PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, USER_JOE.oid,
-                schemaHelper.getOperationOptionsBuilder().retrieve().build(), result);
+                schemaService.getOperationOptionsBuilder().retrieve().build(), result);
         new UserAsserter<>(userAfter)
                 .display()
                 .assertJpegPhoto();

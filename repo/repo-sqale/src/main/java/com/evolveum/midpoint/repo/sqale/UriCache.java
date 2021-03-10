@@ -73,8 +73,8 @@ public class UriCache {
     }
 
     /** Returns ID for QName or throws exception - does not work with underlying database. */
-    public @NotNull Integer resolveToId(@NotNull QName qName) {
-        return resolveToId(QNameUtil.qNameToUri(qName));
+    public @NotNull Integer resolveUriToId(@NotNull QName qName) {
+        return resolveUriToId(QNameUtil.qNameToUri(qName));
     }
 
     /** Returns ID for string, possibly {@code null} - does not work with underlying database. */
@@ -92,7 +92,7 @@ public class UriCache {
     }
 
     /** Returns ID for QName or throws exception - does not work with underlying database. */
-    public @NotNull Integer resolveToId(@NotNull String uri) {
+    public @NotNull Integer resolveUriToId(@NotNull String uri) {
         Integer id = getId(uri);
         LOGGER.trace("URI cache 'resolve' returned ID={} for URI={}", id, uri);
         return Objects.requireNonNull(id, () -> "URI not cached: " + uri);

@@ -162,7 +162,7 @@ public class DeleteNotUpdatedShadowTaskHandler
         @Override
         protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(
                 Collection<SelectorOptions<GetOperationOptions>> configuredOptions) {
-            return schemaHelper.getOperationOptionsBuilder()
+            return schemaService.getOperationOptionsBuilder()
                     .noFetch()
                     .build();
         }

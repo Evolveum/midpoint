@@ -49,15 +49,15 @@ public class ReportFunctions {
     private static final Trace LOGGER = TraceManager.getTrace(ReportFunctions.class);
 
     private final PrismContext prismContext;
-    private final SchemaHelper schemaHelper;
+    private final SchemaService schemaService;
     private final ModelService model;
     private final TaskManager taskManager;
     private final AuditService auditService;
 
-    public ReportFunctions(PrismContext prismContext, SchemaHelper schemaHelper,
-            ModelService modelService, TaskManager taskManager, AuditService auditService) {
+    public ReportFunctions(PrismContext prismContext, SchemaService schemaService,
+                           ModelService modelService, TaskManager taskManager, AuditService auditService) {
         this.prismContext = prismContext;
-        this.schemaHelper = schemaHelper;
+        this.schemaService = schemaService;
         this.model = modelService;
         this.taskManager = taskManager;
         this.auditService = auditService;
@@ -350,7 +350,7 @@ public class ReportFunctions {
                 ItemPath.create(PrismConstants.T_PARENT, CaseType.F_TARGET_REF),
                 ItemPath.create(PrismConstants.T_PARENT, CaseType.F_REQUESTOR_REF) };
         SearchResultList<CaseWorkItemType> workItems = model.searchContainers(CaseWorkItemType.class, query,
-                schemaHelper.getOperationOptionsBuilder().items(itemsToResolve).resolve().build(), task, result);
+                schemaService.getOperationOptionsBuilder().items(itemsToResolve).resolve().build(), task, result);
         return PrismContainerValue.toPcvList(workItems);
     }
 
@@ -544,7 +544,7 @@ public class ReportFunctions {
             );
         }
 
-        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                 .root().resolveNames()
                 .item(AccessCertificationCampaignType.F_CASE).retrieve()
                 .build();

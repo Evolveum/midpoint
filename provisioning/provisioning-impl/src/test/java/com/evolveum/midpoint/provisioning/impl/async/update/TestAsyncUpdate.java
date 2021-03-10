@@ -477,7 +477,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
             ConfigurationException, ExpressionEvaluationException {
         PrismObject<ShadowType> shadowRepo = findAccountShadowByUsername("banderson", resource, result);
         assertNotNull("No Anderson shadow in repo", shadowRepo);
-        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                 .noFetch()
                 .retrieve()
                 .build();

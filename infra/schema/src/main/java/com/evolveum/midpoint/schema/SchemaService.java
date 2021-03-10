@@ -22,15 +22,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * The purpose is rather practical, to avoid too many injections.
  * Most used methods are provided directly.
  */
-// TODO rename SchemaService, wait for Palo's signal ;-)
 @Component
-public class SchemaHelper {
+public class SchemaService {
 
     @Autowired private PrismContext prismContext;
     @Autowired private RelationRegistry relationRegistry;
 
-    // TODO rename to prismContext() without get
-    public PrismContext getPrismContext() {
+    public PrismContext prismContext() {
         return prismContext;
     }
 

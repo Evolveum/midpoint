@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) 2011-2020 Evolveum, All rights reserved -->
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" oid="19d47b1e-26d1-11e8-b701-170061581bbf">
+    <name>Basic Approver</name>
+    <description>Role authorizing users to make approval decisions on work items.</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000320" type="ArchetypeType"/>
+        <!-- System role -->
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000320" relation="org:default" type="c:ArchetypeType">
+        <!-- System Role -->
+    </archetypeRef>
+    <roleMembershipRef oid="00000000-0000-0000-0000-000000000320" relation="org:default" type="c:ArchetypeType">
+        <!-- System Role -->
+    </roleMembershipRef>
+    <authorization>
+        <name>gui-approver-access</name>
+        <description>
+            Allow access to list of work items in GUI. Allow access to pages that show object details,
+            so the approver may examine who is requesting and what is requesting.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#userDetails</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roleDetails</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#service</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myWorkItems</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#claimableWorkItems</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#casesView</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItem</action>
+    </authorization>
+    <authorization>
+        <name>workitems-delegate</name>
+        <description>
+            Allow delegation of own work items.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delegateOwnWorkItems</action>
+    </authorization>
+    <authorization>
+        <name>cases-assignee-self-read</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>CaseType</type>
+            <assignee>
+                <special>self</special>
+            </assignee>
+        </object>
+    </authorization>
+    <authorization>
+        <name>cases-target-self-read</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>CaseType</type>
+            <relatedObject>
+                <special>self</special>
+            </relatedObject>
+        </object>
+    </authorization>
+    <subtype>system</subtype>
+</role>

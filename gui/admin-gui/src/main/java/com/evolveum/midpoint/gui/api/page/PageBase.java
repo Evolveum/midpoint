@@ -31,8 +31,6 @@ import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.head.CssHeaderItem;
-import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
@@ -46,8 +44,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.resource.CssResourceReference;
-import org.apache.wicket.resource.CoreLibrariesContributor;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -406,12 +402,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return getMidpointApplication().getPrismContext();
     }
 
-    public SchemaHelper getSchemaHelper() {
-        return getMidpointApplication().getSchemaHelper();
+    public SchemaService getSchemaService() {
+        return getMidpointApplication().getSchemaService();
     }
 
     public GetOperationOptionsBuilder getOperationOptionsBuilder() {
-        return getSchemaHelper().getOperationOptionsBuilder();
+        return getSchemaService().getOperationOptionsBuilder();
     }
 
     public QueryConverter getQueryConverter() {

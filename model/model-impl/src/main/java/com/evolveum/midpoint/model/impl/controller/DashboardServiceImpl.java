@@ -72,7 +72,7 @@ public class DashboardServiceImpl implements DashboardService {
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private ModelObjectResolver objectResolver;
     @Autowired private CollectionProcessor collectionProcessor;
-    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private SchemaService schemaService;
 
     @Override
     public DashboardWidget createWidgetData(DashboardWidgetType widget, Task task, OperationResult result)
@@ -305,7 +305,7 @@ public class DashboardServiceImpl implements DashboardService {
             @NotNull PrismObject<ObjectCollectionType> collectionFromRef = modelService.getObject(ObjectCollectionType.class, collectionRef.getCollectionRef().getOid(), null, task, result);
             collectionOptions = MiscSchemaUtil.optionsTypeToOptions(collectionFromRef.asObjectable().getGetOptions(), prismContext);
         }
-        GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder().setFrom(collectionOptions);
+        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder().setFrom(collectionOptions);
         if (collectionRef.getBaseCollectionRef() != null && collectionRef.getBaseCollectionRef().getCollectionRef() != null
                 && collectionRef.getBaseCollectionRef().getCollectionRef().getOid() != null) {
             @NotNull PrismObject<ObjectCollectionType> baseCollection = modelService.getObject(ObjectCollectionType.class, collectionRef.getCollectionRef().getOid(), null, task, result);

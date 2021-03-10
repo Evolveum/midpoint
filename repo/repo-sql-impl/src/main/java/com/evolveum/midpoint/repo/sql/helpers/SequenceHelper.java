@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.helpers;
 
 import java.util.Collection;
@@ -99,7 +98,8 @@ public class SequenceHelper {
 
             // merge and update object
             LOGGER.trace("Translating JAXB to data type.");
-            PrismIdentifierGenerator<SequenceType> idGenerator = new PrismIdentifierGenerator<>(PrismIdentifierGenerator.Operation.MODIFY);
+            PrismIdentifierGenerator idGenerator =
+                    new PrismIdentifierGenerator(PrismIdentifierGenerator.Operation.MODIFY);
             RObject rObject = objectUpdater.createDataObjectFromJAXB(prismObject, idGenerator);
             rObject.setVersion(rObject.getVersion() + 1);
 
@@ -156,7 +156,7 @@ public class SequenceHelper {
 
             // merge and update object
             LOGGER.trace("Translating JAXB to data type.");
-            PrismIdentifierGenerator<SequenceType> idGenerator = new PrismIdentifierGenerator<>(PrismIdentifierGenerator.Operation.MODIFY);
+            PrismIdentifierGenerator idGenerator = new PrismIdentifierGenerator(PrismIdentifierGenerator.Operation.MODIFY);
             RObject rObject = objectUpdater.createDataObjectFromJAXB(prismObject, idGenerator);
             rObject.setVersion(rObject.getVersion() + 1);
 

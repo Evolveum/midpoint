@@ -9,10 +9,10 @@ package com.evolveum.midpoint.repo.sqale.qmodel.connector;
 import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType.*;
 
-import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.RefItemIntFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -33,7 +33,7 @@ public class QConnectorMapping
         addItemMapping(F_CONNECTOR_TYPE, stringMapper(path(q -> q.connectorType)));
         addItemMapping(F_CONNECTOR_VERSION, stringMapper(path(q -> q.connectorVersion)));
         addItemMapping(F_FRAMEWORK, stringMapper(path(q -> q.framework)));
-        addItemMapping(F_CONNECTOR_HOST_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(F_CONNECTOR_HOST_REF, RefItemIntFilterProcessor.mapper(
                 path(q -> q.connectorHostRefTargetOid),
                 path(q -> q.connectorHostRefTargetType),
                 path(q -> q.connectorHostRefRelationId)));
@@ -47,9 +47,8 @@ public class QConnectorMapping
     }
 
     @Override
-    public ConnectorSqlTransformer createTransformer(
-            SqlTransformerContext transformerContext) {
-        return new ConnectorSqlTransformer(transformerContext, this);
+    public ConnectorSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
+        return new ConnectorSqlTransformer(transformerSupport, this);
     }
 
     @Override

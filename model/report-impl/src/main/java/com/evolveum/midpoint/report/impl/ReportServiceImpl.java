@@ -45,7 +45,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.expression.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -68,7 +68,7 @@ public class ReportServiceImpl implements ReportService {
     @Autowired private ModelService model;
     @Autowired private TaskManager taskManager;
     @Autowired private PrismContext prismContext;
-    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private SchemaService schemaService;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
     @Autowired private AuditService auditService;
@@ -91,7 +91,6 @@ public class ReportServiceImpl implements ReportService {
     @Autowired private LocalizationService localizationService;
 //    @Autowired private ExpressionFactory expressionFactory;
     @Autowired private CommandLineScriptExecutor commandLineScriptExecutor;
-//    @Autowired private SchemaHelper schemaHelper;
     @Autowired private ScriptingService scriptingService;
 
     @Override
@@ -367,7 +366,7 @@ public class ReportServiceImpl implements ReportService {
         FunctionLibrary midPointLib = new FunctionLibrary();
         midPointLib.setVariableName("report");
         midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
-        ReportFunctions reportFunctions = new ReportFunctions(prismContext, schemaHelper, model, taskManager, auditService);
+        ReportFunctions reportFunctions = new ReportFunctions(prismContext, schemaService, model, taskManager, auditService);
         midPointLib.setGenericFunctions(reportFunctions);
 
         Collection<FunctionLibrary> functions = new ArrayList<>();
@@ -510,8 +509,8 @@ public class ReportServiceImpl implements ReportService {
         return commandLineScriptExecutor;
     }
 
-    public SchemaHelper getSchemaHelper() {
-        return schemaHelper;
+    public SchemaService getSchemaService() {
+        return schemaService;
     }
 
     public ScriptingService getScriptingService() {

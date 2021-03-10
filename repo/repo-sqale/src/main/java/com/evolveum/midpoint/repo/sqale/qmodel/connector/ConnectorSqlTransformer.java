@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -18,8 +18,8 @@ public class ConnectorSqlTransformer
         extends ObjectSqlTransformer<ConnectorType, QConnector, MConnector> {
 
     public ConnectorSqlTransformer(
-            SqlTransformerContext transformerContext, QConnectorMapping mapping) {
-        super(transformerContext, mapping);
+            SqlTransformerSupport transformerSupport, QConnectorMapping mapping) {
+        super(transformerSupport, mapping);
     }
 
     @Override

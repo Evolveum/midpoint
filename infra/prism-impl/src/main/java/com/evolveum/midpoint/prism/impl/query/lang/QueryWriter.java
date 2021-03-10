@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.axiom.concepts.Builder;
+import com.evolveum.axiom.lang.antlr.AxiomStrings;
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.impl.marshaller.ItemPathSerialization;
@@ -192,11 +193,7 @@ public class QueryWriter implements Builder<PrismQuerySerialization> {
     }
 
     private void writeString(Object rawValue) {
-        // FIXME: Add escapers and String Type detection
-        target.emit("'");
-        target.emit(rawValue.toString());
-
-        target.emit("'");
+        target.emit(AxiomStrings.toSingleQuoted(rawValue.toString()));
     }
 
     private void writeQName(QName rawValue) {

@@ -10,19 +10,21 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class TaskSqlTransformer extends ObjectSqlTransformer<TaskType, QTask, MTask> {
 
-    public TaskSqlTransformer(SqlTransformerContext transformerContext, QTaskMapping mapping) {
-        super(transformerContext, mapping);
+    public TaskSqlTransformer(SqlTransformerSupport transformerSupport, QTaskMapping mapping) {
+        super(transformerSupport, mapping);
     }
 
     @Override
     public @NotNull MTask toRowObjectWithoutFullObject(
             TaskType schemaObject, JdbcSession jdbcSession) {
         MTask row = super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
+
+        // TODO other attributes
 
         return row;
     }

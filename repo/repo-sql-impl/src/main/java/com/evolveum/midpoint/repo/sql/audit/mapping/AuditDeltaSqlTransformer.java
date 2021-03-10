@@ -14,7 +14,7 @@ import com.evolveum.midpoint.repo.sql.audit.AuditSqlTransformerBase;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditDelta;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
@@ -28,19 +28,19 @@ public class AuditDeltaSqlTransformer
         extends AuditSqlTransformerBase<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> {
 
     public AuditDeltaSqlTransformer(
-            SqlTransformerContext sqlTransformerContext, QAuditDeltaMapping mapping) {
-        super(sqlTransformerContext, mapping);
+            SqlTransformerSupport transformerSupport, QAuditDeltaMapping mapping) {
+        super(transformerSupport, mapping);
     }
 
     public ObjectDeltaOperationType toSchemaObject(MAuditDelta row) throws SchemaException {
         ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
-        SQLTemplates querydslTemplates = transformerContext.sqlRepoContext().getQuerydslTemplates();
+        SQLTemplates querydslTemplates = transformerSupport.sqlRepoContext().getQuerydslTemplates();
         boolean usingSqlServer = querydslTemplates instanceof SQLServerTemplates;
         if (row.delta != null) {
             String serializedDelta =
                     RUtil.getSerializedFormFromBytes(row.delta, usingSqlServer);
 
-            ObjectDeltaType delta = transformerContext.parseRealValue(
+            ObjectDeltaType delta = transformerSupport.parseRealValue(
                     serializedDelta, ObjectDeltaType.class);
             odo.setObjectDelta(delta);
         }
@@ -48,7 +48,7 @@ public class AuditDeltaSqlTransformer
             String serializedResult =
                     RUtil.getSerializedFormFromBytes(row.fullResult, usingSqlServer);
 
-            OperationResultType resultType = transformerContext.parseRealValue(
+            OperationResultType resultType = transformerSupport.parseRealValue(
                     serializedResult, OperationResultType.class);
             odo.setExecutionResult(resultType);
         }

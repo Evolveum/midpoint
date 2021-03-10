@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -103,8 +103,8 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
 
     @Override
     public FocusSqlTransformer<S, Q, R> createTransformer(
-            SqlTransformerContext transformerContext) {
-        return new FocusSqlTransformer<>(transformerContext, this);
+            SqlTransformerSupport transformerSupport) {
+        return new FocusSqlTransformer<>(transformerSupport, this);
     }
 
     @Override

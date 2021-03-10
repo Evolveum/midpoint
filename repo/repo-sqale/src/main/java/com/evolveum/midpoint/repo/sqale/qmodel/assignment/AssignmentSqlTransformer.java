@@ -6,22 +6,26 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTransformerBase;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.ContainerSqlTransformer;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 public class AssignmentSqlTransformer
-        extends SqaleTransformerBase<AssignmentType, QAssignment, MAssignment> {
+        extends ContainerSqlTransformer<AssignmentType, QAssignment, MAssignment> {
 
     public AssignmentSqlTransformer(
-            SqlTransformerContext transformerContext, QAssignmentMapping mapping) {
-        super(transformerContext, mapping);
+            SqlTransformerSupport transformerSupport, QAssignmentMapping mapping) {
+        super(transformerSupport, mapping);
     }
 
     @Override
-    public AssignmentType toSchemaObject(MAssignment row) {
-        return null;
-    }
+    public MAssignment toRowObject(AssignmentType schemaObject, JdbcSession jdbcSession) {
+        MAssignment row = super.toRowObject(schemaObject, jdbcSession);
 
-    // TODO to row? and back...
+        row.ownerType = 0;
+        // TODO add other fields here
+
+        return row;
+    }
 }

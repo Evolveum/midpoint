@@ -19,7 +19,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 
 /**
  * Filter processor for reference item paths resolved via {@link QReference} tables.
- * This just joins the reference table and then delegates to {@link RefItemFilterProcessor}.
+ * This just joins the reference table and then delegates to {@link RefItemIntFilterProcessor}.
  */
 public class RefTableItemFilterProcessor
         extends ItemFilterProcessor<RefFilter> {
@@ -46,7 +46,7 @@ public class RefTableItemFilterProcessor
                         .leftJoin(qReferenceMapping, (o, r) -> o.oid.eq(r.ownerOid));
         QReference ref = refContext.path();
 
-        return new RefItemFilterProcessor(context, ref.targetOid, ref.targetType, ref.relationId)
+        return new RefItemIntFilterProcessor(context, ref.targetOid, ref.targetType, ref.relationId)
                 .process(filter);
     }
 }

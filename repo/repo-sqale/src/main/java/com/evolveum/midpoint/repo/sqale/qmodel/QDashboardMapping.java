@@ -8,7 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardType;
 
 /**
@@ -33,9 +33,9 @@ public class QDashboardMapping
 
     @Override
     public ObjectSqlTransformer<DashboardType, QDashboard, MDashboard>
-    createTransformer(SqlTransformerContext transformerContext) {
+    createTransformer(SqlTransformerSupport transformerSupport) {
         // no special class needed, no additional columns
-        return new ObjectSqlTransformer<>(transformerContext, this);
+        return new ObjectSqlTransformer<>(transformerSupport, this);
     }
 
     @Override

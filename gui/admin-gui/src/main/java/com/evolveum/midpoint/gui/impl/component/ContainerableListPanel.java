@@ -655,7 +655,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         OperationResult result = task.getResult();
 
         Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-                .createLookupTableRetrieveOptions(getPageBase().getSchemaHelper());
+                .createLookupTableRetrieveOptions(getPageBase().getSchemaService());
         return WebModelServiceUtils.loadObject(LookupTableType.class,
                 lookupTableOid, options, getPageBase(), task, result);
     }

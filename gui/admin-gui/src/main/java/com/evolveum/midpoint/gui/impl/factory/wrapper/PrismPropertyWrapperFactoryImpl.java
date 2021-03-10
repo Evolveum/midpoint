@@ -22,7 +22,7 @@ import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -41,7 +41,7 @@ public class PrismPropertyWrapperFactoryImpl<T>
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyWrapperFactoryImpl.class);
 
-    @Autowired protected SchemaHelper schemaHelper;
+    @Autowired protected SchemaService schemaService;
 
     private static final String DOT_CLASS = PrismPropertyWrapperFactoryImpl.class.getSimpleName() + ".";
     private static final String OPERATION_LOAD_LOOKUP_TABLE = DOT_CLASS + "loadLookupTable";
@@ -86,7 +86,7 @@ public class PrismPropertyWrapperFactoryImpl<T>
         Task task = wrapperContext.getTask();
         OperationResult result = wrapperContext.getResult().createSubresult(OPERATION_LOAD_LOOKUP_TABLE);
         Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-                .createLookupTableRetrieveOptions(schemaHelper);
+                .createLookupTableRetrieveOptions(schemaService);
 
         try {
             PrismObject<LookupTableType> lookupTable = getModelService().getObject(LookupTableType.class, valueEnumerationRef.getOid(), options, task, result);

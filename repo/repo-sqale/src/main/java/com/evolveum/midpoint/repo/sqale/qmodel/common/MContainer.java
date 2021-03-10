@@ -15,4 +15,5 @@ public class MContainer {
 
     public UUID ownerOid;
     public Long cid;
+    public MContainerType containerType;
 }

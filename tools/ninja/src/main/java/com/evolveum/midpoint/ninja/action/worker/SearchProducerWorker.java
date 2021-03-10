@@ -48,7 +48,7 @@ public class SearchProducerWorker extends BaseWorker<ExportOptions, PrismObject>
         Log log = context.getLog();
 
         try {
-            GetOperationOptionsBuilder optionsBuilder = context.getSchemaHelper().getOperationOptionsBuilder();
+            GetOperationOptionsBuilder optionsBuilder = context.getSchemaService().getOperationOptionsBuilder();
             if (options.isRaw()) {
                 optionsBuilder = optionsBuilder.raw();
             }

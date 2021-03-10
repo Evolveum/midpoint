@@ -9,10 +9,10 @@ package com.evolveum.midpoint.repo.sqale.qmodel.task;
 import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.integerMapper;
 import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
 
-import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.RefItemIntFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -45,11 +45,11 @@ public class QTaskMapping
         addItemMapping(TaskType.F_LAST_RUN_START_TIMESTAMP,
                 TimestampItemFilterProcessor.mapper(path(q -> q.lastRunStartTimestamp)));
         addItemMapping(TaskType.F_NODE, stringMapper(path(q -> q.node)));
-        addItemMapping(TaskType.F_OBJECT_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(TaskType.F_OBJECT_REF, RefItemIntFilterProcessor.mapper(
                 path(q -> q.objectRefTargetOid),
                 path(q -> q.objectRefTargetType),
                 path(q -> q.objectRefRelationId)));
-        addItemMapping(TaskType.F_OWNER_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(TaskType.F_OWNER_REF, RefItemIntFilterProcessor.mapper(
                 path(q -> q.ownerRefTargetOid),
                 path(q -> q.ownerRefTargetType),
                 path(q -> q.ownerRefRelationId)));
@@ -70,8 +70,8 @@ public class QTaskMapping
 
     @Override
     public TaskSqlTransformer createTransformer(
-            SqlTransformerContext transformerContext) {
-        return new TaskSqlTransformer(transformerContext, this);
+            SqlTransformerSupport transformerSupport) {
+        return new TaskSqlTransformer(transformerSupport, this);
     }
 
     @Override

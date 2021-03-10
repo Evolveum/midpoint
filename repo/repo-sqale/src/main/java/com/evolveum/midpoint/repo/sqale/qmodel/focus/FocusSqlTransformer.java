@@ -10,15 +10,15 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 public class FocusSqlTransformer<S extends FocusType, Q extends QFocus<R>, R extends MFocus>
         extends ObjectSqlTransformer<S, Q, R> {
 
     public FocusSqlTransformer(
-            SqlTransformerContext transformerContext, QFocusMapping<S, Q, R> mapping) {
-        super(transformerContext, mapping);
+            SqlTransformerSupport transformerSupport, QFocusMapping<S, Q, R> mapping) {
+        super(transformerSupport, mapping);
     }
 
     @Override

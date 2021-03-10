@@ -25,7 +25,7 @@ import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.result.OperationConstants;
@@ -69,7 +69,8 @@ public class ReconciliationTaskHandler
     @Autowired AuditHelper auditHelper;
     @Autowired private Clock clock;
     @Autowired protected ExpressionFactory expressionFactory;
-    @Autowired SchemaHelper schemaHelper;
+    @Autowired
+    SchemaService schemaService;
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;

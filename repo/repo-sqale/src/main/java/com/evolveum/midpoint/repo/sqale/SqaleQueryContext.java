@@ -8,10 +8,10 @@ package com.evolveum.midpoint.repo.sqale;
 
 import com.querydsl.sql.SQLQuery;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleModelMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -20,30 +20,30 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         extends SqlQueryContext<S, Q, R> {
 
     public static <S, Q extends FlexibleRelationalPathBase<R>, R> SqaleQueryContext<S, Q, R> from(
-            Class<S> schemaType, SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
+            Class<S> schemaType, SqlTransformerSupport transformerSupport, SqlRepoContext sqlRepoContext) {
 
-        SqaleModelMapping<S, Q, R> rootMapping = sqlRepoContext.getMappingBySchemaType(schemaType);
+        SqaleTableMapping<S, Q, R> rootMapping = sqlRepoContext.getMappingBySchemaType(schemaType);
         Q rootPath = rootMapping.defaultAlias();
         SQLQuery<?> query = sqlRepoContext.newQuery().from(rootPath);
         // Turns on validations of aliases, does not ignore duplicate JOIN expressions,
         // we must take care of unique alias names for JOINs, which is what we want.
         query.getMetadata().setValidate(true);
 
-        return new SqaleQueryContext<>(rootPath, rootMapping, transformerContext, sqlRepoContext, query);
+        return new SqaleQueryContext<>(rootPath, rootMapping, transformerSupport, sqlRepoContext, query);
     }
 
     private SqaleQueryContext(
             Q entityPath,
-            SqaleModelMapping<S, Q, R> mapping,
-            SqlTransformerContext transformerContext,
+            SqaleTableMapping<S, Q, R> mapping,
+            SqlTransformerSupport transformerSupport,
             SqlRepoContext sqlRepoContext,
             SQLQuery<?> query) {
-        super(entityPath, mapping, sqlRepoContext, transformerContext, query);
+        super(entityPath, mapping, sqlRepoContext, transformerSupport, query);
     }
 
     @Override
     protected SqlTransformer<S, Q, R> createTransformer() {
-        return entityPathMapping.createTransformer(transformerContext);
+        return entityPathMapping.createTransformer(transformerSupport);
     }
 
     /**
@@ -55,7 +55,7 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     protected <DQ extends FlexibleRelationalPathBase<DR>, DR> SqlQueryContext<?, DQ, DR>
     deriveNew(DQ newPath, QueryTableMapping<?, DQ, DR> newMapping) {
         return (SqlQueryContext<?, DQ, DR>) new SqaleQueryContext(
-                newPath, (SqaleModelMapping<?, ?, ?>) newMapping,
-                transformerContext, sqlRepoContext, sqlQuery);
+                newPath, (SqaleTableMapping<?, ?, ?>) newMapping,
+                transformerSupport, sqlRepoContext, sqlQuery);
     }
 }
