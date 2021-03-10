@@ -8,15 +8,15 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ContainerSqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 public class AssignmentSqlTransformer
         extends ContainerSqlTransformer<AssignmentType, QAssignment, MAssignment> {
 
     public AssignmentSqlTransformer(
-            SqlTransformerContext transformerContext, QAssignmentMapping mapping) {
-        super(transformerContext, mapping);
+            SqlTransformerSupport transformerSupport, QAssignmentMapping mapping) {
+        super(transformerSupport, mapping);
     }
 
     @Override

@@ -23,7 +23,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.assignment.MAssignment;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -36,9 +36,9 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         extends SqaleTransformerBase<S, Q, R> {
 
     public ObjectSqlTransformer(
-            SqlTransformerContext transformerContext,
+            SqlTransformerSupport transformerSupport,
             QObjectMapping<S, Q, R> mapping) {
-        super(transformerContext, mapping);
+        super(transformerSupport, mapping);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         PrismObject<S> prismObject;
         String serializedForm = new String(row.get(entityPath.fullObject), StandardCharsets.UTF_8);
         try {
-            SqlTransformerContext.ParseResult<S> result = transformerContext.parsePrismObject(serializedForm);
+            SqlTransformerSupport.ParseResult<S> result = transformerSupport.parsePrismObject(serializedForm);
             prismObject = result.prismObject;
             if (result.parsingContext.hasWarnings()) {
                 logger.warn("Object {} parsed with {} warnings",
@@ -182,7 +182,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         List<AssignmentType> assignments = schemaObject.getAssignment();
         if (!assignments.isEmpty()) {
             QAssignmentMapping mapping = QAssignmentMapping.INSTANCE;
-            AssignmentSqlTransformer transformer = mapping.createTransformer(transformerContext);
+            AssignmentSqlTransformer transformer = mapping.createTransformer(transformerSupport);
             for (AssignmentType assignment : assignments) {
                 MAssignment row = transformer.toRowObject(assignment, jdbcSession);
                 row.ownerOid = oid;
@@ -206,7 +206,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
                     "Serialized object must have assigned OID and version: " + schemaObject);
         }
 
-        return transformerContext.serializer()
+        return transformerSupport.serializer()
                 .itemsToSkip(fullObjectItemsToSkip())
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()

@@ -10,7 +10,7 @@ import com.querydsl.sql.SQLQuery;
 
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -19,7 +19,7 @@ public class AuditSqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         extends SqlQueryContext<S, Q, R> {
 
     public static <S, Q extends FlexibleRelationalPathBase<R>, R> AuditSqlQueryContext<S, Q, R> from(
-            Class<S> schemaType, SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
+            Class<S> schemaType, SqlTransformerSupport transformerContext, SqlRepoContext sqlRepoContext) {
 
         QueryTableMapping<S, Q, R> rootMapping = sqlRepoContext.getMappingBySchemaType(schemaType);
         Q rootPath = rootMapping.defaultAlias();
@@ -36,20 +36,20 @@ public class AuditSqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
             Q entityPath,
             QueryTableMapping<S, Q, R> mapping,
             SqlRepoContext sqlRepoContext,
-            SqlTransformerContext transformerContext,
+            SqlTransformerSupport transformerContext,
             SQLQuery<?> query) {
         super(entityPath, mapping, sqlRepoContext, transformerContext, query);
     }
 
     @Override
     protected SqlTransformer<S, Q, R> createTransformer() {
-        return entityPathMapping.createTransformer(transformerContext);
+        return entityPathMapping.createTransformer(transformerSupport);
     }
 
     @Override
     protected <DQ extends FlexibleRelationalPathBase<DR>, DR> SqlQueryContext<?, DQ, DR> deriveNew(
             DQ newPath, QueryTableMapping<?, DQ, DR> newMapping) {
         return new AuditSqlQueryContext<>(
-                newPath, newMapping, sqlRepoContext, transformerContext, sqlQuery);
+                newPath, newMapping, sqlRepoContext, transformerSupport, sqlQuery);
     }
 }

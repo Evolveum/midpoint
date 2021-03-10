@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.UserType.*;
 
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -61,8 +61,8 @@ public class QUserMapping
 
     @Override
     public UserSqlTransformer createTransformer(
-            SqlTransformerContext transformerContext) {
-        return new UserSqlTransformer(transformerContext, this);
+            SqlTransformerSupport transformerSupport) {
+        return new UserSqlTransformer(transformerSupport, this);
     }
 
     @Override

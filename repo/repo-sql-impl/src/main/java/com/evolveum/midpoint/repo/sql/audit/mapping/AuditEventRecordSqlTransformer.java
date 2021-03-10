@@ -28,7 +28,7 @@ import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -45,7 +45,7 @@ public class AuditEventRecordSqlTransformer
         extends AuditSqlTransformerBase<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> {
 
     public AuditEventRecordSqlTransformer(
-            SqlTransformerContext transformerContext, QAuditEventRecordMapping mapping) {
+            SqlTransformerSupport transformerContext, QAuditEventRecordMapping mapping) {
         super(transformerContext, mapping);
     }
 

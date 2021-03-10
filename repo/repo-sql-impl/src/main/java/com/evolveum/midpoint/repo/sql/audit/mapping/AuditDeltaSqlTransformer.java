@@ -14,7 +14,7 @@ import com.evolveum.midpoint.repo.sql.audit.AuditSqlTransformerBase;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditDelta;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
@@ -28,8 +28,8 @@ public class AuditDeltaSqlTransformer
         extends AuditSqlTransformerBase<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> {
 
     public AuditDeltaSqlTransformer(
-            SqlTransformerContext sqlTransformerContext, QAuditDeltaMapping mapping) {
-        super(sqlTransformerContext, mapping);
+            SqlTransformerSupport transformerSupport, QAuditDeltaMapping mapping) {
+        super(transformerSupport, mapping);
     }
 
     public ObjectDeltaOperationType toSchemaObject(MAuditDelta row) throws SchemaException {

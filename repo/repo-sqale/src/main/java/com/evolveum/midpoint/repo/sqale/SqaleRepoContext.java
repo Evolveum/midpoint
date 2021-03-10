@@ -62,9 +62,14 @@ public class SqaleRepoContext extends SqlRepoContext {
         return uriCache.searchId(uri);
     }
 
-    /** @see UriCache#resolveToId(QName) */
-    public Integer resolveToId(String uri) {
-        return uriCache.resolveToId(uri);
+    /** @see UriCache#resolveUriToId(String)  */
+    public Integer resolveUriToId(String uri) {
+        return uriCache.resolveUriToId(uri);
+    }
+
+    /** @see UriCache#resolveUriToId(QName) */
+    public Integer resolveUriToId(QName uri) {
+        return uriCache.resolveUriToId(uri);
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */

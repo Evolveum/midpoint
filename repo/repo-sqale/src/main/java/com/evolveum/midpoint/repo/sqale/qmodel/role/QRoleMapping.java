@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.role;
 import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType.F_ROLE_TYPE;
 
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
@@ -35,8 +35,8 @@ public class QRoleMapping
     }
 
     @Override
-    public RoleSqlTransformer createTransformer(SqlTransformerContext transformerContext) {
-        return new RoleSqlTransformer(transformerContext, this);
+    public RoleSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
+        return new RoleSqlTransformer(transformerSupport, this);
     }
 
     @Override

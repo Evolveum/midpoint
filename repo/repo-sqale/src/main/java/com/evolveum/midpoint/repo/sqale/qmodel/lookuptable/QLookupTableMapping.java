@@ -8,7 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.lookuptable;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 /**
@@ -35,9 +35,9 @@ public class QLookupTableMapping
 
     @Override
     public ObjectSqlTransformer<LookupTableType, QLookupTable, MLookupTable>
-    createTransformer(SqlTransformerContext transformerContext) {
+    createTransformer(SqlTransformerSupport transformerSupport) {
         // TODO transformer needed to cover m_lookup_table_row
-        return new ObjectSqlTransformer<>(transformerContext, this);
+        return new ObjectSqlTransformer<>(transformerSupport, this);
     }
 
     @Override
