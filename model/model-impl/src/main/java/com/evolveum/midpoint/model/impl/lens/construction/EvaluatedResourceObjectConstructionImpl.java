@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -64,7 +65,8 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
     /**
      * Mappings for the resource object attributes.
      */
-    @NotNull protected final Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> attributeMappings = new ArrayList<>();
+    @NotNull protected final Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>>
+            attributeMappings = new ArrayList<>();
 
     /**
      * Mappings for the resource object associations.
@@ -82,7 +84,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
      * Construction evaluation state. It is factored out into separate class to allow many of its fields to be final.
      * (It would not be possible if it was part of this class.)
      */
-    protected ConstructionEvaluation<AH, ROC> evaluation;
+    protected transient ConstructionEvaluation<AH, ROC> evaluation;
 
     /**
      * Precondition: {@link ResourceObjectConstruction} is already evaluated and not ignored (has resource).
@@ -230,7 +232,8 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
                 .setMinor()
                 .build();
         if (result.isTracingAny(ResourceObjectConstructionEvaluationTraceType.class)) {
-            ResourceObjectConstructionEvaluationTraceType trace = new ResourceObjectConstructionEvaluationTraceType(construction.beans.prismContext);
+            ResourceObjectConstructionEvaluationTraceType trace =
+                    new ResourceObjectConstructionEvaluationTraceType(PrismContext.get());
             trace.setConstruction(construction.constructionBean);
             trace.setResourceShadowDiscriminator(LensUtil.createDiscriminatorBean(rsd, construction.lensContext));
             if (construction.assignmentPath != null && result.isTracingNormal(ResourceObjectConstructionEvaluationTraceType.class)) {

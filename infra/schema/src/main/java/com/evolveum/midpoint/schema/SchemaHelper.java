@@ -11,17 +11,34 @@ import com.evolveum.midpoint.prism.PrismContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+
 /**
  * TEMPORARY
  */
 @Component
 public class SchemaHelper {
 
-    @Autowired
-    private PrismContext prismContext;
+    private static SchemaHelper instance;
 
-    public PrismContext getPrismContext() {
+    @Autowired private PrismContext prismContext;
+    @Autowired private RelationRegistry relationRegistry;
+
+    @PostConstruct
+    public void init() {
+        instance = this;
+    }
+
+    public static SchemaHelper get() {
+        return instance;
+    }
+
+    public PrismContext prismContext() {
         return prismContext;
+    }
+
+    public RelationRegistry relationRegistry() {
+        return relationRegistry;
     }
 
     public GetOperationOptionsBuilder getOperationOptionsBuilder() {

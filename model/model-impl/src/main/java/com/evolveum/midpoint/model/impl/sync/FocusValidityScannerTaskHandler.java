@@ -270,7 +270,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
         LensContext<FocusType> lensContext = contextFactory.createRecomputeContext(focus, new ModelExecuteOptions(prismContext).reconcile(), workerTask, result);
         TimeValidityPolicyConstraintType constraint = getValidityPolicyConstraint(workerTask);
         if (hasNotifyAction(workerTask) && constraint != null) {
-            EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(CloneUtil.clone(workerTask.getPolicyRule()), null, null, prismContext);
+            EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(CloneUtil.clone(workerTask.getPolicyRule()), null, null);
             policyRule.computeEnabledActions(null, focus, expressionFactory, prismContext, workerTask, result);
             EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedTimeValidityTrigger(
                     Boolean.TRUE.equals(constraint.isAssignment()) ? PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY : PolicyConstraintKindType.OBJECT_TIME_VALIDITY,

@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -72,7 +73,7 @@ public class AssignedResourceObjectConstruction<AH extends AssignmentHolderType>
         assert constructionBean != null;
 
         RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource,
-                LayerType.MODEL, beans.prismContext);
+                LayerType.MODEL, getBeans().prismContext);
         if (refinedSchema == null) {
             // Refined schema may be null in some error-related border cases
             throw new SchemaException("No (refined) schema for " + resource);
@@ -103,6 +104,10 @@ public class AssignedResourceObjectConstruction<AH extends AssignmentHolderType>
             }
             addAuxiliaryObjectClassDefinition(auxOcDef);
         }
+    }
+
+    protected ModelBeans getBeans() {
+        return ModelBeans.get();
     }
 
     @Override

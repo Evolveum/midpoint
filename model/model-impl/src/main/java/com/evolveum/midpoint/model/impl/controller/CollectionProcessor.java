@@ -103,14 +103,12 @@ public class CollectionProcessor {
      */
     @NotNull
     private EvaluatedPolicyRule evaluatePolicyRule(PrismObject<ObjectCollectionType> collection, CompiledObjectCollectionView collectionView, @NotNull AssignmentType assignmentType, @NotNull PolicyRuleType policyRuleType, Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
-        AssignmentPathImpl assignmentPath = new AssignmentPathImpl(prismContext);
+        AssignmentPathImpl assignmentPath = new AssignmentPathImpl();
         AssignmentPathSegmentImpl assignmentPathSegment = new AssignmentPathSegmentImpl.Builder()
                 .source(collection.asObjectable())
                 .sourceDescription("object collection "+collection)
                 .assignment(assignmentType)
                 .isAssignment(true)
-                .relationRegistry(relationRegistry)
-                .prismContext(prismContext)
                 .evaluationOrder(EvaluationOrderImpl.zero(relationRegistry))
                 .evaluationOrderForTarget(EvaluationOrderImpl.zero(relationRegistry))
                 .direct(true) // to be reconsidered - but assignment path is empty, so we consider this to be directly assigned
@@ -119,7 +117,7 @@ public class CollectionProcessor {
                 .build();
         assignmentPath.add(assignmentPathSegment);
 
-        EvaluatedPolicyRuleImpl evaluatedPolicyRule = new EvaluatedPolicyRuleImpl(policyRuleType.clone(), assignmentPath, null, prismContext);
+        EvaluatedPolicyRuleImpl evaluatedPolicyRule = new EvaluatedPolicyRuleImpl(policyRuleType.clone(), assignmentPath, null);
 
         PolicyConstraintsType policyConstraints = policyRuleType.getPolicyConstraints();
         if (policyConstraints == null) {

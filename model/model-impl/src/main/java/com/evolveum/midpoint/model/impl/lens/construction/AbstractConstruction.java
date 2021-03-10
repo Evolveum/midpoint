@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -48,7 +49,7 @@ import java.util.Objects;
  * @author Radovan Semancik
  */
 public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT extends AbstractConstructionType, EC extends EvaluatedAbstractConstruction<AH>>
-        implements DebugDumpable {
+        implements DebugDumpable, Serializable {
 
     /**
      * Definition of the assigned construction.
@@ -97,11 +98,6 @@ public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT 
     private ObjectDeltaObject<AH> focusOdoAbsolute;
 
     /**
-     * Components (Spring beans) needed for construction processing.
-     */
-    @NotNull protected final ModelBeans beans;
-
-    /**
      * TODO
      * Again, not clear if relevant for persona constructions.
      */
@@ -134,7 +130,6 @@ public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT 
         this.originType = builder.originType;
         this.lensContext = builder.lensContext;
         this.now = builder.now;
-        this.beans = builder.modelBeans;
         this.valid = builder.valid;
 
         // TODO: this is wrong. It should be set up during the evaluation process.

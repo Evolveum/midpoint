@@ -10,11 +10,13 @@ package com.evolveum.midpoint.model.impl.lens.assignments;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import java.io.Serializable;
+
 /**
  * Describes the evaluation state of assignment / object condition.
  */
 @Experimental
-public class ConditionState {
+public class ConditionState implements Serializable {
 
     /**
      * State of the condition corresponding to old state of the focal object.

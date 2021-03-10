@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
+
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.*;
@@ -40,7 +42,6 @@ import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProduc
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.ResourceObjectConstruction;
-import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
@@ -853,6 +854,8 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assertEquals("Wrong # of evaluated assignments zero set", 0, triple.getZeroSet().size());
         assertEquals("Wrong # of evaluated assignments plus set", 1, triple.getPlusSet().size());
         assertEquals("Wrong # of evaluated assignments minus set", 1, triple.getMinusSet().size());
+
+        assertSerializable(lensContext);
     }
 
     protected void assertNoConstruction(EvaluatedAssignmentImpl<UserType> evaluatedAssignment,

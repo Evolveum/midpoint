@@ -8,6 +8,7 @@ package com.evolveum.midpoint.prism.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;

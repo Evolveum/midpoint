@@ -24,12 +24,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefin
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * Evaluates mapping time constraints.
  */
-class TimeConstraintsEvaluation {
+class TimeConstraintsEvaluation implements Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(TimeConstraintsEvaluation.class);
 

@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.AbstractFreezable;
 import com.evolveum.midpoint.prism.delta.AddDeleteReplace;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -18,7 +19,7 @@ import java.util.Objects;
 /**
  * Describes assignment origin e.g. if it's in object old, current, or in delta; if it's virtual or not.
  */
-public class AssignmentOrigin extends AbstractFreezable {
+public class AssignmentOrigin extends AbstractFreezable implements Serializable {
 
     /**
      * Assignment is virtual i.e. not really present in the focus object.

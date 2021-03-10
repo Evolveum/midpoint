@@ -392,4 +392,8 @@ public interface PrismContext extends ProtectorCreator {
 
     @Experimental
     EquivalenceStrategy getProvenanceEquivalenceStrategy();
+
+    static PrismContext get() {
+        return PrismService.get().prismContext();
+    }
 }
