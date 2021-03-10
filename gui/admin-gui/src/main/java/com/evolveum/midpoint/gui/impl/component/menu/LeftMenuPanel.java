@@ -416,7 +416,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         createSystemConfigurationMenu(item);
 
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.internals", "fa fa-archive", PageInternals.class));
-        item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.repoQuery", "fa fa-search", PageRepositoryQuery.class));
+        item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.repoQuery", GuiStyleConstants.CLASS_ICON_SEARCH + " flip-icon-margin", PageRepositoryQuery.class));
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.evaluateMapping", "fa fa-cog", PageEvaluateMapping.class));
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.about", "fa fa-info-circle", PageAbout.class));
         return item;
