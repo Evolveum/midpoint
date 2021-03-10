@@ -6,9 +6,9 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <form wicket:id="form" class="form-inline pull-right search-form" style="padding-bottom:5px; width:100%">
+    <form wicket:id="form" class="form-inline pull-right search-form" style="padding-bottom:5px; width:100%; text-align: justify; -ms-text-justify: distribute-all-lines; text-justify: distribute-all-lines; text-align-last: right;">
 
-        <div class="form-inline">
+        <div class="form-inline" style="float:right; text-align-last: left;">
             <div class="form-group pull-right" style="vertical-align: top; margin-top: -5px; display: grid;">
                 <a class="btn btn-sm btn-link" wicket:id="debug" style="display: table-cell; vertical-align: top; padding: 0px;"/>
             </div>
@@ -40,7 +40,7 @@
             </div>
         </div>
 
-        <div class="form-group has-feedback col-lg-11 col-sm-10 col-xs-9" wicket:id="advancedGroup" style="float:right; padding-right: 5px;">
+        <div class="form-group has-feedback col-lg-11 col-sm-10 col-xs-9" wicket:id="advancedGroup" style="float:right; padding-right: 5px; text-align-last: left;">
             <textarea class="form-control input-sm" rows="2" wicket:id="advancedArea"
                     style="width: 220px; height: 60px; overflow: hidden; float:right;"></textarea>
             <input wicket:id="queryDslField" type="text" class="form-control input-sm"
@@ -53,22 +53,20 @@
             </div>
         </div>
 
-        <div class="form-group" wicket:id="fullTextContainer" style="float:right; padding-right: 5px;">
+        <div class="form-group" wicket:id="fullTextContainer" style="float:right; padding-right: 5px; text-align-last: left;">
             <input wicket:id="fullTextField" type="text" class="form-control input-sm" style="width: 150px; min-width: 150px;">
         </div>
 
-        <wicket:container wicket:id="items">
-            <div wicket:id="item" class="form-group" style="float:right;  padding-right: 5px; margin-bottom: 5px;"/>
-        </wicket:container>
+        <div wicket:id="collectionRefPanel" class="form-group" style="padding-right: 5px; margin-bottom: 5px; text-align-last: left;"/>
+        <div wicket:id="typePanel" class="form-group" style="padding-right: 5px; margin-bottom: 5px; text-align-last: left;"/>
+        <div wicket:id="oidItem" class="form-group" style="float:right; padding-right: 5px; margin-bottom: 5px; text-align-last: left;"/>
+
         <wicket:container wicket:id="specialItems">
-            <div wicket:id="specialItem" class="form-group" style="float:right;  padding-right: 5px; margin-bottom: 5px;"/>
+            <div wicket:id="specialItem" class="form-group" style="padding-right: 5px; margin-bottom: 5px; text-align-last: left;"/>
         </wicket:container>
-        <div wicket:id="oidItem" class="form-group" style="float:right;  padding-right: 5px; margin-bottom: 5px;"/>
-        <div wicket:id="typePanel" class="form-group" style="float:right;  padding-right: 5px; margin-bottom: 5px;"/>
-        <div wicket:id="collectionRefPanel" class="form-group" style="float:right;  padding-right: 5px; margin-bottom: 5px;"/>
-
-
-
+        <wicket:container wicket:id="items">
+            <div wicket:id="item" class="form-group" style="padding-right: 5px; margin-bottom: 5px; text-align-last: left;"/>
+        </wicket:container>
     </form>
 
     <div wicket:id="popover" class="popover bottom" style="display: none;">
