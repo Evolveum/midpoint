@@ -124,7 +124,7 @@ public class QAuditEventRecordMapping
 
     @Override
     public AuditEventRecordSqlTransformer createTransformer(
-            SqlTransformerSupport transformerContext) {
-        return new AuditEventRecordSqlTransformer(transformerContext, this);
+            SqlTransformerSupport transformerSupport) {
+        return new AuditEventRecordSqlTransformer(transformerSupport, this);
     }
 }

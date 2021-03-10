@@ -45,8 +45,8 @@ public class AuditEventRecordSqlTransformer
         extends AuditSqlTransformerBase<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> {
 
     public AuditEventRecordSqlTransformer(
-            SqlTransformerSupport transformerContext, QAuditEventRecordMapping mapping) {
-        super(transformerContext, mapping);
+            SqlTransformerSupport transformerSupport, QAuditEventRecordMapping mapping) {
+        super(transformerSupport, mapping);
     }
 
     public AuditEventRecordType toSchemaObject(MAuditEventRecord row) throws SchemaException {
@@ -61,7 +61,7 @@ public class AuditEventRecordSqlTransformer
 
     private AuditEventRecordType mapSimpleAttributes(MAuditEventRecord row) {
         // prismContext in constructor ensures complex type definition
-        return new AuditEventRecordType(transformerContext.prismContext())
+        return new AuditEventRecordType(transformerSupport.prismContext())
                 .channel(row.channel)
                 .eventIdentifier(row.eventIdentifier)
                 .eventStage(auditEventStageTypeFromRepo(row.eventStage))
@@ -102,7 +102,7 @@ public class AuditEventRecordSqlTransformer
         }
 
         SqlTransformer<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> deltaTransformer =
-                QAuditDeltaMapping.INSTANCE.createTransformer(transformerContext);
+                QAuditDeltaMapping.INSTANCE.createTransformer(transformerSupport);
         for (MAuditDelta delta : deltas) {
             record.delta(deltaTransformer.toSchemaObject(delta));
         }
@@ -244,7 +244,7 @@ public class AuditEventRecordSqlTransformer
 
     private Integer targetTypeToRepoOrdinal(PrismReferenceValue targetOwner) {
         //noinspection rawtypes
-        Class objectClass = transformerContext.qNameToSchemaClass(targetOwner.getTargetType());
+        Class objectClass = transformerSupport.qNameToSchemaClass(targetOwner.getTargetType());
         //noinspection unchecked
         return MiscUtil.enumOrdinal(RObjectType.getByJaxbType(objectClass));
     }

@@ -19,7 +19,7 @@ public class AuditSqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         extends SqlQueryContext<S, Q, R> {
 
     public static <S, Q extends FlexibleRelationalPathBase<R>, R> AuditSqlQueryContext<S, Q, R> from(
-            Class<S> schemaType, SqlTransformerSupport transformerContext, SqlRepoContext sqlRepoContext) {
+            Class<S> schemaType, SqlTransformerSupport transformerSupport, SqlRepoContext sqlRepoContext) {
 
         QueryTableMapping<S, Q, R> rootMapping = sqlRepoContext.getMappingBySchemaType(schemaType);
         Q rootPath = rootMapping.defaultAlias();
@@ -29,16 +29,16 @@ public class AuditSqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         query.getMetadata().setValidate(true);
 
         return new AuditSqlQueryContext<>(
-                rootPath, rootMapping, sqlRepoContext, transformerContext, query);
+                rootPath, rootMapping, sqlRepoContext, transformerSupport, query);
     }
 
     private AuditSqlQueryContext(
             Q entityPath,
             QueryTableMapping<S, Q, R> mapping,
             SqlRepoContext sqlRepoContext,
-            SqlTransformerSupport transformerContext,
+            SqlTransformerSupport transformerSupport,
             SQLQuery<?> query) {
-        super(entityPath, mapping, sqlRepoContext, transformerContext, query);
+        super(entityPath, mapping, sqlRepoContext, transformerSupport, query);
     }
 
     @Override

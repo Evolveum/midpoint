@@ -27,12 +27,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 public abstract class AuditSqlTransformerBase<S, Q extends FlexibleRelationalPathBase<R>, R>
         implements SqlTransformer<S, Q, R> {
 
-    protected final SqlTransformerSupport transformerContext;
+    protected final SqlTransformerSupport transformerSupport;
     protected final QueryTableMapping<S, Q, R> mapping;
 
     protected AuditSqlTransformerBase(
-            SqlTransformerSupport transformerContext, QueryTableMapping<S, Q, R> mapping) {
-        this.transformerContext = transformerContext;
+            SqlTransformerSupport transformerSupport, QueryTableMapping<S, Q, R> mapping) {
+        this.transformerSupport = transformerSupport;
         this.mapping = mapping;
     }
 
@@ -68,7 +68,7 @@ public abstract class AuditSqlTransformerBase<S, Q extends FlexibleRelationalPat
 
         return new ObjectReferenceType()
                 .oid(oid)
-                .type(transformerContext.schemaClassToQName(repoObjectType.getJaxbClass()))
+                .type(transformerSupport.schemaClassToQName(repoObjectType.getJaxbClass()))
                 .description(targetName)
                 .targetName(targetName);
     }

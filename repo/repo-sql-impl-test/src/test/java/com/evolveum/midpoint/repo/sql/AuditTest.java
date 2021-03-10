@@ -153,10 +153,10 @@ public class AuditTest extends BaseSQLRepoTest {
             throws QueryException {
         // "create" does not actually create a new audit service, but returns the existing one
         SqlRepoContext sqlRepoContext = auditServiceFactory.createAuditService().getSqlRepoContext();
-        SqlTransformerSupport transformerContext = new SqlTransformerSupport(schemaService, sqlRepoContext);
+        SqlTransformerSupport transformerSupport = new SqlTransformerSupport(schemaService, sqlRepoContext);
         SqlQueryContext<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> context =
                 AuditSqlQueryContext.from(
-                        AuditEventRecordType.class, transformerContext, sqlRepoContext);
+                        AuditEventRecordType.class, transformerSupport, sqlRepoContext);
         QAuditEventRecord aer = context.root();
         context.sqlQuery().orderBy(aer.id.asc());
 

@@ -34,13 +34,13 @@ public class AuditDeltaSqlTransformer
 
     public ObjectDeltaOperationType toSchemaObject(MAuditDelta row) throws SchemaException {
         ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
-        SQLTemplates querydslTemplates = transformerContext.sqlRepoContext().getQuerydslTemplates();
+        SQLTemplates querydslTemplates = transformerSupport.sqlRepoContext().getQuerydslTemplates();
         boolean usingSqlServer = querydslTemplates instanceof SQLServerTemplates;
         if (row.delta != null) {
             String serializedDelta =
                     RUtil.getSerializedFormFromBytes(row.delta, usingSqlServer);
 
-            ObjectDeltaType delta = transformerContext.parseRealValue(
+            ObjectDeltaType delta = transformerSupport.parseRealValue(
                     serializedDelta, ObjectDeltaType.class);
             odo.setObjectDelta(delta);
         }
@@ -48,7 +48,7 @@ public class AuditDeltaSqlTransformer
             String serializedResult =
                     RUtil.getSerializedFormFromBytes(row.fullResult, usingSqlServer);
 
-            OperationResultType resultType = transformerContext.parseRealValue(
+            OperationResultType resultType = transformerSupport.parseRealValue(
                     serializedResult, OperationResultType.class);
             odo.setExecutionResult(resultType);
         }

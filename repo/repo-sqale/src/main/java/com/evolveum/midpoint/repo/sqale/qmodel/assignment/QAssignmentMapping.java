@@ -13,7 +13,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentTyp
 import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -105,9 +105,8 @@ public class QAssignmentMapping
     }
 
     @Override
-    public AssignmentSqlTransformer createTransformer(
-            SqlTransformerContext transformerContext) {
-        return new AssignmentSqlTransformer(transformerContext, this);
+    public AssignmentSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
+        return new AssignmentSqlTransformer(transformerSupport, this);
     }
 
     @Override

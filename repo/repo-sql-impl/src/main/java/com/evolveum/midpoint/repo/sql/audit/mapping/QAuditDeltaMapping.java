@@ -37,7 +37,7 @@ public class QAuditDeltaMapping
 
     @Override
     public SqlTransformer<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> createTransformer(
-            SqlTransformerSupport transformerContext) {
-        return new AuditDeltaSqlTransformer(transformerContext, this);
+            SqlTransformerSupport transformerSupport) {
+        return new AuditDeltaSqlTransformer(transformerSupport, this);
     }
 }
