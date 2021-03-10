@@ -17,7 +17,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 public class MAssignment extends MContainer {
 
     public Integer ownerType;
-    public Integer assignmentOwner; // TODO necessary?
     public String lifecycleState;
     public Integer orderValue;
     public UUID orgRefTargetOid;

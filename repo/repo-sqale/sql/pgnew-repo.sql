@@ -137,9 +137,9 @@ CREATE TABLE m_uri (
 
 -- region custom enum types
 -- The same names like schema enum classes are used for the types (I like the Type suffix here).
--- Some enums are not schema based (e.g. ReferenceType).
+-- Some enums are not schema based (ContainerType, ReferenceType) and these have M prefix in Java.
 CREATE TYPE ContainerType AS ENUM ('ACCESS_CERTIFICATION_CASE','ACCESS_CERTIFICATION_WORK_ITEM',
-    'ASSIGNMENT');
+    'ASSIGNMENT', 'INDUCEMENT');
 
 CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ERROR',
     'FATAL_ERROR', 'HANDLED_ERROR', 'NOT_APPLICABLE', 'IN_PROGRESS', 'UNKNOWN');
@@ -919,12 +919,12 @@ ALTER TABLE IF EXISTS m_case_wi_reference
 -- select assignmentowner, count(*) From m_assignment group by assignmentowner;
 --1	45 (inducements)
 --0	48756229
-CREATE TABLE m_assignment (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    containerType ContainerType GENERATED ALWAYS AS ('ASSIGNMENT') STORED,
+-- abstract common structure for m_assignment and m_inducement
+CREATE TABLE m_assignment_type (
+    owner_oid UUID NOT NULL, -- see sub-tables for PK definition
+    containerType ContainerType NOT NULL,
     -- new column may avoid join to object for some queries
-    owner_type INTEGER NOT NULL,
-    assignmentOwner INTEGER, -- TODO rethink, not useful if inducements are separate
+    owner_type INTEGER NOT NULL, -- soft-references m_objtype
     lifecycleState VARCHAR(255),
     orderValue INTEGER,
     orgRef_targetOid UUID,
@@ -967,10 +967,21 @@ CREATE TABLE m_assignment (
     modifyChannel_id INTEGER,
     modifyTimestamp TIMESTAMPTZ,
 
+    PRIMARY KEY (owner_oid, cid),
+    -- no need to index owner_oid, it's part of the PK index
+
+    CHECK (FALSE) NO INHERIT
+)
+    INHERITS(m_container);
+
+CREATE TABLE m_assignment (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    containerType ContainerType GENERATED ALWAYS AS ('ASSIGNMENT') STORED,
+
     PRIMARY KEY (owner_oid, cid)
     -- no need to index owner_oid, it's part of the PK index
 )
-    INHERITS(m_container);
+    INHERITS(m_assignment_type);
 
 CREATE INDEX m_assignment_ext_idx ON m_assignment USING gin (ext);
 -- TODO was: CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);
@@ -1006,6 +1017,25 @@ CREATE TABLE m_assignment_reference (
 ALTER TABLE IF EXISTS m_assignment_reference
   ADD CONSTRAINT fk_assignment_reference FOREIGN KEY (owner_owner_oid, owner_id) REFERENCES m_assignment;
 */
+
+CREATE TABLE m_inducement (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    containerType ContainerType GENERATED ALWAYS AS ('INDUCEMENT') STORED,
+
+    PRIMARY KEY (owner_oid, cid)
+    -- no need to index owner_oid, it's part of the PK index
+)
+    INHERITS(m_assignment_type);
+
+CREATE INDEX m_inducement_ext_idx ON m_inducement USING gin (ext);
+CREATE INDEX m_inducement_validFrom_idx ON m_inducement (validFrom);
+CREATE INDEX m_inducement_validTo_idx ON m_inducement (validTo);
+CREATE INDEX m_inducement_targetRef_targetOid_idx ON m_inducement (targetRef_targetOid);
+CREATE INDEX m_inducement_tenantRef_targetOid_idx ON m_inducement (tenantRef_targetOid);
+CREATE INDEX m_inducement_orgRef_targetOid_idx ON m_inducement (orgRef_targetOid);
+CREATE INDEX m_inducement_resourceRef_targetOid_idx ON m_inducement (resourceRef_targetOid);
+
+-- TODO other tables like for assignments needed? policy situations, refs?
 -- endregion
 
 -- region Other object containers

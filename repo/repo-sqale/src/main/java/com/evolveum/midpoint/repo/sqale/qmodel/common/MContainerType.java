@@ -12,5 +12,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.common;
 public enum MContainerType {
     ACCESS_CERTIFICATION_CASE,
     ACCESS_CERTIFICATION_WORK_ITEM,
-    ASSIGNMENT
+    ASSIGNMENT,
+    INDUCEMENT // also represented by AssignmentType
 }

@@ -36,7 +36,6 @@ public class QAssignmentMapping
 
         // TODO OWNER_TYPE is new thing and can help avoid join to concrete object table
         //  But this will likely require special treatment/heuristic.
-        // TODO ASSIGNMENT_OWNER - remove if possible, see RAssignmentOwner (FOCUS/ABSTRACT_ROLE)
         addItemMapping(F_LIFECYCLE_STATE, stringMapper(path(q -> q.lifecycleState)));
         addItemMapping(F_ORDER, integerMapper(path(q -> q.orderValue)));
         addItemMapping(F_ORG_REF, RefItemFilterProcessor.mapper(
