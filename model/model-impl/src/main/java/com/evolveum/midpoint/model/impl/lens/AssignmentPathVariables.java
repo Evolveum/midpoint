@@ -14,11 +14,13 @@ import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
+import java.io.Serializable;
+
 /**
  * @author semancik
  *
  */
-public class AssignmentPathVariables {
+public class AssignmentPathVariables implements Serializable {
 
     private AssignmentPathImpl assignmentPath;
     private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> magicAssignment;

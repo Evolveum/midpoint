@@ -14,6 +14,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
+
 /**
  * Facade interface that provides insight about construction that was evaluated by projector code.
  * It is used for several purposes, e.g. to display all evaluated assignments, both direct and indirect.
@@ -25,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
  * @author mederly
  * @author Radovan Semancik
  */
-public interface EvaluatedResourceObjectConstruction extends DebugDumpable {
+public interface EvaluatedResourceObjectConstruction extends DebugDumpable, Serializable {
 
     /**
      * Resource on which the object is to be constructed.

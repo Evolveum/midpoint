@@ -8,11 +8,13 @@ package com.evolveum.midpoint.schema.expression;
 
 import com.evolveum.midpoint.schema.AccessDecision;
 
+import java.io.Serializable;
+
 /**
  * @author semancik
  *
  */
-public class ScriptExpressionProfile {
+public class ScriptExpressionProfile implements Serializable {
 
     private final String language;
     private AccessDecision decision;

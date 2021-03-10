@@ -30,7 +30,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -54,7 +53,7 @@ import static com.evolveum.midpoint.prism.delta.PlusMinusZero.ZERO;
  *
  * @author Radovan Semancik
  */
-public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements EvaluatedAssignment<AH>, ShortDumpable {
+public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements EvaluatedAssignment<AH> {
 
     @NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
     private final boolean evaluatedOld;
@@ -125,8 +124,6 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
      */
     @NotNull private final AssignmentOrigin origin;
 
-    private final PrismContext prismContext;
-
     public EvaluatedAssignmentImpl(
             @NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
             boolean evaluatedOld, @NotNull AssignmentOrigin origin, PrismContext prismContext) {
@@ -135,7 +132,6 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         this.constructionTriple = prismContext.deltaFactory().createDeltaSetTriple();
         this.personaConstructionTriple = prismContext.deltaFactory().createDeltaSetTriple();
         this.roles = prismContext.deltaFactory().createDeltaSetTriple();
-        this.prismContext = prismContext;
         this.origin = origin;
     }
 
@@ -196,7 +192,8 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     @Override
     @NotNull
     public DeltaSetTriple<EvaluatedResourceObjectConstruction> getEvaluatedConstructions(@NotNull Task task, @NotNull OperationResult result) {
-        DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<AH>> rv = prismContext.deltaFactory().createDeltaSetTriple();
+        DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<AH>> rv =
+                PrismContext.get().deltaFactory().createDeltaSetTriple();
         for (AssignedResourceObjectConstruction<AH> construction : constructionTriple.getPlusSet()) {
             for (EvaluatedAssignedResourceObjectConstructionImpl<AH> evaluatedConstruction : construction.getEvaluatedConstructionTriple().getNonNegativeValues()) {
                 rv.addToPlusSet(evaluatedConstruction);

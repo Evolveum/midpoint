@@ -29,6 +29,8 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import javax.annotation.PostConstruct;
+
 /**
  * Commonly-used beans for model-impl module.
  *
@@ -39,6 +41,17 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 @Experimental
 @Component
 public class ModelBeans {
+
+    private static ModelBeans instance;
+
+    @PostConstruct
+    public void init() {
+        instance = this;
+    }
+
+    public static ModelBeans get() {
+        return instance;
+    }
 
     @Autowired public PrismContext prismContext;
     @Autowired public ModelObjectResolver modelObjectResolver;

@@ -29,12 +29,13 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 import java.util.Collection;
 
 /**
  * TODO better name, clean up the code; maybe move operation result management code here
  */
-class MappingParser<D extends ItemDefinition, MBT extends AbstractMappingType> {
+class MappingParser<D extends ItemDefinition, MBT extends AbstractMappingType> implements Serializable {
 
     private final AbstractMappingImpl<?, D, MBT> m;
 

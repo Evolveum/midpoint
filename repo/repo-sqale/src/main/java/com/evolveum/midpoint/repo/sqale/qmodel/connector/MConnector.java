@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.connector;
 
 import java.util.UUID;
 
+import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 
 /**
@@ -20,6 +21,6 @@ public class MConnector extends MObject {
     public String connectorVersion;
     public String framework;
     public UUID connectorHostRefTargetOid;
-    public Integer connectorHostRefTargetType;
+    public MObjectType connectorHostRefTargetType;
     public Integer connectorHostRefRelationId;
 }

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.cases;
 import java.time.Instant;
 import java.util.UUID;
 
+import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 
 /**
@@ -19,15 +20,15 @@ public class MCase extends MObject {
     public String state;
     public Instant closeTimestamp;
     public UUID objectRefTargetOid;
-    public Integer objectRefTargetType;
+    public MObjectType objectRefTargetType;
     public Integer objectRefRelationId;
     public UUID parentRefTargetOid;
-    public Integer parentRefTargetType;
+    public MObjectType parentRefTargetType;
     public Integer parentRefRelationId;
     public UUID requestorRefTargetOid;
-    public Integer requestorRefTargetType;
+    public MObjectType requestorRefTargetType;
     public Integer requestorRefRelationId;
     public UUID targetRefTargetOid;
-    public Integer targetRefTargetType;
+    public MObjectType targetRefTargetType;
     public Integer targetRefRelationId;
 }

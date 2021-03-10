@@ -9,12 +9,10 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 import java.sql.Types;
 import java.time.Instant;
 
-import com.querydsl.core.types.dsl.ArrayPath;
-import com.querydsl.core.types.dsl.DateTimePath;
-import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 
+import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
@@ -29,7 +27,7 @@ public class QAssignment extends QContainer<MAssignment> {
     public static final String TABLE_NAME = "m_assignment";
 
     public static final ColumnMetadata OWNER_TYPE =
-            ColumnMetadata.named("owner_type").ofType(Types.INTEGER);
+            ColumnMetadata.named("owner_type").ofType(Types.OTHER);
     public static final ColumnMetadata LIFECYCLE_STATE =
             ColumnMetadata.named("lifecycleState").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata ORDER_VALUE =
@@ -37,19 +35,19 @@ public class QAssignment extends QContainer<MAssignment> {
     public static final ColumnMetadata ORG_REF_TARGET_OID =
             ColumnMetadata.named("orgRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata ORG_REF_TARGET_TYPE =
-            ColumnMetadata.named("orgRef_targetType").ofType(Types.INTEGER);
+            ColumnMetadata.named("orgRef_targetType").ofType(Types.OTHER);
     public static final ColumnMetadata ORG_REF_RELATION_ID =
             ColumnMetadata.named("orgRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata TARGET_REF_TARGET_OID =
             ColumnMetadata.named("targetRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata TARGET_REF_TARGET_TYPE =
-            ColumnMetadata.named("targetRef_targetType").ofType(Types.INTEGER);
+            ColumnMetadata.named("targetRef_targetType").ofType(Types.OTHER);
     public static final ColumnMetadata TARGET_REF_RELATION_ID =
             ColumnMetadata.named("targetRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata TENANT_REF_TARGET_OID =
             ColumnMetadata.named("tenantRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata TENANT_REF_TARGET_TYPE =
-            ColumnMetadata.named("tenantRef_targetType").ofType(Types.INTEGER);
+            ColumnMetadata.named("tenantRef_targetType").ofType(Types.OTHER);
     public static final ColumnMetadata TENANT_REF_RELATION_ID =
             ColumnMetadata.named("tenantRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata EXT_ID =
@@ -63,7 +61,7 @@ public class QAssignment extends QContainer<MAssignment> {
     public static final ColumnMetadata RESOURCE_REF_TARGET_OID =
             ColumnMetadata.named("resourceRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata RESOURCE_REF_TARGET_TYPE =
-            ColumnMetadata.named("resourceRef_targetType").ofType(Types.INTEGER);
+            ColumnMetadata.named("resourceRef_targetType").ofType(Types.OTHER);
     public static final ColumnMetadata RESOURCE_REF_RELATION_ID =
             ColumnMetadata.named("resourceRef_relation_id").ofType(Types.INTEGER);
     // activation columns
@@ -91,7 +89,7 @@ public class QAssignment extends QContainer<MAssignment> {
     public static final ColumnMetadata CREATOR_REF_TARGET_OID =
             ColumnMetadata.named("creatorRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata CREATOR_REF_TARGET_TYPE =
-            ColumnMetadata.named("creatorRef_targetType").ofType(Types.INTEGER);
+            ColumnMetadata.named("creatorRef_targetType").ofType(Types.OTHER);
     public static final ColumnMetadata CREATOR_REF_RELATION_ID =
             ColumnMetadata.named("creatorRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata CREATE_CHANNEL_ID =
@@ -101,7 +99,7 @@ public class QAssignment extends QContainer<MAssignment> {
     public static final ColumnMetadata MODIFIER_REF_TARGET_OID =
             ColumnMetadata.named("modifierRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata MODIFIER_REF_TARGET_TYPE =
-            ColumnMetadata.named("modifierRef_targetType").ofType(Types.INTEGER);
+            ColumnMetadata.named("modifierRef_targetType").ofType(Types.OTHER);
     public static final ColumnMetadata MODIFIER_REF_RELATION_ID =
             ColumnMetadata.named("modifierRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata MODIFY_CHANNEL_ID =
@@ -111,25 +109,26 @@ public class QAssignment extends QContainer<MAssignment> {
 
     // attributes
 
-    public final NumberPath<Integer> ownerType = createInteger("ownerType", OWNER_TYPE);
+    public final EnumPath<MObjectType> ownerType =
+            createEnum("ownerType", MObjectType.class, OWNER_TYPE);
     public final StringPath lifecycleState = createString("lifecycleState", LIFECYCLE_STATE);
     public final NumberPath<Integer> orderValue = createInteger("orderValue", ORDER_VALUE);
     public final UuidPath orgRefTargetOid =
             createUuid("orgRefTargetOid", ORG_REF_TARGET_OID);
-    public final NumberPath<Integer> orgRefTargetType =
-            createInteger("orgRefTargetType", ORG_REF_TARGET_TYPE);
+    public final EnumPath<MObjectType> orgRefTargetType =
+            createEnum("orgRefTargetType", MObjectType.class, ORG_REF_TARGET_TYPE);
     public final NumberPath<Integer> orgRefRelationId =
             createInteger("orgRefRelationId", ORG_REF_RELATION_ID);
     public final UuidPath targetRefTargetOid =
             createUuid("targetRefTargetOid", TARGET_REF_TARGET_OID);
-    public final NumberPath<Integer> targetRefTargetType =
-            createInteger("targetRefTargetType", TARGET_REF_TARGET_TYPE);
+    public final EnumPath<MObjectType> targetRefTargetType =
+            createEnum("targetRefTargetType", MObjectType.class, TARGET_REF_TARGET_TYPE);
     public final NumberPath<Integer> targetRefRelationId =
             createInteger("targetRefRelationId", TARGET_REF_RELATION_ID);
     public final UuidPath tenantRefTargetOid =
             createUuid("tenantRefTargetOid", TENANT_REF_TARGET_OID);
-    public final NumberPath<Integer> tenantRefTargetType =
-            createInteger("tenantRefTargetType", TENANT_REF_TARGET_TYPE);
+    public final EnumPath<MObjectType> tenantRefTargetType =
+            createEnum("tenantRefTargetType", MObjectType.class, TENANT_REF_TARGET_TYPE);
     public final NumberPath<Integer> tenantRefRelationId =
             createInteger("tenantRefRelationId", TENANT_REF_RELATION_ID);
     public final NumberPath<Integer> extId = createInteger("extId", EXT_ID);
@@ -138,8 +137,8 @@ public class QAssignment extends QContainer<MAssignment> {
     // construction attributes
     public final UuidPath resourceRefTargetOid =
             createUuid("resourceRefTargetOid", RESOURCE_REF_TARGET_OID);
-    public final NumberPath<Integer> resourceRefTargetType =
-            createInteger("resourceRefTargetType", RESOURCE_REF_TARGET_TYPE);
+    public final EnumPath<MObjectType> resourceRefTargetType =
+            createEnum("resourceRefTargetType", MObjectType.class, RESOURCE_REF_TARGET_TYPE);
     public final NumberPath<Integer> resourceRefRelationId =
             createInteger("resourceRefRelationId", RESOURCE_REF_RELATION_ID);
     // activation attributes
@@ -163,8 +162,8 @@ public class QAssignment extends QContainer<MAssignment> {
     // metadata attributes
     public final UuidPath creatorRefTargetOid =
             createUuid("creatorRefTargetOid", CREATOR_REF_TARGET_OID);
-    public final NumberPath<Integer> creatorRefTargetType =
-            createInteger("creatorRefTargetType", CREATOR_REF_TARGET_TYPE);
+    public final EnumPath<MObjectType> creatorRefTargetType =
+            createEnum("creatorRefTargetType", MObjectType.class, CREATOR_REF_TARGET_TYPE);
     public final NumberPath<Integer> creatorRefRelationId =
             createInteger("creatorRefRelationId", CREATOR_REF_RELATION_ID);
     public final NumberPath<Integer> createChannelId =
@@ -173,8 +172,8 @@ public class QAssignment extends QContainer<MAssignment> {
             createInstant("createTimestamp", CREATE_TIMESTAMP);
     public final UuidPath modifierRefTargetOid =
             createUuid("modifierRefTargetOid", MODIFIER_REF_TARGET_OID);
-    public final NumberPath<Integer> modifierRefTargetType =
-            createInteger("modifierRefTargetType", MODIFIER_REF_TARGET_TYPE);
+    public final EnumPath<MObjectType> modifierRefTargetType =
+            createEnum("modifierRefTargetType", MObjectType.class, MODIFIER_REF_TARGET_TYPE);
     public final NumberPath<Integer> modifierRefRelationId =
             createInteger("modifierRefRelationId", MODIFIER_REF_RELATION_ID);
     public final NumberPath<Integer> modifyChannelId =

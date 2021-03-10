@@ -12,13 +12,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * Information on the resource referenced by particular {@link ResourceObjectConstruction} - the object
  * as well as information what to do in case it couldn't be resolved.
  */
-public class ResolvedConstructionResource {
+public class ResolvedConstructionResource implements Serializable {
 
     /**
      * Resolved form of the object.
@@ -30,12 +31,12 @@ public class ResolvedConstructionResource {
      */
     public final boolean warning;
 
-    public ResolvedConstructionResource(@NotNull ResourceType resource) {
+    ResolvedConstructionResource(@NotNull ResourceType resource) {
         this.resource = resource;
         this.warning = false;
     }
 
-    public ResolvedConstructionResource(boolean warning) {
+    ResolvedConstructionResource(boolean warning) {
         this.resource = null;
         this.warning = warning;
     }

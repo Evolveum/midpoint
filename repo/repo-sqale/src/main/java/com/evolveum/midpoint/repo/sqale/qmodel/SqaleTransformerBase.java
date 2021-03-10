@@ -100,30 +100,6 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
     }
 
     /**
-     * Returns {@link MObjectType} from ordinal Integer or specified default value.
-     */
-    protected @NotNull MObjectType objectTypeMapping(
-            @Nullable Integer repoObjectTypeId, @NotNull MObjectType defaultValue) {
-        return repoObjectTypeId != null
-                ? MObjectType.fromCode(repoObjectTypeId)
-                : defaultValue;
-    }
-
-    /**
-     * Returns nullable {@link MObjectType} from ordinal Integer.
-     * If null is returned it will not fail immediately unlike {@link MObjectType#fromCode(int)}.
-     * This is practical for eager argument resolution for
-     * {@link #objectReferenceType(String, MObjectType, String)}.
-     * Null may still be OK if OID is null as well - which means no reference.
-     */
-    protected @Nullable MObjectType objectTypeMapping(
-            @Nullable Integer repoObjectTypeId) {
-        return repoObjectTypeId != null
-                ? MObjectType.fromCode(repoObjectTypeId)
-                : null;
-    }
-
-    /**
      * Trimming the value to the column size from column metadata (must be specified).
      */
     protected @Nullable String trim(
@@ -166,12 +142,6 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
 
     protected @Nullable UUID oidToUUid(@Nullable String oid) {
         return oid != null ? UUID.fromString(oid) : null;
-    }
-
-    protected Integer schemaTypeToCode(QName schemaType) {
-        return schemaType == null ? null :
-                MObjectType.fromSchemaType(
-                        transformerSupport.qNameToSchemaClass(schemaType)).code();
     }
 
     protected MObjectType schemaTypeToObjectType(QName schemaType) {

@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -36,10 +37,9 @@ public class EvaluationOrderImpl implements EvaluationOrder {
     static final EvaluationOrder UNDEFINED = new UndefinedEvaluationOrderImpl();
 
     @NotNull private final HashMap<QName, Integer> orderMap; // see checkConsistence
-    @NotNull private final RelationRegistry relationRegistry;
 
     public static EvaluationOrder zero(RelationRegistry relationRegistry) {
-        EvaluationOrderImpl eo = new EvaluationOrderImpl(relationRegistry);
+        EvaluationOrderImpl eo = new EvaluationOrderImpl();
         eo.orderMap.put(relationRegistry.getDefaultRelation(), 0);
         return eo;
     }
@@ -61,18 +61,20 @@ public class EvaluationOrderImpl implements EvaluationOrder {
     }
 
     private boolean isNotNormalized(QName relation) {
-        return relation == null || !relation.equals(relationRegistry.normalizeRelation(relation));
+        return relation == null || !relation.equals(getRelationRegistry().normalizeRelation(relation));
+    }
+
+    private RelationRegistry getRelationRegistry() {
+        return SchemaService.get().relationRegistry();
     }
 
     private static final boolean CHECK_CONSISTENCE = true;
 
-    private EvaluationOrderImpl(@NotNull RelationRegistry relationRegistry) {
-        this.relationRegistry = relationRegistry;
+    private EvaluationOrderImpl() {
         orderMap = new HashMap<>();
     }
 
     private EvaluationOrderImpl(EvaluationOrderImpl that) {
-        this.relationRegistry = that.relationRegistry;
         this.orderMap = new HashMap<>(that.orderMap);
     }
 
@@ -80,7 +82,7 @@ public class EvaluationOrderImpl implements EvaluationOrder {
     public int getSummaryOrder() {
         int rv = 0;
         for (Entry<QName, Integer> entry : orderMap.entrySet()) {
-            if (!relationRegistry.isDelegation(entry.getKey())) {
+            if (!getRelationRegistry().isDelegation(entry.getKey())) {
                 rv += entry.getValue();
             }
         }
@@ -112,7 +114,7 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 
     // must always be private: public interface will not allow to modify object state!
     private void advanceThis(QName relation, int amount) {
-        @NotNull QName normalizedRelation = relationRegistry.normalizeRelation(relation);
+        @NotNull QName normalizedRelation = getRelationRegistry().normalizeRelation(relation);
         orderMap.put(normalizedRelation, getMatchingRelationOrder(normalizedRelation) + amount);
     }
 
@@ -122,13 +124,13 @@ public class EvaluationOrderImpl implements EvaluationOrder {
         if (relation == null) {
             return getSummaryOrder();
         }
-        return orderMap.getOrDefault(relationRegistry.normalizeRelation(relation), 0);
+        return orderMap.getOrDefault(getRelationRegistry().normalizeRelation(relation), 0);
     }
 
     @Override
     public EvaluationOrder resetOrder(QName relation, int newOrder) {
         EvaluationOrderImpl clone = clone();
-        clone.orderMap.put(relationRegistry.normalizeRelation(relation), newOrder);
+        clone.orderMap.put(getRelationRegistry().normalizeRelation(relation), newOrder);
         clone.checkConsistence();
         return clone;
     }
@@ -219,7 +221,7 @@ public class EvaluationOrderImpl implements EvaluationOrder {
     @Override
     public Collection<QName> getExtraRelations() {
         return orderMap.entrySet().stream()
-                .filter(e -> !relationRegistry.isAutomaticallyMatched(e.getKey()) && e.getValue() > 0)
+                .filter(e -> !getRelationRegistry().isAutomaticallyMatched(e.getKey()) && e.getValue() > 0)
                 .map(e -> e.getKey())
                 .collect(Collectors.toSet());
     }

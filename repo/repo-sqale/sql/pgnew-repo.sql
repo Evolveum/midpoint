@@ -301,7 +301,7 @@ CREATE TABLE m_abstract_role (
     displayName_orig VARCHAR(255),
     identifier VARCHAR(255),
     ownerRef_targetOid UUID,
-    ownerRef_targetType INTEGER, -- TODO migrate to ObjectType
+    ownerRef_targetType ObjectType,
     ownerRef_relation_id INTEGER, -- soft-references m_uri
     requestable BOOLEAN,
     riskLevel VARCHAR(255),
@@ -383,7 +383,7 @@ CREATE TABLE m_acc_cert_definition (
     lastCampaignClosedTimestamp TIMESTAMPTZ,
     lastCampaignStartedTimestamp TIMESTAMPTZ,
     ownerRef_targetOid UUID,
-    ownerRef_targetType INTEGER, -- TODO migrate to ObjectType
+    ownerRef_targetType ObjectType,
     ownerRef_relation_id INTEGER -- soft-references m_uri
 )
     INHERITS (m_object);
@@ -403,13 +403,13 @@ CREATE TABLE m_acc_cert_campaign (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CAMPAIGN') STORED,
     definitionRef_targetOid UUID,
-    definitionRef_targetType INTEGER, -- TODO migrate to ObjectType
+    definitionRef_targetType ObjectType,
     definitionRef_relation_id INTEGER, -- soft-references m_uri
     endTimestamp TIMESTAMPTZ,
     handlerUri_id INTEGER, -- soft-references m_uri
     iteration INTEGER NOT NULL,
     ownerRef_targetOid UUID,
-    ownerRef_targetType INTEGER, -- TODO migrate to ObjectType
+    ownerRef_targetType ObjectType,
     ownerRef_relation_id INTEGER, -- soft-references m_uri
     stageNumber INTEGER,
     startTimestamp TIMESTAMPTZ,
@@ -445,10 +445,10 @@ CREATE TABLE m_acc_cert_case (
     fullObject BYTEA,
     iteration INTEGER NOT NULL,
     objectRef_targetOid UUID,
-    objectRef_targetType INTEGER, -- TODO migrate to ObjectType
+    objectRef_targetType ObjectType,
     objectRef_relation_id INTEGER, -- soft-references m_uri
     orgRef_targetOid UUID,
-    orgRef_targetType INTEGER, -- TODO migrate to ObjectType
+    orgRef_targetType ObjectType,
     orgRef_relation_id INTEGER, -- soft-references m_uri
     outcome VARCHAR(255),
     remediedTimestamp TIMESTAMPTZ,
@@ -456,10 +456,10 @@ CREATE TABLE m_acc_cert_case (
     reviewRequestedTimestamp TIMESTAMPTZ,
     stageNumber INTEGER,
     targetRef_targetOid UUID,
-    targetRef_targetType INTEGER, -- TODO migrate to ObjectType
+    targetRef_targetType ObjectType,
     targetRef_relation_id INTEGER, -- soft-references m_uri
     tenantRef_targetOid UUID,
-    tenantRef_targetType INTEGER, -- TODO migrate to ObjectType
+    tenantRef_targetType ObjectType,
     tenantRef_relation_id INTEGER, -- soft-references m_uri
 
     PRIMARY KEY (owner_oid, cid)
@@ -475,7 +475,7 @@ CREATE TABLE m_acc_cert_wi (
     outcome VARCHAR(255),
     outputChangeTimestamp TIMESTAMPTZ,
     performerRef_targetOid UUID,
-    performerRef_targetType INTEGER, -- TODO migrate to ObjectType
+    performerRef_targetType ObjectType,
     performerRef_relation_id INTEGER, -- soft-references m_uri
     stageNumber INTEGER,
 
@@ -493,7 +493,7 @@ CREATE TABLE m_acc_cert_wi_reference (
     acc_cert_case_cid INTEGER NOT NULL, -- PK+FK
     acc_cert_wi_cid INTEGER NOT NULL, -- PK+FK
     targetOid UUID NOT NULL, -- more PK columns...
-    targetType INTEGER, -- TODO migrate to ObjectType
+    targetType ObjectType,
     relation_id INTEGER NOT NULL, -- soft-references m_uri
 
     -- TODO is the order of last two components optimal for index/query?
@@ -525,7 +525,7 @@ CREATE TABLE m_resource (
     objectType ObjectType GENERATED ALWAYS AS ('RESOURCE') STORED,
     administrativeState INTEGER,
     connectorRef_targetOid UUID,
-    connectorRef_targetType INTEGER, -- TODO migrate to ObjectType
+    connectorRef_targetType ObjectType,
     connectorRef_relation_id INTEGER, -- soft-references m_uri
     o16_lastAvailabilityStatus INTEGER
 )
@@ -547,7 +547,7 @@ CREATE TABLE m_shadow (
     objectType ObjectType GENERATED ALWAYS AS ('SHADOW') STORED,
     objectClass VARCHAR(157) NOT NULL,
     resourceRef_targetOid UUID,
-    resourceRef_targetType INTEGER, -- soft-references m_uri
+    resourceRef_targetType ObjectType,
     resourceRef_relation_id INTEGER, -- soft-references m_uri
     intent VARCHAR(255),
     kind INTEGER,
@@ -718,7 +718,7 @@ CREATE TABLE m_report_data (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('REPORT_DATA') STORED,
     reportRef_targetOid UUID,
-    reportRef_targetType INTEGER, -- TODO migrate to ObjectType
+    reportRef_targetType ObjectType,
     reportRef_relation_id INTEGER -- soft-references m_uri
 )
     INHERITS (m_object);
@@ -768,7 +768,7 @@ CREATE TABLE m_connector (
     connectorVersion VARCHAR(255),
     framework VARCHAR(255),
     connectorHostRef_targetOid UUID,
-    connectorHostRef_targetType INTEGER, -- TODO migrate to ObjectType
+    connectorHostRef_targetType ObjectType,
     connectorHostRef_relation_id INTEGER -- soft-references m_uri
 
 )
@@ -825,10 +825,10 @@ CREATE TABLE m_task (
     lastRunStartTimestamp TIMESTAMPTZ,
     node VARCHAR(255), -- node_id only for information purposes
     objectRef_targetOid UUID,
-    objectRef_targetType INTEGER, -- TODO migrate to ObjectType
+    objectRef_targetType ObjectType,
     objectRef_relation_id INTEGER, -- soft-references m_uri
     ownerRef_targetOid UUID,
-    ownerRef_targetType INTEGER, -- TODO migrate to ObjectType
+    ownerRef_targetType ObjectType,
     ownerRef_relation_id INTEGER, -- soft-references m_uri
     parent VARCHAR(255), -- value of taskIdentifier
     recurrence INTEGER,
@@ -863,23 +863,22 @@ CREATE INDEX iTaskDependentOid ON M_TASK_DEPENDENT(TASK_OID);
 */
 
 -- Represents CaseType, see https://wiki.evolveum.com/display/midPoint/Case+Management
--- TODO not mapped yet
 CREATE TABLE m_case (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('CASE') STORED,
     state VARCHAR(255),
     closeTimestamp TIMESTAMPTZ,
     objectRef_targetOid UUID,
-    objectRef_targetType INTEGER, -- TODO migrate to ObjectType
+    objectRef_targetType ObjectType,
     objectRef_relation_id INTEGER, -- soft-references m_uri
     parentRef_targetOid UUID,
-    parentRef_targetType INTEGER, -- TODO migrate to ObjectType
+    parentRef_targetType ObjectType,
     parentRef_relation_id INTEGER, -- soft-references m_uri
     requestorRef_targetOid UUID,
-    requestorRef_targetType INTEGER, -- TODO migrate to ObjectType
+    requestorRef_targetType ObjectType,
     requestorRef_relation_id INTEGER, -- soft-references m_uri
     targetRef_targetOid UUID,
-    targetRef_targetType INTEGER, -- TODO migrate to ObjectType
+    targetRef_targetType ObjectType,
     targetRef_relation_id INTEGER -- soft-references m_uri
 )
     INHERITS (m_object);
@@ -921,17 +920,17 @@ CREATE TABLE m_assignment_type (
     owner_oid UUID NOT NULL, -- see sub-tables for PK definition
     containerType ContainerType NOT NULL,
     -- new column may avoid join to object for some queries
-    owner_type INTEGER NOT NULL, -- TODO migrate to ObjectType
+    owner_type ObjectType NOT NULL,
     lifecycleState VARCHAR(255),
     orderValue INTEGER,
     orgRef_targetOid UUID,
-    orgRef_targetType INTEGER, -- TODO migrate to ObjectType
+    orgRef_targetType ObjectType,
     orgRef_relation_id INTEGER, -- soft-references m_uri
     targetRef_targetOid UUID,
-    targetRef_targetType INTEGER, -- TODO migrate to ObjectType
+    targetRef_targetType ObjectType,
     targetRef_relation_id INTEGER, -- soft-references m_uri
     tenantRef_targetOid UUID,
-    tenantRef_targetType INTEGER, -- TODO migrate to ObjectType
+    tenantRef_targetType ObjectType,
     tenantRef_relation_id INTEGER, -- soft-references m_uri
     -- TODO what is this? see RAssignment.getExtension (both extId/Oid)
     extId INTEGER,
@@ -939,7 +938,7 @@ CREATE TABLE m_assignment_type (
     ext JSONB,
     -- construction
     resourceRef_targetOid UUID,
-    resourceRef_targetType INTEGER, -- TODO migrate to ObjectType
+    resourceRef_targetType ObjectType,
     resourceRef_relation_id INTEGER, -- soft-references m_uri
     -- activation
     administrativeStatus INTEGER, -- TODO: switch to ActivationStatusType
@@ -954,12 +953,12 @@ CREATE TABLE m_assignment_type (
     archiveTimestamp TIMESTAMPTZ,
     -- metadata
     creatorRef_targetOid UUID,
-    creatorRef_targetType INTEGER, -- TODO migrate to ObjectType
+    creatorRef_targetType ObjectType,
     creatorRef_relation_id INTEGER, -- soft-references m_uri
     createChannel_id INTEGER,
     createTimestamp TIMESTAMPTZ,
     modifierRef_targetOid UUID,
-    modifierRef_targetType INTEGER, -- TODO migrate to ObjectType
+    modifierRef_targetType ObjectType,
     modifierRef_relation_id INTEGER, -- soft-references m_uri
     modifyChannel_id INTEGER,
     modifyTimestamp TIMESTAMPTZ,
@@ -1062,7 +1061,7 @@ CREATE TABLE m_reference (
     -- reference_type will be overridden with GENERATED value in concrete table
     referenceType ReferenceType NOT NULL,
     targetOid UUID NOT NULL, -- soft-references m_object
-    targetType INTEGER NOT NULL, -- TODO migrate to ObjectType
+    targetType ObjectType NOT NULL,
     relation_id INTEGER NOT NULL, -- soft-references m_uri
 
     -- prevents inserts to this table, but not to inherited ones; this makes it "abstract" table

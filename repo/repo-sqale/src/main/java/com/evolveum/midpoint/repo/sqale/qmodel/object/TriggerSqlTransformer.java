@@ -19,9 +19,8 @@ public class TriggerSqlTransformer
         super(transformerSupport, mapping);
     }
 
-    @Override
     public MTrigger toRowObject(TriggerType schemaObject, JdbcSession jdbcSession) {
-        MTrigger row = super.toRowObject(schemaObject, jdbcSession);
+        MTrigger row = super.toRowObject(schemaObject);
         row.handlerUriId = processCachedUri(schemaObject.getHandlerUri(), jdbcSession);
         row.timestampValue = MiscUtil.asInstant(schemaObject.getTimestamp());
         return row;
