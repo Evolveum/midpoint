@@ -26,6 +26,7 @@ public class MObject {
     public Integer tenantRefTargetType;
     public Integer tenantRefRelationId;
     public String lifecycleState;
+    public Long containerIdSeq; // next available container ID (for PCV of multi-valued containers)
     public Integer version;
     public byte[] ext;
     // metadata

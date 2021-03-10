@@ -32,7 +32,7 @@ import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.sqale.operations.AddObjectOperation;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleModelMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
@@ -164,7 +164,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
 //        context.processOptions(options); TODO how to process option, is setting of select expressions enough?
 
-        SqaleModelMapping<S, Q, R> rootMapping =
+        SqaleTableMapping<S, Q, R> rootMapping =
                 sqlRepoContext.getMappingBySchemaType(schemaType);
         final Q root = rootMapping.defaultAlias();
 
@@ -197,7 +197,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
 //        context.processOptions(options); TODO how to process option, is setting of select expressions enough?
 
-        SqaleModelMapping<S, Q, R> rootMapping =
+        SqaleTableMapping<S, Q, R> rootMapping =
                 sqlRepoContext.getMappingBySchemaType(schemaType);
         final Q root = rootMapping.defaultAlias();
 
@@ -230,30 +230,10 @@ public class SqaleRepositoryService implements RepositoryService {
             throws ObjectAlreadyExistsException, SchemaException {
 
         Objects.requireNonNull(object, "Object must not be null.");
-        PolyString name = object.getName();
-        if (name == null || Strings.isNullOrEmpty(name.getOrig())) {
-            // TODO this throws exception but leaves the result unchanged, is it OK?
-            throw new SchemaException("Attempt to add object without name.");
-        }
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
         if (options == null) {
             options = new RepoAddOptions();
-        }
-
-        //noinspection ConstantConditions
-        LOGGER.debug(
-                "Adding object type '{}', overwrite={}, allowUnencryptedValues={}, name={} - {}",
-                object.getCompileTimeClass().getSimpleName(), options.isOverwrite(),
-                options.isAllowUnencryptedValues(), name.getOrig(), name.getNorm());
-        if (InternalsConfig.encryptionChecks && !RepoAddOptions.isAllowUnencryptedValues(options)) {
-            CryptoUtil.checkEncrypted(object);
-        }
-
-        if (InternalsConfig.consistencyChecks) {
-            object.checkConsistence(ConsistencyCheckScope.THOROUGH);
-        } else {
-            object.checkConsistence(ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
         }
 
         OperationResult operationResult = parentResult.subresult(ADD_OBJECT)
@@ -262,12 +242,33 @@ public class SqaleRepositoryService implements RepositoryService {
                 .addParam("options", options.toString())
                 .build();
 
+        try {
+            PolyString name = object.getName();
+            if (name == null || Strings.isNullOrEmpty(name.getOrig())) {
+                throw new SchemaException("Attempt to add object without name.");
+            }
+
+            //noinspection ConstantConditions
+            LOGGER.debug(
+                    "Adding object type '{}', overwrite={}, allowUnencryptedValues={}, name={} - {}",
+                    object.getCompileTimeClass().getSimpleName(), options.isOverwrite(),
+                    options.isAllowUnencryptedValues(), name.getOrig(), name.getNorm());
+
+            if (InternalsConfig.encryptionChecks && !RepoAddOptions.isAllowUnencryptedValues(options)) {
+                CryptoUtil.checkEncrypted(object);
+            }
+
+            if (InternalsConfig.consistencyChecks) {
+                object.checkConsistence(ConsistencyCheckScope.THOROUGH);
+            } else {
+                object.checkConsistence(ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
+            }
+
 //        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
 //        long opHandle = pm.registerOperationStart(OP_ADD_OBJECT, object.getCompileTimeClass());
 //        int attempt = 1;
 //        int restarts = 0;
 //        boolean noFetchExtensionValueInsertionForbidden = false;
-        try {
             // TODO use executeAttempts
             final String operation = "adding";
 
@@ -439,7 +440,7 @@ public class SqaleRepositoryService implements RepositoryService {
                         EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS, true);
         LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(narrowedModifications));
 
-        SqaleModelMapping<S, Q, R> rootMapping =
+        SqaleTableMapping<S, Q, R> rootMapping =
                 sqlRepoContext.getMappingBySchemaType(prismObject.getCompileTimeClass());
         Q root = rootMapping.defaultAlias();
         // TODO update will probably be replaced by some "update context" to be able to update multiple tables (+insert/delete of details)

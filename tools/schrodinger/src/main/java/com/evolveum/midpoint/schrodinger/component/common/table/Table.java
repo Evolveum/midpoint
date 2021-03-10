@@ -16,6 +16,7 @@ import java.util.Objects;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -283,6 +284,17 @@ public class Table<T> extends Component<T> {
 
     public Table<T> assertButtonToolBarExists() {
         assertion.assertTrue($(Schrodinger.byDataId("buttonToolbar")).exists(), "Button toolbar is absent");
+        return this;
+    }
+
+    public Table<T> assertIconColumnExistsByNameColumnValue(String nameColumnValue, String iconClass, String iconColor) {
+        if (rowByColumnLabel("Name", nameColumnValue).getParentElement().$(By.className("icon")).exists()) {
+            SelenideElement iconColumnElement = rowByColumnResourceKey("Name", nameColumnValue).getParentElement().$(By.className("icon"));
+            assertion.assertTrue(iconColumnElement.$x(".//i[@class='" + iconClass + "']").exists());
+            if (StringUtils.isNotEmpty(iconColor)) {
+                assertion.assertTrue(iconColumnElement.$x(".//i[@style='color: " + iconClass + ";']").exists());
+            }
+        }
         return this;
     }
 

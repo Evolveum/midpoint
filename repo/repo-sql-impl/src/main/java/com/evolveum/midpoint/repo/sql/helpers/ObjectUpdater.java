@@ -102,7 +102,7 @@ public class ObjectUpdater {
             PrismIdentifierGenerator.Operation operation = options.isOverwrite() ?
                     PrismIdentifierGenerator.Operation.ADD_WITH_OVERWRITE :
                     PrismIdentifierGenerator.Operation.ADD;
-            PrismIdentifierGenerator<T> idGenerator = new PrismIdentifierGenerator<>(operation);
+            PrismIdentifierGenerator idGenerator = new PrismIdentifierGenerator(operation);
 
             session = baseHelper.beginTransaction();
 
@@ -436,7 +436,7 @@ public class ObjectUpdater {
                     // merge and update object
                     LOGGER.trace("Translating JAXB to data type.");
                     ObjectTypeUtil.normalizeAllRelations(prismObject, relationRegistry);
-                    PrismIdentifierGenerator<T> idGenerator = new PrismIdentifierGenerator<>(PrismIdentifierGenerator.Operation.MODIFY);
+                    PrismIdentifierGenerator idGenerator = new PrismIdentifierGenerator(PrismIdentifierGenerator.Operation.MODIFY);
                     RObject rObject = createDataObjectFromJAXB(prismObject, idGenerator);
                     rObject.setVersion(rObject.getVersion() + 1);
 
@@ -571,7 +571,7 @@ public class ObjectUpdater {
         return true; // keep things safe
     }
 
-    public <T extends ObjectType> RObject createDataObjectFromJAXB(PrismObject<T> prismObject, PrismIdentifierGenerator<T> idGenerator)
+    public <T extends ObjectType> RObject createDataObjectFromJAXB(PrismObject<T> prismObject, PrismIdentifierGenerator idGenerator)
             throws SchemaException {
 
         IdGeneratorResult generatorResult = idGenerator.generate(prismObject);

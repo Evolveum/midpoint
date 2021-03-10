@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) 2011-2020 Evolveum, All rights reserved -->
+<objectCollection xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" oid="9d7396a8-560a-11e9-9fd0-532fc3b53f09">
+    <name>inactive-employees</name>
+    <type>UserType</type>
+    <filter>
+        <q:equal>
+            <q:path>extension/empStatus</q:path>
+            <q:value>I</q:value>
+        </q:equal>
+    </filter>
+</objectCollection>

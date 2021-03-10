@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.common;
 
 import java.sql.Types;
 
+import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.ForeignKey;
@@ -35,10 +36,14 @@ public class QContainer<T extends MContainer> extends FlexibleRelationalPathBase
             ColumnMetadata.named("owner_oid").ofType(UuidPath.UUID_TYPE).notNull();
     public static final ColumnMetadata CID =
             ColumnMetadata.named("cid").ofType(Types.BIGINT).notNull();
+    public static final ColumnMetadata CONTAINER_TYPE =
+            ColumnMetadata.named("containerType").ofType(Types.OTHER);
 
     // columns and relations
     public final UuidPath ownerOid = createUuid("ownerOid", OWNER_OID);
     public final NumberPath<Long> cid = createLong("cid", CID);
+    public final EnumPath<MContainerType> containerType =
+            createEnum("containerType", MContainerType.class, CONTAINER_TYPE);
 
     public final PrimaryKey<T> pk = createPrimaryKey(ownerOid, cid);
 

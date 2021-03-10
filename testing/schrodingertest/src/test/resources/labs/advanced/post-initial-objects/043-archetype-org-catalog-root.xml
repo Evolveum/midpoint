@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) 2011-2020 Evolveum, All rights reserved -->
+<!--  Archetype CatalogRoot -->
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" oid="d44b862c-731f-11e9-95c8-7fc36e84e561">
+    <name>RoleCatalogRoot</name>
+    <description>Role catalog root. Will contain roles with RoleCatalogGroup archetype.</description>
+    <archetypePolicy>
+        <display>
+            <label>Role Catalog Root</label>
+            <pluralLabel>Role Catalog Roots</pluralLabel>
+            <icon>
+                <cssClass>fa fa-th</cssClass>
+                <color>purple</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+    <assignment>
+        <assignmentRelation>
+            <holderType>OrgType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <inducement>
+        <assignmentRelation>
+            <holderType>OrgType</holderType>
+            <holderArchetypeRef oid="55459f64-731c-11e9-921d-eb6cd4fd27d3"/>
+            <!-- only (Role Catalog Group) Organization can be a member -->
+            <relation>org:default</relation>
+        </assignmentRelation>
+    </inducement>
+</archetype>

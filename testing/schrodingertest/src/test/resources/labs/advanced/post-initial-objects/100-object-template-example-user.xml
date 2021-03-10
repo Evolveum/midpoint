@@ -1,0 +1,606 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) 2011-2020 Evolveum, All rights reserved -->
+<!-- User template that demonstrates advanced usage such as account assignment and RB-RBAC -->
+<!-- DO NOT FORGET TO LINK THIS TEMPLATE IN SYSTEM CONFIGURATION !!! -->
+<objectTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" oid="10000000-9999-9999-0000-a000fe000001">
+    <name>ExAmPLE User Template</name>
+    <!-- MID-102, LAB 6-1, part 1 of 2: uncomment the following section -->
+    <!--
+    <iterationSpecification>
+        <maxIterations>99</maxIterations>
+        <tokenExpression>
+            <script>
+                <code>
+    if (iteration == 0) {
+        return "";
+    } else {
+        return sprintf("%03d", iteration+1);
+    }
+
+                </code>
+            </script>
+        </tokenExpression>
+    </iterationSpecification>
+-->
+    <!-- MID-102, LAB 6-1, part 1 of 2: end of comment -->
+    <!-- MID-102, LAB 6-1, part 2 of 2: uncomment this section -->
+    <!--
+    <mapping>
+        <name>Generate unique name for contractors using iterator</name>
+        <evaluationPhase>afterAssignments</evaluationPhase>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                map = new HashMap()
+                map.put("firstName", givenName)
+                map.put("lastName", familyName)
+                // "exampleLib" is the name of the function library
+                // It must be imported to repository before using.
+                return exampleLib.execute("generateLoginBase", map) + iterationToken
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>name</path>
+        </target>
+        <condition>
+            <script>
+                <code>
+                // External archetype: oid=b97490e6-24aa-11e9-923a-cbe17394eff9
+                midpoint.hasArchetype(focus, "b97490e6-24aa-11e9-923a-cbe17394eff9")
+                </code>
+            </script>
+        </condition>
+    </mapping>
+    -->
+    <!-- MID-102, LAB 6-1, part 2 of 2: end of comment -->
+    <mapping>
+        <name>ExAmPLE, Inc. User Template: Fullname</name>
+        <description>Generate fullname (enforcing, no weak mapping)</description>
+        <strength>strong</strength>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                basic.concatName(givenName, familyName)
+            </code>
+            </script>
+        </expression>
+        <target>
+            <path>fullName</path>
+        </target>
+    </mapping>
+    <mapping>
+        <name>ExAmPLE, Inc. User Template: Active org. assignment</name>
+        <strength>strong</strength>
+        <source>
+            <path>extension/empStatus</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:OrgType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>c:name</q:path>
+                        <q:value>ACTIVE</q:value>
+                    </q:equal>
+                </filter>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <code>
+                // Employee archetype: oid=7135e68c-ee53-11e8-8025-170b77da3fd6
+                midpoint.hasArchetype(focus, "7135e68c-ee53-11e8-8025-170b77da3fd6") &amp;&amp; empStatus == 'A'
+                </code>
+            </script>
+        </condition>
+    </mapping>
+    <mapping>
+        <name>ExAmPLE, Inc. User Template: Inactive org. assignment</name>
+        <strength>strong</strength>
+        <source>
+            <path>extension/empStatus</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:OrgType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>c:name</q:path>
+                        <q:value>INACTIVE</q:value>
+                    </q:equal>
+                </filter>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <code>
+                // Employee archetype: oid=7135e68c-ee53-11e8-8025-170b77da3fd6
+                midpoint.hasArchetype(focus, "7135e68c-ee53-11e8-8025-170b77da3fd6") &amp;&amp; empStatus == 'I'
+                </code>
+            </script>
+        </condition>
+    </mapping>
+    <mapping>
+        <name>ExAmPLE, Inc. User Template: Former employees org. assignment</name>
+        <strength>strong</strength>
+        <source>
+            <path>extension/empStatus</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:OrgType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>c:name</q:path>
+                        <q:value>FORMER</q:value>
+                    </q:equal>
+                </filter>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <code>
+                // Employee archetype: oid=7135e68c-ee53-11e8-8025-170b77da3fd6
+                midpoint.hasArchetype(focus, "7135e68c-ee53-11e8-8025-170b77da3fd6") &amp;&amp; empStatus == 'F'
+                </code>
+            </script>
+        </condition>
+    </mapping>
+    <!-- MID-102, LAB 3-5, part 1 of 2: comment the following two mappings -->
+    <mapping>
+        <name>ExAmPLE, Inc. User Template: Department org. assignment</name>
+        <strength>strong</strength>
+        <source>
+            <path>extension/empStatus</path>
+        </source>
+        <source>
+            <path>organizationalUnit</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:OrgType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>c:displayName</q:path>
+                        <expression>
+                            <script>
+                                <code>return organizationalUnit</code>
+                            </script>
+                        </expression>
+                    </q:equal>
+                </filter>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <code>
+            // Employee archetype: oid=7135e68c-ee53-11e8-8025-170b77da3fd6
+            midpoint.hasArchetype(focus, "7135e68c-ee53-11e8-8025-170b77da3fd6") &amp;&amp; empStatus == 'A'
+            </code>
+            </script>
+        </condition>
+    </mapping>
+    <mapping>
+        <name>ExAmPLE, Inc. User Template: Manager of Department org. assignment</name>
+        <strength>strong</strength>
+        <source>
+            <path>extension/isManager</path>
+        </source>
+        <source>
+            <path>extension/empStatus</path>
+        </source>
+        <source>
+            <path>organizationalUnit</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:OrgType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>c:displayName</q:path>
+                        <expression>
+                            <script>
+                                <code>return organizationalUnit</code>
+                            </script>
+                        </expression>
+                    </q:equal>
+                </filter>
+                <assignmentProperties>
+                    <relation>org:manager</relation>
+                </assignmentProperties>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <code>
+            // Employee archetype: oid=7135e68c-ee53-11e8-8025-170b77da3fd6
+            midpoint.hasArchetype(focus, "7135e68c-ee53-11e8-8025-170b77da3fd6") &amp;&amp; empStatus == 'A' &amp;&amp; isManager
+            </code>
+            </script>
+        </condition>
+    </mapping>
+    <!-- MID-102, LAB 3-5, part 1 of 2: end of to-be-commented mapping -->
+    <mapping>
+        <name>Internal Employee role assignment</name>
+        <description>Assign 'Internal Employee' role to active and inactive users.</description>
+        <strength>strong</strength>
+        <source>
+            <path>extension/empStatus</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:RoleType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>c:name</q:path>
+                        <q:value>Internal Employee</q:value>
+                    </q:equal>
+                </filter>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <code>
+                // Employee archetype: oid=7135e68c-ee53-11e8-8025-170b77da3fd6
+                midpoint.hasArchetype(focus, "7135e68c-ee53-11e8-8025-170b77da3fd6") &amp;&amp; (empStatus == 'A' || empStatus == 'I')
+                </code>
+            </script>
+        </condition>
+    </mapping>
+    <!-- MID-102, LAB 3-5, part 2 of 2: uncomment the following two mappings -->
+    <!--
+    <mapping>
+        <name>Org mapping: member + create hierarchy on demand</name>
+        <strength>strong</strength>
+        <authoritative>true</authoritative>
+        <source>
+            <path>extension/ouPath</path>
+        </source>
+        <source>
+            <path>extension/empStatus</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:OrgType</targetType>
+                <filter>
+                <q:equal>
+                    <q:path>c:name</q:path>
+                    <expression>
+                        <script>
+                            <code>
+//log.info("XXX tokenized: {}, first component: {}", ouPath?.tokenize(':'), ouPath?.tokenize(':')?.reverse()[0])
+                            ouPath?.tokenize(':')?.reverse()[0]
+                            </code>
+                        </script>
+                    </expression>
+                </q:equal>
+            </filter>
+                <createOnDemand>true</createOnDemand>
+                <populateObject>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>
+//log.info("YYY onDemand tokenized: {}, first component: {}", ouPath?.tokenize(':'), ouPath?.tokenize(':')?.reverse()[0])
+                                ouPath?.tokenize(':')?.reverse()[0]
+                                </code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>name</path>
+                        </target>
+                    </populateItem>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>return ouPath</code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>costCenter</path>
+                        </target>
+                    </populateItem>
+                    <populateItem>
+                        <expression>
+                            <assignmentTargetSearch>
+                                <description>
+                                A static, temporary parent. To be updated from HR SYNC eventually.</description>
+                                <targetType>c:OrgType</targetType>
+                                <filter>
+                                    <q:equal>
+                                        <q:path>name</q:path>
+                                        <expression>
+                                            <value>Temporary</value>
+                                        </expression>
+                                    </q:equal>
+                                </filter>
+                            </assignmentTargetSearch>
+                        </expression>
+                        <target>
+                            <path>assignment</path>
+                        </target>
+                    </populateItem>
+                    <populateItem>
+                        <expression>
+                            <assignmentTargetSearch>
+                                <targetType>c:ArchetypeType</targetType>
+                                <filter>
+                                    <q:equal>
+                                        <q:path>name</q:path>
+                                        <expression>
+                                            <value>Organization</value>
+                                        </expression>
+                                    </q:equal>
+                                </filter>
+                            </assignmentTargetSearch>
+                        </expression>
+                        <target>
+                            <path>assignment</path>
+                        </target>
+                    </populateItem>
+                </populateObject>
+            </assignmentTargetSearch>       
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <code>
+                // Employee archetype: oid=7135e68c-ee53-11e8-8025-170b77da3fd6
+                midpoint.hasArchetype(focus, "7135e68c-ee53-11e8-8025-170b77da3fd6") &amp;&amp; empStatus == 'A'
+                </code>
+            </script>
+        </condition>
+    </mapping>
+    <mapping>
+        <name>Org mapping: manager + create hierarchy on demand</name>
+        <strength>strong</strength>
+        <authoritative>true</authoritative>
+        <source>
+            <path>extension/ouPath</path>
+        </source>
+        <source>
+            <path>extension/isManager</path>
+        </source>
+        <source>
+            <path>extension/empStatus</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:OrgType</targetType>
+                <filter>
+                <q:equal>
+                    <q:path>c:name</q:path>
+                    <expression>
+                        <script>
+                            <code>
+//log.info("XXX tokenized: {}, first component: {}", ouPath?.tokenize(':'), ouPath?.tokenize(':')?.reverse()[0])
+                            ouPath?.tokenize(':')?.reverse()[0]
+                            </code>
+                        </script>
+                    </expression>
+                </q:equal>
+            </filter>
+            <assignmentProperties>
+                <relation>org:manager</relation>
+            </assignmentProperties>
+                <createOnDemand>false</createOnDemand>
+                <populateObject>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>
+//log.info("YYY onDemand tokenized: {}, first component: {}", ouPath?.tokenize(':'), ouPath?.tokenize(':')?.reverse()[0])
+                                ouPath?.tokenize(':')?.reverse()[0]
+                                </code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>name</path>
+                        </target>
+                    </populateItem>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>return ouPath</code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>costCenter</path>
+                        </target>
+                    </populateItem>
+                    <populateItem>
+                        <expression>
+                            <assignmentTargetSearch>
+                                <description>
+                                A static, temporary parent. To be updated from HR SYNC eventually.</description>
+                                <targetType>c:OrgType</targetType>
+                                <filter>
+                                    <q:equal>
+                                        <q:path>name</q:path>
+                                        <expression>
+                                            <value>Temporary</value>
+                                        </expression>
+                                    </q:equal>
+                                </filter>
+                            </assignmentTargetSearch>
+                        </expression>
+                        <target>
+                            <path>assignment</path>
+                        </target>
+                    </populateItem>
+                    <populateItem>
+                        <expression>
+                            <assignmentTargetSearch>
+                                <targetType>c:ArchetypeType</targetType>
+                                <filter>
+                                    <q:equal>
+                                        <q:path>name</q:path>
+                                        <expression>
+                                            <value>Organization</value>
+                                        </expression>
+                                    </q:equal>
+                                </filter>
+                            </assignmentTargetSearch>
+                        </expression>
+                        <target>
+                            <path>assignment</path>
+                        </target>
+                    </populateItem>
+                </populateObject>
+            </assignmentTargetSearch>       
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <code>
+                // Employee archetype: oid=7135e68c-ee53-11e8-8025-170b77da3fd6
+                midpoint.hasArchetype(focus, "7135e68c-ee53-11e8-8025-170b77da3fd6") &amp;&amp; empStatus == 'A' &amp;&amp; isManager
+                </code>
+            </script>
+        </condition>
+    </mapping>
+    -->
+    <!-- MID-102, LAB 3-5, part 2 of 2: end of comment -->
+    <!-- MID-102, LAB 6-2: uncomment this section -->
+    <!--
+    <mapping>
+    <name>ExAmPLE, Inc. User Template: Contractors org. assignment</name>
+    <strength>strong</strength>
+        <expression>
+            <assignmentTargetSearch>
+            <targetType>c:OrgType</targetType>
+                <filter>
+                <q:equal>
+                    <q:path>c:name</q:path>
+                    <q:value>CONTRACTORS</q:value>
+                </q:equal>
+            </filter>
+        </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <code>
+                // External archetype: oid=b97490e6-24aa-11e9-923a-cbe17394eff9
+                midpoint.hasArchetype(focus, "b97490e6-24aa-11e9-923a-cbe17394eff9")
+                </code>
+            </script>
+        </condition>
+    </mapping>
+    -->
+    <!-- MID-102, LAB 6-2: end of comment -->
+    <!-- MID-102, LAB 6-3: uncomment and finish the following section -->
+    <!--
+    <item>
+        <ref>PLACEHOLDER</ref>
+        <emphasized>PLACEHOLDER</emphasized>
+    </item>
+    <mapping>
+        <name>Validate telephoneNumber (including self-service)</name>
+        <description>Telephone number must start with "555" and contain a dash and exactly four digits. E.g. "555-1234" or "555 - 6789". Only for employees and contractors. Only for new values.</description>
+        <source>
+            <path>PLACEHOLDER</path>
+        </source>
+        <expression>
+        <script>
+            <code>
+if (midpoint.isEvaluateNew() &amp;&amp; telephoneNumber != null) {
+    re = /^555\s*-\s*[0-9]{4}$/
+    matcher = (telephoneNumber =~ re)
+    if (!matcher.matches()) {
+            throw new com.evolveum.midpoint.util.exception.PolicyViolationException("Bad telephone number format: " + telephoneNumber + " (use: 555-xxxx)");
+    }
+}
+            </code>
+            </script>
+    </expression>
+        <condition>
+            <script>
+                <code>
+                // Employee archetype: oid=7135e68c-ee53-11e8-8025-170b77da3fd6
+                // External archetype: oid=b97490e6-24aa-11e9-923a-cbe17394eff9
+                // Replace the 'return false' here to apply only if the user is either one of the
+                //  above archetypes
+                return false
+                </code>
+            </script>  
+        </condition>
+    </mapping>
+    -->
+    <!-- MID-102, LAB 6-3: end of comment -->
+    <!-- MID-102, LAB 6-4: uncomment and finish the following section -->
+    <!--
+    <mapping>
+        <name>Check uniqueness of telephoneNumber (including self-service)</name>
+        <source>
+            <path>PLACEHOLDER</path>
+        </source>
+        <expression>
+        <script>
+            <code>
+if (midpoint.isEvaluateNew() &amp;&amp; telephoneNumber != null) {
+    List conflicts = [] // TODO replace the code as instructed in the Lab guide
+    if (!conflicts.isEmpty()) {
+        throw new com.evolveum.midpoint.util.exception.PolicyViolationException("Telephone number: " + telephoneNumber + " already used; conflicting object(s): " + conflicts);
+        
+    }
+}
+            </code>
+            </script>
+    </expression>
+        <condition>
+            <script>
+                <code>
+                // Employee archetype: oid=7135e68c-ee53-11e8-8025-170b77da3fd6
+                // External archetype: oid=b97490e6-24aa-11e9-923a-cbe17394eff9
+                // Replace the 'return false' here to apply only if the user is either one of the
+                //  above archetypes
+                return false
+                </code>
+            </script>  
+        </condition>
+    </mapping>
+    -->
+    <!-- MID-102, LAB 6-4: end of comment -->
+    <item>
+        <ref>extension/empStatus</ref>
+        <valueEnumerationRef oid="3db10c46-23b1-11e8-be0c-a31e9d8ba9d8"/>
+    </item>
+</objectTemplate>

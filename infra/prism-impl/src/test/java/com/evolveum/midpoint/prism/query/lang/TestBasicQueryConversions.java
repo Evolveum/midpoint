@@ -106,6 +106,16 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
     }
 
     @Test
+    public void testEscapings() throws SchemaException, IOException {
+        ObjectFilter filter =
+                getPrismContext().queryFor(UserType.class)
+                        .item(UserType.F_GIVEN_NAME).eq("Jack").matchingCaseIgnore()
+                        .and().item(UserType.F_FULL_NAME).contains("'Arr")
+                        .buildFilter();
+        verify("givenName =[stringIgnoreCase] 'Jack' and fullName contains '\\'Arr'", filter);
+    }
+
+    @Test
     public void testPathComparison() throws SchemaException, IOException {
         ObjectFilter dslFilter = parse("fullName not equal givenName");
         boolean match = ObjectQuery.match(parseUserJacky(),dslFilter,MATCHING_RULE_REGISTRY);

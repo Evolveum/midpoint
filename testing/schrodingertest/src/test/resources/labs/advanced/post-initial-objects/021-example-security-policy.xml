@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) 2011-2020 Evolveum, All rights reserved -->
+<securityPolicy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="f30d36a6-fc11-11e5-9b5f-3c970e44b9e2">
+    <name>ExAmPLE Security Policy</name>
+    <credentials>
+        <password>
+            <maxAge>P180D</maxAge>
+            <lockoutMaxFailedAttempts>3</lockoutMaxFailedAttempts>
+            <lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
+            <lockoutDuration>PT15M</lockoutDuration>
+            <valuePolicyRef oid="10000000-9999-9999-0000-a000f2000002"/>
+            <historyLength>0</historyLength>
+        </password>
+    </credentials>
+</securityPolicy>
