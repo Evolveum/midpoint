@@ -37,46 +37,47 @@ import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public enum MObjectTypeMapping {
+public enum MObjectType {
 
-    // mapping of codes and schema types must be unique, but one Q-class can serve multiple types
+    // mapping of codes and schema types must be unique
+    ABSTRACT_ROLE(16, QAbstractRole.CLASS, AbstractRoleType.class),
+    ACCESS_CERTIFICATION_CAMPAIGN(22, null, AccessCertificationCampaignType.class),
+    ACCESS_CERTIFICATION_DEFINITION(21, null, AccessCertificationDefinitionType.class),
+    ARCHETYPE(29, QArchetype.class, ArchetypeType.class),
+    ASSIGNMENT_HOLDER(18, QAssignmentHolder.class, AssignmentHolderType.class),
+    CASE(26, QCase.class, CaseType.class),
     CONNECTOR(0, QConnector.class, ConnectorType.class),
     CONNECTOR_HOST(1, QConnectorHost.class, ConnectorHostType.class),
+    DASHBOARD(30, QDashboard.class, DashboardType.class),
+    FOCUS(17, QFocus.CLASS, FocusType.class),
+    FORM(25, null, FormType.class),
+    FUNCTION_LIBRARY(27, null, FunctionLibraryType.class),
     GENERIC_OBJECT(2, null, GenericObjectType.class),
+    LOOKUP_TABLE(20, QLookupTable.class, LookupTableType.class),
+    NODE(14, QNode.class, NodeType.class),
     OBJECT(3, QObject.CLASS, ObjectType.class),
-    VALUE_POLICY(4, QValuePolicy.class, ValuePolicyType.class),
+    OBJECT_COLLECTION(28, QObjectCollection.class, ObjectCollectionType.class),
+    OBJECT_TEMPLATE(13, null, ObjectTemplateType.class),
+    ORG(15, null, OrgType.class),
+    REPORT(11, QReport.class, ReportType.class),
+    REPORT_DATA(12, QReportData.class, ReportDataType.class),
     RESOURCE(5, null, ResourceType.class),
-    SHADOW(6, null, ShadowType.class),
     ROLE(7, QRole.class, RoleType.class),
+    SECURITY_POLICY(19, QSecurityPolicy.class, SecurityPolicyType.class),
+    SEQUENCE(23, null, SequenceType.class),
+    SERVICE(24, QService.class, ServiceType.class),
+    SHADOW(6, null, ShadowType.class),
     SYSTEM_CONFIGURATION(8, QSystemConfiguration.class, SystemConfigurationType.class),
     TASK(9, QTask.class, TaskType.class),
     USER(10, QUser.class, UserType.class),
-    REPORT(11, QReport.class, ReportType.class),
-    REPORT_DATA(12, QReportData.class, ReportDataType.class),
-    OBJECT_TEMPLATE(13, null, ObjectTemplateType.class),
-    NODE(14, QNode.class, NodeType.class),
-    ORG(15, null, OrgType.class),
-    ABSTRACT_ROLE(16, QAbstractRole.CLASS, AbstractRoleType.class),
-    FOCUS(17, QFocus.CLASS, FocusType.class),
-    ASSIGNMENT_HOLDER(18, QAssignmentHolder.class, AssignmentHolderType.class),
-    SECURITY_POLICY(19, QSecurityPolicy.class, SecurityPolicyType.class),
-    LOOKUP_TABLE(20, QLookupTable.class, LookupTableType.class),
-    ACCESS_CERTIFICATION_DEFINITION(21, null, AccessCertificationDefinitionType.class),
-    ACCESS_CERTIFICATION_CAMPAIGN(22, null, AccessCertificationCampaignType.class),
-    SEQUENCE(23, null, SequenceType.class),
-    SERVICE(24, QService.class, ServiceType.class),
-    FORM(25, null, FormType.class),
-    CASE(26, QCase.class, CaseType.class),
-    FUNCTION_LIBRARY(27, null, FunctionLibraryType.class),
-    OBJECT_COLLECTION(28, QObjectCollection.class, ObjectCollectionType.class),
-    ARCHETYPE(29, QArchetype.class, ArchetypeType.class),
-    DASHBOARD(30, QDashboard.class, DashboardType.class);
+    VALUE_POLICY(4, QValuePolicy.class, ValuePolicyType.class);
 
+    // TODO drop the codes, pg enum type will cover it
     private final int code;
     private final Class<? extends QObject<?>> queryType;
     private final Class<? extends ObjectType> schemaType;
 
-    MObjectTypeMapping(
+    MObjectType(
             int code,
             Class<? extends QObject<?>> queryType,
             Class<? extends ObjectType> schemaType) {
@@ -86,14 +87,14 @@ public enum MObjectTypeMapping {
     }
 
     // DB code -> enum conversion
-    public static final Map<Integer, MObjectTypeMapping> CODE_TO_ENUM = new HashMap<>();
+    public static final Map<Integer, MObjectType> CODE_TO_ENUM = new HashMap<>();
 
     // schema type QName -> enum conversion
-    public static final Map<Class<? extends ObjectType>, MObjectTypeMapping> SCHEMA_TYPE_TO_ENUM =
+    public static final Map<Class<? extends ObjectType>, MObjectType> SCHEMA_TYPE_TO_ENUM =
             new HashMap<>();
 
     static {
-        for (MObjectTypeMapping value : values()) {
+        for (MObjectType value : values()) {
             if (CODE_TO_ENUM.put(value.code, value) != null) {
                 throw new IllegalArgumentException("MObjectTypeMapping value " + value
                         + " uses duplicate code: " + value.code);
@@ -106,18 +107,18 @@ public enum MObjectTypeMapping {
     }
 
     @NotNull
-    public static MObjectTypeMapping fromCode(int code) {
+    public static MObjectType fromCode(int code) {
         return Objects.requireNonNull(CODE_TO_ENUM.get(code),
                 "No MObjectTypeMapping found for object type code " + code);
     }
 
     @NotNull
-    public static MObjectTypeMapping fromTypeQName(QName typeQName) {
+    public static MObjectType fromTypeQName(QName typeQName) {
         return fromSchemaType(ObjectTypes.getObjectTypeClass(typeQName));
     }
 
     @NotNull
-    public static MObjectTypeMapping fromSchemaType(Class<? extends ObjectType> objectTypeClass) {
+    public static MObjectType fromSchemaType(Class<? extends ObjectType> objectTypeClass) {
         return Objects.requireNonNull(SCHEMA_TYPE_TO_ENUM.get(objectTypeClass),
                 "No MObjectTypeMapping found for object type " + objectTypeClass);
     }

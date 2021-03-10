@@ -37,6 +37,7 @@ public class SqaleRepoContext extends SqlRepoContext {
 
         // each enum type must be registered if we want to map it as objects (to PG enum types)
         querydslConfig.register(new EnumAsObjectType<>(MContainerType.class));
+        querydslConfig.register(new EnumAsObjectType<>(MObjectType.class));
         querydslConfig.register(new EnumAsObjectType<>(MReferenceType.class));
         querydslConfig.register(new EnumAsObjectType<>(OperationResultStatusType.class));
         querydslConfig.register(new EnumAsObjectType<>(TaskExecutionStateType.class));

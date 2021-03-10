@@ -93,7 +93,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
             ObjectReferenceType creatorRef = metadata.getCreatorRef();
             if (creatorRef != null) {
                 row.creatorRefTargetOid = oidToUUid(creatorRef.getOid());
-                row.creatorRefTargetType = schemaTypeToCode(creatorRef.getType());
+                row.creatorRefTargetType = schemaTypeToObjectType(creatorRef.getType());
                 row.creatorRefRelationId = processCachedUri(creatorRef.getRelation(), jdbcSession);
             }
             row.createChannelId = processCachedUri(metadata.getCreateChannel(), jdbcSession);
@@ -102,7 +102,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
             ObjectReferenceType modifierRef = metadata.getModifierRef();
             if (modifierRef != null) {
                 row.modifierRefTargetOid = oidToUUid(modifierRef.getOid());
-                row.modifierRefTargetType = schemaTypeToCode(modifierRef.getType());
+                row.modifierRefTargetType = schemaTypeToObjectType(modifierRef.getType());
                 row.modifierRefRelationId = processCachedUri(modifierRef.getRelation(), jdbcSession);
             }
             row.modifyChannelId = processCachedUri(metadata.getModifyChannel(), jdbcSession);
@@ -112,7 +112,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         ObjectReferenceType tenantRef = schemaObject.getTenantRef();
         if (tenantRef != null) {
             row.tenantRefTargetOid = oidToUUid(tenantRef.getOid());
-            row.tenantRefTargetType = schemaTypeToCode(tenantRef.getType());
+            row.tenantRefTargetType = schemaTypeToObjectType(tenantRef.getType());
             row.tenantRefRelationId = processCachedUri(tenantRef.getRelation(), jdbcSession);
         }
 

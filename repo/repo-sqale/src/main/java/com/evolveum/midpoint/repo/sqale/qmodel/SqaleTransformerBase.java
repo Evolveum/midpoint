@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.evolveum.midpoint.repo.sqale.MObjectTypeMapping;
+import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
@@ -77,13 +77,13 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
 
     /**
      * Returns {@link ObjectReferenceType} with specified oid, proper type based on
-     * {@link MObjectTypeMapping} and, optionally, target name/description.
+     * {@link MObjectType} and, optionally, target name/description.
      * Returns {@code null} if OID is null.
      * Fails if OID is not null and {@code repoObjectType} is null.
      */
     @Nullable
     protected ObjectReferenceType objectReferenceType(
-            @Nullable String oid, MObjectTypeMapping repoObjectType, String targetName) {
+            @Nullable String oid, MObjectType repoObjectType, String targetName) {
         if (oid == null) {
             return null;
         }
@@ -100,26 +100,26 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
     }
 
     /**
-     * Returns {@link MObjectTypeMapping} from ordinal Integer or specified default value.
+     * Returns {@link MObjectType} from ordinal Integer or specified default value.
      */
-    protected @NotNull MObjectTypeMapping objectTypeMapping(
-            @Nullable Integer repoObjectTypeId, @NotNull MObjectTypeMapping defaultValue) {
+    protected @NotNull MObjectType objectTypeMapping(
+            @Nullable Integer repoObjectTypeId, @NotNull MObjectType defaultValue) {
         return repoObjectTypeId != null
-                ? MObjectTypeMapping.fromCode(repoObjectTypeId)
+                ? MObjectType.fromCode(repoObjectTypeId)
                 : defaultValue;
     }
 
     /**
-     * Returns nullable {@link MObjectTypeMapping} from ordinal Integer.
-     * If null is returned it will not fail immediately unlike {@link MObjectTypeMapping#fromCode(int)}.
+     * Returns nullable {@link MObjectType} from ordinal Integer.
+     * If null is returned it will not fail immediately unlike {@link MObjectType#fromCode(int)}.
      * This is practical for eager argument resolution for
-     * {@link #objectReferenceType(String, MObjectTypeMapping, String)}.
+     * {@link #objectReferenceType(String, MObjectType, String)}.
      * Null may still be OK if OID is null as well - which means no reference.
      */
-    protected @Nullable MObjectTypeMapping objectTypeMapping(
+    protected @Nullable MObjectType objectTypeMapping(
             @Nullable Integer repoObjectTypeId) {
         return repoObjectTypeId != null
-                ? MObjectTypeMapping.fromCode(repoObjectTypeId)
+                ? MObjectType.fromCode(repoObjectTypeId)
                 : null;
     }
 
@@ -170,7 +170,13 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
 
     protected Integer schemaTypeToCode(QName schemaType) {
         return schemaType == null ? null :
-                MObjectTypeMapping.fromSchemaType(
+                MObjectType.fromSchemaType(
                         transformerSupport.qNameToSchemaClass(schemaType)).code();
+    }
+
+    protected MObjectType schemaTypeToObjectType(QName schemaType) {
+        return schemaType == null ? null :
+                MObjectType.fromSchemaType(
+                        transformerSupport.qNameToSchemaClass(schemaType));
     }
 }

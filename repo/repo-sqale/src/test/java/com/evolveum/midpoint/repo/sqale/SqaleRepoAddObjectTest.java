@@ -56,7 +56,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         assertThat(mUser.nameNorm).isNotNull(); // normalized name is stored
         assertThat(mUser.version).isEqualTo(1); // initial version is set
         // read-only column with value generated/stored in the database
-        assertThat(mUser.objectType).isEqualTo(MObjectTypeMapping.USER.code());
+        assertThat(mUser.objectType).isEqualTo(MObjectType.USER);
     }
 
     @Test

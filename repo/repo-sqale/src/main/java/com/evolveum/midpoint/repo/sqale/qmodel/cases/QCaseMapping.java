@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.cases;
 import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.*;
 
-import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.RefItemIntFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
@@ -33,19 +33,19 @@ public class QCaseMapping
         addItemMapping(F_STATE, stringMapper(path(q -> q.state)));
         addItemMapping(F_CLOSE_TIMESTAMP,
                 TimestampItemFilterProcessor.mapper(path(q -> q.closeTimestamp)));
-        addItemMapping(F_OBJECT_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(F_OBJECT_REF, RefItemIntFilterProcessor.mapper(
                 path(q -> q.objectRefTargetOid),
                 path(q -> q.objectRefTargetType),
                 path(q -> q.objectRefRelationId)));
-        addItemMapping(F_PARENT_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(F_PARENT_REF, RefItemIntFilterProcessor.mapper(
                 path(q -> q.parentRefTargetOid),
                 path(q -> q.parentRefTargetType),
                 path(q -> q.parentRefRelationId)));
-        addItemMapping(F_REQUESTOR_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(F_REQUESTOR_REF, RefItemIntFilterProcessor.mapper(
                 path(q -> q.requestorRefTargetOid),
                 path(q -> q.requestorRefTargetType),
                 path(q -> q.requestorRefRelationId)));
-        addItemMapping(F_TARGET_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(F_TARGET_REF, RefItemIntFilterProcessor.mapper(
                 path(q -> q.targetRefTargetOid),
                 path(q -> q.targetRefTargetType),
                 path(q -> q.targetRefRelationId)));

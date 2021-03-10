@@ -13,7 +13,6 @@ import java.util.function.Function;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -27,31 +26,33 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
  * Filter processor for reference item paths embedded in table as three columns.
+ * TODO: This version supports integer target type path while migrating to enum version.
  * OID is represented by UUID column, type by ID (see {@link MObjectType} and relation
  * by Integer (foreign key) to {@link QUri}.
  */
-public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
+@Deprecated
+public class RefItemIntFilterProcessor extends ItemFilterProcessor<RefFilter> {
 
     /**
      * Returns the mapper function creating the ref-filter processor from query context.
      */
     public static ItemSqlMapper mapper(
             Function<EntityPath<?>, UuidPath> rootToOidPath,
-            Function<EntityPath<?>, EnumPath<MObjectType>> rootToTypePath,
+            Function<EntityPath<?>, NumberPath<Integer>> rootToTypePath,
             Function<EntityPath<?>, NumberPath<Integer>> rootToRelationIdPath) {
-        return new ItemSqlMapper(ctx -> new RefItemFilterProcessor(
+        return new ItemSqlMapper(ctx -> new RefItemIntFilterProcessor(
                 ctx, rootToOidPath, rootToTypePath, rootToRelationIdPath));
     }
 
     // only oidPath is strictly not-null, but then the filter better not ask for type or relation
     private final UuidPath oidPath;
-    private final EnumPath<MObjectType> typePath;
+    private final NumberPath<Integer> typePath;
     private final NumberPath<Integer> relationIdPath;
 
-    private RefItemFilterProcessor(
+    private RefItemIntFilterProcessor(
             SqlQueryContext<?, ?, ?> context,
             Function<EntityPath<?>, UuidPath> rootToOidPath,
-            Function<EntityPath<?>, EnumPath<MObjectType>> rootToTypePath,
+            Function<EntityPath<?>, NumberPath<Integer>> rootToTypePath,
             Function<EntityPath<?>, NumberPath<Integer>> rootToRelationIdPath) {
         this(context,
                 rootToOidPath.apply(context.path()),
@@ -60,8 +61,8 @@ public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
     }
 
     // exposed mainly for RefTableItemFilterProcessor
-    RefItemFilterProcessor(SqlQueryContext<?, ?, ?> context,
-            UuidPath oidPath, EnumPath<MObjectType> typePath, NumberPath<Integer> relationIdPath) {
+    RefItemIntFilterProcessor(SqlQueryContext<?, ?, ?> context,
+            UuidPath oidPath, NumberPath<Integer> typePath, NumberPath<Integer> relationIdPath) {
         super(context);
         this.oidPath = oidPath;
         this.typePath = typePath;
@@ -107,9 +108,9 @@ public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
                     predicateWithNotTreated(relationIdPath, relationIdPath.eq(relationId)));
         }
         if (ref.getTargetType() != null) {
-            MObjectType objectType = MObjectType.fromTypeQName(ref.getTargetType());
+            int typeCode = MObjectType.fromTypeQName(ref.getTargetType()).code();
             predicate = ExpressionUtils.and(predicate,
-                    predicateWithNotTreated(typePath, typePath.eq(objectType)));
+                    predicateWithNotTreated(typePath, typePath.eq(typeCode)));
         } else if (!filter.isTargetTypeNullAsAny()) {
             predicate = ExpressionUtils.and(predicate, typePath.isNull());
         }
