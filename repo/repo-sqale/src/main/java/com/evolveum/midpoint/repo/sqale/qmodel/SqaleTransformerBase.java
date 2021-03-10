@@ -19,6 +19,8 @@ import org.slf4j.LoggerFactory;
 
 import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
+import com.evolveum.midpoint.repo.sqale.UriCache;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
@@ -113,7 +115,7 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
 
     /**
      * Returns ID for relation QName without going ot database.
-     * Relation is normalized before consulting {@link com.evolveum.midpoint.repo.sqale.UriCache}.
+     * Relation is normalized before consulting {@link UriCache}.
      */
     protected Integer resolveRelationToId(QName qName) {
         return qName != null
@@ -126,17 +128,18 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
         return transformerSupport.resolveUriToId(uri);
     }
 
-    /** Returns ID for URI (represented by QName) creating new cache row in DB as needed. */
-    protected Integer processCachedUri(QName qName, JdbcSession jdbcSession) {
-        return qName != null
-                ? processCachedUri(
+    /**
+     * Returns ID for relation QName creating new {@link QUri} row in DB as needed.
+     * Relation is normalized before consulting the cache.
+     */
+    protected Integer processCacheableRelation(QName qName, JdbcSession jdbcSession) {
+        return qName == null ? null : processCacheableUri(
                 QNameUtil.qNameToUri(transformerSupport.normalizeRelation(qName)),
-                jdbcSession)
-                : null;
+                jdbcSession);
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
-    protected Integer processCachedUri(String uri, JdbcSession jdbcSession) {
+    protected Integer processCacheableUri(String uri, JdbcSession jdbcSession) {
         return transformerSupport.processCachedUri(uri, jdbcSession);
     }
 

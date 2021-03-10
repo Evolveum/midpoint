@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
+import java.util.UUID;
+
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTransformerBase;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
@@ -22,9 +24,14 @@ public class ContainerSqlTransformer
         super(transformerSupport, mapping);
     }
 
-    public R toRowObject(S schemaObject) {
+    /**
+     * Method can be overridden or overloaded as it is often called on a known transformer
+     * type with known additional needs, e.g. some type enum value, etc.
+     * This implementation takes care of the attributes of the base class {@link MContainer}.
+     */
+    public R toRowObject(S schemaObject, UUID ownerOid) {
         R row = mapping.newRowObject();
-        // owner id is set outside this call
+        row.ownerOid = ownerOid;
         row.cid = schemaObject.asPrismContainerValue().getId();
         // containerType is generated in DB, must be left null!
         return row;

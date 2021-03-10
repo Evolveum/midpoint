@@ -16,9 +16,10 @@
 CREATE SCHEMA IF NOT EXISTS public;
 
 -- region custom enum types
--- The same names like schema enum classes are used for the types (I like the Type suffix here).
--- Some enums are not schema based (ContainerType, ReferenceType) and these have M prefix in Java.
--- Java enum types must be registered in SqaleRepoContext constructor.
+-- Some enums are from schema, some are only defined in repo-sqale.
+-- All Java enum types must be registered in SqaleRepoContext constructor.
+
+-- First purely repo-sqale enums (these have M prefix in Java, the rest of the name is the same):
 CREATE TYPE ContainerType AS ENUM (
     'ACCESS_CERTIFICATION_CASE',
     'ACCESS_CERTIFICATION_WORK_ITEM',
@@ -59,12 +60,25 @@ CREATE TYPE ObjectType AS ENUM (
     'USER',
     'VALUE_POLICY');
 
+CREATE TYPE ReferenceType AS ENUM (
+    'ARCHETYPE',
+    'CREATE_APPROVER',
+    'DELEGATED',
+    'INCLUDE',
+    'MODIFY_APPROVER',
+    'OBJECT_PARENT_ORG',
+    'PERSONA',
+    'RESOURCE_BUSINESS_CONFIGURATION_APPROVER',
+    'ROLE_MEMBERSHIP',
+    'USER_ACCOUNT');
+
+-- Schema based enums have the same name like their enum classes (I like the Type suffix here):
+CREATE TYPE ActivationStatusType AS ENUM ('ENABLED', 'DISABLED', 'ARCHIVED');
+
+CREATE TYPE TimeIntervalStatusType AS ENUM ('BEFORE', 'IN', 'AFTER');
+
 CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ERROR',
     'FATAL_ERROR', 'HANDLED_ERROR', 'NOT_APPLICABLE', 'IN_PROGRESS', 'UNKNOWN');
-
-CREATE TYPE ReferenceType AS ENUM ('ARCHETYPE', 'CREATE_APPROVER', 'DELEGATED', 'INCLUDE',
-    'MODIFY_APPROVER', 'OBJECT_PARENT_ORG', 'PERSONA', 'RESOURCE_BUSINESS_CONFIGURATION_APPROVER',
-    'ROLE_MEMBERSHIP', 'USER_ACCOUNT');
 
 CREATE TYPE TaskExecutionStatusType AS ENUM ('RUNNABLE', 'WAITING', 'SUSPENDED', 'CLOSED');
 
@@ -236,12 +250,12 @@ CREATE TABLE m_focus (
     passwordCreateTimestamp TIMESTAMPTZ,
     passwordModifyTimestamp TIMESTAMPTZ,
     -- activation
-    administrativeStatus INTEGER,
-    effectiveStatus INTEGER,
+    administrativeStatus ActivationStatusType,
+    effectiveStatus ActivationStatusType,
     enableTimestamp TIMESTAMPTZ,
     disableTimestamp TIMESTAMPTZ,
     disableReason VARCHAR(255),
-    validityStatus INTEGER,
+    validityStatus TimeIntervalStatusType,
     validFrom TIMESTAMPTZ,
     validTo TIMESTAMPTZ,
     validityChangeTimestamp TIMESTAMPTZ,
@@ -941,12 +955,12 @@ CREATE TABLE m_assignment_type (
     resourceRef_targetType ObjectType,
     resourceRef_relation_id INTEGER, -- soft-references m_uri
     -- activation
-    administrativeStatus INTEGER, -- TODO: switch to ActivationStatusType
-    effectiveStatus INTEGER, -- TODO: switch to ActivationStatusType
+    administrativeStatus ActivationStatusType,
+    effectiveStatus ActivationStatusType,
     enableTimestamp TIMESTAMPTZ,
     disableTimestamp TIMESTAMPTZ,
     disableReason VARCHAR(255),
-    validityStatus INTEGER, -- TODO: switch to TimeIntervalStatusType
+    validityStatus TimeIntervalStatusType,
     validFrom TIMESTAMPTZ,
     validTo TIMESTAMPTZ,
     validityChangeTimestamp TIMESTAMPTZ,

@@ -11,6 +11,8 @@ import java.util.UUID;
 
 import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 
 /**
  * Querydsl "row bean" type related to {@link QAssignment}.
@@ -37,12 +39,12 @@ public class MAssignment extends MContainer {
     public MObjectType resourceRefTargetType;
     public Integer resourceRefRelationId;
     // activation
-    public Integer administrativeStatus;
-    public Integer effectiveStatus;
+    public ActivationStatusType administrativeStatus;
+    public ActivationStatusType effectiveStatus;
     public Instant enableTimestamp;
     public Instant disableTimestamp;
     public String disableReason;
-    public Integer validityStatus;
+    public TimeIntervalStatusType validityStatus;
     public Instant validFrom;
     public Instant validTo;
     public Instant validityChangeTimestamp;

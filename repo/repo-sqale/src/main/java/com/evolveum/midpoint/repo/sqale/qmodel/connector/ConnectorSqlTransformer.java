@@ -35,7 +35,7 @@ public class ConnectorSqlTransformer
         if (ref != null) {
             row.connectorHostRefTargetOid = oidToUUid(ref.getOid());
             row.connectorHostRefTargetType = schemaTypeToObjectType(ref.getType());
-            row.connectorHostRefRelationId = processCachedUri(ref.getRelation(), jdbcSession);
+            row.connectorHostRefRelationId = processCacheableRelation(ref.getRelation(), jdbcSession);
         }
 
         return row;

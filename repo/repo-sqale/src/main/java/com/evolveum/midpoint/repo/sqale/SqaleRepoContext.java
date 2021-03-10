@@ -18,9 +18,7 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * SQL repository context adding support for QName cache.
@@ -36,12 +34,14 @@ public class SqaleRepoContext extends SqlRepoContext {
         super(jdbcRepositoryConfiguration, dataSource, mappingRegistry);
 
         // each enum type must be registered if we want to map it as objects (to PG enum types)
+        querydslConfig.register(new EnumAsObjectType<>(ActivationStatusType.class));
         querydslConfig.register(new EnumAsObjectType<>(MContainerType.class));
         querydslConfig.register(new EnumAsObjectType<>(MObjectType.class));
         querydslConfig.register(new EnumAsObjectType<>(MReferenceType.class));
         querydslConfig.register(new EnumAsObjectType<>(OperationResultStatusType.class));
         querydslConfig.register(new EnumAsObjectType<>(TaskExecutionStateType.class));
         querydslConfig.register(new EnumAsObjectType<>(TaskWaitingReasonType.class));
+        querydslConfig.register(new EnumAsObjectType<>(TimeIntervalStatusType.class));
 
         uriCache = new UriCache();
     }
@@ -63,7 +63,7 @@ public class SqaleRepoContext extends SqlRepoContext {
         return uriCache.searchId(uri);
     }
 
-    /** @see UriCache#resolveUriToId(String)  */
+    /** @see UriCache#resolveUriToId(String) */
     public Integer resolveUriToId(String uri) {
         return uriCache.resolveUriToId(uri);
     }

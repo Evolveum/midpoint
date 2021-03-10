@@ -76,6 +76,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
      *
      * OID may be null, hence the method does NOT create any sub-entities, see {@link }
      */
+    @SuppressWarnings("DuplicatedCode") // see comment for metadata lower
     @NotNull
     public R toRowObjectWithoutFullObject(S schemaObject, JdbcSession jdbcSession) {
         R row = mapping.newRowObject();
@@ -87,25 +88,26 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         row.nameOrig = name.getOrig();
         row.nameNorm = name.getNorm();
 
-        // can this be reused? AbstractCredentialType, PasswordHistoryEntryType (is it stored?), AssignmentType... the rest is not in repo for sure
+        // This is duplicate code with AssignmentSqlTransformer.toRowObject, but making interface
+        // and needed setters (fields are not "interface-able") would create much more code.
         MetadataType metadata = schemaObject.getMetadata();
         if (metadata != null) {
             ObjectReferenceType creatorRef = metadata.getCreatorRef();
             if (creatorRef != null) {
                 row.creatorRefTargetOid = oidToUUid(creatorRef.getOid());
                 row.creatorRefTargetType = schemaTypeToObjectType(creatorRef.getType());
-                row.creatorRefRelationId = processCachedUri(creatorRef.getRelation(), jdbcSession);
+                row.creatorRefRelationId = processCacheableRelation(creatorRef.getRelation(), jdbcSession);
             }
-            row.createChannelId = processCachedUri(metadata.getCreateChannel(), jdbcSession);
+            row.createChannelId = processCacheableUri(metadata.getCreateChannel(), jdbcSession);
             row.createTimestamp = MiscUtil.asInstant(metadata.getCreateTimestamp());
 
             ObjectReferenceType modifierRef = metadata.getModifierRef();
             if (modifierRef != null) {
                 row.modifierRefTargetOid = oidToUUid(modifierRef.getOid());
                 row.modifierRefTargetType = schemaTypeToObjectType(modifierRef.getType());
-                row.modifierRefRelationId = processCachedUri(modifierRef.getRelation(), jdbcSession);
+                row.modifierRefRelationId = processCacheableRelation(modifierRef.getRelation(), jdbcSession);
             }
-            row.modifyChannelId = processCachedUri(metadata.getModifyChannel(), jdbcSession);
+            row.modifyChannelId = processCacheableUri(metadata.getModifyChannel(), jdbcSession);
             row.modifyTimestamp = MiscUtil.asInstant(metadata.getModifyTimestamp());
         }
 
@@ -113,7 +115,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         if (tenantRef != null) {
             row.tenantRefTargetOid = oidToUUid(tenantRef.getOid());
             row.tenantRefTargetType = schemaTypeToObjectType(tenantRef.getType());
-            row.tenantRefRelationId = processCachedUri(tenantRef.getRelation(), jdbcSession);
+            row.tenantRefRelationId = processCacheableRelation(tenantRef.getRelation(), jdbcSession);
         }
 
         row.lifecycleState = schemaObject.getLifecycleState();
@@ -128,6 +130,8 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
      * Stores other entities related to the main object row like containers, references, etc.
      * This is not part of {@link #toRowObjectWithoutFullObject} because it requires know OID
      * which is not assured before calling that method.
+     *
+     * *Always call this super method first in overriding methods.*
      *
      * @param objectRow master row for added object
      * @param schemaObject schema objects for which the details are stored
@@ -184,7 +188,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
             QAssignmentMapping mapping = QAssignmentMapping.INSTANCE;
             AssignmentSqlTransformer transformer = mapping.createTransformer(transformerSupport);
             for (AssignmentType assignment : assignments) {
-                MAssignment row = transformer.toRowObject(assignment, objectRow);
+                MAssignment row = transformer.toRowObject(assignment, objectRow, jdbcSession);
                 jdbcSession.newInsert(mapping.defaultAlias())
                         .populate(row)
                         .execute();

@@ -24,7 +24,7 @@ public class ReferenceSqlTransformer
     public MReference toRowObject(ObjectReferenceType schemaObject, JdbcSession jdbcSession) {
         MReference row = new MReference();
         // TODO ownerOid, referenceType
-        row.relationId = resolveRelationToId(schemaObject.getRelation());
+        row.relationId = processCacheableRelation(schemaObject.getRelation(), jdbcSession);
         row.targetOid = UUID.fromString(schemaObject.getOid());
         row.targetType = schemaTypeToObjectType(schemaObject.getType());
         return row;
