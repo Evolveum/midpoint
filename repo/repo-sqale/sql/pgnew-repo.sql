@@ -488,7 +488,8 @@ CREATE TABLE m_acc_cert_wi (
 
 ALTER TABLE IF EXISTS m_acc_cert_wi
     ADD CONSTRAINT m_acc_cert_wi_id_fk FOREIGN KEY (owner_oid, acc_cert_case_cid)
-        REFERENCES m_acc_cert_case (owner_oid, cid);
+        REFERENCES m_acc_cert_case (owner_oid, cid)
+            ON DELETE CASCADE;
 
 CREATE TABLE m_acc_cert_wi_reference (
     owner_oid UUID NOT NULL, -- PK+FK
@@ -505,7 +506,8 @@ CREATE TABLE m_acc_cert_wi_reference (
 ALTER TABLE IF EXISTS m_acc_cert_wi_reference
     ADD CONSTRAINT m_acc_cert_wi_reference_id_fk
         FOREIGN KEY (owner_oid, acc_cert_case_cid, acc_cert_wi_cid)
-        REFERENCES m_acc_cert_wi (owner_oid, acc_cert_case_cid, cid);
+        REFERENCES m_acc_cert_wi (owner_oid, acc_cert_case_cid, cid)
+            ON DELETE CASCADE;
 /*
 CREATE INDEX iCertCampaignNameOrig ON m_acc_cert_campaign (name_orig);
 ALTER TABLE IF EXISTS m_acc_cert_campaign ADD CONSTRAINT uc_acc_cert_campaign_name UNIQUE (name_norm);
@@ -746,7 +748,7 @@ ALTER TABLE m_lookup_table ADD CONSTRAINT m_lookup_table_name_norm_key UNIQUE (n
 
 -- Represents LookupTableRowType, see also m_lookup_table above
 CREATE TABLE m_lookup_table_row (
-    owner_oid UUID NOT NULL REFERENCES m_lookup_table(oid),
+    owner_oid UUID NOT NULL REFERENCES m_lookup_table(oid) ON DELETE CASCADE,
     row_id INTEGER NOT NULL,
     row_key VARCHAR(255),
     label_norm VARCHAR(255),
@@ -918,7 +920,7 @@ ALTER TABLE IF EXISTS m_case_wi_reference
 --1	45 (inducements)
 --0	48756229
 CREATE TABLE m_assignment (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     containerType ContainerType GENERATED ALWAYS AS ('ASSIGNMENT') STORED,
     -- new column may avoid join to object for some queries
     owner_type INTEGER NOT NULL,
@@ -1008,7 +1010,7 @@ ALTER TABLE IF EXISTS m_assignment_reference
 
 -- region Other object containers
 CREATE TABLE m_trigger (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     handlerUri_id INTEGER,
     timestampValue TIMESTAMPTZ,
 
@@ -1028,7 +1030,7 @@ CREATE INDEX m_trigger_timestampValue_idx ON m_trigger (timestampValue);
 --8	48756878 -- roles
 --11 5 -- will grow to some fraction of role refs
 CREATE TABLE m_reference (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     -- reference_type will be overridden with GENERATED value in concrete table
     referenceType ReferenceType NOT NULL,
     targetOid UUID NOT NULL, -- soft-references m_object
@@ -1042,7 +1044,7 @@ CREATE TABLE m_reference (
 -- CREATE INDEX m_reference_targetOid_relation_id_idx ON m_reference (targetOid, relation_id);
 
 CREATE TABLE m_ref_archetype (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('ARCHETYPE') STORED,
 
     PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
@@ -1053,7 +1055,7 @@ CREATE INDEX m_ref_archetype_targetOid_relation_id_idx
     ON m_ref_archetype (targetOid, relation_id);
 
 CREATE TABLE m_ref_create_approver (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('CREATE_APPROVER') STORED,
 
     PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
@@ -1064,7 +1066,7 @@ CREATE INDEX m_ref_create_approver_targetOid_relation_id_idx
     ON m_ref_create_approver (targetOid, relation_id);
 
 CREATE TABLE m_ref_delegated (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('DELEGATED') STORED,
 
     PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
@@ -1075,7 +1077,7 @@ CREATE INDEX m_ref_delegated_targetOid_relation_id_idx
     ON m_ref_delegated (targetOid, relation_id);
 
 CREATE TABLE m_ref_include (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('INCLUDE') STORED,
 
     PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
@@ -1086,7 +1088,7 @@ CREATE INDEX m_ref_include_targetOid_relation_id_idx
     ON m_ref_include (targetOid, relation_id);
 
 CREATE TABLE m_ref_modify_approver (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('MODIFY_APPROVER') STORED,
 
     PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
@@ -1097,7 +1099,7 @@ CREATE INDEX m_ref_modify_approver_targetOid_relation_id_idx
     ON m_ref_modify_approver (targetOid, relation_id);
 
 CREATE TABLE m_ref_object_parent_org (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_PARENT_ORG') STORED,
 
     PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
@@ -1108,7 +1110,7 @@ CREATE INDEX m_ref_object_parent_org_targetOid_relation_id_idx
     ON m_ref_object_parent_org (targetOid, relation_id);
 
 CREATE TABLE m_ref_persona (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('PERSONA') STORED,
 
     PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
@@ -1119,7 +1121,7 @@ CREATE INDEX m_ref_persona_targetOid_relation_id_idx
     ON m_ref_persona (targetOid, relation_id);
 
 CREATE TABLE m_ref_resource_business_configuration_approver (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('RESOURCE_BUSINESS_CONFIGURATION_APPROVER') STORED,
 
     PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
@@ -1130,7 +1132,7 @@ CREATE INDEX m_ref_resource_biz_config_approver_targetOid_relation_id_idx
     ON m_ref_resource_business_configuration_approver (targetOid, relation_id);
 
 CREATE TABLE m_ref_role_membership (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('ROLE_MEMBERSHIP') STORED,
 
     PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
@@ -1141,7 +1143,7 @@ CREATE INDEX m_ref_role_member_targetOid_relation_id_idx
     ON m_ref_role_membership (targetOid, relation_id);
 
 CREATE TABLE m_ref_user_account (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('USER_ACCOUNT') STORED,
 
     PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
@@ -1197,7 +1199,7 @@ CREATE TABLE m_object_ext_reference (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
     ext_item_id VARCHAR(32) NOT NULL,
     target_oid UUID NOT NULL,
-    relation_id INTEGER references m_uri(id),
+    relation_id INTEGER,
     targetType INTEGER,
     PRIMARY KEY (owner_oid, ext_item_id, target_oid)
 );
