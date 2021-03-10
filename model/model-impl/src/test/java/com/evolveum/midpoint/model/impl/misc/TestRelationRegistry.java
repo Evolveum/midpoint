@@ -73,6 +73,7 @@ public class TestRelationRegistry extends AbstractInternalModelIntegrationTest {
         assertTrue("'manager' is not of MEMBER kind", relationRegistry.isMember(unqualify(SchemaConstants.ORG_MANAGER)));
         assertFalse("'org:approver' is of MEMBER kind", relationRegistry.isMember(SchemaConstants.ORG_APPROVER));
         assertFalse("'approver' is of MEMBER kind", relationRegistry.isMember(unqualify(SchemaConstants.ORG_APPROVER)));
+        assertFalse("'related' is of MEMBER kind", relationRegistry.isMember(unqualify(SchemaConstants.ORG_RELATED)));
 
         assertEquals("Wrong default relation", SchemaConstants.ORG_DEFAULT, relationRegistry.getDefaultRelation());
         assertEquals("Wrong default MEMBER relation", SchemaConstants.ORG_DEFAULT, relationRegistry.getDefaultRelationFor(
@@ -81,6 +82,8 @@ public class TestRelationRegistry extends AbstractInternalModelIntegrationTest {
                 RelationKindType.MANAGER));
         assertEquals("Wrong default META relation", SchemaConstants.ORG_META, relationRegistry.getDefaultRelationFor(
                 RelationKindType.META));
+        assertEquals("Wrong default RELATED relation", SchemaConstants.ORG_RELATED, relationRegistry.getDefaultRelationFor(
+                RelationKindType.RELATED));
 
         Set<QName> ALIASES_FOR_DEFAULT = new HashSet<>(Arrays.asList(SchemaConstants.ORG_DEFAULT, unqualify(SchemaConstants.ORG_DEFAULT), null));
         assertEquals("Wrong aliases for 'org:default'", ALIASES_FOR_DEFAULT, new HashSet<>(relationRegistry.getAliases(SchemaConstants.ORG_DEFAULT)));
@@ -97,12 +100,16 @@ public class TestRelationRegistry extends AbstractInternalModelIntegrationTest {
         Set<QName> RELATIONS_FOR_MANAGER = new HashSet<>(singleton(SchemaConstants.ORG_MANAGER));
         assertEquals("Wrong relations for MANAGER kind", RELATIONS_FOR_MANAGER, new HashSet<>(relationRegistry.getAllRelationsFor(RelationKindType.MANAGER)));
 
+        Set<QName> RELATIONS_FOR_RELATED = new HashSet<>(singleton(SchemaConstants.ORG_RELATED));
+        assertEquals("Wrong relations for RELATED kind", RELATIONS_FOR_RELATED, new HashSet<>(relationRegistry.getAllRelationsFor(RelationKindType.RELATED)));
+
         assertTrue("'org:default' is not processed on login", relationRegistry.isProcessedOnLogin(SchemaConstants.ORG_DEFAULT));
         assertTrue("'default' is not processed on login", relationRegistry.isProcessedOnLogin(unqualify(SchemaConstants.ORG_DEFAULT)));
         assertTrue("'null' is not processed on login", relationRegistry.isProcessedOnLogin(null));
         assertTrue("'org:manager' is not processed on login", relationRegistry.isProcessedOnLogin(SchemaConstants.ORG_MANAGER));
         assertTrue("'org:meta' is not processed on login", relationRegistry.isProcessedOnLogin(SchemaConstants.ORG_META));
         assertFalse("'org:approver' is processed on login", relationRegistry.isProcessedOnLogin(SchemaConstants.ORG_APPROVER));
+        assertFalse("'org:related' is processed on login", relationRegistry.isProcessedOnLogin(SchemaConstants.ORG_RELATED));
 
         assertTrue("'org:default' is not processed on recompute", relationRegistry.isProcessedOnRecompute(SchemaConstants.ORG_DEFAULT));
         assertTrue("'default' is not processed on recompute", relationRegistry.isProcessedOnRecompute(unqualify(SchemaConstants.ORG_DEFAULT)));
@@ -110,6 +117,7 @@ public class TestRelationRegistry extends AbstractInternalModelIntegrationTest {
         assertTrue("'org:manager' is not processed on recompute", relationRegistry.isProcessedOnRecompute(SchemaConstants.ORG_MANAGER));
         assertTrue("'org:meta' is not processed on recompute", relationRegistry.isProcessedOnRecompute(SchemaConstants.ORG_META));
         assertFalse("'org:approver' is processed on recompute", relationRegistry.isProcessedOnRecompute(SchemaConstants.ORG_APPROVER));
+        assertFalse("'org:related' is processed on recompute", relationRegistry.isProcessedOnRecompute(SchemaConstants.ORG_RELATED));
 
         assertTrue("'org:default' is not stored into parentOrgRef", relationRegistry.isStoredIntoParentOrgRef(SchemaConstants.ORG_DEFAULT));
         assertTrue("'default' is not stored into parentOrgRef", relationRegistry.isStoredIntoParentOrgRef(unqualify(SchemaConstants.ORG_DEFAULT)));
@@ -117,6 +125,7 @@ public class TestRelationRegistry extends AbstractInternalModelIntegrationTest {
         assertTrue("'org:manager' is not stored into parentOrgRef", relationRegistry.isStoredIntoParentOrgRef(SchemaConstants.ORG_MANAGER));
         assertFalse("'org:meta' is stored into parentOrgRef", relationRegistry.isStoredIntoParentOrgRef(SchemaConstants.ORG_META));
         assertFalse("'org:approver' is stored into parentOrgRef", relationRegistry.isStoredIntoParentOrgRef(SchemaConstants.ORG_APPROVER));
+        assertFalse("'org:related' is stored into parentOrgRef", relationRegistry.isStoredIntoParentOrgRef(SchemaConstants.ORG_RELATED));
 
         assertTrue("'org:default' is not automatically matched", relationRegistry.isAutomaticallyMatched(SchemaConstants.ORG_DEFAULT));
         assertTrue("'default' is not automatically matched", relationRegistry.isAutomaticallyMatched(unqualify(SchemaConstants.ORG_DEFAULT)));
@@ -124,6 +133,7 @@ public class TestRelationRegistry extends AbstractInternalModelIntegrationTest {
         assertTrue("'org:manager' is not automatically matched", relationRegistry.isAutomaticallyMatched(SchemaConstants.ORG_MANAGER));
         assertTrue("'org:meta' is not automatically matched", relationRegistry.isAutomaticallyMatched(SchemaConstants.ORG_META));
         assertFalse("'org:approver' is automatically matched", relationRegistry.isAutomaticallyMatched(SchemaConstants.ORG_APPROVER));
+        assertFalse("'org:related' is automatically matched", relationRegistry.isAutomaticallyMatched(SchemaConstants.ORG_RELATED));
     }
 
     @Test

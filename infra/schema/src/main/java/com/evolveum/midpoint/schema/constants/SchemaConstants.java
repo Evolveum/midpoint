@@ -167,6 +167,12 @@ public abstract class SchemaConstants {
      */
     public static final QName ORG_CONSENT = new QName(NS_ORG, "consent");
 
+    /**
+     * Default 'related' relation. Used as a relation value in object references.
+     * See RelationKind.RELATED for more details.
+     */
+    public static final QName ORG_RELATED = new QName(NS_ORG, "related");
+
     public static final ItemPath PATH_PASSWORD = ItemPath.create(C_CREDENTIALS, CredentialsType.F_PASSWORD);
     public static final ItemPath PATH_PASSWORD_VALUE = ItemPath.create(C_CREDENTIALS, CredentialsType.F_PASSWORD,
             PasswordType.F_VALUE);

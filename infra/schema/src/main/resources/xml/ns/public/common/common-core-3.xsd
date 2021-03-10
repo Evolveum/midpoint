@@ -22272,6 +22272,24 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="related">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Relation "is related to" kind.
+
+                        Specifies that the subject is somewhat related to the owner, but this relation does not bring any
+                        specific privileges or entitlements or whatever to it. It is just a descriptive information, with
+                        no tangible effect.
+
+                        Currently used to link shadow owners to their dead shadows. We want to maintain such link but
+                        we do not want to show them e.g. in links counts etc.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RELATED"/>
+                        <a:since>4.3</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 

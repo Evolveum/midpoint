@@ -309,7 +309,7 @@ class IndexedRelationDefinitions {
     private boolean isProcessedOnRecomputeByDefault(QName relation) {
         return isOfKind(relation, RelationKindType.MEMBER)
                 || isOfKind(relation, RelationKindType.META)
-                || isOfKind(relation, RelationKindType.MANAGER)     // ok?
+                || isOfKind(relation, RelationKindType.MANAGER) // ok?
                 || isOfKind(relation, RelationKindType.DELEGATION);
     }
 
