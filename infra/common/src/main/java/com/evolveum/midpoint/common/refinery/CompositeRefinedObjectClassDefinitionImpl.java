@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -109,6 +111,9 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
     public List<SchemaMigration> getSchemaMigrations() {
         return structuralObjectClassDefinition.getSchemaMigrations();
     }
+
+    @Override
+    public List<ItemDiagramSpecification> getDiagrams() { return structuralObjectClassDefinition.getDiagrams(); }
 
     @Override
     public boolean isEmphasized() {

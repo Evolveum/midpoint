@@ -678,11 +678,85 @@
         <xsd:annotation>
             <xsd:documentation>
                 EXPERIMENTAL: Value Metadata marker. This annotation marks elements to be considered as value metadata.
-                
-                
+
+
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
+
+    <xsd:complexType name="DiagramType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    Annotation that describes how the item should be presented in data model diagrams.
+                    EXPERIMENTAL
+                </p>
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Name of the diagram in which the item should appear.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="form" type="tns:DiagramElementFormType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            The form in which this item should be presented in the diagram (collapsed/expanded).
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO: later we may want to add:
+                    * includeSupertypeItems
+                    * some form of exlusion, e.g. to explicitly exclude an item from the diagram, where it is inlcuded implicitly
+                      (e.g. because parent is included, or by using selector in diagrams.json)
+              -->
+
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="DiagramElementFormType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Presentation form of diagram element.
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="expanded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The element should be fully expanded.
+                        All the details of the element (and its content) should be visible.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXPANDED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="collapsed">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The element should be collapsed.
+                        Only the most important details about the element should be visible.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="COLLAPSED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
 
 </xsd:schema>
 

@@ -5120,6 +5120,14 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:diagram>
+                    <a:name>user-shadow-resource</a:name>
+                    <a:form>collapsed</a:form>
+                </a:diagram>
+                <a:diagram>
+                    <a:name>user-details</a:name>
+                    <a:form>expanded</a:form>
+                </a:diagram>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -6716,6 +6724,10 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.1</a:since>
+                                <a:diagram>
+                                    <a:name>user-shadow-resource</a:name>
+                                    <a:form>collapsed</a:form>
+                                </a:diagram>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -12763,6 +12775,10 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:diagram>
+                    <a:name>user-shadow-resource</a:name>
+                    <a:form>expanded</a:form>
+                </a:diagram>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -12776,6 +12792,10 @@
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
                     <a:displayName>ShadowType.resource</a:displayName>
+                                <a:diagram>
+                                    <a:name>user-shadow-resource</a:name>
+                                    <!-- default is to include this item, therefore no "inclusion" specification is needed here -->
+                                </a:diagram>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -12865,6 +12885,9 @@
                             <xsd:appinfo>
                                 <a:displayName>ShadowType.objectClass</a:displayName>
                                 <a:emphasized>true</a:emphasized>
+                                <a:diagram>
+                                    <a:name>user-shadow-resource</a:name>
+                                </a:diagram>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -12899,9 +12922,12 @@
                                 E.g. an account, entitlement, etc.
                                 If not specified defaults to "generic".
                             </xsd:documentation>
-                <xsd:appinfo>
-                        <a:displayName>ShadowType.kind</a:displayName>
-                    </xsd:appinfo>
+                            <xsd:appinfo>
+                                <a:displayName>ShadowType.kind</a:displayName>
+                                <a:diagram>
+                                    <a:name>user-shadow-resource</a:name>
+                                </a:diagram>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="intent" type="xsd:string" minOccurs="0">
@@ -12913,6 +12939,9 @@
                             <xsd:appinfo>
                                 <a:displayName>ShadowType.intent</a:displayName>
                                 <a:emphasized>true</a:emphasized>
+                                <a:diagram>
+                                    <a:name>user-shadow-resource</a:name>
+                                </a:diagram>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

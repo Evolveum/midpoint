@@ -15,6 +15,9 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
+import com.evolveum.midpoint.prism.annotation.DiagramElementFormType;
+import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
+
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -133,6 +136,12 @@ public class TestSchemaRegistry extends AbstractUnitTest {
                 SystemObjectsType.LOOKUP_LANGUAGES.value(), preferredLanguageValueEnumerationRef.getOid());
         assertEquals("Wrong type in valueEnumerationRef in preferredLanguage definition",
                 LookupTableType.COMPLEX_TYPE, preferredLanguageValueEnumerationRef.getTargetType());
+
+        List<ItemDiagramSpecification> diagrams = userDefinition.getDiagrams();
+        assertNotNull("No diagrams in user definition", diagrams);
+        assertEquals("Unexpected number of diagrams in user definition", 2, diagrams.size());
+        assertEquals("Unexpected name of diagram in user definition", "user-shadow-resource", diagrams.get(0).getName());
+        assertEquals("Unexpected form of diagram in user definition", DiagramElementFormType.COLLAPSED, diagrams.get(0).getForm());
 
         // Just make sure this does not end with NPE or stack overflow
         userDefinition.clone();

@@ -14,6 +14,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -807,6 +809,9 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
     public List<SchemaMigration> getSchemaMigrations() {
         return originalObjectClassDefinition.getSchemaMigrations();
     }
+
+    @Override
+    public List<ItemDiagramSpecification> getDiagrams() { return originalObjectClassDefinition.getDiagrams(); }
 
     @Override
     public boolean isAbstract() {

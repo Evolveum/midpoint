@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.prism.impl;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.impl.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.path.*;
@@ -511,6 +512,9 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     public PrismContainerValue<C> createValue() {
         return new PrismContainerValueImpl<>(prismContext);
     }
+
+    @Override
+    public List<ItemDiagramSpecification> getDiagrams() { return complexTypeDefinition.getDiagrams(); }
 
     @Override
     public String debugDump(int indent) {

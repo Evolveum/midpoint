@@ -16,6 +16,7 @@ import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -173,6 +174,9 @@ public final class LayerRefinedAttributeDefinitionImpl<T> extends AbstractFreeza
     public List<SchemaMigration> getSchemaMigrations() {
         return refinedAttributeDefinition.getSchemaMigrations();
     }
+
+    @Override
+    public List<ItemDiagramSpecification> getDiagrams() { return refinedAttributeDefinition.getDiagrams(); }
 
     @Override
     public boolean canModify() {
