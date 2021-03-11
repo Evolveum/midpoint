@@ -11,11 +11,12 @@ import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Enumeration of various types of object reference entities (subtypes of {@link QReference}).
+ * Enumeration of various types of reference entities (subtypes of {@link QReference}).
  * Each value contains information about concrete Q-type (implying the concrete sub-table)
  * and what is mapped to that kind of reference (reference owner + item that stores it).
  *
@@ -23,25 +24,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * * Order of values is irrelevant.
  * * Constant names must match the custom enum type ReferenceType in the database schema.
- *
- * These are only types of references owned by object, see also {@link AssignmentReferenceType}.
  */
 public enum MReferenceType {
+
+    // OBJECT REFERENCES
 
     ARCHETYPE(QReferenceMapping.INSTANCE_ARCHETYPE,
             AssignmentHolderType.class, AssignmentHolderType.F_ARCHETYPE_REF),
 
-    CREATE_APPROVER(QReferenceMapping.INSTANCE_CREATE_APPROVER,
-            ObjectType.class, MetadataType.F_CREATE_APPROVER_REF),
-
     DELEGATED(QReferenceMapping.INSTANCE_DELEGATED,
             FocusType.class, FocusType.F_DELEGATED_REF),
 
-    // TODO map in QObjectTemplate when it exists
+    // TODO map in QObjectTemplate when it exists,
     INCLUDE(QReferenceMapping.INSTANCE_INCLUDE,
             ObjectTemplateType.class, ObjectTemplateType.F_INCLUDE_REF),
 
-    MODIFY_APPROVER(QReferenceMapping.INSTANCE_MODIFY_APPROVER,
+    OBJECT_CREATE_APPROVER(QReferenceMapping.INSTANCE_CREATE_APPROVER,
+            ObjectType.class, MetadataType.F_CREATE_APPROVER_REF),
+
+    OBJECT_MODIFY_APPROVER(QReferenceMapping.INSTANCE_MODIFY_APPROVER,
             ObjectType.class, MetadataType.F_MODIFY_APPROVER_REF),
 
     OBJECT_PARENT_ORG(QReferenceMapping.INSTANCE_OBJECT_PARENT_ORG,
@@ -59,15 +60,24 @@ public enum MReferenceType {
             AssignmentHolderType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF),
 
     USER_ACCOUNT(QReferenceMapping.INSTANCE_USER_ACCOUNT,
-            FocusType.class, FocusType.F_LINK_REF);
+            FocusType.class, FocusType.F_LINK_REF),
+
+    ;
+    // OTHER REFERENCES
+// todo
+//    ASSIGNMENT_CREATE_APPROVER(QAssignmentMapping.INSTANCE,
+//            AssignmentType.class, MetadataType.F_CREATE_APPROVER_REF),
+//
+//    ASSIGNMENT_MODIFY_APPROVER(QAssignmentMapping.INSTANCE,
+//            AssignmentType.class, MetadataType.F_MODIFY_APPROVER_REF);
 
     private final QReferenceMapping qReferenceMapping;
-    private final Class<? extends ObjectType> schemaType;
+    private final Class<? extends Containerable> schemaType;
     private final QName itemName;
 
     MReferenceType(
             @NotNull QReferenceMapping qReferenceMapping,
-            @NotNull Class<? extends ObjectType> schemaType,
+            @NotNull Class<? extends Containerable> schemaType,
             @NotNull QName itemName) {
         this.qReferenceMapping = qReferenceMapping;
         this.schemaType = schemaType;
@@ -78,7 +88,7 @@ public enum MReferenceType {
         return qReferenceMapping;
     }
 
-    public Class<? extends ObjectType> schemaType() {
+    public Class<? extends Containerable> schemaType() {
         return schemaType;
     }
 
@@ -87,7 +97,7 @@ public enum MReferenceType {
     }
 
     public static MReferenceType getOwnerByQName(
-            Class<? extends ObjectType> typeClass, QName itemName) {
+            Class<? extends Containerable> typeClass, QName itemName) {
         Objects.requireNonNull(typeClass, "Schema type class must not be null");
         Objects.requireNonNull(itemName, "QName must not be null");
 

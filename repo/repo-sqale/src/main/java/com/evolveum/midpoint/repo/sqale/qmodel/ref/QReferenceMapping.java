@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
-import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.integerMapper;
 import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.uuidMapper;
 
 import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
