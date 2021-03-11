@@ -13,37 +13,6 @@ import java.time.ZoneId;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
-import com.evolveum.midpoint.gui.impl.GuiChannel;
-import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
-import com.evolveum.midpoint.web.component.search.*;
-
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.session.AuditLogStorage;
-import com.evolveum.midpoint.web.session.PageStorage;
-
-import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -58,19 +27,47 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.GuiChannel;
+import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.search.*;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogDetails;
+import com.evolveum.midpoint.web.session.AuditLogStorage;
+import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-
-import org.apache.wicket.util.string.StringValue;
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 /**
  * Created by honchar
@@ -96,101 +93,104 @@ public class AuditLogViewerPanel extends BasePanel {
         ContainerableListPanel<AuditEventRecordType, SelectableBean<AuditEventRecordType>> auditLogViewerTable =
                 new ContainerableListPanel<AuditEventRecordType, SelectableBean<AuditEventRecordType>>(ID_AUDIT_LOG_VIEWER_TABLE, AuditEventRecordType.class) {
 
-            @Override
-            protected List<IColumn<SelectableBean<AuditEventRecordType>, String>> createDefaultColumns() {
-                return AuditLogViewerPanel.this.createColumns();
-            }
-
-            @Override
-            protected List<InlineMenuItem> createInlineMenu() {
-                return null;
-            }
-
-            @Override
-            protected IColumn<SelectableBean<AuditEventRecordType>, String> createNameColumn(IModel<String> displayModel, String itemPath, ExpressionType expression) {
-                return AuditLogViewerPanel.this.createNameColumn();
-            }
-
-            @Override
-            protected IColumn<SelectableBean<AuditEventRecordType>, String> createCheckboxColumn() {
-                return null;
-            }
-
-            @Override
-            protected IColumn<SelectableBean<AuditEventRecordType>, String> createIconColumn() {
-                return null;
-            }
-
-
-
-            @Override
-            protected Search createSearch(Class<AuditEventRecordType> type) {
-                AuditLogStorage storage = (AuditLogStorage) getPageStorage();
-                Search search = SearchFactory.createContainerSearch(new ContainerTypeSearchItem(new SearchValue(type, "")), AuditEventRecordType.F_TIMESTAMP, getPageBase(), true);
-                DateSearchItem timestampItem = (DateSearchItem) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
-                if (timestampItem != null && timestampItem.getFromDate() == null && timestampItem.getToDate() == null && !isCollectionViewPanelForWidget()) {
-                    Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
-                    timestampItem.setFromDate(MiscUtil.asXMLGregorianCalendar(todayDate));
-                }
-                return search;
-            }
-
-            @Override
-            protected UserProfileStorage.TableId getTableId() {
-                return UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER;
-            }
-
-            @Override
-            protected String getStorageKey() {
-                if (isCollectionViewPanelForCompiledView()) {
-                    StringValue collectionName = getCollectionNameParameterValue();
-                    String collectionNameValue = collectionName != null ? collectionName.toString() : "";
-                    return WebComponentUtil.getObjectListPageStorageKey(collectionNameValue);
-                }
-
-                return SessionStorage.KEY_AUDIT_LOG;
-            }
-
-            @Override
-            protected ISelectableDataProvider createProvider() {
-                PageStorage pageStorage = getPageStorage();
-                SelectableBeanContainerDataProvider<AuditEventRecordType> provider = new SelectableBeanContainerDataProvider<AuditEventRecordType>(
-                        AuditLogViewerPanel.this, getSearchModel(), null, false) {
-
                     @Override
-                    protected PageStorage getPageStorage() {
-                        return pageStorage;
+                    protected List<IColumn<SelectableBean<AuditEventRecordType>, String>> createDefaultColumns() {
+                        return AuditLogViewerPanel.this.createColumns();
                     }
 
                     @Override
-                    protected Integer countObjects(Class<? extends AuditEventRecordType> type, ObjectQuery query,
-                            Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result) {
-                        return getPageBase().getAuditService().countObjects(query, currentOptions, result);
+                    protected List<InlineMenuItem> createInlineMenu() {
+                        return null;
                     }
 
                     @Override
-                    protected List<AuditEventRecordType> searchObjects(Class<? extends AuditEventRecordType> type, ObjectQuery query,
-                            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
-                            throws SchemaException {
-                        return getPageBase().getAuditService().searchObjects(query, options, result);
+                    protected IColumn<SelectableBean<AuditEventRecordType>, String> createNameColumn(IModel<String> displayModel, String itemPath, ExpressionType expression) {
+                        return AuditLogViewerPanel.this.createNameColumn();
                     }
 
-                    @NotNull
                     @Override
-                    protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-                        if (sortParam != null && sortParam.getProperty() != null) {
-                            OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
-                            return Collections.singletonList(
-                                    getPrismContext().queryFactory().createOrdering(
-                                            ItemPath.create(new QName(AuditEventRecordType.COMPLEX_TYPE.getNamespaceURI(), sortParam.getProperty())), order));
-                        } else {
-                            return Collections.emptyList();
+                    protected IColumn<SelectableBean<AuditEventRecordType>, String> createCheckboxColumn() {
+                        return null;
+                    }
+
+                    @Override
+                    protected IColumn<SelectableBean<AuditEventRecordType>, String> createIconColumn() {
+                        return null;
+                    }
+
+                    @Override
+                    protected Search createSearch(Class<AuditEventRecordType> type) {
+                        AuditLogStorage storage = (AuditLogStorage) getPageStorage();
+                        Search search = SearchFactory.createContainerSearch(new ContainerTypeSearchItem(new SearchValue(type, "")), AuditEventRecordType.F_TIMESTAMP, getPageBase(), true);
+                        DateSearchItem timestampItem = (DateSearchItem) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
+                        if (timestampItem != null && timestampItem.getFromDate() == null && timestampItem.getToDate() == null && !isCollectionViewPanelForWidget()) {
+                            Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                            timestampItem.setFromDate(MiscUtil.asXMLGregorianCalendar(todayDate));
                         }
+                        return search;
                     }
-                };
-                provider.setSort(AuditEventRecordType.F_TIMESTAMP.getLocalPart(), SortOrder.DESCENDING);
-                return provider;
-            }
+
+                    @Override
+                    protected UserProfileStorage.TableId getTableId() {
+                        return UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER;
+                    }
+
+                    @Override
+                    protected String getStorageKey() {
+                        if (isCollectionViewPanelForCompiledView()) {
+                            StringValue collectionName = getCollectionNameParameterValue();
+                            String collectionNameValue = collectionName != null ? collectionName.toString() : "";
+                            return WebComponentUtil.getObjectListPageStorageKey(collectionNameValue);
+                        }
+
+                        return SessionStorage.KEY_AUDIT_LOG;
+                    }
+
+                    @Override
+                    protected ISelectableDataProvider createProvider() {
+                        PageStorage pageStorage = getPageStorage();
+                        SelectableBeanContainerDataProvider<AuditEventRecordType> provider = new SelectableBeanContainerDataProvider<AuditEventRecordType>(
+                                AuditLogViewerPanel.this, getSearchModel(), null, false) {
+
+                            @Override
+                            protected PageStorage getPageStorage() {
+                                return pageStorage;
+                            }
+
+                            @Override
+                            protected Integer countObjects(Class<? extends AuditEventRecordType> type, ObjectQuery query,
+                                    Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result) {
+                                return getPageBase().getAuditService().countObjects(query, currentOptions, result);
+                            }
+
+                            @Override
+                            protected List<AuditEventRecordType> searchObjects(Class<? extends AuditEventRecordType> type, ObjectQuery query,
+                                    Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
+                                    throws SchemaException {
+                                return getPageBase().getAuditService().searchObjects(query, options, result);
+                            }
+
+                            @NotNull
+                            @Override
+                            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+                                if (sortParam != null && sortParam.getProperty() != null) {
+                                    OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
+                                    return Collections.singletonList(
+                                            getPrismContext().queryFactory().createOrdering(
+                                                    ItemPath.create(new QName(AuditEventRecordType.COMPLEX_TYPE.getNamespaceURI(), sortParam.getProperty())), order));
+                                } else {
+                                    return Collections.emptyList();
+                                }
+                            }
+
+                            @Override
+                            protected ObjectQuery getCustomizeContentQuery() {
+                                return AuditLogViewerPanel.this.getCustomizeContentQuery();
+                            }
+                        };
+                        provider.setSort(AuditEventRecordType.F_TIMESTAMP.getLocalPart(), SortOrder.DESCENDING);
+                        return provider;
+                    }
 
                     @Override
                     protected AuditEventRecordType getRowRealValue(SelectableBean<AuditEventRecordType> rowModelObject) {
@@ -201,50 +201,54 @@ public class AuditLogViewerPanel extends BasePanel {
                     }
 
                     @Override
-            protected List<Component> createToolbarButtonsList(String idButton) {
-                List<Component> buttonsList = new ArrayList<>();
-                CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(idButton) {
+                    protected List<Component> createToolbarButtonsList(String idButton) {
+                        List<Component> buttonsList = new ArrayList<>();
+                        CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(idButton) {
 
-                    private static final long serialVersionUID = 1L;
+                            private static final long serialVersionUID = 1L;
 
-                    @Override
-                    protected String getFilename() {
-                        return "AuditLogViewer_" + createStringResource("MainObjectListPanel.exportFileName").getString();
+                            @Override
+                            protected String getFilename() {
+                                return "AuditLogViewer_" + createStringResource("MainObjectListPanel.exportFileName").getString();
+                            }
+
+                            @Override
+                            protected DataTable<?, ?> getDataTable() {
+                                return getTable().getDataTable();
+                            }
+                        };
+                        exportDataLink.add(new VisibleEnableBehaviour() {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public boolean isVisible() {
+                                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
+                            }
+                        });
+                        buttonsList.add(exportDataLink);
+
+                        AjaxCompositedIconButton createReport = new AjaxCompositedIconButton(idButton, WebComponentUtil.createCreateReportIcon(),
+                                getPageBase().createStringResource("MainObjectListPanel.createReport")) {
+
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                                createReportPerformed(target);
+                            }
+                        };
+                        createReport.add(AttributeAppender.append("class", "btn btn-default btn-sm btn-margin-right"));
+                        buttonsList.add(createReport);
+                        return buttonsList;
                     }
 
-                    @Override
-                    protected DataTable<?, ?> getDataTable() {
-                        return getTable().getDataTable();
-                    }
                 };
-                exportDataLink.add(new VisibleEnableBehaviour() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public boolean isVisible() {
-                        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
-                    }
-                });
-                buttonsList.add(exportDataLink);
-
-
-                AjaxCompositedIconButton createReport = new AjaxCompositedIconButton(idButton, WebComponentUtil.createCreateReportIcon(),
-                        getPageBase().createStringResource("MainObjectListPanel.createReport")) {
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        createReportPerformed(target);
-                    }
-                };
-                createReport.add(AttributeAppender.append("class", "btn btn-default btn-sm btn-margin-right"));
-                buttonsList.add(createReport);
-                return buttonsList;
-            }
-        };
         auditLogViewerTable.setOutputMarkupId(true);
         add(auditLogViewerTable);
+    }
+
+    protected ObjectQuery getCustomizeContentQuery() {
+        return null;
     }
 
     private ContainerableListPanel getAuditLogViewerTable() {
@@ -447,7 +451,7 @@ public class AuditLogViewerPanel extends BasePanel {
         return false;
     }
 
-    protected AuditLogStorage getAuditLogViewerStorage(){
+    protected AuditLogStorage getAuditLogViewerStorage() {
         return getPageBase().getSessionStorage().getAuditLog();
     }
 
