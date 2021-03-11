@@ -65,7 +65,14 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
         }
 
         PrismPropertyDefinition<T> def = (PrismPropertyDefinition<T>) getDefinition().getDef();
-        list.addAll(def.getAllowedValues());
+        if (def.getAllowedValues() != null) {
+            list.addAll(def.getAllowedValues());
+        }
+
+        if (list.isEmpty() && getDefinition().getAllowedValues() != null && !getDefinition().getAllowedValues().isEmpty()
+                && getDefinition().getAllowedValues().iterator().next() instanceof DisplayableValue) {
+            return getDefinition().getAllowedValues();
+        }
 
         return list;
     }
@@ -105,7 +112,7 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
         }
 
         PrismPropertyDefinition def = (PrismPropertyDefinition) getDefinition().getDef();
-        if (def.getAllowedValues() != null && !def.getAllowedValues().isEmpty()) {
+        if (!getAllowedValues(null).isEmpty()) {
             return Type.ENUM;
         }
 

@@ -227,7 +227,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                 ref.setType(supportedTargets.iterator().next());
             }
             if (itemToRemove.getAllowedValues() != null && itemToRemove.getAllowedValues().size() == 1) {
-                ref.setRelation(itemToRemove.getAllowedValues().iterator().next());
+                ref.setRelation((QName)itemToRemove.getAllowedValues().iterator().next());
             }
 
             item.setValue(new SearchValue<>(ref));
