@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
 import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
@@ -36,11 +37,10 @@ public class QTriggerMapping
         return new QTrigger(alias);
     }
 
-//    @Override TODO
-//    public TriggerSqlTransformer createTransformer(
-//            SqlTransformerContext transformerContext) {
-//        return new TriggerSqlTransformer(transformerContext, this);
-//    }
+    @Override
+    public TriggerSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
+        return new TriggerSqlTransformer(transformerSupport, this);
+    }
 
     @Override
     public MTrigger newRowObject() {

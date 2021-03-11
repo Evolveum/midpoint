@@ -13,6 +13,7 @@ import java.util.Map;
 import groovy.lang.Binding;
 import groovy.lang.GString;
 import groovy.lang.GroovyClassLoader;
+import groovy.lang.GroovyRuntimeException;
 import groovy.lang.Script;
 import groovy.transform.CompileStatic;
 import org.apache.commons.lang3.BooleanUtils;
@@ -103,12 +104,12 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
         } catch (MultipleCompilationErrorsException e) {
             String sandboxErrorMessage = getSandboxError(e);
             if (sandboxErrorMessage == null) {
-                throw new ExpressionEvaluationException("Compilation error in " + context.getContextDescription() + ": " + e.getMessage(), e);
+                throw new ExpressionEvaluationException("Compilation error in " + context.getContextDescription() + ": " + e.getMessage(), serializationSafeThrowable(e));
             } else {
-                throw new SecurityViolationException("Denied access to functionality of script " + context.getContextDescription() + ": " + sandboxErrorMessage, e);
+                throw new SecurityViolationException("Denied access to functionality of script " + context.getContextDescription() + ": " + sandboxErrorMessage, serializationSafeThrowable(e));
             }
         } catch (Throwable e) {
-            throw new ExpressionEvaluationException("Unexpected error during compilation of script in " + context.getContextDescription() + ": " + e.getMessage(), e);
+            throw new ExpressionEvaluationException("Unexpected error during compilation of script in " + context.getContextDescription() + ": " + e.getMessage(), serializationSafeThrowable(e));
         }
     }
 
@@ -189,17 +190,35 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
 
         Script scriptResultObject = InvokerHelper.createScript(compiledScriptClass, binding);
 
-        Object resultObject = scriptResultObject.run();
+        try {
+            Object resultObject = scriptResultObject.run();
+            if (resultObject == null) {
+                return null;
+            }
 
-        if (resultObject == null) {
-            return null;
+            if (resultObject instanceof GString) {
+                resultObject = ((GString) resultObject).toString();
+            }
+
+            return resultObject;
+        } catch (GroovyRuntimeException e) {
+            // MID-6683: CompilationFailedException is not serializable, which makes OperationalResult unserializable
+            // we can not set is as cause, so we can copy message only.
+            // Seems also other groovy runtime exceptions are not serializable.
+            throw new ExpressionEvaluationException("Groovy Evaluation Failed: " + e.getMessage(),serializationSafeThrowable(e));
         }
+    }
 
-        if (resultObject instanceof GString) {
-            resultObject = ((GString) resultObject).toString();
+    private static Throwable serializationSafeThrowable(Throwable e) {
+        if(e instanceof GroovyRuntimeException) {
+            Throwable cause = serializationSafeThrowable(e.getCause());
+            // We reconstruct hierarchy with GroovyRuntimeExceptions only (some subclasses contains fields which
+            // are not serializable)
+            GroovyRuntimeException ret = new GroovyRuntimeException(e.getMessage(), cause);
+            ret.setStackTrace(e.getStackTrace());
         }
-
-        return resultObject;
+        // Lets asume other non-groovy exceptions are safe to serialize
+        return e;
     }
 
     static AccessDecision decideGroovyBuiltin(String className, String methodName) {

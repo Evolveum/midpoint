@@ -23,7 +23,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.assignment.MAssignment;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -36,9 +36,9 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         extends SqaleTransformerBase<S, Q, R> {
 
     public ObjectSqlTransformer(
-            SqlTransformerContext transformerContext,
+            SqlTransformerSupport transformerSupport,
             QObjectMapping<S, Q, R> mapping) {
-        super(transformerContext, mapping);
+        super(transformerSupport, mapping);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         PrismObject<S> prismObject;
         String serializedForm = new String(row.get(entityPath.fullObject), StandardCharsets.UTF_8);
         try {
-            SqlTransformerContext.ParseResult<S> result = transformerContext.parsePrismObject(serializedForm);
+            SqlTransformerSupport.ParseResult<S> result = transformerSupport.parsePrismObject(serializedForm);
             prismObject = result.prismObject;
             if (result.parsingContext.hasWarnings()) {
                 logger.warn("Object {} parsed with {} warnings",
@@ -76,6 +76,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
      *
      * OID may be null, hence the method does NOT create any sub-entities, see {@link }
      */
+    @SuppressWarnings("DuplicatedCode") // see comment for metadata lower
     @NotNull
     public R toRowObjectWithoutFullObject(S schemaObject, JdbcSession jdbcSession) {
         R row = mapping.newRowObject();
@@ -87,33 +88,34 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         row.nameOrig = name.getOrig();
         row.nameNorm = name.getNorm();
 
-        // can this be reused? AbstractCredentialType, PasswordHistoryEntryType (is it stored?), AssignmentType... the rest is not in repo for sure
+        // This is duplicate code with AssignmentSqlTransformer.toRowObject, but making interface
+        // and needed setters (fields are not "interface-able") would create much more code.
         MetadataType metadata = schemaObject.getMetadata();
         if (metadata != null) {
             ObjectReferenceType creatorRef = metadata.getCreatorRef();
             if (creatorRef != null) {
                 row.creatorRefTargetOid = oidToUUid(creatorRef.getOid());
-                row.creatorRefTargetType = schemaTypeToCode(creatorRef.getType());
-                row.creatorRefRelationId = processCachedUri(creatorRef.getRelation(), jdbcSession);
+                row.creatorRefTargetType = schemaTypeToObjectType(creatorRef.getType());
+                row.creatorRefRelationId = processCacheableRelation(creatorRef.getRelation(), jdbcSession);
             }
-            row.createChannelId = processCachedUri(metadata.getCreateChannel(), jdbcSession);
+            row.createChannelId = processCacheableUri(metadata.getCreateChannel(), jdbcSession);
             row.createTimestamp = MiscUtil.asInstant(metadata.getCreateTimestamp());
 
             ObjectReferenceType modifierRef = metadata.getModifierRef();
             if (modifierRef != null) {
                 row.modifierRefTargetOid = oidToUUid(modifierRef.getOid());
-                row.modifierRefTargetType = schemaTypeToCode(modifierRef.getType());
-                row.modifierRefRelationId = processCachedUri(modifierRef.getRelation(), jdbcSession);
+                row.modifierRefTargetType = schemaTypeToObjectType(modifierRef.getType());
+                row.modifierRefRelationId = processCacheableRelation(modifierRef.getRelation(), jdbcSession);
             }
-            row.modifyChannelId = processCachedUri(metadata.getModifyChannel(), jdbcSession);
+            row.modifyChannelId = processCacheableUri(metadata.getModifyChannel(), jdbcSession);
             row.modifyTimestamp = MiscUtil.asInstant(metadata.getModifyTimestamp());
         }
 
         ObjectReferenceType tenantRef = schemaObject.getTenantRef();
         if (tenantRef != null) {
             row.tenantRefTargetOid = oidToUUid(tenantRef.getOid());
-            row.tenantRefTargetType = schemaTypeToCode(tenantRef.getType());
-            row.tenantRefRelationId = processCachedUri(tenantRef.getRelation(), jdbcSession);
+            row.tenantRefTargetType = schemaTypeToObjectType(tenantRef.getType());
+            row.tenantRefRelationId = processCacheableRelation(tenantRef.getRelation(), jdbcSession);
         }
 
         row.lifecycleState = schemaObject.getLifecycleState();
@@ -129,13 +131,15 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
      * This is not part of {@link #toRowObjectWithoutFullObject} because it requires know OID
      * which is not assured before calling that method.
      *
-     * @param oid oid of added object (owner)
+     * *Always call this super method first in overriding methods.*
+     *
+     * @param objectRow master row for added object
      * @param schemaObject schema objects for which the details are stored
      * @param jdbcSession JDBC session used to insert related rows
      */
     public void storeRelatedEntities(
-            @NotNull UUID oid, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) {
-        Objects.requireNonNull(oid);
+            @NotNull MObject objectRow, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) {
+        Objects.requireNonNull(objectRow.oid);
 
         MetadataType metadata = schemaObject.getMetadata();
         if (metadata != null) {
@@ -171,21 +175,20 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
                 RUtil.toRObjectReferenceSet(jaxb.getArchetypeRef(), repo, RReferenceType.ARCHETYPE, repositoryContext.relationRegistry));
         */
         if (schemaObject instanceof AssignmentHolderType) {
-            storeAssignmentHolderEntities(oid, (AssignmentHolderType) schemaObject, jdbcSession);
+            storeAssignmentHolderEntities(objectRow, (AssignmentHolderType) schemaObject, jdbcSession);
         }
 
         // TODO EAV extensions
     }
 
     private void storeAssignmentHolderEntities(
-            UUID oid, AssignmentHolderType schemaObject, JdbcSession jdbcSession) {
+            MObject objectRow, AssignmentHolderType schemaObject, JdbcSession jdbcSession) {
         List<AssignmentType> assignments = schemaObject.getAssignment();
         if (!assignments.isEmpty()) {
             QAssignmentMapping mapping = QAssignmentMapping.INSTANCE;
-            AssignmentSqlTransformer transformer = mapping.createTransformer(transformerContext);
+            AssignmentSqlTransformer transformer = mapping.createTransformer(transformerSupport);
             for (AssignmentType assignment : assignments) {
-                MAssignment row = transformer.toRowObject(assignment, jdbcSession);
-                row.ownerOid = oid;
+                MAssignment row = transformer.toRowObject(assignment, objectRow, jdbcSession);
                 jdbcSession.newInsert(mapping.defaultAlias())
                         .populate(row)
                         .execute();
@@ -206,7 +209,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
                     "Serialized object must have assigned OID and version: " + schemaObject);
         }
 
-        return transformerContext.serializer()
+        return transformerSupport.serializer()
                 .itemsToSkip(fullObjectItemsToSkip())
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()

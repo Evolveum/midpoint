@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -27,12 +27,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 public abstract class AuditSqlTransformerBase<S, Q extends FlexibleRelationalPathBase<R>, R>
         implements SqlTransformer<S, Q, R> {
 
-    protected final SqlTransformerContext transformerContext;
+    protected final SqlTransformerSupport transformerSupport;
     protected final QueryTableMapping<S, Q, R> mapping;
 
     protected AuditSqlTransformerBase(
-            SqlTransformerContext transformerContext, QueryTableMapping<S, Q, R> mapping) {
-        this.transformerContext = transformerContext;
+            SqlTransformerSupport transformerSupport, QueryTableMapping<S, Q, R> mapping) {
+        this.transformerSupport = transformerSupport;
         this.mapping = mapping;
     }
 
@@ -68,7 +68,7 @@ public abstract class AuditSqlTransformerBase<S, Q extends FlexibleRelationalPat
 
         return new ObjectReferenceType()
                 .oid(oid)
-                .type(transformerContext.schemaClassToQName(repoObjectType.getJaxbClass()))
+                .type(transformerSupport.schemaClassToQName(repoObjectType.getJaxbClass()))
                 .description(targetName)
                 .targetName(targetName);
     }

@@ -73,8 +73,6 @@ class TargetAssignmentEvaluation<AH extends AssignmentHolderType> extends Abstra
                 .sourceDescription(segment.target+" in "+segment.sourceDescription)
                 .assignment(nextAssignment)
                 .isAssignment(true)
-                .relationRegistry(ctx.ae.relationRegistry)
-                .prismContext(ctx.ae.prismContext)
                 .evaluationOrder(nextEvaluationOrder)
                 .evaluationOrderForTarget(nextEvaluationOrderForTarget)
                 .pathToSourceValid(targetActivation.pathAndTargetActive)

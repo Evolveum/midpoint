@@ -9,15 +9,15 @@ package com.evolveum.midpoint.repo.sqale.qmodel.role;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 public class ServiceSqlTransformer
         extends AbstractRoleSqlTransformer<ServiceType, QService, MService> {
 
     public ServiceSqlTransformer(
-            SqlTransformerContext transformerContext, QServiceMapping mapping) {
-        super(transformerContext, mapping);
+            SqlTransformerSupport transformerSupport, QServiceMapping mapping) {
+        super(transformerSupport, mapping);
     }
 
     @Override

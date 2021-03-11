@@ -6,10 +6,10 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +24,15 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Component hiding details of how QNames are stored in {@link QUri}.
+ * Following prefixes are used for its methods:
+ *
+ * * `get` returns URI or ID for ID or URI, may return null, no DB access;
+ * * `search` like `get` but returns {@link #UNKNOWN_ID} instead of null, used for query predicates,
+ * no DB access by the URI cache itself;
+ * * `resolve` returns URI/ID for ID/URI or throws exception if not found, this is for situations
+ * where the entry for URI is expected to exist already, still no DB access required;
+ * * finally, {@link #processCachedUri(String, JdbcSession)} is the only operation that accesses
+ * the database if the URI is not found in the cache in order to write it there.
  */
 public class UriCache {
 
@@ -37,8 +46,8 @@ public class UriCache {
      */
     public static final int UNKNOWN_ID = -1;
 
-    private final Map<Integer, String> idToUri = new HashMap<>();
-    private final Map<String, Integer> uriToId = new HashMap<>();
+    private final Map<Integer, String> idToUri = new ConcurrentHashMap<>();
+    private final Map<String, Integer> uriToId = new ConcurrentHashMap<>();
 
     public synchronized void initialize(JdbcSession jdbcSession) {
         QUri uri = QUri.DEFAULT;
@@ -73,8 +82,8 @@ public class UriCache {
     }
 
     /** Returns ID for QName or throws exception - does not work with underlying database. */
-    public @NotNull Integer resolveToId(@NotNull QName qName) {
-        return resolveToId(QNameUtil.qNameToUri(qName));
+    public @NotNull Integer resolveUriToId(@NotNull QName qName) {
+        return resolveUriToId(QNameUtil.qNameToUri(qName));
     }
 
     /** Returns ID for string, possibly {@code null} - does not work with underlying database. */
@@ -92,7 +101,7 @@ public class UriCache {
     }
 
     /** Returns ID for QName or throws exception - does not work with underlying database. */
-    public @NotNull Integer resolveToId(@NotNull String uri) {
+    public @NotNull Integer resolveUriToId(@NotNull String uri) {
         Integer id = getId(uri);
         LOGGER.trace("URI cache 'resolve' returned ID={} for URI={}", id, uri);
         return Objects.requireNonNull(id, () -> "URI not cached: " + uri);

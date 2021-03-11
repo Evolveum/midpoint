@@ -12,7 +12,7 @@ import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterPr
 import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -70,8 +70,8 @@ public class QTaskMapping
 
     @Override
     public TaskSqlTransformer createTransformer(
-            SqlTransformerContext transformerContext) {
-        return new TaskSqlTransformer(transformerContext, this);
+            SqlTransformerSupport transformerSupport) {
+        return new TaskSqlTransformer(transformerSupport, this);
     }
 
     @Override

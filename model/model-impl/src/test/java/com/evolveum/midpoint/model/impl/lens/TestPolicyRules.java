@@ -37,6 +37,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
+import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
+
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -106,6 +108,8 @@ public class TestPolicyRules extends AbstractLensTest {
         assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 2);
         assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 4);
         assertTargetTriggers(context, null, 6);
+
+        assertSerializable(context);
     }
 
     @Test(enabled = false)
@@ -139,8 +143,9 @@ public class TestPolicyRules extends AbstractLensTest {
 
         assertEvaluatedTargetPolicyRules(context, 4);
         assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 0);
-    }
 
+        assertSerializable(context);
+    }
 
     /**
      * Mostly preparation for other tests. But good check for no exclusion conflict.
@@ -200,8 +205,9 @@ public class TestPolicyRules extends AbstractLensTest {
         assertEvaluatedTargetPolicyRules(context, 7);
         assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 2);
         assertTargetTriggers(context, null, 2);
-    }
 
+        assertSerializable(context);
+    }
 
     /**
      * No exclusion here. The assignment should go smoothly.
@@ -237,6 +243,8 @@ public class TestPolicyRules extends AbstractLensTest {
         dumpPolicySituations(context);
         assertEvaluatedTargetPolicyRules(context, 7);
         assertTargetTriggers(context,  null, 0);
+
+        assertSerializable(context);
     }
 
     @Test(enabled = false)          // after MID-4797 the projector.project now raises PolicyViolationException on conflicting roles
@@ -272,6 +280,8 @@ public class TestPolicyRules extends AbstractLensTest {
         EvaluatedExclusionTrigger trigger = (EvaluatedExclusionTrigger) assertTriggeredTargetPolicyRule(context, null, PolicyConstraintKindType.EXCLUSION, 1, true);
         assertNotNull("No conflicting assignment in trigger", trigger.getConflictingAssignment());
         assertEquals("Wrong conflicting assignment in trigger", ROLE_PIRATE_OID, trigger.getConflictingAssignment().getTarget().getOid());
+
+        assertSerializable(context);
     }
 
     /**
@@ -319,6 +329,8 @@ public class TestPolicyRules extends AbstractLensTest {
         assertEquals("Wrong number of exceptions", 1, exceptions.size());
         PolicyExceptionType policyException = exceptions.iterator().next();
         assertEquals("Wrong rule name in policy exception", ROLE_JUDGE_POLICY_RULE_EXCLUSION_NAME, policyException.getRuleName());
+
+        assertSerializable(context);
     }
 
     @Test
@@ -367,6 +379,8 @@ public class TestPolicyRules extends AbstractLensTest {
         PrismAsserts.assertPropertyDelete(accountSecondaryDelta,
                 getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
                 "Honorable Justice");
+
+        assertSerializable(context);
     }
 
     /**
@@ -417,6 +431,8 @@ public class TestPolicyRules extends AbstractLensTest {
         EvaluatedExclusionTrigger sourceTrigger = (EvaluatedExclusionTrigger) sourceRule.getTriggers().iterator().next();
         assertNotNull("No conflicting assignment in source trigger", sourceTrigger.getConflictingAssignment());
         assertEquals("Wrong conflicting assignment in source trigger", ROLE_JUDGE_OID, sourceTrigger.getConflictingAssignment().getTarget().getOid());
+
+        assertSerializable(context);
     }
 
     /**
@@ -482,6 +498,8 @@ public class TestPolicyRules extends AbstractLensTest {
         EvaluatedExclusionTrigger trigger = (EvaluatedExclusionTrigger) assertTriggeredTargetPolicyRule(context, ROLE_CORP_EMPLOYEE_OID, PolicyConstraintKindType.EXCLUSION, 1, false);
         assertNotNull("No conflicting assignment in trigger", trigger.getConflictingAssignment());
         assertEquals("Wrong conflicting assignment in trigger", ROLE_CORP_CONTRACTOR_OID, trigger.getConflictingAssignment().getTarget().getOid());
+
+        assertSerializable(context);
     }
 
     /**
@@ -541,6 +559,8 @@ public class TestPolicyRules extends AbstractLensTest {
         displayDumpable("Contractor: conflictingPath", contractorTrigger.getConflictingPath());
         assertAssignmentPath(contractorRule.getAssignmentPath(), ROLE_CORP_CONTRACTOR_OID, null);
         assertAssignmentPath(contractorTrigger.getConflictingPath(), ROLE_CORP_ENGINEER_OID, ROLE_CORP_EMPLOYEE_OID);
+
+        assertSerializable(context);
     }
 
     /**
@@ -641,6 +661,8 @@ public class TestPolicyRules extends AbstractLensTest {
         System.out.println("Trigger message translated (SK): " + messageSk);
         assertEquals("Wrong US message", messageUs, "Assignment of role \"Localized role\" (relation default) is to be added");
         assertEquals("Wrong SK message", messageSk, "Priradenie pre rola \"Lokalizovana rola\" (vztah default) ma byt pridane");
+
+        assertSerializable(context);
     }
 
     private ObjectDelta<ShadowType> assertAssignAccountToJack(LensContext<UserType> context) {

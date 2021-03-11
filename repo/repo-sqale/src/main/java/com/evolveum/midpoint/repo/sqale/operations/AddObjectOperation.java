@@ -18,7 +18,8 @@ import org.postgresql.util.PSQLState;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.sqale.ContainerValueIdGenerator;
-import com.evolveum.midpoint.repo.sqale.SqaleTransformerContext;
+import com.evolveum.midpoint.repo.sqale.MObjectType;
+import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
@@ -49,6 +50,7 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
     private SqlRepoContext sqlRepoContext;
     private Q root;
     private ObjectSqlTransformer<S, Q, R> transformer;
+    private MObjectType objectType;
 
     public AddObjectOperation(@NotNull PrismObject<S> object,
             @NotNull RepoAddOptions options, @NotNull OperationResult result) {
@@ -58,16 +60,18 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
     }
 
     /** Inserts the object provided to the constructor and returns its OID. */
-    public String execute(SqaleTransformerContext transformerContext)
+    public String execute(SqaleTransformerSupport transformerSupport)
             throws SchemaException, ObjectAlreadyExistsException {
         try {
             // TODO utilize options and result
-            sqlRepoContext = transformerContext.sqlRepoContext();
+            sqlRepoContext = transformerSupport.sqlRepoContext();
+            Class<S> schemaObjectClass = object.getCompileTimeClass();
+            objectType = MObjectType.fromSchemaType(schemaObjectClass);
             SqaleTableMapping<S, Q, R> rootMapping =
-                    sqlRepoContext.getMappingBySchemaType(object.getCompileTimeClass());
+                    sqlRepoContext.getMappingBySchemaType(schemaObjectClass);
             root = rootMapping.defaultAlias();
             transformer = (ObjectSqlTransformer<S, Q, R>)
-                    rootMapping.createTransformer(transformerContext);
+                    rootMapping.createTransformer(transformerSupport);
 
             // we don't want CID generation here, because overwrite works different then normal add
 
@@ -105,7 +109,8 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
                     .populate(row)
                     .executeWithKey(root.oid);
 
-            transformer.storeRelatedEntities(row.oid, schemaObject, jdbcSession);
+            row.objectType = objectType;
+            transformer.storeRelatedEntities(row, schemaObject, jdbcSession);
 
             return Objects.requireNonNull(oid, "OID of inserted object can't be null")
                     .toString();
@@ -136,7 +141,9 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
                     .where(root.oid.eq(oid))
                     .execute();
 
-            transformer.storeRelatedEntities(oid, schemaObject, jdbcSession);
+            row.oid = oid;
+            row.objectType = objectType;
+            transformer.storeRelatedEntities(row, schemaObject, jdbcSession);
 
             return oidString;
         }

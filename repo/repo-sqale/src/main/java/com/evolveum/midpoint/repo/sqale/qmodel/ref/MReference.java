@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
 import java.util.UUID;
 
+import com.evolveum.midpoint.repo.sqale.MObjectType;
+
 /**
  * Querydsl "row bean" type related to {@link QReference} and its subtypes.
  */
@@ -15,18 +17,18 @@ public class MReference {
 
     public UUID ownerOid;
     public MReferenceType referenceType;
-    public Integer relationId;
     public UUID targetOid;
-    public Integer targetType;
+    public MObjectType targetType;
+    public Integer relationId;
 
     @Override
     public String toString() {
         return "MReference{" +
                 "ownerOid=" + ownerOid +
                 ", referenceType=" + referenceType +
-                ", relationId=" + relationId +
                 ", targetOid=" + targetOid +
                 ", targetType=" + targetType +
+                ", relationId=" + relationId +
                 '}';
     }
 }

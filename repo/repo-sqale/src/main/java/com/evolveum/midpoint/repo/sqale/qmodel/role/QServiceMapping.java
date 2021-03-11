@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.role;
 import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.integerMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType.F_DISPLAY_ORDER;
 
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 /**
@@ -35,8 +35,8 @@ public class QServiceMapping
     }
 
     @Override
-    public ServiceSqlTransformer createTransformer(SqlTransformerContext transformerContext) {
-        return new ServiceSqlTransformer(transformerContext, this);
+    public ServiceSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
+        return new ServiceSqlTransformer(transformerSupport, this);
     }
 
     @Override

@@ -102,7 +102,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private final SchemaService schemaService;
 
     private final SqlQueryExecutor sqlQueryExecutor;
-    private final SqlTransformerContext sqlTransformerContext;
+    private final SqlTransformerSupport transformerSupport;
 
     private volatile SystemConfigurationAuditType auditConfiguration;
 
@@ -114,7 +114,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         this.sqlRepoContext = sqlRepoContext;
         this.schemaService = schemaService;
         this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
-        this.sqlTransformerContext = new SqlTransformerContext(schemaService, sqlRepoContext);
+        this.transformerSupport = new SqlTransformerSupport(schemaService, sqlRepoContext);
     }
 
     public SqlRepoContext getSqlRepoContext() {
@@ -177,7 +177,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         QAuditEventRecordMapping aerMapping = QAuditEventRecordMapping.INSTANCE;
         QAuditEventRecord aer = aerMapping.defaultAlias();
         MAuditEventRecord aerBean = aerMapping
-                .createTransformer(sqlTransformerContext)
+                .createTransformer(transformerSupport)
                 .from(record);
         SQLInsertClause insert = jdbcSession.newInsert(aer).populate(aerBean);
 
@@ -1129,7 +1129,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         try {
             var queryContext = AuditSqlQueryContext.from(
-                    AuditEventRecordType.class, sqlTransformerContext, sqlRepoContext);
+                    AuditEventRecordType.class, transformerSupport, sqlRepoContext);
             return sqlQueryExecutor.count(queryContext, query, options);
         } catch (QueryException | RuntimeException e) {
             baseHelper.handleGeneralException(e, operationResult);
@@ -1155,7 +1155,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         try {
             var queryContext = AuditSqlQueryContext.from(
-                    AuditEventRecordType.class, sqlTransformerContext, sqlRepoContext);
+                    AuditEventRecordType.class, transformerSupport, sqlRepoContext);
             SearchResultList<AuditEventRecordType> result =
                     sqlQueryExecutor.list(queryContext, query, options);
 //            addContainerDefinition(AuditEventRecordType.class, result);

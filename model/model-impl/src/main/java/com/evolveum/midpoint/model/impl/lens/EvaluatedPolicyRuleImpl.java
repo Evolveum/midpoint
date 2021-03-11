@@ -77,7 +77,6 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
      */
     @Nullable private final AssignmentPath assignmentPath;
     @Nullable private final ObjectType directOwner;
-    private final transient PrismContext prismContextForDebugDump;     // if null, nothing serious happens
 
     /**
      * Evaluated assignment that brought this policy rule to the focus or target.
@@ -92,12 +91,10 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 
     public EvaluatedPolicyRuleImpl(@NotNull PolicyRuleType policyRuleType,
             @Nullable AssignmentPath assignmentPath,
-            @Nullable EvaluatedAssignmentImpl<?> evaluatedAssignment,
-            PrismContext prismContext) {
+            @Nullable EvaluatedAssignmentImpl<?> evaluatedAssignment) {
         this.policyRuleType = policyRuleType;
         this.assignmentPath = assignmentPath;
         this.evaluatedAssignment = evaluatedAssignment;
-        this.prismContextForDebugDump = prismContext;
         this.directOwner = computeDirectOwner();
         this.policyRuleId = computePolicyRuleId();
     }
@@ -110,9 +107,9 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         return directOwner.getOid() + policyRuleType.asPrismContainerValue().getId();
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public EvaluatedPolicyRuleImpl clone() {
-        return new EvaluatedPolicyRuleImpl(CloneUtil.clone(policyRuleType), CloneUtil.clone(assignmentPath), evaluatedAssignment,
-                prismContextForDebugDump);
+        return new EvaluatedPolicyRuleImpl(CloneUtil.clone(policyRuleType), CloneUtil.clone(assignmentPath), evaluatedAssignment);
     }
 
     private ObjectType computeDirectOwner() {
@@ -310,7 +307,8 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         debugDumpWithLabelLn(sb, "name", getName(), indent + 1);
         debugDumpLabelLn(sb, "policyRuleType", indent + 1);
         indentDebugDump(sb, indent + 2);
-        PrismPrettyPrinter.debugDumpValue(sb, indent + 2, policyRuleType, prismContextForDebugDump, PolicyRuleType.COMPLEX_TYPE, PrismContext.LANG_XML);
+        PrismPrettyPrinter.debugDumpValue(sb, indent + 2, policyRuleType, PrismContext.get(),
+                PolicyRuleType.COMPLEX_TYPE, PrismContext.LANG_XML);
         sb.append('\n');
         debugDumpWithLabelLn(sb, "assignmentPath", assignmentPath, indent + 1);
         debugDumpWithLabelLn(sb, "triggers", triggers, indent + 1);

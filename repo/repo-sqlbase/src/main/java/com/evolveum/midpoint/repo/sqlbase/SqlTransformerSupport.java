@@ -19,12 +19,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * Components can be obtained to execute calls on them, but preferably the needed logic
  * can be implemented here (better abstraction).
  */
-public class SqlTransformerContext {
+public class SqlTransformerSupport {
 
     protected final SchemaService schemaService;
     protected final SqlRepoContext sqlRepoContext;
 
-    public SqlTransformerContext(SchemaService schemaService, SqlRepoContext sqlRepoContext) {
+    public SqlTransformerSupport(SchemaService schemaService, SqlRepoContext sqlRepoContext) {
         this.schemaService = schemaService;
         this.sqlRepoContext = sqlRepoContext;
     }

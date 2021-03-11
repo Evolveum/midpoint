@@ -6,16 +6,18 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.schema.SchemaService;
 
 /**
- * Extension of {@link SqlTransformerContext} adding Sqale features like {@link UriCache} support.
+ * Extension of {@link SqlTransformerSupport} adding Sqale features like {@link UriCache} support.
  */
-public class SqaleTransformerContext extends SqlTransformerContext {
+public class SqaleTransformerSupport extends SqlTransformerSupport {
 
-    public SqaleTransformerContext(SchemaService schemaService, SqaleRepoContext sqaleRepoContext) {
+    public SqaleTransformerSupport(SchemaService schemaService, SqaleRepoContext sqaleRepoContext) {
         super(schemaService, sqaleRepoContext);
     }
 
@@ -24,8 +26,13 @@ public class SqaleTransformerContext extends SqlTransformerContext {
     }
 
     /** Returns ID for cached URI without going ot database. */
-    public Integer resolveToId(String uri) {
-        return sqaleRepoContext().resolveToId(uri);
+    public Integer resolveUriToId(String uri) {
+        return sqaleRepoContext().resolveUriToId(uri);
+    }
+
+    /** Returns ID for cached URI without going ot database. */
+    public Integer resolveUriToId(QName uri) {
+        return sqaleRepoContext().resolveUriToId(uri);
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */

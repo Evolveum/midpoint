@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.schema.expression;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +21,7 @@ import com.evolveum.midpoint.util.QNameUtil;
  * @author Radovan Semancik
  *
  */
-public class ExpressionProfile { // TODO: DebugDumpable
+public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
 
     private final String identifier;
     private AccessDecision decision;

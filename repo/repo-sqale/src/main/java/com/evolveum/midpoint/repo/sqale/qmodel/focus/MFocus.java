@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 import java.time.Instant;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 
 /**
  * Querydsl "row bean" type related to {@link QFocus}.
@@ -27,12 +29,12 @@ public class MFocus extends MObject {
     public Instant passwordCreateTimestamp;
     public Instant passwordModifyTimestamp;
     // activation
-    public Integer administrativeStatus;
-    public Integer effectiveStatus;
+    public ActivationStatusType administrativeStatus;
+    public ActivationStatusType effectiveStatus;
     public Instant enableTimestamp;
     public Instant disableTimestamp;
     public String disableReason;
-    public Integer validityStatus;
+    public TimeIntervalStatusType validityStatus;
     public Instant validFrom;
     public Instant validTo;
     public Instant validityChangeTimestamp;

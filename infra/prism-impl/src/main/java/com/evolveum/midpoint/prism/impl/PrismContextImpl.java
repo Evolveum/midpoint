@@ -154,6 +154,8 @@ public final class PrismContextImpl implements PrismContext {
             // Should not happen
             throw new SystemException(e.getMessage(), e);
         }
+
+        PrismService.get().prismContext(this);
     }
 
     public static PrismContextImpl create(@NotNull SchemaRegistryImpl schemaRegistry) {

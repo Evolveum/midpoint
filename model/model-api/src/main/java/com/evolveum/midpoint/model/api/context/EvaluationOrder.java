@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.api.context;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType
  * @author semancik
  * @author mederly
  */
-public interface EvaluationOrder extends DebugDumpable, ShortDumpable, Cloneable {
+public interface EvaluationOrder extends DebugDumpable, ShortDumpable, Cloneable, Serializable {
 
     int getSummaryOrder();
 

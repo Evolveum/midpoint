@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.impl.lens.construction;
 
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
@@ -39,7 +40,10 @@ public class PersonaConstruction<AH extends AssignmentHolderType>
 
     public DeltaSetTriple<EvaluatedPersonaConstructionImpl<AH>> getEvaluatedConstructionTriple() {
         EvaluatedPersonaConstructionImpl<AH> evaluatedConstruction = new EvaluatedPersonaConstructionImpl<>(this);
-        return beans.prismContext.deltaFactory().createDeltaSetTriple(Collections.singleton(evaluatedConstruction), Collections.emptyList(), Collections.emptyList());
+        return PrismContext.get().deltaFactory().createDeltaSetTriple(
+                Collections.singleton(evaluatedConstruction),
+                Collections.emptyList(),
+                Collections.emptyList());
     }
 
     @Override

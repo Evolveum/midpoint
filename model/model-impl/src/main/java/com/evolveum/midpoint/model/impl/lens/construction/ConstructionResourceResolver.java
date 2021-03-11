@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -38,13 +39,11 @@ class ConstructionResourceResolver {
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionResourceResolver.class);
 
     private final ResourceObjectConstruction<?, ?> construction;
-    private final ModelBeans beans;
     private final Task task;
     private final OperationResult result;
 
     ConstructionResourceResolver(ResourceObjectConstruction<?, ?> construction, Task task, OperationResult result) {
         this.construction = construction;
-        this.beans = construction.beans;
         this.task = task;
         this.result = result;
     }
@@ -67,7 +66,7 @@ class ConstructionResourceResolver {
                         resource = resolveResourceRefFilter(" resolving resource ", task, result);
                     } else {
                         resource = LensUtil.getResourceReadOnly(construction.lensContext, resourceRef.getOid(),
-                                beans.modelObjectResolver, task, result);
+                                ModelBeans.get().modelObjectResolver, task, result);
                     }
                     return new ResolvedConstructionResource(resource);
                 } catch (ObjectNotFoundException e) {
@@ -115,17 +114,17 @@ class ConstructionResourceResolver {
             CommunicationException, ConfigurationException, SecurityViolationException {
         VariablesMap variables = ModelImplUtils
                 .getDefaultVariablesMap(construction.getFocusOdoAbsolute().getNewObject().asObjectable(),
-                        null, null, null, beans.prismContext);
-        ModelImplUtils.addAssignmentPathVariables(construction.getAssignmentPathVariables(), variables, beans.prismContext);
+                        null, null, null, PrismContext.get());
+        ModelImplUtils.addAssignmentPathVariables(construction.getAssignmentPathVariables(), variables, PrismContext.get());
         LOGGER.debug("Expression variables for filter evaluation: {}", variables);
 
         assert construction.constructionBean != null;
-        ObjectFilter origFilter = beans.prismContext.getQueryConverter()
+        ObjectFilter origFilter = PrismContext.get().getQueryConverter()
                 .parseFilter(construction.constructionBean.getResourceRef().getFilter(),
                 ResourceType.class);
         LOGGER.debug("Orig filter {}", origFilter);
         ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables,
-                construction.expressionProfile, beans.mappingFactory.getExpressionFactory(), beans.prismContext,
+                construction.expressionProfile, ModelBeans.get().commonBeans.expressionFactory, PrismContext.get(),
                 " evaluating resource filter expression ", task, result);
         LOGGER.debug("evaluatedFilter filter {}", evaluatedFilter);
 
@@ -139,8 +138,8 @@ class ConstructionResourceResolver {
             LOGGER.debug("Found object {}", object);
             return results.add(object);
         };
-        beans.modelObjectResolver.searchIterative(ResourceType.class,
-                beans.prismContext.queryFactory().createQuery(evaluatedFilter),
+        ModelBeans.get().modelObjectResolver.searchIterative(ResourceType.class,
+                PrismContext.get().queryFactory().createQuery(evaluatedFilter),
                 null, handler, task, result);
 
         // TODO consider referential integrity settings

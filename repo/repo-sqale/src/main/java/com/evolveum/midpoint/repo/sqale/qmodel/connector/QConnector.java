@@ -8,10 +8,12 @@ package com.evolveum.midpoint.repo.sqale.qmodel.connector;
 
 import java.sql.Types;
 
+import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 
+import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
@@ -36,7 +38,7 @@ public class QConnector extends QObject<MConnector> {
     public static final ColumnMetadata CONNECTOR_HOST_REF_TARGET_OID =
             ColumnMetadata.named("connectorHostRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata CONNECTOR_HOST_REF_TARGET_TYPE =
-            ColumnMetadata.named("connectorHostRef_targetType").ofType(Types.INTEGER);
+            ColumnMetadata.named("connectorHostRef_targetType").ofType(Types.OTHER);
     public static final ColumnMetadata CONNECTOR_HOST_REF_RELATION_ID =
             ColumnMetadata.named("connectorHostRef_relation_id").ofType(Types.INTEGER);
 
@@ -46,8 +48,9 @@ public class QConnector extends QObject<MConnector> {
     public final StringPath framework = createString("framework", FRAMEWORK);
     public final UuidPath connectorHostRefTargetOid =
             createUuid("connectorHostRefTargetOid", CONNECTOR_HOST_REF_TARGET_OID);
-    public final NumberPath<Integer> connectorHostRefTargetType =
-            createInteger("connectorHostRefTargetType", CONNECTOR_HOST_REF_TARGET_TYPE);
+    public final EnumPath<MObjectType> connectorHostRefTargetType =
+            createEnum("connectorHostRefTargetType",
+                    MObjectType.class, CONNECTOR_HOST_REF_TARGET_TYPE);
     public final NumberPath<Integer> connectorHostRefRelationId =
             createInteger("connectorHostRefRelationId", CONNECTOR_HOST_REF_RELATION_ID);
 
