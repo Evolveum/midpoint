@@ -284,7 +284,8 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 
             @Override
             public boolean isVisible() {
-                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
+                return getDetailsPage().isEditingFocus() &&
+                        WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
                         AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL) &&
                         !getObjectWrapper().isReadOnly();
             }
