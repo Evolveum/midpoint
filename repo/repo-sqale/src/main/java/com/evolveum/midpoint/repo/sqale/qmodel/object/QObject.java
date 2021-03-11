@@ -134,7 +134,7 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
         this(type, variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
-    public QObject(Class<? extends T> type, String variable, String schema, String table) {
+    public QObject(Class<T> type, String variable, String schema, String table) {
         super(type, variable, schema, table);
     }
 }

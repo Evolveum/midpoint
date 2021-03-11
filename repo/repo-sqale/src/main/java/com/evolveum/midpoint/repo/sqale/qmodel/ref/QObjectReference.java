@@ -14,20 +14,15 @@ import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.PrimaryKey;
 
 import com.evolveum.midpoint.repo.sqale.MObjectType;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table that contains all persisted object references.
  * This actually points to super-table, concrete tables are partitioned by {@link MReferenceType}.
  */
-public class QReference<T extends MReference> extends FlexibleRelationalPathBase<T> {
+public class QObjectReference extends QReference<MReference> {
 
-    private static final long serialVersionUID = -466419569179455042L;
-
-    /** If {@code QReference.class} is not enough because of generics, try {@code QReference.CLASS}. */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public static final Class<QReference<MReference>> CLASS = (Class) QReference.class;
+    private static final long serialVersionUID = -4850458578494140921L;
 
     public static final String TABLE_NAME = "m_reference";
 
@@ -50,14 +45,14 @@ public class QReference<T extends MReference> extends FlexibleRelationalPathBase
             createEnum("targetType", MObjectType.class, TARGET_TYPE);
     public final NumberPath<Integer> relationId = createInteger("relationId", RELATION_ID);
 
-    public final PrimaryKey<T> pk =
+    public final PrimaryKey<MReference> pk =
             createPrimaryKey(ownerOid, referenceType, relationId, targetOid);
 
-    public QReference(Class<T> type, String variable) {
-        this(type, variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
+    public QObjectReference(String variable) {
+        this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
-    public QReference(Class<T> type, String variable, String schema, String table) {
-        super(type, variable, schema, table);
+    public QObjectReference(String variable, String schema, String table) {
+        super(MReference.class, variable, schema, table);
     }
 }

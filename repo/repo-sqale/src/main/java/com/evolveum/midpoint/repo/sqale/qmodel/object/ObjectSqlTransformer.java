@@ -24,10 +24,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.assignment.AssignmentSqlTransform
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.MAssignment;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.ReferenceSqlTransformer;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.*;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -192,8 +189,9 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
     private void storeRefs(@NotNull MObject objectRow, List<ObjectReferenceType> refs,
             MReferenceType referenceType, @NotNull JdbcSession jdbcSession) {
         if (!refs.isEmpty()) {
-            QReferenceMapping mapping = referenceType.qReferenceMapping();
-            ReferenceSqlTransformer transformer = mapping.createTransformer(transformerSupport);
+            QObjectReferenceMapping mapping = referenceType.qObjectReferenceMapping();
+            ObjectReferenceSqlTransformer transformer =
+                    mapping.createTransformer(transformerSupport);
             for (ObjectReferenceType ref : refs) {
                 MReference row = transformer.toRowObject(
                         ref, objectRow.oid, referenceType, jdbcSession);

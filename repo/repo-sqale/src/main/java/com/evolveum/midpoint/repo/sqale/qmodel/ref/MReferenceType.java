@@ -29,37 +29,37 @@ public enum MReferenceType {
 
     // OBJECT REFERENCES
 
-    ARCHETYPE(QReferenceMapping.INSTANCE_ARCHETYPE,
+    ARCHETYPE(QObjectReferenceMapping.INSTANCE_ARCHETYPE,
             AssignmentHolderType.class, AssignmentHolderType.F_ARCHETYPE_REF),
 
-    DELEGATED(QReferenceMapping.INSTANCE_DELEGATED,
+    DELEGATED(QObjectReferenceMapping.INSTANCE_DELEGATED,
             FocusType.class, FocusType.F_DELEGATED_REF),
 
     // TODO map in QObjectTemplate when it exists,
-    INCLUDE(QReferenceMapping.INSTANCE_INCLUDE,
+    INCLUDE(QObjectReferenceMapping.INSTANCE_INCLUDE,
             ObjectTemplateType.class, ObjectTemplateType.F_INCLUDE_REF),
 
-    OBJECT_CREATE_APPROVER(QReferenceMapping.INSTANCE_CREATE_APPROVER,
+    OBJECT_CREATE_APPROVER(QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER,
             ObjectType.class, MetadataType.F_CREATE_APPROVER_REF),
 
-    OBJECT_MODIFY_APPROVER(QReferenceMapping.INSTANCE_MODIFY_APPROVER,
+    OBJECT_MODIFY_APPROVER(QObjectReferenceMapping.INSTANCE_OBJECT_MODIFY_APPROVER,
             ObjectType.class, MetadataType.F_MODIFY_APPROVER_REF),
 
-    OBJECT_PARENT_ORG(QReferenceMapping.INSTANCE_OBJECT_PARENT_ORG,
+    OBJECT_PARENT_ORG(QObjectReferenceMapping.INSTANCE_OBJECT_PARENT_ORG,
             ObjectType.class, ObjectType.F_PARENT_ORG_REF),
 
-    PERSONA(QReferenceMapping.INSTANCE_PERSONA,
+    PERSONA(QObjectReferenceMapping.INSTANCE_PERSONA,
             FocusType.class, FocusType.F_PERSONA_REF),
 
     // TODO map in QResource when it exists
     RESOURCE_BUSINESS_CONFIGURATION_APPROVER(
-            QReferenceMapping.INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER,
+            QObjectReferenceMapping.INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER,
             ResourceType.class, ResourceBusinessConfigurationType.F_APPROVER_REF),
 
-    ROLE_MEMBERSHIP(QReferenceMapping.INSTANCE_ROLE_MEMBERSHIP,
+    ROLE_MEMBERSHIP(QObjectReferenceMapping.INSTANCE_ROLE_MEMBERSHIP,
             AssignmentHolderType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF),
 
-    USER_ACCOUNT(QReferenceMapping.INSTANCE_USER_ACCOUNT,
+    USER_ACCOUNT(QObjectReferenceMapping.INSTANCE_USER_ACCOUNT,
             FocusType.class, FocusType.F_LINK_REF),
 
     ;
@@ -86,6 +86,10 @@ public enum MReferenceType {
 
     public QReferenceMapping qReferenceMapping() {
         return qReferenceMapping;
+    }
+
+    public QObjectReferenceMapping qObjectReferenceMapping() {
+        return (QObjectReferenceMapping) qReferenceMapping;
     }
 
     public Class<? extends Containerable> schemaType() {

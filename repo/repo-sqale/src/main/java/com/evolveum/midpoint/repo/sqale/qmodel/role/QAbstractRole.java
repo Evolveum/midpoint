@@ -66,11 +66,11 @@ public class QAbstractRole<T extends MAbstractRole> extends QFocus<T> {
     public final BooleanPath requestable = createBoolean("requestable", REQUESTABLE);
     public final StringPath riskLevel = createString("riskLevel", RISK_LEVEL);
 
-    public QAbstractRole(Class<? extends T> type, String variable) {
+    public QAbstractRole(Class<T> type, String variable) {
         this(type, variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
-    public QAbstractRole(Class<? extends T> type, String variable, String schema, String table) {
+    public QAbstractRole(Class<T> type, String variable, String schema, String table) {
         super(type, variable, schema, table);
     }
 }

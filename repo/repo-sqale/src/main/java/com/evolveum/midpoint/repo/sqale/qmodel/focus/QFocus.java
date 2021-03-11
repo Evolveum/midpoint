@@ -115,11 +115,11 @@ public class QFocus<T extends MFocus> extends QObject<T> {
     public final DateTimePath<Instant> archiveTimestamp =
             createInstant("archiveTimestamp", ARCHIVE_TIMESTAMP);
 
-    public QFocus(Class<? extends T> type, String variable) {
+    public QFocus(Class<T> type, String variable) {
         this(type, variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
-    public QFocus(Class<? extends T> type, String variable, String schema, String table) {
+    public QFocus(Class<T> type, String variable, String schema, String table) {
         super(type, variable, schema, table);
     }
 }

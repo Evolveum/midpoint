@@ -13,8 +13,8 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-public class ReferenceSqlTransformer
-        extends SqaleTransformerBase<ObjectReferenceType, QReference, MReference> {
+public class ReferenceSqlTransformer<Q extends QReference<R>, R extends MReference>
+        extends SqaleTransformerBase<ObjectReferenceType, Q, R> {
 
     public ReferenceSqlTransformer(
             SqlTransformerSupport transformerSupport, QReferenceMapping mapping) {

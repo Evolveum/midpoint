@@ -39,9 +39,6 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     @BeforeClass
     public void cleanDatabase() {
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-            // TODO delete other non-object tables here
-            jdbcSession.newDelete(QAssignmentMapping.INSTANCE.defaultAlias()).execute();
-            jdbcSession.newDelete(QReferenceMapping.INSTANCE.defaultAlias()).execute();
             jdbcSession.newDelete(QObjectMapping.INSTANCE.defaultAlias()).execute();
         }
     }
