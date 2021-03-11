@@ -10,7 +10,8 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.factory.panel.SearchFilterTypeModel;
+import com.evolveum.midpoint.gui.impl.factory.panel.SearchFilterTypeForQueryModel;
+import com.evolveum.midpoint.gui.impl.factory.panel.SearchFilterTypeForXmlModel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -19,8 +20,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -34,8 +37,6 @@ import com.evolveum.midpoint.web.component.search.SearchPropertiesConfigPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
-import org.apache.wicket.model.PropertyModel;
-
 import javax.xml.namespace.QName;
 
 /**
@@ -44,7 +45,7 @@ import javax.xml.namespace.QName;
 public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePanel<SearchFilterType> {
 
     private enum FiledType {
-        XML, DNS
+        XML, DSL
     }
 
     private static final long serialVersionUID = 1L;
@@ -57,16 +58,17 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
     private static final String ID_TEXT_DNS_FIELD = "textField";
     private static final String ID_CONFIGURE_BUTTON = "configureButton";
     private static final String ID_FILED_TYPE_BUTTON = "fieldTypeButton";
+    private static final String ID_FILED_TYPE_BUTTON_LABEL = "fieldTypeButtonLabel";
 
     private LoadableModel<Class<O>> filterTypeModel;
     private PrismContainerValueWrapper<ObjectCollectionType> containerWrapper;
-    private final FiledType fieldType;
+    private FiledType fieldType;
 
     public SearchFilterConfigurationPanel(String id, IModel<SearchFilterType> model, PrismContainerValueWrapper<ObjectCollectionType> containerWrapper){
         super(id, model);
         this.containerWrapper = containerWrapper;
         if (model.getObject() != null && StringUtils.isNotBlank(model.getObject().getText())) {
-            fieldType = FiledType.DNS;
+            fieldType = FiledType.DSL;
         } else {
             fieldType = FiledType.XML;
         }
@@ -99,25 +101,41 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
     private void initLayout() {
         WebMarkupContainer aceEditorContainer = new WebMarkupContainer(ID_ACE_EDITOR_XML_CONTAINER);
         aceEditorContainer.setOutputMarkupId(true);
-        aceEditorContainer.add(new VisibleBehaviour(() -> FiledType.XML.equals(fieldType)));
         aceEditorContainer.add(AttributeAppender.append("class", (IModel<?>) () -> {
             if (containerWrapper != null) {
                 return "col-md-11";
             }
             return "col-md-12";
         }));
+        aceEditorContainer.add(AttributeAppender.append("style", (IModel<?>) () -> {
+            if (FiledType.XML.equals(fieldType)) {
+                return "display: block;";
+            }
+            return "display: none;";
+        }));
         add(aceEditorContainer);
 
-        AceEditorPanel aceEditorField = new AceEditorPanel(ID_ACE_EDITOR_XML_FIELD, null, new SearchFilterTypeModel(getModel(), getPageBase()), 10);
+        AceEditorPanel aceEditorField = new AceEditorPanel(ID_ACE_EDITOR_XML_FIELD, null, new SearchFilterTypeForXmlModel(getModel(), getPageBase()), 10);
         aceEditorField.setOutputMarkupId(true);
         aceEditorContainer.add(aceEditorField);
 
         WebMarkupContainer textFieldContainer = new WebMarkupContainer(ID_TEXT_DNS_CONTAINER);
         textFieldContainer.setOutputMarkupId(true);
-        textFieldContainer.add(new VisibleBehaviour(() -> FiledType.DNS.equals(fieldType)));
+        textFieldContainer.add(AttributeAppender.append("class", (IModel<?>) () -> {
+            if (containerWrapper != null) {
+                return "col-md-11";
+            }
+            return "col-md-12";
+        }));
+        textFieldContainer.add(AttributeAppender.append("style", (IModel<?>) () -> {
+            if (FiledType.DSL.equals(fieldType)) {
+                return "display: block;";
+            }
+            return "display: none;";
+        }));
         add(textFieldContainer);
 
-        TextPanel textPanel = new TextPanel(ID_TEXT_DNS_FIELD, new PropertyModel(getModel(), "text"));
+        TextPanel textPanel = new TextPanel(ID_TEXT_DNS_FIELD, new SearchFilterTypeForQueryModel<O>(getModel(), getPageBase(), filterTypeModel, containerWrapper != null));
         textPanel.setOutputMarkupId(true);
         textFieldContainer.add(textPanel);
 
@@ -130,33 +148,38 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
             }
         };
         searchConfigurationButton.setOutputMarkupId(true);
-        searchConfigurationButton.add(new VisibleBehaviour(() -> FiledType.XML.equals(fieldType) && containerWrapper != null));
+        searchConfigurationButton.add(new VisibleBehaviour(() -> containerWrapper != null));
         add(searchConfigurationButton);
 
-//        IModel<String> labelModel = (IModel) () -> {
-//            if (FiledType.DNS.equals(fieldType)) {
-//                return FiledType.XML.toString();
-//            }
-//            return FiledType.DNS.toString();
-//            };
-//
-//        AjaxButton filedTypeButton = new AjaxButton(ID_FILED_TYPE_BUTTON, labelModel) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                if (FiledType.DNS.equals(fieldType)) {
-//                    fieldType = FiledType.XML;
-//                } else {
-//                    fieldType = FiledType.DNS;
-//                }
-//                target.add(getAceEditorContainer());
-//                target.add(getTextFieldContainer());
-//                target.add(this);
-//            }
-//        };
-//        filedTypeButton.setOutputMarkupId(true);
-//        add(filedTypeButton);
+        IModel<String> labelModel = (IModel) () -> {
+            if (FiledType.DSL.equals(fieldType)) {
+                return FiledType.XML.toString();
+            }
+            return FiledType.DSL.toString();
+            };
+
+        Label buttonLabel = new Label(ID_FILED_TYPE_BUTTON_LABEL, labelModel);
+        buttonLabel.setOutputMarkupId(true);
+
+        AjaxLink filedTypeButton = new AjaxLink<String>(ID_FILED_TYPE_BUTTON) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                if (FiledType.DSL.equals(fieldType)) {
+                    fieldType = FiledType.XML;
+                } else {
+                    fieldType = FiledType.DSL;
+                }
+                target.add(getAceEditorContainer());
+                target.add(getTextFieldContainer());
+                target.add(getPageBase().getFeedbackPanel());
+                target.add(buttonLabel);
+            }
+        };
+        filedTypeButton.setOutputMarkupId(true);
+        add(filedTypeButton);
+        filedTypeButton.add(buttonLabel);
 
     }
 
@@ -174,9 +197,10 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
                     if (configuredFilter == null) {
                         return;
                     }
-                    SearchFilterConfigurationPanel.this.getModel().setObject(SearchFilterConfigurationPanel.this.getPageBase().getPrismContext().getQueryConverter().createSearchFilterType(configuredFilter));
+                    SearchFilterConfigurationPanel.this.getModel().setObject(SearchFilterConfigurationPanel.this.getPageBase().getQueryConverter().createSearchFilterType(configuredFilter));
                     target.add(getAceEditorContainer());
                     target.add(getTextFieldContainer());
+                    target.add(getPageBase().getFeedbackPanel());
                 } catch (SchemaException e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);
                 }
@@ -186,7 +210,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
     }
 
     private Component getAceEditorContainer(){
-        return get(createComponentPath(ID_ACE_EDITOR_XML_CONTAINER, ID_ACE_EDITOR_XML_FIELD));
+        return get(ID_ACE_EDITOR_XML_CONTAINER);
     }
 
     private Component getTextFieldContainer(){
