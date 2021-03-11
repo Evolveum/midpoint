@@ -21,9 +21,11 @@ public class ReferenceSqlTransformer
         super(transformerSupport, mapping);
     }
 
-    public MReference toRowObject(ObjectReferenceType schemaObject, JdbcSession jdbcSession) {
+    public MReference toRowObject(ObjectReferenceType schemaObject, UUID ownerOid,
+            MReferenceType referenceType, JdbcSession jdbcSession) {
         MReference row = new MReference();
-        // TODO ownerOid, referenceType
+        row.ownerOid = ownerOid;
+        row.referenceType = referenceType;
         row.relationId = processCacheableRelation(schemaObject.getRelation(), jdbcSession);
         row.targetOid = UUID.fromString(schemaObject.getOid());
         row.targetType = schemaTypeToObjectType(schemaObject.getType());

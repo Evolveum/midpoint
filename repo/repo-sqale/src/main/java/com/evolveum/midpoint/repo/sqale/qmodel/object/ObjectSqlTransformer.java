@@ -7,8 +7,10 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
-import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
@@ -22,6 +24,10 @@ import com.evolveum.midpoint.repo.sqale.qmodel.assignment.AssignmentSqlTransform
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.MAssignment;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.ReferenceSqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -143,8 +149,10 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
 
         MetadataType metadata = schemaObject.getMetadata();
         if (metadata != null) {
-            // TODO metadata.getCreateApproverRef()
-            // TODO metadata.getModifyApproverRef()
+            storeRefs(objectRow, metadata.getCreateApproverRef(),
+                    MReferenceType.OBJECT_CREATE_APPROVER, jdbcSession);
+            storeRefs(objectRow, metadata.getModifyApproverRef(),
+                    MReferenceType.OBJECT_MODIFY_APPROVER, jdbcSession);
         }
 
         /*
@@ -179,6 +187,21 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         }
 
         // TODO EAV extensions
+    }
+
+    private void storeRefs(@NotNull MObject objectRow, List<ObjectReferenceType> refs,
+            MReferenceType referenceType, @NotNull JdbcSession jdbcSession) {
+        if (!refs.isEmpty()) {
+            QReferenceMapping mapping = referenceType.qReferenceMapping();
+            ReferenceSqlTransformer transformer = mapping.createTransformer(transformerSupport);
+            for (ObjectReferenceType ref : refs) {
+                MReference row = transformer.toRowObject(
+                        ref, objectRow.oid, referenceType, jdbcSession);
+                jdbcSession.newInsert(mapping.defaultAlias())
+                        .populate(row)
+                        .execute();
+            }
+        }
     }
 
     private void storeAssignmentHolderEntities(

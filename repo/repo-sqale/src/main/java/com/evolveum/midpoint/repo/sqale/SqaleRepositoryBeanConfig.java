@@ -34,6 +34,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.node.QNodeMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QTriggerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportDataMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QAbstractRoleMapping;
@@ -132,6 +133,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(UserType.COMPLEX_TYPE, QUserMapping.INSTANCE)
                 .register(ValuePolicyType.COMPLEX_TYPE, QValuePolicyMapping.INSTANCE)
                 .register(QContainerMapping.INSTANCE)
+                .register(QReferenceMapping.INSTANCE)
                 .seal();
 
         return new SqaleRepoContext(repositoryConfiguration, dataSource, mappingRegistry);
