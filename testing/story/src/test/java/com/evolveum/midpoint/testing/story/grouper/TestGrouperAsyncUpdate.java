@@ -120,7 +120,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                 .assertAssignments(1)           // archetype, todo assert target
                 .assertDisplayName("Affiliation: alumni")
                 .assertIdentifier("alumni")
-                .assertLinks(2)                // todo assert details
+                .assertLiveLinks(2)                // todo assert details
                 .links()
                     .projectionOnResource(RESOURCE_GROUPER.oid)
                         .target()
@@ -170,7 +170,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                 .assertAssignments(1)           // archetype, todo assert target
                 .assertDisplayName("Affiliation: staff")
                 .assertIdentifier("staff")
-                .assertLinks(2)                // todo assert details
+                .assertLiveLinks(2)                // todo assert details
                 .links()
                     .projectionOnResource(RESOURCE_GROUPER.oid)
                         .target()
@@ -245,7 +245,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                     .assertOrg(orgAlumniOid)
                 .end()
                 .links()
-                    .assertLinks(1)
+                    .assertLiveLinks(1)
                     .projectionOnResource(resourceLdap.getOid());
 
         openDJController.assertUniqueMember(DN_ALUMNI, DN_BANDERSON);
@@ -306,7 +306,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                     .assertOrg(orgStaffOid)
                 .end()
                 .links()
-                    .assertLinks(1)
+                    .assertLiveLinks(1)
                     .projectionOnResource(resourceLdap.getOid());
 
         openDJController.assertUniqueMember(DN_ALUMNI, DN_BANDERSON);
@@ -399,7 +399,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                     .assertOrg(orgStaffOid)
                 .end()
                 .links()
-                    .assertLinks(1)
+                    .assertLiveLinks(1)
                     .projectionOnResource(resourceLdap.getOid());
 
         openDJController.assertUniqueMember(DN_ALUMNI, DN_JLEWIS685);
@@ -485,7 +485,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                     .assertOrg(orgStaffOid)
                 .end()
                 .links()
-                    .assertLinks(1)
+                    .assertLiveLinks(1)
                     .projectionOnResource(resourceLdap.getOid());
 
         openDJController.assertUniqueMember(DN_STAFF, DN_BANDERSON);
@@ -624,7 +624,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                     .assertRole(ROLE_LDAP_BASIC.oid)
                 .end()
                 .links()
-                    .assertLinks(1)
+                    .assertLiveLinks(1)
                     .projectionOnResource(resourceLdap.getOid());
 
         assertUserAfterByUsername(JLEWIS685_USERNAME)
@@ -634,7 +634,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                     .assertOrg(orgAlumniOid)
                 .end()
                 .links()
-                    .assertLinks(1)
+                    .assertLiveLinks(1)
                     .projectionOnResource(resourceLdap.getOid());
 
         openDJController.assertNoEntry(DN_STAFF);

@@ -106,7 +106,7 @@ public class TestSemiManualDisable extends TestSemiManual {
     @Override
     protected <R> void assertDeprovisionedTimedOutUser(UserAsserter<R> userAsserter, String accountOid) throws Exception {
         userAsserter
-            .assertLinks(1);
+            .assertLiveLinks(1);
 
         assertModelShadow(accountOid)
             .assertAdministrativeStatus(ActivationStatusType.DISABLED);
@@ -160,7 +160,7 @@ public class TestSemiManualDisable extends TestSemiManual {
 
         PrismObject<UserType> userAfter = getUser(userOid);
         display("User after", userAfter);
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
         assertNoShadow(accountOid);
     }
 

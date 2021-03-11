@@ -366,7 +366,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> rapp = getUser(USER_RAPP_OID);
         assertNotNull("No rapp", rapp);
         // Rapp has dummy account but it is not linked
-        assertLinks(rapp, 0);
+        assertLiveLinks(rapp, 0);
 
         loginImportUser();
 
@@ -2414,7 +2414,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertShadowKindIntent(ACCOUNT_TAUGUSTUS.oid, ShadowKindType.ACCOUNT, INTENT_TEST);
 
         display("User augustus after", userAugustusAfter);
-        assertLinks(userAugustusAfter, 1);
+        assertLiveLinks(userAugustusAfter, 1);
         PrismAsserts.assertPropertyValue(userAugustusAfter, UserType.F_ORGANIZATIONAL_UNIT,
                 createPolyString("The crew of Titanicum Augusticum"));
 
@@ -2479,7 +2479,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertShadowKindIntent(ACCOUNT_TAUGUSTUS.oid, ShadowKindType.ACCOUNT, INTENT_TEST);
 
         display("User augustus after", userAugustusAfter);
-        assertLinks(userAugustusAfter, 2);
+        assertLiveLinks(userAugustusAfter, 2);
         // Gives wrong results now. See MID-2532
 //        PrismAsserts.assertPropertyValue(userAugustusAfter, UserType.F_ORGANIZATIONAL_UNIT,
 //                createPolyString("The crew of Titanicum Augusticum"),
@@ -2899,7 +2899,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     private void assertImportedUser(PrismObject<UserType> user, String... resourceOids) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         display("Imported user", user);
-        assertLinks(user, resourceOids.length);
+        assertLiveLinks(user, resourceOids.length);
         for (String resourceOid : resourceOids) {
             assertAccount(user, resourceOid);
         }

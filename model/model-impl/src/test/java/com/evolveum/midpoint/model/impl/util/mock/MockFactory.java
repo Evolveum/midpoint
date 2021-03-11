@@ -391,7 +391,7 @@ public class MockFactory {
             }
 
             @Override
-            public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
+            public void notifyChange(@NotNull ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
 
             }
 

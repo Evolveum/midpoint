@@ -73,7 +73,7 @@
             <code>none</code>
             <operation>add</operation>
             <kind>account</kind>
-            <order>after</order>
+            <order>before</order> <!-- to crash repeatedly also when sync is retried -->
         </script>
     </scripts>
     <consistency>

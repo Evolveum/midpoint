@@ -87,8 +87,8 @@ public class MiscUtil {
         return resultSet;
     }
 
-    public static <T> boolean unorderedCollectionEquals(Collection<T> a, Collection<T> b) {
-        return unorderedCollectionEquals(a, b, (xa, xb) -> xa.equals(xb));
+    public static <T> boolean unorderedCollectionEquals(Collection<? extends T> a, Collection<? extends T> b) {
+        return unorderedCollectionEquals(a, b, Object::equals);
     }
 
     /**
@@ -960,6 +960,19 @@ public class MiscUtil {
             return value;
         } else {
             throw new SchemaException(messageSupplier.get());
+        }
+    }
+
+    @FunctionalInterface
+    public interface ExceptionSupplier<E> {
+        E get();
+    }
+
+    public static <T, E extends Exception> T requireNonNull(T value, ExceptionSupplier<E> exceptionSupplier) throws E {
+        if (value != null) {
+            return value;
+        } else {
+            throw exceptionSupplier.get();
         }
     }
 

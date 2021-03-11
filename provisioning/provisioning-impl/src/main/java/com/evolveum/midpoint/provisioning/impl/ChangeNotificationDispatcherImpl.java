@@ -12,6 +12,7 @@ import java.util.List;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
@@ -143,7 +144,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
     }
 
     @Override
-    public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
+    public void notifyChange(@NotNull ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
         Validate.notNull(change, "Change description of resource object shadow must not be null.");
 
         LOGGER.trace("SYNCHRONIZATION change notification\n{} ", change.debugDumpLazily());

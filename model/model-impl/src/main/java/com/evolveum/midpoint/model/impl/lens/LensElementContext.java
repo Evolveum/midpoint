@@ -295,7 +295,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      * Intentionally not public.
      * New state of the object should be updated only using {@link #recompute()} method.
      */
-    void setObjectNew(PrismObject<O> objectNew) {
+    public void setObjectNew(PrismObject<O> objectNew) {
         this.objectNew = objectNew;
     }
 
@@ -404,7 +404,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         secondaryDelta.swallow(itemDelta);
     }
 
-    @NotNull List<ItemDelta<?, ?>> getPendingObjectPolicyStateModifications() {
+    @NotNull
+    public List<ItemDelta<?, ?>> getPendingObjectPolicyStateModifications() {
         return pendingObjectPolicyStateModifications;
     }
 
@@ -416,7 +417,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         pendingObjectPolicyStateModifications.add(modification);
     }
 
-    @NotNull Map<AssignmentSpec, List<ItemDelta<?, ?>>> getPendingAssignmentPolicyStateModifications() {
+    @NotNull
+    public Map<AssignmentSpec, List<ItemDelta<?, ?>>> getPendingAssignmentPolicyStateModifications() {
         return pendingAssignmentPolicyStateModifications;
     }
 
@@ -469,7 +471,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         }
     }
 
-    void addToExecutedDeltas(LensObjectDeltaOperation<O> executedDelta) {
+    public void addToExecutedDeltas(LensObjectDeltaOperation<O> executedDelta) {
         executedDeltas.add(executedDelta.clone()); // must be cloned because e.g. for ADD deltas the object gets modified afterwards
     }
 

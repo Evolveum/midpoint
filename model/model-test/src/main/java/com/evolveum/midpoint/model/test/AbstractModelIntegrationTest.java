@@ -1957,6 +1957,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return accountRefValue.getOid();
     }
 
+    protected <F extends FocusType> String getSingleLiveLinkOid(PrismObject<F> focus) {
+        PrismReferenceValue accountRefValue = getSingleLiveLinkRef(focus);
+        assertNull("Unexpected object in linkRefValue", accountRefValue.getObject());
+        return accountRefValue.getOid();
+    }
+
     protected <F extends FocusType> PrismReferenceValue getSingleLinkRef(PrismObject<F> focus) {
         F focusType = focus.asObjectable();
         assertEquals("Unexpected number of linkRefs", 1, focusType.getLinkRef().size());
@@ -1968,21 +1974,41 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return accountRefValue;
     }
 
-    protected String getLinkRefOid(String userOid, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        return getLinkRefOid(getUser(userOid), resourceOid);
+    protected <F extends FocusType> PrismReferenceValue getSingleLiveLinkRef(PrismObject<F> focus) {
+        F focusType = focus.asObjectable();
+        List<ObjectReferenceType> liveLinkRefs = FocusTypeUtil.getLiveLinkRefs(focusType);
+        assertEquals("Unexpected number of live linkRefs", 1, liveLinkRefs.size());
+        ObjectReferenceType linkRefType = liveLinkRefs.get(0);
+        String accountOid = linkRefType.getOid();
+        assertFalse("No linkRef oid", StringUtils.isBlank(accountOid));
+        PrismReferenceValue accountRefValue = linkRefType.asReferenceValue();
+        assertEquals("OID mismatch in linkRefValue", accountOid, accountRefValue.getOid());
+        return accountRefValue;
     }
 
-    protected <F extends FocusType> String getLinkRefOid(PrismObject<F> focus, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        PrismReferenceValue linkRef = getLinkRef(focus, resourceOid);
+    protected String getLiveLinkRefOid(String userOid, String resourceOid) throws ObjectNotFoundException, SchemaException,
+            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return getLiveLinkRefOid(getUser(userOid), resourceOid);
+    }
+
+    protected <F extends FocusType> String getLiveLinkRefOid(PrismObject<F> focus, String resourceOid)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
+        PrismReferenceValue linkRef = getLiveLinkRef(focus, resourceOid);
         if (linkRef == null) {
             return null;
         }
         return linkRef.getOid();
     }
 
-    protected <F extends FocusType> PrismReferenceValue getLinkRef(PrismObject<F> focus, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected <F extends FocusType> PrismReferenceValue getLiveLinkRef(PrismObject<F> focus, String resourceOid)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
         F focusType = focus.asObjectable();
         for (ObjectReferenceType linkRefType : focusType.getLinkRef()) {
+            if (!relationRegistry.isMember(linkRefType.getRelation())) {
+                continue;
+            }
             String linkTargetOid = linkRefType.getOid();
             assertFalse("No linkRef oid", StringUtils.isBlank(linkTargetOid));
             PrismObject<ShadowType> account = getShadowModel(linkTargetOid, GetOperationOptions.createNoFetch(), false);
@@ -2023,7 +2049,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected String assertAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        String accountOid = getLinkRefOid(user, resourceOid);
+        String accountOid = getLiveLinkRefOid(user, resourceOid);
         assertNotNull("User " + user + " has no account on resource " + resourceOid, accountOid);
         return accountOid;
     }
@@ -2031,7 +2057,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void assertAccounts(String userOid, int numAccounts) throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult("assertAccounts");
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
-        assertLinks(user, numAccounts);
+        assertLiveLinks(user, numAccounts);
     }
 
     protected void assertNoShadows(Collection<String> shadowOids) throws SchemaException {
@@ -3004,7 +3030,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected ObjectDelta<UserType> createModifyUserDeleteAccount(String userOid, String resourceOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        String accountOid = getLinkRefOid(userOid, resourceOid);
+        String accountOid = getLiveLinkRefOid(userOid, resourceOid);
         PrismObject<ShadowType> account = getShadowModel(accountOid);
 
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid
@@ -3017,18 +3043,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return userDelta;
     }
 
-    protected ObjectDelta<UserType> createModifyUserUnlinkAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected ObjectDelta<UserType> createModifyUserUnlinkAccount(String userOid, PrismObject<ResourceType> resource)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
         return createModifyUserUnlinkAccount(userOid, resource.getOid());
     }
 
-    protected ObjectDelta<UserType> createModifyUserUnlinkAccount(String userOid, String resourceOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        String accountOid = getLinkRefOid(userOid, resourceOid);
+    protected ObjectDelta<UserType> createModifyUserUnlinkAccount(String userOid, String resourceOid)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
+        String accountOid = getLiveLinkRefOid(userOid, resourceOid);
 
-        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid
-        );
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid);
         PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
         accountRefVal.setOid(accountOid);
-        ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+        ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
+                .createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
         userDelta.addModification(accountDelta);
 
         return userDelta;
@@ -3346,7 +3376,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return taskResult;
     }
 
-    protected OperationResult waitForTaskNextRunAssertSuccess(Task origTask, final boolean checkSubresult, final int timeout) throws Exception {
+    protected OperationResult waitForTaskNextRunAssertSuccess(Task origTask, final boolean checkSubresult, final int timeout) throws CommonException {
         OperationResult taskResult = waitForTaskNextRun(origTask, checkSubresult, timeout);
         if (isError(taskResult, checkSubresult)) {
             assert false : "Error in task " + origTask + ": " + TestUtil.getErrorMessage(taskResult) + "\n\n" + taskResult.debugDump();
@@ -3354,30 +3384,30 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return taskResult;
     }
 
-    protected OperationResult waitForTaskNextRun(final String taskOid) throws Exception {
+    protected OperationResult waitForTaskNextRun(final String taskOid) throws CommonException {
         return waitForTaskNextRun(taskOid, false, DEFAULT_TASK_WAIT_TIMEOUT, false);
     }
 
-    protected OperationResult waitForTaskNextRun(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
+    protected OperationResult waitForTaskNextRun(final String taskOid, final boolean checkSubresult, final int timeout) throws CommonException {
         return waitForTaskNextRun(taskOid, checkSubresult, timeout, false);
     }
 
-    protected OperationResult waitForTaskNextRun(final String taskOid, final boolean checkSubresult, final int timeout, boolean kickTheTask) throws Exception {
+    protected OperationResult waitForTaskNextRun(final String taskOid, final boolean checkSubresult, final int timeout, boolean kickTheTask) throws CommonException {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskNextRun");
         Task origTask = taskManager.getTaskWithResult(taskOid, waitResult);
         return waitForTaskNextRun(origTask, checkSubresult, timeout, waitResult, kickTheTask);
     }
 
-    protected OperationResult waitForTaskNextRun(final Task origTask, final boolean checkSubresult, final int timeout) throws Exception {
+    protected OperationResult waitForTaskNextRun(final Task origTask, final boolean checkSubresult, final int timeout) throws CommonException {
         return waitForTaskNextRun(origTask, checkSubresult, timeout, false);
     }
 
-    protected OperationResult waitForTaskNextRun(final Task origTask, final boolean checkSubresult, final int timeout, boolean kickTheTask) throws Exception {
+    protected OperationResult waitForTaskNextRun(final Task origTask, final boolean checkSubresult, final int timeout, boolean kickTheTask) throws CommonException {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskNextRun");
         return waitForTaskNextRun(origTask, checkSubresult, timeout, waitResult, kickTheTask);
     }
 
-    protected OperationResult waitForTaskNextRun(final Task origTask, final boolean checkSubresult, final int timeout, final OperationResult waitResult, boolean kickTheTask) throws Exception {
+    protected OperationResult waitForTaskNextRun(final Task origTask, final boolean checkSubresult, final int timeout, final OperationResult waitResult, boolean kickTheTask) throws CommonException {
         final Long origLastRunStartTimestamp = origTask.getLastRunStartTimestamp();
         final Long origLastRunFinishTimestamp = origTask.getLastRunFinishTimestamp();
         if (kickTheTask) {
@@ -5987,6 +6017,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return new RepoOpAsserter(repoPerformanceInformation, getTestNameShort());
     }
 
+    protected <F extends FocusType> FocusAsserter<F, Void> assertFocus(PrismObject<F> focus, String message) {
+        FocusAsserter<F, Void> asserter = FocusAsserter.forFocus(focus, message);
+        initializeAsserter(asserter);
+        return asserter;
+    }
+
     protected UserAsserter<Void> assertUser(PrismObject<UserType> user, String message) {
         UserAsserter<Void> asserter = UserAsserter.forUser(user, message);
         initializeAsserter(asserter);
@@ -6760,5 +6796,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         } finally {
             unsetGlobalTracingOverride();
         }
+    }
+
+    protected <F extends FocusType> void assertLinks(PrismObject<F> focus, int live, int related) {
+        assertFocus(focus, "")
+                .assertLinks(live, related);
     }
 }

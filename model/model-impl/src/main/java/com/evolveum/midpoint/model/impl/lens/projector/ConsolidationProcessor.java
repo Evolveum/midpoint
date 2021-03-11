@@ -560,14 +560,11 @@ public class ConsolidationProcessor {
     }
 
     private <F extends FocusType> void consolidateValuesModifyProjection(LensContext<F> context,
-                                                                         LensProjectionContext accCtx, Task task, OperationResult result)
-                    throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-                    CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
+            LensProjectionContext accCtx, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
 
-        boolean addUnchangedValues = false;
-        if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD) {
-            addUnchangedValues = true;
-        }
+        boolean addUnchangedValues = accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD;
 
         ObjectDelta<ShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, addUnchangedValues, task, result);
         if (modifyDelta == null || modifyDelta.isEmpty()) {

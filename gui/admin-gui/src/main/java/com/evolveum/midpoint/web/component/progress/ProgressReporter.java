@@ -186,9 +186,9 @@ public class ProgressReporter implements ProgressListener {
         this.abortRequested = value;
     }
 
-    private void addExpectedStatusItems(List<ProgressReportActivityDto> progressReportActivities, ModelContext modelContext) {
+    private void addExpectedStatusItems(List<ProgressReportActivityDto> progressReportActivities, ModelContext<?> modelContext) {
         if (modelContext.getFocusContext() != null) {
-            ModelElementContext fc = modelContext.getFocusContext();
+            ModelElementContext<?> fc = modelContext.getFocusContext();
             if (isNotEmpty(fc.getPrimaryDelta()) || isNotEmpty(fc.getSecondaryDelta())) {
                 ProgressInformation modelStatus = new ProgressInformation(FOCUS_OPERATION, (ProgressInformation.StateType) null);
                 if (findRelevantStatusItem(progressReportActivities, modelStatus) == null) {
@@ -196,14 +196,11 @@ public class ProgressReporter implements ProgressListener {
                 }
             }
         }
-        if (modelContext.getProjectionContexts() != null) {
-            Collection<ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
-            for (ModelProjectionContext mpc : projectionContexts) {
-                ProgressInformation projectionStatus = new ProgressInformation(RESOURCE_OBJECT_OPERATION,
-                        mpc.getResourceShadowDiscriminator(), (ProgressInformation.StateType) null);
-                if (findRelevantStatusItem(progressReportActivities, projectionStatus) == null) {
-                    progressReportActivities.add(createStatusItem(projectionStatus, modelContext));
-                }
+        for (ModelProjectionContext mpc : modelContext.getProjectionContexts()) {
+            ProgressInformation projectionStatus = new ProgressInformation(RESOURCE_OBJECT_OPERATION,
+                    mpc.getResourceShadowDiscriminator(), (ProgressInformation.StateType) null);
+            if (findRelevantStatusItem(progressReportActivities, projectionStatus) == null) {
+                progressReportActivities.add(createStatusItem(projectionStatus, modelContext));
             }
         }
     }

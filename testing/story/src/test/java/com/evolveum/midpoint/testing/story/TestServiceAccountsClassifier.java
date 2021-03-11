@@ -164,7 +164,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
         assertNotNull("No magazine service", serviceJiraAfter);
         PrismAsserts.assertPropertyValue(serviceJiraAfter,
                 ItemPath.create(ServiceType.F_EXTENSION, F_ACCOUNT_NAME), ACCOUNT_DUMMY_JIRA_USERNAME);
-        assertLinks(serviceJiraAfter, 1);
+        assertLiveLinks(serviceJiraAfter, 1);
 
     }
 
@@ -268,7 +268,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
         assertNotNull("No github service", serviceGithubAfter);
         assertAssignedResource(ServiceType.class, SERVICE_GITHUB_OID, RESOURCE_DUMMY_CLASSIFIER_OID, result);
         PrismAsserts.assertPropertyValue(serviceGithubAfter, ItemPath.create(ServiceType.F_EXTENSION, F_ACCOUNT_NAME), ACCOUNT_DUMMY_GITHUB_USERNAME);
-        assertLinks(serviceGithubAfter, 1);
+        assertLiveLinks(serviceGithubAfter, 1);
 
         //check if the intent was changed
         PrismObject<ShadowType> shadowGithub = getShadowModel(SHADOW_GITHUB_OID);

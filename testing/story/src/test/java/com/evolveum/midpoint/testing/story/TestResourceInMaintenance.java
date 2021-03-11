@@ -264,7 +264,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         TestUtil.assertInProgress("resource in the maintenance pending delta", result);
 
-        String newShadowOid = getLinkRefOid(USER2_OID, RESOURCE_OID);
+        String newShadowOid = getLiveLinkRefOid(USER2_OID, RESOURCE_OID);
         assertNotNull(newShadowOid);
 
         assertRepoShadow(newShadowOid)
@@ -338,7 +338,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         result2.computeStatus();
 
         then("recompute");
-        String checkShadow = getLinkRefOid(USER2_OID, RESOURCE_OID);
+        String checkShadow = getLiveLinkRefOid(USER2_OID, RESOURCE_OID);
         assertNotNull(checkShadow);
 
         assertRepoShadow(checkShadow)
@@ -376,7 +376,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         turnMaintenanceModeOff(task, result);
 
         // Check shadow does not exist yet:
-        String newShadowOid = getLinkRefOid(USER2_OID, RESOURCE_OID);
+        String newShadowOid = getLiveLinkRefOid(USER2_OID, RESOURCE_OID);
         PrismObject<ShadowType> shadowBefore = getShadowModel(newShadowOid);
         ShadowAsserter.forShadow(shadowBefore)
                 .assertIsNotExists()
@@ -413,7 +413,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         turnMaintenanceModeOn(task, result);
 
-        String shadowOid = getLinkRefOid(USER2_OID, RESOURCE_OID);
+        String shadowOid = getLiveLinkRefOid(USER2_OID, RESOURCE_OID);
         assertNotNull(shadowOid);
 
         when();
@@ -477,7 +477,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         turnMaintenanceModeOff(task, result);
 
         // Check shadow still exists:
-        String shadowOid = getLinkRefOid(USER2_OID, RESOURCE_OID);
+        String shadowOid = getLiveLinkRefOid(USER2_OID, RESOURCE_OID);
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         ShadowAsserter.forShadow(shadow)
                 .display("Shadow before delete")
@@ -532,7 +532,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         TestUtil.assertInProgress("resource in the maintenance pending delta", result);
 
-        String newShadowOid = getLinkRefOid(USER3_OID, RESOURCE_OID);
+        String newShadowOid = getLiveLinkRefOid(USER3_OID, RESOURCE_OID);
         assertNotNull(newShadowOid);
 
         assertRepoShadow(newShadowOid)
@@ -563,7 +563,8 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         then("recompute");
         assertSuccess(result2);
 
-        assertUser(USER3_OID, getTestNameShort()).assertLinks(1); // check that consequent recompute hasn't created second shadow
+        assertUser(USER3_OID, getTestNameShort())
+                .assertLiveLinks(1); // check that consequent recompute hasn't created second shadow
 
         // double check that nothing changed in the shadow after recompute:
         assertRepoShadow(newShadowOid)
@@ -646,7 +647,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         TestUtil.assertInProgress("resource in the maintenance pending delta", result);
 
-        String newShadowOid = getLinkRefOid(USER4_OID, RESOURCE_OID);
+        String newShadowOid = getLiveLinkRefOid(USER4_OID, RESOURCE_OID);
         assertNotNull(newShadowOid);
 
         assertRepoShadow(newShadowOid)
@@ -677,7 +678,8 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         then("recompute");
         assertSuccess(result2);
 
-        assertUser(USER4_OID, getTestNameShort()).assertLinks(1); // check that consequent recompute hasn't created second shadow
+        assertUser(USER4_OID, getTestNameShort())
+                .assertLiveLinks(1); // check that consequent recompute hasn't created second shadow
     }
 
     /**
@@ -712,10 +714,10 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         PrismObject<UserType> userAfterCreation = assertUser(userOid, "after creation, before deletion")
                 .display()
                 .links()
-                    .assertLinks(1)
+                    .assertLiveLinks(1)
                 .end()
                 .getObject();
-        String shadowOid = getLinkRefOid(userAfterCreation, RESOURCE_OID);
+        String shadowOid = getLiveLinkRefOid(userAfterCreation, RESOURCE_OID);
         shadow.setOid(shadowOid);
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
@@ -728,8 +730,8 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         assertUser(userOid, "after deletion, before reconciliation")
                 .display()
                 .links()
-                    .assertLinks(1)
-                    .single()
+                    .assertLiveLinks(1)
+                    .singleAny()
                         .resolveTarget()
                         .display()
                             .pendingOperations()

@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -76,7 +75,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
         assertUserJack(userJack);
-        assertLinks(userJack, 1);
+        assertLiveLinks(userJack, 1);
         accountOid = getSingleLinkOid(userJack);
 
         // Check shadow
@@ -133,7 +132,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
         assertUserJack(userJack);
-        assertLinks(userJack, 2);
+        assertLiveLinks(userJack, 2);
         String accountOidDefault = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
         String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
 
@@ -195,7 +194,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
         assertUserJack(userJack, "cpt. Jack Sparrow", "Jack", "Sparrow");
-        assertLinks(userJack, 2);
+        assertLiveLinks(userJack, 2);
         String accountOidDefault = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
         String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
 
@@ -259,7 +258,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
         assertUserJack(userJack, "cpt. Jack Sparrow", "Jack", "Sparrow");
-        assertLinks(userJack, 1);
+        assertLiveLinks(userJack, 1);
         String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
 
         // Check shadow: intent=test
@@ -310,7 +309,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack, "cpt. Jack Sparrow", "Jack", "Sparrow");
-        assertLinks(userJack, 0);
+        assertLiveLinks(userJack, 0);
 
         // Check is shadow is gone
         assertNoShadow(accountOid);

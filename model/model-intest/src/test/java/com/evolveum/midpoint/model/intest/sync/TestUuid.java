@@ -6,11 +6,16 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_DEFAULT;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_RELATED;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.List;
+
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -281,16 +286,12 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 
         augustusShadowOid = assertUserAfterByUsername(USER_AUGUSTUS_NAME)
                 .links()
-                .assertLinks(2)
-                .by()
-                .dead(true)
-                .find()
-                .assertOid(augustusShadowOid)
-                .end()
-                .by()
-                .dead(false)
-                .find()
-                .assertOidDifferentThan(augustusShadowOid)
+                .assertLinks(1, 1)
+                .by().dead(true).relation(ORG_RELATED).find()
+                    .assertOid(augustusShadowOid)
+                    .end()
+                .by().dead(false).relation(ORG_DEFAULT).find()
+                    .assertOidDifferentThan(augustusShadowOid)
                 .getOid();
     }
 
@@ -369,14 +370,11 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         assertUserAfterByUsername(USER_AUGUSTUS_NAME)
                 .displayWithProjections()
                 .links()
-                .assertLinks(3)
-                .by()
-                .dead(true)
-                .assertCount(2)
-                .by()
-                .dead(false)
-                .find()
-                .assertOidDifferentThan(augustusShadowOid);
+                .assertLinks(1, 2)
+                .by().dead(true)
+                    .assertCount(2)
+                .by().dead(false).find()
+                    .assertOidDifferentThan(augustusShadowOid);
     }
 
     private void assertReconAuditModifications(int expectedModifications, String taskOid) {

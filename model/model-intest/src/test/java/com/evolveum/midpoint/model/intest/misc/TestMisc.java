@@ -49,11 +49,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMisc extends AbstractMiscTest {
 
-    protected static final File ROLE_IMPORT_FILTERS_FILE = new File(TEST_DIR, "role-import-filters.xml");
-    protected static final String ROLE_IMPORT_FILTERS_OID = "aad19b9a-d511-11e7-8bf7-cfecde275e59";
+    private static final File ROLE_IMPORT_FILTERS_FILE = new File(TEST_DIR, "role-import-filters.xml");
+    private static final String ROLE_IMPORT_FILTERS_OID = "aad19b9a-d511-11e7-8bf7-cfecde275e59";
 
-    protected static final File ROLE_SHIP_FILE = new File(TEST_DIR, "role-ship.xml");
-    protected static final String ROLE_SHIP_OID = "bbd19b9a-d511-11e7-8bf7-cfecde275e59";
+    private static final File ROLE_SHIP_FILE = new File(TEST_DIR, "role-ship.xml");
+    private static final String ROLE_SHIP_OID = "bbd19b9a-d511-11e7-8bf7-cfecde275e59";
 
     private static final TestResource<ArchetypeType> ARCHETYPE_NODE_GROUP_GUI = new TestResource<>(TEST_DIR, "archetype-node-group-gui.xml", "05b6933a-b7fc-4543-b8fa-fd8b278ff9ee");
 
@@ -61,7 +61,7 @@ public class TestMisc extends AbstractMiscTest {
     protected static final String RESOURCE_SCRIPTY_OID = "399f5308-0447-11e8-91e9-a7f9c4100ffb";
     protected static final String RESOURCE_DUMMY_SCRIPTY_NAME = "scripty";
 
-    public static final byte[] KEY = { 0x01, 0x02, 0x03, 0x04, 0x05 };
+    private static final byte[] KEY = { 0x01, 0x02, 0x03, 0x04, 0x05 };
 
     private static final String USER_CLEAN_NAME = "clean";
     private static final String USER_CLEAN_GIVEN_NAME = "John";
@@ -348,7 +348,7 @@ public class TestMisc extends AbstractMiscTest {
         display("Relations", relations);
         assertRelationDef(relations, SchemaConstants.ORG_MANAGER, "manager");
         assertRelationDef(relations, SchemaConstants.ORG_OWNER, "owner");
-        assertEquals("Unexpected number of relation definitions", 7, relations.size());
+        assertEquals("Unexpected number of relation definitions", 8, relations.size());
     }
 
     /**
@@ -619,7 +619,7 @@ public class TestMisc extends AbstractMiscTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User before", userAfter);
         assertAssignments(userAfter, 2);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         PrismReference linkRef = userAfter.findReference(UserType.F_LINK_REF);
         assertFalse(linkRef.isEmpty());
@@ -641,7 +641,7 @@ public class TestMisc extends AbstractMiscTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
         assertAssignments(userAfter, 1);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
     }
 
     /**
@@ -659,7 +659,7 @@ public class TestMisc extends AbstractMiscTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User before", userAfter);
         assertAssignments(userAfter, 0);
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
     }
 
     @Test

@@ -570,6 +570,7 @@ class RefreshHelper {
             change.setResource(ctx.getResource().asPrismObject());
             change.setObjectDelta(repoShadow.createDeleteDelta());
             change.setSourceChannel(SchemaConstants.CHANNEL_DISCOVERY_URI);
+            change.setShadowExistsInRepo(false);
             changeNotificationDispatcher.notifyChange(change, task, parentResult);
             definitionsHelper.applyDefinition(repoShadow, parentResult);
             ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, repoShadow,

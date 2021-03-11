@@ -142,7 +142,7 @@ public class TestNullAttribute extends AbstractStoryTest {
         assertAssignedRole(user, ROLE_ACCOUNTONLY_OID);
         assertNotAssignedRole(user, ROLE_SHIPNWEAPON_OID);
 
-        String accountOid = getLinkRefOid(user, RESOURCE_DUMMY_OID);
+        String accountOid = getLiveLinkRefOid(user, RESOURCE_DUMMY_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -190,7 +190,7 @@ public class TestNullAttribute extends AbstractStoryTest {
         assertAssignedRole(user, ROLE_ACCOUNTONLY_OID);
         assertAssignedRole(user, ROLE_SHIPNWEAPON_OID);
 
-        String accountOid = getLinkRefOid(user, RESOURCE_DUMMY_OID);
+        String accountOid = getLiveLinkRefOid(user, RESOURCE_DUMMY_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -248,7 +248,7 @@ public class TestNullAttribute extends AbstractStoryTest {
         assertAssignedRole(userAfter, ROLE_ACCOUNTONLY_OID);
         assertNotAssignedRole(userAfter, ROLE_SHIPNWEAPON_OID);
 
-        String accountOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_OID);
+        String accountOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);

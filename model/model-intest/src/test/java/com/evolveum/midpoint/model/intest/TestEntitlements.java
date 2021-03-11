@@ -886,7 +886,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
         display("User guybrush after", userGuybrushAfter);
-        String guybrushShadowOid = getLinkRefOid(userGuybrushAfter, RESOURCE_DUMMY_ORANGE_OID);
+        String guybrushShadowOid = getLiveLinkRefOid(userGuybrushAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> guybrushShadow = getShadowModel(guybrushShadowOid);
         display("Shadow guybrush", guybrushShadow);
 
@@ -928,7 +928,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
         display("User guybrush after", userGuybrushAfter);
-        String guybrushShadowOid = getLinkRefOid(userGuybrushAfter, RESOURCE_DUMMY_ORANGE_OID);
+        String guybrushShadowOid = getLiveLinkRefOid(userGuybrushAfter, RESOURCE_DUMMY_ORANGE_OID);
 
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp before", userRappAfter);
@@ -1389,7 +1389,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 0);
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
 
         assertNoDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
     }
@@ -1414,7 +1414,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userBefore = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userBefore, 0);
-        assertLinks(userBefore, 0);
+        assertLiveLinks(userBefore, 0);
 
         // WHEN
         when();
@@ -1425,7 +1425,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 1);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         assertGroupMember(orgGroupName(OU_CLUB_SPITTERS), ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
         assertGroupMember(orgGroupName(OU_CLUB_DIVERS), ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
@@ -1456,7 +1456,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 1);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         assertGroupMember(orgGroupName(OU_CLUB_SPITTERS), ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
         assertGroupMember(orgGroupName(OU_CLUB_DIVERS), ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
@@ -1479,7 +1479,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 0);
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
 
         assertNoDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
     }
@@ -1494,7 +1494,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userBefore = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userBefore, 0);
-        assertLinks(userBefore, 0);
+        assertLiveLinks(userBefore, 0);
 
         // WHEN
         when();
@@ -1505,7 +1505,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 1);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         assertGroupMember(orgGroupName(OU_CLUB_SPITTERS), ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
         assertGroupMember(orgGroupName(OU_CLUB_DIVERS), ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
@@ -1527,7 +1527,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 1);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         assertGroupMember(orgGroupName(OU_CLUB_SPITTERS), ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
         assertGroupMember(orgGroupName(OU_CLUB_DIVERS), ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
@@ -1557,7 +1557,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 0);
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
 
         assertNoDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
     }

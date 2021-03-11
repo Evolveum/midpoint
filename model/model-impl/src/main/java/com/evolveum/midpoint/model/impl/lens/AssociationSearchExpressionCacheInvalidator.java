@@ -14,6 +14,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Pavol Mederly
@@ -27,7 +28,7 @@ class AssociationSearchExpressionCacheInvalidator implements ResourceOperationLi
     }
 
     @Override
-    public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
+    public void notifyChange(@NotNull ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
         cache.invalidate(change.getResource(), change.getShadowedResourceObject());
     }
 

@@ -1589,7 +1589,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         // MidPoitn cannot collapse these two shadows to one, because they do not
         // necessarily represent the same account. E.g. the new account may have
         // different primary identifier (in case that those identifiers are generated).
-        assertLinks(userAfter, 2);
+        assertLiveLinks(userAfter, 2);
 
         int deadShadows = 0;
         int liveShadows = 0;
@@ -1695,7 +1695,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         PrismObject<UserType> userBefore = getUser(USER_DRAKE_OID);
         display("user before", userBefore);
-        assertLinks(userBefore, 0);
+        assertLiveLinks(userBefore, 0);
 
         final long TIMEOUT = 60000L;
 

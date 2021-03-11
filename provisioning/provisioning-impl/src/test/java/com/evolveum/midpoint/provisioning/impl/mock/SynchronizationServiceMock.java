@@ -14,6 +14,7 @@ import javax.annotation.PreDestroy;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.testng.AssertJUnit;
@@ -72,7 +73,7 @@ public class SynchronizationServiceMock
     }
 
     @Override
-    public void notifyChange(ResourceObjectShadowChangeDescription change, Task task,
+    public void notifyChange(@NotNull ResourceObjectShadowChangeDescription change, Task task,
             OperationResult parentResult) {
         LOGGER.debug("Notify change mock called with {}", change);
 

@@ -65,10 +65,8 @@ public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
 
-        PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(result);
         SynchronizationContext<?> syncCtx = synchronizationService.loadSynchronizationContext(
-                combinedObject, combinedObject, null, resource,
-                task.getCategory(), null, configuration, task, result);
+                combinedObject, null, resource, task.getCategory(), null, null, task, result);
 
         return createClassification(combinedObject, syncCtx);
     }

@@ -101,7 +101,7 @@ public class TestLimitedResources extends AbstractStoryTest {
 
         assertUserAfter(USER_JACK_OID)
             .links()
-                .single();
+                .singleAny();
 
         assertAADWeapon(USER_JACK_USERNAME /* no value */);
     }

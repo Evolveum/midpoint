@@ -101,7 +101,7 @@ public class TestAutoassign extends AbstractRbacTest {
                     .end()
                 .end()
             .links()
-                .single();
+                .singleLive();
 
         assertDummyAccountByUsername(null, USER_JACK_USERNAME)
             .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, ROLE_UNIT_WORKER_TITLE);
@@ -167,7 +167,7 @@ public class TestAutoassign extends AbstractRbacTest {
                     .end()
                 .end()
             .links()
-                .single();
+                .singleLive();
 
         assertDummyAccountByUsername(null, USER_JACK_USERNAME)
             .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
@@ -201,7 +201,7 @@ public class TestAutoassign extends AbstractRbacTest {
                 .assertRole(ROLE_UNIT_WALKER_OID)
                 .end()
             .links()
-                .single();
+                .singleLive();
 
         assertDummyAccountByUsername(null, USER_JACK_USERNAME)
             .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
@@ -233,7 +233,7 @@ public class TestAutoassign extends AbstractRbacTest {
                 .assertRole(ROLE_UNIT_SLEEPER_OID)
                 .end()
             .links()
-                .single();
+                .singleLive();
 
         assertDummyAccountByUsername(null, USER_JACK_USERNAME)
             .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
@@ -263,7 +263,7 @@ public class TestAutoassign extends AbstractRbacTest {
                         .assertNoRole(ROLE_UNIT_RIDER_OID)
                     .end()
                 .links()
-                    .single();
+                    .singleLive();
 
         assertDummyAccountByUsername(null, USER_JACK_USERNAME)
                 .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
@@ -311,7 +311,7 @@ public class TestAutoassign extends AbstractRbacTest {
                     .assertRole(ROLE_UNIT_RIDER_OID)
                 .end()
                 .links()
-                    .single();
+                    .singleLive();
     }
 
     @Test
@@ -333,8 +333,8 @@ public class TestAutoassign extends AbstractRbacTest {
                         .assertRole(ROLE_UNIT_RIDER_OID)
                         .assertRole(ROLE_UNIT_SLEEPER_OID)
                     .end()
-                        .links()
-                    .single();
+                .links()
+                    .singleLive();
     }
 
     @Test
@@ -356,7 +356,7 @@ public class TestAutoassign extends AbstractRbacTest {
                         .assertRole(ROLE_UNIT_SLEEPER_OID)
                     .end()
                 .links()
-                    .single();
+                    .singleLive();
     }
 
 

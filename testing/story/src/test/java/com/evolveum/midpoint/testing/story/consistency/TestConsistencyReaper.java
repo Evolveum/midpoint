@@ -48,7 +48,7 @@ public class TestConsistencyReaper extends TestConsistencyMechanism {
         assertNoRepoShadow(ACCOUNT_DENIELS_OID);
 
         LinksAsserter<?, ?, ?> linksAsserter = assertUser(USER_ELAINE_OID, "User after recon")
-                .assertLinks(1)
+                .assertLiveLinks(1)
                 .links();
 
         ShadowReferenceAsserter<?> notDeadShadow = linksAsserter.by()
@@ -58,9 +58,9 @@ public class TestConsistencyReaper extends TestConsistencyMechanism {
         assertModelShadow(notDeadShadow.getOid())
                 .display()
                 .attributes()
-                .assertHasPrimaryIdentifier()
-                .assertHasSecondaryIdentifier()
-                .end()
+                    .assertHasPrimaryIdentifier()
+                    .assertHasSecondaryIdentifier()
+                    .end()
                 .end();
     }
 }

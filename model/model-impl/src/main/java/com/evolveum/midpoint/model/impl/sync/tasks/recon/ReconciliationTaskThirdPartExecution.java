@@ -145,8 +145,7 @@ class ReconciliationTaskThirdPartExecution
                 // does not exist on the resource, and invokes the discovery that marks the shadow as dead and synchronizes it.
             } catch (ObjectNotFoundException e) {
                 result.muteLastSubresultError();
-                // Account is gone
-                reactShadowGone(shadow, task, result); // actually, for deleted objects here is the recon code called second time
+                reactShadowGone(shadow, task, result);
             }
         }
 

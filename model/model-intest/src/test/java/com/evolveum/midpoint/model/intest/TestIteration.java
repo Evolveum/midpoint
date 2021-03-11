@@ -284,11 +284,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
         assertUserJack(userJack);
-        assertLinks(userJack, 2);
+        assertLiveLinks(userJack, 2);
         assertAccount(userJack, RESOURCE_DUMMY_OID);
         assertAccount(userJack, RESOURCE_DUMMY_PINK_OID);
 
-        String accountPinkOid = getLinkRefOid(userJack, RESOURCE_DUMMY_PINK_OID);
+        String accountPinkOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_PINK_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountPinkShadow = repositoryService.getObject(ShadowType.class, accountPinkOid, null, result);
@@ -342,12 +342,12 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userGuybrush = getUser(USER_GUYBRUSH_OID);
         display("User after change execution", userGuybrush);
         assertUser(userGuybrush, USER_GUYBRUSH_OID, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Guybrush", "Threepwood");
-        assertLinks(userGuybrush, 2);
+        assertLiveLinks(userGuybrush, 2);
         // Guybrush had dummy account before
         assertAccount(userGuybrush, RESOURCE_DUMMY_OID);
         assertAccount(userGuybrush, RESOURCE_DUMMY_PINK_OID);
 
-        String accountPinkOid = getLinkRefOid(userGuybrush, RESOURCE_DUMMY_PINK_OID);
+        String accountPinkOid = getLiveLinkRefOid(userGuybrush, RESOURCE_DUMMY_PINK_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountPinkShadow = repositoryService.getObject(ShadowType.class, accountPinkOid, null, result);
@@ -407,10 +407,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userDeWattAfter = getUser(userDeWattkOid);
         display("User after change execution", userDeWattAfter);
         assertUser(userDeWattAfter, userDeWattkOid, USER_DEWATT_NAME, "Augustus DeWatt", null, null);
-        assertLinks(userDeWattAfter, 1);
+        assertLiveLinks(userDeWattAfter, 1);
         assertAccount(userDeWattAfter, RESOURCE_DUMMY_PINK_OID);
 
-        String accountPinkOid = getLinkRefOid(userDeWattAfter, RESOURCE_DUMMY_PINK_OID);
+        String accountPinkOid = getLiveLinkRefOid(userDeWattAfter, RESOURCE_DUMMY_PINK_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountPinkShadow = repositoryService.getObject(ShadowType.class, accountPinkOid, null, result);
@@ -1014,12 +1014,12 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
         assertUserJack(userJack);
-        assertLinks(userJack, 3);
+        assertLiveLinks(userJack, 3);
         assertAccount(userJack, RESOURCE_DUMMY_OID);
         assertAccount(userJack, RESOURCE_DUMMY_PINK_OID);
         assertAccount(userJack, RESOURCE_DUMMY_VIOLET_OID);
 
-        String accountVioletOid = getLinkRefOid(userJack, RESOURCE_DUMMY_VIOLET_OID);
+        String accountVioletOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_VIOLET_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountVioletShadow = repositoryService.getObject(ShadowType.class, accountVioletOid, null, result);
@@ -1070,12 +1070,12 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userGuybrush = getUser(USER_GUYBRUSH_OID);
         display("User after change execution", userGuybrush);
         assertUser(userGuybrush, USER_GUYBRUSH_OID, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Guybrush", "Threepwood");
-        assertLinks(userGuybrush, 3);
+        assertLiveLinks(userGuybrush, 3);
         assertAccount(userGuybrush, RESOURCE_DUMMY_OID);
         assertAccount(userGuybrush, RESOURCE_DUMMY_PINK_OID);
         assertAccount(userGuybrush, RESOURCE_DUMMY_VIOLET_OID);
 
-        String accountVioletOid = getLinkRefOid(userGuybrush, RESOURCE_DUMMY_VIOLET_OID);
+        String accountVioletOid = getLiveLinkRefOid(userGuybrush, RESOURCE_DUMMY_VIOLET_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountVioletShadow = repositoryService.getObject(ShadowType.class, accountVioletOid, null, result);
@@ -1127,10 +1127,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userHerman = getUser(USER_HERMAN_OID);
         display("User after change execution", userHerman);
         assertUser(userHerman, USER_HERMAN_OID, "herman", "Herman Toothrot", "Herman", "Toothrot");
-        assertLinks(userHerman, 1);
+        assertLiveLinks(userHerman, 1);
         assertAccount(userHerman, RESOURCE_DUMMY_VIOLET_OID);
 
-        String accountVioletOid = getLinkRefOid(userHerman, RESOURCE_DUMMY_VIOLET_OID);
+        String accountVioletOid = getLiveLinkRefOid(userHerman, RESOURCE_DUMMY_VIOLET_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountVioletShadow = repositoryService.getObject(ShadowType.class, accountVioletOid, null, result);
@@ -1212,13 +1212,13 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
         assertUserJack(userJack);
-        assertLinks(userJack, 4);
+        assertLiveLinks(userJack, 4);
         assertAccount(userJack, RESOURCE_DUMMY_OID);
         assertAccount(userJack, RESOURCE_DUMMY_PINK_OID);
         assertAccount(userJack, RESOURCE_DUMMY_VIOLET_OID);
         assertAccount(userJack, RESOURCE_DUMMY_MAGENTA_OID);
 
-        String accountMagentaOid = getLinkRefOid(userJack, RESOURCE_DUMMY_MAGENTA_OID);
+        String accountMagentaOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_MAGENTA_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, null, result);
@@ -1290,10 +1290,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
         display("User after change execution", userDrakeAfter);
         assertUser(userDrakeAfter, USER_DRAKE_OID, "drake", "Francis Drake", "Fancis", "Drake");
-        assertLinks(userDrakeAfter, 1);
+        assertLiveLinks(userDrakeAfter, 1);
         assertAccount(userDrakeAfter, RESOURCE_DUMMY_MAGENTA_OID);
 
-        String accountMagentaOid = getLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_MAGENTA_OID);
+        String accountMagentaOid = getLiveLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_MAGENTA_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, null, result);
@@ -1351,10 +1351,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
         display("User after change execution", userDrakeAfter);
         assertUser(userDrakeAfter, USER_DRAKE_OID, "drake", "Francis Drake", "Fancis", "Drake");
-        assertLinks(userDrakeAfter, 1);
+        assertLiveLinks(userDrakeAfter, 1);
         assertAccount(userDrakeAfter, RESOURCE_DUMMY_MAGENTA_OID);
 
-        String accountMagentaOid = getLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_MAGENTA_OID);
+        String accountMagentaOid = getLiveLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_MAGENTA_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, null, result);
@@ -1417,13 +1417,13 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userGuybrush = getUser(USER_GUYBRUSH_OID);
         display("User after change execution", userGuybrush);
         assertUser(userGuybrush, USER_GUYBRUSH_OID, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Guybrush", "Threepwood");
-        assertLinks(userGuybrush, 4);
+        assertLiveLinks(userGuybrush, 4);
         assertAccount(userGuybrush, RESOURCE_DUMMY_OID);
         assertAccount(userGuybrush, RESOURCE_DUMMY_PINK_OID);
         assertAccount(userGuybrush, RESOURCE_DUMMY_VIOLET_OID);
         assertAccount(userGuybrush, RESOURCE_DUMMY_MAGENTA_OID);
 
-        String accountMagentaOid = getLinkRefOid(userGuybrush, RESOURCE_DUMMY_MAGENTA_OID);
+        String accountMagentaOid = getLiveLinkRefOid(userGuybrush, RESOURCE_DUMMY_MAGENTA_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, null, result);
@@ -1477,13 +1477,13 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userGuybrush = getUser(USER_GUYBRUSH_OID);
         display("User after change execution", userGuybrush);
         assertUser(userGuybrush, USER_GUYBRUSH_OID, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Guybrush", "Threepwood");
-        assertLinks(userGuybrush, 4);
+        assertLiveLinks(userGuybrush, 4);
         assertAccount(userGuybrush, RESOURCE_DUMMY_OID);
         assertAccount(userGuybrush, RESOURCE_DUMMY_PINK_OID);
         assertAccount(userGuybrush, RESOURCE_DUMMY_VIOLET_OID);
         assertAccount(userGuybrush, RESOURCE_DUMMY_MAGENTA_OID);
 
-        String accountMagentaOid = getLinkRefOid(userGuybrush, RESOURCE_DUMMY_MAGENTA_OID);
+        String accountMagentaOid = getLiveLinkRefOid(userGuybrush, RESOURCE_DUMMY_MAGENTA_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, null, result);
@@ -1539,13 +1539,13 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
         assertUserJack(userJack, USER_JACK_RENAMED_NAME, "Jack Sparrow", "Jack", "Sparrow", "Caribbean");
-        assertLinks(userJack, 4);
+        assertLiveLinks(userJack, 4);
         assertAccount(userJack, RESOURCE_DUMMY_OID);
         assertAccount(userJack, RESOURCE_DUMMY_PINK_OID);
         assertAccount(userJack, RESOURCE_DUMMY_VIOLET_OID);
         assertAccount(userJack, RESOURCE_DUMMY_MAGENTA_OID);
 
-        String accountMagentaOid = getLinkRefOid(userJack, RESOURCE_DUMMY_MAGENTA_OID);
+        String accountMagentaOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_MAGENTA_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, null, result);

@@ -909,7 +909,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
         PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
         accountRefVal.setObject(account);
-        ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountJackOid);
+        ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
+                .createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountJackOid);
         userDelta.addModification(accountDelta);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
@@ -917,14 +918,16 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+        assertSuccess("executeChanges result", result);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
         // Check accountRef
-        assertUserNoAccountRefs(userJack);
+        assertUser(userJack, "after")
+                .display()
+                .assertLiveLinks(0)
+                .assertRelatedLinks(1); // The link was deleted, but it remains in the "related" state.
 
         // Check shadow (if it is unchanged)
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
@@ -977,8 +980,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+        assertSuccess("executeChanges result", result);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -999,9 +1001,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.assertHasDelta(ChangeType.DELETE, ShadowType.class);
-        dummyAuditService.assertTarget(accountJackOid);
+        dummyAuditService.assertExecutionDeltas(3); // metadata + unlink + delete shadow
+        String shadowOid = dummyAuditService.assertHasDelta(ChangeType.DELETE, ShadowType.class).getOid();
+        assertEquals("Wrong shadow delete OID", accountJackOid, shadowOid);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -2917,7 +2919,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         display("User morgan after", userMorgan);
         UserType userMorganType = userMorgan.asObjectable();
         AssignmentType assignmentType = assertAssignedAccount(userMorgan, RESOURCE_DUMMY_OID);
-        assertLinks(userMorgan, 1);
+        assertLiveLinks(userMorgan, 1);
         ObjectReferenceType accountRefType = userMorganType.getLinkRef().get(0);
         String accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));

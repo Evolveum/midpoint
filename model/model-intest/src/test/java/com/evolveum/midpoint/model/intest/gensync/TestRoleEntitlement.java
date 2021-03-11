@@ -116,7 +116,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         PrismObject<RoleType> rolePirate = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, null, task, result);
         display("Role pirate after", rolePirate);
         assertRolePirate(rolePirate);
-        assertLinks(rolePirate, 1);
+        assertLiveLinks(rolePirate, 1);
         groupOid = getSingleLinkOid(rolePirate);
         assertFalse("No linkRef oid", StringUtils.isBlank(groupOid));
 
@@ -275,7 +275,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         PrismObject<RoleType> role = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, options, task, result);
 
         RoleType roleType = role.asObjectable();
-        assertLinks(role, 1);
+        assertLiveLinks(role, 1);
         PrismReferenceValue linkRef = getSingleLinkRef(role);
         assertEquals("OID mismatch in linkRefValue", groupOid, linkRef.getOid());
         assertNotNull("Missing account object in linkRefValue", linkRef.getObject());
@@ -303,7 +303,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         PrismObject<RoleType> role = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, options, task, result);
 
         RoleType roleType = role.asObjectable();
-        assertLinks(role, 1);
+        assertLiveLinks(role, 1);
         PrismReferenceValue linkRef = getSingleLinkRef(role);
         assertEquals("OID mismatch in linkRefValue", groupOid, linkRef.getOid());
         assertNotNull("Missing account object in linkRefValue", linkRef.getObject());
@@ -333,7 +333,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         PrismObject<RoleType> role = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, options, task, result);
 
         RoleType roleType = role.asObjectable();
-        assertLinks(role, 1);
+        assertLiveLinks(role, 1);
         PrismReferenceValue linkRef = getSingleLinkRef(role);
         assertEquals("OID mismatch in linkRefValue", groupOid, linkRef.getOid());
         assertNotNull("Missing account object in linkRefValue", linkRef.getObject());
@@ -373,7 +373,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         // Check accountRef
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
-        assertLinks(role, 0);
+        assertLiveLinks(role, 0);
 
         // Check is shadow is gone
         try {
@@ -421,7 +421,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNotNull("No account OID in resulting delta", groupOid);
         // Check linkRef (should be none)
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
-        assertLinks(role, 0);
+        assertLiveLinks(role, 0);
 
         // Check shadow
         PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
@@ -471,7 +471,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertSuccess(result);
 
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
-        assertLinks(role, 1);
+        assertLiveLinks(role, 1);
         groupOid = getSingleLinkOid(role);
 
         // Check shadow
@@ -510,7 +510,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
                 .createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID);
         PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
         accountRefVal.setObject(group);
-        ReferenceDelta linkDelta = prismContext.deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), groupOid);
+        ReferenceDelta linkDelta = prismContext.deltaFactory().reference()
+                .createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), groupOid);
         roleDelta.addModification(linkDelta);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(roleDelta);
 
@@ -521,8 +522,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
 
-        PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
-        assertLinks(role, 0);
+        assertRoleAfter(ROLE_PIRATE_OID)
+                .assertLinks(0, 1);
 
         // Check shadow (should be unchanged)
         PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, groupOid, null, result);
@@ -566,7 +567,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         TestUtil.assertSuccess("executeChanges result", result);
 
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
-        assertLinks(role, 0);
+        assertLiveLinks(role, 0);
 
         // Check is shadow is gone
         assertNoShadow(groupOid);
@@ -579,11 +580,10 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.assertHasDelta(ChangeType.DELETE, ShadowType.class);
-        dummyAuditService.assertTarget(groupOid);
+        dummyAuditService.assertExecutionDeltas(3);
+        ObjectDeltaOperation<ShadowType> odo = dummyAuditService.assertHasDelta(ChangeType.DELETE, ShadowType.class);
+        assertEquals(groupOid, odo.getOid());
         dummyAuditService.assertExecutionSuccess();
-
     }
 
     @Test
@@ -607,7 +607,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
         display("Role after change execution", role);
-        assertLinks(role, 1);
+        assertLiveLinks(role, 1);
         groupOid = getSingleLinkOid(role);
 
         // Check shadow
@@ -672,7 +672,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertEquals("Wrong role description", ROLE_PIRATE_DESCRIPTION, role.asObjectable().getDescription());
         // reflected by inbound
         PrismAsserts.assertPropertyValue(role, ROLE_EXTENSION_COST_CENTER_PATH, "MELEE123");
-        assertLinks(role, 1);
+        assertLiveLinks(role, 1);
         groupOid = getSingleLinkOid(role);
 
         // Check shadow
@@ -727,7 +727,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
         display("Role after change execution", role);
-        assertLinks(role, 0);
+        assertLiveLinks(role, 0);
 
         // Check is shadow is gone
         assertNoShadow(groupOid);
@@ -774,7 +774,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
         display("Role after change execution", role);
-        assertLinks(role, 1);
+        assertLiveLinks(role, 1);
         groupOid = getSingleLinkOid(role);
 
         // Check shadow
@@ -829,7 +829,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
         display("Role after change execution", role);
-        assertLinks(role, 0);
+        assertLiveLinks(role, 0);
 
         // Check is shadow is gone
         assertNoShadow(groupOid);
@@ -877,7 +877,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
         display("Role after change execution", role);
-        assertLinks(role, 1);
+        assertLiveLinks(role, 1);
         groupOid = getSingleLinkOid(role);
 
         // Check shadow
@@ -932,7 +932,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
         display("Role after change execution", role);
-        assertLinks(role, 1);
+        assertLiveLinks(role, 1);
         groupOid = getSingleLinkOid(role);
 
         // Check shadow
@@ -981,7 +981,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
         display("Role after change execution", role);
-        assertLinks(role, 1);
+        assertLiveLinks(role, 1);
         groupOid = getSingleLinkOid(role);
 
         // Check shadow
@@ -1096,7 +1096,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         PrismAsserts.assertPropertyValue(role, RoleType.F_DESCRIPTION, ROLE_SWASHBUCKLER_DESCRIPTION);
         // reflected by inbound
         PrismAsserts.assertPropertyValue(role, ROLE_EXTENSION_COST_CENTER_PATH, "META0000");
-        assertLinks(role, 1);
+        assertLiveLinks(role, 1);
         groupOid = getSingleLinkOid(role);
 
         // Check shadow

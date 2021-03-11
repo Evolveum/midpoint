@@ -15,8 +15,6 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -1795,7 +1793,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 1);
 
         UserType userAfterType = userAfter.asObjectable();
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -1915,7 +1913,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 1);
 
         UserType userAfterType = userAfter.asObjectable();
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -1942,7 +1940,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 2);
 
         UserType userAfterType = userAfter.asObjectable();
-        assertLinks(userAfter, 2);
+        assertLiveLinks(userAfter, 2);
 
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -1974,7 +1972,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 1);
 
         UserType userAfterType = userAfter.asObjectable();
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -2006,7 +2004,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 2);
 
         UserType userAfterType = userAfter.asObjectable();
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -2039,7 +2037,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 2);
 
         UserType userAfterType = userAfter.asObjectable();
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -2074,7 +2072,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 1);
 
         UserType userAfterType = userAfter.asObjectable();
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -2114,7 +2112,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 1);
 
         UserType userAfterType = userAfter.asObjectable();
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         assertEquals("Wrong timezone", "High Seas/Scabb Island", userAfterType.getTimezone());
         assertEquals("Wrong locale", "SC", userAfterType.getLocale());
@@ -2153,7 +2151,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 2);
 
         UserType userAfterType = userAfter.asObjectable();
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         assertEquals("Wrong timezone", "Caribbean/Whatever", userAfterType.getTimezone());
         assertEquals("Wrong locale", "WE", userAfterType.getLocale());
@@ -2197,7 +2195,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 2);
 
         UserType userAfterType = userAfter.asObjectable();
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         // There is a mapping "locality->timezone" in the object template (plus: High Seas/Coffin)
         // but also a mapping "()->timezone" in Rastaman role (zero: Caribbean/Whatever)
@@ -2245,7 +2243,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 2);
 
         UserType userAfterType = userAfter.asObjectable();
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         // There is a mapping "locality->timezone" in the object template (plus: High Seas/Six feet under)
         // but also a mapping "()->timezone" in Rastaman role (zero: Caribbean/Whatever)
@@ -2290,7 +2288,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 2);
 
         UserType userAfterType = userAfter.asObjectable();
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         assertEquals("Wrong timezone", "Monkey Island", userAfterType.getTimezone());
         assertEquals("Wrong locale", "WE", userAfterType.getLocale());
@@ -2332,7 +2330,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 2);
 
         UserType userAfterType = userAfter.asObjectable();
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         // The normal mapping from the rastaman role was applied at this point
         // This is sourceless mapping and there is no a-priori delta
@@ -2368,7 +2366,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 1);
 
         UserType userAfterType = userAfter.asObjectable();
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         // Role is unassigned. The mapping was authoritative, so it removed the value
         assertNull("Wrong timezone", userAfterType.getTimezone());
@@ -3505,7 +3503,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertOnDemandOrgAssigned("FD004", userJack);
 
         assertAssignments(userJack, 2);
-        assertLinks(userJack, 1);
+        assertLiveLinks(userJack, 1);
     }
 
     /**

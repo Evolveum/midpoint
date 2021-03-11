@@ -92,20 +92,22 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         then();
         assertSuccess(result);
 
+        // @formatter:off
         jackEmployeeNumber = assertUserAfter(USER_JACK_OID)
                 .assertDescription("Where's the rum?")
                 .assignments()
-                .single()
-                .assertRole(ROLE_PIRATE_GREEN_OID)
-                .metadata()
-                .assertOriginMappingName("pirate-assignment")
-                .end()
-                .end()
-                .end()
-                .assertLinks(1)
+                    .single()
+                        .assertRole(ROLE_PIRATE_GREEN_OID)
+                        .metadata()
+                            .assertOriginMappingName("pirate-assignment")
+                            .end()
+                        .end()
+                    .end()
+                .assertLiveLinks(1)
                 .assertOrganizationalUnits("The crew of pirate")
                 .assertEmployeeNumber()
                 .getObject().asObjectable().getEmployeeNumber();
+        // @formatter:on
     }
 
     /**
@@ -129,19 +131,21 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         then();
         assertSuccess(result);
 
+        // @formatter:off
         assertUserAfter(USER_JACK_OID)
                 .assertDescription("Where's the rum?")
                 .assignments()
-                .single()
-                .assertRole(ROLE_BUCCANEER_GREEN_OID)
-                .metadata()
-                .assertOriginMappingName("buccaneer-assignment")
-                .end()
-                .end()
-                .end()
-                .assertLinks(1)
+                    .single()
+                        .assertRole(ROLE_BUCCANEER_GREEN_OID)
+                        .metadata()
+                            .assertOriginMappingName("buccaneer-assignment")
+                            .end()
+                        .end()
+                    .end()
+                .assertLiveLinks(1)
                 .assertOrganizationalUnits("The crew of buccaneer")
                 .assertEmployeeNumber(jackEmployeeNumber);
+        // @formatter:on
     }
 
     @Test
@@ -207,12 +211,12 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedNoRole(userAfter);
         assertAssignments(userAfter, 1);
-        assertLinks(userAfter, 2);
+        assertLiveLinks(userAfter, 2);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Orange account", dummyAccount);
 
-        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        guybrushShadowOrangeOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
         display("Orange shadow", shadowOrange);
     }
@@ -249,12 +253,12 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         AssignmentType pirateAssignment = assertAssignedRole(userAfter, ROLE_PIRATE_OID);
         assertEquals("Wrong originMappingName", "gossip-inbound", pirateAssignment.getMetadata().getOriginMappingName());
         assertAssignments(userAfter, 2);
-        assertLinks(userAfter, 2);
+        assertLiveLinks(userAfter, 2);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Orange account", dummyAccount);
 
-        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        guybrushShadowOrangeOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
         display("Orange shadow", shadowOrange);
 
@@ -288,12 +292,12 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedRole(userAfter, ROLE_PIRATE_OID);
         assertAssignments(userAfter, 2);
-        assertLinks(userAfter, 2);
+        assertLiveLinks(userAfter, 2);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Orange account", dummyAccount);
 
-        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        guybrushShadowOrangeOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
         display("Orange shadow", shadowOrange);
 
@@ -331,12 +335,12 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedNoRole(userAfter);
         assertAssignments(userAfter, 1);
-        assertLinks(userAfter, 2);
+        assertLiveLinks(userAfter, 2);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Orange account", dummyAccount);
 
-        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        guybrushShadowOrangeOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
         display("Orange shadow", shadowOrange);
 
@@ -376,7 +380,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedNoRole(userAfter);
         assertAssignments(userAfter, 1);
-        assertLinks(userAfter, 2);
+        assertLiveLinks(userAfter, 2);
 
         // Second inbound expression should work here
         PrismAsserts.assertPropertyValue(userAfter, getExtensionPath(PIRACY_TALES), "Look behind you, a Three-Headed Monkey!");
@@ -384,7 +388,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Orange account", dummyAccount);
 
-        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        guybrushShadowOrangeOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
         display("Orange shadow", shadowOrange);
 
@@ -424,7 +428,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedNoRole(userAfter);
         assertAssignments(userAfter, 1);
-        assertLinks(userAfter, 2);
+        assertLiveLinks(userAfter, 2);
 
         // Second inbound expression should work here
         PrismAsserts.assertPropertyValue(userAfter, getExtensionPath(PIRACY_TALES), "I wanna be a pirrrrrrate!");
@@ -432,7 +436,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Orange account", dummyAccount);
 
-        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        guybrushShadowOrangeOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
         display("Orange shadow", shadowOrange);
 
@@ -472,12 +476,12 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedNoRole(userAfter);
         assertAssignments(userAfter, 1);
-        assertLinks(userAfter, 2);
+        assertLiveLinks(userAfter, 2);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Orange account", dummyAccount);
 
-        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        guybrushShadowOrangeOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
         display("Orange shadow", shadowOrange);
 
@@ -514,12 +518,13 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedNoRole(userAfter);
         assertAssignments(userAfter, 1);
-        assertLinks(userAfter, 1);
+        assertUser(userAfter, "after")
+                .assertLinks(1, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Orange account", dummyAccount);
 
-        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        guybrushShadowOrangeOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
         display("Orange shadow", shadowOrange);
 
@@ -545,7 +550,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         displayDumpable("Account orange before", dummyAccountBefore);
 
         // WHEN
-        reconcileUser(USER_GUYBRUSH_OID, task, result);
+        traced(() -> reconcileUser(USER_GUYBRUSH_OID, task, result));
 
         // THEN
         assertSuccess(result);
@@ -558,12 +563,13 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedRole(userAfter, ROLE_THIEF_OID);
         assertAssignments(userAfter, 2);
-        assertLinks(userAfter, 1);
+        assertUser(userAfter, "after")
+                .assertLinks(1, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Orange account", dummyAccount);
 
-        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        guybrushShadowOrangeOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
         display("Orange shadow", shadowOrange);
     }
@@ -602,12 +608,13 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedRole(userAfter, ROLE_THIEF_OID);
         assertAssignments(userAfter, 2);
-        assertLinks(userAfter, 1);
+        assertUser(userAfter, "after")
+                .assertLinks(1, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Orange account", dummyAccount);
 
-        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        guybrushShadowOrangeOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
         display("Orange shadow", shadowOrange);
     }
@@ -654,12 +661,13 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedRole(userAfter, ROLE_THIEF_OID);
         assertAssignments(userAfter, 2);
-        assertLinks(userAfter, 1);
+        assertUser(userAfter, "after")
+                .assertLinks(1, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Orange account", dummyAccount);
 
-        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        guybrushShadowOrangeOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
         display("Orange shadow", shadowOrange);
     }
@@ -700,13 +708,14 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedRole(userAfter, ROLE_THIEF_OID);
         assertAssignments(userAfter, 2);
-        assertLinks(userAfter, 1);
+        assertUser(userAfter, "after")
+                .assertLinks(1, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Account orange after", dummyAccount);
         displayDumpable("Orange account", dummyAccount);
 
-        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        guybrushShadowOrangeOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
         display("Orange shadow", shadowOrange);
     }
@@ -748,12 +757,13 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedRole(userAfter, ROLE_THIEF_OID);
         assertAssignments(userAfter, 2);
-        assertLinks(userAfter, 1);
+        assertUser(userAfter, "after")
+                .assertLinks(1, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Orange account", dummyAccount);
 
-        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        guybrushShadowOrangeOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
         display("Orange shadow", shadowOrange);
     }
@@ -790,12 +800,13 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertNotAssignedRole(userAfter, ROLE_THIEF_OID);
         assertAssignments(userAfter, 1);
-        assertLinks(userAfter, 1);
+        assertUser(userAfter, "after")
+                .assertLinks(1, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Orange account", dummyAccount);
 
-        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        guybrushShadowOrangeOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
         display("Orange shadow", shadowOrange);
     }
@@ -823,7 +834,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME,
                 USER_GUYBRUSH_FULL_NAME, USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
         assertAssignments(userAfter, 0);
-        assertLinks(userAfter, 0);
+        assertUser(userAfter, "after")
+                .assertLinks(0, 1);
 
         assertNoDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME);
 

@@ -866,7 +866,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 LOGGER.warn("Attempted to execute inbound expression on account shadow {} WITHOUT full account. Trying to load the account now.", projectionContext.getOid());
                 doLoad();
                 if (!isBroken() && !projectionContext.isFullShadow()) {
-                    if (projectionContext.getResourceShadowDiscriminator().getOrder() > 0) {
+                    if (projectionContext.isHigherOrder()) {
                         // higher-order context. It is OK not to load this
                         LOGGER.trace("Skipped load of higher-order account with shadow OID {} skipping inbound processing on it", projectionContext.getOid());
                     }

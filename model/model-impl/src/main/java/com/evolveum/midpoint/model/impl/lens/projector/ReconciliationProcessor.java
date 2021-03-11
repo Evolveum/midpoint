@@ -117,7 +117,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         }
 
         SynchronizationPolicyDecision policyDecision = projCtx.getSynchronizationPolicyDecision();
-        if (((policyDecision == SynchronizationPolicyDecision.DELETE) || (policyDecision == SynchronizationPolicyDecision.UNLINK))) {
+        if ((policyDecision == SynchronizationPolicyDecision.DELETE || policyDecision == SynchronizationPolicyDecision.UNLINK)) {
             LOGGER.trace("Skipping reconciliation of {}: decision={}", projCtx.getHumanReadableName(), policyDecision);
             return;
         }

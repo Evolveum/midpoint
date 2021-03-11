@@ -23,7 +23,6 @@ import org.apache.commons.lang.StringUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -196,8 +195,18 @@ public class FocusAsserter<F extends FocusType,RA> extends AssignmentHolderAsser
         return asserter;
     }
 
-    public FocusAsserter<F,RA> assertLinks(int expected) {
-        links().assertLinks(expected);
+    public FocusAsserter<F,RA> assertLiveLinks(int expected) {
+        links().assertLiveLinks(expected);
+        return this;
+    }
+
+    public FocusAsserter<F,RA> assertRelatedLinks(int expected) {
+        links().assertDeadLinks(expected);
+        return this;
+    }
+
+    public FocusAsserter<F,RA> assertLinks(int live, int related) {
+        links().assertLinks(live, related);
         return this;
     }
 
@@ -271,8 +280,6 @@ public class FocusAsserter<F extends FocusType,RA> extends AssignmentHolderAsser
         }
         return shadows;
     }
-
-
 
     public  FocusAsserter<F,RA> displayWithProjections() throws ObjectNotFoundException, SchemaException {
         StringBuilder sb = new StringBuilder();

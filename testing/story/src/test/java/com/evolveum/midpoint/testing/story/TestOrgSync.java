@@ -1125,7 +1125,7 @@ public class TestOrgSync extends AbstractStoryTest {
     private void assertBasicRoleAndResources(PrismObject<UserType> user) throws ObjectNotFoundException,
             SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         assertAssignedRole(user, ROLE_BASIC_OID);
-        PrismReferenceValue linkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
+        PrismReferenceValue linkRef = getLiveLinkRef(user, RESOURCE_OPENDJ_OID);
         PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
         display("OpenDJ shadow linked to " + user, shadow);
         // TODO assert shadow content
@@ -1149,7 +1149,7 @@ public class TestOrgSync extends AbstractStoryTest {
         Entry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
         display("Group entry", groupEntry);
 
-        PrismReferenceValue accountLinkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
+        PrismReferenceValue accountLinkRef = getLiveLinkRef(user, RESOURCE_OPENDJ_OID);
         PrismObject<ShadowType> accountShadow = getShadowModel(accountLinkRef.getOid());
         String accountDn = IntegrationTestTools.getSecondaryIdentifier(accountShadow);
         openDJController.assertUniqueMember(groupEntry, accountDn);
@@ -1177,7 +1177,7 @@ public class TestOrgSync extends AbstractStoryTest {
         Entry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
         display("Group entry", groupEntry);
 
-        PrismReferenceValue accountLinkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
+        PrismReferenceValue accountLinkRef = getLiveLinkRef(user, RESOURCE_OPENDJ_OID);
         PrismObject<ShadowType> accountShadow = getShadowModel(accountLinkRef.getOid());
         String accountDn = IntegrationTestTools.getSecondaryIdentifier(accountShadow);
         openDJController.assertNoUniqueMember(groupEntry, accountDn);

@@ -130,7 +130,8 @@ class ObjectNotFoundHandler extends HardErrorHandler {
     }
 
     private void discoverDeletedShadow(ProvisioningContext ctx, PrismObject<ShadowType> repositoryShadow,
-            Exception cause, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            Exception cause, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         ShadowState shadowState = shadowCaretaker.determineShadowState(ctx, repositoryShadow, clock.currentTimeXMLGregorianCalendar());
         if (shadowState != ShadowState.LIFE) {
@@ -140,28 +141,32 @@ class ObjectNotFoundHandler extends HardErrorHandler {
             return;
         }
 
-        // TODO: this probably should NOT be a subresult of parentResult. We probably want new result (and maybe also task) here.
         OperationResult result = parentResult.createSubresult(OP_DISCOVERY);
+        try {
 
-        LOGGER.debug("DISCOVERY: discovered deleted shadow {}", repositoryShadow);
+            LOGGER.debug("DISCOVERY: discovered deleted shadow {}", repositoryShadow);
 
-        // Do NOT use return value of the markShadowTombstone method.
-        // It may return null in case that the shadow is deleted from repository already.
-        // However, in that case we will have nothing to base notifications on.
-        // Using the "old" repo shadow is still a better option. (MID-6574)
-        shadowManager.markShadowTombstone(repositoryShadow, result);
+            // Do NOT use return value of the markShadowTombstone method.
+            // It may return null in case that the shadow is deleted from repository already.
+            // However, in that case we will have nothing to base notifications on.
+            // Using the "old" repo shadow is still a better option. (MID-6574)
+            shadowManager.markShadowTombstone(repositoryShadow, result);
 
-        ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-        change.setResource(ctx.getResource().asPrismObject());
-        change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_DISCOVERY));
-        change.setObjectDelta(repositoryShadow.createDeleteDelta());
-        // Current shadow is a tombstone. This means that the object was deleted. But we need current shadow here.
-        // Otherwise the synchronization situation won't be updated because SynchronizationService could think that
-        // there is not shadow at all.
-        change.setShadowedResourceObject(repositoryShadow);
-        changeNotificationDispatcher.notifyChange(change, task, result);
-
-        result.computeStatus();
+            ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
+            change.setResource(ctx.getResource().asPrismObject());
+            change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_DISCOVERY));
+            change.setObjectDelta(repositoryShadow.createDeleteDelta());
+            // Current shadow is a tombstone. This means that the object was deleted. But we need current shadow here.
+            // Otherwise the synchronization situation won't be updated because SynchronizationService could think that
+            // there is not shadow at all.
+            change.setShadowedResourceObject(repositoryShadow);
+            changeNotificationDispatcher.notifyChange(change, task, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     @Override
