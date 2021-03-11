@@ -377,7 +377,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult parentResult = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
-        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder().raw().build();
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder().raw().build();
 
         when();
 

@@ -30,7 +30,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -105,14 +105,14 @@ public class TestLargeGroups extends AbstractStoryTest {
             group1.addMember(String.format("member-%09d", i));
         }
 
-        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                 // MID-5838
                 .item(ShadowType.F_ATTRIBUTES, ATTR_MEMBERS).retrieve()
                 .build();
         assert100LargeGroupSearch(ctx, options, MEMBERS);
 
         // Legacy behavior (MID-5838)
-        Collection<SelectorOptions<GetOperationOptions>> badOptions = schemaHelper.getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> badOptions = schemaService.getOperationOptionsBuilder()
                 .item(/*ShadowType.F_ATTRIBUTES,*/ ATTR_MEMBERS).retrieve()
                 .build();
         assert100LargeGroupSearch(ctx, badOptions, MEMBERS);

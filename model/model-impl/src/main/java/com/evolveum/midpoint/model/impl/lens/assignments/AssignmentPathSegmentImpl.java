@@ -15,6 +15,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 
+import com.evolveum.midpoint.schema.SchemaService;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
@@ -41,10 +43,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezable {
 
     private boolean immutable;
-
-    @NotNull private final RelationRegistry relationRegistry;
-
-    @NotNull private final PrismContext prismContext;
 
     //region Description of the situation: source, assignment, target
     /**
@@ -218,8 +216,6 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
     //endregion
 
     private AssignmentPathSegmentImpl(Builder builder) {
-        relationRegistry = builder.relationRegistry;
-        prismContext = builder.prismContext;
         source = builder.source;
         sourceDescription = builder.sourceDescription;
         assignmentIdi = builder.assignmentIdi;
@@ -228,7 +224,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         }
         evaluateOld = builder.evaluateOld;
         assignment = getAssignment(assignmentIdi, evaluateOld);
-        relation = getRelation(assignment, relationRegistry);
+        relation = getRelation(assignment, getRelationRegistry());
         isAssignment = builder.isAssignment;
         target = builder.target;
         direct = builder.direct;
@@ -251,8 +247,6 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
     }
 
     private AssignmentPathSegmentImpl(AssignmentPathSegmentImpl origin, ObjectType target) {
-        this.relationRegistry = origin.relationRegistry;
-        this.prismContext = origin.prismContext;
         this.source = origin.source;
         this.sourceDescription = origin.sourceDescription;
         this.assignmentIdi = origin.assignmentIdi;
@@ -412,7 +406,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
 
     @Override
     public boolean isDelegation() {
-        return relationRegistry.isDelegation(relation);
+        return getRelationRegistry().isDelegation(relation);
     }
 
     @Override
@@ -558,11 +552,11 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
             rv.setAssignmentId(assignment.getId());
         }
         if (source != null) {
-            rv.setSourceRef(ObjectTypeUtil.createObjectRef(source, prismContext));
+            rv.setSourceRef(ObjectTypeUtil.createObjectRef(source, getPrismContext()));
             rv.setSourceDisplayName(ObjectTypeUtil.getDisplayName(source));
         }
         if (target != null) {
-            rv.setTargetRef(ObjectTypeUtil.createObjectRef(target, prismContext));
+            rv.setTargetRef(ObjectTypeUtil.createObjectRef(target, getPrismContext()));
             rv.setTargetDisplayName(ObjectTypeUtil.getDisplayName(target));
         }
         rv.setMatchingOrder(isMatchingOrder);
@@ -584,7 +578,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
     @SuppressWarnings("SimplifiableIfStatement")
     @Override
     public boolean equivalent(AssignmentPathSegment otherSegment) {
-        if (!prismContext.relationsEquivalent(relation, otherSegment.getRelation())) {
+        if (!getPrismContext().relationsEquivalent(relation, otherSegment.getRelation())) {
             return false;
         }
         if (target == null && otherSegment.getTarget() == null) {
@@ -611,9 +605,15 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         return assignment != null ? assignment.getId() : null;
     }
 
+    @NotNull private RelationRegistry getRelationRegistry() {
+        return SchemaService.get().relationRegistry();
+    }
+
+    @NotNull private PrismContext getPrismContext() {
+        return PrismService.get().prismContext();
+    }
+
     public static final class Builder {
-        private RelationRegistry relationRegistry;
-        private PrismContext prismContext;
         private AssignmentHolderType source;
         private String sourceDescription;
         private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi;
@@ -631,16 +631,6 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         private EvaluationOrder evaluationOrderForTarget;
 
         public Builder() {
-        }
-
-        public Builder relationRegistry(@NotNull RelationRegistry val) {
-            relationRegistry = val;
-            return this;
-        }
-
-        public Builder prismContext(@NotNull PrismContext val) {
-            prismContext = val;
-            return this;
         }
 
         public Builder source(AssignmentHolderType val) {

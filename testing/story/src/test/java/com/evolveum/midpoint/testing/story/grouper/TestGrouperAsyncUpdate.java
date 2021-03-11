@@ -661,7 +661,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         assertNotNull("No shadow with name '"+groupName+"'", shadowInRepo);
 
         Collection<SelectorOptions<GetOperationOptions>> options =
-                schemaHelper.getOperationOptionsBuilder()
+                schemaService.getOperationOptionsBuilder()
                         .noFetch()
                         .retrieve()
                         .build();

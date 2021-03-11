@@ -86,14 +86,14 @@ public class ModifyTestReindex extends ModifyTest {
         String oid = repositoryService.addObject(user, null, result);
 
         UserType userBefore = repositoryService
-                .getObject(UserType.class, oid, schemaHelper.getOperationOptionsBuilder().retrieve().build(), result)
+                .getObject(UserType.class, oid, schemaService.getOperationOptionsBuilder().retrieve().build(), result)
                 .asObjectable();
         displayValue("user before", userBefore.asPrismObject());
 
         repositoryService.modifyObject(UserType.class, oid, emptySet(), getModifyOptions(), result);
 
         UserType userAfter = repositoryService
-                .getObject(UserType.class, oid, schemaHelper.getOperationOptionsBuilder().retrieve().build(), result)
+                .getObject(UserType.class, oid, schemaService.getOperationOptionsBuilder().retrieve().build(), result)
                 .asObjectable();
         displayValue("user after", userAfter.asPrismObject());
 
@@ -120,7 +120,7 @@ public class ModifyTestReindex extends ModifyTest {
         repositoryService.modifyObject(UserType.class, oid, emptySet(), getModifyOptions(), result);
 
         UserType userAfter = repositoryService
-                .getObject(UserType.class, oid, schemaHelper.getOperationOptionsBuilder().retrieve().build(), result)
+                .getObject(UserType.class, oid, schemaService.getOperationOptionsBuilder().retrieve().build(), result)
                 .asObjectable();
 
         assertEquals("Missing or wrong photo", PHOTO, userAfter.getJpegPhoto());
@@ -142,7 +142,7 @@ public class ModifyTestReindex extends ModifyTest {
         repositoryService.modifyObject(TaskType.class, oid, emptySet(), getModifyOptions(), result);
 
         TaskType taskAfter = repositoryService
-                .getObject(TaskType.class, oid, schemaHelper.getOperationOptionsBuilder().retrieve().build(), result)
+                .getObject(TaskType.class, oid, schemaService.getOperationOptionsBuilder().retrieve().build(), result)
                 .asObjectable();
 
         assertEquals("Missing or wrong result", taskOperationResult, taskAfter.getResult());
@@ -165,7 +165,7 @@ public class ModifyTestReindex extends ModifyTest {
         repositoryService.modifyObject(LookupTableType.class, oid, emptySet(), getModifyOptions(), result);
 
         LookupTableType tableAfter = repositoryService
-                .getObject(LookupTableType.class, oid, schemaHelper.getOperationOptionsBuilder().retrieve().build(), result)
+                .getObject(LookupTableType.class, oid, schemaService.getOperationOptionsBuilder().retrieve().build(), result)
                 .asObjectable();
 
         assertEquals("Missing row", 1, tableAfter.getRow().size());
@@ -189,7 +189,7 @@ public class ModifyTestReindex extends ModifyTest {
         repositoryService.modifyObject(AccessCertificationCampaignType.class, oid, emptySet(), getModifyOptions(), result);
 
         AccessCertificationCampaignType campaignAfter = repositoryService
-                .getObject(AccessCertificationCampaignType.class, oid, schemaHelper.getOperationOptionsBuilder().retrieve().build(), result)
+                .getObject(AccessCertificationCampaignType.class, oid, schemaService.getOperationOptionsBuilder().retrieve().build(), result)
                 .asObjectable();
 
         assertEquals("Missing case", 1, campaignAfter.getCase().size());

@@ -10,10 +10,15 @@ import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
 
+import com.querydsl.sql.types.EnumAsObjectType;
+
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * SQL repository context adding support for QName cache.
@@ -27,6 +32,16 @@ public class SqaleRepoContext extends SqlRepoContext {
             DataSource dataSource,
             QueryModelMappingRegistry mappingRegistry) {
         super(jdbcRepositoryConfiguration, dataSource, mappingRegistry);
+
+        // each enum type must be registered if we want to map it as objects (to PG enum types)
+        querydslConfig.register(new EnumAsObjectType<>(ActivationStatusType.class));
+        querydslConfig.register(new EnumAsObjectType<>(MContainerType.class));
+        querydslConfig.register(new EnumAsObjectType<>(MObjectType.class));
+        querydslConfig.register(new EnumAsObjectType<>(MReferenceType.class));
+        querydslConfig.register(new EnumAsObjectType<>(OperationResultStatusType.class));
+        querydslConfig.register(new EnumAsObjectType<>(TaskExecutionStateType.class));
+        querydslConfig.register(new EnumAsObjectType<>(TaskWaitingReasonType.class));
+        querydslConfig.register(new EnumAsObjectType<>(TimeIntervalStatusType.class));
 
         uriCache = new UriCache();
     }
@@ -48,9 +63,14 @@ public class SqaleRepoContext extends SqlRepoContext {
         return uriCache.searchId(uri);
     }
 
-    /** @see UriCache#resolveToId(QName) */
-    public Integer resolveToId(String uri) {
-        return uriCache.resolveToId(uri);
+    /** @see UriCache#resolveUriToId(String) */
+    public Integer resolveUriToId(String uri) {
+        return uriCache.resolveUriToId(uri);
+    }
+
+    /** @see UriCache#resolveUriToId(QName) */
+    public Integer resolveUriToId(QName uri) {
+        return uriCache.resolveUriToId(uri);
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */

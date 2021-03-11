@@ -174,19 +174,17 @@ public class ChangeExecutor {
                         OPERATION_EXECUTE_FOCUS + "." + focusContext.getObjectTypeClass().getSimpleName());
 
                 try {
-                    // Will remove credential deltas or hash them
-                    focusDelta = credentialsProcessor.transformFocusExecutionDelta(context, focusDelta);
-                } catch (EncryptionException e) {
-                    recordFatalError(subResult, result, null, e);
-                    result.computeStatus();
-                    throw new SystemException(e.getMessage(), e);
-                }
-
-                applyLastProvisioningTimestamp(context, focusDelta);
-
-                try {
 
                     context.reportProgress(new ProgressInformation(FOCUS_OPERATION, ENTERING));
+
+                    try {
+                        // Will remove credential deltas or hash them
+                        focusDelta = credentialsProcessor.transformFocusExecutionDelta(context, focusDelta);
+                    } catch (EncryptionException e) {
+                        throw new SystemException(e.getMessage(), e);
+                    }
+
+                    applyLastProvisioningTimestamp(context, focusDelta);
 
                     ConflictResolutionType conflictResolution = ModelExecuteOptions
                             .getFocusConflictResolution(context.getOptions());
@@ -199,20 +197,14 @@ public class ChangeExecutor {
                     }
                     subResult.computeStatus();
 
-                } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException e) {
-                    recordFatalError(subResult, result, null, e);
-                    throw e;
-
                 } catch (PreconditionViolationException e) {
-
                     LOGGER.debug("Modification precondition failed for {}: {}", focusContext.getHumanReadableName(),
                             e.getMessage());
 
-                    //                    TODO: fatal error if the conflict resolution is "error" (later)
+                    // TODO: fatal error if the conflict resolution is "error" (later)
                     subResult.recordHandledError(e);
                     result.recordHandledError(e);
                     throw e;
-
                 } catch (ObjectAlreadyExistsException e) {
                     subResult.computeStatus();
                     if (!subResult.isSuccess() && !subResult.isHandledError()) {
@@ -220,6 +212,10 @@ public class ChangeExecutor {
                     }
                     result.computeStatusComposite();
                     throw e;
+                } catch (Throwable t) {
+                    subResult.recordFatalError(t);
+                    result.computeStatusComposite();
+                    throw t;
                 } finally {
                     context.reportProgress(new ProgressInformation(FOCUS_OPERATION, subResult));
                 }
@@ -625,17 +621,6 @@ public class ChangeExecutor {
         LOGGER.error("Error executing changes for {}: {}", accCtx.toHumanReadableString(), e.getMessage(), e);
         if (decision != null) {
             accCtx.setSynchronizationPolicyDecision(decision);
-        }
-    }
-
-    private void recordFatalError(OperationResult subResult, OperationResult result, String message,
-            Throwable e) {
-        if (message == null) {
-            message = e.getMessage();
-        }
-        subResult.recordFatalError(e);
-        if (result != null) {
-            result.computeStatusComposite();
         }
     }
 

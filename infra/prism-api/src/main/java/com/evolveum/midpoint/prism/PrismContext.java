@@ -407,4 +407,7 @@ public interface PrismContext extends ProtectorCreator {
 
     PrismQuerySerializer querySerializer();
 
+    static PrismContext get() {
+        return PrismService.get().prismContext();
+    }
 }

@@ -222,7 +222,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
         assertEquals("Wrong policy situation", emptyList(), roleAfter.asObjectable().getPolicySituation());
         assertEquals("Wrong triggered policy rules", emptyList(), roleAfter.asObjectable().getTriggeredPolicyRule());
 
-//        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+//        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
 //                .item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM).retrieve()
 //                .build();
         List<PrismObject<CaseType>> cases = getCasesForObject(roleCorrectOid, RoleType.COMPLEX_TYPE, null, task, result);
@@ -298,7 +298,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
         assertEquals("Wrong policy situation", emptyList(), roleAfter.asObjectable().getPolicySituation());
         assertEquals("Wrong triggered policy rules", emptyList(), roleAfter.asObjectable().getTriggeredPolicyRule());
 
-        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                 .build();
         List<PrismObject<CaseType>> cases = getCasesForObject(roleCorrectHighRiskOid, RoleType.COMPLEX_TYPE, options, task, result);
         display("cases for role", cases);

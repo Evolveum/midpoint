@@ -61,9 +61,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * Evaluation of inbound mappings.
  *
  * Responsibility of this class:
- * 1) collects inbound mappings to be evaluated
- * 2) evaluates them
- * 3) consolidates the results into deltas
+ *
+ * 1. collects inbound mappings to be evaluated
+ * 2. evaluates them
+ * 3. consolidates the results into deltas
  */
 @Experimental
 class InboundMappingsEvaluation<F extends FocusType> {

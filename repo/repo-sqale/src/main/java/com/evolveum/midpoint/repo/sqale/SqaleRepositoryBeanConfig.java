@@ -48,7 +48,7 @@ import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImpl;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorsCollectionImpl;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -145,7 +145,7 @@ public class SqaleRepositoryBeanConfig {
     @Bean
     public SqaleRepositoryService repositoryService(
             SqaleRepoContext sqlRepoContext,
-            SchemaHelper schemaService,
+            SchemaService schemaService,
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         return new SqaleRepositoryService(
                 sqlRepoContext,

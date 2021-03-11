@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.sqale.MObjectType;
 
 /**
  * Querydsl "row bean" type related to {@link QObject}.
@@ -18,25 +19,25 @@ public class MObject {
 
     public UUID oid;
     // objectType is read-only, it must be null before insert/updates of the whole M-bean
-    public Integer objectType;
+    public MObjectType objectType;
     public String nameNorm;
     public String nameOrig;
     public byte[] fullObject;
     public UUID tenantRefTargetOid;
-    public Integer tenantRefTargetType;
+    public MObjectType tenantRefTargetType;
     public Integer tenantRefRelationId;
     public String lifecycleState;
-    public Long containerIdSeq;
+    public Long containerIdSeq; // next available container ID (for PCV of multi-valued containers)
     public Integer version;
     public byte[] ext;
     // metadata
     public UUID creatorRefTargetOid;
-    public Integer creatorRefTargetType;
+    public MObjectType creatorRefTargetType;
     public Integer creatorRefRelationId;
     public Integer createChannelId;
     public Instant createTimestamp;
     public UUID modifierRefTargetOid;
-    public Integer modifierRefTargetType;
+    public MObjectType modifierRefTargetType;
     public Integer modifierRefRelationId;
     public Integer modifyChannelId;
     public Instant modifyTimestamp;

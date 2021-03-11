@@ -60,6 +60,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 
@@ -215,6 +217,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 "R4-0 R5-0 R6-0 R2-0 O3-0 MR2-1");
         assertAuthorizations(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
         assertGuiConfig(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
+
+        assertSerializable(context);
     }
 
     private void processAssignments(LensContext<UserType> context, OperationResult result, Task task)
@@ -277,6 +281,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assertTargetPolicyRules(evaluatedAssignment, "MR1-0 MMR1-1", "MR3-0 MR4-0");
         assertAuthorizations(evaluatedAssignment, "MR1 MR3 MR4");
         assertGuiConfig(evaluatedAssignment, "MR1 MR3 MR4");
+
+        assertSerializable(context);
     }
 
     @Test(enabled = FIRST_PART)
@@ -302,6 +308,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 context.getFocusContext().getObjectNew().asObjectable().getParentOrgRef().size());
         assertEquals("Wrong # of roleMembershipRef entries", 0,
                 context.getFocusContext().getObjectNew().asObjectable().getRoleMembershipRef().size());
+
+        assertSerializable(context);
     }
 
     /**
@@ -342,6 +350,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assertTargetPolicyRules(evaluatedAssignment, "R1-0 MR1-1 MMR1-2 MR4-1 MR3-1", "R2-0 MR2-1 O3-0 R4-0 R5-0 R6-0");
         assertAuthorizations(evaluatedAssignment, "");
         assertGuiConfig(evaluatedAssignment, "");
+
+        assertSerializable(context);
     }
 
     /**
@@ -421,6 +431,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 "");
         assertAuthorizations(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
         assertGuiConfig(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
+
+        assertSerializable(context);
     }
 
     /**
@@ -501,6 +513,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 "barbossa-0 R1-1 R2-1 MR2-2 O3-1 MR1-2 MR3-2 R5-1 R4-1 MMR1-3 MR4-2 R6-1");
         assertAuthorizations(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
         assertGuiConfig(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
+
+        assertSerializable(context);
     }
 
     // goes through assignmentEvaluator in order to employ login mode
@@ -574,6 +588,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assertTargetPolicyRules(evaluatedAssignment, (String) null, null);
         assertAuthorizations(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
         assertGuiConfig(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
+
+        assertSerializable(context);
     }
 
     /**
@@ -650,6 +666,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assertTargetPolicyRules(evaluatedAssignment, "barbossa-0", "");
         assertAuthorizations(evaluatedAssignment, "");
         assertGuiConfig(evaluatedAssignment, "");
+
+        assertSerializable(context);
     }
 
 
@@ -723,6 +741,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assertAuthorizations(evaluatedAssignment, "R1");
         assertGuiConfig(evaluatedAssignment, "R1");
 
+        assertSerializable(context);
     }
 
     /**
@@ -792,6 +811,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assertAuthorizations(evaluatedAssignment, "R1 R4");
         assertGuiConfig(evaluatedAssignment, "R1 R4");
 
+        assertSerializable(context);
     }
 
     /**
@@ -873,6 +893,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assertTargetPolicyRules(evaluatedAssignment, "R1-0 MR1-1 MMR1-2", "");
         assertAuthorizations(evaluatedAssignment, "R1");
         assertGuiConfig(evaluatedAssignment, "R1");
+
+        assertSerializable(context);
     }
 
     /**
@@ -1012,6 +1034,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 "R8-0 R9-0 R9-0 MR8-1 MR9-1 MMR7-2");
         assertAuthorizations(evaluatedAssignment, "R7 R8 R9");
         assertGuiConfig(evaluatedAssignment, "R7 R8 R9");
+
+        assertSerializable(context);
     }
 
     /**
@@ -1279,6 +1303,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 .assertThisObject("Human")
                 .assertImmediateRole("MetarolePerson")
                 .assertAssignmentPath(6);
+
+        assertSerializable(context);
     }
 
     private void dump(String runName, int index) {
@@ -1541,6 +1567,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 "Admin-0");
         assertAuthorizations(evaluatedAssignment, "org11 Admin");
         assertGuiConfig(evaluatedAssignment, "org11 Admin");
+
+        assertSerializable(context);
     }
 
     /**
@@ -1597,6 +1625,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 "Admin-0");
         assertAuthorizations(evaluatedAssignment, "org11 Admin");
         assertGuiConfig(evaluatedAssignment, "org11 Admin");
+
+        assertSerializable(context);
     }
 
     /**
@@ -1651,6 +1681,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 "Admin-0");
         assertAuthorizations(evaluatedAssignment, "");
         assertGuiConfig(evaluatedAssignment, "");
+
+        assertSerializable(context);
     }
 
     /**
@@ -1707,6 +1739,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 "");
         assertAuthorizations(evaluatedAssignment, "org21");
         assertGuiConfig(evaluatedAssignment, "org21");
+
+        assertSerializable(context);
     }
 
     /**
@@ -1760,6 +1794,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 "Admin-0");
         assertAuthorizations(evaluatedAssignment, "org21 Admin");
         assertGuiConfig(evaluatedAssignment, "org21 Admin");
+
+        assertSerializable(context);
     }
 
     /**
@@ -1827,6 +1863,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 "");
         assertAuthorizations(evaluatedAssignment, "Admin");
         assertGuiConfig(evaluatedAssignment, "Admin");
+
+        assertSerializable(context);
     }
 
     /**
@@ -1900,6 +1938,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 "A8-0");            // a bit questionable but seems OK
         assertAuthorizations(evaluatedAssignment, "");
         assertGuiConfig(evaluatedAssignment, "");
+
+        assertSerializable(context);
     }
 
     //region ============================================================= helper methods (preparing scenarios)

@@ -12,20 +12,22 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import java.io.Serializable;
+
 /**
  * @author semancik
  *
  */
-public interface Mapping<V extends PrismValue,D extends ItemDefinition> {
+public interface Mapping<V extends PrismValue, D extends ItemDefinition> extends Serializable {
 
     /**
      * Returns elapsed time in milliseconds.
      */
     Long getEtime();
 
-    <T> T getStateProperty(String propertyName);
+    <T extends Serializable> T getStateProperty(String propertyName);
 
-    <T> T setStateProperty(String propertyName, T value);
+    <T extends Serializable> T setStateProperty(String propertyName, T value);
 
     PrismValueDeltaSetTriple<V> getOutputTriple();
 

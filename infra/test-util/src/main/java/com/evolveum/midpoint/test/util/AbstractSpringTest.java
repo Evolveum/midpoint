@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.test.util;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 

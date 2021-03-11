@@ -23,7 +23,7 @@ import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.TableRelationResolver;
@@ -114,8 +114,8 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     }
 
     @Override
-    public SqlTransformer<S, Q, R> createTransformer(SqlTransformerContext sqlTransformerContext) {
-        return new ObjectSqlTransformer<>(sqlTransformerContext, this);
+    public SqlTransformer<S, Q, R> createTransformer(SqlTransformerSupport transformerSupport) {
+        return new ObjectSqlTransformer<>(transformerSupport, this);
     }
 
     @Override

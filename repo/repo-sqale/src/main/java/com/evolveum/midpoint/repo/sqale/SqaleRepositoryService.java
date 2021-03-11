@@ -70,9 +70,9 @@ public class SqaleRepositoryService implements RepositoryService {
     private static final int MAX_CONFLICT_WATCHERS = 10;
 
     private final SqaleRepoContext sqlRepoContext;
-    private final SchemaHelper schemaService;
+    private final SchemaService schemaService;
     private final SqlQueryExecutor sqlQueryExecutor;
-    private final SqaleTransformerContext transformerContext;
+    private final SqaleTransformerSupport transformerSupport;
     private final SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
 
     private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal =
@@ -82,12 +82,12 @@ public class SqaleRepositoryService implements RepositoryService {
 
     public SqaleRepositoryService(
             SqaleRepoContext sqlRepoContext,
-            SchemaHelper schemaService,
+            SchemaService schemaService,
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         this.sqlRepoContext = sqlRepoContext;
         this.schemaService = schemaService;
         this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
-        this.transformerContext = new SqaleTransformerContext(schemaService, sqlRepoContext);
+        this.transformerSupport = new SqaleTransformerSupport(schemaService, sqlRepoContext);
         this.sqlPerformanceMonitorsCollection = sqlPerformanceMonitorsCollection;
 
         // monitor initialization and registration
@@ -183,7 +183,7 @@ public class SqaleRepositoryService implements RepositoryService {
                     + "' with oid '" + oidString + "' was not found.", oidString);
         }
 
-        return rootMapping.createTransformer(transformerContext)
+        return rootMapping.createTransformer(transformerSupport)
                 .toSchemaObject(result, root, options);
     }
 
@@ -207,7 +207,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 .where(root.oid.eq(oid))
                 .fetchOne();
 
-        return rootMapping.createTransformer(transformerContext)
+        return rootMapping.createTransformer(transformerSupport)
                 .toSchemaObject(result, root, options);
     }
 
@@ -276,7 +276,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 object.setVersion("1");
             }
             String oid = new AddObjectOperation<>(object, options, operationResult)
-                    .execute(transformerContext);
+                    .execute(transformerSupport);
             return oid;
             /*
             String proposedOid = object.getOid();
@@ -455,7 +455,7 @@ public class SqaleRepositoryService implements RepositoryService {
         int newVersion = SqaleUtils.objectVersionAsInt(prismObject) + 1;
         prismObject.setVersion(String.valueOf(newVersion));
         ObjectSqlTransformer<S, Q, R> transformer = (ObjectSqlTransformer<S, Q, R>)
-                rootMapping.createTransformer(transformerContext);
+                rootMapping.createTransformer(transformerSupport);
         update.set(root.fullObject, transformer.createFullObject(prismObject.asObjectable()));
         update.set(root.version, newVersion);
         update.execute();
@@ -502,7 +502,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 .build();
 
         try {
-            var queryContext = SqaleQueryContext.from(type, transformerContext, sqlRepoContext);
+            var queryContext = SqaleQueryContext.from(type, transformerSupport, sqlRepoContext);
             return sqlQueryExecutor.count(queryContext, query, options);
         } catch (QueryException | RuntimeException e) {
             handleGeneralException(e, operationResult);
@@ -531,7 +531,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 .build();
 
         try {
-            var queryContext = SqaleQueryContext.from(type, transformerContext, sqlRepoContext);
+            var queryContext = SqaleQueryContext.from(type, transformerSupport, sqlRepoContext);
             SearchResultList<T> result =
                     sqlQueryExecutor.list(queryContext, query, options);
             // TODO see the commented code from old repo lower, problems for each object must be caught
@@ -615,7 +615,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 .build();
 
         try {
-            var queryContext = SqaleQueryContext.from(type, transformerContext, sqlRepoContext);
+            var queryContext = SqaleQueryContext.from(type, transformerSupport, sqlRepoContext);
             SearchResultList<T> result =
                     sqlQueryExecutor.list(queryContext, query, options);
             return result;

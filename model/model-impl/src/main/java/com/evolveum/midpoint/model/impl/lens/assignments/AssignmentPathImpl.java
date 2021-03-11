@@ -17,6 +17,7 @@ import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.model.api.util.AssignmentPathUtil;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismService;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -33,11 +34,6 @@ import org.jetbrains.annotations.NotNull;
 public class AssignmentPathImpl implements AssignmentPath {
 
     @NotNull private final List<AssignmentPathSegmentImpl> segments = new ArrayList<>();
-    @NotNull private final PrismContext prismContext;
-
-    public AssignmentPathImpl(@NotNull PrismContext prismContext) {
-        this.prismContext = prismContext;
-    }
 
     @NotNull
     @Override
@@ -165,7 +161,7 @@ public class AssignmentPathImpl implements AssignmentPath {
 
     @Override
     public AssignmentPathImpl cloneFirst(int n) {
-        AssignmentPathImpl clone = new AssignmentPathImpl(prismContext);
+        AssignmentPathImpl clone = new AssignmentPathImpl();
         clone.segments.addAll(this.segments.subList(0, n));
         return clone;
     }
@@ -246,12 +242,12 @@ public class AssignmentPathImpl implements AssignmentPath {
 
     @NotNull
     public PrismContext getPrismContext() {
-        return prismContext;
+        return PrismService.get().prismContext();
     }
 
     @Override
     public ExtensionType collectExtensions(int startAt) throws SchemaException {
-        return AssignmentPathUtil.collectExtensions(this, startAt, prismContext);
+        return AssignmentPathUtil.collectExtensions(this, startAt, getPrismContext());
     }
 
     @Override

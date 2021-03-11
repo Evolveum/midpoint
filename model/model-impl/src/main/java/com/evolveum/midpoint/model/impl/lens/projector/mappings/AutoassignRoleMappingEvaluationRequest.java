@@ -26,7 +26,8 @@ import java.util.List;
 /**
  *
  */
-public class AutoassignRoleMappingEvaluationRequest extends FocalMappingEvaluationRequest<AutoassignMappingType, AbstractRoleType> {
+public class AutoassignRoleMappingEvaluationRequest
+        extends FocalMappingEvaluationRequest<AutoassignMappingType, AbstractRoleType> {
 
     // Internal state
     private PrismContainerDefinition<AssignmentType> assignmentDef;

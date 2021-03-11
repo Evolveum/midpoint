@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil;
@@ -47,7 +47,7 @@ public class AuditHelper {
 
     @Autowired private AuditService auditService;
     @Autowired private PrismContext prismContext;
-    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private SchemaService schemaService;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -107,7 +107,7 @@ public class AuditHelper {
                         }
                     }
                     // we use only cache-compatible options here, in order to utilize the local or global repository cache
-                    Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+                    Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                             .allowNotFound().build();
                     PrismObject<? extends ObjectType> object = repositoryService.getObject(objectClass, oid, options, result);
                     return object.getName();

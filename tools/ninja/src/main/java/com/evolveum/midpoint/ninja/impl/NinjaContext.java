@@ -17,7 +17,7 @@ import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
 
@@ -57,7 +57,7 @@ public class NinjaContext {
 
     private PrismContext prismContext;
 
-    private SchemaHelper schemaHelper;
+    private SchemaService schemaService;
 
     public NinjaContext(JCommander jc) {
         this.jc = jc;
@@ -189,16 +189,16 @@ public class NinjaContext {
         return prismContext;
     }
 
-    public SchemaHelper getSchemaHelper() {
-        if (schemaHelper != null) {
-            return schemaHelper;
+    public SchemaService getSchemaService() {
+        if (schemaService != null) {
+            return schemaService;
         }
 
         if (context != null) {
-            schemaHelper = context.getBean(SchemaHelper.class);
+            schemaService = context.getBean(SchemaService.class);
         }
 
-        return schemaHelper;
+        return schemaService;
     }
 
     public Log getLog() {

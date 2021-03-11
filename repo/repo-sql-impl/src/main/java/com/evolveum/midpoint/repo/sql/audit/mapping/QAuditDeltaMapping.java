@@ -10,7 +10,7 @@ import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditItem.TABLE_N
 
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditDelta;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
@@ -37,7 +37,7 @@ public class QAuditDeltaMapping
 
     @Override
     public SqlTransformer<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> createTransformer(
-            SqlTransformerContext transformerContext) {
-        return new AuditDeltaSqlTransformer(transformerContext, this);
+            SqlTransformerSupport transformerSupport) {
+        return new AuditDeltaSqlTransformer(transformerSupport, this);
     }
 }

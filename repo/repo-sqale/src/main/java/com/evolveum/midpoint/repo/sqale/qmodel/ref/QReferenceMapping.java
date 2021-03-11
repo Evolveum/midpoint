@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterPr
 
 import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
@@ -51,8 +53,10 @@ public class QReferenceMapping
                 ObjectReferenceType.class, QReference.class);
 
         // TODO owner and reference type is not possible to query, probably OK
+        //  not sure about this mapping yet, does it make sense to query ref components?
         addItemMapping(ObjectReferenceType.F_OID, uuidMapper(path(q -> q.targetOid)));
-        addItemMapping(ObjectReferenceType.F_TYPE, integerMapper(path(q -> q.targetType)));
+        addItemMapping(ObjectReferenceType.F_TYPE,
+                EnumItemFilterProcessor.mapper(path(q -> q.targetType)));
         addItemMapping(ObjectReferenceType.F_RELATION,
                 UriItemFilterProcessor.mapper(path(q -> q.relationId)));
     }
@@ -62,11 +66,10 @@ public class QReferenceMapping
         return new QReference(alias);
     }
 
-//    @Override TODO
-//    public TriggerSqlTransformer createTransformer(
-//            SqlTransformerContext transformerContext) {
-//        return new TriggerSqlTransformer(transformerContext, this);
-//    }
+    @Override
+    public ReferenceSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
+        return new ReferenceSqlTransformer(transformerSupport, this);
+    }
 
     @Override
     public MReference newRowObject() {

@@ -40,7 +40,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -290,7 +290,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
 
     private void setNoFetchOption() {
         stateCheck(searchOptions != null, "uninitialized searchOptions");
-        Collection<SelectorOptions<GetOperationOptions>> noFetch = getSchemaHelper().getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> noFetch = getSchemaService().getOperationOptionsBuilder()
                 .noFetch()
                 .build();
         searchOptions = GetOperationOptions.merge(getPrismContext(), searchOptions, noFetch);
@@ -507,8 +507,8 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
         return taskHandler.prismContext;
     }
 
-    public SchemaHelper getSchemaHelper() {
-        return taskHandler.schemaHelper;
+    public SchemaService getSchemaService() {
+        return taskHandler.schemaService;
     }
 
     protected TaskManager getTaskManager() {

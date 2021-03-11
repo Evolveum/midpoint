@@ -8,9 +8,11 @@ package com.evolveum.midpoint.repo.sqale.qmodel.report;
 
 import java.sql.Types;
 
+import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.sql.ColumnMetadata;
 
+import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
@@ -33,8 +35,8 @@ public class QReportData extends QObject<MReportData> {
 
     public final UuidPath reportRefTargetOid =
             createUuid("reportRefTargetOid", REPORT_REF_TARGET_OID);
-    public final NumberPath<Integer> reportRefTargetType =
-            createInteger("reportRefTargetType", REPORT_REF_TARGET_TYPE);
+    public final EnumPath<MObjectType> reportRefTargetType =
+            createEnum("reportRefTargetType", MObjectType.class, REPORT_REF_TARGET_TYPE);
     public final NumberPath<Integer> reportRefRelationId =
             createInteger("reportRefRelationId", REPORT_REF_RELATION_ID);
 

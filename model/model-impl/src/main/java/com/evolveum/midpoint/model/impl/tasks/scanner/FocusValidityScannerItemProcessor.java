@@ -14,13 +14,11 @@ import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -84,8 +82,7 @@ public class FocusValidityScannerItemProcessor
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         PrismContext prismContext = taskHandler.getPrismContext();
         TimeValidityPolicyConstraintType constraint = taskExecution.getValidityConstraint();
-        EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(workerTask.getPolicyRule(),
-                null, null, prismContext);
+        EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(workerTask.getPolicyRule(), null, null);
         policyRule.computeEnabledActions(null, focus, taskHandler.getExpressionFactory(), prismContext, workerTask, result);
         EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedTimeValidityTrigger(
                 Boolean.TRUE.equals(constraint.isAssignment()) ? PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY : PolicyConstraintKindType.OBJECT_TIME_VALIDITY,

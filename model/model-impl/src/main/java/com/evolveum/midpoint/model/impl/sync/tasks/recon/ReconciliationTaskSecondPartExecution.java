@@ -78,7 +78,7 @@ class ReconciliationTaskSecondPartExecution
         // This is necessary to give ItemProcessingGatekeeper a chance to "see" errors in preprocessing.
         // At the same time, it ensures that an exception in preprocessing does not kill the whole searchObjectsIterative call.
         // TODO generalize
-        return taskHandler.schemaHelper.getOperationOptionsBuilder()
+        return taskHandler.schemaService.getOperationOptionsBuilder()
                 .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
                 .build();
     }

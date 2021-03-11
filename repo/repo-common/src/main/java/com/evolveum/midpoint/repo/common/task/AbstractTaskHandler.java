@@ -11,7 +11,7 @@ import java.util.*;
 
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.task.api.*;
@@ -121,7 +121,7 @@ public abstract class AbstractTaskHandler<
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired @Qualifier("cacheRepositoryService") protected RepositoryService repositoryService;
     @Autowired protected PrismContext prismContext;
-    @Autowired protected SchemaHelper schemaHelper;
+    @Autowired protected SchemaService schemaService;
     @Autowired protected MatchingRuleRegistry matchingRuleRegistry;
     @Autowired protected OperationExecutionRecorderForTasks operationExecutionRecorder;
     @Autowired protected LightweightIdentifierGenerator lightweightIdentifierGenerator;

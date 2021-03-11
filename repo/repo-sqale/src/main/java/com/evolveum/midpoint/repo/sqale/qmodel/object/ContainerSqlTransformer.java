@@ -6,28 +6,34 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
+import java.util.UUID;
+
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTransformerBase;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
-import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 
 public class ContainerSqlTransformer
         <S extends Containerable, Q extends QContainer<R>, R extends MContainer>
         extends SqaleTransformerBase<S, Q, R> {
 
     public ContainerSqlTransformer(
-            SqlTransformerContext transformerContext, QContainerMapping<S, Q, R> mapping) {
-        super(transformerContext, mapping);
+            SqlTransformerSupport transformerSupport, QContainerMapping<S, Q, R> mapping) {
+        super(transformerSupport, mapping);
     }
 
-    @Override
-    public R toRowObject(S schemaObject, JdbcSession jdbcSession) {
+    /**
+     * Method can be overridden or overloaded as it is often called on a known transformer
+     * type with known additional needs, e.g. some type enum value, etc.
+     * This implementation takes care of the attributes of the base class {@link MContainer}.
+     */
+    public R toRowObject(S schemaObject, UUID ownerOid) {
         R row = mapping.newRowObject();
-        // owner id is set outside this call
+        row.ownerOid = ownerOid;
         row.cid = schemaObject.asPrismContainerValue().getId();
+        // containerType is generated in DB, must be left null!
         return row;
     }
 }

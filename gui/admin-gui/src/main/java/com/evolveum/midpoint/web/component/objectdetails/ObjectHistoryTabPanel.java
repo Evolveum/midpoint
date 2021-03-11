@@ -130,19 +130,15 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
                 return columns;
             }
 
-            protected ObjectQuery getCustomizeContentQuery(ObjectQuery query, PageStorage pageStorage){
-                ObjectFilter historyTabFilter = getPageBase().getPrismContext().queryFor(AuditEventRecordType.class)
+            @Override
+            protected ObjectQuery getCustomizeContentQuery(){
+                return getPageBase().getPrismContext().queryFor(AuditEventRecordType.class)
                         .item(AuditEventRecordType.F_TARGET_REF)
                         .ref(getObjectWrapper().getOid())
                         .and()
                         .item(AuditEventRecordType.F_EVENT_STAGE)
                         .eq(AuditEventStageType.EXECUTION)
-                        .buildFilter();
-                if (query == null) {
-                    query = getPageBase().getPrismContext().queryFor(AuditEventRecordType.class).build();
-                }
-                query.addFilter(historyTabFilter);
-                return query;
+                        .build();
             }
 
             @Override

@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -179,9 +179,13 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     /**
      * Creates {@link SqlTransformer} of row bean to schema type, override if provided.
+     * TODO: rethink/confirm this create mechanism, currently the SqlTransformerSupport is managed
+     *  component without any other state and so are transformers, perhaps we can pre-create them
+     *  or cache (I don't like the sound of that). On the other hand they are really lightweight
+     *  and short lived helpers too, so it shouldn't be a real GC problem.
      */
     public SqlTransformer<S, Q, R> createTransformer(
-            SqlTransformerContext sqlTransformerContext) {
+            SqlTransformerSupport transformerSupport) {
         throw new UnsupportedOperationException("Bean transformer not supported for " + queryType());
     }
 

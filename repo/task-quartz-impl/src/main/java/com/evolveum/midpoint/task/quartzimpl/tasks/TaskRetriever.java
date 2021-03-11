@@ -57,7 +57,7 @@ public class TaskRetriever {
     @Autowired private LocalNodeState localNodeState;
     @Autowired private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;
-    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private SchemaService schemaService;
     @Autowired private ClusterStatusInformationRetriever clusterStatusInformationRetriever;
     @Autowired private ClusterExecutionHelper clusterExecutionHelper;
     @Autowired private StalledTasksWatcher stalledTasksWatcher;
@@ -70,7 +70,7 @@ public class TaskRetriever {
 
     @NotNull
     public TaskQuartzImpl getTaskWithResult(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                 .item(TaskType.F_RESULT).retrieve()
                 .build();
         return getTaskPlain(taskOid, options, parentResult);
@@ -510,7 +510,7 @@ public class TaskRetriever {
 
     public PrismObject<TaskType> getRepoObjectWithResult(String oid, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
-        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                 .item(TaskType.F_RESULT).retrieve().build();
         return repositoryService.getObject(TaskType.class, oid, options, result);
     }

@@ -38,7 +38,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -79,7 +79,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
     @Autowired protected TaskStateManager taskStateManager;
     @Autowired protected LocalScheduler localScheduler;
     @Autowired protected PrismContext prismContext;
-    @Autowired protected SchemaHelper schemaHelper;
+    @Autowired protected SchemaService schemaService;
 
     MockSingleTaskHandler singleHandler1;
     MockWorkBucketsTaskHandler workBucketsTaskHandler;
@@ -369,7 +369,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
     }
 
     Collection<SelectorOptions<GetOperationOptions>> retrieveItemsNamed(Object... items) {
-        return schemaHelper.getOperationOptionsBuilder()
+        return schemaService.getOperationOptionsBuilder()
                 .items(items).retrieve()
                 .build();
     }

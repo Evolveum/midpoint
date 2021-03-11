@@ -9,12 +9,14 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
+import java.io.Serializable;
+
 /**
  * Facade interface for evaluated resource object and persona constructions.
  *
  * @author Radovan Semancik
  */
-public interface EvaluatedAbstractConstruction<AH extends AssignmentHolderType> {
+public interface EvaluatedAbstractConstruction<AH extends AssignmentHolderType> extends Serializable {
 
     AbstractConstruction<AH,?,?> getConstruction();
 

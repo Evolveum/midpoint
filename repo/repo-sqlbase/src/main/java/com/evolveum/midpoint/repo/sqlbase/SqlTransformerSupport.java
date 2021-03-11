@@ -11,7 +11,7 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -19,12 +19,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * Components can be obtained to execute calls on them, but preferably the needed logic
  * can be implemented here (better abstraction).
  */
-public class SqlTransformerContext {
+public class SqlTransformerSupport {
 
-    protected final SchemaHelper schemaService;
+    protected final SchemaService schemaService;
     protected final SqlRepoContext sqlRepoContext;
 
-    public SqlTransformerContext(SchemaHelper schemaService, SqlRepoContext sqlRepoContext) {
+    public SqlTransformerSupport(SchemaService schemaService, SqlRepoContext sqlRepoContext) {
         this.schemaService = schemaService;
         this.sqlRepoContext = sqlRepoContext;
     }
@@ -49,7 +49,7 @@ public class SqlTransformerContext {
 
     public <T extends Objectable> ParseResult<T> parsePrismObject(String serializedForm)
             throws SchemaException {
-        PrismContext prismContext = schemaService.getPrismContext();
+        PrismContext prismContext = schemaService.prismContext();
         // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
         ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
         PrismObject<T> prismObject = prismContext.parserFor(serializedForm)
@@ -66,7 +66,7 @@ public class SqlTransformerContext {
      * with definitions (parameter to constructor).
      */
     public PrismContext prismContext() {
-        return schemaService.getPrismContext();
+        return schemaService.prismContext();
     }
 
     public SqlRepoContext sqlRepoContext() {

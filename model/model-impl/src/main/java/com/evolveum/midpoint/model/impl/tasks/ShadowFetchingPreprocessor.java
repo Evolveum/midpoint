@@ -46,7 +46,7 @@ public class ShadowFetchingPreprocessor implements ObjectPreprocessor<ShadowType
             Collection<SelectorOptions<GetOperationOptions>> originalOptions) {
 
         Collection<SelectorOptions<GetOperationOptions>> optionsToSet =
-                partExecution.getSchemaHelper().getOperationOptionsBuilder()
+                partExecution.getSchemaService().getOperationOptionsBuilder()
                         .noFetch(false)
                         .errorReportingMethod(FetchErrorReportingMethodType.EXCEPTION) // we need exceptions!
                         .build();

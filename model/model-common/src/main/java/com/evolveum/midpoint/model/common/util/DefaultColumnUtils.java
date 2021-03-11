@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
@@ -289,12 +289,12 @@ public class DefaultColumnUtils {
     }
 
     public static Collection<SelectorOptions<GetOperationOptions>> createOption(
-            Class<ObjectType> type, SchemaHelper schemaHelper) {
+            Class<ObjectType> type, SchemaService schemaService) {
         if (type == null) {
             return null;
         }
         List<QName> propertiesToGet = new ArrayList<>();
-        GetOperationOptionsBuilder getOperationOptionsBuilder = schemaHelper.getOperationOptionsBuilder();
+        GetOperationOptionsBuilder getOperationOptionsBuilder = schemaService.getOperationOptionsBuilder();
         getOperationOptionsBuilder = getOperationOptionsBuilder.resolveNames();
 
         if (TaskType.class.isAssignableFrom(type)) {

@@ -66,7 +66,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     @Override
     protected Search createSearch(Class<C> type) {
         PrismContainerDefinition<C> containerDefinition = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(getType());
-        return SearchFactory.createContainerSearch(new ContainerTypeSearchItem<>(new SearchValue<>(type, containerDefinition.getDisplayName())),
+        return SearchFactory.createContainerSearch(new ContainerTypeSearchItem<>(new SearchValue<>(type, containerDefinition == null ? getType().getTypeName() : containerDefinition.getDisplayName())),
                 null, initSearchableItems(containerDefinition), getPageBase(), false);
     }
 

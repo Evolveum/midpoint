@@ -10,7 +10,7 @@ import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterPr
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType.F_NODE_IDENTIFIER;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
 /**
@@ -36,8 +36,8 @@ public class QNodeMapping
 
     @Override
     public NodeSqlTransformer createTransformer(
-            SqlTransformerContext transformerContext) {
-        return new NodeSqlTransformer(transformerContext, this);
+            SqlTransformerSupport transformerSupport) {
+        return new NodeSqlTransformer(transformerSupport, this);
     }
 
     @Override

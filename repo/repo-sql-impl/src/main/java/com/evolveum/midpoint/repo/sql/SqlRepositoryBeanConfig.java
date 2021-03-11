@@ -36,7 +36,7 @@ import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImpl;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorsCollectionImpl;
 import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 
 /**
  * SQL repository related configuration from {@link DataSourceFactory} through ORM with
@@ -184,7 +184,7 @@ public class SqlRepositoryBeanConfig {
     @Bean
     public AuditServiceFactory sqlAuditServiceFactory(
             BaseHelper defaultBaseHelper,
-            SchemaHelper schemaService) {
+            SchemaService schemaService) {
         return new SqlAuditServiceFactory(defaultBaseHelper, schemaService);
     }
 

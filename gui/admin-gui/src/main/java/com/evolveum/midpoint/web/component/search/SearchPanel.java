@@ -15,6 +15,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
@@ -335,7 +336,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         form.add(searchContainer);
 
         final CompositedIconBuilder builder = new CompositedIconBuilder();
-        builder.setBasicIcon("fa fa-search", IconCssStyle.IN_ROW_STYLE);
+        builder.setBasicIcon(GuiStyleConstants.CLASS_ICON_SEARCH, IconCssStyle.IN_ROW_STYLE);
         IconType plusIcon = new IconType();
         plusIcon.setColor("white");
         builder.appendLayerIcon(getIconLabelByModeModel(), plusIcon, LayeredIconCssStyle.BOTTOM_RIGHT_STYLE);
