@@ -1586,10 +1586,10 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         // Yes, we really expect two shadows here.
         // First shadow is dead (the one from previous test).
         // Second shadow is new one.
-        // MidPoitn cannot collapse these two shadows to one, because they do not
+        // MidPoint cannot collapse these two shadows to one, because they do not
         // necessarily represent the same account. E.g. the new account may have
         // different primary identifier (in case that those identifiers are generated).
-        assertLiveLinks(userAfter, 2);
+        assertLinks(userAfter, 1, 1);
 
         int deadShadows = 0;
         int liveShadows = 0;

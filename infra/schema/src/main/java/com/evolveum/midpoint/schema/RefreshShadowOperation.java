@@ -18,6 +18,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class RefreshShadowOperation implements DebugDumpable {
 
     private PrismObject<ShadowType> refreshedShadow;
+
+    /**
+     * In order to avoid replacing last known value of {@link #refreshedShadow} with null, we represent deletion
+     * of the repository object in this flag. TODO reconsider
+     */
+    private boolean repoShadowDeleted;
+
     private Collection<ObjectDeltaOperation<ShadowType>> executedDeltas;
     private OperationResult refreshResult;
 
@@ -35,6 +42,14 @@ public class RefreshShadowOperation implements DebugDumpable {
 
     public void setRefreshedShadow(PrismObject<ShadowType> refreshedShadow) {
         this.refreshedShadow = refreshedShadow;
+    }
+
+    public boolean isRepoShadowDeleted() {
+        return repoShadowDeleted;
+    }
+
+    public void setRepoShadowDeleted(boolean repoShadowDeleted) {
+        this.repoShadowDeleted = repoShadowDeleted;
     }
 
     public OperationResult getRefreshResult() {

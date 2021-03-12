@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import static com.evolveum.midpoint.prism.PrismObject.cast;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.checkNotInMaintenance;
 
 import java.util.ArrayList;
@@ -79,7 +80,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @Primary
 public class ProvisioningServiceImpl implements ProvisioningService, SystemConfigurationChangeListener {
 
-    private static final String OPERATION_REFRESH_SHADOW = ProvisioningServiceImpl.class.getName() + ".refreshShadow";
+    private static final String OP_REFRESH_SHADOW = ProvisioningServiceImpl.class.getName() + ".refreshShadow";
+    private static final String OP_DELETE_OBJECT = ProvisioningService.class.getName() + ".deleteObject";
 
     @Autowired
     ShadowsFacade shadowsFacade;
@@ -617,81 +619,83 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     @Override
-    public <T extends ObjectType> PrismObject<T> deleteObject(Class<T> type, String oid, ProvisioningOperationOptions options, OperationProvisioningScriptsType scripts,
-            Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+    public <T extends ObjectType> PrismObject<T> deleteObject(Class<T> type, String oid, ProvisioningOperationOptions options,
+            OperationProvisioningScriptsType scripts, Task task, OperationResult parentResult) throws ObjectNotFoundException,
+            CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException,
+            ExpressionEvaluationException {
 
         Validate.notNull(oid, "Oid of object to delete must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
 
         LOGGER.trace("Start to delete object with oid {}", oid);
 
-        OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".deleteObject");
-        result.addParam("oid", oid);
-        result.addArbitraryObjectAsParam("scripts", scripts);
-        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+        OperationResult result = parentResult.subresult(OP_DELETE_OBJECT)
+                .addParam("oid", oid)
+                .addArbitraryObjectAsParam("scripts", scripts)
+                .addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class)
+                .build();
+        try {
 
-        //TODO: is critical when shadow does not exist anymore?? do we need to log it?? if not, change null to allowNotFound options
-        PrismObject<T> object = getRepoObject(type, oid, null, result);
-        LOGGER.trace("Object from repository to delete:\n{}", object.debugDumpLazily(1));
+            // TODO: is it critical when shadow does not exist anymore? E.g. do we need to log it?
+            //  If it's not critical, change null to allowNotFound options below.
 
-        PrismObject<T> deadShadow = null;
+            PrismObject<T> object = getRepoObject(type, oid, null, result);
+            LOGGER.trace("Object from repository to delete:\n{}", object.debugDumpLazily(1));
 
-        if (object.canRepresent(ShadowType.class) && !ProvisioningOperationOptions.isRaw(options)) {
-
-            try {
-
-                //noinspection unchecked
-                deadShadow = (PrismObject<T>) shadowsFacade.deleteShadow((PrismObject<ShadowType>) object, options, scripts, task, result);
-
-            } catch (CommunicationException e) {
-                ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: communication problem: " + e.getMessage(), e);
-                throw new CommunicationException(e.getMessage(), e);
-            } catch (GenericFrameworkException e) {
-                ProvisioningUtil.recordFatalError(LOGGER, result,
-                        "Couldn't delete object: generic error in the connector: " + e.getMessage(), e);
-                throw new CommunicationException(e.getMessage(), e);
-            } catch (SchemaException e) {
-                ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: schema problem: " + e.getMessage(), e);
-                throw new SchemaException(e.getMessage(), e);
-            } catch (ConfigurationException e) {
-                ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: configuration problem: " + e.getMessage(), e);
-                throw e;
-            } catch (SecurityViolationException e) {
-                ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: security violation: " + e.getMessage(), e);
-                throw e;
-            } catch (ExpressionEvaluationException e) {
-                ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: expression error: " + e.getMessage(), e);
-                throw e;
-            } catch (PolicyViolationException | RuntimeException | Error e) {
-                ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: " + e.getMessage(), e);
-                throw e;
-            }
-
-        } else if (object.canRepresent(ResourceType.class)) {
-
-            resourceManager.deleteResource(oid, result);
-
-        } else {
-
-            try {
+            if (object.canRepresent(ShadowType.class) && !ProvisioningOperationOptions.isRaw(options)) {
+                return deleteShadow(cast(object, ShadowType.class), options, scripts, task, result);
+            } else if (object.canRepresent(ResourceType.class)) {
+                resourceManager.deleteResource(oid, result);
+                return null;
+            } else {
                 cacheRepositoryService.deleteObject(type, oid, result);
-            } catch (ObjectNotFoundException ex) {
-                result.recordFatalError(ex);
-                result.cleanupResult(ex);
-                throw ex;
+                return null;
             }
 
+        } catch (Throwable t) {
+            result.recordFatalErrorIfNeeded(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+            result.cleanupResult();
         }
-        LOGGER.trace("Finished deleting object.");
+    }
 
-        if (!result.isInProgress()) {
-            // This is the case when there is already a conflicting pending operation.
-            result.computeStatus();
+    private <T extends ObjectType> PrismObject<T> deleteShadow(PrismObject<ShadowType> shadow,
+            ProvisioningOperationOptions options, OperationProvisioningScriptsType scripts, Task task, OperationResult result)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
+
+        try {
+
+            //noinspection unchecked
+            return (PrismObject<T>) shadowsFacade.deleteShadow(shadow, options, scripts, task, result);
+
+            // TODO improve the error reporting. It is good that we want to provide some context for the error ("Couldn't delete
+            //  object: ... problem: ...") but this is just too verbose in code. We need a better approach.
+        } catch (CommunicationException e) {
+            ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: communication problem: " + e.getMessage(), e);
+            throw e;
+        } catch (GenericFrameworkException e) {
+            ProvisioningUtil.recordFatalError(LOGGER, result,
+                    "Couldn't delete object: generic error in the connector: " + e.getMessage(), e);
+            throw new CommunicationException(e.getMessage(), e);
+        } catch (SchemaException e) {
+            ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: schema problem: " + e.getMessage(), e);
+            throw e;
+        } catch (ConfigurationException e) {
+            ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: configuration problem: " + e.getMessage(), e);
+            throw e;
+        } catch (SecurityViolationException e) {
+            ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: security violation: " + e.getMessage(), e);
+            throw e;
+        } catch (ExpressionEvaluationException e) {
+            ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: expression error: " + e.getMessage(), e);
+            throw e;
+        } catch (Throwable e) {
+            ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: " + e.getMessage(), e);
+            throw e;
         }
-        result.cleanupResult();
-
-        return deadShadow;
     }
 
     @Override
@@ -757,7 +761,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         Validate.notNull(shadow, "Shadow for refresh must not be null.");
-        OperationResult result = parentResult.createSubresult(OPERATION_REFRESH_SHADOW);
+        OperationResult result = parentResult.createSubresult(OP_REFRESH_SHADOW);
 
         LOGGER.debug("Refreshing shadow {}", shadow);
 

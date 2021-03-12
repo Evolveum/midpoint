@@ -665,7 +665,8 @@ public class ContextLoader implements ProjectorProcessor {
                         linkRefVal.getRelation(), linkRefVal);
                 // We do this just to restore old behavior that ensures that linked shadows are quick-refreshed,
                 // deleting e.g. expired pending operations (see TestMultiResource.test429).
-                refreshLinkedShadow(oid, task, result);
+                var options = createGetOptions(context);
+                refreshLinkedShadow(oid, options, task, result);
                 continue;
             }
             if (StringUtils.isBlank(oid)) {
@@ -683,17 +684,7 @@ public class ContextLoader implements ProjectorProcessor {
             //noinspection unchecked
             PrismObject<ShadowType> shadowFromLink = linkRefVal.getObject();
             if (shadowFromLink == null) {
-                GetOperationOptions rootOpts;
-                if (context.isDoReconciliationForAllProjections()) {
-                    rootOpts = GetOperationOptions.createForceRetry();
-                } else {
-                    // Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
-                    // We need to fetch from provisioning and not repository so the correct definition will be set.
-                    rootOpts = GetOperationOptions.createNoFetch();
-                    rootOpts.setPointInTimeType(PointInTimeType.FUTURE);
-                }
-
-                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOpts);
+                var options = createGetOptions(context);
                 LOGGER.trace("Loading shadow {} from linkRef, options={}", oid, options);
                 try {
                     shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
@@ -732,10 +723,21 @@ public class ContextLoader implements ProjectorProcessor {
         }
     }
 
-    private void refreshLinkedShadow(String oid, Task task, OperationResult result) {
-        Collection<SelectorOptions<GetOperationOptions>> options = SchemaService.get().getOperationOptionsBuilder()
-                .noFetch()
-                .build();
+    private <F extends FocusType> Collection<SelectorOptions<GetOperationOptions>> createGetOptions(LensContext<F> context) {
+        GetOperationOptions rootOpts;
+        if (context.isDoReconciliationForAllProjections()) {
+            rootOpts = GetOperationOptions.createForceRetry();
+        } else {
+            // Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
+            // We need to fetch from provisioning and not repository so the correct definition will be set.
+            rootOpts = GetOperationOptions.createNoFetch();
+            rootOpts.setPointInTimeType(PointInTimeType.FUTURE);
+        }
+        return SelectorOptions.createCollection(rootOpts);
+    }
+
+    private void refreshLinkedShadow(String oid, Collection<SelectorOptions<GetOperationOptions>> options, Task task,
+            OperationResult result) {
         try {
             provisioningService.getObject(ShadowType.class, oid, options, task, result);
         } catch (Exception e) {

@@ -108,6 +108,12 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     @Experimental
     private PrismObject<E> objectAfterModification;
 
+    /**
+     * Liveness state of the shadow after operation.
+     * Null if the operation was not executed or object is not a shadow.
+     */
+    private ShadowLivenessState shadowLivenessState;
+
     DeltaExecution(@NotNull LensContext<O> context, @NotNull LensElementContext<E> elementContext, ObjectDelta<E> delta,
             ConflictResolutionType conflictResolution, @NotNull Task task, @NotNull ModelBeans modelBeans) {
 
@@ -431,6 +437,12 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                 if (oid == null) {
                     throw new SystemException("Provisioning addObject returned null OID while adding " + objectToAdd);
                 }
+                if (objectBeanToAdd instanceof ShadowType) {
+                    // Even if the resource object is not created on the resource (e.g. because of error or because the
+                    // resource is manual), we know the shadow exists. And we assume the shadow is live.
+                    // TODO reconsider if this assumption is valid.
+                    shadowLivenessState = ShadowLivenessState.LIVE;
+                }
                 result.addReturn("createdAccountOid", oid);
             } else {
                 FocusConstraintsChecker.clearCacheFor(objectToAdd.asObjectable().getName());
@@ -563,6 +575,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         } catch (ObjectNotFoundException e) {
             // We do not want the operation to fail here. The object might have been re-created on the resource
             // or discovery might re-create it. So simply ignore this error and give provisioning a chance to fail properly.
+            // TODO This is maybe a false hope. In fact, if OID is not in repo, the modifyObject call fails immediately.
             result.muteLastSubresultError();
             LOGGER.warn("Repository object {}: {} is gone. But trying to modify resource object anyway", objectClass, oid);
         }
@@ -575,9 +588,32 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         ModelImplUtils.setRequestee(task, context);
         try {
             ProvisioningOperationOptions options = getProvisioningOptions();
-            return b.provisioningService.modifyObject(objectClass, oid, delta.getModifications(), scripts, options, task, result);
+            String updatedOid =
+                    b.provisioningService.modifyObject(objectClass, oid, delta.getModifications(), scripts, options, task, result);
+            determineLivenessFromObject(objectToModify);
+            return updatedOid;
+        } catch (ObjectNotFoundException e) {
+            // rough attempt at guessing if the exception is related to the shadow (and not e.g. to the resource)
+            if (e.getOid() == null || e.getOid().equals(oid)) {
+                shadowLivenessState = ShadowLivenessState.NOT_IN_REPOSITORY;
+            }
+            throw e;
         } finally {
             ModelImplUtils.clearRequestee(task);
+        }
+    }
+
+    private void determineLivenessFromObject(PrismObject<E> objectToModify) throws SchemaException {
+        if (!ShadowType.class.equals(delta.getObjectTypeClass())) {
+            return;
+        }
+        if (objectToModify != null) {
+            // Although we can expect that modifications are not connected with the 'dead' property, let us be precise.
+            delta.applyTo(objectToModify);
+            shadowLivenessState = ShadowLivenessState.forShadow(cast(objectToModify, ShadowType.class));
+        } else {
+            // If this is so, we are probably not here. But just for completeness.
+            shadowLivenessState = ShadowLivenessState.NOT_IN_REPOSITORY;
         }
     }
 
@@ -631,12 +667,16 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
                 try {
                     objectAfterModification = deleteProvisioningObject(objectTypeClass, oid, result);
+                    if (ShadowType.class.equals(objectTypeClass)) {
+                        shadowLivenessState = ShadowLivenessState.forShadow(cast(objectAfterModification, ShadowType.class));
+                    }
                 } catch (ObjectNotFoundException e) {
                     // Object that we wanted to delete is already gone. This can happen in some race conditions.
                     // As the resulting state is the same as we wanted it to be we will not complain and we will go on.
                     LOGGER.trace("Attempt to delete object {} ({}) that is already gone", oid, objectTypeClass);
                     result.muteLastSubresultError();
                     objectAfterModification = null;
+                    shadowLivenessState = ShadowLivenessState.NOT_IN_REPOSITORY;
                 }
                 if (objectAfterModification == null && elementContext instanceof LensProjectionContext) {
                     ((LensProjectionContext) elementContext).setShadowExistsInRepo(false);
@@ -863,6 +903,10 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     public PrismObject<E> getObjectAfterModification() {
         return objectAfterModification;
+    }
+
+    ShadowLivenessState getShadowLivenessState() {
+        return shadowLivenessState;
     }
     //endregion
 }

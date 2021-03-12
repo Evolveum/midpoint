@@ -65,6 +65,9 @@ public class ProjectionChangeExecution<O extends ObjectType> {
      */
     private ObjectDelta<ShadowType> projectionDelta;
 
+    /** What is the current state of the shadow. */
+    private ShadowLivenessState shadowLivenessState;
+
     private boolean restartRequested;
 
     public ProjectionChangeExecution(@NotNull LensContext<O> context, @NotNull LensProjectionContext projCtx, @NotNull Task task,
@@ -82,6 +85,8 @@ public class ProjectionChangeExecution<O extends ObjectType> {
         if (!shouldExecute()) {
             return;
         }
+
+        shadowLivenessState = ShadowLivenessState.forShadow(projCtx.getObjectCurrent());
 
         OperationResult result = parentResult
                 .subresult(OPERATION_EXECUTE_PROJECTION + "." + projCtx.getObjectTypeClass().getSimpleName())
@@ -119,6 +124,7 @@ public class ProjectionChangeExecution<O extends ObjectType> {
             if (!skipDeltaExecution) {
                 DeltaExecution<O, ShadowType> deltaExecution = new DeltaExecution<>(context, projCtx, projectionDelta, null, task, b);
                 deltaExecution.execute(result);
+                shadowLivenessState = deltaExecution.getShadowLivenessState();
                 if (projCtx.isAdd() && deltaExecution.getObjectAfterModification() != null) {
                     // FIXME This is suspicious. For example, the shadow creation can be delayed.
                     //  Also, ADD delta could become converted to MODIFY by delta executor, and so objectAfterModification
@@ -324,7 +330,7 @@ public class ProjectionChangeExecution<O extends ObjectType> {
         }
 
         //noinspection unchecked
-        new LinkUpdater<>(context, (LensFocusContext<? extends FocusType>) focusContext, projCtx, task, b)
+        new LinkUpdater<>(context, (LensFocusContext<? extends FocusType>) focusContext, projCtx, shadowLivenessState, task, b)
                 .updateLinks(result);
     }
 }

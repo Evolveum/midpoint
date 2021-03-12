@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
@@ -374,10 +375,10 @@ public class ResourceObjectConverter {
 
         checkForCapability(ctx, DeleteCapabilityType.class, result);
 
-        Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil
-                .getAllIdentifiers(shadow);
+        Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(shadow);
 
-        if (ProvisioningUtil.isProtectedShadow(ctx.getProtectedAccountPatterns(expressionFactory, parentResult), shadow, matchingRuleRegistry, relationRegistry)) {
+        Collection<ResourceObjectPattern> protectedPatterns = ctx.getProtectedAccountPatterns(expressionFactory, parentResult);
+        if (ProvisioningUtil.isProtectedShadow(protectedPatterns, shadow, matchingRuleRegistry, relationRegistry)) {
             LOGGER.error("Attempt to delete protected resource object " + ctx.getObjectClassDefinition() + ": "
                     + identifiers + "; ignoring the request");
             SecurityViolationException e = new SecurityViolationException("Cannot delete protected resource object "

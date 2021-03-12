@@ -854,7 +854,7 @@ public class MiscUtil {
         return value != null ? singletonList(value) : emptyList();
     }
 
-    public static <T> T cast(Object value, Class<T> expectedClass) throws SchemaException {
+    public static <T> T castSafely(Object value, Class<T> expectedClass) throws SchemaException {
         if (value == null) {
             return null;
         } else if (!expectedClass.isAssignableFrom(value.getClass())) {

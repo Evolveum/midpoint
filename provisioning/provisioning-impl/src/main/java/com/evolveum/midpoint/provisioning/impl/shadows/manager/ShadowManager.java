@@ -243,24 +243,26 @@ public class ShadowManager {
         shadowUpdater.recordOperationException(ctx, opState, delta, result);
     }
 
-    // returns conflicting operation (pending delta) if there is any
+    /**
+     * Returns conflicting operation (pending delta) if there is any.
+     * The repo shadow in opState is updated.
+     */
     public PendingOperationType checkAndRecordPendingDeleteOperationBeforeExecution(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadow, ProvisioningOperationState<AsynchronousOperationResult> opState,
-            Task task, OperationResult result)
+            @NotNull ProvisioningOperationState<AsynchronousOperationResult> opState,
+            OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
-        return shadowUpdater.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, shadow, opState, task, result);
+        return shadowUpdater.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, opState, result);
     }
 
     public PendingOperationType checkAndRecordPendingModifyOperationBeforeExecution(ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow,
             Collection<? extends ItemDelta<?, ?>> modifications,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
-            Task task, OperationResult result)
+            @NotNull ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+            OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         return shadowUpdater
-                .checkAndRecordPendingModifyOperationBeforeExecution(ctx, repoShadow, modifications, opState, task, result);
+                .checkAndRecordPendingModifyOperationBeforeExecution(ctx, modifications, opState, result);
     }
 
     public <A extends AsynchronousOperationResult> void updatePendingOperations(ProvisioningContext ctx,
@@ -320,16 +322,20 @@ public class ShadowManager {
         return shadowUpdater.updateShadow(ctx, currentResourceObject, resourceObjectDelta, repoShadow, shadowState, result);
     }
 
-    public PrismObject<ShadowType> recordDeleteResult(ProvisioningContext ctx, PrismObject<ShadowType> oldRepoShadow,
+    /**
+     * Returns updated repo shadow, or null if shadow is deleted from repository.
+     */
+    public PrismObject<ShadowType> recordDeleteResult(ProvisioningContext ctx,
             ProvisioningOperationState<AsynchronousOperationResult> opState, ProvisioningOperationOptions options,
-            XMLGregorianCalendar now, OperationResult parentResult)
+            OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, EncryptionException {
-        return shadowUpdater.recordDeleteResult(ctx, oldRepoShadow, opState, options, now, parentResult);
+        return shadowUpdater.recordDeleteResult(ctx, opState, options, parentResult);
     }
 
     public void deleteShadow(ProvisioningContext ctx, PrismObject<ShadowType> oldRepoShadow, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
         shadowUpdater.deleteShadow(ctx, oldRepoShadow, result);
     }
 

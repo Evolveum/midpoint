@@ -73,6 +73,9 @@ class LinkUpdater<F extends FocusType> {
     /** OID of the projection. Not null after initial checks. */
     @Nullable private final String projectionOid;
 
+    /** Current liveness state of the shadow. */
+    private final ShadowLivenessState shadowLivenessState;
+
     @NotNull private final Task task;
 
     // This is an attempt how it looks like if beans are declared explicitly for the class.
@@ -84,12 +87,14 @@ class LinkUpdater<F extends FocusType> {
     @NotNull private final Clock clock;
 
     LinkUpdater(@NotNull LensContext<?> context, @NotNull LensFocusContext<F> focusContext,
-            @NotNull LensProjectionContext projCtx, @NotNull Task task, @NotNull ModelBeans beans) {
+            @NotNull LensProjectionContext projCtx, @Nullable ShadowLivenessState shadowLivenessState,
+            @NotNull Task task, @NotNull ModelBeans beans) {
 
         this.context = context;
         this.focusContext = focusContext;
         this.projCtx = projCtx;
         this.projectionOid = projCtx.getOid();
+        this.shadowLivenessState = shadowLivenessState;
         this.task = task;
 
         this.prismContext = beans.prismContext;
@@ -139,27 +144,20 @@ class LinkUpdater<F extends FocusType> {
 
         } else if (projCtx.isTombstone()) {
 
-            LOGGER.trace("Projection is a tombstone. Link should be 'related'.");
-            setLinkedAsRelated(result);
+            //noinspection DuplicateCondition
+            if (shadowLivenessState == null) { // TODO remove this check
+                throw new IllegalStateException("Null liveness state? " + projCtx.toHumanReadableString());
+            }
 
-        } else if (decision == SynchronizationPolicyDecision.UNLINK || decision == SynchronizationPolicyDecision.DELETE) {
-
-            // 1. Shadow does exist in repo. So, by definition, we want to keep the link.
-            // 2. But the link should be invisible, so org:related should be used.
-            LOGGER.trace("Shadow is present but the decision is {}. Link should be 'related'.", decision);
-            setLinkedAsRelated(result);
-
-        } else if (decision == SynchronizationPolicyDecision.BROKEN) {
-
-            // 1. Broken accounts can be either 'being deleted' or not.
-            // 2. We know that the shadow exists, so the link should be present.
-            // 3. Let us try to base our decision on synchronization intent.
-            if (intent == SynchronizationIntent.UNLINK || intent == SynchronizationIntent.DELETE) {
-                LOGGER.trace("Shadow is present, projection is broken, and intent was {}. Link should be 'related'.", intent);
+            if (shadowLivenessState == null || shadowLivenessState == ShadowLivenessState.DEAD) {
+                LOGGER.trace("Projection is a tombstone. Link should be 'related'.");
                 setLinkedAsRelated(result);
             } else {
-                LOGGER.trace("Shadow is present, projection is broken, and intent was {}. Link should be 'default'.", intent);
-                setLinkedNormally(result);
+                // TODO remove this exception
+                throw new IllegalStateException("Tombstone with liveness state = " + shadowLivenessState + ": " + projCtx.toHumanReadableString());
+//                LOGGER.warn("Projection is a tombstone but shadow liveness state is {}. Context: {}. According to the state.",
+//                        shadowLivenessState, projCtx.toHumanReadableString());
+//                setLinkedFromLivenessState(result);
             }
 
         } else if (decision == SynchronizationPolicyDecision.IGNORE) {
@@ -167,8 +165,13 @@ class LinkUpdater<F extends FocusType> {
             LOGGER.trace("Projection is ignored. Keeping link as is.");
 
         } else {
-            LOGGER.trace("Projection seems to be alive (decision = {}). Link should be 'default'.", decision);
-            setLinkedNormally(result);
+
+            if (shadowLivenessState == null) { // TODO remove this check
+                throw new IllegalStateException("Null liveness state? " + projCtx.toHumanReadableString());
+            }
+
+            setLinkedFromLivenessState(result);
+
         }
     }
 
@@ -223,6 +226,66 @@ class LinkUpdater<F extends FocusType> {
             if (delta != null) {
                 focusContext.addToExecutedDeltas(LensUtil.createObjectDeltaOperation(delta, result, focusContext, projCtx));
             }
+        }
+    }
+
+    private void setLinkedFromLivenessState(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        LOGGER.trace("Setting link according to the liveness state: {}", shadowLivenessState);
+        if (shadowLivenessState == null) {
+            LOGGER.warn("Null shadow liveness state in {}, using legacy criteria", projCtx.toHumanReadableString());
+            setLinkedFromLegacyCriteria(result);
+            return;
+        }
+        switch (shadowLivenessState) {
+            case NOT_IN_REPOSITORY:
+                LOGGER.trace("Shadow is not in repository, deleting linkRef");
+                deleteLinkRefFromFocus(result);
+                break;
+            case DEAD:
+                LOGGER.trace("Shadow is dead, linking as dead");
+                setLinkedAsRelated(result);
+                break;
+            case LIVE:
+                LOGGER.trace("Shadow is live, linking as live");
+                setLinkedNormally(result);
+                break;
+            default:
+                throw new AssertionError(shadowLivenessState);
+        }
+    }
+
+    /**
+     * TODO remove this code eventually
+     */
+    private void setLinkedFromLegacyCriteria(OperationResult result) throws SchemaException, ObjectNotFoundException {
+
+        SynchronizationPolicyDecision decision = projCtx.getSynchronizationPolicyDecision();
+        SynchronizationIntent intent = projCtx.getSynchronizationIntent();
+
+        if (decision == SynchronizationPolicyDecision.UNLINK || decision == SynchronizationPolicyDecision.DELETE) {
+
+            // 1. Shadow does exist in repo. So, by definition, we want to keep the link.
+            // 2. But the link should be invisible, so org:related should be used.
+            LOGGER.trace("Shadow is present but the decision is {}. Link should be 'related'.", decision);
+            setLinkedAsRelated(result);
+
+        } else if (decision == SynchronizationPolicyDecision.BROKEN) {
+
+            // 1. Broken accounts can be either 'being deleted' or not.
+            // 2. We know that the shadow exists, so the link should be present.
+            // 3. Let us try to base our decision on synchronization intent.
+            if (intent == SynchronizationIntent.UNLINK || intent == SynchronizationIntent.DELETE) {
+                LOGGER.trace("Shadow is present, projection is broken, and intent was {}. Link should be 'related'.", intent);
+                setLinkedAsRelated(result);
+            } else {
+                LOGGER.trace("Shadow is present, projection is broken, and intent was {}. Link should be 'default'.", intent);
+                setLinkedNormally(result);
+            }
+
+        } else {
+
+            LOGGER.trace("Projection seems to be alive (decision = {}). Link should be 'default'.", decision);
+            setLinkedNormally(result);
         }
     }
 

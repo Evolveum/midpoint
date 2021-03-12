@@ -141,7 +141,8 @@ class ModifyHelper {
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 
-        PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingModifyOperationBeforeExecution(ctx, repoShadow, modifications, opState, task, parentResult);
+        PendingOperationType duplicateOperation =
+                shadowManager.checkAndRecordPendingModifyOperationBeforeExecution(ctx, modifications, opState, parentResult);
         if (duplicateOperation != null) {
             parentResult.recordInProgress();
             return repoShadow.getOid();
