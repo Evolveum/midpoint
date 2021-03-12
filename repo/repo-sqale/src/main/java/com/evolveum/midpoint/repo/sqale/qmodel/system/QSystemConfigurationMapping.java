@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.system;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
@@ -15,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
  * Mapping between {@link QSystemConfiguration} and {@link SystemConfigurationType}.
  */
 public class QSystemConfigurationMapping
-        extends QObjectMapping<SystemConfigurationType, QSystemConfiguration, MSystemConfiguration> {
+        extends QObjectMapping<SystemConfigurationType, QSystemConfiguration, MObject> {
 
     public static final String DEFAULT_ALIAS_NAME = "sc";
 
@@ -32,14 +33,14 @@ public class QSystemConfigurationMapping
     }
 
     @Override
-    public ObjectSqlTransformer<SystemConfigurationType, QSystemConfiguration, MSystemConfiguration>
+    public ObjectSqlTransformer<SystemConfigurationType, QSystemConfiguration, MObject>
     createTransformer(SqlTransformerSupport transformerSupport) {
         // no special class needed, no additional columns
         return new ObjectSqlTransformer<>(transformerSupport, this);
     }
 
     @Override
-    public MSystemConfiguration newRowObject() {
-        return new MSystemConfiguration();
+    public MObject newRowObject() {
+        return new MObject();
     }
 }

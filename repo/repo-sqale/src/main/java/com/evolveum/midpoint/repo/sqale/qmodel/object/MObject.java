@@ -14,6 +14,7 @@ import com.evolveum.midpoint.repo.sqale.MObjectType;
 
 /**
  * Querydsl "row bean" type related to {@link QObject}.
+ * It is also used for other mappings/objects types with no additional columns in their tables.
  */
 public class MObject {
 
