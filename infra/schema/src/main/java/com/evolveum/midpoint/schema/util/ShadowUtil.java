@@ -167,6 +167,11 @@ public class ShadowUtil {
         return getAttributesContainer(shadow.getValue(), containerName);
     }
 
+    public static boolean isAttributesContainerRaw(PrismObject<? extends ShadowType> shadow) {
+        PrismContainer<ShadowAttributesType> container = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+        return container != null && !(container instanceof ResourceAttributeContainer);
+    }
+
     public static ResourceAttributeContainer getAttributesContainer(PrismContainerValue<?> cval, QName containerName) {
         PrismContainer attributesContainer = cval.findContainer(containerName);
         if (attributesContainer == null) {

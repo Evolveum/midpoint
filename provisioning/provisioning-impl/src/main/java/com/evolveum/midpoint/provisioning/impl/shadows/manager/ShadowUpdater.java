@@ -735,6 +735,8 @@ class ShadowUpdater {
     /**
      * Returns conflicting operation (pending delta) if there is any.
      * Updates the repo shadow in opState.
+     *
+     * BEWARE: updated repo shadow is raw. ApplyDefinitions must be called on it before any serious use.
      */
     private <A extends AsynchronousOperationResult> PendingOperationType checkAndRecordPendingOperationBeforeExecution(
             ProvisioningContext ctx, ObjectDelta<ShadowType> proposedDelta, @NotNull ProvisioningOperationState<A> opState,
@@ -839,6 +841,8 @@ class ShadowUpdater {
     /**
      * Returns conflicting operation (pending delta) if there is any.
      * The repo shadow in opState is updated.
+     *
+     * BEWARE: updated repo shadow is raw. ApplyDefinitions must be called on it before any serious use.
      */
     PendingOperationType checkAndRecordPendingDeleteOperationBeforeExecution(ProvisioningContext ctx,
             @NotNull ProvisioningOperationState<AsynchronousOperationResult> opState,
@@ -850,6 +854,12 @@ class ShadowUpdater {
         return checkAndRecordPendingOperationBeforeExecution(ctx, proposedDelta, opState, parentResult);
     }
 
+    /**
+     * Returns conflicting operation (pending delta) if there is any.
+     * Updates the repo shadow in opState.
+     *
+     * BEWARE: updated repo shadow is raw. ApplyDefinitions must be called on it before any serious use.
+     */
     PendingOperationType checkAndRecordPendingModifyOperationBeforeExecution(ProvisioningContext ctx,
             Collection<? extends ItemDelta> modifications,
             @NotNull ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,

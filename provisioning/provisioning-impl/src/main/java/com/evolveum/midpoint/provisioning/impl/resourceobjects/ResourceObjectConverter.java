@@ -370,88 +370,96 @@ public class ResourceObjectConverter {
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_DELETE_RESOURCE_OBJECT);
+        try {
 
-        LOGGER.trace("Deleting resource object {}", shadow);
+            LOGGER.trace("Deleting resource object {}", shadow);
 
-        checkForCapability(ctx, DeleteCapabilityType.class, result);
+            checkForCapability(ctx, DeleteCapabilityType.class, result);
 
-        Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(shadow);
+            Collection<? extends ResourceAttribute<?>> identifiers = getIdentifiers(ctx, shadow);
 
-        Collection<ResourceObjectPattern> protectedPatterns = ctx.getProtectedAccountPatterns(expressionFactory, parentResult);
+            checkIfProtected(ctx, shadow, identifiers, result);
+
+            executeProvisioningScripts(ctx, ProvisioningOperationTypeType.DELETE, BeforeAfterType.BEFORE, scripts, result);
+
+            // Execute entitlement modification on other objects (if needed)
+            executeEntitlementChangesDelete(ctx, shadow, scripts, connOptions, result);
+
+            ConnectorInstance connector = ctx.getConnector(DeleteCapabilityType.class, result);
+            AsynchronousOperationResult connectorAsyncOpRet;
+            try {
+
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(
+                            "PROVISIONING DELETE operation on {}\n DELETE object, object class {}, identified by:\n{}",
+                            ctx.getResource(), shadow.asObjectable().getObjectClass(),
+                            SchemaDebugUtil.debugDump(identifiers));
+                }
+
+                if (!ResourceTypeUtil.isDeleteCapabilityEnabled(ctx.getResource())) {
+                    throw new UnsupportedOperationException("Resource does not support 'delete' operation");
+                }
+
+                connectorAsyncOpRet = connector.deleteObject(ctx.getObjectClassDefinition(), shadow, identifiers, ctx, result);
+
+            } catch (ObjectNotFoundException ex) {
+                throw new ObjectNotFoundException("An error occurred while deleting resource object " + shadow
+                        + " with identifiers " + identifiers + ": " + ex.getMessage(), ex);
+            } catch (CommunicationException ex) {
+                throw new CommunicationException("Error communicating with the connector " + connector + ": "
+                        + ex.getMessage(), ex);
+            } catch (ConfigurationException ex) {
+                throw new ConfigurationException("Configuration error in connector " + connector + ": "
+                        + ex.getMessage(), ex);
+            } catch (ExpressionEvaluationException ex) {
+                throw new ExpressionEvaluationException("Expression error while setting up the resource: "
+                        + ex.getMessage(), ex);
+            } catch (GenericFrameworkException ex) {
+                throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
+            }
+
+            LOGGER.trace("Deleted resource object {}", shadow);
+
+            executeProvisioningScripts(ctx, ProvisioningOperationTypeType.DELETE, BeforeAfterType.AFTER, scripts, result);
+
+            computeResultStatus(result);
+            LOGGER.debug("PROVISIONING DELETE result: {}", result.getStatus());
+
+            AsynchronousOperationResult aResult = AsynchronousOperationResult.wrap(result);
+            updateQuantum(ctx, connector, aResult, parentResult); // Hack: we use parentResult because result is closed now.
+            if (connectorAsyncOpRet != null) {
+                aResult.setOperationType(connectorAsyncOpRet.getOperationType());
+            }
+            return aResult;
+        } catch (Throwable t) {
+            result.recordFatalErrorIfNeeded(t); // TODO
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    private void checkIfProtected(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
+            Collection<? extends ResourceAttribute<?>> identifiers, OperationResult result) throws SchemaException,
+            ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            SecurityViolationException {
+        Collection<ResourceObjectPattern> protectedPatterns = ctx.getProtectedAccountPatterns(expressionFactory, result);
         if (ProvisioningUtil.isProtectedShadow(protectedPatterns, shadow, matchingRuleRegistry, relationRegistry)) {
             LOGGER.error("Attempt to delete protected resource object " + ctx.getObjectClassDefinition() + ": "
                     + identifiers + "; ignoring the request");
-            SecurityViolationException e = new SecurityViolationException("Cannot delete protected resource object "
+            throw new SecurityViolationException("Cannot delete protected resource object "
                     + ctx.getObjectClassDefinition() + ": " + identifiers);
-            result.recordFatalError(e);
-            throw e;
         }
+    }
 
-        executeProvisioningScripts(ctx, ProvisioningOperationTypeType.DELETE, BeforeAfterType.BEFORE, scripts, result);
-
-        // Execute entitlement modification on other objects (if needed)
-        executeEntitlementChangesDelete(ctx, shadow, scripts, connOptions, result);
-
-        ConnectorInstance connector = ctx.getConnector(DeleteCapabilityType.class, result);
-        AsynchronousOperationResult connectorAsyncOpRet;
-        try {
-
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(
-                        "PROVISIONING DELETE operation on {}\n DELETE object, object class {}, identified by:\n{}",
-                        ctx.getResource(), shadow.asObjectable().getObjectClass(),
-                        SchemaDebugUtil.debugDump(identifiers));
-            }
-
-            if (!ResourceTypeUtil.isDeleteCapabilityEnabled(ctx.getResource())){
-                UnsupportedOperationException e = new UnsupportedOperationException("Resource does not support 'delete' operation");
-                result.recordFatalError(e);
-                throw e;
-            }
-
-            connectorAsyncOpRet = connector.deleteObject(ctx.getObjectClassDefinition(), shadow, identifiers, ctx, result);
-
-        } catch (ObjectNotFoundException ex) {
-            result.recordFatalError("Can't delete object " + shadow
-                    + ". Reason: " + ex.getMessage(), ex);
-            throw new ObjectNotFoundException("An error occurred while deleting resource object " + shadow
-                    + " with identifiers " + identifiers + ": " + ex.getMessage(), ex);
-        } catch (CommunicationException ex) {
-            result.recordFatalError(
-                    "Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
-            throw new CommunicationException("Error communicating with the connector " + connector + ": "
-                    + ex.getMessage(), ex);
-        } catch (ConfigurationException ex) {
-            result.recordFatalError(
-                    "Configuration error in connector " + connector + ": " + ex.getMessage(), ex);
-            throw new ConfigurationException("Configuration error in connector " + connector + ": "
-                    + ex.getMessage(), ex);
-        } catch (ExpressionEvaluationException ex) {
-            result.recordFatalError(
-                    "Expression error while setting up the resource: " + ex.getMessage(), ex);
-            throw new ExpressionEvaluationException("Expression error while setting up the resource: "
-                    + ex.getMessage(), ex);
-        } catch (GenericFrameworkException ex) {
-            result.recordFatalError("Generic error in connector: " + ex.getMessage(), ex);
-            throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
-        } catch (SecurityViolationException | PolicyViolationException | RuntimeException | Error ex) {
-            result.recordFatalError(ex);
-            throw ex;
+    @Nullable
+    private Collection<? extends ResourceAttribute<?>> getIdentifiers(ProvisioningContext ctx, PrismObject<ShadowType> shadow) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+        if (ShadowUtil.isAttributesContainerRaw(shadow)) {
+            // This could occur if shadow was re-read during op state processing
+            shadowCaretaker.applyAttributesDefinition(ctx, shadow);
         }
-
-        LOGGER.trace("Deleted resource object {}", shadow);
-
-        executeProvisioningScripts(ctx, ProvisioningOperationTypeType.DELETE, BeforeAfterType.AFTER, scripts, result);
-
-        computeResultStatus(result);
-        LOGGER.debug("PROVISIONING DELETE result: {}", result.getStatus());
-
-        AsynchronousOperationResult aResult = AsynchronousOperationResult.wrap(result);
-        updateQuantum(ctx, connector, aResult, parentResult);
-        if (connectorAsyncOpRet != null) {
-            aResult.setOperationType(connectorAsyncOpRet.getOperationType());
-        }
-        return aResult;
+        Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(shadow);
+        return identifiers;
     }
 
     private void updateQuantum(ProvisioningContext ctx, ConnectorInstance connectorUsedForOperation, AsynchronousOperationResult aResult, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {

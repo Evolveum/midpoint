@@ -245,7 +245,9 @@ public class ShadowManager {
 
     /**
      * Returns conflicting operation (pending delta) if there is any.
-     * The repo shadow in opState is updated.
+     * Updates the repo shadow in opState.
+     *
+     * BEWARE: updated repo shadow is raw. ApplyDefinitions must be called on it before any serious use.
      */
     public PendingOperationType checkAndRecordPendingDeleteOperationBeforeExecution(ProvisioningContext ctx,
             @NotNull ProvisioningOperationState<AsynchronousOperationResult> opState,
@@ -255,6 +257,12 @@ public class ShadowManager {
         return shadowUpdater.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, opState, result);
     }
 
+    /**
+     * Returns conflicting operation (pending delta) if there is any.
+     * Updates the repo shadow in opState.
+     *
+     * BEWARE: updated repo shadow is raw. ApplyDefinitions must be called on it before any serious use.
+     */
     public PendingOperationType checkAndRecordPendingModifyOperationBeforeExecution(ProvisioningContext ctx,
             Collection<? extends ItemDelta<?, ?>> modifications,
             @NotNull ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
