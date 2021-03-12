@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterPr
 
 import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -43,6 +44,12 @@ public class QReferenceMapping<Q extends QReference<R>, R extends MReference>
     protected Q newAliasInstance(String alias) {
         //noinspection unchecked
         return (Q) new QReference<>(MReference.class, alias);
+    }
+
+    @Override
+    public ReferenceSqlTransformer<Q, R> createTransformer(
+            SqlTransformerSupport transformerSupport) {
+        return new ReferenceSqlTransformer<>(transformerSupport, this);
     }
 
     @Override

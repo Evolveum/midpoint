@@ -66,13 +66,13 @@ CREATE TYPE ReferenceType AS ENUM (
     'ASSIGNMENT_MODIFY_APPROVER',
     'DELEGATED',
     'INCLUDE',
+    'LINK', -- TODO: PROJECTION? PROJECTION_LINK?
     'OBJECT_CREATE_APPROVER',
     'OBJECT_MODIFY_APPROVER',
     'OBJECT_PARENT_ORG',
     'PERSONA',
     'RESOURCE_BUSINESS_CONFIGURATION_APPROVER',
-    'ROLE_MEMBERSHIP',
-    'USER_ACCOUNT');
+    'ROLE_MEMBERSHIP');
 
 -- Schema based enums have the same name like their enum classes (I like the Type suffix here):
 CREATE TYPE ActivationStatusType AS ENUM ('ENABLED', 'DISABLED', 'ARCHIVED');
@@ -163,6 +163,9 @@ CREATE TABLE m_uri (
     id SERIAL NOT NULL PRIMARY KEY,
     uri VARCHAR(255) NOT NULL UNIQUE
 );
+
+INSERT INTO m_uri (id, uri)
+    VALUES (0, 'http://midpoint.evolveum.com/xml/ns/public/common/org-3#default');
 -- TODO pre-fill with various PrismConstants?
 -- endregion
 
@@ -181,8 +184,8 @@ CREATE TABLE m_object (
     oid UUID NOT NULL,
     -- objectType will be overridden with GENERATED value in concrete table
     objectType ObjectType NOT NULL,
-    name_norm VARCHAR(255) NOT NULL,
     name_orig VARCHAR(255) NOT NULL,
+    name_norm VARCHAR(255) NOT NULL,
     fullObject BYTEA,
     tenantRef_targetOid UUID,
     tenantRef_targetType ObjectType,
@@ -258,8 +261,8 @@ CREATE TABLE m_focus (
     emailAddress VARCHAR(255),
     photo BYTEA, -- will be TOAST-ed if necessary
     locale VARCHAR(255),
-    locality_norm VARCHAR(255),
     locality_orig VARCHAR(255),
+    locality_norm VARCHAR(255),
     preferredLanguage VARCHAR(255),
     telephoneNumber VARCHAR(255),
     timezone VARCHAR(255),
@@ -286,23 +289,23 @@ CREATE TABLE m_focus (
 CREATE TABLE m_user (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('USER') STORED,
-    additionalName_norm VARCHAR(255),
     additionalName_orig VARCHAR(255),
+    additionalName_norm VARCHAR(255),
     employeeNumber VARCHAR(255),
-    familyName_norm VARCHAR(255),
     familyName_orig VARCHAR(255),
-    fullName_norm VARCHAR(255),
+    familyName_norm VARCHAR(255),
     fullName_orig VARCHAR(255),
-    givenName_norm VARCHAR(255),
+    fullName_norm VARCHAR(255),
     givenName_orig VARCHAR(255),
-    honorificPrefix_norm VARCHAR(255),
+    givenName_norm VARCHAR(255),
     honorificPrefix_orig VARCHAR(255),
-    honorificSuffix_norm VARCHAR(255),
+    honorificPrefix_norm VARCHAR(255),
     honorificSuffix_orig VARCHAR(255),
-    nickName_norm VARCHAR(255),
+    honorificSuffix_norm VARCHAR(255),
     nickName_orig VARCHAR(255),
-    title_norm VARCHAR(255),
-    title_orig VARCHAR(255)
+    nickName_norm VARCHAR(255),
+    title_orig VARCHAR(255),
+    title_norm VARCHAR(255)
 )
     INHERITS (m_focus);
 
@@ -327,9 +330,9 @@ CREATE INDEX m_user_employeeNumber_idx ON m_user (employeeNumber);
 CREATE TABLE m_abstract_role (
     -- will be overridden with GENERATED value in concrete table
     objectType ObjectType NOT NULL,
-    autoassign_enabled BOOLEAN,
-    displayName_norm VARCHAR(255),
+    autoAssignEnabled BOOLEAN,
     displayName_orig VARCHAR(255),
+    displayName_norm VARCHAR(255),
     identifier VARCHAR(255),
     ownerRef_targetOid UUID,
     ownerRef_targetType ObjectType,
@@ -779,8 +782,8 @@ CREATE TABLE m_lookup_table_row (
     owner_oid UUID NOT NULL REFERENCES m_lookup_table(oid) ON DELETE CASCADE,
     row_id INTEGER NOT NULL,
     row_key VARCHAR(255),
-    label_norm VARCHAR(255),
     label_orig VARCHAR(255),
+    label_norm VARCHAR(255),
     row_value VARCHAR(255),
     lastChangeTimestamp TIMESTAMPTZ,
 
@@ -1195,16 +1198,16 @@ CREATE TABLE m_ref_role_membership (
 CREATE INDEX m_ref_role_member_targetOid_relation_id_idx
     ON m_ref_role_membership (targetOid, relation_id);
 
-CREATE TABLE m_ref_user_account (
+CREATE TABLE m_ref_link (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('USER_ACCOUNT') STORED,
+    referenceType ReferenceType GENERATED ALWAYS AS ('LINK') STORED,
 
     PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
 )
     INHERITS (m_reference);
 
-CREATE INDEX m_ref_user_account_targetOid_relation_id_idx
-    ON m_ref_user_account (targetOid, relation_id);
+CREATE INDEX m_ref_link_targetOid_relation_id_idx
+    ON m_ref_link (targetOid, relation_id);
 -- endregion
 
 -- region Extension support

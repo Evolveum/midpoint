@@ -85,7 +85,7 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
 
         addRefMapping(F_DELEGATED_REF, QObjectReferenceMapping.INSTANCE_DELEGATED);
         addRefMapping(F_PERSONA_REF, QObjectReferenceMapping.INSTANCE_PERSONA);
-        addRefMapping(F_LINK_REF, QObjectReferenceMapping.INSTANCE_USER_ACCOUNT);
+        addRefMapping(F_LINK_REF, QObjectReferenceMapping.INSTANCE_LINK);
     }
 
     @Override

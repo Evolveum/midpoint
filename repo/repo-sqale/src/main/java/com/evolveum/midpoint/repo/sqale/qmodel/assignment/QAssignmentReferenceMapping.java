@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
@@ -32,12 +31,6 @@ public class QAssignmentReferenceMapping
     @Override
     protected QAssignmentReference newAliasInstance(String alias) {
         return new QAssignmentReference(alias);
-    }
-
-    @Override
-    public AssignmentReferenceSqlTransformer createTransformer(
-            SqlTransformerSupport transformerSupport) {
-        return new AssignmentReferenceSqlTransformer(transformerSupport, this);
     }
 
     @Override

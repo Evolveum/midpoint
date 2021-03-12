@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ContainerSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -26,7 +27,7 @@ public class AssignmentSqlTransformer
 
     // about duplication see the comment in ObjectSqlTransformer.toRowObjectWithoutFullObject
     @SuppressWarnings("DuplicatedCode")
-    public MAssignment toRowObject(
+    public MAssignment insert(
             AssignmentType assignment, MObject ownerRow, JdbcSession jdbcSession) {
         MAssignment row = super.toRowObject(assignment, ownerRow.oid);
 
@@ -90,6 +91,18 @@ public class AssignmentSqlTransformer
         }
 
         // TODO extensions stored inline (JSON)
+
+        // insert before treating sub-entities
+        jdbcSession.newInsert(mapping.defaultAlias())
+                .populate(row)
+                .execute();
+
+        if (metadata != null) {
+            storeRefs(row, metadata.getCreateApproverRef(),
+                    MReferenceType.ASSIGNMENT_CREATE_APPROVER, jdbcSession);
+            storeRefs(row, metadata.getModifyApproverRef(),
+                    MReferenceType.ASSIGNMENT_MODIFY_APPROVER, jdbcSession);
+        }
 
         return row;
     }

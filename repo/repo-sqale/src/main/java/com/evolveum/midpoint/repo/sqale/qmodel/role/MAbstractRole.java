@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.role;
 
 import java.util.UUID;
 
+import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MFocus;
 
 /**
@@ -15,12 +16,12 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.MFocus;
  */
 public class MAbstractRole extends MFocus {
 
-    public Boolean autoassignEnabled;
-    public String displayNameNorm;
+    public Boolean autoAssignEnabled;
     public String displayNameOrig;
+    public String displayNameNorm;
     public String identifier;
     public UUID ownerRefTargetOid;
-    public Integer ownerRefTargetType;
+    public MObjectType ownerRefTargetType;
     public Integer ownerRefRelationId;
     public Boolean requestable;
     public String riskLevel;

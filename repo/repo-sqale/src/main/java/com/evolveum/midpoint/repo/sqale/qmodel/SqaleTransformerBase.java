@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
 import com.evolveum.midpoint.repo.sqale.UriCache;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.*;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
@@ -33,6 +35,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBase<R>, R>
         implements SqlTransformer<S, Q, R> {
@@ -117,11 +120,12 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
     /**
      * Returns ID for relation QName without going ot database.
      * Relation is normalized before consulting {@link UriCache}.
+     * Never returns null, returns default ID for configured default relation.
      */
-    protected Integer resolveRelationToId(QName qName) {
-        return qName != null
-                ? resolveUriToId(QNameUtil.qNameToUri(transformerSupport.normalizeRelation(qName)))
-                : null;
+    protected @NotNull Integer resolveRelationToId(QName qName) {
+        return resolveUriToId(
+                QNameUtil.qNameToUri(
+                        transformerSupport.normalizeRelation(qName)));
     }
 
     /** Returns ID for cached URI without going ot database. */
@@ -132,10 +136,12 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
     /**
      * Returns ID for relation QName creating new {@link QUri} row in DB as needed.
      * Relation is normalized before consulting the cache.
+     * Never returns null, returns default ID for configured default relation.
      */
     protected Integer processCacheableRelation(QName qName, JdbcSession jdbcSession) {
-        return qName == null ? null : processCacheableUri(
-                QNameUtil.qNameToUri(transformerSupport.normalizeRelation(qName)),
+        return processCacheableUri(
+                QNameUtil.qNameToUri(
+                        transformerSupport.normalizeRelation(qName)),
                 jdbcSession);
     }
 
@@ -154,6 +160,14 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
                         transformerSupport.qNameToSchemaClass(schemaType));
     }
 
+    protected void setPolyString(PolyStringType polyString,
+            Consumer<String> origConsumer, Consumer<String> normConsumer) {
+        if (polyString != null) {
+            origConsumer.accept(polyString.getOrig());
+            normConsumer.accept(polyString.getNorm());
+        }
+    }
+
     protected void setReference(ObjectReferenceType ref, JdbcSession jdbcSession,
             Consumer<UUID> targetOidConsumer, Consumer<MObjectType> targetTypeConsumer,
             Consumer<Integer> relationIdConsumer) {
@@ -161,6 +175,17 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
             targetOidConsumer.accept(oidToUUid(ref.getOid()));
             targetTypeConsumer.accept(schemaTypeToObjectType(ref.getType()));
             relationIdConsumer.accept(processCacheableRelation(ref.getRelation(), jdbcSession));
+        }
+    }
+
+    protected <REF extends MReference> void storeRefs(
+            @NotNull MReferenceOwner<REF> ownerRow, List<ObjectReferenceType> refs,
+            MReferenceType referenceType, @NotNull JdbcSession jdbcSession) {
+        if (!refs.isEmpty()) {
+            QReferenceMapping<?, REF> mapping = referenceType.qReferenceMapping();
+            ReferenceSqlTransformer<?, REF> transformer =
+                    mapping.createTransformer(transformerSupport);
+            refs.forEach(ref -> transformer.storeRef(ref, ownerRow, jdbcSession));
         }
     }
 }

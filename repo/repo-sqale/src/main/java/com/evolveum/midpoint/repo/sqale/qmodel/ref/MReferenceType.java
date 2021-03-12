@@ -38,11 +38,14 @@ public enum MReferenceType {
             AssignmentHolderType.class, AssignmentHolderType.F_ARCHETYPE_REF),
 
     DELEGATED(QObjectReferenceMapping.INSTANCE_DELEGATED,
-            FocusType.class, FocusType.F_DELEGATED_REF),
+            AssignmentHolderType.class, AssignmentHolderType.F_DELEGATED_REF),
 
     // TODO map in QObjectTemplate when it exists,
     INCLUDE(QObjectReferenceMapping.INSTANCE_INCLUDE,
             ObjectTemplateType.class, ObjectTemplateType.F_INCLUDE_REF),
+
+    LINK(QObjectReferenceMapping.INSTANCE_LINK,
+            FocusType.class, FocusType.F_LINK_REF),
 
     OBJECT_CREATE_APPROVER(QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER,
             ObjectType.class, MetadataType.F_CREATE_APPROVER_REF),
@@ -56,16 +59,13 @@ public enum MReferenceType {
     PERSONA(QObjectReferenceMapping.INSTANCE_PERSONA,
             FocusType.class, FocusType.F_PERSONA_REF),
 
-    // TODO map in QResource when it exists
+    // TODO map in QResource when it exists,
     RESOURCE_BUSINESS_CONFIGURATION_APPROVER(
             QObjectReferenceMapping.INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER,
             ResourceType.class, ResourceBusinessConfigurationType.F_APPROVER_REF),
 
     ROLE_MEMBERSHIP(QObjectReferenceMapping.INSTANCE_ROLE_MEMBERSHIP,
             AssignmentHolderType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF),
-
-    USER_ACCOUNT(QObjectReferenceMapping.INSTANCE_USER_ACCOUNT,
-            FocusType.class, FocusType.F_LINK_REF),
 
     // OTHER REFERENCES
 
@@ -88,8 +88,9 @@ public enum MReferenceType {
         this.itemName = itemName;
     }
 
-    public QReferenceMapping<?, ?> qReferenceMapping() {
-        return qReferenceMapping;
+    public <R extends MReference> QReferenceMapping<?, R> qReferenceMapping() {
+        //noinspection unchecked
+        return (QReferenceMapping<?, R>) qReferenceMapping;
     }
 
     public QObjectReferenceMapping qObjectReferenceMapping() {

@@ -37,7 +37,7 @@ public class SqlTransformerSupport {
         return schemaService.schemaClassToTypeQName(schemaClass);
     }
 
-    public QName normalizeRelation(QName qName) {
+    public @NotNull QName normalizeRelation(QName qName) {
         return schemaService.normalizeRelation(qName);
     }
 

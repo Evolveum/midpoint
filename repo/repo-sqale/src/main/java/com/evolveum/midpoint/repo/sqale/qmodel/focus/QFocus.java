@@ -44,10 +44,10 @@ public class QFocus<T extends MFocus> extends QObject<T> {
             ColumnMetadata.named("photo").ofType(Types.BINARY);
     public static final ColumnMetadata LOCALE =
             ColumnMetadata.named("locale").ofType(Types.VARCHAR).withSize(255);
-    public static final ColumnMetadata LOCALITY_NORM =
-            ColumnMetadata.named("locality_norm").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata LOCALITY_ORIG =
             ColumnMetadata.named("locality_orig").ofType(Types.VARCHAR).withSize(255);
+    public static final ColumnMetadata LOCALITY_NORM =
+            ColumnMetadata.named("locality_norm").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata PREFERRED_LANGUAGE =
             ColumnMetadata.named("preferredLanguage").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata TELEPHONE_NUMBER =
@@ -85,8 +85,8 @@ public class QFocus<T extends MFocus> extends QObject<T> {
     public final StringPath emailAddress = createString("emailAddress", EMAIL_ADDRESS);
     public final ArrayPath<byte[], Byte> photo = createByteArray("photo", PHOTO);
     public final StringPath locale = createString("locale", LOCALE);
-    public final StringPath localityNorm = createString("localityNorm", LOCALITY_NORM);
     public final StringPath localityOrig = createString("localityOrig", LOCALITY_ORIG);
+    public final StringPath localityNorm = createString("localityNorm", LOCALITY_NORM);
     public final StringPath preferredLanguage =
             createString("preferredLanguage", PREFERRED_LANGUAGE);
     public final StringPath telephoneNumber = createString("telephoneNumber", TELEPHONE_NUMBER);

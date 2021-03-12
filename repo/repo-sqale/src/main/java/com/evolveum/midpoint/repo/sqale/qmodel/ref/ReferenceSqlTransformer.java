@@ -17,18 +17,27 @@ public class ReferenceSqlTransformer<Q extends QReference<R>, R extends MReferen
         extends SqaleTransformerBase<ObjectReferenceType, Q, R> {
 
     public ReferenceSqlTransformer(
-            SqlTransformerSupport transformerSupport, QReferenceMapping mapping) {
+            SqlTransformerSupport transformerSupport, QReferenceMapping<Q, R> mapping) {
         super(transformerSupport, mapping);
     }
 
-    public MReference toRowObject(ObjectReferenceType schemaObject, UUID ownerOid,
-            MReferenceType referenceType, JdbcSession jdbcSession) {
-        MReference row = new MReference();
-        row.ownerOid = ownerOid;
-        row.referenceType = referenceType;
+    /**
+     * There is no need to override this as the {@link MReferenceOwner#createReference()} takes
+     * care of the FK-columns initialization directly on the owning row object.
+     * All the other columns are based on a single schema type, so there is no variation.
+     */
+    public R storeRef(ObjectReferenceType schemaObject,
+            MReferenceOwner<R> ownerRow, JdbcSession jdbcSession) {
+        R row = ownerRow.createReference();
+        // row.referenceType is DB generated, must be kept NULL, but it will match referenceType
         row.relationId = processCacheableRelation(schemaObject.getRelation(), jdbcSession);
         row.targetOid = UUID.fromString(schemaObject.getOid());
         row.targetType = schemaTypeToObjectType(schemaObject.getType());
+
+        jdbcSession.newInsert(mapping.defaultAlias())
+                .populate(row)
+                .execute();
+
         return row;
     }
 }

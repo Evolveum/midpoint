@@ -12,6 +12,7 @@ import com.evolveum.midpoint.repo.sqale.MObjectType;
 
 /**
  * Querydsl "row bean" type related to {@link QReference} and its subtypes.
+ * This also works as "MObjectReference" as it does not need additional attributes.
  */
 public class MReference {
 

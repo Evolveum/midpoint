@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
@@ -22,6 +21,8 @@ public class QObjectReferenceMapping
             new QObjectReferenceMapping("m_ref_delegated", "refd");
     public static final QObjectReferenceMapping INSTANCE_INCLUDE =
             new QObjectReferenceMapping("m_ref_include", "refi");
+    public static final QObjectReferenceMapping INSTANCE_LINK =
+            new QObjectReferenceMapping("m_ref_link", "refl");
     public static final QObjectReferenceMapping INSTANCE_OBJECT_CREATE_APPROVER =
             new QObjectReferenceMapping("m_ref_object_create_approver", "refca");
     public static final QObjectReferenceMapping INSTANCE_OBJECT_MODIFY_APPROVER =
@@ -34,8 +35,6 @@ public class QObjectReferenceMapping
             new QObjectReferenceMapping("m_ref_resource_business_configuration_approver", "refrbca");
     public static final QObjectReferenceMapping INSTANCE_ROLE_MEMBERSHIP =
             new QObjectReferenceMapping("m_ref_role_membership", "refrm");
-    public static final QObjectReferenceMapping INSTANCE_USER_ACCOUNT =
-            new QObjectReferenceMapping("m_ref_user_account", "refua");
 
     private QObjectReferenceMapping(String tableName, String defaultAliasName) {
         super(tableName, defaultAliasName, QObjectReference.class);
@@ -43,13 +42,7 @@ public class QObjectReferenceMapping
 
     @Override
     protected QObjectReference newAliasInstance(String alias) {
-        return new QObjectReference(alias);
-    }
-
-    @Override
-    public ObjectReferenceSqlTransformer createTransformer(
-            SqlTransformerSupport transformerSupport) {
-        return new ObjectReferenceSqlTransformer(transformerSupport, this);
+        return new QObjectReference(alias, tableName());
     }
 
     @Override

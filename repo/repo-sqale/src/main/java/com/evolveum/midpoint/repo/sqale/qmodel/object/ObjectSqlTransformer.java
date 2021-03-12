@@ -21,13 +21,9 @@ import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTransformerBase;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.AssignmentSqlTransformer;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.MAssignment;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.ObjectReferenceSqlTransformer;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -35,8 +31,10 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R extends MObject>
         extends SqaleTransformerBase<S, Q, R> {
@@ -89,10 +87,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
 
         row.oid = oidToUUid(schemaObject.getOid());
 
-        // primitive columns common to ObjectType
-        PolyStringType name = schemaObject.getName();
-        row.nameOrig = name.getOrig();
-        row.nameNorm = name.getNorm();
+        setPolyString(schemaObject.getName(), o -> row.nameOrig = o, n -> row.nameNorm = n);
 
         // This is duplicate code with AssignmentSqlTransformer.toRowObject, but making interface
         // and needed setters (fields are not "interface-able") would create much more code.
@@ -148,16 +143,13 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
                     MReferenceType.OBJECT_MODIFY_APPROVER, jdbcSession);
         }
 
+
         /*
-        TODO, for ref lists see also RUtil.toRObjectReferenceSet
+        TODO
         subtype? it's obsolete already
         parentOrgRefs
         triggers
         repo.setPolicySituation(RUtil.listToSet(jaxb.getPolicySituation()));
-
-        if (jaxb.getExtension() != null) {
-            copyExtensionOrAttributesFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.EXTENSION, generatorResult);
-        }
 
         repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, repositoryContext));
         for (OperationExecutionType opExec : jaxb.getOperationExecution()) {
@@ -165,52 +157,34 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
             ROperationExecution.fromJaxb(opExec, rOpExec, jaxb, repositoryContext, generatorResult);
             repo.getOperationExecutions().add(rOpExec);
         }
-
-        repo.getRoleMembershipRef().addAll(
-                RUtil.toRObjectReferenceSet(jaxb.getRoleMembershipRef(), repo, RReferenceType.ROLE_MEMBER, repositoryContext.relationRegistry));
-
-        repo.getDelegatedRef().addAll(
-                RUtil.toRObjectReferenceSet(jaxb.getDelegatedRef(), repo, RReferenceType.DELEGATED, repositoryContext.relationRegistry));
-
-        repo.getArchetypeRef().addAll(
-                RUtil.toRObjectReferenceSet(jaxb.getArchetypeRef(), repo, RReferenceType.ARCHETYPE, repositoryContext.relationRegistry));
         */
         if (schemaObject instanceof AssignmentHolderType) {
             storeAssignmentHolderEntities(objectRow, (AssignmentHolderType) schemaObject, jdbcSession);
         }
 
-        // TODO EAV extensions
-    }
-
-    private void storeRefs(@NotNull MObject objectRow, List<ObjectReferenceType> refs,
-            MReferenceType referenceType, @NotNull JdbcSession jdbcSession) {
-        if (!refs.isEmpty()) {
-            QObjectReferenceMapping mapping = referenceType.qObjectReferenceMapping();
-            ObjectReferenceSqlTransformer transformer =
-                    mapping.createTransformer(transformerSupport);
-            for (ObjectReferenceType ref : refs) {
-                MReference row = transformer.toRowObject(
-                        ref, objectRow.oid, referenceType, jdbcSession);
-                jdbcSession.newInsert(mapping.defaultAlias())
-                        .populate(row)
-                        .execute();
-            }
+        /* TODO EAV extensions
+        if (jaxb.getExtension() != null) {
+            copyExtensionOrAttributesFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.EXTENSION, generatorResult);
         }
+        */
     }
 
     private void storeAssignmentHolderEntities(
             MObject objectRow, AssignmentHolderType schemaObject, JdbcSession jdbcSession) {
         List<AssignmentType> assignments = schemaObject.getAssignment();
         if (!assignments.isEmpty()) {
-            QAssignmentMapping mapping = QAssignmentMapping.INSTANCE;
-            AssignmentSqlTransformer transformer = mapping.createTransformer(transformerSupport);
-            for (AssignmentType assignment : assignments) {
-                MAssignment row = transformer.toRowObject(assignment, objectRow, jdbcSession);
-                jdbcSession.newInsert(mapping.defaultAlias())
-                        .populate(row)
-                        .execute();
-            }
+            AssignmentSqlTransformer transformer =
+                    QAssignmentMapping.INSTANCE.createTransformer(transformerSupport);
+            assignments.forEach(assignment ->
+                    transformer.insert(assignment, objectRow, jdbcSession));
         }
+
+        storeRefs(objectRow, schemaObject.getRoleMembershipRef(),
+                MReferenceType.ROLE_MEMBERSHIP, jdbcSession);
+        storeRefs(objectRow, schemaObject.getDelegatedRef(),
+                MReferenceType.DELEGATED, jdbcSession);
+        storeRefs(objectRow, schemaObject.getArchetypeRef(),
+                MReferenceType.ARCHETYPE, jdbcSession);
     }
 
     /**

@@ -37,10 +37,10 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
             ColumnMetadata.named("oid").ofType(UuidPath.UUID_TYPE).notNull();
     public static final ColumnMetadata OBJECT_TYPE =
             ColumnMetadata.named("objectType").ofType(Types.OTHER).notNull();
-    public static final ColumnMetadata NAME_NORM =
-            ColumnMetadata.named("name_norm").ofType(Types.VARCHAR).withSize(255).notNull();
     public static final ColumnMetadata NAME_ORIG =
             ColumnMetadata.named("name_orig").ofType(Types.VARCHAR).withSize(255).notNull();
+    public static final ColumnMetadata NAME_NORM =
+            ColumnMetadata.named("name_norm").ofType(Types.VARCHAR).withSize(255).notNull();
     public static final ColumnMetadata FULL_OBJECT =
             ColumnMetadata.named("fullObject").ofType(Types.BINARY);
     public static final ColumnMetadata TENANT_REF_TARGET_OID =
@@ -83,8 +83,8 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     public final UuidPath oid = createUuid("oid", OID);
     public final EnumPath<MObjectType> objectType =
             createEnum("objectType", MObjectType.class, OBJECT_TYPE);
-    public final StringPath nameNorm = createString("nameNorm", NAME_NORM);
     public final StringPath nameOrig = createString("nameOrig", NAME_ORIG);
+    public final StringPath nameNorm = createString("nameNorm", NAME_NORM);
     public final ArrayPath<byte[], Byte> fullObject = createByteArray("fullObject", FULL_OBJECT);
     public final UuidPath tenantRefTargetOid =
             createUuid("tenantRefTargetOid", TENANT_REF_TARGET_OID);
