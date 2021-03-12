@@ -18,9 +18,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -39,6 +37,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     @BeforeClass
     public void cleanDatabase() {
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            // object delete cascades to sub-rows of the "object aggregate"
             jdbcSession.newDelete(QObjectMapping.INSTANCE.defaultAlias()).execute();
         }
     }

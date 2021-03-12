@@ -44,4 +44,10 @@ public class QReferenceMapping<Q extends QReference<R>, R extends MReference>
         //noinspection unchecked
         return (Q) new QReference<>(MReference.class, alias);
     }
+
+    @Override
+    public R newRowObject() {
+        //noinspection unchecked
+        return (R) new MReference();
+    }
 }

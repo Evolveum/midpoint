@@ -233,13 +233,6 @@ CREATE TABLE m_container (
 );
 
 -- Abstract reference table, for object but also other container references.
--- TODO: split to tables per reference_type, see RReferenceType, currently 10 different tables
---select reference_type, count(*) from m_reference group by reference_type order by 1;
---0	9712164 -- parent refs (orgs)
---1	36702345 -- accounts
---7	1 -- include, is it any good in DB?
---8	48756878 -- roles
---11 5 -- will grow to some fraction of role refs
 CREATE TABLE m_reference (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     -- reference_type will be overridden with GENERATED value in concrete table

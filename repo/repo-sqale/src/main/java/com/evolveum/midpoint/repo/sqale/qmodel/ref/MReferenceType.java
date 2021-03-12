@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentReferenceMapping;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -24,6 +25,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * * Order of values is irrelevant.
  * * Constant names must match the custom enum type ReferenceType in the database schema.
+ *
+ * This class has a lot of bad gravity, as it depends on various mapping types.
+ * If this becomes a problem the "mapping" part needs to be separated from the pure enum values.
+ * TODO: while practical, this can be a job of QObjectReferenceMapping and other ref mappings...
  */
 public enum MReferenceType {
 
@@ -62,21 +67,20 @@ public enum MReferenceType {
     USER_ACCOUNT(QObjectReferenceMapping.INSTANCE_USER_ACCOUNT,
             FocusType.class, FocusType.F_LINK_REF),
 
-    ;
     // OTHER REFERENCES
-// todo
-//    ASSIGNMENT_CREATE_APPROVER(QAssignmentMapping.INSTANCE,
-//            AssignmentType.class, MetadataType.F_CREATE_APPROVER_REF),
-//
-//    ASSIGNMENT_MODIFY_APPROVER(QAssignmentMapping.INSTANCE,
-//            AssignmentType.class, MetadataType.F_MODIFY_APPROVER_REF);
 
-    private final QReferenceMapping qReferenceMapping;
+    ASSIGNMENT_CREATE_APPROVER(QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_CREATE_APPROVER,
+            AssignmentType.class, MetadataType.F_CREATE_APPROVER_REF),
+
+    ASSIGNMENT_MODIFY_APPROVER(QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_MODIFY_APPROVER,
+            AssignmentType.class, MetadataType.F_MODIFY_APPROVER_REF);
+
+    private final QReferenceMapping<?, ?> qReferenceMapping;
     private final Class<? extends Containerable> schemaType;
     private final QName itemName;
 
     MReferenceType(
-            @NotNull QReferenceMapping qReferenceMapping,
+            @NotNull QReferenceMapping<?, ?> qReferenceMapping,
             @NotNull Class<? extends Containerable> schemaType,
             @NotNull QName itemName) {
         this.qReferenceMapping = qReferenceMapping;
@@ -84,7 +88,7 @@ public enum MReferenceType {
         this.itemName = itemName;
     }
 
-    public QReferenceMapping qReferenceMapping() {
+    public QReferenceMapping<?, ?> qReferenceMapping() {
         return qReferenceMapping;
     }
 
