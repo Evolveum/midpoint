@@ -24,7 +24,10 @@ import com.evolveum.midpoint.repo.sqale.qmodel.assignment.AssignmentSqlTransform
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.MAssignment;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.*;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.ObjectReferenceSqlTransformer;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -95,32 +98,25 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         // and needed setters (fields are not "interface-able") would create much more code.
         MetadataType metadata = schemaObject.getMetadata();
         if (metadata != null) {
-            ObjectReferenceType creatorRef = metadata.getCreatorRef();
-            if (creatorRef != null) {
-                row.creatorRefTargetOid = oidToUUid(creatorRef.getOid());
-                row.creatorRefTargetType = schemaTypeToObjectType(creatorRef.getType());
-                row.creatorRefRelationId = processCacheableRelation(creatorRef.getRelation(), jdbcSession);
-            }
+            setReference(metadata.getCreatorRef(), jdbcSession,
+                    o -> row.creatorRefTargetOid = o,
+                    t -> row.creatorRefTargetType = t,
+                    r -> row.creatorRefRelationId = r);
             row.createChannelId = processCacheableUri(metadata.getCreateChannel(), jdbcSession);
             row.createTimestamp = MiscUtil.asInstant(metadata.getCreateTimestamp());
 
-            ObjectReferenceType modifierRef = metadata.getModifierRef();
-            if (modifierRef != null) {
-                row.modifierRefTargetOid = oidToUUid(modifierRef.getOid());
-                row.modifierRefTargetType = schemaTypeToObjectType(modifierRef.getType());
-                row.modifierRefRelationId = processCacheableRelation(modifierRef.getRelation(), jdbcSession);
-            }
+            setReference(metadata.getModifierRef(), jdbcSession,
+                    o -> row.modifierRefTargetOid = o,
+                    t -> row.modifierRefTargetType = t,
+                    r -> row.modifierRefRelationId = r);
             row.modifyChannelId = processCacheableUri(metadata.getModifyChannel(), jdbcSession);
             row.modifyTimestamp = MiscUtil.asInstant(metadata.getModifyTimestamp());
         }
 
-        ObjectReferenceType tenantRef = schemaObject.getTenantRef();
-        if (tenantRef != null) {
-            row.tenantRefTargetOid = oidToUUid(tenantRef.getOid());
-            row.tenantRefTargetType = schemaTypeToObjectType(tenantRef.getType());
-            row.tenantRefRelationId = processCacheableRelation(tenantRef.getRelation(), jdbcSession);
-        }
-
+        setReference(schemaObject.getTenantRef(), jdbcSession,
+                o -> row.tenantRefTargetOid = o,
+                t -> row.tenantRefTargetType = t,
+                r -> row.tenantRefRelationId = r);
         row.lifecycleState = schemaObject.getLifecycleState();
         row.version = SqaleUtils.objectVersionAsInt(schemaObject);
 

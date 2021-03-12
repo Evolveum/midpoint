@@ -12,7 +12,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 public class ConnectorSqlTransformer
         extends ObjectSqlTransformer<ConnectorType, QConnector, MConnector> {
@@ -31,12 +30,10 @@ public class ConnectorSqlTransformer
         row.connectorVersion = schemaObject.getConnectorVersion();
         row.framework = schemaObject.getFramework();
 
-        ObjectReferenceType ref = schemaObject.getConnectorHostRef();
-        if (ref != null) {
-            row.connectorHostRefTargetOid = oidToUUid(ref.getOid());
-            row.connectorHostRefTargetType = schemaTypeToObjectType(ref.getType());
-            row.connectorHostRefRelationId = processCacheableRelation(ref.getRelation(), jdbcSession);
-        }
+        setReference(schemaObject.getConnectorHostRef(), jdbcSession,
+                o -> row.connectorHostRefTargetOid = o,
+                t -> row.connectorHostRefTargetType = t,
+                r -> row.connectorHostRefRelationId = r);
 
         return row;
     }

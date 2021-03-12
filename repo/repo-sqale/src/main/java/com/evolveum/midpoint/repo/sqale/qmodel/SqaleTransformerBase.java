@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel;
 
 import java.util.Collection;
 import java.util.UUID;
+import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
@@ -151,5 +152,15 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
         return schemaType == null ? null :
                 MObjectType.fromSchemaType(
                         transformerSupport.qNameToSchemaClass(schemaType));
+    }
+
+    protected void setReference(ObjectReferenceType ref, JdbcSession jdbcSession,
+            Consumer<UUID> targetOidConsumer, Consumer<MObjectType> targetTypeConsumer,
+            Consumer<Integer> relationIdConsumer) {
+        if (ref != null) {
+            targetOidConsumer.accept(oidToUUid(ref.getOid()));
+            targetTypeConsumer.accept(schemaTypeToObjectType(ref.getType()));
+            relationIdConsumer.accept(processCacheableRelation(ref.getRelation(), jdbcSession));
+        }
     }
 }

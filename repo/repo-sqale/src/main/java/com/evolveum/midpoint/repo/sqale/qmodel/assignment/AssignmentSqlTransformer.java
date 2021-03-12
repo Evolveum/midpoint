@@ -11,7 +11,10 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
 public class AssignmentSqlTransformer
         extends ContainerSqlTransformer<AssignmentType, QAssignment, MAssignment> {
@@ -30,24 +33,18 @@ public class AssignmentSqlTransformer
         row.ownerType = ownerRow.objectType;
         row.lifecycleState = assignment.getLifecycleState();
         row.orderValue = assignment.getOrder();
-        ObjectReferenceType orgRef = assignment.getOrgRef();
-        if (orgRef != null) {
-            row.orgRefTargetOid = oidToUUid(orgRef.getOid());
-            row.orgRefTargetType = schemaTypeToObjectType(orgRef.getType());
-            row.orgRefRelationId = processCacheableRelation(orgRef.getRelation(), jdbcSession);
-        }
-        ObjectReferenceType targetRef = assignment.getTargetRef();
-        if (targetRef != null) {
-            row.targetRefTargetOid = oidToUUid(targetRef.getOid());
-            row.targetRefTargetType = schemaTypeToObjectType(targetRef.getType());
-            row.targetRefRelationId = processCacheableRelation(targetRef.getRelation(), jdbcSession);
-        }
-        ObjectReferenceType tenantRef = assignment.getTenantRef();
-        if (tenantRef != null) {
-            row.tenantRefTargetOid = oidToUUid(tenantRef.getOid());
-            row.tenantRefTargetType = schemaTypeToObjectType(tenantRef.getType());
-            row.tenantRefRelationId = processCacheableRelation(tenantRef.getRelation(), jdbcSession);
-        }
+        setReference(assignment.getOrgRef(), jdbcSession,
+                o -> row.orgRefTargetOid = o,
+                t -> row.orgRefTargetType = t,
+                r -> row.orgRefRelationId = r);
+        setReference(assignment.getTargetRef(), jdbcSession,
+                o -> row.targetRefTargetOid = o,
+                t -> row.targetRefTargetType = t,
+                r -> row.targetRefRelationId = r);
+        setReference(assignment.getTenantRef(), jdbcSession,
+                o -> row.tenantRefTargetOid = o,
+                t -> row.tenantRefTargetType = t,
+                r -> row.tenantRefRelationId = r);
 
         // TODO no idea how to do this yet, somehow related to RAssignment.extension
 //        row.extId = assignment.getExtension()...id?;
@@ -55,12 +52,10 @@ public class AssignmentSqlTransformer
 
         ConstructionType construction = assignment.getConstruction();
         if (construction != null) {
-            ObjectReferenceType resourceRef = construction.getResourceRef();
-            if (resourceRef != null) {
-                row.resourceRefTargetOid = oidToUUid(resourceRef.getOid());
-                row.resourceRefTargetType = schemaTypeToObjectType(resourceRef.getType());
-                row.resourceRefRelationId = processCacheableRelation(resourceRef.getRelation(), jdbcSession);
-            }
+            setReference(construction.getResourceRef(), jdbcSession,
+                    o -> row.resourceRefTargetOid = o,
+                    t -> row.resourceRefTargetType = t,
+                    r -> row.resourceRefRelationId = r);
         }
 
         ActivationType activation = assignment.getActivation();
@@ -79,21 +74,17 @@ public class AssignmentSqlTransformer
 
         MetadataType metadata = assignment.getMetadata();
         if (metadata != null) {
-            ObjectReferenceType creatorRef = metadata.getCreatorRef();
-            if (creatorRef != null) {
-                row.creatorRefTargetOid = oidToUUid(creatorRef.getOid());
-                row.creatorRefTargetType = schemaTypeToObjectType(creatorRef.getType());
-                row.creatorRefRelationId = processCacheableRelation(creatorRef.getRelation(), jdbcSession);
-            }
+            setReference(metadata.getCreatorRef(), jdbcSession,
+                    o -> row.creatorRefTargetOid = o,
+                    t -> row.creatorRefTargetType = t,
+                    r -> row.creatorRefRelationId = r);
             row.createChannelId = processCacheableUri(metadata.getCreateChannel(), jdbcSession);
             row.createTimestamp = MiscUtil.asInstant(metadata.getCreateTimestamp());
 
-            ObjectReferenceType modifierRef = metadata.getModifierRef();
-            if (modifierRef != null) {
-                row.modifierRefTargetOid = oidToUUid(modifierRef.getOid());
-                row.modifierRefTargetType = schemaTypeToObjectType(modifierRef.getType());
-                row.modifierRefRelationId = processCacheableRelation(modifierRef.getRelation(), jdbcSession);
-            }
+            setReference(metadata.getModifierRef(), jdbcSession,
+                    o -> row.modifierRefTargetOid = o,
+                    t -> row.modifierRefTargetType = t,
+                    r -> row.modifierRefRelationId = r);
             row.modifyChannelId = processCacheableUri(metadata.getModifyChannel(), jdbcSession);
             row.modifyTimestamp = MiscUtil.asInstant(metadata.getModifyTimestamp());
         }
