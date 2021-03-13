@@ -230,7 +230,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertUserJack(userJack);
         assertUser(userJack, "after")
                 .assertLiveLinks(0)
-                .assertRelatedLinks(1); // The account was only unlinked
+                .assertRelatedLinks(0); // The account was unlinked.
 
         // Check shadow (if it is unchanged)
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);

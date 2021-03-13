@@ -602,9 +602,8 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         if (policyDecision == SynchronizationPolicyDecision.UNLINK) {
             // We will not update accounts that are being unlinked.
             // we cannot skip deleted accounts here as the delete delta will be skipped as well
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Skipping post-recon processing of value for {} because the decision is {}", projContext.getHumanReadableName(), policyDecision);
-            }
+            LOGGER.trace("Skipping post-recon processing of value for {} because the decision is {}",
+                    projContext.getHumanReadableName(), policyDecision);
             return;
         }
 

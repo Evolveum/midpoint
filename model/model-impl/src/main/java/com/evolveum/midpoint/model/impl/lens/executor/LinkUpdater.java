@@ -142,6 +142,11 @@ class LinkUpdater<F extends FocusType> {
             LOGGER.trace("Nothing to link to, because the shadow is not in repository. Removing linkRef from focus.");
             deleteLinkRefFromFocus(result);
 
+        } else if (decision == SynchronizationPolicyDecision.UNLINK) {
+
+            LOGGER.trace("Explicitly requested link to be removed. So removing it from the focus and the shadow.");
+            deleteLinkCompletely(result);
+
         } else if (projCtx.isTombstone()) {
 
             //noinspection DuplicateCondition
@@ -262,7 +267,7 @@ class LinkUpdater<F extends FocusType> {
         SynchronizationPolicyDecision decision = projCtx.getSynchronizationPolicyDecision();
         SynchronizationIntent intent = projCtx.getSynchronizationIntent();
 
-        if (decision == SynchronizationPolicyDecision.UNLINK || decision == SynchronizationPolicyDecision.DELETE) {
+        if (decision == SynchronizationPolicyDecision.DELETE) {
 
             // 1. Shadow does exist in repo. So, by definition, we want to keep the link.
             // 2. But the link should be invisible, so org:related should be used.
@@ -287,6 +292,11 @@ class LinkUpdater<F extends FocusType> {
             LOGGER.trace("Projection seems to be alive (decision = {}). Link should be 'default'.", decision);
             setLinkedNormally(result);
         }
+    }
+
+    private void deleteLinkCompletely(OperationResult result) throws ObjectNotFoundException, SchemaException {
+        deleteLinkRefFromFocus(result);
+        updateSituationInShadow(null, result);
     }
 
     private void setLinkedAsRelated(OperationResult result) throws SchemaException, ObjectNotFoundException {

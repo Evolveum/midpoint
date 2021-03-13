@@ -927,7 +927,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertUser(userJack, "after")
                 .display()
                 .assertLiveLinks(0)
-                .assertRelatedLinks(1); // The link was deleted, but it remains in the "related" state.
+                .assertRelatedLinks(0); // The link was deleted.
 
         // Check shadow (if it is unchanged)
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
@@ -1001,7 +1001,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(3); // metadata + unlink + delete shadow
+        dummyAuditService.assertExecutionDeltas(1); // delete shadow
         String shadowOid = dummyAuditService.assertHasDelta(ChangeType.DELETE, ShadowType.class).getOid();
         assertEquals("Wrong shadow delete OID", accountJackOid, shadowOid);
         dummyAuditService.assertExecutionSuccess();

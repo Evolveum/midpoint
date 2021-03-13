@@ -28,7 +28,12 @@ public class UnlinkAction implements Action {
     @Override
     public <F extends FocusType> void handle(@NotNull LensContext<F> context, SynchronizationSituation<F> situation,
             Map<QName, Object> parameters, Task task, OperationResult parentResult) {
-        LensProjectionContext projectionContext = context.getProjectionContextsIterator().next();
-        projectionContext.setSynchronizationIntent(SynchronizationIntent.UNLINK);
+
+        // This is a no-op (temporary). In fact, we do not want the link to be removed.
+        // Unlink is used as a default reaction to DELETE situation, meaning "make link inactive".
+        // Since 4.3 this is modeled by setting link relation as org:related (dead links).
+
+//        LensProjectionContext projectionContext = context.getProjectionContextsIterator().next();
+//        projectionContext.setSynchronizationIntent(SynchronizationIntent.UNLINK);
     }
 }

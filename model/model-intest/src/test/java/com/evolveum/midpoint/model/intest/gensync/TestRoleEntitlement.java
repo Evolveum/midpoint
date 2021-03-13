@@ -523,7 +523,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         TestUtil.assertSuccess("executeChanges result", result);
 
         assertRoleAfter(ROLE_PIRATE_OID)
-                .assertLinks(0, 1);
+                .assertLinks(0, 0);
 
         // Check shadow (should be unchanged)
         PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, groupOid, null, result);
@@ -545,7 +545,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, RoleType.class);
         dummyAuditService.assertTarget(ROLE_PIRATE_OID);
         dummyAuditService.assertExecutionSuccess();
-
     }
 
     @Test
@@ -580,7 +579,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.assertExecutionDeltas(1);
         ObjectDeltaOperation<ShadowType> odo = dummyAuditService.assertHasDelta(ChangeType.DELETE, ShadowType.class);
         assertEquals(groupOid, odo.getOid());
         dummyAuditService.assertExecutionSuccess();

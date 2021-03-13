@@ -388,7 +388,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
             .assertIterationToken("")
             .assertSynchronizationSituation(SynchronizationSituationType.DELETED);
 
-
         // Cleanup
         unlinkUser(USER_JACK_OID, accountShadowJackDummyOid);
         repositoryService.deleteObject(ShadowType.class, accountShadowJackDummyOid, result);
@@ -498,7 +497,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         assertUserBefore(USER_JACK_OID)
                 .assertLiveLinks(0)
-                .assertRelatedLinks(1);
+                .assertRelatedLinks(0);
         setDebugListener();
 
         PrismObject<ShadowType> accountShadowJack = repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILE, result);

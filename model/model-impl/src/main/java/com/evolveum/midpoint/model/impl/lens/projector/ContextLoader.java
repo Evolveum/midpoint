@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -703,23 +704,24 @@ public class ContextLoader implements ProjectorProcessor {
                 // Make sure it has a proper definition. This may come from outside of the model.
                 provisioningService.applyDefinition(shadow, task, result);
             }
-            LensProjectionContext projectionContext = getOrCreateAccountContext(context, shadow, task, result);
-            projectionContext.setFresh(true);
-            projectionContext.setExists(ShadowUtil.isExists(shadow.asObjectable()));
-            if (ShadowUtil.isDead(shadow.asObjectable())) {
-                projectionContext.markTombstone();
-                LOGGER.trace("Loading dead shadow {} for projection {}.", shadow, projectionContext.getHumanReadableName());
-                continue;
+            ContextAcquisitionResult acqResult = getOrCreateAccountContext(context, shadow, task, result);
+            LensProjectionContext projectionContext = acqResult.context;
+            if (acqResult.shadowSet) {
+                projectionContext.setFresh(projectionContext.getObjectOld() != null); // TODO reconsider
+            } else {
+                projectionContext.setFresh(true);
+                projectionContext.setExists(ShadowUtil.isExists(shadow.asObjectable()));
+                if (ShadowUtil.isDead(shadow.asObjectable())) {
+                    projectionContext.markTombstone();
+                    LOGGER.trace("Loading dead shadow {} for projection {}.", shadow, projectionContext.getHumanReadableName());
+                    continue;
+                }
+                if (projectionContext.isDoReconciliation()) {
+                    // Do not load old account now. It will get loaded later in the reconciliation step.
+                    continue;
+                }
+                projectionContext.setLoadedObject(shadow);
             }
-            if (context.isDoReconciliationForAllProjections()) {
-                projectionContext.setDoReconciliation(true);
-            }
-            if (projectionContext.isDoReconciliation()) {
-                // Do not load old account now. It will get loaded later in the
-                // reconciliation step.
-                continue;
-            }
-            projectionContext.setLoadedObject(shadow);
         }
     }
 
@@ -845,7 +847,7 @@ public class ContextLoader implements ProjectorProcessor {
                         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOpts);
                         shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
                         // Create account context from retrieved object
-                        projectionContext = getOrCreateAccountContext(context, shadow, task, result);
+                        projectionContext = getOrCreateAccountContext(context, shadow, task, result).context; // TODO what about shadowSet etc?
                         projectionContext.setLoadedObject(shadow);
                         projectionContext.setExists(ShadowUtil.isExists(shadow.asObjectable()));
                     } catch (ObjectNotFoundException e) {
@@ -898,7 +900,7 @@ public class ContextLoader implements ProjectorProcessor {
                         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
                         shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
                         // Create account context from retrieved object
-                        projectionContext = getOrCreateAccountContext(context, shadow, task, result);
+                        projectionContext = getOrCreateAccountContext(context, shadow, task, result).context; // TODO what about shadowSet etc?
                         projectionContext.setLoadedObject(shadow);
                         projectionContext.setExists(ShadowUtil.isExists(shadow.asObjectable()));
                         LOGGER.trace("Loaded projection context: {}", projectionContext);
@@ -961,8 +963,8 @@ public class ContextLoader implements ProjectorProcessor {
         primaryDeltaToUpdate.freeze();
     }
 
-    private <F extends ObjectType> void loadProjectionContextsSync(LensContext<F> context, Task task, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException,
+    private <F extends ObjectType> void loadProjectionContextsSync(LensContext<F> context, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         for (LensProjectionContext projCtx : context.getProjectionContexts()) {
             if (projCtx.isFresh() && projCtx.getObjectCurrent() != null) {
@@ -972,8 +974,7 @@ public class ContextLoader implements ProjectorProcessor {
             ObjectDelta<ShadowType> syncDelta = projCtx.getSyncDelta();
             if (syncDelta != null) {
                 if (projCtx.isDoReconciliation()) {
-                    // Do not load old account now. It will get loaded later in the
-                    // reconciliation step. Just mark it as fresh.
+                    // Do not load old account now. It will get loaded later in the reconciliation step. Just mark it as fresh.
                     projCtx.setFresh(true);
                     continue;
                 }
@@ -990,8 +991,8 @@ public class ContextLoader implements ProjectorProcessor {
                     if (oid == null) {
                         throw new IllegalArgumentException("No OID in sync delta in " + projCtx);
                     }
-                    // Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
-                    // We need to fetch from provisioning and not repository so the correct definition will be set.
+                    // Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account
+                    // here. We need to fetch from provisioning and not repository so the correct definition will be set.
                     GetOperationOptions option = GetOperationOptions.createNoFetch();
                     option.setDoNotDiscovery(true);
                     option.setPointInTimeType(PointInTimeType.FUTURE);
@@ -1008,10 +1009,8 @@ public class ContextLoader implements ProjectorProcessor {
                         projCtx.setShadowExistsInRepo(false);
                     }
 
-                    // We will not set old account if the delta is delete. The
-                    // account does not really exists now.
-                    // (but the OID and resource will be set from the repo
-                    // shadow)
+                    // We will not set old account if the delta is delete. The account does not really exists now.
+                    // (but the OID and resource will be set from the repo shadow)
                     if (syncDelta.getChangeType() == ChangeType.DELETE) {
                         projCtx.markTombstone();
                     } else if (shadow != null) {
@@ -1037,7 +1036,24 @@ public class ContextLoader implements ProjectorProcessor {
         }
     }
 
-    private <F extends FocusType> LensProjectionContext getOrCreateAccountContext(LensContext<F> context,
+    @Experimental // This is a temporary solution: TODO factor out context acquisition into separate class.
+    private static class ContextAcquisitionResult {
+        private final LensProjectionContext context;
+        private final boolean created;
+        private final boolean shadowSet;
+
+        private ContextAcquisitionResult(LensProjectionContext context, boolean created, boolean shadowSet) {
+            this.context = context;
+            this.created = created;
+            this.shadowSet = shadowSet;
+        }
+
+        private static ContextAcquisitionResult existing(LensProjectionContext ctx) {
+            return new ContextAcquisitionResult(ctx, false, false);
+        }
+    }
+
+    private <F extends FocusType> ContextAcquisitionResult getOrCreateAccountContext(LensContext<F> context,
             PrismObject<ShadowType> projection, Task task, OperationResult result) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
         ShadowType shadowType = projection.asObjectable();
@@ -1047,9 +1063,9 @@ public class ContextLoader implements ProjectorProcessor {
         }
 
         LensProjectionContext existingContext = context.findProjectionContextByOid(shadowType.getOid());
-        LOGGER.trace("Projection context by OID: {} yielded: {}", shadowType.getOid(), existingContext);
+        LOGGER.trace("Projection context by shadow OID: {} yielded: {}", shadowType.getOid(), existingContext);
         if (existingContext != null) {
-            return existingContext;
+            return ContextAcquisitionResult.existing(existingContext);
         }
 
         String intent = ShadowUtil.getIntent(shadowType);
@@ -1058,57 +1074,68 @@ public class ContextLoader implements ProjectorProcessor {
         intent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
         boolean tombstone = ShadowUtil.isDead(shadowType);
         ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, intent, shadowType.getTag(), tombstone);
-        LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd);
-        LOGGER.trace("Projection context for {}: {}", rsd, context);
+        LensUtil.GetOrCreateProjectionContextResult mainCtxResult = LensUtil.getOrCreateProjectionContext(context, rsd);
+        LensProjectionContext mainCtx = mainCtxResult.context;
+        LOGGER.trace("Projection context for {}: {} (created = {})", rsd, context, mainCtxResult.created);
 
-        if (projectionContext.getOid() == null) {
-            projectionContext.setOid(projection.getOid());
-        } else if (projection.getOid() != null && !projectionContext.getOid().equals(projection.getOid())) {
+        if (mainCtx.getOid() == null) {
+            mainCtx.setOid(projection.getOid());
+        } else if (projection.getOid() != null && !mainCtx.getOid().equals(projection.getOid())) {
             // Conflict. We have existing projection and another project that is added (with the same discriminator).
             // Chances are that the old object is already deleted (e.g. during rename). So let's be
-            // slightly inefficient here and check for existing shadow existence
+            // slightly inefficient here and check for resource object existence.
             try {
                 GetOperationOptions rootOpt = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
                 rootOpt.setDoNotDiscovery(true);
                 Collection<SelectorOptions<GetOperationOptions>> opts = SelectorOptions.createCollection(rootOpt);
-                LOGGER.trace("Projection conflict detected, existing: {}, new {}", projectionContext.getOid(), projection.getOid());
-                PrismObject<ShadowType> existingShadow = provisioningService.getObject(ShadowType.class, projectionContext.getOid(), opts, task, result);
+                LOGGER.trace("Projection conflict detected, existing: {}, new {}", mainCtx.getOid(), projection.getOid());
+                PrismObject<ShadowType> existingShadow = provisioningService.getObject(ShadowType.class, mainCtx.getOid(), opts, task, result);
                 // Maybe it is the other way around
                 try {
                     PrismObject<ShadowType> newShadow = provisioningService.getObject(ShadowType.class, projection.getOid(), opts, task, result);
-                    // Obviously, two projections with the same discriminator exists
+                    // Obviously, two projections with the same discriminator exist.
                     LOGGER.trace("Projection {} already exists in context\nExisting:\n{}\nNew:\n{}", rsd,
                             existingShadow.debugDumpLazily(1), newShadow.debugDumpLazily(1));
                     if (!ShadowUtil.isDead(newShadow.asObjectable())) {
                         throw new PolicyViolationException("Projection "+rsd+" already exists in context (existing "+existingShadow+", new "+projection);
                     }
-                    // Dead shadow. This is somehow expected, fix it and we can go on
+                    // Dead shadow. This is somehow expected, fix it and we can go on.
                     rsd.setTombstone(true);
-                    projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd);
-                    projectionContext.setExists(ShadowUtil.isExists(newShadow.asObjectable()));
-                    projectionContext.setFullShadow(false);
+                    LensUtil.GetOrCreateProjectionContextResult newShadowCtxResult =
+                            LensUtil.getOrCreateProjectionContext(context, rsd);
+                    LensProjectionContext newShadowCtx = newShadowCtxResult.context;
+                    newShadowCtx.setExists(ShadowUtil.isExists(newShadow.asObjectable()));
+                    newShadowCtx.setFullShadow(false);
+                    newShadowCtx.setLoadedObject(newShadow); // TODO ok even if we reused existing context?
+                    newShadowCtx.setOid(newShadow.getOid());
+                    return new ContextAcquisitionResult(newShadowCtx, newShadowCtxResult.created, true);
                 } catch (ObjectNotFoundException e) {
-                    // This is somehow expected, fix it and we can go on
+                    // This is somehow expected, fix it and we can go on.
                     result.muteLastSubresultError();
-                    // We have to create new context in this case, but it has to have thumbstone set
+                    // We have to create new context in this case, but it has to have tombstone set.
                     rsd.setTombstone(true);
-                    projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd);
-                    // We have to mark it as dead right now, otherwise the uniqueness check may fail
-                    markShadowDead(projection.getOid(), result);
-                    projectionContext.setShadowExistsInRepo(false);
+                    LensUtil.GetOrCreateProjectionContextResult noNewShadowCtxResult =
+                            LensUtil.getOrCreateProjectionContext(context, rsd);
+                    LensProjectionContext noNewShadowCtx = noNewShadowCtxResult.context;
+                    // We have to mark it as dead right now, otherwise the uniqueness check may fail.
+                    markShadowDead(projection.getOid(), result); // But we know the shadow does not exist in repo! So how do we mark it as dead?
+                    noNewShadowCtx.setShadowExistsInRepo(false);
+                    return new ContextAcquisitionResult(noNewShadowCtx, noNewShadowCtxResult.created, true); // true = no need to set the shadow by caller
                 }
             } catch (ObjectNotFoundException e) {
-                // This is somehow expected, fix it and we can go on
+                // This is somehow expected, fix it and we can go on.
                 result.muteLastSubresultError();
-                String shadowOid = projectionContext.getOid();
-                projectionContext.getResourceShadowDiscriminator().setTombstone(true);
-                projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd);
-                projectionContext.setShadowExistsInRepo(false);
-                // We have to mark it as dead right now, otherwise the uniqueness check may fail
+                String shadowOid = mainCtx.getOid();
+                mainCtx.getResourceShadowDiscriminator().setTombstone(true);
+                LensUtil.GetOrCreateProjectionContextResult newCtxResult = LensUtil.getOrCreateProjectionContext(context, rsd);
+                LensProjectionContext newCtx = newCtxResult.context;
+                newCtx.setShadowExistsInRepo(false);
+                // We have to mark it as dead right now, otherwise the uniqueness check may fail.
                 markShadowDead(shadowOid, result);
+                return new ContextAcquisitionResult(newCtx, newCtxResult.created, true); // no need to set the object
             }
         }
-        return projectionContext;
+        return new ContextAcquisitionResult(mainCtx, mainCtxResult.created, false);
     }
 
     private void markShadowDead(String oid, OperationResult result) {
@@ -1130,7 +1157,6 @@ public class ContextLoader implements ProjectorProcessor {
             throw new SystemException(e.getMessage(), e);
         }
     }
-
 
     private <F extends FocusType> LensProjectionContext createProjectionContext(LensContext<F> context,
                                                                                 PrismObject<ShadowType> account, Task task, OperationResult result) throws ObjectNotFoundException,

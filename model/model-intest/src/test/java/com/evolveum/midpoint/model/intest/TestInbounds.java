@@ -507,8 +507,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         modelService.executeChanges(MiscSchemaUtil.createCollection(unlinkDelta), null, task, result);
 
         // THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("User after", userAfter);
@@ -519,7 +518,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedNoRole(userAfter);
         assertAssignments(userAfter, 1);
         assertUser(userAfter, "after")
-                .assertLinks(1, 1);
+                .assertLinks(1, 0);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Orange account", dummyAccount);
@@ -550,7 +549,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         displayDumpable("Account orange before", dummyAccountBefore);
 
         // WHEN
-        traced(() -> reconcileUser(USER_GUYBRUSH_OID, task, result));
+        reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
         assertSuccess(result);
@@ -564,7 +563,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(userAfter, ROLE_THIEF_OID);
         assertAssignments(userAfter, 2);
         assertUser(userAfter, "after")
-                .assertLinks(1, 1);
+                .assertLinks(1, 0);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Orange account", dummyAccount);
@@ -609,7 +608,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(userAfter, ROLE_THIEF_OID);
         assertAssignments(userAfter, 2);
         assertUser(userAfter, "after")
-                .assertLinks(1, 1);
+                .assertLinks(1, 0);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Orange account", dummyAccount);
@@ -648,8 +647,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
                 task, result, "Look behind you, a Three-Headed Monkey!");
 
         // THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("User after", userAfter);
@@ -662,7 +660,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(userAfter, ROLE_THIEF_OID);
         assertAssignments(userAfter, 2);
         assertUser(userAfter, "after")
-                .assertLinks(1, 1);
+                .assertLinks(1, 0);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Orange account", dummyAccount);
@@ -695,8 +693,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("User after", userAfter);
@@ -709,7 +706,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(userAfter, ROLE_THIEF_OID);
         assertAssignments(userAfter, 2);
         assertUser(userAfter, "after")
-                .assertLinks(1, 1);
+                .assertLinks(1, 0);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Account orange after", dummyAccount);
@@ -758,7 +755,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(userAfter, ROLE_THIEF_OID);
         assertAssignments(userAfter, 2);
         assertUser(userAfter, "after")
-                .assertLinks(1, 1);
+                .assertLinks(1, 0);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Orange account", dummyAccount);
@@ -801,7 +798,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertNotAssignedRole(userAfter, ROLE_THIEF_OID);
         assertAssignments(userAfter, 1);
         assertUser(userAfter, "after")
-                .assertLinks(1, 1);
+                .assertLinks(1, 0);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Orange account", dummyAccount);
@@ -835,11 +832,10 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
                 USER_GUYBRUSH_FULL_NAME, USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
         assertAssignments(userAfter, 0);
         assertUser(userAfter, "after")
-                .assertLinks(0, 1);
+                .assertLinks(0, 0);
 
         assertNoDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME);
 
         assertNoShadow(guybrushShadowOrangeOid);
     }
-
 }
