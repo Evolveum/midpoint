@@ -71,6 +71,9 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     PrismContext prismContext;
 
+    @Autowired
+    private RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher;
+
     private ObjectPostProcessor<Object> objectObjectPostProcessor;
 
     public BasicWebSecurityConfig() {
@@ -186,6 +189,11 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
                 if(!SecurityUtils.isRecordSessionLessAccessChannel(request)) {
                     super.saveContext(context, request, response);
                 }
+            }
+
+            @Override
+            protected SecurityContext generateNewContext() {
+                return new MidpointSecurityContext(super.generateNewContext(), removeUnusedSecurityFilterPublisher);
             }
         };
         httpSecurityRepository.setDisableUrlRewriting(true);
