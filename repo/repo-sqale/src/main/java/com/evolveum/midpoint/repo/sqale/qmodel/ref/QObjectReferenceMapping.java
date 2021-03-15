@@ -21,8 +21,8 @@ public class QObjectReferenceMapping
             new QObjectReferenceMapping("m_ref_delegated", "refd");
     public static final QObjectReferenceMapping INSTANCE_INCLUDE =
             new QObjectReferenceMapping("m_ref_include", "refi");
-    public static final QObjectReferenceMapping INSTANCE_LINK =
-            new QObjectReferenceMapping("m_ref_link", "refl");
+    public static final QObjectReferenceMapping INSTANCE_PROJECTION =
+            new QObjectReferenceMapping("m_ref_projection", "refpj");
     public static final QObjectReferenceMapping INSTANCE_OBJECT_CREATE_APPROVER =
             new QObjectReferenceMapping("m_ref_object_create_approver", "refca");
     public static final QObjectReferenceMapping INSTANCE_OBJECT_MODIFY_APPROVER =

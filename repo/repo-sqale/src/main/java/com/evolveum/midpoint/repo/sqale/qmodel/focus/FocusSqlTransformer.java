@@ -78,7 +78,7 @@ public class FocusSqlTransformer<S extends FocusType, Q extends QFocus<R>, R ext
         MFocus focusRow = (MFocus) objectRow;
 
         storeRefs(focusRow, schemaObject.getLinkRef(),
-                MReferenceType.LINK, jdbcSession);
+                MReferenceType.PROJECTION, jdbcSession);
         storeRefs(focusRow, schemaObject.getPersonaRef(),
                 MReferenceType.PERSONA, jdbcSession);
     }

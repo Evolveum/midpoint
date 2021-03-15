@@ -66,7 +66,7 @@ CREATE TYPE ReferenceType AS ENUM (
     'ASSIGNMENT_MODIFY_APPROVER',
     'DELEGATED',
     'INCLUDE',
-    'LINK', -- TODO: PROJECTION? PROJECTION_LINK?
+    'PROJECTION',
     'OBJECT_CREATE_APPROVER',
     'OBJECT_MODIFY_APPROVER',
     'OBJECT_PARENT_ORG',
@@ -1198,16 +1198,16 @@ CREATE TABLE m_ref_role_membership (
 CREATE INDEX m_ref_role_member_targetOid_relation_id_idx
     ON m_ref_role_membership (targetOid, relation_id);
 
-CREATE TABLE m_ref_link (
+CREATE TABLE m_ref_projection (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('LINK') STORED,
+    referenceType ReferenceType GENERATED ALWAYS AS ('PROJECTION') STORED,
 
     PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
 )
     INHERITS (m_reference);
 
-CREATE INDEX m_ref_link_targetOid_relation_id_idx
-    ON m_ref_link (targetOid, relation_id);
+CREATE INDEX m_ref_projection_targetOid_relation_id_idx
+    ON m_ref_projection (targetOid, relation_id);
 -- endregion
 
 -- region Extension support

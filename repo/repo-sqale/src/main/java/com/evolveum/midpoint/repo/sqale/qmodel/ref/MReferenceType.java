@@ -44,7 +44,7 @@ public enum MReferenceType {
     INCLUDE(QObjectReferenceMapping.INSTANCE_INCLUDE,
             ObjectTemplateType.class, ObjectTemplateType.F_INCLUDE_REF),
 
-    LINK(QObjectReferenceMapping.INSTANCE_LINK,
+    PROJECTION(QObjectReferenceMapping.INSTANCE_PROJECTION,
             FocusType.class, FocusType.F_LINK_REF),
 
     OBJECT_CREATE_APPROVER(QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER,
