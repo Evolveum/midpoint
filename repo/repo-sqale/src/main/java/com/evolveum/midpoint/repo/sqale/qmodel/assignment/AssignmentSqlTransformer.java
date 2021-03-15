@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ContainerSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -97,9 +96,9 @@ public class AssignmentSqlTransformer
 
         if (metadata != null) {
             storeRefs(row, metadata.getCreateApproverRef(),
-                    MReferenceType.ASSIGNMENT_CREATE_APPROVER, jdbcSession);
+                    QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_CREATE_APPROVER, jdbcSession);
             storeRefs(row, metadata.getModifyApproverRef(),
-                    MReferenceType.ASSIGNMENT_MODIFY_APPROVER, jdbcSession);
+                    QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_MODIFY_APPROVER, jdbcSession);
         }
 
         return row;

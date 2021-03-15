@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -78,8 +78,8 @@ public class FocusSqlTransformer<S extends FocusType, Q extends QFocus<R>, R ext
         MFocus focusRow = (MFocus) objectRow;
 
         storeRefs(focusRow, schemaObject.getLinkRef(),
-                MReferenceType.PROJECTION, jdbcSession);
+                QObjectReferenceMapping.INSTANCE_PROJECTION, jdbcSession);
         storeRefs(focusRow, schemaObject.getPersonaRef(),
-                MReferenceType.PERSONA, jdbcSession);
+                QObjectReferenceMapping.INSTANCE_PERSONA, jdbcSession);
     }
 }
