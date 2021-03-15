@@ -556,6 +556,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.evolveum.chartjs</groupId>
+            <artifactId>wicket-chartjs-core</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
             <groupId>commons-validator</groupId>
             <artifactId>commons-validator</artifactId>
         </dependency>
