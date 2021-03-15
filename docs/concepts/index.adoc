@@ -1,0 +1,10 @@
+= Basic MidPoint Concepts
+:page-nav-title: Concepts
+:page-liquid:
+
+Following pages describe basic midPoint concepts.
+The concepts are re-used at many numerous places in midPoint.
+
+++++
+{% children %}
+++++

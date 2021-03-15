@@ -1,0 +1,58 @@
+= MidPoint Query Mechanisms
+:page-nav-title: Query
+:page-liquid:
+
+MidPoint repository implements an abstraction of an object-oriented data store.
+The data may be stored in several types of relational databases (with even more possibility for future).
+Yet, the repository always presents the data in the same form, regardless of the actual storage mechanism.
+
+However, data processing means much more than just a storage of data.
+One of the most important aspects is how to _query_ the data, how to search for objects.
+This too has to be done in a way that is independent of the underlying storage mechanism.
+
+As the _query_ is such as important aspect, midPoint has its own query language (or languages), and a dedicated programming interface (API).
+
+== Query Languages
+
+MidPoint has two query languages.
+xref:axiom-query-language/[Axiom query language] is a new language, based on concepts of xref:/midpoint/devel/axiom/[Axiom data modeling].
+This language is mostly user-friendly.
+Then there is an older xref:xml-query-language/[XML-based query language].
+This goes back to the times when midPoint was completely XML-based.
+The languages are summarized in the following table:
+
+[%autowidth]
+|====
+| Language | Summary | Available since | Example
+
+| xref:axiom-query-language/[Axiom query language]
+| User-friendly, text-based query language
+| MidPoint 4.3 (experimental)
+a|
+ name = "jack"
+
+| xref:xml-query-language/[XML-based query language]
+| Pure XML, deep element hierarchy
+| MidPoint 1.7
+a|
+ <q:equal>
+   <q:path>name</q:path>
+   <q:value>jack</q:value>
+ </q:equal>
+
+|====
+
+Axiom query language is a relative new development, introduced in midPoint 4.3.
+It is expected to be fully supported in midPoint 4.4 LTS, where it should become a recommended option.
+The Axiom query language should replace the XML-based language as soon as possible.
+The XML-based language will be still supported for several years, but it will be dropped eventually.
+
+== Query API
+
+MidPoint code deals with data queries all the time.
+Therefore there is a special API designed to represent the queries in native Java form.
+The API can also be used to construct the queries programmatically.
+
+Please see xref:query-api/[] for details.
+
+The query API is the same, regardless of the query language.

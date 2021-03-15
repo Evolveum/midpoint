@@ -1,0 +1,1235 @@
+= Query API
+:page-wiki-name: Query API
+:page-display-order: 500
+:page-toc: top
+
+
+== Objects, Queries and Filters
+
+midPoint works with tree-shaped data structures, just like hierarchical databases do.
+These structures are called *prism objects*.They are stored in various places, namely:
+
+[%autowidth]
+|===
+| Place | Objects | Responsible module
+
+| midPoint repository
+| almost all midPoint objects
+| repository
+
+
+| remote resources
+| resource objects (accounts, groups, ...)
+| provisioning + connectors
+
+
+| embedded workflow engine
+| work items, process instances
+| workflow
+
+
+|===
+
+Each of these objects is conceptually a tree.
+Tree nodes are called prism items: containers, references and properties, while each item has one or more values: container values, reference values or property values.
+(See the page on wiki:Prism+Data+Structures[Prism Data Structures]). Some items are strictly single-valued, others may contain more values.
+The resource objects are currently a bit simplified: they consist of one single-valued container having a set of non-structured properties and their values - called attributes.
+
+In the following we will discuss primarily queries targeted at repository objects.
+These notes apply to resource and workflow objects appropriately.
+
+A query can be:
+
+. an *object query*, i.e. the one that is targeted at one or more object classes.
+Examples of queries are e.g.
+
+.. "give me all users with a given name",
+
+.. "give me all the objects with a given name",
+
+.. "give me all focal objects with a given assignment" etc.
+
+
+
+. a *container value query*. Such queries are targeted at container values.
+These are being introduced in the context of special objects, like certification campaigns and lookup tables, or even in cases when no parent object exists, like work items.
+Examples of queries:
+
+
+.. "give me all certification cases related to this reviewer, irrespective to in which campaign they are contained",
+
+.. "give me all rows for this particular lookup table that start with this prefix",
+
+.. "give me all work items allocated to particular user".
+
+Container value queries cannot be implemented using object queries, as it is not reasonable to fetch whole objects (campaigns, lookup tables) because they can be simply too large to be efficiently processed.
+And, in some cases, "owning" objects simply do not exist.
+
+Each query consists of a *filter* and a *paging instruction*. The former says which records (objects, container values) are to be retrieved.
+The latter says how they are to be sorted and which ones have to be selected (e.g. those with numbers 100-199).
+Both of these components (filter, paging instruction) are optional.
+
+
+== Filter classification
+
+A filter is either a primitive or complex one.
+
+
+=== Primitive filters
+
+Primitive filters are these that do not contain other filters.
+They are of two categories:
+
+
+==== Trivial filters
+
+[%autowidth]
+|===
+| Filter | Description
+
+| None filter
+| Passes no values, i.e. always evaluates to "false".
+
+
+| All filter
+| Passes all values, i.e. always evaluates to "true".
+
+
+| Undefined filter
+| Treated like nonexistent or invisible filter.
+For all fiters F1 and F2 the following holds:F1 && Undefined = F1F2 || Undefined = F2
+
+
+|===
+
+
+==== Value filters
+
+These filters decide on value(s) of a given property, reference or container.
+
+Generally, they are characterized by:
+
+* a (left-side) *item path*, pointing to a property or a reference,
+
+* a (right-side)* constant value(s) *or *item path*, pointing to value(s) to be used in the comparison,
+
+* optionally a *matching rule*.
+
+[%autowidth]
+|===
+| Filter | Applicable left-side items for repo queries | Applicable left-side items for resource queries | Applicable right-side constant values | Applicable right-side path-pointed values | Description | Comments
+
+| Equal filter
+| property
+| property
+| single-valued (see note 2), nullable
+| single, nullable (see note 1)
+| For non-null filter value: Accepts if one of property values is the same as filter value.For null filter value: Accepts if property has no values.
+This option is not available for resource objects, due to ConnId limitations.
+|
+
+
+
+| Greater, Less filter
+| property
+| property
+| single, non-null
+| singleton
+| Accepts if one of property values is greater/greater-or-equal/less/less-or-equal in comparison to the filter value.
+For null-valued singleton items always returns false (TODO verify that).
+|
+
+
+
+| Substring filter
+| property
+| property
+| single, non-null
+| -
+| Accepts if the filter value is a substring of one of the property values (optionally specifying if the property value should start or end with the filter value).
+|
+
+
+
+| Ref filter
+| reference
+| -
+| single or multivalued (since 3.6), nullable
+| -
+| For non-null filter values: Accepts if one of the reference values match the filter value (or one of filter values, if there are more than one).For null filter values: Accepts if reference is empty.
+| "Matches" means that:
+
+.. OIDs match,
+
+.. relations match: null is equivalent to org:default.
+So if you want to match any relations, use PrismConstants.Q_ANY.
+
+.. referenced types matches: but here null in filter means "any type".
+
+
+
+
+| Org filter
+| (applicable to object as a whole)
+| -
+| single, non-null (or null with isRoot flag)
+| -
+| Accepts if the object is direct child or any descendant (this is configurable) of the referenced org.
+Alternatively, passes if the object is the root of the tree.
+As of 3.7.1 it can check the relation as well (see a note below).
+| Although technically not a Value filter, this filter can be seen as a special case of Ref filter using parentOrgRef as the item to be tested, and with some advanced options (scope, isRoot).
+
+
+| InOid filter
+| (applicable to object/container value as a whole)
+| -
+| multivalued, non-null
+| -
+| Accepts if object OID (or ID for container values) is among filter values.
+| Similar; see note 4.
+
+
+|===
+
+Notes:
+
+. Resource and workflow filters do not support items on the right side of an operator.
+Only constant values may be present there.
+
+. We should probably introduce special kind of Equal filter (named e.g. In filter) to implement the following comparisons:
+
+.. Equal filter: multivalued left-hand side (LHS) vs.
+single-valued right-hand-side (RHS)
+
+.. In filter: multivalued LHS vs.
+multivalued RHS ("non empty set intersection" semantics)
+
+
+
+. Interestingly enough, there *is* an InFilter available now.
+It is implemented only when searching in the provisioning module.
+This filter is mapped to ICF EqualsFilter that provides set equality test.
+(So the filter name does not match its function.) It should probably be removed.
+
+. Question is if we should treat querying by ID/OID in the same way as querying by property, i.e. via Equal filter (and, maybe, Greater filter and the like), where ID/OID would be treated as special kind of property.
+This would eliminate the need for InOid filter; but it might require deeper changes (e.g. there is no itemDefinition for ID/OID, etc).
+So, at least for midPoint 3.4, querying by ID/OID is done via InOid filter, not Equal filter.
+
+. Ref filter and Org filter can specify a relation to be looked for.
+It is specified as a relation on the reference value passed to the filter.
+However, for historical reasons, the null relation value is treated differently:
+
+.. For Ref filter, null relation means default relation.
+If you need to check for any relation, you have to provide a value of q:any there.
+
+.. For Org filter, null relation means any relation.
+Of course, q:any can be used as well (and is recommended for clarity).
+
+
+
+. The Org filter relation is supported only for the "directChildOf" and "childOf" queries.
+It is silently ignored for "parentOf" queries.
+It is interpreted as a relation of the last (lowest) reference in the path, i.e. if we are looking for a user that is a child of org O1 with the relation of manager, we are looking for a user that is a manager of an org O2, which is either O1 itself or is any of its descendants.
+
+
+=== Complex filters
+
+Complex filters do contain other filters.
+They are:
+
+[%autowidth]
+|===
+| Filter | Description
+
+| And, Or, Not
+| Basic logical filters.
+
+
+| Type (type T, filter F)
+| Accepts iff the object is of type T and filter F passes.
+
+
+| Exists (item I, filter F)
+| Accepts iff there exists a value v of item I so that F(v) passes.
+This is useful e.g. to find an assignment with a given tenantRef and orgRef.
+
+
+|===
+
+
+==== Logical filters
+
+And, Or and Not filters are quite self explanatory.
+
+
+==== Type filter
+
+An example: Imagine that the original query asked for an ObjectType.
+Then it is possible to set up Type filter with type=UserType, filter=(name equals "xyz") to find only users with the name of "xyz":
+
+.Example
+[source,xml]
+----
+<type>
+  <type>UserType</type>
+  <filter>
+    <equal>
+      <path>name</path>
+      <value>xyz</value>
+    </equal>
+  </filter>
+</type>
+----
+
+
+==== Exists filter
+
+First of all, how should be individual value filters evaluated?
+
+For example,
+
+* *equal(name, 'xyz')*
+
+means "the value of object's name is xyz".
+Simple enough.
+
+In a similar way,
+
+* *ref(assignment/tenantRef, oid1)*
+
+means "there is an assignment with a tenantRef pointing to oid1".
+
+But what about this?
+
+* *and(ref(assignment/tenantRef, oid1), ref(assignment/orgRef, oid2))*
+
+This one could be interpreted in two ways:
+
+. There should be an assignment $a that has $a/tenantRef = oid1 and $a/orgRef = oid2.
+
+. There should be assignments $a1, $a2 (potentially being the same) such that $a1/tenantRef = oid1 and $a2/orgRef = oid2.
+
+Up to and including midPoint 3.3.1, the query is interpreted in the first way (one assignment satisfying both conditions).
+
+But the interpretation should be following:
+
+* Each condition is interpreted separately.
+
+* So *ref(assignment/tenantRef, oid1)* should be read as "There is an assignment/tenantRef that points to oid1".
+
+* Therefore, the above complex filter should be interpreted in the second way: There should be assignments $a1, $a2 (potentially being the same) such that $a1/tenantRef = oid1 and $a2/orgRef = oid2.
+
+If it's necessary to say that one particular value of an item (presumably container) satisfies a complex filter, we use *Exists *filter.
+
+The above complex filter - if needed to be interpreted in the first way - should be written like this:
+
+* exists ( assignment , and ( ref (tenantRef, oid1), ref (orgRef, oid2) ) )
+
+Written in XML:
+
+[source,xml]
+----
+<exists>
+  <path>assignment</path>
+  <filter>
+    <and>
+      <ref>
+        <path>tenantRef</path>
+        <value>
+          <oid> ...oid1... </oid>
+        </value>
+      </ref>
+      <ref>
+        <path>orgRef</path>
+        <value>
+          <oid> ...oid2... </oid>
+        </value>
+      </ref>
+    </and>
+  </filter>
+</exists>
+----
+
+This feature is a part of midPoint 3.4 and above.
+
+
+== Differences in filter interpretation
+
+There are actually four "query engines" that interpret filters and queries:
+
+[%autowidth]
+|===
+| Name | Description | Data types
+
+| repository
+| Interprets queries issued against repository objects.
+| almost all, except the ones described below
+
+
+| provisioning (connectors)
+| Interprets queries issued against resource objects, i.e. objects that reside on particular resources (AD, LDAP, CSV, ...).
+| ShadowType (some parts of them)
+
+
+| workflow engine
+| Interprets queries issued against work items, because they are kept in Activiti repository.
+| WorkItemType
+
+
+| in-memory evaluator
+| Interprets queries/filters issued against objects already loaded into memory.
+Typically used for authorization evaluation.
+| all
+
+
+|===
+
+These engines differ in capabilities and supported options.
+Due to historical reasons they might even interpret some filters in a slightly different way; this is unwanted and will be eventually fixed when discovered.
+
+Let us summarize main differences here.
+Note that "ok" means "fully supported".
+"N/A" means "not applicable", i.e. not supported at all.
+The state is current as of midPoint 3.7.1.
+
+[%autowidth]
+|===
+| Filter | Repository | Provisioning (connectors) | Workflow | In-memory
+
+| Equal
+| ok
+| Right-side items are not supported.
+The `null` right side constant is not supported (bug:MID-1460[]).
+| Right-side items are not supported.
+Only `externalId` item can be queried.
+| Right-side items are not supported.
+
+
+| Greater, Less
+| ok
+| N/A
+| N/A
+| N/A
+
+
+| Substring
+| ok
+| Only `contains` mode is supported; `startsWith` and `endsWith` ones are not.
+| N/A
+| ok
+
+
+| Ref
+| ok
+| N/A
+| Only `assigneeRef` and `candidateRef` items can be queried.
+| ok; Additionally, there are two parameters driving the behavior of filters with null oid and targetType: `oidNullAsAny` and `targetTypeNullAsAny`. These are not honored by other interpreters yet.
+
+
+| Org
+| ok
+| N/A
+| N/A
+| N/A
+
+
+| InOid
+| ok
+| N/A
+| N/A
+| ok
+
+
+| And, Or, Not
+| ok
+| ok
+| Only `And` connective (i.e. conjunction) is supported.
+| ok
+
+
+| Type
+| ok
+| N/A
+| N/A
+| supported but not much tested
+
+
+| Exists
+| ok
+| N/A
+| N/A
+| ok
+
+
+|===
+
+General constraint for provisioning queries: It is not possible to mix both on-resource and repository items in one query, e.g. to query for both `c:attributes/ri:something` and `c:intent`.
+
+For authoritative information, see link:https://github.com/Evolveum/midpoint/blob/master/provisioning/ucf-impl-connid/src/main/java/com/evolveum/midpoint/provisioning/ucf/impl/connid/query/FilterInterpreter.java[FilterInterpreter] and related classes (provisioning); and link:https://github.com/Evolveum/midpoint/blob/master/model/workflow-impl/src/main/java/com/evolveum/midpoint/wf/impl/activiti/dao/WorkItemProvider.java[WorkItemProvider] class (workflows).
+
+
+== Creating filters
+
+Filters can be created using Java API (traditional or fluent one) or via XML.
+
+The following samples are taken from link:https://github.com/Evolveum/midpoint/blob/master/infra/schema/src/test/java/com/evolveum/midpoint/schema/TestQueryConvertor.java[TestQueryConvertor] class.
+XML versions are link:https://github.com/Evolveum/midpoint/tree/master/infra/schema/src/test/resources/queryconvertor[in files named test*.xml in this directory].
+
+
+=== Primitive filters
+
+
+==== AllFilter
+
+.XML
+[source,xml]
+----
+<all/>
+----
+
+
+.Traditional Java API
+[source,java]
+----
+ObjectFilter filter = AllFilter.createAll();
+----
+
+
+.Fluent Java API
+[source,java]
+----
+ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+	.all()
+    .buildFilter();
+----
+
+Note that QueryBuilder can return either whole query when .build() is used, or just a filter - with .buildFilter().
+
+None and Undefined filters are created in a similar way.
+
+Just for completeness, the whole query looks like this:
+
+.XML
+[source,xml]
+----
+<query xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+    <filter>
+        <all/>
+    </filter>
+</query>
+----
+
+and the corresponding Fluent Java API call is:
+
+.Fluent Java API
+[source,java]
+----
+ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+	.all()
+    .build();
+----
+
+To be concise, we'll show only filters (no wrapping queries) in the following examples.
+
+
+=== Value filters
+
+
+==== EqualFilter
+
+.XML
+[source,xml]
+----
+<equal>
+    <matching>polyStringOrig</matching>
+    <path>c:name</path>
+    <value>some-name</value>
+</equal>
+----
+
+
+.Traditional Java API
+[source,java]
+----
+ObjectFilter filter = EqualFilter.createEqual(UserType.F_NAME, UserType.class, prismContext, PolyStringOrigMatchingRule.NAME, new PolyString("some-name", "somename"))
+----
+
+Fluent Java API:
+
+.Fluent Java API
+[source,java]
+----
+ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+      .item(UserType.F_NAME).eqPoly("some-name", "somename").matchingOrig()
+      .buildFilter();
+----
+
+Another example (we'll show only XML and fluent Java API from this point on):
+
+.XML
+[source,xml]
+----
+<equal>
+    <path>c:employeeType</path>
+    <value>STD</value>
+    <value>TEMP</value>
+</equal>
+----
+
+
+.Fluent Java API
+[source,java]
+----
+ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+      .item(UserType.F_EMPLOYEE_TYPE).eq("STD", "TEMP")
+      .buildFilter();
+----
+
+Comparing item to another item:
+
+.XML
+[source,xml]
+----
+<equal>
+    <path>c:employeeNumber</path>
+    <rightHandSidePath>c:costCenter</rightHandSidePath>
+</equal>
+----
+
+
+.Fluent Java API
+[source,java]
+----
+ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+      .item(UserType.F_EMPLOYEE_NUMBER).eq().item(UserType.F_COST_CENTER)
+      .buildFilter();
+----
+
+
+==== Comparisons
+
+.XML
+[source,xml]
+----
+<greater>
+    <path>c:costCenter</path>
+    <value>100000</value>
+</greater>
+----
+
+
+.Fluent Java API
+[source,java]
+----
+ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+      .item(UserType.F_COST_CENTER).gt("100000")
+      .buildFilter();
+----
+
+Or a more complex example:
+
+.XML
+[source,xml]
+----
+<or>
+    <and>
+        <greater>
+            <path>c:costCenter</path>
+            <value>100000</value>
+        </greater>
+        <less>
+            <path>c:costCenter</path>
+            <value>999999</value>
+        </less>
+    </and>
+    <and>
+        <greaterOrEqual>
+            <path>c:costCenter</path>
+            <value>X100</value>
+        </greaterOrEqual>
+        <lessOrEqual>
+            <path>c:costCenter</path>
+            <value>X999</value>
+        </lessOrEqual>
+    </and>
+</or>
+----
+
+
+.Fluent Java API
+[source,java]
+----
+ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+      .item(UserType.F_COST_CENTER).gt("100000")
+          .and().item(UserType.F_COST_CENTER).lt("999999")
+      .or()
+      .item(UserType.F_COST_CENTER).ge("X100")
+          .and().item(UserType.F_COST_CENTER).le("X999")
+      .buildFilter();
+----
+
+
+==== Substring filter
+
+.XML
+[source,xml]
+----
+<or>
+    <substring>
+        <path>c:employeeType</path>
+        <value>A</value>
+    </substring>
+    <substring>
+        <path>c:employeeType</path>
+        <value>B</value>
+        <anchorStart>true</anchorStart>
+    </substring>
+    <substring>
+        <path>c:employeeType</path>
+        <value>C</value>
+        <anchorEnd>true</anchorEnd>
+    </substring>
+    <substring>
+        <matching>polyStringOrig</matching>
+        <path>c:name</path>
+        <value>john</value>
+        <anchorStart>true</anchorStart>
+    </substring>
+</or>
+----
+
+
+.Fluent Java API
+[source,java]
+----
+ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+      .item(UserType.F_EMPLOYEE_TYPE).contains("A")
+      .or().item(UserType.F_EMPLOYEE_TYPE).startsWith("B")
+      .or().item(UserType.F_EMPLOYEE_TYPE).endsWith("C")
+      .or().item(UserType.F_NAME).startsWithPoly("john", "john").matchingOrig()
+      .buildFilter();
+----
+
+
+==== Ref filter
+
+"Canonical" form is the following:
+
+.XML
+[source,xml]
+----
+<or xmlns="http://prism.evolveum.com/xml/ns/public/query-3"
+       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <ref>
+        <path>c:resourceRef</path>
+        <value xsi:type="t:ObjectReferenceType" oid="oid1" />
+    </ref>
+    <ref>
+        <path>c:resourceRef</path>
+        <value xsi:type="t:ObjectReferenceType" oid="oid2" type="c:ResourceType" />
+    </ref>
+    <ref>
+        <path>c:resourceRef</path>
+        <value xsi:type="t:ObjectReferenceType" oid="oid3" type="c:ResourceType" relation="test"/>
+    </ref>
+</or>
+
+----
+
+In Java:
+
+[source]
+----
+PrismReferenceValue reference3 = new PrismReferenceValue("oid3", ResourceType.COMPLEX_TYPE);
+reference3.setRelation(new QName("test"));
+
+ObjectFilter filter = QueryBuilder.queryFor(ShadowType.class, prismContext)
+      .item(ShadowType.F_RESOURCE_REF).ref("oid1")
+      .or().item(ShadowType.F_RESOURCE_REF).ref("oid2", ResourceType.COMPLEX_TYPE)
+      .or().item(ShadowType.F_RESOURCE_REF).ref(reference3)
+      .buildFilter();
+----
+
+Semantics of individual 'or'-conditions is:
+
+. resourceRef should contain: target OID = 'oid1', relation = (empty), and the type of target object (stored in the resourceRef!) can be any
+
+. resourceRef should contain: target OID = 'oid1', relation = (empty), type of target (stored in the resourceRef!) must be 'ResourceType'
+
+. resourceRef should contain: target OID = 'oid1', relation = 'test', and type of target (stored in the resourceRef!) must be 'ResourceType'
+
+Currently, the reference target type, if used, must match exactly.
+So e.g. if the references uses RoleType, and the filter asks for AbstractRoleType, the value would not match.
+
+It is suggested to avoid querying for target object type, if possible.
+
+XML can be written also in alternative ways:
+
+[source]
+----
+<or>
+    <ref>
+        <path>c:resourceRef</path>
+        <value oid="oid1" />               		<!-- no xsi:type for 'value' element (this is not compliant with query-3 XSD) -->
+    </ref>
+    <ref>
+        <path>c:resourceRef</path>
+        <value>                                         <!-- no xsi:type, items stored as elements -->
+            <c:oid>oid4</c:oid>
+            <c:type>c:ResourceType</c:type>
+        </value>
+    </ref>
+</or>
+----
+
+
+==== Org filter
+
+.XML
+[source,xml]
+----
+<org>
+    <isRoot>true</isRoot>
+</org>
+----
+
+
+.XML
+[source,xml]
+----
+<org>
+    <orgRef>
+        <oid>12345678-1234-1234-1234-0123456789abcd</oid>
+    </orgRef>
+    <scope>SUBTREE</scope>			<!-- this is the default -->
+</org>
+----
+
+
+.XML
+[source,xml]
+----
+<org>
+    <orgRef>
+        <oid>12345678-1234-1234-1234-0123456789abcd</oid>
+    </orgRef>
+    <scope>ONE_LEVEL</scope>
+</org>
+----
+
+
+.Fluent Java API
+[source,java]
+----
+ObjectFilter filter = QueryBuilder.queryFor(OrgType.class, prismContext).isRoot().buildFilter();
+----
+
+
+.Fluent Java API
+[source,java]
+----
+ObjectFilter filter = QueryBuilder.queryFor(OrgType.class, prismContext).isChildOf("12345678-1234-1234-1234-0123456789abcd").buildFilter();
+----
+
+
+.Fluent Java API
+[source,java]
+----
+ObjectFilter filter = QueryBuilder.queryFor(OrgType.class, prismContext).isDirectChildOf("12345678-1234-1234-1234-0123456789abcd").buildFilter();
+----
+
+
+==== InOid
+
+.XML
+[source,xml]
+----
+<inOid>
+    <value>00000000-1111-2222-3333-444444444444</value>
+    <value>00000000-1111-2222-3333-555555555555</value>
+    <value>00000000-1111-2222-3333-666666666666</value>
+</inOid>
+----
+
+
+.Fluent Java API
+[source,java]
+----
+ObjectFilter filter = QueryBuilder.queryFor(UserType.class, getPrismContext())
+      .id("00000000-1111-2222-3333-444444444444", "00000000-1111-2222-3333-555555555555", "00000000-1111-2222-3333-666666666666")
+      .buildFilter();
+----
+
+This one selects container values with ID 1, 2 or 3, having owner (object) with OID of "00000000-1111-2222-3333-777777777777".
+
+.XML
+[source,xml]
+----
+<and>
+    <inOid>
+        <value>1</value>
+        <value>2</value>
+        <value>3</value>
+    </inOid>
+    <inOid>
+        <value>00000000-1111-2222-3333-777777777777</value>
+        <considerOwner>true</considerOwner>
+    </inOid>
+</and>
+----
+
+
+.Fluent Java API
+[source,java]
+----
+ObjectFilter filter = QueryBuilder.queryFor(UserType.class, getPrismContext())
+      .id(1, 2, 3)
+      .and().ownerId("00000000-1111-2222-3333-777777777777")
+      .buildFilter();
+----
+
+
+=== Logical filters
+
+An artificial example:
+
+.XML
+[source,xml]
+----
+<and>
+    <or>
+        <all/>
+        <none/>
+        <undefined/>
+    </or>
+    <none/>
+    <not>
+        <and>
+            <all/>
+            <undefined/>
+        </and>
+    </not>
+</and>
+----
+
+
+.Fluent Java API
+[source,java]
+----
+ObjectFilter filter = QueryBuilder.queryFor(UserType.class, getPrismContext())
+      .block()
+         .all()
+         .or().none()
+         .or().undefined()
+      .endBlock()
+      .and().none()
+      .and()
+         .not()
+            .block()
+               .all()
+               .and().undefined()
+            .endBlock()
+      .buildFilter();
+----
+
+
+=== Type filter
+
+.XML
+[source,xml]
+----
+<type>
+    <type>c:UserType</type>
+    <filter>
+        <equal>
+            <path>c:name</path>
+            <value>somename</value>
+        </equal>
+    </filter>
+</type>
+----
+
+
+.Fluent Java API
+[source,java]
+----
+ObjectFilter filter = QueryBuilder.queryFor(ObjectType.class, getPrismContext())
+      .type(UserType.class)
+         .item(UserType.F_NAME).eqPoly("somename", "somename")
+      .buildFilter();
+----
+
+
+=== Exists filter
+
+An example: *Find all certification cases that have at least one missing response for a given reviewer.
+
+So we are looking for a certification case, that has a decision D for which:
+
+. D's reviewer is the given one,
+
+. D's stage number is the same as case's stage number (because certification case contains decisions from all the stages),
+
+. D's response is either null or 'noResponse'
+
+It looks like this in XML:
+
+.XML
+[source,xml]
+----
+<exists>
+    <path>c:decision</path>
+    <filter>
+        <and>
+            <ref>
+                <path>c:reviewerRef</path>
+                <value oid="123456" xsi:type="t:ObjectReferenceType"/>
+            </ref>
+            <equal>
+                <path>c:stageNumber</path>
+                <rightHandSidePath>../c:currentStageNumber</rightHandSidePath>
+            </equal>
+            <or>
+                <equal>
+                    <path>c:response</path>
+                </equal>
+                <equal>
+                    <path>c:response</path>
+                    <value>noResponse</value>
+                </equal>
+            </or>
+        </and>
+    </filter>
+</exists>
+----
+
+And in Java:
+
+[source]
+----
+ObjectFilter filter = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+        .exists(AccessCertificationCaseType.F_DECISION)
+        .block()
+            .item(AccessCertificationDecisionType.F_REVIEWER_REF).ref("123456")
+            .and().item(AccessCertificationDecisionType.F_STAGE_NUMBER).eq().item(PrismConstants.T_PARENT, AccessCertificationCaseType.F_CURRENT_STAGE_NUMBER)
+            .and().block()
+                .item(AccessCertificationDecisionType.F_RESPONSE).isNull()
+                .or().item(AccessCertificationDecisionType.F_RESPONSE).eq(NO_RESPONSE)
+            .endBlock()
+        .endBlock()
+        .buildFilter();
+----
+
+
+=== Expression filter
+
+.XML
+[source,xml]
+----
+<substring>
+	<matching>polyStringNorm</matching>
+	<path>name</path>
+	<expression>
+		<script>
+			<code>
+				return 'C';
+			</code>
+		</script>
+	</expression>
+	<anchorStart>true</anchorStart>
+</substring>
+----
+
+This example returns all objects with a name starting with "C".
+
+
+=== Date filtering
+
+.XML
+[source,xml]
+----
+<and>
+	<greater>
+		<path>extension/EndDate</path>
+		<expression>
+			<script>
+				<code>
+					return basic.parseDateTime('yyyy-MM-dd', (basic.currentDateTime().getYear()-1) + '-12-31');
+				</code>
+			</script>
+		</expression>
+	</greater>
+	<less>
+		<path>extension/EndDate</path>
+		<expression>
+			<script>
+				<code>
+					return basic.parseDateTime('yyyy-MM-dd', basic.currentDateTime().getYear() + '-01-02');
+				</code>
+			</script>
+		</expression>
+	</less>
+</and>
+----
+
+This example returns all objects with extension attribute "EndDate" (type of XMLGregorianCalendar), which is set since 31 Decenber last year to 01 January of this year.
+
+
+=== Paging
+
+Limiting the number of returned entries, offset etc.
+can be configured using paging.
+Following table shows paging options:
+
+[%autowidth]
+|===
+| Option | Possible values | Default value | Description
+
+| `orderBy`
+| property path (e.g. "name")
+| arbitrary search
+| Property by which the results should be sorted.
+Only one property supported for now
+
+
+| `ascending`
+| ascending/descending
+| ascending
+| Direction of ordering (ascending or descending).
+Only valid if "orderBy" is specified.
+
+
+
+| `offset`
+| any Integer
+| 0
+| The index of the first returned entry, starting with zero.
+If 0 specified, resulting list will start with first entry.
+If 1 specified, resulting list will start with second entry.
+
+
+| `maxSize`
+| any Integer
+| 2147483647
+| The maximum number of entries returned.
+The operation may return specified number of number of entries or less.
+
+
+
+| `groupBy`
+| property path (e.g. "name)
+| no grouping
+| Property by which the results should be grouped.
+Just one property for now.
+
+
+|===
+
+Following is the example for using paging in the query.
+
+.Paging example
+[source,xml]
+----
+<q:query xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <q:filter>
+        <q:equal>
+            <q:path>activation/administrativeStatus</q:path>
+            <q:value>enabled</q:value>
+        </q:equal>
+    </q:filter>
+    <q:paging>
+        <q:orderBy>name</q:orderBy>
+        <offset>0</offset>
+        <maxSize>1</maxSize>
+    </q:paging>
+</q:query>
+
+
+----
+
+Using example above will return first 10 records ordered by _name_ where _administrativeStatus_ is set to enabled.
+
+
+=== Special symbols in item paths ("..", "@", "#")
+
+TODO
+
+An example: *Find all active certification cases for a given reviewer.*
+
+An active certification case is one that is part of a campaign that is in a review stage, and whose current stage number is the same as the owning campaign current stage number.
+
+.XML
+[source,xml]
+----
+<and>
+    <ref>
+        <path>c:currentReviewerRef</path>
+        <value oid="1234567890" type="c:UserType" xsi:type="t:ObjectReferenceType"/>
+    </ref>
+    <equal>
+        <path>c:currentStageNumber</path>
+        <rightHandSidePath>../c:stageNumber</rightHandSidePath>
+    </equal>
+    <equal>
+        <path>../c:state</path>
+        <value>inReviewStage</value>
+    </equal>
+</and>
+----
+
+The ".." symbol denotes "owning campaign".
+
+[source]
+----
+ObjectFilter filter = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+        .item(F_CURRENT_REVIEWER_REF).ref(reviewerRef)
+        .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
+        .and().item(T_PARENT, F_STATE).eq(IN_REVIEW_STAGE)
+        .buildFilter();
+----
+
+PrismConstants.T\_PARENT is the QName for ".." path segment.
+
+Following example uses @ symbol to dereference linkRef to ShadowType in user object.
+This allows e.g. filtering users that have projection on specified resource.
+Please note, that @ has limitation towards general (any object type) usage and will work with statically defined types like ObjectType, FocusType, ShadowType.
+
+
+.XML
+[source,xml]
+----
+<filter>
+	<ref>
+		<path>linkRef/@/resourceRef</path>
+		<value oid="7754e27c-a7cb-4c23-850d-a9a15f71199a"/>
+	</ref>
+</filter>
+----
+
+Another examples:
+
+.XML
+[source,xml]
+----
+<filter>
+	<equal>
+		<path>assignment/targetRef/@/name</path>
+		<value>CN=AD-group,OU=Groups,DC=evolveum,DC=com</value>
+	</equal>
+</filter>
+----
+
+UserType: linkRef/@/resourceRef/@/name contains 'CSV' (norm).
+
+.Java
+[source,xml]
+----
+ObjectQuery query = prismContext.queryFor(UserType.class)
+	.item(UserType.F_LINK_REF, PrismConstants.T_OBJECT_REFERENCE,
+		ShadowType.F_RESOURCE_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME)
+	.containsPoly("CSV").matchingNorm().build();
+----
+
+

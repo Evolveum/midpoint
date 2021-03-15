@@ -1,0 +1,156 @@
+= Axiom Query Language
+:page-toc: top
+
+TODO: User-friendly documentation of a user-friendly language.
+This should NOT be a language specification, rather an user-oriented reference documentation with a dash of tutorial on top.
+
+Axiom Query Language is a language used to query objects in midPoint repository.
+It is a universal language used to search for objects in the repository, filter objects, set up object references and so on.
+It is used in all the places where we need to look for an object.
+
+The language closely flows midPoint data model.
+Names of the properties, attributes and all the data items are directly taken from midPoint wiki:Data+Model[data model].
+
+This description is an attempt to provide introduction to the Axiom Query Language for the users.
+Some details are omitted, and there are some simplifications for clarity.
+Exact specification of the query language will be provided in xref:/midpoint/devel/axiom/[Axiom section of this site].
+
+== The Basics
+
+The query language is designed to allow specification of a complex queries.
+Yet the basic structure of the language is relative simple and easy to understand.
+
+The query is a combination of a _filter_ with additional parts such as paging and sorting.
+It is the _filter_ part that attracts most attention.
+
+Simples filter usually take the usual form of _item_ _operator_ _value_ triple. Such as:
+
+[source,axiom-query]
+----
+fullName = "John Doe"
+----
+
+[source,axiom-query]
+----
+givenName startsWith "J"
+----
+
+[source,axiom-query]
+----
+activation/effectiveStatus = "enabled"
+----
+
+=== Item Path
+
+The item is specified by xref:/midpoint/reference/concepts/item-path/[item path].
+In its simplest form it is a name of object _property_, or names of items and containers separated by slashes. Such as:
+
+[source,axiom-path]
+----
+fullName
+----
+
+[source,axiom-path]
+----
+activation/administrativeStatus
+----
+
+[source,axiom-path]
+----
+attributes/uid
+----
+
+
+=== Operator
+
+Following table summarizes common operators:
+
+|====
+| Operator | Symbol | Example | Description
+
+| Equality
+| `=`
+| `fullName = "John Doe"`
+| Exact match.
+Matches if any value equals to any of specified values.
+
+| Comparison
+| `<`, `\<=`, `>`, `>=`
+| `name < "c"`
+| Filter matches if any values of specified property is smaller/greater then right side value.
+Can be used both for numeric, alphanumeric comparisons and other comparison types.
+
+| Substring
+| `startsWith`, `endsWith`, `contains`
+| `givenName startsWith "Jo"`
+| Matches if the item starts with, ends with or contains specified string.
+
+|====
+
+TODO: Anything else?
+
+=== Value
+
+Value is usually a string literal, enclosed in double quotes.
+However, value may take various forms.
+For example, it may be a path of another item, e.g. in case when the query compares two items.
+The value may be also quite complex.
+The exact form of the value part of the filter depends on the operator.
+
+=== Logic Filter
+
+Logic filters are used to combine several sub-filters into one filter.
+
+[source,axiom-query]
+----
+givenName = "John" and familyName = "Doe"
+----
+
+There is a usual set of logic operators:
+
+|====
+| Operator | Example | Description
+
+| `and`
+| `givenName = "John" and familyName = "Doe"`
+| All subfilters must be true.
+
+| `or`
+| `givenName = "Bill" or nickName = "Bill"`
+| Any of the subfilters is true.
+
+| `not`
+| `not activation/effectiveStatus = "enabled"`
+| Logical negation.
+
+|====
+
+== Advanced Usage
+
+TODO: inOid, type
+
+TODO: exsits? matches?
+
+== Matching Rules
+
+ primaryIdentifier =[distinguishedName] "UID=jsmith,DC=example,DC=net"
+
+== Organizational Structure
+
+TODO: inOrg, isRoot
+
+== Motivation, Origin and Future
+
+Axiom Query Language was developed during xref:/midpoint/projects/midscale[midScale] project.
+The concepts of the language are based on xref:/midpoint/devel/axiom/[Axiom data modeling].
+Axiom Query Language is replacing an old xref:../xml-query-language/[XML-based query language].
+The new language is more natural, user-friendly and better aligned with foundations of xref:/midpoint/devel/axiom/[Axiom data modeling].
+
+Axiom query language is a relative new development, introduced in midPoint 4.3.
+It is expected to be fully supported in midPoint 4.4 LTS, where it should become a recommended option.
+The Axiom query language should replace the XML-based language as soon as possible.
+The XML-based language will be still supported for several years, but it will be dropped eventually.
+
+== See Also
+
+* xref:/midpoint/projects/midscale/design/query-language/[Query language design notes (midScale)]
