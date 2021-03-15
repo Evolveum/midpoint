@@ -71,6 +71,9 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     PrismContext prismContext;
 
+    @Autowired
+    private RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher;
+
     private ObjectPostProcessor<Object> objectObjectPostProcessor;
 
     public BasicWebSecurityConfig() {
@@ -110,17 +113,6 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public AuditedAccessDeniedHandler accessDeniedHandler() {
         return objectObjectPostProcessor.postProcess(new AuditedAccessDeniedHandler());
-    }
-
-    @Primary
-    @Bean
-    public ObjectPostProcessor<Object> postProcessor(AutowireCapableBeanFactory autowireBeanFactory) {
-        return new MidpointAutowireBeanFactoryObjectPostProcessor(autowireBeanFactory);
-    }
-
-    @Bean
-    public SessionRegistry sessionRegistry(RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher) {
-        return new MidpointSessionRegistry(removeUnusedSecurityFilterPublisher);
     }
 
     @Bean
@@ -186,6 +178,11 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
                 if(!SecurityUtils.isRecordSessionLessAccessChannel(request)) {
                     super.saveContext(context, request, response);
                 }
+            }
+
+            @Override
+            protected SecurityContext generateNewContext() {
+                return new MidpointSecurityContext(super.generateNewContext(), removeUnusedSecurityFilterPublisher);
             }
         };
         httpSecurityRepository.setDisableUrlRewriting(true);

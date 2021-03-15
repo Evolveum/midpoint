@@ -249,6 +249,79 @@ CREATE TABLE m_reference (
 );
 -- Add this index for each sub-table (reference type is not necessary, each sub-table has just one).
 -- CREATE INDEX m_reference_targetOid_relation_id_idx ON m_reference (targetOid, relation_id);
+
+-- references related to ObjectType and AssignmentHolderType
+-- stores AssignmentHolderType/archetypeRef
+CREATE TABLE m_ref_archetype (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    referenceType ReferenceType GENERATED ALWAYS AS ('ARCHETYPE') STORED,
+
+    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+)
+    INHERITS (m_reference);
+
+CREATE INDEX m_ref_archetype_targetOid_relation_id_idx
+    ON m_ref_archetype (targetOid, relation_id);
+
+-- stores AssignmentHolderType/delegatedRef
+CREATE TABLE m_ref_delegated (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    referenceType ReferenceType GENERATED ALWAYS AS ('DELEGATED') STORED,
+
+    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+)
+    INHERITS (m_reference);
+
+CREATE INDEX m_ref_delegated_targetOid_relation_id_idx
+    ON m_ref_delegated (targetOid, relation_id);
+
+-- stores ObjectType/metadata/createApproverRef
+CREATE TABLE m_ref_object_create_approver (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_CREATE_APPROVER') STORED,
+
+    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+)
+    INHERITS (m_reference);
+
+CREATE INDEX m_ref_object_create_approver_targetOid_relation_id_idx
+    ON m_ref_object_create_approver (targetOid, relation_id);
+
+-- stores ObjectType/metadata/modifyApproverRef
+CREATE TABLE m_ref_object_modify_approver (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_MODIFY_APPROVER') STORED,
+
+    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+)
+    INHERITS (m_reference);
+
+CREATE INDEX m_ref_object_modify_approver_targetOid_relation_id_idx
+    ON m_ref_object_modify_approver (targetOid, relation_id);
+
+-- stores ObjectType/parentOrgRef
+CREATE TABLE m_ref_object_parent_org (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_PARENT_ORG') STORED,
+
+    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+)
+    INHERITS (m_reference);
+
+CREATE INDEX m_ref_object_parent_org_targetOid_relation_id_idx
+    ON m_ref_object_parent_org (targetOid, relation_id);
+
+-- stores AssignmentHolderType/roleMembershipRef
+CREATE TABLE m_ref_role_membership (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    referenceType ReferenceType GENERATED ALWAYS AS ('ROLE_MEMBERSHIP') STORED,
+
+    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+)
+    INHERITS (m_reference);
+
+CREATE INDEX m_ref_role_member_targetOid_relation_id_idx
+    ON m_ref_role_membership (targetOid, relation_id);
 -- endregion
 
 -- region FOCUS related tables
@@ -285,6 +358,32 @@ CREATE TABLE m_focus (
 )
     INHERITS (m_object);
 
+-- stores FocusType/personaRef
+CREATE TABLE m_ref_persona (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    referenceType ReferenceType GENERATED ALWAYS AS ('PERSONA') STORED,
+
+    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+)
+    INHERITS (m_reference);
+
+CREATE INDEX m_ref_persona_targetOid_relation_id_idx
+    ON m_ref_persona (targetOid, relation_id);
+
+-- stores FocusType/linkRef ("projection" is newer and better term)
+CREATE TABLE m_ref_projection (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    referenceType ReferenceType GENERATED ALWAYS AS ('PROJECTION') STORED,
+
+    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+)
+    INHERITS (m_reference);
+
+CREATE INDEX m_ref_projection_targetOid_relation_id_idx
+    ON m_ref_projection (targetOid, relation_id);
+-- endregion
+
+-- region USER related tables
 -- Represents UserType, see https://wiki.evolveum.com/display/midPoint/UserType
 CREATE TABLE m_user (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -334,9 +433,6 @@ CREATE TABLE m_abstract_role (
     displayName_orig VARCHAR(255),
     displayName_norm VARCHAR(255),
     identifier VARCHAR(255),
-    ownerRef_targetOid UUID,
-    ownerRef_targetType ObjectType,
-    ownerRef_relation_id INTEGER, -- soft-references m_uri
     requestable BOOLEAN,
     riskLevel VARCHAR(255),
 
@@ -409,31 +505,33 @@ ALTER TABLE m_archetype ADD CONSTRAINT m_archetype_name_norm_key UNIQUE (name_no
 -- endregion
 
 -- region Access Certification object tables
--- TODO not mapped yet (to the end of m_acc_cert* region)
-CREATE TABLE m_acc_cert_definition (
+-- Represents AccessCertificationDefinitionType, see https://wiki.evolveum.com/display/midPoint/Access+Certification
+CREATE TABLE m_access_cert_definition (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_DEFINITION') STORED,
     handlerUri_id INTEGER, -- soft-references m_uri
-    lastCampaignClosedTimestamp TIMESTAMPTZ,
     lastCampaignStartedTimestamp TIMESTAMPTZ,
+    lastCampaignClosedTimestamp TIMESTAMPTZ,
     ownerRef_targetOid UUID,
     ownerRef_targetType ObjectType,
     ownerRef_relation_id INTEGER -- soft-references m_uri
 )
     INHERITS (m_object);
 
-CREATE TRIGGER m_acc_cert_definition_oid_insert_tr BEFORE INSERT ON m_acc_cert_definition
+CREATE TRIGGER m_access_cert_definition_oid_insert_tr BEFORE INSERT ON m_access_cert_definition
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
-CREATE TRIGGER m_acc_cert_definition_update_tr BEFORE UPDATE ON m_acc_cert_definition
+CREATE TRIGGER m_access_cert_definition_update_tr BEFORE UPDATE ON m_access_cert_definition
     FOR EACH ROW EXECUTE PROCEDURE before_update_object();
-CREATE TRIGGER m_acc_cert_definition_oid_delete_tr AFTER DELETE ON m_acc_cert_definition
+CREATE TRIGGER m_access_cert_definition_oid_delete_tr AFTER DELETE ON m_access_cert_definition
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
-CREATE INDEX m_acc_cert_definition_name_orig_idx ON m_acc_cert_definition (name_orig);
-ALTER TABLE m_acc_cert_definition ADD CONSTRAINT m_acc_cert_definition_name_norm_key UNIQUE (name_norm);
-CREATE INDEX m_acc_cert_definition_ext_idx ON m_acc_cert_definition USING gin (ext);
+CREATE INDEX m_access_cert_definition_name_orig_idx ON m_access_cert_definition (name_orig);
+ALTER TABLE m_access_cert_definition
+    ADD CONSTRAINT m_access_cert_definition_name_norm_key UNIQUE (name_norm);
+CREATE INDEX m_access_cert_definition_ext_idx ON m_access_cert_definition USING gin (ext);
 
-CREATE TABLE m_acc_cert_campaign (
+-- TODO not mapped yet
+CREATE TABLE m_access_cert_campaign (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CAMPAIGN') STORED,
     definitionRef_targetOid UUID,
@@ -451,18 +549,18 @@ CREATE TABLE m_acc_cert_campaign (
 )
     INHERITS (m_object);
 
-CREATE TRIGGER m_acc_cert_campaign_oid_insert_tr BEFORE INSERT ON m_acc_cert_campaign
+CREATE TRIGGER m_access_cert_campaign_oid_insert_tr BEFORE INSERT ON m_access_cert_campaign
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
-CREATE TRIGGER m_acc_cert_campaign_update_tr BEFORE UPDATE ON m_acc_cert_campaign
+CREATE TRIGGER m_access_cert_campaign_update_tr BEFORE UPDATE ON m_access_cert_campaign
     FOR EACH ROW EXECUTE PROCEDURE before_update_object();
-CREATE TRIGGER m_acc_cert_campaign_oid_delete_tr AFTER DELETE ON m_acc_cert_campaign
+CREATE TRIGGER m_access_cert_campaign_oid_delete_tr AFTER DELETE ON m_access_cert_campaign
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
-CREATE INDEX m_acc_cert_campaign_name_orig_idx ON m_acc_cert_campaign (name_orig);
-ALTER TABLE m_acc_cert_campaign ADD CONSTRAINT m_acc_cert_campaign_name_norm_key UNIQUE (name_norm);
-CREATE INDEX m_acc_cert_campaign_ext_idx ON m_acc_cert_campaign USING gin (ext);
+CREATE INDEX m_access_cert_campaign_name_orig_idx ON m_access_cert_campaign (name_orig);
+ALTER TABLE m_access_cert_campaign ADD CONSTRAINT m_access_cert_campaign_name_norm_key UNIQUE (name_norm);
+CREATE INDEX m_access_cert_campaign_ext_idx ON m_access_cert_campaign USING gin (ext);
 
-CREATE TABLE m_acc_cert_case (
+CREATE TABLE m_access_cert_case (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
     containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CASE') STORED,
     administrativeStatus INTEGER,
@@ -500,7 +598,7 @@ CREATE TABLE m_acc_cert_case (
 )
     INHERITS(m_container);
 
-CREATE TABLE m_acc_cert_wi (
+CREATE TABLE m_access_cert_wi (
     owner_oid UUID NOT NULL, -- PK+FK
     acc_cert_case_cid INTEGER NOT NULL, -- PK+FK
     containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_WORK_ITEM') STORED,
@@ -517,12 +615,12 @@ CREATE TABLE m_acc_cert_wi (
 )
     INHERITS(m_container);
 
-ALTER TABLE m_acc_cert_wi
-    ADD CONSTRAINT m_acc_cert_wi_id_fk FOREIGN KEY (owner_oid, acc_cert_case_cid)
-        REFERENCES m_acc_cert_case (owner_oid, cid)
+ALTER TABLE m_access_cert_wi
+    ADD CONSTRAINT m_access_cert_wi_id_fk FOREIGN KEY (owner_oid, acc_cert_case_cid)
+        REFERENCES m_access_cert_case (owner_oid, cid)
             ON DELETE CASCADE;
 
-CREATE TABLE m_acc_cert_wi_reference (
+CREATE TABLE m_access_cert_wi_reference (
     owner_oid UUID NOT NULL, -- PK+FK
     acc_cert_case_cid INTEGER NOT NULL, -- PK+FK
     acc_cert_wi_cid INTEGER NOT NULL, -- PK+FK
@@ -534,21 +632,21 @@ CREATE TABLE m_acc_cert_wi_reference (
     PRIMARY KEY (owner_oid, acc_cert_case_cid, acc_cert_wi_cid, relation_id, targetOid)
 );
 
-ALTER TABLE m_acc_cert_wi_reference
-    ADD CONSTRAINT m_acc_cert_wi_reference_id_fk
+ALTER TABLE m_access_cert_wi_reference
+    ADD CONSTRAINT m_access_cert_wi_reference_id_fk
         FOREIGN KEY (owner_oid, acc_cert_case_cid, acc_cert_wi_cid)
-        REFERENCES m_acc_cert_wi (owner_oid, acc_cert_case_cid, cid)
+        REFERENCES m_access_cert_wi (owner_oid, acc_cert_case_cid, cid)
             ON DELETE CASCADE;
 /*
-CREATE INDEX iCertCampaignNameOrig ON m_acc_cert_campaign (name_orig);
-ALTER TABLE m_acc_cert_campaign ADD CONSTRAINT uc_acc_cert_campaign_name UNIQUE (name_norm);
-CREATE INDEX iCaseObjectRefTargetOid ON m_acc_cert_case (objectRef_targetOid);
-CREATE INDEX iCaseTargetRefTargetOid ON m_acc_cert_case (targetRef_targetOid);
-CREATE INDEX iCaseTenantRefTargetOid ON m_acc_cert_case (tenantRef_targetOid);
-CREATE INDEX iCaseOrgRefTargetOid ON m_acc_cert_case (orgRef_targetOid);
-CREATE INDEX iCertDefinitionNameOrig ON m_acc_cert_definition (name_orig);
-ALTER TABLE m_acc_cert_definition ADD CONSTRAINT uc_acc_cert_definition_name UNIQUE (name_norm);
-CREATE INDEX iCertWorkItemRefTargetOid ON m_acc_cert_wi_reference (targetOid);
+CREATE INDEX iCertCampaignNameOrig ON m_access_cert_campaign (name_orig);
+ALTER TABLE m_access_cert_campaign ADD CONSTRAINT uc_access_cert_campaign_name UNIQUE (name_norm);
+CREATE INDEX iCaseObjectRefTargetOid ON m_access_cert_case (objectRef_targetOid);
+CREATE INDEX iCaseTargetRefTargetOid ON m_access_cert_case (targetRef_targetOid);
+CREATE INDEX iCaseTenantRefTargetOid ON m_access_cert_case (tenantRef_targetOid);
+CREATE INDEX iCaseOrgRefTargetOid ON m_access_cert_case (orgRef_targetOid);
+CREATE INDEX iCertDefinitionNameOrig ON m_access_cert_definition (name_orig);
+ALTER TABLE m_access_cert_definition ADD CONSTRAINT uc_access_cert_definition_name UNIQUE (name_norm);
+CREATE INDEX iCertWorkItemRefTargetOid ON m_access_cert_wi_reference (targetOid);
  */
 -- endregion
 
@@ -574,6 +672,18 @@ CREATE TRIGGER m_resource_oid_delete_tr AFTER DELETE ON m_resource
 
 CREATE INDEX m_resource_name_orig_idx ON m_resource (name_orig);
 ALTER TABLE m_resource ADD CONSTRAINT m_resource_name_norm_key UNIQUE (name_norm);
+
+-- stores ResourceType/business/approverRef
+CREATE TABLE m_ref_resource_business_configuration_approver (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    referenceType ReferenceType GENERATED ALWAYS AS ('RESOURCE_BUSINESS_CONFIGURATION_APPROVER') STORED,
+
+    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+)
+    INHERITS (m_reference);
+
+CREATE INDEX m_ref_resource_biz_config_approver_targetOid_relation_id_idx
+    ON m_ref_resource_business_configuration_approver (targetOid, relation_id);
 
 -- TODO not mapped yet
 CREATE TABLE m_shadow (
@@ -940,6 +1050,36 @@ ALTER TABLE m_case_wi_reference
 */
 -- endregion
 
+-- region ObjectTemplateType
+CREATE TABLE m_object_template (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('OBJECT_TEMPLATE') STORED
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_object_template_oid_insert_tr BEFORE INSERT ON m_object_template
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_object_template_update_tr BEFORE UPDATE ON m_object_template
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_object_template_oid_delete_tr AFTER DELETE ON m_object_template
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_object_template_name_orig_idx ON m_object_template (name_orig);
+ALTER TABLE m_object_template ADD CONSTRAINT m_object_template_name_norm_key UNIQUE (name_norm);
+
+-- stores ObjectTemplateType/includeRef
+CREATE TABLE m_ref_include (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    referenceType ReferenceType GENERATED ALWAYS AS ('INCLUDE') STORED,
+
+    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+)
+    INHERITS (m_reference);
+
+CREATE INDEX m_ref_include_targetOid_relation_id_idx
+    ON m_ref_include (targetOid, relation_id);
+-- endregion
+
 -- region Assignment/Inducement tables
 -- Represents AssignmentType, see https://wiki.evolveum.com/display/midPoint/Assignment
 -- and also https://wiki.evolveum.com/display/midPoint/Assignment+vs+Inducement
@@ -1025,6 +1165,7 @@ CREATE INDEX m_assignment_tenantRef_targetOid_idx ON m_assignment (tenantRef_tar
 CREATE INDEX m_assignment_orgRef_targetOid_idx ON m_assignment (orgRef_targetOid);
 CREATE INDEX m_assignment_resourceRef_targetOid_idx ON m_assignment (resourceRef_targetOid);
 
+-- stores assignment/metadata/createApproverRef
 CREATE TABLE m_assignment_ref_create_approver (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     assignment_cid INTEGER NOT NULL,
@@ -1039,6 +1180,7 @@ ALTER TABLE m_assignment_ref_create_approver ADD CONSTRAINT m_assignment_ref_cre
 
 -- TODO index targetOid, relation_id?
 
+-- stores assignment/metadata/modifyApproverRef
 CREATE TABLE m_assignment_ref_modify_approver (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     assignment_cid INTEGER NOT NULL,
@@ -1085,10 +1227,11 @@ CREATE INDEX m_inducement_resourceRef_targetOid_idx ON m_inducement (resourceRef
 -- endregion
 
 -- region Other object containers
+-- stores ObjectType/trigger
 CREATE TABLE m_trigger (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     containerType ContainerType GENERATED ALWAYS AS ('TRIGGER') STORED,
-    handlerUri_id INTEGER,
+    handlerUri_id INTEGER, -- soft-references m_uri
     timestampValue TIMESTAMPTZ,
 
     PRIMARY KEY (owner_oid, cid)
@@ -1096,118 +1239,6 @@ CREATE TABLE m_trigger (
     INHERITS(m_container);
 
 CREATE INDEX m_trigger_timestampValue_idx ON m_trigger (timestampValue);
--- endregion
-
--- region todo move to related aggregate
-CREATE TABLE m_ref_archetype (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('ARCHETYPE') STORED,
-
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
-)
-    INHERITS (m_reference);
-
-CREATE INDEX m_ref_archetype_targetOid_relation_id_idx
-    ON m_ref_archetype (targetOid, relation_id);
-
-CREATE TABLE m_ref_delegated (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('DELEGATED') STORED,
-
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
-)
-    INHERITS (m_reference);
-
-CREATE INDEX m_ref_delegated_targetOid_relation_id_idx
-    ON m_ref_delegated (targetOid, relation_id);
-
-CREATE TABLE m_ref_include (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('INCLUDE') STORED,
-
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
-)
-    INHERITS (m_reference);
-
-CREATE INDEX m_ref_include_targetOid_relation_id_idx
-    ON m_ref_include (targetOid, relation_id);
-
-CREATE TABLE m_ref_object_create_approver (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_CREATE_APPROVER') STORED,
-
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
-)
-    INHERITS (m_reference);
-
-CREATE INDEX m_ref_object_create_approver_targetOid_relation_id_idx
-    ON m_ref_object_create_approver (targetOid, relation_id);
-
-CREATE TABLE m_ref_object_modify_approver (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_MODIFY_APPROVER') STORED,
-
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
-)
-    INHERITS (m_reference);
-
-CREATE INDEX m_ref_object_modify_approver_targetOid_relation_id_idx
-    ON m_ref_object_modify_approver (targetOid, relation_id);
-
-CREATE TABLE m_ref_object_parent_org (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_PARENT_ORG') STORED,
-
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
-)
-    INHERITS (m_reference);
-
-CREATE INDEX m_ref_object_parent_org_targetOid_relation_id_idx
-    ON m_ref_object_parent_org (targetOid, relation_id);
-
-CREATE TABLE m_ref_persona (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('PERSONA') STORED,
-
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
-)
-    INHERITS (m_reference);
-
-CREATE INDEX m_ref_persona_targetOid_relation_id_idx
-    ON m_ref_persona (targetOid, relation_id);
-
-CREATE TABLE m_ref_resource_business_configuration_approver (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('RESOURCE_BUSINESS_CONFIGURATION_APPROVER') STORED,
-
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
-)
-    INHERITS (m_reference);
-
-CREATE INDEX m_ref_resource_biz_config_approver_targetOid_relation_id_idx
-    ON m_ref_resource_business_configuration_approver (targetOid, relation_id);
-
-CREATE TABLE m_ref_role_membership (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('ROLE_MEMBERSHIP') STORED,
-
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
-)
-    INHERITS (m_reference);
-
-CREATE INDEX m_ref_role_member_targetOid_relation_id_idx
-    ON m_ref_role_membership (targetOid, relation_id);
-
-CREATE TABLE m_ref_projection (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('PROJECTION') STORED,
-
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
-)
-    INHERITS (m_reference);
-
-CREATE INDEX m_ref_projection_targetOid_relation_id_idx
-    ON m_ref_projection (targetOid, relation_id);
 -- endregion
 
 -- region Extension support
@@ -1546,13 +1577,7 @@ CREATE TABLE m_generic_object (
   oid        UUID NOT NULL,
   PRIMARY KEY (oid)
 );
-CREATE TABLE m_object_template (
-  name_norm VARCHAR(255),
-  name_orig VARCHAR(255),
-  type      INTEGER,
-  oid       UUID NOT NULL,
-  PRIMARY KEY (oid)
-);
+
 CREATE TABLE m_org (
   displayOrder INTEGER,
   name_norm    VARCHAR(255),

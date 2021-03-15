@@ -710,7 +710,7 @@ public final class PrismContextImpl implements PrismContext {
 
     @Override
     public PrismQueryLanguageParser createQueryParser(Map<String, String> prefixToNamespace) {
-        return new PrismQueryLanguageParserImpl(this);
+        return new PrismQueryLanguageParserImpl(this, prefixToNamespace);
     }
 
     @Override

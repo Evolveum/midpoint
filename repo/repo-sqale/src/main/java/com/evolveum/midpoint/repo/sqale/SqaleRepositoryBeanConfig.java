@@ -19,10 +19,12 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
-import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCaseMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.QDashboardMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObjectCollectionMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.QObjectTemplateMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDefinitionMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCaseMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHostMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorMapping;
@@ -109,6 +111,8 @@ public class SqaleRepositoryBeanConfig {
         QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry()
                 // ordered alphabetically here, mappings without schema type at the end
                 .register(AbstractRoleType.COMPLEX_TYPE, QAbstractRoleMapping.INSTANCE)
+                .register(AccessCertificationDefinitionType.COMPLEX_TYPE,
+                        QAccessCertificationDefinitionMapping.INSTANCE)
                 .register(ArchetypeType.COMPLEX_TYPE, QArchetypeMapping.INSTANCE)
                 .register(AssignmentHolderType.COMPLEX_TYPE, QAssignmentHolderMapping.INSTANCE)
                 .register(AssignmentType.COMPLEX_TYPE, QAssignmentMapping.INSTANCE)
@@ -121,13 +125,15 @@ public class SqaleRepositoryBeanConfig {
                 .register(LookupTableRowType.COMPLEX_TYPE, QLookupTableRowMapping.INSTANCE)
                 .register(NodeType.COMPLEX_TYPE, QNodeMapping.INSTANCE)
                 .register(ObjectType.COMPLEX_TYPE, QObjectMapping.INSTANCE)
+                .register(ObjectTemplateType.COMPLEX_TYPE, QObjectTemplateMapping.INSTANCE)
                 .register(ObjectCollectionType.COMPLEX_TYPE, QObjectCollectionMapping.INSTANCE)
                 .register(ReportType.COMPLEX_TYPE, QReportMapping.INSTANCE)
                 .register(ReportDataType.COMPLEX_TYPE, QReportDataMapping.INSTANCE)
                 .register(RoleType.COMPLEX_TYPE, QRoleMapping.INSTANCE)
                 .register(SecurityPolicyType.COMPLEX_TYPE, QSecurityPolicyMapping.INSTANCE)
                 .register(ServiceType.COMPLEX_TYPE, QServiceMapping.INSTANCE)
-                .register(SystemConfigurationType.COMPLEX_TYPE, QSystemConfigurationMapping.INSTANCE)
+                .register(SystemConfigurationType.COMPLEX_TYPE,
+                        QSystemConfigurationMapping.INSTANCE)
                 .register(TaskType.COMPLEX_TYPE, QTaskMapping.INSTANCE)
                 .register(TriggerType.COMPLEX_TYPE, QTriggerMapping.INSTANCE)
                 .register(UserType.COMPLEX_TYPE, QUserMapping.INSTANCE)

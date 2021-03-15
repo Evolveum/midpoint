@@ -9,8 +9,9 @@
 
 <q:filter xsi:type="q:SearchFilterType"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:f="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <q:text>name = "jack"</q:text>
+    <q:text>f:name = "jack"</q:text>
     <!--  
     <q:equal>
         <q:path>name</q:path>

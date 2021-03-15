@@ -11,11 +11,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import static com.evolveum.midpoint.repo.api.RepoAddOptions.createOverwrite;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import javax.xml.namespace.QName;
 
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.MAccessCertificationDefinition;
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDefinition;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
@@ -23,12 +27,11 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
 
@@ -300,4 +303,44 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
                 .isInstanceOf(SchemaException.class)
                 .hasMessage("CID 1 is used repeatedly in the object!");
     }
+
+    // region insertion of various types
+    // types already tested above are not here (e.g. user) TODO unless full attribute tests of them are added?
+    @Test
+    public void test900AccessCertificationDefinition() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("access certification definition");
+        String objectName = "acd" + getTestNumber();
+        UUID ownerRefOid = UUID.randomUUID();
+        Instant lastCampaignStarted = Instant.ofEpochMilli(1); // 0 means null in MiscUtil
+        Instant lastCampaignClosed = Instant.ofEpochMilli(System.currentTimeMillis());
+        QName relationUri = QName.valueOf("{https://some.uri}specialRelation");
+        var accessCertificationDefinition = new AccessCertificationDefinitionType(prismContext)
+                .name(objectName)
+                .handlerUri("handler-uri")
+                .lastCampaignStartedTimestamp(MiscUtil.asXMLGregorianCalendar(lastCampaignStarted))
+                .lastCampaignClosedTimestamp(MiscUtil.asXMLGregorianCalendar(lastCampaignClosed))
+                .ownerRef(ownerRefOid.toString(), UserType.COMPLEX_TYPE, relationUri);
+
+        when("adding it to the repository");
+        repositoryService.addObject(accessCertificationDefinition.asPrismObject(), null, result);
+
+        then("it is stored and relevant attributes are in columns");
+        assertResult(result);
+
+        QAccessCertificationDefinition acd = aliasFor(QAccessCertificationDefinition.class);
+        List<MAccessCertificationDefinition> acds = select(acd,
+                acd.oid.eq(UUID.fromString(accessCertificationDefinition.getOid())));
+        assertThat(acds).hasSize(1);
+        MAccessCertificationDefinition row = acds.get(0);
+        assertThat(cachedUriById(row.handlerUriId)).isEqualTo("handler-uri");
+        assertThat(row.lastCampaignStartedTimestamp).isEqualTo(lastCampaignStarted);
+        assertThat(row.lastCampaignClosedTimestamp).isEqualTo(lastCampaignClosed);
+        assertThat(row.ownerRefTargetOid).isEqualTo(ownerRefOid);
+        assertThat(row.ownerRefTargetType).isEqualTo(MObjectType.USER);
+        assertThat(cachedUriById(row.ownerRefRelationId))
+                .isEqualTo(QNameUtil.qNameToUri(relationUri));
+    }
+    // endregion
 }

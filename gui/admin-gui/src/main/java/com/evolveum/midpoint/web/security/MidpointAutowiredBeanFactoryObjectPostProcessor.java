@@ -24,15 +24,15 @@ import java.util.List;
  * @author skublik
  */
 
-public class MidpointAutowireBeanFactoryObjectPostProcessor implements ObjectPostProcessor<Object>, DisposableBean, SmartInitializingSingleton {
-    private static final Trace LOGGER = TraceManager.getTrace(MidpointAutowireBeanFactoryObjectPostProcessor.class);
-    private final AutowireCapableBeanFactory autowireBeanFactory;
+public class MidpointAutowiredBeanFactoryObjectPostProcessor implements ObjectPostProcessor<Object>, DisposableBean, SmartInitializingSingleton {
+    private static final Trace LOGGER = TraceManager.getTrace(MidpointAutowiredBeanFactoryObjectPostProcessor.class);
+    private final AutowireCapableBeanFactory autowiredBeanFactory;
     private final List<DisposableBean> disposableBeans = new ArrayList();
     private final List<SmartInitializingSingleton> smartSingletons = new ArrayList();
 
-    MidpointAutowireBeanFactoryObjectPostProcessor(AutowireCapableBeanFactory autowireBeanFactory) {
-        Assert.notNull(autowireBeanFactory, "autowireBeanFactory cannot be null");
-        this.autowireBeanFactory = autowireBeanFactory;
+    public MidpointAutowiredBeanFactoryObjectPostProcessor(AutowireCapableBeanFactory autowiredBeanFactory) {
+        Assert.notNull(autowiredBeanFactory, "autowiredBeanFactory cannot be null");
+        this.autowiredBeanFactory = autowiredBeanFactory;
     }
 
     public <T> T postProcess(T object) {
@@ -42,13 +42,13 @@ public class MidpointAutowireBeanFactoryObjectPostProcessor implements ObjectPos
             Object result = null;
 
             try {
-                result = this.autowireBeanFactory.initializeBean(object, object.toString());
+                result = this.autowiredBeanFactory.initializeBean(object, object.toString());
             } catch (RuntimeException var5) {
                 Class<?> type = object.getClass();
                 throw new RuntimeException("Could not postProcess " + object + " of type " + type, var5);
             }
 
-            this.autowireBeanFactory.autowireBean(object);
+            this.autowiredBeanFactory.autowireBean(object);
             if (result instanceof DisposableBean) {
                 this.disposableBeans.add((DisposableBean)result);
             }

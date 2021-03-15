@@ -131,14 +131,14 @@ public class QueryConverterImpl implements QueryConverter {
     @Override
     public ObjectFilter parseFilter(@NotNull SearchFilterType filter, @NotNull PrismContainerDefinition<?> def) throws SchemaException {
         if(filter.getText() != null) {
-            return parseTextFilter(filter.getText(), def);
+            return parseTextFilter(filter.getText(), filter.getFilterClauseXNode().namespaceContext(), def);
         }
 
         return parseFilter(filter.getFilterClauseXNode(), def);
     }
 
-    private ObjectFilter parseTextFilter(@NotNull String filter, @NotNull PrismContainerDefinition<?> def) throws SchemaException {
-        return prismContext.createQueryParser().parseQuery(def, filter);
+    private ObjectFilter parseTextFilter(@NotNull String filter, PrismNamespaceContext context, @NotNull PrismContainerDefinition<?> def) throws SchemaException {
+        return prismContext.createQueryParser(context.allPrefixes()).parseQuery(def, filter);
     }
 
 
@@ -220,7 +220,7 @@ public class QueryConverterImpl implements QueryConverter {
                     // FIXME: Run syntax validation
                     return null;
                 }
-                return parseTextFilter(filter, pcd);
+                return parseTextFilter(filter, clauseContent.namespaceContext(), pcd);
             }
         }
         throw new SchemaException("Element text must contain textual filter");

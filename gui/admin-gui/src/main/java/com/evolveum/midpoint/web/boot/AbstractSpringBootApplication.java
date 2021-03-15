@@ -8,9 +8,14 @@ package com.evolveum.midpoint.web.boot;
 
 import javax.servlet.DispatcherType;
 
+import com.evolveum.midpoint.web.security.MidpointAutowiredBeanFactoryObjectPostProcessor;
+import com.evolveum.midpoint.web.security.MidpointSessionRegistry;
+import com.evolveum.midpoint.web.security.RemoveUnusedSecurityFilterPublisher;
+
 import org.apache.wicket.Application;
 import org.apache.wicket.protocol.http.WicketFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointAutoConfiguration;
@@ -39,6 +44,9 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.filter.DelegatingFilterProxy;
 import ro.isdc.wro.http.WroFilter;
@@ -138,8 +146,19 @@ public abstract class AbstractSpringBootApplication extends SpringBootServletIni
     }
 
     @Bean
+    public SessionRegistry sessionRegistry(RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher) {
+        return new MidpointSessionRegistry(removeUnusedSecurityFilterPublisher);
+    }
+
+    @Bean
     public static BeanFactoryPostProcessor beanFactoryPostProcessor() {
         return factory ->
                 factory.registerScope("sessionAndRequest", new SessionAndRequestScopeImpl());
+    }
+
+    @Primary
+    @Bean
+    public ObjectPostProcessor<Object> postProcessor(AutowireCapableBeanFactory autowireBeanFactory) {
+        return new MidpointAutowiredBeanFactoryObjectPostProcessor(autowireBeanFactory);
     }
 }
