@@ -115,17 +115,6 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
         return objectObjectPostProcessor.postProcess(new AuditedAccessDeniedHandler());
     }
 
-    @Primary
-    @Bean
-    public ObjectPostProcessor<Object> postProcessor(AutowireCapableBeanFactory autowireBeanFactory) {
-        return new MidpointAutowireBeanFactoryObjectPostProcessor(autowireBeanFactory);
-    }
-
-    @Bean
-    public SessionRegistry sessionRegistry(RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher) {
-        return new MidpointSessionRegistry(removeUnusedSecurityFilterPublisher);
-    }
-
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
         return new WicketLoginUrlAuthenticationEntryPoint("/login");

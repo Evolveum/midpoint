@@ -32,11 +32,11 @@ public class RemoveUnusedSecurityFilterListener  implements ApplicationListener<
         LOGGER.trace("Received spring RemoveUnusedSecurityFilterEvent event - " + event.getMpAuthentication());
 
         if (event.getMpAuthentication() != null && CollectionUtils.isNotEmpty(event.getMpAuthentication().getAuthModules())
-                && objectObjectPostProcessor instanceof MidpointAutowireBeanFactoryObjectPostProcessor) {
+                && objectObjectPostProcessor instanceof MidpointAutowiredBeanFactoryObjectPostProcessor) {
             for (AuthModule module : event.getMpAuthentication().getAuthModules()) {
                 if (module.getSecurityFilterChain() != null
                         && CollectionUtils.isNotEmpty(module.getSecurityFilterChain().getFilters())) {
-                    ((MidpointAutowireBeanFactoryObjectPostProcessor)objectObjectPostProcessor).destroyAndRemoveFilters(module.getSecurityFilterChain().getFilters());
+                    ((MidpointAutowiredBeanFactoryObjectPostProcessor)objectObjectPostProcessor).destroyAndRemoveFilters(module.getSecurityFilterChain().getFilters());
                 }
             }
         }
