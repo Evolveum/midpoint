@@ -29,7 +29,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 /**
  * @author skublik
  */
-public abstract class SmallInfoBoxPanel extends InfoBoxPanel{
+public abstract class SmallInfoBoxPanel extends InfoBoxPanel {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(SmallInfoBoxPanel.class);

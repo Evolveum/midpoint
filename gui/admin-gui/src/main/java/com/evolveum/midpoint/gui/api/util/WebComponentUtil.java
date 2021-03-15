@@ -3464,7 +3464,8 @@ public final class WebComponentUtil {
     public static String formatDurationWordsForLocal(long durationMillis, boolean suppressLeadingZeroElements,
             boolean suppressTrailingZeroElements, PageBase pageBase) {
 
-        String duration = DurationFormatUtils.formatDurationWords(durationMillis, suppressLeadingZeroElements, suppressTrailingZeroElements);
+        String duration = formatDuration(durationMillis, suppressLeadingZeroElements, suppressTrailingZeroElements);
+//        String duration = DurationFormatUtils.formatDurationWords(durationMillis, suppressLeadingZeroElements, suppressTrailingZeroElements);
 
         duration = StringUtils.replaceOnce(duration, "seconds", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.seconds").getString());
         duration = StringUtils.replaceOnce(duration, "minutes", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.minutes").getString());
@@ -3475,6 +3476,69 @@ public final class WebComponentUtil {
         duration = StringUtils.replaceOnce(duration, "hour", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.hour").getString());
         duration = StringUtils.replaceOnce(duration, "day", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.day").getString());
 
+        return duration;
+    }
+
+    private static String formatDuration(long durationMillis, boolean suppressLeadingZeroElements,
+            boolean suppressTrailingZeroElements) {
+        String duration = DurationFormatUtils.formatDuration(durationMillis, "d' days 'H' hours 'm' minutes 's' seconds 'S' miliseconds'");
+        String tmp;
+        if (suppressLeadingZeroElements) {
+            duration = " " + duration;
+            tmp = StringUtils.replaceOnce(duration, " 0 days", "");
+            if (tmp.length() != duration.length()) {
+                duration = tmp;
+                tmp = StringUtils.replaceOnce(tmp, " 0 hours", "");
+                if (tmp.length() != duration.length()) {
+                    duration = tmp;
+                    tmp = StringUtils.replaceOnce(tmp, " 0 minutes", "");
+                    if (tmp.length() != duration.length()) {
+                        tmp = StringUtils.replaceOnce(tmp, " 0 seconds", "");
+                        duration = tmp;
+                        if (tmp.length() != tmp.length()) {
+                            duration = StringUtils.replaceOnce(tmp, " 0 miliseconds", "");
+                        }
+                    }
+
+                }
+            }
+
+            if (!duration.isEmpty()) {
+                duration = duration.substring(1);
+            }
+        }
+
+        if (suppressTrailingZeroElements) {
+            tmp = StringUtils.replaceOnce(duration, " 0 miliseconds", "");
+            if (tmp.length() != duration.length()) {
+                duration = tmp;
+                tmp = StringUtils.replaceOnce(duration, " 0 seconds", "");
+                if (tmp.length() != duration.length()) {
+                    duration = tmp;
+                    tmp = StringUtils.replaceOnce(tmp, " 0 minutes", "");
+                    if (tmp.length() != duration.length()) {
+                        duration = tmp;
+                        tmp = StringUtils.replaceOnce(tmp, " 0 hours", "");
+                        if (tmp.length() != duration.length()) {
+                            duration = StringUtils.replaceOnce(tmp, " 0 days", "");
+                        }
+                    }
+                }
+            }
+        }
+
+        duration = " " + duration;
+        duration = StringUtils.replaceOnce(duration, " 1 miliseconds", " 1 milisecond");
+        duration = StringUtils.replaceOnce(duration, " 1 seconds", " 1 second");
+        duration = StringUtils.replaceOnce(duration, " 1 minutes", " 1 minute");
+        duration = StringUtils.replaceOnce(duration, " 1 hours", " 1 hour");
+        duration = StringUtils.replaceOnce(duration, " 1 days", " 1 day");
+        duration = duration.trim();
+
+        //not a perfect solution, but w.g we don't want to show 012ms but rather 12ms, won't work for 001ms.. this will be still 01ms :)
+        if (duration.startsWith("0")) {
+            duration = duration.substring(1);
+        }
         return duration;
     }
 

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.component.box;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -18,7 +20,7 @@ import org.apache.wicket.request.component.IRequestablePage;
  * @author katkav
  * @author semancik
  */
-public abstract class InfoBoxPanel extends Panel {
+public abstract class InfoBoxPanel<T extends InfoBoxType> extends BasePanel<T> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_INFO_BOX = "infoBox";
@@ -29,11 +31,11 @@ public abstract class InfoBoxPanel extends Panel {
 
     private Class<? extends IRequestablePage> linkPage;
 
-    public InfoBoxPanel(String id, IModel<InfoBoxType> model) {
+    public InfoBoxPanel(String id, IModel<T> model) {
         this(id, model, null);
     }
 
-    public InfoBoxPanel(String id, IModel<InfoBoxType> model, Class<? extends IRequestablePage> linkPage) {
+    public InfoBoxPanel(String id, IModel<T> model, Class<? extends IRequestablePage> linkPage) {
         super(id, model);
         add(AttributeModifier.append("class", "dashboard-info-box"));
         this.linkPage = linkPage;
@@ -42,34 +44,33 @@ public abstract class InfoBoxPanel extends Panel {
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initLayout((IModel<InfoBoxType>)getDefaultModel(), linkPage);
-
+        initLayout();
     }
 
-    private void initLayout(final IModel<InfoBoxType> model, final Class<? extends IRequestablePage> linkPage) {
+    private void initLayout() {
 
         WebMarkupContainer infoBox = new WebMarkupContainer(ID_INFO_BOX);
         add(infoBox);
-        infoBox.add(AttributeModifier.append("class", new PropertyModel<String>(model, InfoBoxType.BOX_BACKGROUND_COLOR)));
+        infoBox.add(AttributeModifier.append("class", new PropertyModel<String>(getModel(), InfoBoxType.BOX_BACKGROUND_COLOR)));
 
         WebMarkupContainer infoBoxIcon = new WebMarkupContainer(ID_INFO_BOX_ICON);
         infoBox.add(infoBoxIcon);
-        infoBoxIcon.add(AttributeModifier.append("class", new PropertyModel<String>(model, InfoBoxType.ICON_BACKGROUND_COLOR)));
+        infoBoxIcon.add(AttributeModifier.append("class", new PropertyModel<String>(getModel(), InfoBoxType.ICON_BACKGROUND_COLOR)));
 
 
         WebMarkupContainer image = new WebMarkupContainer(ID_IMAGE_ID);
-        image.add(AttributeModifier.append("class", new PropertyModel<String>(model, InfoBoxType.IMAGE_ID)));
+        image.add(AttributeModifier.append("class", new PropertyModel<String>(getModel(), InfoBoxType.IMAGE_ID)));
         infoBoxIcon.add(image);
 
-        Label message = new Label(ID_MESSAGE, new PropertyModel<String>(model, InfoBoxType.MESSAGE));
+        Label message = new Label(ID_MESSAGE, new PropertyModel<String>(getModel(), InfoBoxType.MESSAGE));
         infoBox.add(message);
 
-        Label number = new Label(ID_NUMBER, new PropertyModel<String>(model, InfoBoxType.NUMBER));
+        Label number = new Label(ID_NUMBER, new PropertyModel<String>(getModel(), InfoBoxType.NUMBER));
         infoBox.add(number);
 
-        customInitLayout(infoBox, model, linkPage);
+        customInitLayout(infoBox, getModel(), linkPage);
     }
 
-    protected abstract void customInitLayout(WebMarkupContainer parentInfoBox, final IModel<InfoBoxType> model, final Class<? extends IRequestablePage> linkPage);
+    protected abstract void customInitLayout(WebMarkupContainer parentInfoBox, final IModel<T> model, final Class<? extends IRequestablePage> linkPage);
 
 }

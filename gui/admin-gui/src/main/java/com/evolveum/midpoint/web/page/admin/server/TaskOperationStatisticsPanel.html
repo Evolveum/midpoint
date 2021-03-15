@@ -18,69 +18,35 @@
 <body>
 <wicket:panel>
 
-    <div class="box box-default">
-        <div class="box-header with-border">
-            <h3 class="box-title"><wicket:message key="TaskOperationStatisticsPanel.processingInfo"/></h3>
-        </div>
-
-        <div class="box-body">
-            <div class="row">
-                <div class="col-md-12">
-                    <div wicket:id="processingInfo"></div>
-                </div>
+    <div wicket:id="processingInfo"></div>
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <div wicket:id="synchronizationStatistics">
+                <div wicket:id="synchronizationSituationTransitions"></div>
             </div>
         </div>
-    </div>
-
-    <div wicket:id="synchronizationStatistics">
-        <div class="box box-default">
-            <wicket:enclosure child="synchronizationSituationTransitions">
-                <div class="box-header with-border">
-                    <h3 class="box-title"><wicket:message key="TaskOperationStatisticsPanel.synchronization.situation"/></h3>
-                </div>
-
-                <div class="box-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div wicket:id="synchronizationSituationTransitions">
-                                <div wicket:id="synchronizationSituationTransition"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </wicket:enclosure>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
+            <div wicket:id="resultingEntry"></div>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
+            <div wicket:id="actionEntry"></div>
         </div>
     </div>
 
-    <div class="box box-default">
-        <div class="box-header with-border">
-            <h3 class="box-title"><wicket:message key="TaskOperationStatisticsPanel.resultingEntry"/></h3>
-        </div>
+    <wicket:fragment wicket:id="resultingEntryTitle">
+        <h3 class="box-title">
+            <wicket:message key="TaskOperationStatisticsPanel.resultingEntry"/>
+        </h3>
+        <div><wicket:message key="TaskOperationStatisticsPanel.resultingEntry.info"/></div>
+    </wicket:fragment>
 
-        <div class="box-body">
-            <div class="row">
-                <div class="col-md-12">
-                    <wicket:message key="TaskOperationStatisticsPanel.resultingEntry.info"/>
-                    <div wicket:id="resultingEntry"></div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="box box-default">
-        <div class="box-header with-border">
-            <h3 class="box-title"><wicket:message key="TaskOperationStatisticsPanel.actionEntry"/></h3>
-        </div>
-
-        <div class="box-body">
-            <div class="row">
-                <div class="col-md-12">
-                    <wicket:message key="TaskOperationStatisticsPanel.actionEntry.info"/>
-                    <div wicket:id="actionEntry"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <wicket:fragment wicket:id="actionEntryTitle">
+        <h3 class="box-title">
+            <wicket:message key="TaskOperationStatisticsPanel.actionEntry"/>
+        </h3>
+        <div><wicket:message key="TaskOperationStatisticsPanel.actionEntry.info"/></div>
+    </wicket:fragment>
 
 </wicket:panel>
 </body>
