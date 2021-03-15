@@ -128,7 +128,7 @@ public class TestAutoassign extends AbstractRbacTest {
                 .assertNone()
                 .end()
             .links()
-                .assertNone();
+                .assertNoLiveLinks();
 
         assertNoDummyAccount(null, USER_JACK_USERNAME);
     }

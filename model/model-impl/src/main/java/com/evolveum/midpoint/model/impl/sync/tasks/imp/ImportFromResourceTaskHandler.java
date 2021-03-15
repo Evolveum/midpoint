@@ -100,7 +100,7 @@ public class ImportFromResourceTaskHandler
                     targetInfo.getResource(),
                     targetInfo.getObjectClassDefinition(),
                     new NullSynchronizationObjectFilterImpl(),
-                    changeNotificationDispatcher,
+                    eventDispatcher,
                     SchemaConstants.CHANNEL_IMPORT,
                     null,
                     true);
@@ -179,6 +179,6 @@ public class ImportFromResourceTaskHandler
     }
 
     public ResourceObjectChangeListener getObjectChangeListener() {
-        return changeNotificationDispatcher;
+        return eventDispatcher;
     }
 }

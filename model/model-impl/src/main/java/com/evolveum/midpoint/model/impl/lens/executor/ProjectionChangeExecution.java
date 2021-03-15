@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil.findIte
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.provisioning.api.ShadowLivenessState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;

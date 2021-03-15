@@ -19,12 +19,6 @@ public class RefreshShadowOperation implements DebugDumpable {
 
     private PrismObject<ShadowType> refreshedShadow;
 
-    /**
-     * In order to avoid replacing last known value of {@link #refreshedShadow} with null, we represent deletion
-     * of the repository object in this flag. TODO reconsider
-     */
-    private boolean repoShadowDeleted;
-
     private Collection<ObjectDeltaOperation<ShadowType>> executedDeltas;
     private OperationResult refreshResult;
 
@@ -42,14 +36,6 @@ public class RefreshShadowOperation implements DebugDumpable {
 
     public void setRefreshedShadow(PrismObject<ShadowType> refreshedShadow) {
         this.refreshedShadow = refreshedShadow;
-    }
-
-    public boolean isRepoShadowDeleted() {
-        return repoShadowDeleted;
-    }
-
-    public void setRepoShadowDeleted(boolean repoShadowDeleted) {
-        this.repoShadowDeleted = repoShadowDeleted;
     }
 
     public OperationResult getRefreshResult() {
@@ -81,6 +67,7 @@ public class RefreshShadowOperation implements DebugDumpable {
         return result;
     }
 
+    @SuppressWarnings("RedundantIfStatement")
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;

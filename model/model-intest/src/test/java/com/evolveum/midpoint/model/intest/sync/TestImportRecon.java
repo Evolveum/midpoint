@@ -1382,7 +1382,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         addReconScripts(scripts, ACCOUNT_HTM_NAME, ACCOUNT_HTM_FULL_NAME, true);
         IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
 
-        assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_OID); // the second modification is unlink
+        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
 
         assertShadows(15);
 

@@ -376,7 +376,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
                 .displayWithProjections()
                 //.assertOrganizationalUnits(ALUMNI_NAME)
                 .links()
-                    .assertNone();
+                    .assertNoLiveLinks();
     }
 
     /**

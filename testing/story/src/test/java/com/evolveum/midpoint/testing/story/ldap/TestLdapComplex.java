@@ -272,7 +272,7 @@ public class TestLdapComplex extends AbstractLdapTest {
 
         assertUserAfter(USER_JACK_OID)
                 .links()
-                .assertNone();
+                .assertNoLiveLinks();
 
         assertNoShadow(accountJackOid);
 
@@ -309,7 +309,7 @@ public class TestLdapComplex extends AbstractLdapTest {
                 .assertLangs(JACK_FULL_NAME_LANG_EN_SK)
                 .end()
                 .links()
-                .assertNone();
+                .assertNoLiveLinks();
 
     }
 
@@ -505,7 +505,7 @@ public class TestLdapComplex extends AbstractLdapTest {
 
         assertUserAfter(USER_JACK_OID)
                 .links()
-                .assertNone();
+                .assertNoLiveLinks();
 
         assertNoShadow(accountJackOid);
 
@@ -546,7 +546,7 @@ public class TestLdapComplex extends AbstractLdapTest {
                 .end()
                 .end()
                 .links()
-                .assertNone();
+                .assertNoLiveLinks();
     }
 
     /**
@@ -743,7 +743,7 @@ public class TestLdapComplex extends AbstractLdapTest {
 
         assertUserAfter(USER_JACK_OID)
                 .links()
-                .assertNone();
+                .assertNoLiveLinks();
 
         assertNoShadow(accountJackOid);
 

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
+import com.evolveum.midpoint.provisioning.api.ShadowLivenessState;
 import com.evolveum.midpoint.repo.api.ModificationPrecondition;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -595,7 +596,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         } catch (ObjectNotFoundException e) {
             // rough attempt at guessing if the exception is related to the shadow (and not e.g. to the resource)
             if (e.getOid() == null || e.getOid().equals(oid)) {
-                shadowLivenessState = ShadowLivenessState.NOT_IN_REPOSITORY;
+                shadowLivenessState = ShadowLivenessState.DELETED;
             }
             throw e;
         } finally {
@@ -613,7 +614,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             shadowLivenessState = ShadowLivenessState.forShadow(cast(objectToModify, ShadowType.class));
         } else {
             // If this is so, we are probably not here. But just for completeness.
-            shadowLivenessState = ShadowLivenessState.NOT_IN_REPOSITORY;
+            shadowLivenessState = ShadowLivenessState.DELETED;
         }
     }
 
@@ -676,7 +677,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                     LOGGER.trace("Attempt to delete object {} ({}) that is already gone", oid, objectTypeClass);
                     result.muteLastSubresultError();
                     objectAfterModification = null;
-                    shadowLivenessState = ShadowLivenessState.NOT_IN_REPOSITORY;
+                    shadowLivenessState = ShadowLivenessState.DELETED;
                 }
                 if (objectAfterModification == null && elementContext instanceof LensProjectionContext) {
                     ((LensProjectionContext) elementContext).setShadowExistsInRepo(false);

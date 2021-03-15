@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.provisioning.api.ShadowDeathListener;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -30,12 +31,6 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
     private A asyncResult;
     private PendingOperationExecutionStatusType executionStatus;
     private PrismObject<ShadowType> repoShadow;
-
-    /**
-     * In order to avoid replacing last known value of {@link #repoShadow} with null, we represent deletion
-     * of the repository object in this flag. TODO reconsider
-     */
-    private boolean repoShadowDeleted;
 
     private Integer attemptNumber;
     private List<PendingOperationType> pendingOperations;
@@ -62,14 +57,6 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
 
     public void setRepoShadow(PrismObject<ShadowType> repoShadow) {
         this.repoShadow = repoShadow;
-    }
-
-    public boolean isRepoShadowDeleted() {
-        return repoShadowDeleted;
-    }
-
-    public void setRepoShadowDeleted(boolean repoShadowDeleted) {
-        this.repoShadowDeleted = repoShadowDeleted;
     }
 
     public List<PendingOperationType> getPendingOperations() {

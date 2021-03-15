@@ -347,8 +347,9 @@ public class ShadowManager {
         shadowUpdater.deleteShadow(ctx, oldRepoShadow, result);
     }
 
-    public PrismObject<ShadowType> markShadowTombstone(PrismObject<ShadowType> repoShadow, OperationResult result) throws SchemaException {
-        return shadowUpdater.markShadowTombstone(repoShadow, result);
+    public PrismObject<ShadowType> markShadowTombstone(PrismObject<ShadowType> repoShadow, Task task,
+            OperationResult result) throws SchemaException {
+        return shadowUpdater.markShadowTombstone(repoShadow, task, result);
     }
 
     /**

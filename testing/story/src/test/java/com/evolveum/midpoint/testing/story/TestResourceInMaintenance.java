@@ -290,10 +290,10 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         // lets try recompute just for fun, mp should do nothing and report success:
         when("recompute");
         OperationResult result2 = createOperationResult();
-        modelService.recompute(UserType.class, USER2_OID, executeOptions().reconcile(), task, result2);
+        traced(() -> modelService.recompute(UserType.class, USER2_OID, executeOptions().reconcile(), task, result2));
 
         then("recompute");
-        assertSuccess(result2);
+        assertSuccess(result2, 4); // Deep inside is an exception about maintenance
 
         int noOfLinks = getUser(USER2_OID).asObjectable().getLinkRef().size();
         assertEquals(noOfLinks, 1); // check that consequent recompute hasn't created second shadow
@@ -748,7 +748,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         assertUserAfter(userAfterCreation.getOid())
                 .links()
-                    .assertNone();
+                    .assertNoLiveLinks();
     }
 
     private void turnMaintenanceModeOn(Task task, OperationResult result) throws Exception {

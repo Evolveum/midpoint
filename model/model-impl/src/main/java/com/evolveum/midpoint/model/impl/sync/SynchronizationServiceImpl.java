@@ -12,20 +12,8 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.SearchResultList;
-
-import com.evolveum.midpoint.util.DebugUtil;
-
-import com.evolveum.midpoint.util.MiscUtil;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
@@ -47,21 +35,29 @@ import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalH
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskUtil;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -115,11 +111,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             logStart(change);
             checkConsistence(change);
 
-            if (change.isCleanDeadShadow()) {
-                cleanDeadShadow(change, result);
-                return;
-            }
-
             SynchronizationContext<?> syncCtx = loadSynchronizationContext(change, task, result);
 
             if (shouldSkipSynchronization(syncCtx, result)) {
@@ -158,41 +149,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             LOGGER.trace("SYNCHRONIZATION: received change notification:\n{}", DebugUtil.debugDump(change, 1));
         } else if (isLogDebug(change)) {
             LOGGER.debug("SYNCHRONIZATION: received change notification {}", change);
-        }
-    }
-
-    private void cleanDeadShadow(ResourceObjectShadowChangeDescription change, OperationResult result) {
-        LOGGER.trace("Cleaning old dead shadows, checking for old links, cleaning them up");
-        String shadowOid = change.getShadowOid();
-        if (shadowOid == null) {
-            LOGGER.trace("No shadow oid, nothing to clean up.");
-            return;
-        }
-
-        try {
-            PrismObject<FocusType> currentOwner = findShadowOwner(shadowOid, result);
-            if (currentOwner == null) {
-                LOGGER.trace("Nothing to do, shadow doesn't have any owner.");
-                return;
-            }
-
-            FocusType ownerBean = currentOwner.asObjectable();
-            Collection<ObjectReferenceType> referencesToDelete = ownerBean.getLinkRef().stream()
-                    .filter(linkRef -> shadowOid.equals(linkRef.getOid()))
-                    .collect(Collectors.toList());
-
-            if (!referencesToDelete.isEmpty()) {
-                Class<? extends FocusType> ownerType = ownerBean.getClass();
-                Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFor(ownerType)
-                        .item(FocusType.F_LINK_REF).deleteRealValues(CloneUtil.cloneCollectionMembers(referencesToDelete))
-                        .asItemDeltas();
-                repositoryService.modifyObject(ownerType, currentOwner.getOid(), modifications, result);
-            }
-
-        } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
-            LOGGER.error("SYNCHRONIZATION: Error in synchronization - clean up dead shadows. Change: {}", change, e);
-            result.recordFatalError("Error while cleaning dead shadow, " + e.getMessage(), e);
-            //nothing more to do. and we don't want to throw exception to not cancel the whole execution.
         }
     }
 

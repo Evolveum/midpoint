@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.ShadowLivenessState;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
@@ -242,7 +243,7 @@ class LinkUpdater<F extends FocusType> {
             return;
         }
         switch (shadowLivenessState) {
-            case NOT_IN_REPOSITORY:
+            case DELETED:
                 LOGGER.trace("Shadow is not in repository, deleting linkRef");
                 deleteLinkRefFromFocus(result);
                 break;

@@ -30,7 +30,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.*;
@@ -74,7 +74,7 @@ class ModifyHelper {
     @Autowired private ResourceObjectConverter resourceObjectConverter;
     @Autowired private ShadowCaretaker shadowCaretaker;
     @Autowired protected ShadowManager shadowManager;
-    @Autowired private ChangeNotificationDispatcher operationListener;
+    @Autowired private EventDispatcher eventDispatcher;
     @Autowired private AccessChecker accessChecker;
     @Autowired private ProvisioningContextFactory ctxFactory;
     @Autowired private EntitlementsHelper entitlementsHelper;
@@ -272,9 +272,9 @@ class ModifyHelper {
                 delta, parentResult);
 
         if (opState.isExecuting()) {
-            operationListener.notifyInProgress(operationDescription, task, parentResult);
+            eventDispatcher.notifyInProgress(operationDescription, task, parentResult);
         } else {
-            operationListener.notifySuccess(operationDescription, task, parentResult);
+            eventDispatcher.notifySuccess(operationDescription, task, parentResult);
         }
     }
 

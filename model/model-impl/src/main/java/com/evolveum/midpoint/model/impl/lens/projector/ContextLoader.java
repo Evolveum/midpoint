@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -1303,16 +1304,21 @@ public class ContextLoader implements ProjectorProcessor {
                             projContext.setExists(false);
                             if (ShadowUtil.isDead(objectOld.asObjectable())) {
                                 projContext.markTombstone();
+                                LOGGER.debug("Found only dead {} for projection context {}.", objectOld,
+                                        projContext.getHumanReadableName());
+                                tombstone = true;
+                            } else {
+                                LOGGER.debug("Found only non-existing but non-dead {} for projection context {}.", objectOld,
+                                        projContext.getHumanReadableName());
+                                // TODO Should we somehow mark this in the projection context?
                             }
-                            LOGGER.debug("Foud only dead {} for projection context {}.", objectOld, projContext.getHumanReadableName());
-                            tombstone = true;
                         }
 
                     } catch (ObjectNotFoundException ex) {
                         LOGGER.debug("Could not find object with oid {} for projection context {}.", projectionObjectOid, projContext.getHumanReadableName());
                         // This does not mean BROKEN. The projection was there, but it gone now.
                         // Consistency mechanism might have kicked in and fixed the shadow.
-                        // What we really want here is a thombstone projection or a refreshed projection.
+                        // What we really want here is a tombstone projection or a refreshed projection.
                         result.muteLastSubresultError();
                         projContext.setShadowExistsInRepo(false);
                         refreshContextAfterShadowNotFound(context, projContext, options, task, result);
@@ -1579,85 +1585,125 @@ public class ContextLoader implements ProjectorProcessor {
         }
     }
 
-    public <F extends ObjectType> void refreshContextAfterShadowNotFound(LensContext<F> context, LensProjectionContext projCtx, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private <F extends ObjectType> void refreshContextAfterShadowNotFound(LensContext<F> context, LensProjectionContext projCtx,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
         if (projCtx.isDelete()) {
-            //this is OK, shadow was deleted, but we will continue in processing with old shadow..and set it as full so prevent from other full loading
+            // This is OK: shadow was deleted, but we will continue in processing with the old shadow.
+            // And we set it as full to prevent from other full loading.
             projCtx.setFullShadow(true);
             return;
         }
 
-        boolean compensated = false;
+        LOGGER.trace("Trying to compensate for ObjectNotFoundException.");
+        boolean compensated;
         if (!GetOperationOptions.isDoNotDiscovery(SelectorOptions.findRootOptions(options))) {
             // The account might have been re-created by the discovery.
             // Reload focus, try to find out if there is a new matching link (and the old is gone)
-            LensFocusContext<F> focusContext = context.getFocusContext();
-            if (focusContext != null) {
-                Class<F> focusClass = focusContext.getObjectTypeClass();
-                if (FocusType.class.isAssignableFrom(focusClass)) {
-                    LOGGER.trace("Reloading focus to check for new links");
-                    PrismObject<F> focusCurrent;
-                    try {
-                        focusCurrent = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), focusContext.getOid(), null, result);
-                    } catch (ObjectNotFoundException e) {
-                        if (focusContext.isDelete()) {
-                            // This may be OK. This may be later wave and the focus may be already deleted.
-                            // Therefore let's just keep what we have. We have no way how to refresh context
-                            // in that situation.
-                            result.muteLastSubresultError();
-                            LOGGER.trace("ObjectNotFound error is not compensated (focus already deleted), setting context to tombstone");
-                            projCtx.markTombstone();
-                            return;
-                        } else {
-                            throw e;
-                        }
-                    }
-                    FocusType focusType = (FocusType) focusCurrent.asObjectable();
-                    for (ObjectReferenceType linkRef: focusType.getLinkRef()) {
-                        if (linkRef.getOid().equals(projCtx.getOid())) {
-                            // The deleted shadow is still in the linkRef. This should not happen, but it obviously happens sometimes.
-                            // Maybe some strange race condition? Anyway, we want a robust behavior and this linkRef should NOT be there.
-                            // So simple remove it.
-                            LOGGER.warn("The OID "+projCtx.getOid()+" of deleted shadow still exists in the linkRef after discovery ("+focusCurrent+"), removing it");
-                            ReferenceDelta unlinkDelta = prismContext.deltaFactory().reference().createModificationDelete(
-                                    FocusType.F_LINK_REF, focusContext.getObjectDefinition(), linkRef.asReferenceValue().clone());
-                            focusContext.swallowToSecondaryDelta(unlinkDelta);
-                            continue;
-                        }
-                        boolean found = false;
-                        for (LensProjectionContext pCtx: context.getProjectionContexts()) {
-                            if (linkRef.getOid().equals(pCtx.getOid())) {
-                                found = true;
-                                break;
-                            }
-                        }
-                        if (!found) {
-                            // This link is new, it is not in the existing lens context
-                            PrismObject<ShadowType> newLinkRepoShadow = cacheRepositoryService.getObject(ShadowType.class, linkRef.getOid(), null, result);
-                            if (ShadowUtil.matches(newLinkRepoShadow, projCtx.getResourceShadowDiscriminator())) {
-                                LOGGER.trace("Found new matching link: {}, updating projection context", newLinkRepoShadow);
-                                LOGGER.trace("Applying definition from provisioning first.");        // MID-3317
-                                provisioningService.applyDefinition(newLinkRepoShadow, task, result);
-                                projCtx.setObjectCurrent(newLinkRepoShadow);
-                                projCtx.setOid(newLinkRepoShadow.getOid());
-                                // The "exists" information in the projection context can be obsolete - reflecting the fact that
-                                // resource object couldn't be found.
-                                projCtx.setExists(ShadowUtil.isExists(newLinkRepoShadow));
-                                projCtx.recompute();
-                                compensated = true;
-                                break;
-                            } else {
-                                LOGGER.trace("Found new link: {}, but skipping it because it does not match the projection context", newLinkRepoShadow);
-                            }
-                        }
-                    }
-                }
-            }
-
+            LOGGER.trace(" -> reloading the focus with the goal of finding matching link");
+            compensated = reloadFocusAndFindMatchingLink(context, projCtx, task, result);
+        } else {
+            LOGGER.trace(" -> discovery is disabled, no point in reloading the focus");
+            compensated = false;
         }
 
-        if (!compensated) {
+        if (compensated) {
+            LOGGER.trace("ObjectNotFound error is compensated, continuing");
+        } else {
             LOGGER.trace("ObjectNotFound error is not compensated, setting context to tombstone");
             projCtx.markTombstone();
+        }
+    }
+
+    private <F extends ObjectType> boolean reloadFocusAndFindMatchingLink(LensContext<F> context, LensProjectionContext projCtx,
+            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
+        PrismObject<F> reloadedFocusObject = reloadFocus(context, task, result);
+        if (reloadedFocusObject == null) {
+            return false; // reason already logged
+        }
+        FocusType reloadedFocus = (FocusType) reloadedFocusObject.asObjectable();
+        // TODO shouldn't we put the reloaded focus back into the focus context?
+
+        LensFocusContext<F> focusContext = context.getFocusContextRequired();
+        for (ObjectReferenceType linkRef: reloadedFocus.getLinkRef()) {
+            if (linkRef.getOid().equals(projCtx.getOid())) {
+                // The deleted shadow is still in the linkRef. This should not happen, but it obviously happens sometimes.
+                // Maybe some strange race condition? Anyway, we want a robust behavior and this linkRef should NOT be there.
+                // So simple remove it.
+                LOGGER.warn("The OID "+ projCtx.getOid()+" of deleted shadow still exists in the linkRef after discovery ("+reloadedFocusObject+"), removing it");
+                ReferenceDelta unlinkDelta = prismContext.deltaFactory().reference().createModificationDelete(
+                        FocusType.F_LINK_REF, focusContext.getObjectDefinition(), linkRef.asReferenceValue().clone());
+                focusContext.swallowToSecondaryDelta(unlinkDelta); // TODO will it work even with not-updated focus current?
+                continue;
+            }
+            boolean found = context.getProjectionContexts().stream()
+                    .anyMatch(pCtx -> linkRef.getOid().equals(pCtx.getOid()));
+            if (found) {
+                // This linkRef corresponds to an existing projection context.
+                // Continue searching.
+                continue;
+            }
+
+            // This linkRef is new, it is not in the existing lens context. Is it matching?
+            PrismObject<ShadowType> newLinkRepoShadow;
+            try {
+                newLinkRepoShadow = cacheRepositoryService.getObject(ShadowType.class, linkRef.getOid(), null, result);
+            } catch (ObjectNotFoundException e) {
+                LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't resolve {}, unlinking it from the focus {}",
+                        e, linkRef.getOid(), reloadedFocus);
+                ReferenceDelta unlinkDelta = prismContext.deltaFactory().reference().createModificationDelete(
+                        FocusType.F_LINK_REF, focusContext.getObjectDefinition(), linkRef.asReferenceValue().clone());
+                focusContext.swallowToSecondaryDelta(unlinkDelta); // TODO will it work even with not-updated focus current?
+                continue;
+            }
+
+            if (ShadowUtil.matches(newLinkRepoShadow, projCtx.getResourceShadowDiscriminator())) {
+                LOGGER.trace("Found new matching link: {}, updating projection context", newLinkRepoShadow);
+                LOGGER.trace("Applying definition from provisioning first."); // MID-3317
+                provisioningService.applyDefinition(newLinkRepoShadow, task, result);
+                projCtx.setObjectCurrent(newLinkRepoShadow);
+                projCtx.setOid(newLinkRepoShadow.getOid());
+                // The "exists" information in the projection context can be obsolete - reflecting the fact that
+                // resource object couldn't be found.
+                projCtx.setExists(ShadowUtil.isExists(newLinkRepoShadow));
+                projCtx.recompute();
+                return true;
+            }
+
+            LOGGER.trace("Found new link: {}, but skipping it because it does not match the projection context",
+                    newLinkRepoShadow);
+        }
+        LOGGER.trace(" -> no suitable link found");
+        return false;
+    }
+
+    private <F extends ObjectType> PrismObject<F> reloadFocus(LensContext<F> context, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        LensFocusContext<F> focusContext = context.getFocusContext();
+        if (focusContext == null) {
+            LOGGER.trace(" -> no focus context");
+            return null;
+        }
+        Class<F> focusClass = focusContext.getObjectTypeClass();
+        if (!FocusType.class.isAssignableFrom(focusClass)) {
+            LOGGER.trace(" -> no focus context of FocusType");
+            return null;
+        }
+        try {
+            return cacheRepositoryService.getObject(focusClass, focusContext.getOid(), null, result);
+        } catch (ObjectNotFoundException e) {
+            if (focusContext.isDelete()) {
+                // This may be OK. This may be later wave and the focus may be already deleted.
+                // Therefore let's just keep what we have. We have no way how to refresh context
+                // in that situation.
+                result.muteLastSubresultError();
+                LOGGER.trace(" -> focus does not exist any more");
+                return null;
+            } else {
+                throw e;
+            }
         }
     }
 

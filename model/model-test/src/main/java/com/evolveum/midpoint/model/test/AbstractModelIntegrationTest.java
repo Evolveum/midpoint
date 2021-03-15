@@ -6802,4 +6802,23 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertFocus(focus, "")
                 .assertLinks(live, related);
     }
+
+    /**
+     * Returns model object resolver disguised as SimpleObjectResolver to be used in asserts.
+     */
+    protected SimpleObjectResolver createSimpleModelObjectResolver() {
+        return new SimpleObjectResolver() {
+            @Override
+            public <O extends ObjectType> PrismObject<O> getObject(Class<O> type, String oid,
+                    Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws ObjectNotFoundException, SchemaException {
+                try {
+                    //noinspection unchecked
+                    return (PrismObject<O>) modelObjectResolver.getObject(type, oid, options, getTestTask(), result).asPrismObject();
+                } catch (CommunicationException | ConfigurationException | SecurityViolationException
+                        | ExpressionEvaluationException e) {
+                    throw new SystemException(e);
+                }
+            }
+        };
+    }
 }

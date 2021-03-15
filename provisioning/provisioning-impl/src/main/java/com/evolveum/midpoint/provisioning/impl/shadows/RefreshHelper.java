@@ -13,13 +13,10 @@ import static com.evolveum.midpoint.provisioning.impl.shadows.Util.needsRetry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,18 +31,20 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
-import com.evolveum.midpoint.provisioning.impl.*;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
+import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.RefreshShadowOperation;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -81,8 +80,7 @@ class RefreshHelper {
     @Autowired private ResourceObjectConverter resourceObjectConverter;
     @Autowired private ShadowCaretaker shadowCaretaker;
     @Autowired protected ShadowManager shadowManager;
-    @Autowired private ChangeNotificationDispatcher operationListener;
-    @Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
+    @Autowired private EventDispatcher operationListener;
     @Autowired private ProvisioningContextFactory ctxFactory;
     @Autowired private AddHelper addHelper;
     @Autowired private ModifyHelper modifyHelper;
@@ -106,16 +104,9 @@ class RefreshHelper {
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 
-        if (refreshShadowOperation.isRepoShadowDeleted()) {
-            notifyShadowDeleted(ctx, repoShadow, refreshShadowOperation.getRefreshedShadow(), task, result);
-            refreshShadowOperation.setRefreshedShadow(null);
-            return refreshShadowOperation;
-        }
-
         PrismObject<ShadowType> shadowAfterCleanup = deleteDeadShadowIfPossible(ctx, repoShadow, now, task, result);
         if (shadowAfterCleanup == null) {
             refreshShadowOperation.setRefreshedShadow(null);
-            refreshShadowOperation.setRepoShadowDeleted(true);
         }
         return refreshShadowOperation;
     }
@@ -369,8 +360,6 @@ class RefreshHelper {
 
         Duration retryPeriod = ProvisioningUtil.getRetryPeriod(ctx);
 
-        boolean repoShadowDeleted = false;
-
         Collection<ObjectDeltaOperation<ShadowType>> executedDeltas = new ArrayList<>();
         for (PendingOperationType pendingOperation: sortedOperations) {
 
@@ -451,10 +440,6 @@ class RefreshHelper {
                 retryResult.recordFatalError(e);
             }
 
-            if (opState.isRepoShadowDeleted()) {
-                repoShadowDeleted = true;
-            }
-
             objectDeltaOperation.setExecutionResult(result);
             executedDeltas.add(objectDeltaOperation);
         }
@@ -462,7 +447,6 @@ class RefreshHelper {
         RefreshShadowOperation rso = new RefreshShadowOperation();
         rso.setExecutedDeltas(executedDeltas);
         rso.setRefreshedShadow(repoShadow);
-        rso.setRepoShadowDeleted(repoShadowDeleted);
         parentResult.computeStatus();
 
         rso.setRefreshResult(retryResult);
@@ -539,7 +523,6 @@ class RefreshHelper {
             // Perish you stinking corpse!
             LOGGER.debug("Deleting dead {} because it is expired", repoShadow);
             shadowManager.deleteShadow(ctx, repoShadow, parentResult);
-            notifyShadowDeleted(ctx, repoShadow, null, task, parentResult);
             definitionsHelper.applyDefinition(repoShadow, parentResult);
             ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, repoShadow,
                     repoShadow.createDeleteDelta(), parentResult);
@@ -550,47 +533,6 @@ class RefreshHelper {
         LOGGER.trace("Keeping dead {} because it is not expired yet, last activity={}, expiration period={}", repoShadow,
                 lastActivityTimestamp, expirationPeriod);
         return repoShadow;
-    }
-
-    /**
-     * We have to notify model that the shadow was deleted. This is mainly to unlink the shadow from its owner. (MID-6862)
-     *
-     * It is interesting that the provisioning normally does not need to notify model on shadow deletion: It is because during
-     * normal operation, the model itself requests the deletion, so it knows is has to do unlink the shadow. But this time
-     * it is different. Model does not unlink if the deletion is not successful, so we have to do that after successful retry.
-     */
-    private void notifyShadowDeleted(ProvisioningContext ctx, PrismObject<ShadowType> shadowBefore,
-            PrismObject<ShadowType> shadowAfter, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
-        PrismObject<ShadowType> shadow = getShadowForNotification(shadowAfter, shadowBefore);
-        String channel = Objects.requireNonNullElse(task.getChannel(), SchemaConstants.CHANNEL_DISCOVERY_URI);  // TODO ok?
-        ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-        change.setCleanDeadShadow(true);
-        change.setShadowedResourceObject(shadow);
-        change.setResource(ctx.getResource().asPrismObject());
-        change.setObjectDelta(shadow.createDeleteDelta());
-        change.setSourceChannel(channel);
-        change.setShadowExistsInRepo(false);
-        changeNotificationDispatcher.notifyChange(change, task, result);
-    }
-
-    /**
-     * What shadow should we use for the notification?
-     *
-     * @param shadowAfter Shadow after the operation. Can be null?
-     * @param shadowBefore Shadow before the operation.
-     * @return Shadow that can be used for the notification.
-     */
-    private PrismObject<ShadowType> getShadowForNotification(PrismObject<ShadowType> shadowAfter,
-            PrismObject<ShadowType> shadowBefore) {
-        if (shadowAfter != null) {
-            return shadowAfter;
-        } else if (shadowBefore != null) {
-            return shadowBefore;
-        } else {
-            throw new IllegalStateException("No shadow to use for notification. Both 'before' and 'after' shadows are null.");
-        }
     }
 
     private void expirePendingOperations(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,

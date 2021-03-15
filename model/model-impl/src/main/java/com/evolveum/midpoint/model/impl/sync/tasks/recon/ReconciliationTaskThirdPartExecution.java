@@ -160,7 +160,7 @@ class ReconciliationTaskThirdPartExecution
             change.setObjectDelta(shadowDelta);
             change.setShadowedResourceObject(shadow);
             ModelImplUtils.clearRequestee(task);
-            taskHandler.changeNotificationDispatcher.notifyChange(change, task, result);
+            taskHandler.eventDispatcher.notifyChange(change, task, result);
         }
     }
 }

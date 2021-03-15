@@ -94,7 +94,7 @@ public class LinksAsserter<F extends FocusType, FA extends FocusAsserter<F, RA>,
         return this;
     }
 
-    public LinksAsserter<F, FA, RA> assertNone() {
+    public LinksAsserter<F, FA, RA> assertNoLiveLinks() {
         assertLiveLinks(0);
         return this;
     }

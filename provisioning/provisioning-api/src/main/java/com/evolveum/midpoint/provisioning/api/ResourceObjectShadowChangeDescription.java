@@ -33,7 +33,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  *
  * @author Radovan Semancik
  */
-public class ResourceObjectShadowChangeDescription implements DebugDumpable, Serializable {
+public class ResourceObjectShadowChangeDescription implements ProvisioningEvent, DebugDumpable, Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -66,13 +66,6 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
 
     /** Is this a simulated operation? TODO reconsider this flag here. */
     private boolean simulate;
-
-    /**
-     * If set it means that we want to just clean - i.e. unlink - a dead shadow that was deleted.
-     *
-     * TODO consider using custom interface for this.
-     */
-    private boolean cleanDeadShadow;
 
     /**
      * Does the shadow exist in repo? Null means "we don't know".
@@ -128,14 +121,6 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
         this.simulate = simulate;
     }
 
-    public boolean isCleanDeadShadow() {
-        return cleanDeadShadow;
-    }
-
-    public void setCleanDeadShadow(boolean cleanDeadShadow) {
-        this.cleanDeadShadow = cleanDeadShadow;
-    }
-
     public Boolean getShadowExistsInRepo() {
         return shadowExistsInRepo;
     }
@@ -178,7 +163,6 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
                 + ", resource=" + resource
                 + ", processing=" + itemProcessingIdentifier
                 + (simulate ? " SIMULATE" : "")
-                + (cleanDeadShadow ? " CLEAN DEAD SHADOW" : "")
                 + ")";
     }
 
@@ -225,10 +209,6 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
         sb.append("\n");
         SchemaDebugUtil.indentDebugDump(sb, indent+1);
         sb.append("simulate: ").append(simulate);
-
-        sb.append("\n");
-        SchemaDebugUtil.indentDebugDump(sb, indent+1);
-        sb.append("cleanDeadShadow: ").append(cleanDeadShadow);
 
         sb.append("\n");
         SchemaDebugUtil.indentDebugDump(sb, indent+1);

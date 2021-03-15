@@ -5,13 +5,16 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.lens.executor;
+package com.evolveum.midpoint.provisioning.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-enum ShadowLivenessState {
+/**
+ * Describes shadow liveness (or death) state.
+ */
+public enum ShadowLivenessState {
 
     /**
      * Shadow is live, i.e. it exists in repo and its dead property is not true.
@@ -26,11 +29,11 @@ enum ShadowLivenessState {
     /**
      * Shadow does not exist in repo.
      */
-    NOT_IN_REPOSITORY;
+    DELETED;
 
     public static ShadowLivenessState forShadow(PrismObject<ShadowType> shadow) {
         if (shadow == null) {
-            return NOT_IN_REPOSITORY;
+            return DELETED;
         } else if (ShadowUtil.isDead(shadow)) {
             return DEAD;
         } else {

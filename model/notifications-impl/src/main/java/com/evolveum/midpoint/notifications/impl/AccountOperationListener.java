@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.notifications.impl;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
@@ -22,7 +23,7 @@ import com.evolveum.midpoint.notifications.impl.events.ResourceObjectEventImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -50,7 +51,7 @@ public class AccountOperationListener implements ResourceOperationListener {
 
     @Autowired private PrismContext prismContext;
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
-    @Autowired private ChangeNotificationDispatcher provisioningNotificationDispatcher;
+    @Autowired private EventDispatcher provisioningEventDispatcher;
     @Autowired private NotificationManager notificationManager;
 
     @Autowired
@@ -61,8 +62,13 @@ public class AccountOperationListener implements ResourceOperationListener {
 
     @PostConstruct
     public void init() {
-        provisioningNotificationDispatcher.registerNotificationListener(this);
+        provisioningEventDispatcher.registerListener(this);
         LOGGER.trace("Registered account operation notification listener.");
+    }
+
+    @PreDestroy
+    public void preDestroy() {
+        provisioningEventDispatcher.unregisterListener(this);
     }
 
     @Override
@@ -71,7 +77,7 @@ public class AccountOperationListener implements ResourceOperationListener {
     }
 
     @Override
-    public void notifySuccess(ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
+    public void notifySuccess(@NotNull ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
         if (notificationsEnabled()) {
             notifyAny(OperationStatus.SUCCESS, operationDescription, task, parentResult.createMinorSubresult(DOT_CLASS + "notifySuccess"));
         }
@@ -87,14 +93,14 @@ public class AccountOperationListener implements ResourceOperationListener {
     }
 
     @Override
-    public void notifyInProgress(ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
+    public void notifyInProgress(@NotNull ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
         if (notificationsEnabled()) {
             notifyAny(OperationStatus.IN_PROGRESS, operationDescription, task, parentResult.createMinorSubresult(DOT_CLASS + "notifyInProgress"));
         }
     }
 
     @Override
-    public void notifyFailure(ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
+    public void notifyFailure(@NotNull ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
         if (notificationsEnabled()) {
             notifyAny(OperationStatus.FAILURE, operationDescription, task, parentResult.createMinorSubresult(DOT_CLASS + "notifyFailure"));
         }

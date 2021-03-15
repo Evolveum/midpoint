@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
@@ -511,6 +512,14 @@ public class ShadowUtil {
         return !isDead(shadow);
     }
 
+    public static boolean isDead(ObjectReferenceType projectionRef) {
+        return !SchemaService.get().relationRegistry().isMember(projectionRef.getRelation());
+    }
+
+    public static boolean isNotDead(ObjectReferenceType projectionRef) {
+        return !isDead(projectionRef);
+    }
+
     public static boolean isExists(ShadowType shadow) {
         Boolean exists = shadow.isExists();
         return exists == null || exists;
@@ -901,5 +910,11 @@ public class ShadowUtil {
                 attributesContainer.getValue().removeProperty(attrName);
             }
         }
+    }
+
+    public static List<ObjectReferenceType> selectLiveLinks(List<ObjectReferenceType> refs) {
+        return refs.stream()
+                .filter(ShadowUtil::isNotDead)
+                .collect(Collectors.toList());
     }
 }

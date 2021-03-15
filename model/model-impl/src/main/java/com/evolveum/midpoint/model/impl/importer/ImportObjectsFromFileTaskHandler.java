@@ -10,7 +10,7 @@ import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -52,14 +52,9 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 
     public static final String HANDLER_URI = ModelConstants.NS_IMPORT_OBJECTS_TASK_PREFIX + "/file/handler-3";
 
-    @Autowired(required = true)
-    private TaskManager taskManager;
-
-    @Autowired(required = true)
-    private ChangeNotificationDispatcher changeNotificationDispatcher;
-
-    @Autowired(required = true)
-    private PrismContext prismContext;
+    @Autowired private TaskManager taskManager;
+    @Autowired private EventDispatcher eventDispatcher;
+    @Autowired private PrismContext prismContext;
 
     //private Map<Task,ImportAccountsFromResourceResultHandler> handlers;
     private PrismPropertyDefinition filenamePropertyDefinition;

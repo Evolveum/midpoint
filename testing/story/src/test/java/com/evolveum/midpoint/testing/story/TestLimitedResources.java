@@ -211,7 +211,7 @@ public class TestLimitedResources extends AbstractStoryTest {
                 .assertNone()
                 .end()
             .links()
-                .assertNone();
+                .assertNoLiveLinks();
     }
 
     /**
@@ -233,7 +233,7 @@ public class TestLimitedResources extends AbstractStoryTest {
 
         assertUserAfter(USER_JACK_OID)
             .links()
-                .assertNone();
+                .assertNoLiveLinks();
 
         assertNoDummyAccount(RESOURCE_DUMMY_NO_CREATE_NAME, USER_JACK_USERNAME);
     }
@@ -256,7 +256,7 @@ public class TestLimitedResources extends AbstractStoryTest {
                 .assertNone()
                 .end()
             .links()
-                .assertNone();
+                .assertNoLiveLinks();
 
         assertNoDummyAccount(RESOURCE_DUMMY_NO_CREATE_NAME, USER_JACK_USERNAME);
     }
