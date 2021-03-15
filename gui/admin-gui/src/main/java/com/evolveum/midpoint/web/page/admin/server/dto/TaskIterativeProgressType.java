@@ -9,11 +9,10 @@ package com.evolveum.midpoint.web.page.admin.server.dto;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import org.apache.wicket.model.StringResourceModel;
+
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.page.admin.server.TaskDisplayUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.wicket.chartjs.*;
@@ -31,12 +30,12 @@ public class TaskIterativeProgressType implements Serializable {
     private ProcessedItemSetType failureProcessedItemSetType;
     private ProcessedItemSetType skippedProcessedItemSetType;
 
-    private List<TaskInfoBoxType> currentItems = new ArrayList<>();
+    private List<ProcessedItemDto> currentItems = new ArrayList<>();
 
     private PieChartConfiguration progress;
     private String title = "";
 
-    public TaskIterativeProgressType(IterativeTaskPartItemsProcessingInformationType processingInfoType, TaskType taskType, PageBase pageBase) {
+    public TaskIterativeProgressType(IterativeTaskPartItemsProcessingInformationType processingInfoType, TaskType taskType) {
         for (ProcessedItemSetType processedItem : processingInfoType.getProcessed()) {
             QualifiedItemProcessingOutcomeType outcome = processedItem.getOutcome();
             if (outcome == null) {
@@ -45,11 +44,11 @@ public class TaskIterativeProgressType implements Serializable {
             parseItemForOutcome(outcome.getOutcome(), processedItem);
         }
         for (ProcessedItemType currentItem : processingInfoType.getCurrent()) {
-            currentItems.add(createInfoBoxType("Processing now", currentItem, "bg-aqua", "fa fa-question"));
+            currentItems.add(new ProcessedItemDto(currentItem));
         }
 
         createChartConfiguration();
-        createTitle(processingInfoType.getPartUri(), taskType, pageBase);
+        createTitle(processingInfoType.getPartUri(), taskType);
     }
 
     private void parseItemForOutcome(ItemProcessingOutcomeType outcome, ProcessedItemSetType processedItem) {
@@ -78,21 +77,20 @@ public class TaskIterativeProgressType implements Serializable {
         return createInfoBoxType("skip", skippedProcessedItemSetType, "bg-gray", "fa fa-ban");
     }
 
-    private String createInfoBoxMessage(String result, ProcessedItemSetType processedItemSetType) {
-        return "Last " + result + " on " + getFormattedDate(processedItemSetType);
-    }
-
     private TaskInfoBoxType createInfoBoxType(String title, ProcessedItemSetType processedsetType, String background, String icon) {
         if (processedsetType == null || processedsetType.getLastItem() == null) {
             return null;
         }
         ProcessedItemType processedItem = processedsetType.getLastItem();
         TaskInfoBoxType taskInfoBoxType = createInfoBoxType(createInfoBoxMessage(title, processedsetType), processedItem, background, icon);
-        taskInfoBoxType.setProgress(getProgress(processedsetType));
-        taskInfoBoxType.setDescription("All: " + processedsetType.getCount());
         return taskInfoBoxType;
     }
 
+    private String createInfoBoxMessage(String result, ProcessedItemSetType processedItemSetType) {
+        return getString("TaskIterativeProgress.box.title" + result, getFormattedDate(processedItemSetType));
+    }
+
+    //TODO use also this in chart?
     private int getProgress(ProcessedItemSetType processedItemSetType) {
         int count = getCount(processedItemSetType);
 
@@ -108,8 +106,8 @@ public class TaskIterativeProgressType implements Serializable {
         TaskInfoBoxType infoBoxType = new TaskInfoBoxType(background, icon, title);
         infoBoxType.setNumber(processedItem.getName());
 
-        Long end = getTimestampAsLong(processedItem.getEndTimestamp());
-        Long start = getTimestampAsLong(processedItem.getStartTimestamp());
+        Long end = WebComponentUtil.getTimestampAsLong(processedItem.getEndTimestamp(), true);
+        Long start = WebComponentUtil.getTimestampAsLong(processedItem.getStartTimestamp(), true);
 
         infoBoxType.setDuration(end - start);
 
@@ -122,19 +120,11 @@ public class TaskIterativeProgressType implements Serializable {
             return null;
         }
         ProcessedItemType processedItem = processedSetItem.getLastItem();
-        Long end = getTimestampAsLong(processedItem.getEndTimestamp());
+        Long end = WebComponentUtil.getTimestampAsLong(processedItem.getEndTimestamp(), true);
         return WebComponentUtil.formatDate(end == 0 ? processedItem.getStartTimestamp() : processedItem.getEndTimestamp());
     }
 
-    private Long getTimestampAsLong(XMLGregorianCalendar cal) {
-        Long calAsLong = MiscUtil.asLong(cal);
-        if (calAsLong == null) {
-            return System.currentTimeMillis();
-        }
-        return calAsLong;
-    }
-
-    private void createTitle(String partUri, TaskType taskType, PageBase pageBase) {
+    private void createTitle(String partUri, TaskType taskType) {
         int success = getCount(successProcessedItemSetType);
         int failure = getCount(failureProcessedItemSetType);
         int skipped = getCount(skippedProcessedItemSetType);
@@ -143,11 +133,11 @@ public class TaskIterativeProgressType implements Serializable {
         Long wallClock = computeWallClock(objectsTotal, taskType);
         long throughput = computeThroughput(wallClock);
         if (partUri != null) {
-            title = pageBase.getString("TaskIterativeProgress.part." + partUri);
+            title = getString("TaskIterativeProgress.part." + partUri);
         } else {
-            title = pageBase.getString("TaskOperationStatisticsPanel.processingInfo");
+            title = getString("TaskOperationStatisticsPanel.processingInfo");
         }
-        title += pageBase.getString("TaskStatePanel.message.objectsTotal",
+        title += getString("TaskStatePanel.message.objectsTotal",
                 objectsTotal, wallClock, throughput);
     }
 
@@ -203,13 +193,18 @@ public class TaskIterativeProgressType implements Serializable {
         ChartData chartData = new ChartData();
         chartData.addDataset(createDataset());
 
-        chartData.addLabel("Success (" + getCount(successProcessedItemSetType) + ")");
-        chartData.addLabel("Failure (" + getCount(failureProcessedItemSetType) + ")");
-        chartData.addLabel("Skip (" + getCount(skippedProcessedItemSetType) + ")");
+        chartData.addLabel(getString("TaskIterativeProgress.success", getCount(successProcessedItemSetType)));
+        chartData.addLabel(getString("TaskIterativeProgress.failure", getCount(failureProcessedItemSetType)));
+        chartData.addLabel(getString("TaskIterativeProgress.skip", getCount(skippedProcessedItemSetType)));
 
         progress.setData(chartData);
 
         progress.setOptions(createChartOptions());
+    }
+
+    private String getString(String key, Object... params) {
+        StringResourceModel stringModel = new StringResourceModel(key).setDefaultValue(key).setParameters(params);
+        return stringModel.getString();
     }
 
     private ChartDataset createDataset() {
@@ -245,6 +240,4 @@ public class TaskIterativeProgressType implements Serializable {
         legend.setLabels(label);
         return legend;
     }
-
-
 }

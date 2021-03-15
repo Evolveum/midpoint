@@ -65,6 +65,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.format.DateTimeFormat;
@@ -4986,5 +4987,17 @@ public final class WebComponentUtil {
             task.getResult().computeStatus();
         }
         return credentialsPolicyType;
+    }
+
+    @Contract("_,true->!null")
+    public static Long getTimestampAsLong(XMLGregorianCalendar cal, boolean currentIfNull) {
+        Long calAsLong = MiscUtil.asLong(cal);
+        if (calAsLong == null) {
+            if (currentIfNull) {
+                return System.currentTimeMillis();
+            }
+            return null;
+        }
+        return calAsLong;
     }
 }

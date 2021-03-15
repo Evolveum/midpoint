@@ -6,15 +6,15 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProcessedItemType;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.evolveum.wicket.chartjs.PieChartConfiguration;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -23,32 +23,28 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.server.dto.ProcessedItemDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskInfoBoxType;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskIterativeProgressType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskPartItemsProcessingInformationType;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
 
-import org.bouncycastle.asn1.icao.ICAOObjectIdentifiers;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * TODO MID-6850 (whole class)
  */
 public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInformationType> {
 
-    private static final String ID_PROGRESS = "progress";
-
     private static final String ID_PARTS = "parts";
-    private static final String ID_SUCESS_ITEM = "successItem";
+    private static final String ID_SUCCESS_ITEM = "successItem";
     private static final String ID_FAILED_ITEM = "failedItem";
     private static final String ID_SKIPPED_ITEM = "skippedItem";
 
     private static final String ID_CURRENT_ITEMS = "currentItems";
-    private static final String ID_CURRENT_ITEM = "currentItem";
 
     private static final String ID_CHART = "chart";
     private static final String ID_PROGRESS_SUMMARY = "progressSummary";
@@ -71,14 +67,14 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
         return infoBoxPanel;
     }
 
-    private List<IColumn<ProcessedItemType, String>> createColumns() {
-        List<IColumn<ProcessedItemType, String>> columns = new ArrayList<>();
-        columns.add(new AbstractColumn<ProcessedItemType, String>(createStringResource("ProcessedItemType.currentItem")) {
+    private List<IColumn<ProcessedItemDto, String>> createColumns() {
+        List<IColumn<ProcessedItemDto, String>> columns = new ArrayList<>();
+        columns.add(new AbstractColumn<>(createStringResource("ProcessedItemType.currentItem")) {
 
             @Override
-            public void populateItem(Item<ICellPopulator<ProcessedItemType>> item, String s, IModel<ProcessedItemType> iModel) {
-                ProcessedItemType processed = iModel.getObject();
-                String label = processed.getName() + "(123ms)";
+            public void populateItem(Item<ICellPopulator<ProcessedItemDto>> item, String s, IModel<ProcessedItemDto> iModel) {
+                ProcessedItemDto processed = iModel.getObject();
+                String label = processed.getDisplayName() + " (" + WebComponentUtil.formatDurationWordsForLocal(processed.getDuration(), true, true, getPageBase()) + ")";
                 item.add(new Label(s, label));
             }
         });
@@ -96,18 +92,11 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
                 summary.setOutputMarkupId(true);
                 item.add(summary);
 
-                ChartJsPanel chartpanel = new ChartJsPanel(ID_CHART, new PropertyModel<>(progressModel, TaskIterativeProgressType.F_PROGRESS));
-                item.add(chartpanel);
+                ChartJsPanel<PieChartConfiguration> chartPanel = new ChartJsPanel<>(ID_CHART, new PropertyModel<>(progressModel, TaskIterativeProgressType.F_PROGRESS));
+                item.add(chartPanel);
 
-                PropertyModel<List<ProcessedItemType>> currentItemsModel = new PropertyModel<>(item.getModel(), IterativeTaskPartItemsProcessingInformationType.F_CURRENT.getLocalPart());
-//                ListView<ProcessedItemType> currentItems = new ListView<>(ID_CURRENT_ITEMS, currentItemsModel) {
-//
-//                    @Override
-//                    protected void populateItem(ListItem<ProcessedItemType> item) {
-//                        item.add(createInfoBoxPanel(item.getModel(), ID_CURRENT_ITEM));
-//                    }
-//                };
-                BoxedTablePanel<ProcessedItemType> currentItems = new BoxedTablePanel<>(ID_CURRENT_ITEMS, new ListDataProvider<>(TaskIterativeInformationPanel.this, currentItemsModel), createColumns()) {
+                PropertyModel<List<ProcessedItemDto>> currentItemsModel = new PropertyModel<>(progressModel, TaskIterativeProgressType.F_CURRENT_ITEMS);
+                BoxedTablePanel<ProcessedItemDto> currentItems = new BoxedTablePanel<>(ID_CURRENT_ITEMS, new ListDataProvider<>(TaskIterativeInformationPanel.this, currentItemsModel), createColumns()) {
 
                     @Override
                     protected boolean hideFooterIfSinglePage() {
@@ -120,10 +109,10 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
                     }
                 };
                 currentItems.setOutputMarkupId(true);
-                currentItems.add(new VisibleBehaviour(() -> currentItemsModel != null && CollectionUtils.isNotEmpty(currentItemsModel.getObject())));
+                currentItems.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(currentItemsModel.getObject())));
                 item.add(currentItems);
 
-                item.add(createInfoBoxPanel(new PropertyModel<>(progressModel, TaskIterativeProgressType.F_SUCCESS_BOX), ID_SUCESS_ITEM));
+                item.add(createInfoBoxPanel(new PropertyModel<>(progressModel, TaskIterativeProgressType.F_SUCCESS_BOX), ID_SUCCESS_ITEM));
                 item.add(createInfoBoxPanel(new PropertyModel<>(progressModel, TaskIterativeProgressType.F_FAILED_BOX), ID_FAILED_ITEM));
                 item.add(createInfoBoxPanel(new PropertyModel<>(progressModel, TaskIterativeProgressType.F_SKIP_BOX), ID_SKIPPED_ITEM));
 
