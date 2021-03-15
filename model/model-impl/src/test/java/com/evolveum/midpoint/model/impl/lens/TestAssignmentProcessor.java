@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
+
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.*;
@@ -82,6 +84,8 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertNull(context.getFocusContext().getPrimaryDelta());
         assertNull(context.getFocusContext().getSecondaryDelta());
         assertTrue(context.getProjectionContexts().isEmpty());
+
+        assertSerializable(context);
     }
 
     @Test
@@ -142,6 +146,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertMinusAttributeValues(zeroEvaluatedAccountConstruction,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME), "Caribbean");
 
+        assertSerializable(context);
     }
 
     @Test
@@ -181,6 +186,8 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         assertNoDecision(accContext);
         assertLegal(accContext);
+
+        assertSerializable(context);
     }
 
     @Test
@@ -249,6 +256,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertNoMinusAttributeValues(plusAccountConstruction,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
 
+        assertSerializable(context);
     }
 
     @Test
@@ -345,6 +353,8 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertTrue("Legal variable for projection context is not true", accContext.isLegal());
         assertTrue("Old assigned variable for projection context is not true", accContext.isAssignedOld());
         assertTrue("Assigned variable for projection context is not true", accContext.isAssigned());
+
+        assertSerializable(context);
     }
 
     @Test
@@ -427,6 +437,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertNoMinusAttributeValues(minusAccountConstruction,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
 
+        assertSerializable(context);
     }
 
     @Test
@@ -473,6 +484,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertNoDecision(accContext);
         assertLegal(accContext);
 
+        assertSerializable(context);
     }
 
     @Test
@@ -532,6 +544,8 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertAttributeValues(accountConstructionDeltaSetTriple.getPlusSet(), LOCATION_QNAME, ZERO, "Caribbean");
         assertAttributeValues(accountConstructionDeltaSetTriple.getPlusSet(), LOCATION_QNAME, PLUS);
         assertAttributeValues(accountConstructionDeltaSetTriple.getPlusSet(), LOCATION_QNAME, MINUS);
+
+        assertSerializable(context);
     }
 
     /**
@@ -608,6 +622,8 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertAttributeValues(accountConstructionDeltaSetTriple.getPlusSet(), LOCATION_QNAME, ZERO);
         assertAttributeValues(accountConstructionDeltaSetTriple.getPlusSet(), LOCATION_QNAME, PLUS);
         assertAttributeValues(accountConstructionDeltaSetTriple.getPlusSet(), LOCATION_QNAME, MINUS);
+
+        assertSerializable(context);
     }
 
     /**
@@ -663,6 +679,8 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertEquals("Wrong # of focus policy rules", 0, evaluatedAssignment.getFocusPolicyRules().size());
         Collection<EvaluatedPolicyRule> targetPolicyRules = evaluatedAssignment.getAllTargetsPolicyRules();
         assertEquals("Wrong # of target policy rules", 2, targetPolicyRules.size());
+
+        assertSerializable(context);
     }
 
     /**
@@ -717,6 +735,8 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertEquals("Wrong # of this target policy rules", 2, evaluatedAssignment.getThisTargetPolicyRules().size());
         Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getAllTargetsPolicyRules();
         assertEquals("Wrong # of target policy rules", 5, policyRules.size());
+
+        assertSerializable(context);
     }
 
     private <T> void assertAttributeValues(Collection<EvaluatedAssignedResourceObjectConstructionImpl<UserType>> accountConstructions, QName attrName, PlusMinusZero attrSet, T... expectedValue) {
@@ -739,25 +759,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         }
         return retval;
     }
-
-//    private <T> Set<T> getAttributeValues(Collection<EvaluatedConstructionImpl<UserType>> accountConstructions, QName attrName, PlusMinusZero attributeSet) {
-//        Set<T> retval = new HashSet<>();
-//        for (PrismPropertyValue<Construction<AssignmentHolderType, EvaluatedConstructionImpl<AssignmentHolderType>>> constructionPropVal : accountConstructions) {
-//            constructionPropVal.getValue().getEvaluatedConstructionTriple().foreach( evaluatedConstruction -> {
-//                MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping = evaluatedConstruction.getAttributeMapping(attrName);
-//                if (mapping != null && mapping.getOutputTriple() != null) {
-//                    Collection<PrismPropertyValue<T>> values = (Collection) mapping.getOutputTriple().getSet(attributeSet);
-//                    if (values != null) {
-//                        for (PrismPropertyValue<T> value : values) {
-//                            retval.add(value.getValue());
-//                        }
-//                    }
-//                }
-//            });
-//        }
-//        return retval;
-//    }
-
 
     private EvaluatedAssignedResourceObjectConstructionImpl<UserType> getSingleEvaluatedConstruction(ResourceObjectConstruction<UserType, EvaluatedAssignedResourceObjectConstructionImpl<UserType>> construction) {
         DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<UserType>> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();

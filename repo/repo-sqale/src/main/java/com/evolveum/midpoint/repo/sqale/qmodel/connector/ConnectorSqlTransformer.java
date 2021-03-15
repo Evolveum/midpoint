@@ -10,16 +10,15 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 public class ConnectorSqlTransformer
         extends ObjectSqlTransformer<ConnectorType, QConnector, MConnector> {
 
     public ConnectorSqlTransformer(
-            SqlTransformerContext transformerContext, QConnectorMapping mapping) {
-        super(transformerContext, mapping);
+            SqlTransformerSupport transformerSupport, QConnectorMapping mapping) {
+        super(transformerSupport, mapping);
     }
 
     @Override
@@ -31,12 +30,10 @@ public class ConnectorSqlTransformer
         row.connectorVersion = schemaObject.getConnectorVersion();
         row.framework = schemaObject.getFramework();
 
-        ObjectReferenceType ref = schemaObject.getConnectorHostRef();
-        if (ref != null) {
-            row.connectorHostRefTargetOid = oidToUUid(ref.getOid());
-            row.connectorHostRefTargetType = schemaTypeToCode(ref.getType());
-            row.connectorHostRefRelationId = processCachedUri(ref.getRelation(), jdbcSession);
-        }
+        setReference(schemaObject.getConnectorHostRef(), jdbcSession,
+                o -> row.connectorHostRefTargetOid = o,
+                t -> row.connectorHostRefTargetType = t,
+                r -> row.connectorHostRefRelationId = r);
 
         return row;
     }

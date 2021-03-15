@@ -1,24 +1,29 @@
 /*
- * Copyright (c) 2019 Evolveum and contributors
+ * Copyright (C) 2019-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.test.asserter;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import org.testng.AssertJUnit;
+import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
-import static org.testng.AssertJUnit.assertEquals;
+import org.testng.AssertJUnit;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 
 /**
+ * TODO: consider how OperationResultAssert can do this job (if it makes sense).
+ * Method `display()` uses IntegrationTestTools, which is higher than OperationResultAssert.
+ *
  * @author semancik
  */
+@SuppressWarnings("UnusedReturnValue")
 public class OperationResultRepoSearchAsserter<RA> extends AbstractAsserter<RA> {
 
     private final OperationResult result;
@@ -30,7 +35,7 @@ public class OperationResultRepoSearchAsserter<RA> extends AbstractAsserter<RA> 
     }
 
     public static OperationResultRepoSearchAsserter<Void> forResult(OperationResult result) {
-        return new OperationResultRepoSearchAsserter(result, null, null);
+        return new OperationResultRepoSearchAsserter<>(result, null, null);
     }
 
     List<OperationResult> getRepoSearches() {
@@ -51,20 +56,20 @@ public class OperationResultRepoSearchAsserter<RA> extends AbstractAsserter<RA> 
     }
 
     public OperationResultRepoSearchAsserter<RA> assertSize(int expected) {
-        assertEquals("Wrong status in "+desc(), expected, getRepoSearches().size());
+        assertEquals("Wrong status in " + desc(), expected, getRepoSearches().size());
         return this;
     }
 
     public OperationResultRepoSearchAsserter<RA> assertContains(Predicate<OperationResult> predicate) {
         if (!contains(predicate)) {
-            fail("Expected that search results will contain "+predicate.toString()+", but they did not; in " + desc());
+            fail("Expected that search results will contain " + predicate.toString() + ", but they did not; in " + desc());
         }
         return this;
     }
 
     public OperationResultRepoSearchAsserter<RA> assertNotContains(Predicate<OperationResult> predicate) {
         if (contains(predicate)) {
-            fail("Expected that search results will not contain "+predicate.toString()+", but they did; in " + desc());
+            fail("Expected that search results will not contain " + predicate.toString() + ", but they did; in " + desc());
         }
         return this;
     }
@@ -89,7 +94,7 @@ public class OperationResultRepoSearchAsserter<RA> extends AbstractAsserter<RA> 
     }
 
     private Predicate<OperationResult> createQuerySubstringPredicate(String expectedSubstring) {
-        return new Predicate<OperationResult>() {
+        return new Predicate<>() {
             @Override
             public boolean test(OperationResult operationResult) {
                 String queryParam = operationResult.getParamSingle(OperationResult.PARAM_QUERY);
@@ -98,7 +103,7 @@ public class OperationResultRepoSearchAsserter<RA> extends AbstractAsserter<RA> 
 
             @Override
             public String toString() {
-                return "substring '"+expectedSubstring+"'";
+                return "substring '" + expectedSubstring + "'";
             }
         };
     }
@@ -115,7 +120,7 @@ public class OperationResultRepoSearchAsserter<RA> extends AbstractAsserter<RA> 
 
     @Override
     protected String desc() {
-        return descWithDetails("repo search results of result "+result.getOperation());
+        return descWithDetails("repo search results of result " + result.getOperation());
     }
 
 }

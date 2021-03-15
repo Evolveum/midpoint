@@ -69,7 +69,7 @@ public class GuiProfileCompiler {
 
     @Autowired private AssignmentCollector assignmentCollector;
 
-    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private SchemaService schemaService;
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
@@ -162,7 +162,7 @@ public class GuiProfileCompiler {
         FocusType focus = principal.getFocus();
         byte[] jpegPhoto = focus.getJpegPhoto();
         if (jpegPhoto == null) {
-            Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder().item(FocusType.F_JPEG_PHOTO).retrieve().build();
+            Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder().item(FocusType.F_JPEG_PHOTO).retrieve().build();
             try {
                 PrismObject<? extends FocusType> resolvedFocus = repositoryService.getObject(focus.getClass(), focus.getOid(), options, result);
                 jpegPhoto = resolvedFocus.asObjectable().getJpegPhoto();

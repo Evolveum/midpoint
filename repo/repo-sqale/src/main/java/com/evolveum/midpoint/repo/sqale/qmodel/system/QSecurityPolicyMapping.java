@@ -6,16 +6,17 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.system;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
 /**
  * Mapping between {@link QSecurityPolicy} and {@link SecurityPolicyType}.
  */
 public class QSecurityPolicyMapping
-        extends QObjectMapping<SecurityPolicyType, QSecurityPolicy, MSecurityPolicy> {
+        extends QObjectMapping<SecurityPolicyType, QSecurityPolicy, MObject> {
 
     public static final String DEFAULT_ALIAS_NAME = "sp";
 
@@ -32,14 +33,14 @@ public class QSecurityPolicyMapping
     }
 
     @Override
-    public ObjectSqlTransformer<SecurityPolicyType, QSecurityPolicy, MSecurityPolicy>
-    createTransformer(SqlTransformerContext transformerContext) {
+    public ObjectSqlTransformer<SecurityPolicyType, QSecurityPolicy, MObject>
+    createTransformer(SqlTransformerSupport transformerSupport) {
         // no special class needed, no additional columns
-        return new ObjectSqlTransformer<>(transformerContext, this);
+        return new ObjectSqlTransformer<>(transformerSupport, this);
     }
 
     @Override
-    public MSecurityPolicy newRowObject() {
-        return new MSecurityPolicy();
+    public MObject newRowObject() {
+        return new MObject();
     }
 }

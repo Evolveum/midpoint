@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) 2011-2020 Evolveum, All rights reserved -->
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" oid="7135e68c-ee53-11e8-8025-170b77da3fd6">
+    <name>Employee</name>
+    <description>Internal employee</description>
+    <archetypePolicy>
+        <display>
+            <label>Employee</label>
+            <pluralLabel>Employees</pluralLabel>
+            <tooltip>Internal employee</tooltip>
+            <icon>
+                <cssClass>fa fa-user</cssClass>
+                <color>darkgreen</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+    <assignment>
+        <assignmentRelation>
+            <holderType>UserType</holderType>
+        </assignmentRelation>
+    </assignment>
+</archetype>

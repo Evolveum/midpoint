@@ -6,16 +6,17 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardType;
 
 /**
  * Mapping between {@link QDashboard} and {@link DashboardType}.
  */
 public class QDashboardMapping
-        extends QObjectMapping<DashboardType, QDashboard, MDashboard> {
+        extends QObjectMapping<DashboardType, QDashboard, MObject> {
 
     public static final String DEFAULT_ALIAS_NAME = "d";
 
@@ -32,14 +33,14 @@ public class QDashboardMapping
     }
 
     @Override
-    public ObjectSqlTransformer<DashboardType, QDashboard, MDashboard>
-    createTransformer(SqlTransformerContext transformerContext) {
+    public ObjectSqlTransformer<DashboardType, QDashboard, MObject>
+    createTransformer(SqlTransformerSupport transformerSupport) {
         // no special class needed, no additional columns
-        return new ObjectSqlTransformer<>(transformerContext, this);
+        return new ObjectSqlTransformer<>(transformerSupport, this);
     }
 
     @Override
-    public MDashboard newRowObject() {
-        return new MDashboard();
+    public MObject newRowObject() {
+        return new MObject();
     }
 }

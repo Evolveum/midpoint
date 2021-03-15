@@ -72,35 +72,35 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationChangeListener {
 
     private static final String DOT_INTERFACE = TaskManager.class.getName() + ".";
-    public static final String OP_GET_NEXT_RUN_START_TIME = DOT_INTERFACE + "getNextStartTimes";
-    public static final String OP_GET_TASK_BY_IDENTIFIER = DOT_INTERFACE + "getTaskByIdentifier";
-    public static final String OP_STOP_LOCAL_SCHEDULER = DOT_INTERFACE + "stopLocalScheduler";
-    public static final String OP_SCHEDULE_TASKS_NOW = DOT_INTERFACE + "scheduleTasksNow";
-    public static final String OP_DELETE_NODE = DOT_INTERFACE + "deleteNode";
-    public static final String OP_SCHEDULE_TASK_NOW = DOT_INTERFACE + "scheduleTaskNow";
-    public static final String OP_SUSPEND_AND_DELETE_TASK = DOT_INTERFACE + "suspendAndDeleteTask";
-    public static final String OP_SUSPEND_AND_DELETE_TASKS = DOT_INTERFACE + "suspendAndDeleteTasks";
-    public static final String OP_MODIFY_TASK = DOT_INTERFACE + "modifyTask";
-    public static final String OP_ADD_TASK = DOT_INTERFACE + "addTask";
-    public static final String OP_RESUME_TASKS = DOT_INTERFACE + "resumeTasks";
-    public static final String OP_RESUME_TASK = DOT_INTERFACE + "resumeTask";
-    public static final String OP_UNPAUSE_TASK = DOT_INTERFACE + "unpauseTask";
-    public static final String OP_RESUME_TASK_TREE = DOT_INTERFACE + "resumeTaskTree";
-    public static final String OP_SUSPEND_TASK_TREE = DOT_INTERFACE + "suspendTaskTree";
-    public static final String OP_DEACTIVATE_SERVICE_THREADS = DOT_INTERFACE + "deactivateServiceThreads";
-    public static final String OP_GET_LOCAL_SCHEDULER_INFORMATION = DOT_INTERFACE + "getLocalSchedulerInformation";
-    public static final String OP_REACTIVATE_SERVICE_THREADS = DOT_INTERFACE + "reactivateServiceThreads";
-    public static final String OP_START_LOCAL_SCHEDULER = DOT_INTERFACE + "startLocalScheduler";
-    public static final String OP_START_SCHEDULER = DOT_INTERFACE + "startScheduler";
-    public static final String OP_STOP_SCHEDULER = DOT_INTERFACE + "stopScheduler";
-    public static final String OP_STOP_SCHEDULERS_AND_TASKS = DOT_INTERFACE + "stopSchedulersAndTasks";
-    public static final String OP_SUSPEND_TASK = DOT_INTERFACE + "suspendTask";
-    public static final String OP_SUSPEND_TASKS = DOT_INTERFACE + "suspendTasks";
+    private static final String OP_GET_NEXT_RUN_START_TIME = DOT_INTERFACE + "getNextStartTimes";
+    private static final String OP_GET_TASK_BY_IDENTIFIER = DOT_INTERFACE + "getTaskByIdentifier";
+    private static final String OP_STOP_LOCAL_SCHEDULER = DOT_INTERFACE + "stopLocalScheduler";
+    private static final String OP_SCHEDULE_TASKS_NOW = DOT_INTERFACE + "scheduleTasksNow";
+    private static final String OP_DELETE_NODE = DOT_INTERFACE + "deleteNode";
+    private static final String OP_SCHEDULE_TASK_NOW = DOT_INTERFACE + "scheduleTaskNow";
+    private static final String OP_SUSPEND_AND_DELETE_TASK = DOT_INTERFACE + "suspendAndDeleteTask";
+    private static final String OP_SUSPEND_AND_DELETE_TASKS = DOT_INTERFACE + "suspendAndDeleteTasks";
+    private static final String OP_MODIFY_TASK = DOT_INTERFACE + "modifyTask";
+    private static final String OP_ADD_TASK = DOT_INTERFACE + "addTask";
+    private static final String OP_RESUME_TASKS = DOT_INTERFACE + "resumeTasks";
+    private static final String OP_RESUME_TASK = DOT_INTERFACE + "resumeTask";
+    private static final String OP_UNPAUSE_TASK = DOT_INTERFACE + "unpauseTask";
+    private static final String OP_RESUME_TASK_TREE = DOT_INTERFACE + "resumeTaskTree";
+    private static final String OP_SUSPEND_TASK_TREE = DOT_INTERFACE + "suspendTaskTree";
+    private static final String OP_DEACTIVATE_SERVICE_THREADS = DOT_INTERFACE + "deactivateServiceThreads";
+    private static final String OP_GET_LOCAL_SCHEDULER_INFORMATION = DOT_INTERFACE + "getLocalSchedulerInformation";
+    private static final String OP_REACTIVATE_SERVICE_THREADS = DOT_INTERFACE + "reactivateServiceThreads";
+    private static final String OP_START_LOCAL_SCHEDULER = DOT_INTERFACE + "startLocalScheduler";
+    private static final String OP_START_SCHEDULER = DOT_INTERFACE + "startScheduler";
+    private static final String OP_STOP_SCHEDULER = DOT_INTERFACE + "stopScheduler";
+    private static final String OP_STOP_SCHEDULERS_AND_TASKS = DOT_INTERFACE + "stopSchedulersAndTasks";
+    private static final String OP_SUSPEND_TASK = DOT_INTERFACE + "suspendTask";
+    private static final String OP_SUSPEND_TASKS = DOT_INTERFACE + "suspendTasks";
 
     private static final String DOT_IMPL_CLASS = TaskManagerQuartzImpl.class.getName() + ".";
-    public static final String OP_IS_ORPHANED = DOT_IMPL_CLASS + "isOrphaned";
-    public static final String OP_GET_TASK_TYPE_BY_IDENTIFIER = DOT_IMPL_CLASS + "getTaskTypeByIdentifier";
-    public static final String OP_GET_TASK_PLAIN = DOT_IMPL_CLASS + "getTaskPlain";
+    private static final String OP_IS_ORPHANED = DOT_IMPL_CLASS + "isOrphaned";
+    private static final String OP_GET_TASK_TYPE_BY_IDENTIFIER = DOT_IMPL_CLASS + "getTaskTypeByIdentifier";
+    private static final String OP_GET_TASK_PLAIN = DOT_IMPL_CLASS + "getTaskPlain";
     public static final String OP_CLEANUP_TASKS = DOT_INTERFACE + "cleanupTasks";
     private static final String OP_CLEANUP_NODES = DOT_INTERFACE + "cleanupNodes";
     public static final String CONTENTION_LOG_NAME = TaskManagerQuartzImpl.class.getName() + ".contention";
@@ -129,7 +129,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @Autowired private RepositoryService repositoryService;
     @Autowired(required = false) private SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
     @Autowired private PrismContext prismContext;
-    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private SchemaService schemaService;
     @Autowired private WorkStateManager workStateManager;
     @Autowired private WorkersManager workersManager;
     @Autowired private UpAndDown upAndDown;
@@ -141,7 +141,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @Qualifier("securityContextManager")
     private SecurityContextManager securityContextManager;
 
-    // fixme How to properly initialize handler executor for jobexecutor?
+    // fixme How to properly initialize handler executor for job executor?
     @Autowired private HandlerExecutor handlerExecutor;
 
     private GlobalTracingOverride globalTracingOverride;
@@ -597,10 +597,10 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
 
         if (TaskType.class.isAssignableFrom(type)) {
             //noinspection unchecked
-            return (SearchResultList<PrismObject<T>>) (SearchResultList) taskRetriever.searchTasks(query, options, result);
+            return (SearchResultList<PrismObject<T>>) (SearchResultList<?>) taskRetriever.searchTasks(query, options, result);
         } else if (NodeType.class.isAssignableFrom(type)) {
             //noinspection unchecked
-            return (SearchResultList<PrismObject<T>>) (SearchResultList) nodeRetriever.searchNodes(query, options, result);
+            return (SearchResultList<PrismObject<T>>) (SearchResultList<?>) nodeRetriever.searchNodes(query, options, result);
         } else {
             throw new IllegalArgumentException("Unsupported object type: " + type);
         }
@@ -619,10 +619,10 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
         SearchResultList<PrismObject<T>> objects;
         if (TaskType.class.isAssignableFrom(type)) {
             //noinspection unchecked
-            objects = (SearchResultList<PrismObject<T>>) (SearchResultList) taskRetriever.searchTasks(query, options, result);
+            objects = (SearchResultList<PrismObject<T>>) (SearchResultList<?>) taskRetriever.searchTasks(query, options, result);
         } else if (NodeType.class.isAssignableFrom(type)) {
             //noinspection unchecked
-            objects = (SearchResultList<PrismObject<T>>) (SearchResultList) nodeRetriever.searchNodes(query, options, result);
+            objects = (SearchResultList<PrismObject<T>>) (SearchResultList<?>) nodeRetriever.searchNodes(query, options, result);
         } else {
             throw new IllegalArgumentException("Unsupported object type: " + type);
         }
@@ -729,10 +729,6 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @NotNull
     public PrismContext getPrismContext() {
         return prismContext;
-    }
-
-    public SchemaHelper getSchemaHelper() {
-        return schemaHelper;
     }
 
     public ClusterManager getClusterManager() {
@@ -1139,18 +1135,10 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
         return taskThreadsDumper.recordTaskThreadsDump(taskOid, cause, parentResult);
     }
 
-    /**
-     * Creates a running task from a regular one.
-     * Should be used ONLY when creating running task instance for handler (standard or lightweight) run.
-     */
-    public RunningTaskQuartzImpl toRunningTaskInstance(@NotNull Task task, @NotNull String rootTaskOid) {
-        return taskInstantiator.toRunningTaskInstance(task, rootTaskOid);
-    }
-
     @VisibleForTesting
     @Override
     public RunningTaskQuartzImpl createFakeRunningTask(Task task, String rootTaskOid) {
-        RunningTaskQuartzImpl runningTask = toRunningTaskInstance(task, rootTaskOid);
+        RunningTaskQuartzImpl runningTask = taskInstantiator.toRunningTaskInstance(task, rootTaskOid);
         runningTask.setExecutingThread(Thread.currentThread());
         return runningTask;
     }

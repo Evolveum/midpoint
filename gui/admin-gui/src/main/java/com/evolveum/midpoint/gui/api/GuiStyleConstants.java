@@ -233,5 +233,6 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_PERFORMANCE = "fa fa-area-chart";
     public static final String CLASS_ICON_TASK_RESULTS = "fa fa-list-alt";
 
+    public static final String CLASS_ICON_SEARCH = "fa fa-search flip-icon";
 
 }

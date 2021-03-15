@@ -32,7 +32,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 public class SqlRepoContext {
 
     private final JdbcRepositoryConfiguration jdbcRepositoryConfiguration;
-    private final Configuration querydslConfig;
+    protected final Configuration querydslConfig;
     private final QueryModelMappingRegistry mappingRegistry;
     private final DataSource dataSource;
 

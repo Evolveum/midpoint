@@ -32,7 +32,7 @@ import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.sqale.operations.AddObjectOperation;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleModelMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
@@ -60,13 +60,19 @@ public class SqaleRepositoryService implements RepositoryService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqaleRepositoryService.class);
 
+    /**
+     * Class name prefix for operation names, including the dot separator.
+     * Use with various `RepositoryService.OP_*` constants, not with constants without `OP_`
+     * prefix because they already contain class name of the service interface.
+     */
     private static final String OP_NAME_PREFIX = SqaleRepositoryService.class.getSimpleName() + '.';
+
     private static final int MAX_CONFLICT_WATCHERS = 10;
 
     private final SqaleRepoContext sqlRepoContext;
-    private final SchemaHelper schemaService;
+    private final SchemaService schemaService;
     private final SqlQueryExecutor sqlQueryExecutor;
-    private final SqaleTransformerContext transformerContext;
+    private final SqaleTransformerSupport transformerSupport;
     private final SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
 
     private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal =
@@ -76,12 +82,12 @@ public class SqaleRepositoryService implements RepositoryService {
 
     public SqaleRepositoryService(
             SqaleRepoContext sqlRepoContext,
-            SchemaHelper schemaService,
+            SchemaService schemaService,
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         this.sqlRepoContext = sqlRepoContext;
         this.schemaService = schemaService;
         this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
-        this.transformerContext = new SqaleTransformerContext(schemaService, sqlRepoContext);
+        this.transformerSupport = new SqaleTransformerSupport(schemaService, sqlRepoContext);
         this.sqlPerformanceMonitorsCollection = sqlPerformanceMonitorsCollection;
 
         // monitor initialization and registration
@@ -158,7 +164,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
 //        context.processOptions(options); TODO how to process option, is setting of select expressions enough?
 
-        SqaleModelMapping<S, Q, R> rootMapping =
+        SqaleTableMapping<S, Q, R> rootMapping =
                 sqlRepoContext.getMappingBySchemaType(schemaType);
         final Q root = rootMapping.defaultAlias();
 
@@ -177,7 +183,7 @@ public class SqaleRepositoryService implements RepositoryService {
                     + "' with oid '" + oidString + "' was not found.", oidString);
         }
 
-        return rootMapping.createTransformer(transformerContext)
+        return rootMapping.createTransformer(transformerSupport)
                 .toSchemaObject(result, root, options);
     }
 
@@ -191,7 +197,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
 //        context.processOptions(options); TODO how to process option, is setting of select expressions enough?
 
-        SqaleModelMapping<S, Q, R> rootMapping =
+        SqaleTableMapping<S, Q, R> rootMapping =
                 sqlRepoContext.getMappingBySchemaType(schemaType);
         final Q root = rootMapping.defaultAlias();
 
@@ -201,7 +207,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 .where(root.oid.eq(oid))
                 .fetchOne();
 
-        return rootMapping.createTransformer(transformerContext)
+        return rootMapping.createTransformer(transformerSupport)
                 .toSchemaObject(result, root, options);
     }
 
@@ -224,29 +230,10 @@ public class SqaleRepositoryService implements RepositoryService {
             throws ObjectAlreadyExistsException, SchemaException {
 
         Objects.requireNonNull(object, "Object must not be null.");
-        PolyString name = object.getName();
-        if (name == null || Strings.isNullOrEmpty(name.getOrig())) {
-            throw new SchemaException("Attempt to add object without name.");
-        }
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
         if (options == null) {
             options = new RepoAddOptions();
-        }
-
-        //noinspection ConstantConditions
-        LOGGER.debug(
-                "Adding object type '{}', overwrite={}, allowUnencryptedValues={}, name={} - {}",
-                object.getCompileTimeClass().getSimpleName(), options.isOverwrite(),
-                options.isAllowUnencryptedValues(), name.getOrig(), name.getNorm());
-        if (InternalsConfig.encryptionChecks && !RepoAddOptions.isAllowUnencryptedValues(options)) {
-            CryptoUtil.checkEncrypted(object);
-        }
-
-        if (InternalsConfig.consistencyChecks) {
-            object.checkConsistence(ConsistencyCheckScope.THOROUGH);
-        } else {
-            object.checkConsistence(ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
         }
 
         OperationResult operationResult = parentResult.subresult(ADD_OBJECT)
@@ -255,12 +242,33 @@ public class SqaleRepositoryService implements RepositoryService {
                 .addParam("options", options.toString())
                 .build();
 
+        try {
+            PolyString name = object.getName();
+            if (name == null || Strings.isNullOrEmpty(name.getOrig())) {
+                throw new SchemaException("Attempt to add object without name.");
+            }
+
+            //noinspection ConstantConditions
+            LOGGER.debug(
+                    "Adding object type '{}', overwrite={}, allowUnencryptedValues={}, name={} - {}",
+                    object.getCompileTimeClass().getSimpleName(), options.isOverwrite(),
+                    options.isAllowUnencryptedValues(), name.getOrig(), name.getNorm());
+
+            if (InternalsConfig.encryptionChecks && !RepoAddOptions.isAllowUnencryptedValues(options)) {
+                CryptoUtil.checkEncrypted(object);
+            }
+
+            if (InternalsConfig.consistencyChecks) {
+                object.checkConsistence(ConsistencyCheckScope.THOROUGH);
+            } else {
+                object.checkConsistence(ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
+            }
+
 //        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
 //        long opHandle = pm.registerOperationStart(OP_ADD_OBJECT, object.getCompileTimeClass());
 //        int attempt = 1;
 //        int restarts = 0;
 //        boolean noFetchExtensionValueInsertionForbidden = false;
-        try {
             // TODO use executeAttempts
             final String operation = "adding";
 
@@ -268,7 +276,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 object.setVersion("1");
             }
             String oid = new AddObjectOperation<>(object, options, operationResult)
-                    .execute(transformerContext);
+                    .execute(transformerSupport);
             return oid;
             /*
             String proposedOid = object.getOid();
@@ -432,7 +440,7 @@ public class SqaleRepositoryService implements RepositoryService {
                         EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS, true);
         LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(narrowedModifications));
 
-        SqaleModelMapping<S, Q, R> rootMapping =
+        SqaleTableMapping<S, Q, R> rootMapping =
                 sqlRepoContext.getMappingBySchemaType(prismObject.getCompileTimeClass());
         Q root = rootMapping.defaultAlias();
         // TODO update will probably be replaced by some "update context" to be able to update multiple tables (+insert/delete of details)
@@ -447,7 +455,7 @@ public class SqaleRepositoryService implements RepositoryService {
         int newVersion = SqaleUtils.objectVersionAsInt(prismObject) + 1;
         prismObject.setVersion(String.valueOf(newVersion));
         ObjectSqlTransformer<S, Q, R> transformer = (ObjectSqlTransformer<S, Q, R>)
-                rootMapping.createTransformer(transformerContext);
+                rootMapping.createTransformer(transformerSupport);
         update.set(root.fullObject, transformer.createFullObject(prismObject.asObjectable()));
         update.set(root.version, newVersion);
         update.execute();
@@ -487,14 +495,14 @@ public class SqaleRepositoryService implements RepositoryService {
         Objects.requireNonNull(type, "Object type must not be null.");
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
-        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + "countObjects")
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_COUNT_OBJECTS)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
                 .addParam("query", query)
                 .build();
 
         try {
-            var queryContext = SqaleQueryContext.from(type, transformerContext, sqlRepoContext);
+            var queryContext = SqaleQueryContext.from(type, transformerSupport, sqlRepoContext);
             return sqlQueryExecutor.count(queryContext, query, options);
         } catch (QueryException | RuntimeException e) {
             handleGeneralException(e, operationResult);
@@ -516,14 +524,14 @@ public class SqaleRepositoryService implements RepositoryService {
         Objects.requireNonNull(type, "Object type must not be null.");
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
-        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + "searchObjects")
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_SEARCH_OBJECTS)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
                 .addParam("query", query)
                 .build();
 
         try {
-            var queryContext = SqaleQueryContext.from(type, transformerContext, sqlRepoContext);
+            var queryContext = SqaleQueryContext.from(type, transformerSupport, sqlRepoContext);
             SearchResultList<T> result =
                     sqlQueryExecutor.list(queryContext, query, options);
             // TODO see the commented code from old repo lower, problems for each object must be caught
@@ -600,14 +608,14 @@ public class SqaleRepositoryService implements RepositoryService {
         Objects.requireNonNull(type, "Container type must not be null.");
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
-        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + "searchContainers")
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + SEARCH_CONTAINERS)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
                 .addParam("query", query)
                 .build();
 
         try {
-            var queryContext = SqaleQueryContext.from(type, transformerContext, sqlRepoContext);
+            var queryContext = SqaleQueryContext.from(type, transformerSupport, sqlRepoContext);
             SearchResultList<T> result =
                     sqlQueryExecutor.list(queryContext, query, options);
             return result;

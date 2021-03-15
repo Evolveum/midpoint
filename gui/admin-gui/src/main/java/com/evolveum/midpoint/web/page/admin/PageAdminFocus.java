@@ -10,8 +10,6 @@ import java.util.*;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.factory.wrapper.AssignmentWrapperFactoryImpl;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.AssignmentValueWrapperImpl;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
@@ -54,8 +52,6 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
 
 public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjectDetails<F>
         implements ProgressReportingAwarePage {
@@ -193,7 +189,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
     }
 
     private Collection<SelectorOptions<GetOperationOptions>> createLoadOptionForShadowWrapper() {
-        return getSchemaHelper().getOperationOptionsBuilder()
+        return getSchemaService().getOperationOptionsBuilder()
                 .item(ShadowType.F_RESOURCE_REF).resolve().readOnly()
                 .build();
     }

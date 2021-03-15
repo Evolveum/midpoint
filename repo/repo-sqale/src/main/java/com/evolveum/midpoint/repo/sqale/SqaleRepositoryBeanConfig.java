@@ -19,7 +19,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
-import com.evolveum.midpoint.repo.sqale.qmodel.QCaseMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCaseMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.QDashboardMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObjectCollectionMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
@@ -34,6 +34,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.node.QNodeMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QTriggerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportDataMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QAbstractRoleMapping;
@@ -48,7 +49,7 @@ import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImpl;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorsCollectionImpl;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -132,6 +133,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(UserType.COMPLEX_TYPE, QUserMapping.INSTANCE)
                 .register(ValuePolicyType.COMPLEX_TYPE, QValuePolicyMapping.INSTANCE)
                 .register(QContainerMapping.INSTANCE)
+                .register(QReferenceMapping.INSTANCE)
                 .seal();
 
         return new SqaleRepoContext(repositoryConfiguration, dataSource, mappingRegistry);
@@ -145,7 +147,7 @@ public class SqaleRepositoryBeanConfig {
     @Bean
     public SqaleRepositoryService repositoryService(
             SqaleRepoContext sqlRepoContext,
-            SchemaHelper schemaService,
+            SchemaService schemaService,
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         return new SqaleRepositoryService(
                 sqlRepoContext,

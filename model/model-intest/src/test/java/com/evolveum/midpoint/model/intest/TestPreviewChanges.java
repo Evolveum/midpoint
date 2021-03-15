@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
+
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
 
@@ -57,13 +59,13 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     public static final File TEST_DIR = new File("src/test/resources/preview");
 
     // LEMON dummy resource has a STRICT dependency on default dummy resource
-    protected static final File RESOURCE_DUMMY_LEMON_FILE = new File(TEST_DIR, "resource-dummy-lemon.xml");
+    private static final File RESOURCE_DUMMY_LEMON_FILE = new File(TEST_DIR, "resource-dummy-lemon.xml");
     protected static final String RESOURCE_DUMMY_LEMON_OID = "10000000-0000-0000-0000-000000000504";
-    protected static final String RESOURCE_DUMMY_LEMON_NAME = "lemon";
+    private static final String RESOURCE_DUMMY_LEMON_NAME = "lemon";
 
-    static final File USER_ROGERS_FILE = new File(TEST_DIR, "user-rogers.xml");
-    static final File ACCOUNT_ROGERS_DUMMY_DEFAULT_FILE = new File(TEST_DIR, "account-rogers-dummy-default.xml");
-    static final File ACCOUNT_ROGERS_DUMMY_LEMON_FILE = new File(TEST_DIR, "account-rogers-dummy-lemon.xml");
+    private static final File USER_ROGERS_FILE = new File(TEST_DIR, "user-rogers.xml");
+    private static final File ACCOUNT_ROGERS_DUMMY_DEFAULT_FILE = new File(TEST_DIR, "account-rogers-dummy-default.xml");
+    private static final File ACCOUNT_ROGERS_DUMMY_LEMON_FILE = new File(TEST_DIR, "account-rogers-dummy-lemon.xml");
 
     private String accountGuybrushOid;
 
@@ -107,25 +109,17 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     public void test101ModifyUserAddAccountNoAttributesBundle() throws Exception {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        ObjectSource<PrismObject<ShadowType>> accountSource = new ObjectSource<PrismObject<ShadowType>>() {
-            @Override
-            public PrismObject<ShadowType> get() {
-                try {
-                    PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
-                    account.removeContainer(ShadowType.F_ATTRIBUTES);
-                    return account;
-                } catch (SchemaException | IOException e) {
-                    throw new IllegalStateException(e.getMessage(), e);
-                }
+        ObjectSource<PrismObject<ShadowType>> accountSource = () -> {
+            try {
+                PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
+                account.removeContainer(ShadowType.F_ATTRIBUTES);
+                return account;
+            } catch (SchemaException | IOException e) {
+                throw new IllegalStateException(e.getMessage(), e);
             }
         };
 
-        ObjectChecker<ModelContext<UserType>> checker = new ObjectChecker<ModelContext<UserType>>() {
-            @Override
-            public void check(ModelContext<UserType> modelContext) {
-                assertAddAccount(modelContext, true);
-            }
-        };
+        ObjectChecker<ModelContext<UserType>> checker = modelContext -> assertAddAccount(modelContext, true);
 
         modifyUserAddAccountImplicit(accountSource, checker);
         modifyUserAddAccountExplicit(accountSource, checker);
@@ -338,6 +332,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     private void assertAddAccount(ModelContext<UserType> modelContext, boolean expectFullNameDelta) {
         assertNotNull("Null model context", modelContext);
 
+        assertSerializable(modelContext);
+
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         assertNotNull("Null model focus context", focusContext);
         assertNull("Unexpected focus primary delta: " + focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
@@ -400,6 +396,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertEquals("Bad link targetUrl", "/foo", link.getTargetUrl());
 
         assertEquals("Bad timezone targetUrl", "Jamaica", compiledGuiProfile.getDefaultTimezone());
+
+        assertSerializable(compiledGuiProfile);
     }
 
     @Test
@@ -469,6 +467,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
         assertEquals(ChangeType.DELETE, accountPrimaryDelta.getChangeType());
 
+        assertSerializable(modelContext);
     }
 
     @Test
@@ -517,6 +516,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         PrismAsserts.assertModifications(accountSecondaryDelta, 1);
+
+        assertSerializable(modelContext);
     }
 
     @Test
@@ -568,6 +569,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME), "rum");
         PrismAsserts.assertPropertyAdd(accountSecondaryDelta,
                 dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME), "Arr!");
+
+        assertSerializable(modelContext);
     }
 
     /**
@@ -593,6 +596,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertSuccess(result);
 
         assertPreviewJackAssignRolePirate(modelContext);
+        assertSerializable(modelContext);
     }
 
     /**
@@ -622,6 +626,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertSuccess(result);
 
         assertPreviewJackAssignRolePirate(modelContext);
+        assertSerializable(modelContext);
     }
 
     private void assertPreviewJackAssignRolePirate(ModelContext<UserType> modelContext) {
@@ -775,6 +780,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 new String[] { "Mighty Pirate Guybrush Threepwood" });  // replace
 
         PrismAsserts.assertModifications(accContext.getPrimaryDelta(), 1);
+        assertSerializable(modelContext);
     }
 
     /**
@@ -826,6 +832,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 new String[] { "The Mad Monkey" });  // replace
 
         PrismAsserts.assertModifications(accContext.getPrimaryDelta(), 1);
+        assertSerializable(modelContext);
     }
 
     /**
@@ -890,6 +897,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 null);  // replace
 
         PrismAsserts.assertModifications(accountSecondaryDelta, 3);
+        assertSerializable(modelContext);
     }
 
     /**
@@ -956,6 +964,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 null);  // replace
 
         PrismAsserts.assertModifications(accountSecondaryDelta, 3);
+        assertSerializable(modelContext);
     }
 
     /**
@@ -1007,6 +1016,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 null);  // replace
 
         PrismAsserts.assertModifications(accountSecondaryDelta, 1);
+        assertSerializable(modelContext);
     }
 
     /**
@@ -1045,6 +1055,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         EvaluatedAssignment<?> evaluatedAssignment = evaluatedAssignmentTriple.getPlusSet().iterator().next();
         assertNotNull("Target of evaluated assignment is null", evaluatedAssignment.getTarget());
         assertEquals("Wrong # of zero-set roles in evaluated assignment", 1, evaluatedAssignment.getRoles().getZeroSet().size());
+        assertSerializable(modelContext);
     }
 
     @Test
@@ -1156,6 +1167,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 null);  // replace
 
         PrismAsserts.assertModifications(accountSecondaryDelta, 3);
+        assertSerializable(modelContext);
     }
 
     /**
@@ -1221,6 +1233,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 null);  // replace
 
         PrismAsserts.assertModifications(accountSecondaryDelta, 3);
+        assertSerializable(modelContext);
     }
 
     @Test
@@ -1242,6 +1255,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNoDummyAccount(RESOURCE_DUMMY_RELATIVE_NAME, USER_GUYBRUSH_USERNAME);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private <T> void assertAccountDefaultDummyAttributeModify(ObjectDelta<ShadowType> accountDelta,
             String attrName,
             T[] expectedOldValues, T[] expectedAddValues, T[] expectedDeleteValues, T[] expectedReplaceValues) {
@@ -1249,6 +1263,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertAccountItemModify(accountDelta, itemPath, expectedOldValues, expectedAddValues, expectedDeleteValues, expectedReplaceValues);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private <T> void assertAccountDummyAttributeModify(ObjectDelta<ShadowType> accountDelta,
             String dummyName, String attrName,
             T[] expectedOldValues, T[] expectedAddValues, T[] expectedDeleteValues, T[] expectedReplaceValues) {
@@ -1319,6 +1334,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Unexpected account secondary delta: " + accountSecondaryDelta, accountSecondaryDelta);
+        assertSerializable(modelContext);
     }
 
     /**
@@ -1374,6 +1390,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Unexpected account secondary delta: " + accountSecondaryDelta, accountSecondaryDelta);
+        assertSerializable(modelContext);
     }
 
     /**
@@ -1402,6 +1419,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         then();
         displayDumpable("Preview context", modelContext);
         assertPartialError(result);
+        assertSerializable(modelContext);
     }
 
     /**
@@ -1432,6 +1450,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         // THEN
         then();
         assertPartialError(result);
+        assertSerializable(modelContext);
     }
 
     // the test5xx is testing mappings with blue dummy resource. It has WEAK mappings.
@@ -1487,6 +1506,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Unexpected account secondary delta: " + accountSecondaryDelta, accountSecondaryDelta);
+        assertSerializable(modelContext);
     }
 
     /**
@@ -1547,6 +1567,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Unexpected account secondary delta: " + accountSecondaryDelta, accountSecondaryDelta);
+        assertSerializable(modelContext);
     }
 
     /**
@@ -1637,6 +1658,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismAsserts.assertPropertyDelete(accountSecondaryDelta,
                 getAttributePath(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
                 "null -- Elaine Marley");
+        assertSerializable(modelContext);
     }
 
     /**
@@ -1654,10 +1676,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceAttributeDelta(
                 ACCOUNT_SHADOW_ELAINE_DUMMY_OID, getDummyResourceObject(),
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine LeChuck");
-        // Cannot change the attribute on RED resource. It would conflict with the strong mapping and therefore fail.
-//        ObjectDelta<ResourceObjectShadowType> accountDeltaRed = createModifyAccountShadowReplaceAttributeDelta(
-//                ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID, resourceDummyRed,
-//                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine LeChuck");
         ObjectDelta<ShadowType> accountDeltaBlue = createModifyAccountShadowReplaceAttributeDelta(
                 ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_OID, getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME),
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine LeChuck");
@@ -1741,6 +1759,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismAsserts.assertPropertyDelete(accountSecondaryDelta,
                 getAttributePath(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
                 "null -- Elaine Marley");
+        assertSerializable(modelContext);
     }
 
     @Test
@@ -1828,6 +1847,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismAsserts.assertNoItemDelta(accountSecondaryDelta,
                 getAttributePath(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
         assertPasswordDelta(accountSecondaryDelta);
+        assertSerializable(modelContext);
     }
 
     // testing multiple resources with dependencies (dummy -> dummy lemon)
@@ -1918,6 +1938,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta,
                 getAttributePath(getDummyResourceObject(RESOURCE_DUMMY_LEMON_NAME), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME),
                 "pirate Rum Rogers Sr. drinks only rum!");
+        assertSerializable(modelContext);
     }
 
     // The 7xx tests try to do various non-common cases
@@ -1995,6 +2016,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 accountSecondaryDeltaBlue.findPropertyDelta(PATH_ACTIVATION_DISABLE_TIMESTAMP));
         PrismAsserts.assertPropertyReplace(accountSecondaryDeltaBlue, SchemaConstants.PATH_ACTIVATION_DISABLE_REASON,
                 SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+        assertSerializable(modelContext);
     }
 
     /**
@@ -2034,6 +2056,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         EvaluatedAssignment<?> evaluatedAssignment = evaluatedAssignmentTriple.getZeroSet().iterator().next();
         assertNotNull("Target of evaluated assignment is null", evaluatedAssignment.getTarget());
         assertEquals("Wrong # of zero-set roles in evaluated assignment", 1, evaluatedAssignment.getRoles().getZeroSet().size());
+        assertSerializable(modelContext);
     }
-
 }

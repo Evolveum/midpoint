@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -31,12 +32,12 @@ public class SearchItemDefinition implements Serializable, Comparable<SearchItem
     private ItemDefinition def;
     private SearchItemType predefinedFilter;
     private PolyStringType displayName;
-    private List<QName> allowedValues;
+    private List allowedValues;
     private String description;
     private boolean isSelected = false;
     private boolean visibleByDefault = true;
 
-    public SearchItemDefinition(ItemPath path, ItemDefinition def, List<QName> allowedValues) {
+    public SearchItemDefinition(ItemPath path, ItemDefinition def, List allowedValues) {
         this.path = path;
         this.def = def;
         this.allowedValues = allowedValues;
@@ -57,7 +58,7 @@ public class SearchItemDefinition implements Serializable, Comparable<SearchItem
         return def;
     }
 
-    public List<QName> getAllowedValues() {
+    public List getAllowedValues() {
         return allowedValues;
     }
 

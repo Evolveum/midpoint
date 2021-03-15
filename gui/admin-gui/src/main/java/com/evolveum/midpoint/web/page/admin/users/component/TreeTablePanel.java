@@ -179,7 +179,7 @@ public class TreeTablePanel extends BasePanel<String> {
                 ObjectQuery managersQuery = createManagerQuery(getTreePanel().getSelected().getValue());
 
                 OperationResult searchManagersResult = new OperationResult(OPERATION_SEARCH_MANAGERS);
-                Collection<SelectorOptions<GetOperationOptions>> options = getSchemaHelper().getOperationOptionsBuilder()
+                Collection<SelectorOptions<GetOperationOptions>> options = getSchemaService().getOperationOptionsBuilder()
                         .distinct()
                         .item(FocusType.F_JPEG_PHOTO).retrieve()
                         .build();

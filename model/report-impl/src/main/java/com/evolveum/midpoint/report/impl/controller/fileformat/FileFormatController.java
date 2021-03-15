@@ -284,8 +284,8 @@ public abstract class FileFormatController {
                 | ConfigurationException | SecurityViolationException e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
         }
-        if (value instanceof PrismPropertyValue) {
-            return ((PrismPropertyValue) value).getRealValue();
+        if (value instanceof PrismValue) {
+            return ((PrismValue) value).getRealValue();
         }
         return value;
     }

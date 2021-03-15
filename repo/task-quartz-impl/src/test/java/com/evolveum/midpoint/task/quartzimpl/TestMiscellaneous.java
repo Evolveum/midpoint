@@ -12,11 +12,20 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.quartzimpl.quartz.TaskSynchronizer;
+import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeSuite;
@@ -38,6 +47,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskGroupExecutionLi
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestMiscellaneous extends AbstractTaskManagerTest {
 
+    private static final File TEST_DIR = new File("src/test/resources/miscellaneous");
+    private static final TestResource<TaskType> TASK_42_RUNNABLE = new TestResource<>(TEST_DIR, "task-42-runnable.xml", "e3a64c81-5dd0-4b66-bc5a-572425eb5a63");
+    private static final TestResource<TaskType> TASK_42_SUSPENDED = new TestResource<>(TEST_DIR, "task-42-suspended.xml", "12125ca4-7107-437d-a448-facae780a306");
+    private static final TestResource<TaskType> TASK_42_CLOSED = new TestResource<>(TEST_DIR, "task-42-closed.xml", "c56bf227-8e03-4a52-b873-0ac651b95ed6");
+    private static final TestResource<TaskType> TASK_42_WAITING = new TestResource<>(TEST_DIR, "task-42-waiting.xml", "c9bdc85b-27d0-43f7-8b2a-1e44d1d23594");
+
+    @Autowired private TaskSynchronizer taskSynchronizer;
+
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -45,7 +62,7 @@ public class TestMiscellaneous extends AbstractTaskManagerTest {
     }
 
     @Test
-    public void testParsingTaskExecutionLimitations() throws TaskManagerConfigurationException, SchemaException {
+    public void test100ParsingTaskExecutionLimitations() throws TaskManagerConfigurationException, SchemaException {
         assertLimitationsParsed(" ", emptyList());
         assertLimitationsParsed("_   ", singletonList(new TaskGroupExecutionLimitationType().groupName("_")));
         assertLimitationsParsed("#,   _   ", Arrays.asList(new TaskGroupExecutionLimitationType().groupName("#"), new TaskGroupExecutionLimitationType().groupName("_")));
@@ -64,7 +81,7 @@ public class TestMiscellaneous extends AbstractTaskManagerTest {
     }
 
     @Test
-    public void testComputingLimitations() throws TaskManagerConfigurationException, SchemaException {
+    public void test110ComputingLimitations() throws TaskManagerConfigurationException, SchemaException {
         assertLimitationsComputed("", Arrays.asList(
                 new TaskGroupExecutionLimitationType().groupName(""),
                 new TaskGroupExecutionLimitationType().groupName("NODE"),
@@ -126,6 +143,31 @@ public class TestMiscellaneous extends AbstractTaskManagerTest {
         displayValue("parsed value of '" + value + "'", serialize(parsed));
         TaskExecutionLimitationsType computed = NodeRegistrar.computeTaskExecutionLimitations(parsed, "NODE");
         assertEquals("Wrong computed value for '" + value + "'", expected, computed.getGroupLimitation());
+    }
+
+    @Test
+    public void test200TaskMigrationOnStart() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        repoAdd(TASK_42_RUNNABLE, result);
+        repoAdd(TASK_42_SUSPENDED, result);
+        repoAdd(TASK_42_CLOSED, result);
+        repoAdd(TASK_42_WAITING, result);
+
+        when();
+        taskSynchronizer.synchronizeJobStores(result);
+
+        then();
+        Task suspended = taskManager.getTaskPlain(TASK_42_SUSPENDED.oid, result);
+        Task waiting = taskManager.getTaskPlain(TASK_42_WAITING.oid, result);
+        Task closed = taskManager.getTaskPlain(TASK_42_CLOSED.oid, result);
+        assertSchedulingState(suspended, TaskSchedulingStateType.SUSPENDED);
+        assertSchedulingState(waiting, TaskSchedulingStateType.WAITING);
+        assertSchedulingState(closed, TaskSchedulingStateType.CLOSED);
+
+        // this one should be started, so wa cannot assert its state (can be ready or closed)
+        waitForTaskClose(TASK_42_RUNNABLE.oid, result, 10000, 500);
     }
 
     private String serialize(TaskExecutionLimitationsType parsed) throws SchemaException {

@@ -13,7 +13,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleT
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignSpecificationType;
@@ -41,7 +41,7 @@ public class QAbstractRoleMapping<
 
         nestedMapping(F_AUTOASSIGN, AutoassignSpecificationType.class)
                 .addItemMapping(AutoassignSpecificationType.F_ENABLED,
-                        booleanMapper(path(q -> q.autoassignEnabled)));
+                        booleanMapper(path(q -> q.autoAssignEnabled)));
         addItemMapping(F_DISPLAY_NAME, PolyStringItemFilterProcessor.mapper(
                 path(q -> q.displayNameOrig), path(q -> q.displayNameNorm)));
         addItemMapping(F_IDENTIFIER, stringMapper(path(q -> q.identifier)));
@@ -58,7 +58,7 @@ public class QAbstractRoleMapping<
 
     @Override
     public AbstractRoleSqlTransformer<S, Q, R> createTransformer(
-            SqlTransformerContext transformerContext) {
-        return new AbstractRoleSqlTransformer<>(transformerContext, this);
+            SqlTransformerSupport transformerSupport) {
+        return new AbstractRoleSqlTransformer<>(transformerSupport, this);
     }
 }

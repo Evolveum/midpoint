@@ -132,7 +132,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
                     Class<? extends ObjectType> type = getTypeFromParameters();
 
-                    GetOperationOptionsBuilder optionsBuilder = getSchemaHelper().getOperationOptionsBuilder()
+                    GetOperationOptionsBuilder optionsBuilder = getSchemaService().getOperationOptionsBuilder()
                             .raw()
                             .resolveNames()
                             .tolerateRawData();

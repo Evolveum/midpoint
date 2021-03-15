@@ -20,7 +20,7 @@ import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 
 /**
  *  TODO
@@ -34,7 +34,7 @@ public class ChangeProcessingBeans {
     @Autowired public ShadowsFacade shadowsFacade;
     @Autowired public MatchingRuleRegistry matchingRuleRegistry;
     @Autowired public RelationRegistry relationRegistry;
-    @Autowired public SchemaHelper schemaHelper;
+    @Autowired public SchemaService schemaService;
     @Autowired public ExpressionFactory expressionFactory;
     @Autowired
     @Qualifier("cacheRepositoryService")

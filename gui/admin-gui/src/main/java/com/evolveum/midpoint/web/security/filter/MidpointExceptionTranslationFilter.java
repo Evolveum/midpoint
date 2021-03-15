@@ -46,7 +46,7 @@ public class MidpointExceptionTranslationFilter extends ExceptionTranslationFilt
     protected void sendStartAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, AuthenticationException reason) throws ServletException, IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //        SecurityContextHolder.getContext().setAuthentication(null);
-        if (!SecurityUtils.isRecordSessionlessAccessChannel(request)) {
+        if (!SecurityUtils.isRecordSessionLessAccessChannel(request)) {
             requestCache.saveRequest(request, response);
         }
         LOGGER.debug("Calling Authentication entry point.");

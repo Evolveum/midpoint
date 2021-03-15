@@ -67,6 +67,6 @@ public class SessionAndRequestScopeImpl extends AbstractRequestAttributesScope {
             HttpServletRequest request = ((ServletRequestAttributes)requestAttributes).getRequest();
             httpRequest = request;
         }
-        return SecurityUtils.isRecordSessionlessAccessChannel(httpRequest);
+        return SecurityUtils.isRecordSessionLessAccessChannel(httpRequest);
     }
 }

@@ -1754,7 +1754,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
             } else {
                 ItemPath[] paths = toInclude.stream()
                         .map(name -> ItemPath.create(UserType.F_EXTENSION, name)).toArray(ItemPath[]::new);
-                options = schemaHelper.getOperationOptionsBuilder().items((Object[]) paths).retrieve().build();
+                options = schemaService.getOperationOptionsBuilder().items((Object[]) paths).retrieve().build();
             }
         } else {
             options = null;
@@ -2620,14 +2620,14 @@ public class ExtensionTest extends BaseSQLRepoTest {
         Collection<SelectorOptions<GetOperationOptions>> options;
         if (include) {
             if (toInclude == null) {
-                options = schemaHelper.getOperationOptionsBuilder().retrieve().raw(raw).build();
+                options = schemaService.getOperationOptionsBuilder().retrieve().raw(raw).build();
             } else {
                 ItemPath[] paths = toInclude.stream()
                         .map(name -> ItemPath.create(ShadowType.F_ATTRIBUTES, name)).toArray(ItemPath[]::new);
-                options = schemaHelper.getOperationOptionsBuilder().items((Object[]) paths).retrieve().raw(raw).build();
+                options = schemaService.getOperationOptionsBuilder().items((Object[]) paths).retrieve().raw(raw).build();
             }
         } else {
-            options = schemaHelper.getOperationOptionsBuilder().raw(raw).build();
+            options = schemaService.getOperationOptionsBuilder().raw(raw).build();
         }
         PrismObject<ShadowType> real = repositoryService.getObject(ShadowType.class, oid, options, result);
         ObjectDelta<ShadowType> delta = expectedAdapted.diff(real);

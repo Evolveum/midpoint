@@ -89,7 +89,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW).dontRetrieve()
                 .build();
 
@@ -134,7 +134,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         when();
-        GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
+        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
                 .item(LookupTableRowType.F_KEY)
@@ -155,7 +155,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         when();
-        GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
+        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
                 .item(LookupTableRowType.F_KEY)
@@ -177,7 +177,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         when();
-        GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
+        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
                 .item(LookupTableRowType.F_KEY)
@@ -198,7 +198,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         when();
-        GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
+        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
                 .item(LookupTableRowType.F_KEY)
@@ -222,7 +222,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         when();
-        GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
+        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
                 .item(LookupTableRowType.F_KEY)
@@ -250,7 +250,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         when();
-        GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
+        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
                 .item(LookupTableRowType.F_VALUE)
@@ -275,7 +275,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         when();
         String fragment = "Eng";
-        GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
+        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
                 .item(LookupTableRowType.F_LABEL)
@@ -297,7 +297,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         when();
-        GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
+        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
                 .item(LookupTableRowType.F_VALUE)
@@ -828,7 +828,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     }
 
     private PrismObject<LookupTableType> getLookupTableAll(String oid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
+        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW).retrieve();
         return modelService.getObject(LookupTableType.class, oid, optionsBuilder.build(), task, result);
     }

@@ -25,6 +25,9 @@ import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryFactory;
 import com.evolveum.midpoint.prism.impl.query.FullTextFilterImpl;
+import com.evolveum.midpoint.prism.impl.query.lang.PrismQuerySerializerImpl;
+
+import static com.evolveum.midpoint.prism.query.PrismQuerySerialization.NotSupportedException;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -33,6 +36,7 @@ import com.evolveum.midpoint.prism.query.FullTextFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.PrismQueryLanguageParser;
+import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -69,8 +73,25 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
         try {
             assertEquals(dslFilter.toString(), original.toString());
             assertEquals(dslResult, javaResult, "Filters do not match.");
+
+            //String javaSerialized = serialize(original);
+            String dslSerialized = serialize(dslFilter);
+
+            //assertEquals(javaSerialized, query);
+            assertEquals(dslSerialized, query);
+
         } catch (AssertionError e) {
             throw new AssertionError(e.getMessage() + "for filter: \n    " + query);
+        }
+    }
+
+    private String serialize(ObjectFilter original) {
+        PrismQuerySerialization serialization;
+        try {
+            serialization = new PrismQuerySerializerImpl().serialize(original);
+            return serialization.filterText();
+        } catch (NotSupportedException e) {
+            throw new AssertionError(e);
         }
     }
 
@@ -85,11 +106,21 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
     }
 
     @Test
+    public void testEscapings() throws SchemaException, IOException {
+        ObjectFilter filter =
+                getPrismContext().queryFor(UserType.class)
+                        .item(UserType.F_GIVEN_NAME).eq("Jack").matchingCaseIgnore()
+                        .and().item(UserType.F_FULL_NAME).contains("'Arr")
+                        .buildFilter();
+        verify("givenName =[stringIgnoreCase] 'Jack' and fullName contains '\\'Arr'", filter);
+    }
+
+    @Test
     public void testPathComparison() throws SchemaException, IOException {
-        ObjectFilter dslFilter = parse("fullName != givenName");
+        ObjectFilter dslFilter = parse("fullName not equal givenName");
         boolean match = ObjectQuery.match(parseUserJacky(),dslFilter,MATCHING_RULE_REGISTRY);
         assertTrue(match);
-        verify("fullName not equal givenName", dslFilter);
+        verify("fullName != givenName", dslFilter);
     }
 
     @Test
@@ -106,7 +137,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
                 .exists(UserType.F_ASSIGNMENT)
                 .item(AssignmentType.F_DESCRIPTION).eq("Assignment 2")
                 .buildFilter();
-        verify("assignment matches ( description = 'Assignment 2'", filter);
+        verify("assignment matches (description = 'Assignment 2')", filter);
     }
 
     @Test
@@ -143,7 +174,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
         ObjectFilter filter = getPrismContext().queryFor(UserType.class)
                 .item(ItemPath.create(UserType.F_EXTENSION, "indexedString"), def).eq("alpha")
                 .buildFilter();
-        verify("extension/indexedString = 'alpha' ", filter);
+        verify("extension/indexedString = 'alpha'", filter);
     }
 
     @Test
@@ -185,14 +216,14 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
                         .endBlock()
                         .buildFilter();
         verify("familyName = 'Sparrow' and fullName contains 'arr' "
-                + "and ( givenName = 'Jack' or givenName = 'Jackie' ) ", filter);
+                + "and (givenName = 'Jack' or givenName = 'Jackie')", filter);
     }
 
     @Test
     public void testPolystringMatchEqualFilter() throws Exception {
         PolyString name = new PolyString("jack", "jack");
         ObjectFilter filter = getPrismContext().queryFor(UserType.class)
-                .item(UserType.F_NAME).eq(name)
+                .item(UserType.F_NAME).eq(name).matchingStrict()
                 .buildFilter();
         verify("name matches (orig = 'jack' and norm = 'jack')", filter);
         verify("name matches (norm = 'jack')",
@@ -242,7 +273,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
         ObjectFilter filter = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION).eq("Assignment 2")
                 .buildFilter();
-        verify(" assignment/description = 'Assignment 2'", filter);
+        verify("assignment/description = 'Assignment 2'", filter);
     }
 
     @Test   // MID-4217
@@ -259,7 +290,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
         ObjectFilter filter = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_ACCOUNT_REF).ref("c0c010c0-d34d-b33f-f00d-aaaaaaaa1113")
                 .buildFilter();
-        verify("accountRef matches ( oid = 'c0c010c0-d34d-b33f-f00d-aaaaaaaa1113')",filter);
+        verify("accountRef matches (oid = 'c0c010c0-d34d-b33f-f00d-aaaaaaaa1113')",filter);
     }
 
     @Test
@@ -268,7 +299,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
                 .id("c0c010c0-d34d-b33f-f00d-aaaaaaaa1113", "c0c010c0-d34d-b33f-f00d-aaaaaaaa1114", "c0c010c0-d34d-b33f-f00d-aaaaaaaa1115")
                 .buildFilter();
 
-        verify(". inOid ('c0c010c0-d34d-b33f-f00d-aaaaaaaa1113', \"c0c010c0-d34d-b33f-f00d-aaaaaaaa1114\", \"c0c010c0-d34d-b33f-f00d-aaaaaaaa1115\" )",filter);
+        verify(". inOid ('c0c010c0-d34d-b33f-f00d-aaaaaaaa1113', 'c0c010c0-d34d-b33f-f00d-aaaaaaaa1114', 'c0c010c0-d34d-b33f-f00d-aaaaaaaa1115')",filter);
 
 
     }
@@ -278,7 +309,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
         ObjectFilter filter = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_ACCOUNT_REF).ref("xxxxxxxxxxxxxx")
                 .buildFilter();
-        verify("accountRef matches ( oid = 'xxxxxxxxxxxxxx')",filter);
+        verify("accountRef matches (oid = 'xxxxxxxxxxxxxx')",filter);
     }
 
     @Test
@@ -390,7 +421,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
 
     private String toText(Object value) {
         if (value instanceof XMLGregorianCalendar) {
-            return new StringBuilder().append('"').append(value.toString()).append('"').toString();
+            return new StringBuilder().append("'").append(value.toString()).append("'").toString();
         }
         return value.toString();
     }

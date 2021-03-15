@@ -71,7 +71,7 @@ public class CollectionProcessor {
     @Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
     @Autowired private ArchetypeManager archetypeManager;
     @Autowired private ExpressionFactory expressionFactory;
-    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private SchemaService schemaService;
 
     public Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(PrismObject<ObjectCollectionType> collection, CompiledObjectCollectionView collectionView, Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         if (collectionView == null) {
@@ -103,14 +103,12 @@ public class CollectionProcessor {
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException, ExpressionEvaluationException {
-        AssignmentPathImpl assignmentPath = new AssignmentPathImpl(prismContext);
+        AssignmentPathImpl assignmentPath = new AssignmentPathImpl();
         AssignmentPathSegmentImpl assignmentPathSegment = new AssignmentPathSegmentImpl.Builder()
                 .source(collection.asObjectable())
                 .sourceDescription("object collection " + collection)
                 .assignment(assignmentType)
                 .isAssignment(true)
-                .relationRegistry(relationRegistry)
-                .prismContext(prismContext)
                 .evaluationOrder(EvaluationOrderImpl.zero(relationRegistry))
                 .evaluationOrderForTarget(EvaluationOrderImpl.zero(relationRegistry))
                 .direct(true) // to be reconsidered - but assignment path is empty, so we consider this to be directly assigned
@@ -119,7 +117,7 @@ public class CollectionProcessor {
                 .build();
         assignmentPath.add(assignmentPathSegment);
 
-        EvaluatedPolicyRuleImpl evaluatedPolicyRule = new EvaluatedPolicyRuleImpl(policyRuleType.clone(), assignmentPath, null, prismContext);
+        EvaluatedPolicyRuleImpl evaluatedPolicyRule = new EvaluatedPolicyRuleImpl(policyRuleType.clone(), assignmentPath, null);
 
         PolicyConstraintsType policyConstraints = policyRuleType.getPolicyConstraints();
         if (policyConstraints == null) {
@@ -384,7 +382,7 @@ public class CollectionProcessor {
                 ObjectFilter combinedFilter = ObjectQueryUtil.filterAnd(baseFilterFromCollection, baseFilter, prismContext);
                 combinedFilter = ObjectQueryUtil.filterAnd(combinedFilter, collectionFilter, prismContext);
                 existingView.setFilter(combinedFilter);
-                GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder().setFrom(baseOptionFromCollection);
+                GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder().setFrom(baseOptionFromCollection);
                 optionsBuilder.mergeFrom(existingView.getOptions());
                 optionsBuilder.mergeFrom(collectionOptions);
                 existingView.setOptions(optionsBuilder.build());
@@ -423,7 +421,7 @@ public class CollectionProcessor {
         ObjectFilter baseFilter = existingView.getFilter();
         ObjectFilter combinedFilter = ObjectQueryUtil.filterAnd(baseFilter, objectFilter, prismContext);
         existingView.setFilter(combinedFilter);
-        GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder().setFrom(existingView.getOptions());
+        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder().setFrom(existingView.getOptions());
         optionsBuilder.mergeFrom(options);
         existingView.setOptions(optionsBuilder.build());
     }

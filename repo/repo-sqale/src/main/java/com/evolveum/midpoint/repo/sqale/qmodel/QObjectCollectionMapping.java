@@ -6,16 +6,17 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 
 /**
  * Mapping between {@link QObjectCollection} and {@link ObjectCollectionType}.
  */
 public class QObjectCollectionMapping
-        extends QObjectMapping<ObjectCollectionType, QObjectCollection, MObjectCollection> {
+        extends QObjectMapping<ObjectCollectionType, QObjectCollection, MObject> {
 
     public static final String DEFAULT_ALIAS_NAME = "oc";
 
@@ -32,14 +33,14 @@ public class QObjectCollectionMapping
     }
 
     @Override
-    public ObjectSqlTransformer<ObjectCollectionType, QObjectCollection, MObjectCollection>
-    createTransformer(SqlTransformerContext transformerContext) {
+    public ObjectSqlTransformer<ObjectCollectionType, QObjectCollection, MObject>
+    createTransformer(SqlTransformerSupport transformerSupport) {
         // no special class needed, no additional columns
-        return new ObjectSqlTransformer<>(transformerContext, this);
+        return new ObjectSqlTransformer<>(transformerSupport, this);
     }
 
     @Override
-    public MObjectCollection newRowObject() {
-        return new MObjectCollection();
+    public MObject newRowObject() {
+        return new MObject();
     }
 }

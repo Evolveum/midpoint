@@ -43,8 +43,11 @@ public class MidPoint {
 
     private void init() {
         configuration.validate();
-
-        System.setProperty(configuration.getDriver().getDriver(), configuration.getDriverLocation());
+        if (configuration.isUseRemoteWebdriver()) {
+            System.setProperty("selenide.remote", configuration.getRemoteWebdriverUrl());
+        } else {
+            System.setProperty(configuration.getDriver().getDriver(), configuration.getDriverLocation());
+        }
         System.setProperty("selenide.browser", configuration.getDriver().name().toLowerCase());
         System.setProperty("selenide.baseUrl", configuration.getBaseUrl());
 

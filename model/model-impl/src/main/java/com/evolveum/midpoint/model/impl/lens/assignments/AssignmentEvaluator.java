@@ -169,7 +169,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
             EvaluationContext<AH> ctx = new EvaluationContext<>(
                     evaluatedAssignment,
-                    new AssignmentPathImpl(prismContext),
+                    new AssignmentPathImpl(),
                     primaryAssignmentMode, evaluateOld, task, this);
 
             evaluatedAssignmentTargetCache.resetForNextAssignment();
@@ -180,8 +180,6 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
                     .assignmentIdi(assignmentIdi)
                     .isAssignment(true)
                     .evaluateOld(evaluateOld)
-                    .relationRegistry(relationRegistry)
-                    .prismContext(prismContext)
                     .evaluationOrder(getInitialEvaluationOrder(assignmentIdi, ctx))
                     .evaluationOrderForTarget(EvaluationOrderImpl.zero(relationRegistry))
                     .pathToSourceValid(true)

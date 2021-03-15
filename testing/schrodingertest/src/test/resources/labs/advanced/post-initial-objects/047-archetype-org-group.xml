@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) 2011-2020 Evolveum, All rights reserved -->
+<!--  Archetype Group -->
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" oid="56797948-8f9b-44af-858e-1387e1fcddd2">
+    <name>Group</name>
+    <description>Group organization (not functional)</description>
+    <archetypePolicy>
+        <display>
+            <label>Group</label>
+            <pluralLabel>Groups</pluralLabel>
+            <icon>
+                <cssClass>fa fa-users</cssClass>
+                <color>chocolate</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+    <assignment>
+        <assignmentRelation>
+            <holderType>OrgType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <inducement>
+        <assignmentRelation>
+            <holderType>UserType</holderType>
+            <relation>org:default</relation>
+        </assignmentRelation>
+    </inducement>
+    <!-- no definition for child organizations, this is a flat list... -->
+</archetype>

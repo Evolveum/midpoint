@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="12125ca4-7107-437d-a448-facae780a306"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+
+    <name>4.2 suspended</name>
+
+    <taskIdentifier>12125ca4-7107-437d-a448-facae780a306</taskIdentifier>
+    <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="c:UserType"/>
+    <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
+
+    <executionStatus>suspended</executionStatus>
+
+    <handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
+    <recurrence>single</recurrence>
+</task>

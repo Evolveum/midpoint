@@ -108,7 +108,7 @@ public class PageAccountActivation extends PageBase {
     private UserType loadUser(PageParameters params){
         String userOid = getOidFromParameter(params);
         if (userOid == null) {
-            getSession().error(getString("PageAccountActivation.user.not found"));
+            getSession().error(getString("PageAccountActivation.user.not.found"));
             throw new RestartResponseException(PageLogin.class);
         }
 
@@ -122,6 +122,7 @@ public class PageAccountActivation extends PageBase {
             public UserType run() {
                 Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
                         .item(UserType.F_LINK_REF).resolve()
+                        .item(UserType.F_LINK_REF, ShadowType.F_RESOURCE_REF).resolve()
                         .build();
                 PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class, userOid, options, PageAccountActivation.this, task, result);
                 if (user == null) {

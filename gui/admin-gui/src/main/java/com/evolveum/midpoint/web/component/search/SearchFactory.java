@@ -10,7 +10,10 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.GuiChannel;
+import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
@@ -371,7 +374,7 @@ public class SearchFactory {
                 for (ItemPath path : paths) {
                     ItemDefinition def = objectDef.findItemDefinition(path);
                     if (def != null) {
-                        SearchItemDefinition searchItemDef = new SearchItemDefinition(path, def, null);
+                        SearchItemDefinition searchItemDef = new SearchItemDefinition(path, def, getAllowedValues(path));
                         definitions.add(searchItemDef);
                     }
                 }
@@ -385,6 +388,17 @@ public class SearchFactory {
         }
 
         return definitions;
+    }
+
+    private static List<DisplayableValue> getAllowedValues(ItemPath path) {
+        if (AuditEventRecordType.F_CHANNEL.equivalent(path)){
+            List<DisplayableValue> list = new ArrayList<>();
+            for (GuiChannel channel : GuiChannel.values()){
+                list.add(new SearchValue(channel.getUri(), channel.getLocalizationKey()));
+            }
+            return list;
+        }
+        return null;
     }
 
     public static List<ItemPath> getAvailableSearchableItems(Class<?> typeClass, ModelServiceLocator modelServiceLocator) {
@@ -505,7 +519,7 @@ public class SearchFactory {
         if (propDef == null) {
             return;
         }
-        SearchItemDefinition searchItem = new SearchItemDefinition(path, propDef, null);
+        SearchItemDefinition searchItem = new SearchItemDefinition(path, propDef, getAllowedValues(path));
         if (key != null) {
             PolyStringType displayName = new PolyStringType(propDef.getItemName().getLocalPart());
             PolyStringTranslationType translation = new PolyStringTranslationType();

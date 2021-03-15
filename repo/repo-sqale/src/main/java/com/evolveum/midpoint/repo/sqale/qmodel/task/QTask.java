@@ -9,13 +9,14 @@ package com.evolveum.midpoint.repo.sqale.qmodel.task;
 import java.sql.Types;
 import java.time.Instant;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 
+import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonType;
 
 /**
@@ -74,26 +75,35 @@ public class QTask extends QObject<MTask> {
     // columns and relations
     public final NumberPath<Integer> binding = createInteger("binding", BINDING);
     public final StringPath category = createString("category", CATEGORY);
-    public final DateTimePath<Instant> completionTimestamp = createInstant("completionTimestamp", COMPLETION_TIMESTAMP);
+    public final DateTimePath<Instant> completionTimestamp =
+            createInstant("completionTimestamp", COMPLETION_TIMESTAMP);
     public final EnumPath<TaskExecutionStateType> executionStatus =
             createEnum("executionStatus", TaskExecutionStateType.class, EXECUTION_STATUS);
     public final ArrayPath<byte[], Byte> fullResult = createByteArray("fullResult", FULL_RESULT);
     public final NumberPath<Integer> handlerUriId = createInteger("handlerUriId", HANDLER_URI_ID);
-    public final DateTimePath<Instant> lastRunFinishTimestamp = createInstant("lastRunFinishTimestamp", LAST_RUN_FINISH_TIMESTAMP);
-    public final DateTimePath<Instant> lastRunStartTimestamp = createInstant("lastRunStartTimestamp", LAST_RUN_START_TIMESTAMP);
+    public final DateTimePath<Instant> lastRunFinishTimestamp =
+            createInstant("lastRunFinishTimestamp", LAST_RUN_FINISH_TIMESTAMP);
+    public final DateTimePath<Instant> lastRunStartTimestamp =
+            createInstant("lastRunStartTimestamp", LAST_RUN_START_TIMESTAMP);
     public final StringPath node = createString("node", NODE);
-    public final UuidPath objectRefTargetOid = createUuid("objectRefTargetOid", OBJECT_REF_TARGET_OID);
-    public final NumberPath<Integer> objectRefTargetType = createInteger("objectRefTargetType", OBJECT_REF_TARGET_TYPE);
-    public final NumberPath<Integer> objectRefRelationId = createInteger("objectRefRelationId", OBJECT_REF_RELATION_ID);
+    public final UuidPath objectRefTargetOid =
+            createUuid("objectRefTargetOid", OBJECT_REF_TARGET_OID);
+    public final EnumPath<MObjectType> objectRefTargetType =
+            createEnum("objectRefTargetType", MObjectType.class, OBJECT_REF_TARGET_TYPE);
+    public final NumberPath<Integer> objectRefRelationId =
+            createInteger("objectRefRelationId", OBJECT_REF_RELATION_ID);
     public final UuidPath ownerRefTargetOid = createUuid("ownerRefTargetOid", OWNER_REF_TARGET_OID);
-    public final NumberPath<Integer> ownerRefTargetType = createInteger("ownerRefTargetType", OWNER_REF_TARGET_TYPE);
-    public final NumberPath<Integer> ownerRefRelationId = createInteger("ownerRefRelationId", OWNER_REF_RELATION_ID);
+    public final EnumPath<MObjectType> ownerRefTargetType =
+            createEnum("ownerRefTargetType", MObjectType.class, OWNER_REF_TARGET_TYPE);
+    public final NumberPath<Integer> ownerRefRelationId =
+            createInteger("ownerRefRelationId", OWNER_REF_RELATION_ID);
     public final StringPath parent = createString("parent", PARENT);
     public final NumberPath<Integer> recurrence = createInteger("recurrence", RECURRENCE);
     public final EnumPath<OperationResultStatusType> resultStatus =
             createEnum("resultStatus", OperationResultStatusType.class, RESULT_STATUS);
     public final StringPath taskIdentifier = createString("taskIdentifier", TASK_IDENTIFIER);
-    public final NumberPath<Integer> threadStopAction = createInteger("threadStopAction", THREAD_STOP_ACTION);
+    public final NumberPath<Integer> threadStopAction =
+            createInteger("threadStopAction", THREAD_STOP_ACTION);
     public final EnumPath<TaskWaitingReasonType> waitingReason =
             createEnum("waitingReason", TaskWaitingReasonType.class, WAITING_REASON);
 

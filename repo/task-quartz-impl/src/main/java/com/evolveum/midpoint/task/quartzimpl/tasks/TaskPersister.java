@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -158,30 +158,10 @@ public class TaskPersister {
     }
 
     private void setSchedulingState(TaskQuartzImpl task) {
-        if (task.getSchedulingState() != null || task.getExecutionState() == null) {
-            return;
+        TaskExecutionStateType executionState = task.getExecutionState();
+        if (task.getSchedulingState() == null && executionState != null) {
+            task.setSchedulingState(TaskMigrator.determineSchedulingState(executionState));
         }
-
-        TaskSchedulingStateType schedulingState;
-        switch (task.getExecutionState()) {
-            case RUNNING:
-                // Strange but we accept it.
-            case RUNNABLE:
-                schedulingState = TaskSchedulingStateType.READY;
-                break;
-            case SUSPENDED:
-                schedulingState = TaskSchedulingStateType.SUSPENDED;
-                break;
-            case WAITING:
-                schedulingState = TaskSchedulingStateType.WAITING;
-                break;
-            case CLOSED:
-                schedulingState = TaskSchedulingStateType.CLOSED;
-                break;
-            default:
-                throw new AssertionError(task.getExecutionState());
-        }
-        task.setSchedulingState(schedulingState);
     }
 
     public void modifyTask(String oid, Collection<? extends ItemDelta<?, ?>> modifications, OperationResult result)

@@ -12,7 +12,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType
 import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -47,9 +47,8 @@ public class QConnectorMapping
     }
 
     @Override
-    public ConnectorSqlTransformer createTransformer(
-            SqlTransformerContext transformerContext) {
-        return new ConnectorSqlTransformer(transformerContext, this);
+    public ConnectorSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
+        return new ConnectorSqlTransformer(transformerSupport, this);
     }
 
     @Override

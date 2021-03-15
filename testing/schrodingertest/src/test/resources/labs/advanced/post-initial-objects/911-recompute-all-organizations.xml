@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- (c) 2020 Evolveum, All rights reserved -->
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <s:type>c:OrgType</s:type>
+    <s:action>
+        <s:type>recompute</s:type>
+    </s:action>
+</s:search>

@@ -9,16 +9,12 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 /**
  * @author Radovan Semancik
  */
 public class EvaluatedPersonaConstructionImpl<AH extends AssignmentHolderType> implements EvaluatedAbstractConstruction<AH> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(EvaluatedPersonaConstructionImpl.class);
 
     private final PersonaConstruction<AH> construction;
 

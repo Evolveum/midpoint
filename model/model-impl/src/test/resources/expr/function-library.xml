@@ -1,0 +1,62 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<functionLibrary
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:p="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        oid="42c6fef1-370c-466b-a52e-747b52aacf0d">
+    <name>functionLibrary</name>
+
+    <function>
+        <name>custom</name>
+        <parameter>
+            <name>customValue</name>
+            <type>p:CustomType</type>
+        </parameter>
+        <parameter>
+            <name>extra</name>
+            <type>xsd:string</type>
+        </parameter>
+        <returnType>xsd:string</returnType>
+        <script>
+            <code>
+                import com.evolveum.midpoint.prism.path.ItemPath
+
+                log.info('customValue = {} ({})', customValue, customValue?.getClass())
+                log.info('extra = {}', extra)
+                customValue?.findProperty(ItemPath.create('stringValue'))?.getRealValue() + '-' +
+                        customValue?.findProperty(ItemPath.create('intValue'))?.getRealValue() + '-' +
+                        extra
+            </code>
+        </script>
+    </function>
+
+    <function>
+        <name>untyped</name>
+        <parameter>
+            <name>container</name>
+            <!-- Although it is possible to provide a PrismContainer here, it is more advisable
+                 to send a list of PrismContainerValues. (Just BTW, we can use a specific type then!) -->
+            <type>xsd:anyType</type>
+        </parameter>
+        <parameter>
+            <name>containerValue</name>
+            <type>xsd:anyType</type> <!-- Expects PrismContainerValue. Let us assume it is of any type. -->
+        </parameter>
+        <returnType>xsd:anyType</returnType> <!-- Returns PrismContainerValue -->
+        <script>
+            <code>
+                import com.evolveum.prism.xml.ns._public.types_3.ItemType
+
+                log.info('container = {} ({})', container, container?.class)
+                log.info('containerValue = {} ({})', containerValue, containerValue?.class)
+                container?.get(0)
+            </code>
+        </script>
+    </function>
+</functionLibrary>

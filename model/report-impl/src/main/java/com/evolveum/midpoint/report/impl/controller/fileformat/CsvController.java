@@ -284,7 +284,7 @@ public class CsvController extends FileFormatController {
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
         Class<ObjectType> type = resolveType(collection, compiledCollection);
-        Collection<SelectorOptions<GetOperationOptions>> options = DefaultColumnUtils.createOption(type, getReportService().getSchemaHelper());
+        Collection<SelectorOptions<GetOperationOptions>> options = DefaultColumnUtils.createOption(type, getReportService().getSchemaService());
         PrismObjectDefinition<ObjectType> def = getReportService().getPrismContext().getSchemaRegistry().findItemDefinitionByCompileTimeClass(type, PrismObjectDefinition.class);
 
         CompiledObjectCollectionView columnsCompiledView;

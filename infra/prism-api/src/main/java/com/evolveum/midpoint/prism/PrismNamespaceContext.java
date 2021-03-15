@@ -17,10 +17,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Random;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
@@ -337,6 +340,11 @@ public abstract class PrismNamespaceContext implements Serializable {
             return nsToPrefix;
         }
 
+        @Override
+        public Builder childBuilder() {
+            return new Builder(this);
+        }
+
     }
 
     private static class Inherited extends PrismNamespaceContext {
@@ -414,6 +422,11 @@ public abstract class PrismNamespaceContext implements Serializable {
         @Override
         public PrismNamespaceContext rebasedOn(PrismNamespaceContext current) {
             return parent.rebasedOn(current);
+        }
+
+        @Override
+        public Builder childBuilder() {
+            return parent.childBuilder();
         }
     }
 
@@ -494,6 +507,11 @@ public abstract class PrismNamespaceContext implements Serializable {
             return super.withoutDefault();
         }
 
+        @Override
+        public Builder childBuilder() {
+            return builder();
+        }
+
     }
 
     public enum PrefixPreference {
@@ -568,24 +586,99 @@ public abstract class PrismNamespaceContext implements Serializable {
 
     public static class Builder {
 
-        protected Builder() {
+        private PrismNamespaceContext parent;
 
+        protected Builder() {
+            parent = EMPTY;
+        }
+
+        public Builder(Impl impl) {
+            parent = impl;
         }
 
         private final Map<String, String> prefixToNamespace = new HashMap<>();
+        private final Map<String, String> namespaceToPrefix = new HashMap<>();
 
         public Builder addPrefix(String prefix, String namespace) {
+            var existing = parent.namespaceFor(prefix);
+            if (existing.isPresent() && existing.get().equals(namespace)) {
+                // No need to redefine existing prefix.
+                return this;
+            }
+
+
             String previous = prefixToNamespace.putIfAbsent(prefix, namespace);
             Preconditions.checkArgument(previous == null || namespace.equals(previous), "Prefix %s is already declared as '%s', trying to redeclare it as '%s'", prefix, previous, namespace);
+            namespaceToPrefix.put(namespace, prefix);
             return this;
         }
 
         public PrismNamespaceContext build() {
-            return from(prefixToNamespace);
+            return parent.childContext(prefixToNamespace);
         }
 
         public void defaultNamespace(String defaultNamespace) {
             addPrefix(DEFAULT_PREFIX, defaultNamespace);
         }
+
+        public Optional<String> namespaceFor(String prefix) {
+            if(prefix == null) {
+                prefix = DEFAULT_PREFIX;
+            }
+            String local = prefixToNamespace.get(prefix);
+            if (local != null) {
+                return Optional.of(local);
+            }
+            return parent.namespaceFor(prefix);
+        }
+
+        public Optional<String> prefixFor(String namespace) {
+            String local = namespaceToPrefix.get(namespace);
+            if (local != null) {
+                return Optional.of(local);
+            }
+            return parent.prefixFor(namespace);
+        }
+
+        public void addPrefixes(Map<String, String> undeclaredPrefixes) {
+            for (Map.Entry<String, String> mapping : undeclaredPrefixes.entrySet()) {
+                addPrefix(mapping.getKey(), mapping.getValue());
+            }
+        }
+
+        public @NotNull String assignPrefixFor(@NotNull String namespaceURI, @Nullable String suggestedPrefix) {
+            if (Strings.isNullOrEmpty(namespaceURI)) {
+                // NO namespace, do not assign any prefix
+                return DEFAULT_PREFIX;
+            }
+            suggestedPrefix = suggestedPrefix != null ? suggestedPrefix : "gen";
+            Optional<String> directHit = namespaceFor(suggestedPrefix);
+            if (directHit.isPresent() && directHit.get().equals(namespaceURI)) {
+                // suggestedPrefix is already pointing to namespace, use it
+                return suggestedPrefix;
+            }
+
+            Optional<String> other = prefixFor(namespaceURI);
+            if (other.isPresent()) {
+                // Namespace has other prefix assigned, ignore suggested reuse parent
+                return other.get();
+            }
+
+            // We assign new prefix - suggestedPrefix or randomPrefix, if suggestedPrefix is unavailable.
+            suggestedPrefix = suggestedPrefix.isEmpty() ? "gen" : suggestedPrefix;
+            String assigned = suggestedPrefix;
+            while (namespaceFor(assigned).isPresent()) {
+                assigned = randomPrefix(suggestedPrefix);
+            }
+            addPrefix(assigned, namespaceURI);
+            return assigned;
+        }
+
+
+        private @NotNull String randomPrefix(@Nullable String base) {
+            return base + new Random().nextInt(999);
+        }
     }
+
+    public abstract Builder childBuilder();
 }

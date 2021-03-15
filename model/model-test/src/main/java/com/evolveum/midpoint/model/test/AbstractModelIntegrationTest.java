@@ -182,7 +182,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired protected ProvisioningService provisioningService;
     @Autowired protected HookRegistry hookRegistry;
     @Autowired protected Clock clock;
-    @Autowired protected SchemaHelper schemaHelper;
+    @Autowired protected SchemaService schemaService;
     @Autowired protected DummyTransport dummyTransport;
     @Autowired protected SecurityEnforcer securityEnforcer;
     @Autowired protected SecurityContextManager securityContextManager;
@@ -3166,7 +3166,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void dumpTaskTree(String oid, OperationResult result)
             throws ObjectNotFoundException,
             SchemaException {
-        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                 .item(TaskType.F_SUBTASK_REF).retrieve()
                 .build();
         PrismObject<TaskType> task = taskManager.getObject(TaskType.class, oid, options, result);
@@ -3247,7 +3247,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void assertJpegPhoto(Class<? extends FocusType> clazz, String oid, byte[] expectedValue, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         PrismObject<? extends FocusType> object = repositoryService
-                .getObject(clazz, oid, schemaHelper.getOperationOptionsBuilder().retrieve().build(), result);
+                .getObject(clazz, oid, schemaService.getOperationOptionsBuilder().retrieve().build(), result);
         byte[] actualValue = object.asObjectable().getJpegPhoto();
         if (expectedValue == null) {
             if (actualValue != null) {
@@ -4334,9 +4334,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
         try {
             return dummyResource.getAccountByUsername(username);
-        } catch (ConnectException e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        } catch (FileNotFoundException e) {
+        } catch (ConnectException | FileNotFoundException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
     }
@@ -4345,9 +4343,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
         try {
             return dummyResource.getAccountById(id);
-        } catch (ConnectException e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        } catch (FileNotFoundException e) {
+        } catch (ConnectException | FileNotFoundException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
     }
@@ -6185,12 +6181,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected <O extends ObjectType> ModelContextAsserter<O, Void> assertPreviewContext(ModelContext<O> previewContext) {
         ModelContextAsserter<O, Void> asserter = ModelContextAsserter.forContext(previewContext, "preview context");
-        initializeAsserter(asserter);
-        return asserter;
-    }
-
-    protected OperationResultAsserter<Void> assertOperationResult(OperationResult result) {
-        OperationResultAsserter<Void> asserter = OperationResultAsserter.forResult(result);
         initializeAsserter(asserter);
         return asserter;
     }

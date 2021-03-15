@@ -1084,7 +1084,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query,
-                schemaHelper.getOperationOptionsBuilder().distinct().build(), result);
+                schemaService.getOperationOptionsBuilder().distinct().build(), result);
         result.recomputeStatus();
         assertTrue(result.isSuccess());
         assertEquals("Should find one object", 1, cases.size());

@@ -249,7 +249,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
     private void createPasswordPanel(WebMarkupContainer staticRegistrationForm) {
         // ProtectedStringType initialPassword = null;
         PasswordPanel password = new PasswordPanel(ID_PASSWORD,
-                new PropertyModel<>(getUserModel(), "credentials.password.value"), false, true);
+                new PropertyModel<>(getUserModel(), "credentials.password.value"), false, true, null, this);
         password.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         password.getBaseFormComponent().setRequired(true);
         staticRegistrationForm.add(password);

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -161,6 +163,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
         assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 2);
+
+        assertSerializable(context);
     }
 
     /**
@@ -203,6 +207,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
         assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 4);
+
+        assertSerializable(context);
     }
 
     /**
@@ -250,6 +256,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
         assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 3);
+
+        assertSerializable(context);
     }
 
     /**
@@ -300,6 +308,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
         assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 3);
+
+        assertSerializable(context);
     }
 
     @Test
@@ -344,6 +354,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
         assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 3);
+
+        assertSerializable(context);
     }
 
     @Test
@@ -382,6 +394,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
         assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 3);
+
+        assertSerializable(context);
     }
 
     @Test
@@ -439,6 +453,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
         assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 3);
+
+        assertSerializable(context);
     }
 
     @Test
@@ -484,6 +500,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 3);
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
         assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 2);
+
+        assertSerializable(context);
     }
 
     @Test
@@ -521,6 +539,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
         assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 3);
+
+        assertSerializable(context);
     }
 
     @Test
@@ -562,6 +582,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION,
                 "cc-from-1900-false-true", "has-student-assignment-false-true",
                 "has-student-assignment-false-any");
+
+        assertSerializable(context);
     }
 
     /**
@@ -598,6 +620,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertEvaluatedFocusPolicyRules(context, 5);
         assertFocusTriggers(context, null, 2);
         assertFocusTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 2);
+
+        assertSerializable(context);
     }
 
     @Test
@@ -624,6 +648,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
                 fail("Exception message was not as expected: " + e.getMessage());
             }
         }
+
+        assertSerializable(context);
     }
 
     @Test
@@ -651,6 +677,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
                 fail("Exception message was not as expected: " + e.getMessage());
             }
         }
+
+        assertSerializable(context);
     }
 
     @Test
@@ -708,6 +736,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
         PolicyConstraintsType pc4 = rule4.getPolicyConstraints();
         assertEquals(1, pc4.getModification().size());
         assertEquals("mod-inducement", pc4.getModification().get(0).getName());
+
+        assertSerializable(context);
     }
 
     @Test
@@ -735,6 +765,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
                 fail("Exception message was not as expected: " + e.getMessage());
             }
         }
+
+        assertSerializable(context);
     }
 
     // MID-4270
@@ -766,6 +798,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
                 fail("Exception message was not as expected: " + getTranslatedMessage(e));
             }
         }
+
+        assertSerializable(context);
     }
 
     // MID-4270
@@ -790,6 +824,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
         then();
         result.computeStatus();
         assertSuccess("unexpected failure", result);
+
+        assertSerializable(context);
     }
 
     // MID-4270
@@ -814,6 +850,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
         then();
         result.computeStatus();
         assertSuccess("unexpected failure", result);
+
+        assertSerializable(context);
     }
 
     // MID-4270
@@ -845,6 +883,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
                 fail("Exception message was not as expected: " + getTranslatedMessage(e));
             }
         }
+
+        assertSerializable(context);
     }
 
     // MID-4270
@@ -876,6 +916,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
                 fail("Exception message was not as expected: " + getTranslatedMessage(e));
             }
         }
-    }
 
+        assertSerializable(context);
+    }
 }

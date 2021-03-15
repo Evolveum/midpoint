@@ -127,7 +127,6 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
@@ -3882,7 +3881,7 @@ public final class WebComponentUtil {
             }
         }
 
-        return StringUtils.join(triggers, '\n');
+        return StringUtils.join(triggerTooltips, '\n');
     }
 
     private static <O extends ObjectType> void appendLifecycleState(StringBuilder title, IconType lifecycleStateIcon, O obj, PageBase pageBase) {
@@ -4865,7 +4864,7 @@ public final class WebComponentUtil {
         Task task = page.createSimpleTask("loadLookupTable");
         OperationResult result = task.getResult();
 
-        Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils.createLookupTableRetrieveOptions(page.getSchemaHelper());
+        Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils.createLookupTableRetrieveOptions(page.getSchemaService());
         return WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableUid, options, page, task, result);
     }
 

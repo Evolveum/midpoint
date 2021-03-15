@@ -72,7 +72,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
     private static final String TASK_OWNER2_FILENAME = "src/test/resources/basic/owner2.xml";
     private static final String TASK_OWNER2_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
     private static final String NS_WHATEVER = "http://myself.me/schemas/whatever";
-    public static final ItemName DEAD_ITEM_NAME = new ItemName(NS_WHATEVER, "dead");
+    private static final ItemName DEAD_ITEM_NAME = new ItemName(NS_WHATEVER, "dead");
 
     private static final File TEST_DIR = new File("src/test/resources/basic");
     private static final TestResource<TaskType> TASK_WITHOUT_PROGRESS = new TestResource<>(TEST_DIR, "task-without-progress.xml", "91919191-76e0-59e2-86d6-556655660003");
@@ -106,7 +106,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
     private static final TestResource<TaskType> TASK_SUSPENDED_TREE_CHILD_2 = new TestResource<>(TEST_DIR, "task-suspended-tree-child-2.xml", "20000000-76e0-59e2-86d6-556655660200");
     private static final TestResource<TaskType> TASK_DUMMY = new TestResource<>(TEST_DIR, "task-dummy.xml", "89bf08ec-c5b8-4641-95ca-37559c1f3896");
 
-    public static final ItemName SHIP_STATE_ITEM_NAME = new ItemName("http://myself.me/schemas/whatever", "shipState");
+    private static final ItemName SHIP_STATE_ITEM_NAME = new ItemName("http://myself.me/schemas/whatever", "shipState");
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -782,15 +782,15 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void waitUntilDone(String taskOid, OperationResult result, int duration, int checkInterval)
             throws SchemaException, ObjectNotFoundException, InterruptedException {
         long start = System.currentTimeMillis();
         while (System.currentTimeMillis() < start + duration) {
-            Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+            Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                     .item(TaskType.F_SUBTASK_REF).retrieve()
                     .build();
             TaskType task = taskManager.getObject(TaskType.class, taskOid, options, result).asObjectable();
-            OperationStatsType stats = task.getOperationStats();
             int totalSuccessCount = or0(TaskTypeUtil.getItemsProcessed(task.getOperationStats()));
             System.out.println((System.currentTimeMillis() - start) + ": subtasks: " + task.getSubtaskRef().size() +
                     ", progress = " + task.getProgress() + ", objects = " + totalSuccessCount);
@@ -924,7 +924,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         taskManager.suspendTask(task3.getOid(), 20000L, result);
     }
 
-    protected void assertNextRetryTimeSet(TaskType task, OperationResult result)
+    private void assertNextRetryTimeSet(TaskType task, OperationResult result)
             throws InterruptedException, SchemaException, ObjectNotFoundException {
         // this one may occasionally fail because of a race condition (nextRetryTimestamp is derived from quartz scheduling data;
         // and if the task is just being rescheduled because of a group limitation it might be temporarily null)
@@ -1035,7 +1035,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         String child11Oid = add(TASK_SUSPENDED_TREE_CHILD_1_1, result).getOid();
         String child2Oid = add(TASK_SUSPENDED_TREE_CHILD_2, result).getOid();
 
-        Collection<SelectorOptions<GetOperationOptions>> withChildren = schemaHelper.getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> withChildren = schemaService.getOperationOptionsBuilder()
                 .item(TaskType.F_SUBTASK_REF).retrieve()
                 .build();
 

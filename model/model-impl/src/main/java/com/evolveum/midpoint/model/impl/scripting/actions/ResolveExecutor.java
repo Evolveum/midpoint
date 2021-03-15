@@ -55,7 +55,7 @@ public class ResolveExecutor extends BaseActionExecutor {
             options = MiscSchemaUtil.optionsTypeToOptions(optionsBean, prismContext);
         } else {
             boolean noFetch = expressionHelper.getArgumentAsBoolean(action.getParameter(), PARAM_NO_FETCH, input, context, false, NAME, globalResult);
-            options = schemaHelper.getOperationOptionsBuilder().noFetch(noFetch).build();
+            options = schemaService.getOperationOptionsBuilder().noFetch(noFetch).build();
         }
 
         PipelineData output = PipelineData.createEmpty();

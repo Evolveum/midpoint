@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 
-import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.integerMapper;
 import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.*;
 
@@ -16,8 +15,9 @@ import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -63,9 +63,9 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
                         TimestampItemFilterProcessor.mapper(path(q -> q.passwordModifyTimestamp)));
         nestedMapping(F_ACTIVATION, ActivationType.class)
                 .addItemMapping(ActivationType.F_ADMINISTRATIVE_STATUS,
-                        integerMapper(path(q -> q.administrativeStatus)))
+                        EnumItemFilterProcessor.mapper(path(q -> q.administrativeStatus)))
                 .addItemMapping(ActivationType.F_EFFECTIVE_STATUS,
-                        integerMapper(path(q -> q.effectiveStatus)))
+                        EnumItemFilterProcessor.mapper(path(q -> q.effectiveStatus)))
                 .addItemMapping(ActivationType.F_ENABLE_TIMESTAMP,
                         TimestampItemFilterProcessor.mapper(path(q -> q.enableTimestamp)))
                 .addItemMapping(ActivationType.F_DISABLE_REASON,
@@ -73,7 +73,7 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
                 .addItemMapping(ActivationType.F_DISABLE_REASON,
                         stringMapper(path(q -> q.disableReason)))
                 .addItemMapping(ActivationType.F_VALIDITY_STATUS,
-                        integerMapper(path(q -> q.validityStatus)))
+                        EnumItemFilterProcessor.mapper(path(q -> q.validityStatus)))
                 .addItemMapping(ActivationType.F_VALID_FROM,
                         TimestampItemFilterProcessor.mapper(path(q -> q.validFrom)))
                 .addItemMapping(ActivationType.F_VALID_TO,
@@ -83,9 +83,9 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
                 .addItemMapping(ActivationType.F_ARCHIVE_TIMESTAMP,
                         TimestampItemFilterProcessor.mapper(path(q -> q.archiveTimestamp)));
 
-        addRefMapping(F_DELEGATED_REF, QReferenceMapping.INSTANCE_DELEGATED);
-        addRefMapping(F_PERSONA_REF, QReferenceMapping.INSTANCE_PERSONA);
-        addRefMapping(F_LINK_REF, QReferenceMapping.INSTANCE_USER_ACCOUNT);
+        addRefMapping(F_DELEGATED_REF, QObjectReferenceMapping.INSTANCE_DELEGATED);
+        addRefMapping(F_PERSONA_REF, QObjectReferenceMapping.INSTANCE_PERSONA);
+        addRefMapping(F_LINK_REF, QObjectReferenceMapping.INSTANCE_PROJECTION);
     }
 
     @Override
@@ -103,8 +103,8 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
 
     @Override
     public FocusSqlTransformer<S, Q, R> createTransformer(
-            SqlTransformerContext transformerContext) {
-        return new FocusSqlTransformer<>(transformerContext, this);
+            SqlTransformerSupport transformerSupport) {
+        return new FocusSqlTransformer<>(transformerSupport, this);
     }
 
     @Override

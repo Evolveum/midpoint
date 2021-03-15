@@ -30,7 +30,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -67,7 +67,7 @@ public abstract class BaseActionExecutor implements ActionExecutor {
     @Autowired protected MidpointFunctions midpointFunctions;
     @Autowired protected RelationRegistry relationRegistry;
     @Autowired protected MatchingRuleRegistry matchingRuleRegistry;
-    @Autowired protected SchemaHelper schemaHelper;
+    @Autowired protected SchemaService schemaService;
 
     private String optionsSuffix(ModelExecuteOptions options) {
         return options.notEmpty() ? " " + options : "";

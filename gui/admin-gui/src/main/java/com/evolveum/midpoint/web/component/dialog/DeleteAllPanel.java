@@ -233,7 +233,7 @@ public class DeleteAllPanel extends Panel  implements Popupable{
         Task task = getPagebase().createSimpleTask(OPERATION_COUNT_TASK);
         OperationResult result = new OperationResult(OPERATION_COUNT_TASK);
 
-        Collection<SelectorOptions<GetOperationOptions>> options = getPagebase().getSchemaHelper().getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> options = getPagebase().getSchemaService().getOperationOptionsBuilder()
                 .raw().build();
 
         try {
@@ -259,7 +259,7 @@ public class DeleteAllPanel extends Panel  implements Popupable{
         Task task = getPagebase().createSimpleTask(OPERATION_COUNT_TASK);
         OperationResult result = new OperationResult(OPERATION_COUNT_TASK);
 
-        Collection<SelectorOptions<GetOperationOptions>> options = getPagebase().getSchemaHelper().getOperationOptionsBuilder().raw().build();
+        Collection<SelectorOptions<GetOperationOptions>> options = getPagebase().getSchemaService().getOperationOptionsBuilder().raw().build();
 
         try {
             dto.setOrgUnitCount(getPagebase().getModelService().countObjects(OrgType.class, null, options, task, result));
@@ -278,7 +278,7 @@ public class DeleteAllPanel extends Panel  implements Popupable{
         Task task = getPagebase().createSimpleTask(OPERATION_SEARCH_ITERATIVE_TASK);
         OperationResult result = new OperationResult(OPERATION_SEARCH_ITERATIVE_TASK);
 
-        Collection<SelectorOptions<GetOperationOptions>> options = getPagebase().getSchemaHelper().getOperationOptionsBuilder().raw().build();
+        Collection<SelectorOptions<GetOperationOptions>> options = getPagebase().getSchemaService().getOperationOptionsBuilder().raw().build();
 
         try {
             PrismContext prismContext = getPagebase().getPrismContext();

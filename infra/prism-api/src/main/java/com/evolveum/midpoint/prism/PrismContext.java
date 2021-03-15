@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.PrismQueryLanguageParser;
+import com.evolveum.midpoint.prism.query.PrismQuerySerializer;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
@@ -404,4 +405,9 @@ public interface PrismContext extends ProtectorCreator {
 
     PrismQueryLanguageParser createQueryParser(Map<String, String> prefixToNamespace);
 
+    PrismQuerySerializer querySerializer();
+
+    static PrismContext get() {
+        return PrismService.get().prismContext();
+    }
 }

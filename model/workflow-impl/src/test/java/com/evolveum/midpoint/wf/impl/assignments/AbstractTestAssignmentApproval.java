@@ -19,10 +19,6 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.test.TestResource;
-
-import com.evolveum.midpoint.util.MiscUtil;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -41,8 +37,9 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.asserter.OperationResultAsserter;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.ExpectedWorkItem;
@@ -93,7 +90,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
     private static final TestResource USER_LEAD10 = new TestResource(TEST_RESOURCE_DIR, "user-lead10.xml", "00000001-d34d-b33f-f00d-L00000000010");
 
     // Draft user. His assignments should undertake approvals just like other users' assignments (MID-6113).
-    private static final TestResource USER_DRAFT = new TestResource(TEST_RESOURCE_DIR, "user-draft.xml","e3c00bba-8ce0-4727-a294-91842264c2de");
+    private static final TestResource USER_DRAFT = new TestResource(TEST_RESOURCE_DIR, "user-draft.xml", "e3c00bba-8ce0-4727-a294-91842264c2de");
 
     protected abstract String getRoleOid(int number);
     protected abstract String getRoleName(int number);
@@ -139,9 +136,10 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         OperationResult result = executeAssignRole1(userJackOid, false, false, USER_LEAD1.oid, null, true);
 
         // MID-5814
-        OperationResultAsserter.forResult(result)
-                .assertTracedSomewhere() // just checking that tracing works
-                .assertNoLogEntry(text -> text.contains("Unresolved object reference in delta being audited"));
+        assertThatOperationResult(result)
+                .isTracedSomewhere()
+                .noneLogEntryMatches(text ->
+                        text.contains("Unresolved object reference in delta being audited"));
 
         // MID-6611
         String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());

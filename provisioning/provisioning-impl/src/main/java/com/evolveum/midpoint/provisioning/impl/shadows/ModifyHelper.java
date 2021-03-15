@@ -81,7 +81,7 @@ class ModifyHelper {
     @Autowired private CommonHelper commonHelper;
     @Autowired private RefreshHelper refreshHelper;
 
-    public String modifyShadow(PrismObject<ShadowType> repoShadow,
+    String modifyShadow(PrismObject<ShadowType> repoShadow,
             Collection<? extends ItemDelta<?, ?>> modifications, OperationProvisioningScriptsType scripts,
             ProvisioningOperationOptions options, Task task, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
@@ -121,14 +121,18 @@ class ModifyHelper {
             options.setForceRetry(Boolean.TRUE);
         }
 
-        return modifyShadowAttempt(ctx, modifications, scripts, options, opState, task, parentResult);
+        return modifyShadowAttempt(ctx, modifications, scripts, options, opState, false, task, parentResult);
     }
 
+    /**
+     * @param inRefresh True if we are already in refresh shadow method. This means we shouldn't refresh ourselves!
+     */
     String modifyShadowAttempt(ProvisioningContext ctx,
             Collection<? extends ItemDelta<?, ?>> modifications,
             OperationProvisioningScriptsType scripts,
             ProvisioningOperationOptions options,
             ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+            boolean inRefresh,
             Task task, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
             SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, EncryptionException, ObjectAlreadyExistsException {
@@ -159,7 +163,7 @@ class ModifyHelper {
                 LOGGER.trace("MODIFY {}: resource modification, execution starting\n{}", repoShadow, DebugUtil.debugDumpLazily(modifications));
 
                 RefreshShadowOperation refreshShadowOperation = null;
-                if (Util.shouldRefresh(repoShadow)) {
+                if (!inRefresh && Util.shouldRefresh(repoShadow)) {
                     refreshShadowOperation = refreshHelper.refreshShadow(repoShadow, options, task, parentResult);
                 }
 

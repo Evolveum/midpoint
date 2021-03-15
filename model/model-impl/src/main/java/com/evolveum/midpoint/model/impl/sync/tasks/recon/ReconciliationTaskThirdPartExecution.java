@@ -90,7 +90,7 @@ class ReconciliationTaskThirdPartExecution
 
     @Override
     protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(OperationResult opResult) {
-        return taskHandler.schemaHelper.getOperationOptionsBuilder()
+        return taskHandler.schemaService.getOperationOptionsBuilder()
                 .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
                 .build();
     }
@@ -141,6 +141,8 @@ class ReconciliationTaskThirdPartExecution
                     options = SelectorOptions.createCollection(GetOperationOptions.createForceRefresh());
                 }
                 taskHandler.getProvisioningService().getObject(ShadowType.class, shadow.getOid(), options, task, result);
+                // In normal case, we do not get ObjectNotFoundException. The provisioning simply discovers that the shadow
+                // does not exist on the resource, and invokes the discovery that marks the shadow as dead and synchronizes it.
             } catch (ObjectNotFoundException e) {
                 result.muteLastSubresultError();
                 // Account is gone

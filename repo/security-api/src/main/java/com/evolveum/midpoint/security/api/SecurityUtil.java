@@ -380,7 +380,7 @@ public class SecurityUtil {
         return SecurityContextHolder.getContext().getAuthentication();
     }
 
-    public static boolean isRecordSessionlessAccessChannel(String channel) {
+    public static boolean isRecordSessionLessAccessChannel(String channel) {
         if (SchemaConstants.CHANNEL_REST_URI.equals(channel)
                 || SchemaConstants.CHANNEL_ACTUATOR_URI.equals(channel)) {
             return true;
@@ -393,7 +393,7 @@ public class SecurityUtil {
         if (systemConfiguration != null && systemConfiguration.getAudit() != null && systemConfiguration.getAudit().getEventRecording() != null) {
             isAudited = Boolean.TRUE.equals(systemConfiguration.getAudit().getEventRecording().isRecordSessionlessAccess());
         }
-        boolean isRecordSessionlessAccessChannel = isRecordSessionlessAccessChannel(channel);
+        boolean isRecordSessionlessAccessChannel = isRecordSessionLessAccessChannel(channel);
 
         if (!isRecordSessionlessAccessChannel){
             return true;

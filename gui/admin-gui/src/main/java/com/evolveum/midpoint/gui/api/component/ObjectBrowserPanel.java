@@ -249,7 +249,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 
     private Collection<SelectorOptions<GetOperationOptions>> getOptions() {
         if (ObjectTypes.SHADOW.getTypeQName().equals(typeModel.getObject() != null ? typeModel.getObject().getTypeQName() : null)) {
-            return getSchemaHelper().getOperationOptionsBuilder().noFetch().build();
+            return getSchemaService().getOperationOptionsBuilder().noFetch().build();
         }
         return null;
     }

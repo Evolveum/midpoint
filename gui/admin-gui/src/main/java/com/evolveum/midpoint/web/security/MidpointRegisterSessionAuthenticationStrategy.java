@@ -31,7 +31,7 @@ public class MidpointRegisterSessionAuthenticationStrategy extends RegisterSessi
 
     @Override
     public void onAuthentication(Authentication authentication, HttpServletRequest request, HttpServletResponse response) throws SessionAuthenticationException {
-        if (!SecurityUtils.isRecordSessionlessAccessChannel(request)) {
+        if (!SecurityUtils.isRecordSessionLessAccessChannel(request)) {
             strategy.onAuthentication(authentication, request, response);
         }
     }

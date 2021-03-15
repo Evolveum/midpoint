@@ -9,14 +9,12 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 import java.sql.Types;
 import java.time.Instant;
 
-import com.querydsl.core.types.dsl.ArrayPath;
-import com.querydsl.core.types.dsl.DateTimePath;
-import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.ForeignKey;
 import com.querydsl.sql.PrimaryKey;
 
+import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
@@ -38,23 +36,23 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     public static final ColumnMetadata OID =
             ColumnMetadata.named("oid").ofType(UuidPath.UUID_TYPE).notNull();
     public static final ColumnMetadata OBJECT_TYPE =
-            ColumnMetadata.named("objectType").ofType(Types.INTEGER).notNull();
-    public static final ColumnMetadata NAME_NORM =
-            ColumnMetadata.named("name_norm").ofType(Types.VARCHAR).withSize(255).notNull();
+            ColumnMetadata.named("objectType").ofType(Types.OTHER).notNull();
     public static final ColumnMetadata NAME_ORIG =
             ColumnMetadata.named("name_orig").ofType(Types.VARCHAR).withSize(255).notNull();
+    public static final ColumnMetadata NAME_NORM =
+            ColumnMetadata.named("name_norm").ofType(Types.VARCHAR).withSize(255).notNull();
     public static final ColumnMetadata FULL_OBJECT =
             ColumnMetadata.named("fullObject").ofType(Types.BINARY);
     public static final ColumnMetadata TENANT_REF_TARGET_OID =
             ColumnMetadata.named("tenantRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata TENANT_REF_TARGET_TYPE =
-            ColumnMetadata.named("tenantRef_targetType").ofType(Types.INTEGER);
+            ColumnMetadata.named("tenantRef_targetType").ofType(Types.OTHER);
     public static final ColumnMetadata TENANT_REF_RELATION_ID =
             ColumnMetadata.named("tenantRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata LIFECYCLE_STATE =
             ColumnMetadata.named("lifecycleState").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata CID_SEQ =
-            ColumnMetadata.named("cid_seq").ofType(Types.INTEGER).notNull();
+            ColumnMetadata.named("cid_seq").ofType(Types.BIGINT).notNull();
     public static final ColumnMetadata VERSION =
             ColumnMetadata.named("version").ofType(Types.INTEGER).notNull();
     public static final ColumnMetadata EXT =
@@ -63,7 +61,7 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     public static final ColumnMetadata CREATOR_REF_TARGET_OID =
             ColumnMetadata.named("creatorRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata CREATOR_REF_TARGET_TYPE =
-            ColumnMetadata.named("creatorRef_targetType").ofType(Types.INTEGER);
+            ColumnMetadata.named("creatorRef_targetType").ofType(Types.OTHER);
     public static final ColumnMetadata CREATOR_REF_RELATION_ID =
             ColumnMetadata.named("creatorRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata CREATE_CHANNEL_ID =
@@ -73,7 +71,7 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     public static final ColumnMetadata MODIFIER_REF_TARGET_OID =
             ColumnMetadata.named("modifierRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata MODIFIER_REF_TARGET_TYPE =
-            ColumnMetadata.named("modifierRef_targetType").ofType(Types.INTEGER);
+            ColumnMetadata.named("modifierRef_targetType").ofType(Types.OTHER);
     public static final ColumnMetadata MODIFIER_REF_RELATION_ID =
             ColumnMetadata.named("modifierRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata MODIFY_CHANNEL_ID =
@@ -83,25 +81,26 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
 
     // columns and relations
     public final UuidPath oid = createUuid("oid", OID);
-    public final NumberPath<Integer> objectType = createInteger("objectType", OBJECT_TYPE);
-    public final StringPath nameNorm = createString("nameNorm", NAME_NORM);
+    public final EnumPath<MObjectType> objectType =
+            createEnum("objectType", MObjectType.class, OBJECT_TYPE);
     public final StringPath nameOrig = createString("nameOrig", NAME_ORIG);
+    public final StringPath nameNorm = createString("nameNorm", NAME_NORM);
     public final ArrayPath<byte[], Byte> fullObject = createByteArray("fullObject", FULL_OBJECT);
     public final UuidPath tenantRefTargetOid =
             createUuid("tenantRefTargetOid", TENANT_REF_TARGET_OID);
-    public final NumberPath<Integer> tenantRefTargetType =
-            createInteger("tenantRefTargetType", TENANT_REF_TARGET_TYPE);
+    public final EnumPath<MObjectType> tenantRefTargetType =
+            createEnum("tenantRefTargetType", MObjectType.class, TENANT_REF_TARGET_TYPE);
     public final NumberPath<Integer> tenantRefRelationId =
             createInteger("tenantRefRelationId", TENANT_REF_RELATION_ID);
     public final StringPath lifecycleState = createString("lifecycleState", LIFECYCLE_STATE);
-    public final NumberPath<Integer> containerIdSeq = createInteger("containerIdSeq", CID_SEQ);
+    public final NumberPath<Long> containerIdSeq = createLong("containerIdSeq", CID_SEQ);
     public final NumberPath<Integer> version = createInteger("version", VERSION);
     public final ArrayPath<byte[], Byte> ext = createByteArray("ext", EXT); // TODO is byte[] the right type?
     // metadata attributes
     public final UuidPath creatorRefTargetOid =
             createUuid("creatorRefTargetOid", CREATOR_REF_TARGET_OID);
-    public final NumberPath<Integer> creatorRefTargetType =
-            createInteger("creatorRefTargetType", CREATOR_REF_TARGET_TYPE);
+    public final EnumPath<MObjectType> creatorRefTargetType =
+            createEnum("creatorRefTargetType", MObjectType.class, CREATOR_REF_TARGET_TYPE);
     public final NumberPath<Integer> creatorRefRelationId =
             createInteger("creatorRefRelationId", CREATOR_REF_RELATION_ID);
     public final NumberPath<Integer> createChannelId =
@@ -110,8 +109,8 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
             createInstant("createTimestamp", CREATE_TIMESTAMP);
     public final UuidPath modifierRefTargetOid =
             createUuid("modifierRefTargetOid", MODIFIER_REF_TARGET_OID);
-    public final NumberPath<Integer> modifierRefTargetType =
-            createInteger("modifierRefTargetType", MODIFIER_REF_TARGET_TYPE);
+    public final EnumPath<MObjectType> modifierRefTargetType =
+            createEnum("modifierRefTargetType", MObjectType.class, MODIFIER_REF_TARGET_TYPE);
     public final NumberPath<Integer> modifierRefRelationId =
             createInteger("modifierRefRelationId", MODIFIER_REF_RELATION_ID);
     public final NumberPath<Integer> modifyChannelId =
@@ -135,7 +134,7 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
         this(type, variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
-    public QObject(Class<? extends T> type, String variable, String schema, String table) {
+    public QObject(Class<T> type, String variable, String schema, String table) {
         super(type, variable, schema, table);
     }
 }

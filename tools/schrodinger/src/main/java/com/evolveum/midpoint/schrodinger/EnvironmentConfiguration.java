@@ -21,6 +21,10 @@ public class EnvironmentConfiguration {
 
     private String baseUrl;
 
+    private boolean useRemoteWebdriver;
+
+    private String remoteWebdriverUrl;
+
     public EnvironmentConfiguration driver(final WebDriver driver) {
         Validate.notNull(driver, "Web driver must not be null");
 
@@ -37,6 +41,16 @@ public class EnvironmentConfiguration {
 
     public EnvironmentConfiguration driverLocation(final String driverLocation) {
         this.driverLocation = driverLocation;
+        return this;
+    }
+
+    public EnvironmentConfiguration remoteWebdriverUrl(final String remoteWebdriverUrl) {
+        this.remoteWebdriverUrl = remoteWebdriverUrl;
+        return this;
+    }
+
+    public EnvironmentConfiguration useRemoteWebdriver(final boolean useRemoteWebdriver) {
+        this.useRemoteWebdriver = useRemoteWebdriver;
         return this;
     }
 
@@ -59,6 +73,14 @@ public class EnvironmentConfiguration {
 
     public boolean isHeadless() {
         return headless;
+    }
+
+    public boolean isUseRemoteWebdriver() {
+        return useRemoteWebdriver;
+    }
+
+    public String getRemoteWebdriverUrl() {
+        return remoteWebdriverUrl;
     }
 
     public void validate() {

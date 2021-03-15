@@ -6,13 +6,14 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QDashboard extends QObject<MDashboard> {
+public class QDashboard extends QObject<MObject> {
 
     private static final long serialVersionUID = -3546780348548754579L;
 
@@ -25,6 +26,6 @@ public class QDashboard extends QObject<MDashboard> {
     }
 
     public QDashboard(String variable, String schema, String table) {
-        super(MDashboard.class, variable, schema, table);
+        super(MObject.class, variable, schema, table);
     }
 }

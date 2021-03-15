@@ -94,7 +94,7 @@ public class UpAndDown implements BeanFactoryAware {
         }
     }
 
-    public void initInternal(OperationResult result) throws TaskManagerInitializationException {
+    private void initInternal(OperationResult result) throws TaskManagerInitializationException {
 
         LOGGER.info("Task Manager initialization.");
 

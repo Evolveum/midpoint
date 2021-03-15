@@ -77,7 +77,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     protected final Q entityPath;
     protected final QueryTableMapping<S, Q, R> entityPathMapping;
     protected final SqlRepoContext sqlRepoContext;
-    protected final SqlTransformerContext transformerContext;
+    protected final SqlTransformerSupport transformerSupport;
 
     protected boolean notFilterUsed = false;
 
@@ -88,12 +88,12 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
             Q entityPath,
             QueryTableMapping<S, Q, R> mapping,
             SqlRepoContext sqlRepoContext,
-            SqlTransformerContext transformerContext,
+            SqlTransformerSupport transformerSupport,
             SQLQuery<?> query) {
         this.entityPath = entityPath;
         this.entityPathMapping = mapping;
         this.sqlRepoContext = sqlRepoContext;
-        this.transformerContext = transformerContext;
+        this.transformerSupport = transformerSupport;
         this.sqlQuery = query;
     }
 
@@ -345,14 +345,19 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     }
 
     public PrismContext prismContext() {
-        return transformerContext.prismContext();
+        return transformerSupport.prismContext();
     }
 
     public <T> Class<? extends T> qNameToSchemaClass(@NotNull QName qName) {
-        return transformerContext.qNameToSchemaClass(qName);
+        return transformerSupport.qNameToSchemaClass(qName);
     }
 
     public CanonicalItemPath createCanonicalItemPath(@NotNull ItemPath itemPath) {
-        return transformerContext.prismContext().createCanonicalItemPath(itemPath);
+        return transformerSupport.prismContext().createCanonicalItemPath(itemPath);
+    }
+
+    @NotNull
+    public QName normalizeRelation(QName qName) {
+        return transformerSupport.normalizeRelation(qName);
     }
 }
