@@ -284,6 +284,9 @@ public class MiscUtil {
         return date == null ? null : asXMLGregorianCalendar(date.getTime());
     }
 
+    /**
+     * Returns null for null input, but <b>also for value of 0L</b>.
+     */
     public static @Nullable XMLGregorianCalendar asXMLGregorianCalendar(
             @Nullable Long timeInMillis) {
         if (timeInMillis == null || timeInMillis == 0) {

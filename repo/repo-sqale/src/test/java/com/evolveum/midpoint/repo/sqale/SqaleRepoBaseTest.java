@@ -18,6 +18,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -105,5 +106,21 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
                     .select(path)
                     .fetch();
         }
+    }
+
+    protected <R, Q extends FlexibleRelationalPathBase<R>> R selectOne(
+            Q path, Predicate... conditions) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()) {
+            return jdbcSession.newQuery()
+                    .from(path)
+                    .where(conditions)
+                    .select(path)
+                    .fetchOne();
+        }
+    }
+
+    protected String cachedUriById(Integer uriId) {
+        QUri qUri = QUri.DEFAULT;
+        return selectOne(qUri, qUri.id.eq(uriId)).uri;
     }
 }
