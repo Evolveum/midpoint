@@ -704,11 +704,14 @@ public class SecurityUtils {
         return true;
     }
 
-    public static boolean isRecordSessionlessAccessChannel(HttpServletRequest httpRequest) {
+    public static boolean isRecordSessionLessAccessChannel(HttpServletRequest httpRequest) {
         if (httpRequest != null) {
+            if (isSpecificSequence(httpRequest)){
+                return true;
+            }
             String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
             String channel = SecurityUtils.searchChannelByPath(localePath);
-            return SecurityUtil.isRecordSessionlessAccessChannel(channel);
+            return SecurityUtil.isRecordSessionLessAccessChannel(channel);
         }
         return false;
     }

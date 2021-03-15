@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.security.filter;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;

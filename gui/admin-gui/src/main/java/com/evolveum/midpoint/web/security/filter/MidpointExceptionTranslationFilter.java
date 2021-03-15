@@ -6,10 +6,11 @@
  */
 package com.evolveum.midpoint.web.security.filter;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -47,7 +48,7 @@ public class MidpointExceptionTranslationFilter extends ExceptionTranslationFilt
         requestCache.saveRequest(request, response);
         LOGGER.debug("Calling Authentication entry point.");
         getAuthenticationEntryPoint().commence(request, response, reason);
-        if (authentication instanceof MidpointAuthentication){
+        if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
             if (moduleAuthentication != null && moduleAuthentication.getAuthentication() instanceof AnonymousAuthenticationToken) {
@@ -57,6 +58,5 @@ public class MidpointExceptionTranslationFilter extends ExceptionTranslationFilt
             SecurityContextHolder.getContext().setAuthentication(mpAuthentication);
         }
     }
-
 
 }

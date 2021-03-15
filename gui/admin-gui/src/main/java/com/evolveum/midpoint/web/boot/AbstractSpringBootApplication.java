@@ -39,8 +39,6 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.filter.DelegatingFilterProxy;
 import ro.isdc.wro.http.WroFilter;
@@ -137,11 +135,6 @@ public abstract class AbstractSpringBootApplication extends SpringBootServletIni
     @Bean
     public ErrorPageRegistrar errorPageRegistrar() {
         return new MidPointErrorPageRegistrar();
-    }
-
-    @Bean
-    public SessionRegistry sessionRegistry() {
-        return new SessionRegistryImpl();
     }
 
     @Bean

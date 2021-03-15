@@ -15,10 +15,12 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
@@ -110,6 +112,17 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
         return objectObjectPostProcessor.postProcess(new AuditedAccessDeniedHandler());
     }
 
+    @Primary
+    @Bean
+    public ObjectPostProcessor<Object> postProcessor(AutowireCapableBeanFactory autowireBeanFactory) {
+        return new MidpointAutowireBeanFactoryObjectPostProcessor(autowireBeanFactory);
+    }
+
+    @Bean
+    public SessionRegistry sessionRegistry(RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher) {
+        return new MidpointSessionRegistry(removeUnusedSecurityFilterPublisher);
+    }
+
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
         return new WicketLoginUrlAuthenticationEntryPoint("/login");
@@ -170,7 +183,7 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
         HttpSessionSecurityContextRepository httpSecurityRepository = new HttpSessionSecurityContextRepository() {
             @Override
             public void saveContext(SecurityContext context, HttpServletRequest request, HttpServletResponse response) {
-                if(!SecurityUtils.isRecordSessionlessAccessChannel(request)) {
+                if(!SecurityUtils.isRecordSessionLessAccessChannel(request)) {
                     super.saveContext(context, request, response);
                 }
             }
