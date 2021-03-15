@@ -33,7 +33,7 @@ public class TranslateExceptionFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
             if (!response.isCommitted()) {
-                if (SecurityUtils.isRecordSessionlessAccessChannel(request)) {
+                if (SecurityUtils.isRecordSessionLessAccessChannel(request)) {
                     response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 } else {
                     response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
