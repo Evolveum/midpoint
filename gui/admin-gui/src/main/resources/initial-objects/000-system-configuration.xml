@@ -454,6 +454,9 @@
                         <c:path>executionStatus</c:path>
                     </item>
                     <item>
+                        <c:path>schedulingState</c:path>
+                    </item>
+                    <item>
                         <c:path>node</c:path>
                     </item>
                     <item>

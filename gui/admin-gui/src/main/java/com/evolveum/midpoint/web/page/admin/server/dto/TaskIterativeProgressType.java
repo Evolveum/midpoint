@@ -87,7 +87,7 @@ public class TaskIterativeProgressType implements Serializable {
     }
 
     private String createInfoBoxMessage(String result, ProcessedItemSetType processedItemSetType) {
-        return getString("TaskIterativeProgress.box.title" + result, getFormattedDate(processedItemSetType));
+        return getString("TaskIterativeProgress.box.title." + result, getFormattedDate(processedItemSetType));
     }
 
     //TODO use also this in chart?

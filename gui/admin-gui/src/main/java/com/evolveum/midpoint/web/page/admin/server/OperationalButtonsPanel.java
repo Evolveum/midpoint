@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2020-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.Iterator;
@@ -10,6 +16,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 public class OperationalButtonsPanel extends BasePanel<Void> {
 
     private static final String ID_BUTTONS = "buttons";
+    private static final String ID_STATE_BUTTONS = "stateButtons";
 
     public OperationalButtonsPanel(String id) {
         super(id);
@@ -27,9 +34,18 @@ public class OperationalButtonsPanel extends BasePanel<Void> {
         add(repeatingView);
 
         addButtons(repeatingView);
+
+        RepeatingView stateButtonsView = new RepeatingView(ID_STATE_BUTTONS);
+        add(stateButtonsView);
+
+        addStateButtons(stateButtonsView);
     }
 
     protected void addButtons(RepeatingView repeatingView) {
+
+    }
+
+    protected void addStateButtons(RepeatingView stateButtonsView) {
 
     }
 
