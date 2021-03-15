@@ -191,6 +191,7 @@
         <h2.version>1.4.193</h2.version>
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers -->
         <wicket.version>8.6.0</wicket.version>
+        <wicket.chartjs>0.1</wicket.chartjs>
         <!-- Groovy 2.5.14 is also default for Spring Boot 2.4.3 -->
         <groovy.version>2.5.14</groovy.version>
         <xmlsec.version>2.1.4</xmlsec.version>
@@ -253,11 +254,11 @@
                 </exclusions>
             </dependency>
 
-            <!-- WICKET -->
+            <!--  -->
             <dependency>
                 <groupId>org.apache.wicket</groupId>
                 <artifactId>wicket-core</artifactId>
-                <version>${wicket.version}</version>
+                <version>${wicket.versionWICKET}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.wicket</groupId>
@@ -314,6 +315,11 @@
                 <groupId>org.apache.wicket</groupId>
                 <artifactId>wicket-datetime</artifactId>
                 <version>8.0.0-M7</version>
+            </dependency>
+            <dependency>
+                <groupId>com.evolveum.chartjs</groupId>
+                <artifactId>wicket-chartjs-core</artifactId>
+                <version>${wicket.chartjs}</version>
             </dependency>
             <dependency>
                 <groupId>org.ow2.asm</groupId>
