@@ -899,19 +899,18 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         OperationResult result = task.getResult();
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_OPENDJ_OID, null);
 
-        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
-        display("User before", userBefore);
-        UserAsserter.forUser(userBefore)
-                .assertLiveLinks(1);
+        String liveLinKOidBefore = assertUserBefore(USER_GUYBRUSH_OID)
+                .links()
+                    .singleLive()
+                        .getOid();
 
-        ObjectReferenceType linkRef = userBefore.asObjectable().getLinkRef().iterator().next();
-        PrismObject<ShadowType> shadowBefore = getShadowModel(linkRef.getOid());
+        PrismObject<ShadowType> shadowBefore = getShadowModel(liveLinKOidBefore);
         display("Model Shadow before", shadowBefore);
 
         String dn = ShadowUtil.getAttributeValue(shadowBefore, RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
         openDJController.delete(dn);
 
-        PrismObject<ShadowType> repoShadowBefore = getShadowRepo(linkRef.getOid());
+        PrismObject<ShadowType> repoShadowBefore = getShadowRepo(liveLinKOidBefore);
         assertNotNull("Repo shadow is gone!", repoShadowBefore);
         display("Repository shadow before", repoShadowBefore);
         assertNotSame("Oh my! Shadow is dead!", repoShadowBefore.asObjectable().isDead(), Boolean.TRUE);
@@ -926,16 +925,16 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("User after", userAfter);
-        String liveLinkAfterOid = assertUser(userAfter, "after")
+        String liveLinkOidAfter = assertUser(userAfter, "after")
                 .links()
-                    .assertLinks(1, 1)
+                    .assertLinks(1, isReaper() ? 0 : 1)
                     .singleLive()
                         .resolveTarget()
                         .display("live shadow after")
                         .getOid();
 
-        assertThat(linkRef.getOid()).withFailMessage("Old and new shadow with the same oid?")
-                .isNotEqualTo(liveLinkAfterOid);
+        assertThat(liveLinKOidBefore).withFailMessage("Old and new shadow with the same oid?")
+                .isNotEqualTo(liveLinkOidAfter);
 
         Entry entryAfter = openDJController.fetchEntry(dn);
         display("Entry after", entryAfter);
@@ -955,7 +954,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         display("User before", userBefore);
         UserAsserter.forUser(userBefore)
                 .links()
-                .assertLinks(1, 1);
+                .assertLinks(1, isReaper() ? 0 : 1);
 
         String dn = null;
         String liveOidBefore = null;
@@ -2887,11 +2886,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         return assertOneLinkRef(repoUser);
     }
 
-    private String assertUserOneLiveLinkRef(String userOid) throws Exception {
-        PrismObject<UserType> repoUser = getRepoUser(userOid);
-        return assertOneLiveLinkRef(repoUser);
-    }
-
     @NotNull
     private PrismObject<UserType> getRepoUser(String userOid) throws ObjectNotFoundException, SchemaException {
         OperationResult parentResult = new OperationResult("getObject from repo");
@@ -3028,5 +3022,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
     protected <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
         assertAttribute(resourceTypeOpenDjrepo, shadow.asObjectable(), attrName, expectedValues);
+    }
+
+    protected boolean isReaper() {
+        return false;
     }
 }

@@ -63,4 +63,9 @@ public class TestConsistencyReaper extends TestConsistencyMechanism {
                     .end()
                 .end();
     }
+
+    @Override
+    protected boolean isReaper() {
+        return true;
+    }
 }
