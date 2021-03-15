@@ -202,12 +202,6 @@ public class RUser extends RFocus {
         repo.setHonorificSuffix(RPolyString.copyFromJAXB(jaxb.getHonorificSuffix()));
         repo.setEmployeeNumber(jaxb.getEmployeeNumber());
         repo.setAdditionalName(RPolyString.copyFromJAXB(jaxb.getAdditionalName()));
-        repo.setEmailAddress(jaxb.getEmailAddress());
-        repo.setTelephoneNumber(jaxb.getTelephoneNumber());
-
-        repo.setLocale(jaxb.getLocale());
-        repo.setTimezone(jaxb.getTimezone());
-        repo.setPreferredLanguage(jaxb.getPreferredLanguage());
         repo.setTitle(RPolyString.copyFromJAXB(jaxb.getTitle()));
         repo.setNickName(RPolyString.copyFromJAXB(jaxb.getNickName()));
 

@@ -188,6 +188,12 @@ public abstract class RFocus extends RObject {
 
         repo.setLocalityFocus(RPolyString.copyFromJAXB(jaxb.getLocality()));
         repo.setCostCenter(jaxb.getCostCenter());
+        repo.setLocale(jaxb.getLocale());
+        repo.setTimezone(jaxb.getTimezone());
+        repo.setPreferredLanguage(jaxb.getPreferredLanguage());
+        repo.setEmailAddress(jaxb.getEmailAddress());
+        repo.setTelephoneNumber(jaxb.getTelephoneNumber());
+
         repo.getLinkRef().addAll(
                 RUtil.toRObjectReferenceSet(jaxb.getLinkRef(), repo, RReferenceType.USER_ACCOUNT, repositoryContext.relationRegistry));
         repo.getPersonaRef().addAll(
