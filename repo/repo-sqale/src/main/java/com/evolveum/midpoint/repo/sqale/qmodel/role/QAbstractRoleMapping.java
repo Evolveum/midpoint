@@ -45,7 +45,6 @@ public class QAbstractRoleMapping<
         addItemMapping(F_DISPLAY_NAME, PolyStringItemFilterProcessor.mapper(
                 path(q -> q.displayNameOrig), path(q -> q.displayNameNorm)));
         addItemMapping(F_IDENTIFIER, stringMapper(path(q -> q.identifier)));
-        // TODO how is ownerRef* mapped? Nothing found in RAbstractRole or as F_ constant
         addItemMapping(F_REQUESTABLE, booleanMapper(path(q -> q.requestable)));
         addItemMapping(F_RISK_LEVEL, stringMapper(path(q -> q.riskLevel)));
     }
