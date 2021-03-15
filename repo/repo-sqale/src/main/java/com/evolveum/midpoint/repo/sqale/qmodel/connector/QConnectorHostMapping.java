@@ -10,15 +10,12 @@ import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterPr
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType.F_HOSTNAME;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType.F_PORT;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * Mapping between {@link QObject} and {@link ObjectType}.
+ * Mapping between {@link QConnectorHost} and {@link ConnectorHostType}.
  */
 public class QConnectorHostMapping
         extends QObjectMapping<ConnectorHostType, QConnectorHost, MConnectorHost> {
@@ -41,10 +38,8 @@ public class QConnectorHostMapping
     }
 
     @Override
-    public ObjectSqlTransformer<ConnectorHostType, QConnectorHost, MConnectorHost>
-    createTransformer(SqlTransformerSupport transformerSupport) {
-        // TODO create specific transformer
-        return new ObjectSqlTransformer<>(transformerSupport, this);
+    public ConnectorHostSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
+        return new ConnectorHostSqlTransformer(transformerSupport, this);
     }
 
     @Override
