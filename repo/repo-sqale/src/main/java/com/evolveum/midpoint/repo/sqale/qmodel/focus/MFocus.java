@@ -21,11 +21,12 @@ public class MFocus extends MObject {
     public String emailAddress;
     public byte[] photo;
     public String locale;
-    public String localityNorm;
     public String localityOrig;
+    public String localityNorm;
     public String preferredLanguage;
     public String telephoneNumber;
     public String timezone;
+    // credential/password/metadata
     public Instant passwordCreateTimestamp;
     public Instant passwordModifyTimestamp;
     // activation

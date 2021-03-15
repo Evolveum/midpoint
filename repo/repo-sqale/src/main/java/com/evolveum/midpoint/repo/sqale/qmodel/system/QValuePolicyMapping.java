@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.system;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
@@ -15,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
  * Mapping between {@link QValuePolicy} and {@link ValuePolicyType}.
  */
 public class QValuePolicyMapping
-        extends QObjectMapping<ValuePolicyType, QValuePolicy, MValuePolicy> {
+        extends QObjectMapping<ValuePolicyType, QValuePolicy, MObject> {
 
     public static final String DEFAULT_ALIAS_NAME = "vp";
 
@@ -32,14 +33,14 @@ public class QValuePolicyMapping
     }
 
     @Override
-    public ObjectSqlTransformer<ValuePolicyType, QValuePolicy, MValuePolicy>
+    public ObjectSqlTransformer<ValuePolicyType, QValuePolicy, MObject>
     createTransformer(SqlTransformerSupport transformerSupport) {
         // no special class needed, no additional columns
         return new ObjectSqlTransformer<>(transformerSupport, this);
     }
 
     @Override
-    public MValuePolicy newRowObject() {
-        return new MValuePolicy();
+    public MObject newRowObject() {
+        return new MObject();
     }
 }

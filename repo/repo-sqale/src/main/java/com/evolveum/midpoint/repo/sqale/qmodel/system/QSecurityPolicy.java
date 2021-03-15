@@ -6,13 +6,14 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.system;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QSecurityPolicy extends QObject<MSecurityPolicy> {
+public class QSecurityPolicy extends QObject<MObject> {
 
     private static final long serialVersionUID = 289603300613404007L;
 
@@ -25,6 +26,6 @@ public class QSecurityPolicy extends QObject<MSecurityPolicy> {
     }
 
     public QSecurityPolicy(String variable, String schema, String table) {
-        super(MSecurityPolicy.class, variable, schema, table);
+        super(MObject.class, variable, schema, table);
     }
 }

@@ -18,9 +18,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -39,9 +37,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     @BeforeClass
     public void cleanDatabase() {
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-            // TODO delete other non-object tables here
-            jdbcSession.newDelete(QAssignmentMapping.INSTANCE.defaultAlias()).execute();
-            jdbcSession.newDelete(QReferenceMapping.INSTANCE.defaultAlias()).execute();
+            // object delete cascades to sub-rows of the "object aggregate"
             jdbcSession.newDelete(QObjectMapping.INSTANCE.defaultAlias()).execute();
         }
     }
@@ -55,7 +51,14 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         TestUtil.assertSuccess(opResult);
     }
 
-    /** Returns default query instance (alias) for the specified query type. */
+    /**
+     * Returns default query instance (alias) for the specified query type.
+     * Don't use this for multi-table types like references, use something like this instead:
+     *
+     * ----
+     * QObjectReference r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+     * ----
+     */
     protected <R, Q extends FlexibleRelationalPathBase<R>> Q aliasFor(Class<Q> entityPath) {
         return sqlRepoContext.getMappingByQueryType(entityPath).defaultAlias();
     }

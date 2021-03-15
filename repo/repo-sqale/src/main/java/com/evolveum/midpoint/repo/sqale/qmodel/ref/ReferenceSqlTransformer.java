@@ -13,20 +13,27 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-public class ReferenceSqlTransformer
-        extends SqaleTransformerBase<ObjectReferenceType, QReference, MReference> {
+public class ReferenceSqlTransformer<Q extends QReference<R>, R extends MReference>
+        extends SqaleTransformerBase<ObjectReferenceType, Q, R> {
 
     public ReferenceSqlTransformer(
-            SqlTransformerSupport transformerSupport, QReferenceMapping mapping) {
+            SqlTransformerSupport transformerSupport, QReferenceMapping<Q, R> mapping) {
         super(transformerSupport, mapping);
     }
 
-    public MReference toRowObject(ObjectReferenceType schemaObject, JdbcSession jdbcSession) {
-        MReference row = new MReference();
-        // TODO ownerOid, referenceType
+    /**
+     * There is no need to override this as the {@link MReferenceOwner#createReference()} takes
+     * care of the FK-columns initialization directly on the owning row object.
+     * All the other columns are based on a single schema type, so there is no variation.
+     */
+    public void insert(ObjectReferenceType schemaObject,
+            MReferenceOwner<R> ownerRow, JdbcSession jdbcSession) {
+        R row = ownerRow.createReference();
+        // row.referenceType is DB generated, must be kept NULL, but it will match referenceType
         row.relationId = processCacheableRelation(schemaObject.getRelation(), jdbcSession);
         row.targetOid = UUID.fromString(schemaObject.getOid());
         row.targetType = schemaTypeToObjectType(schemaObject.getType());
-        return row;
+
+        insert(row, jdbcSession);
     }
 }

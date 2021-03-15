@@ -41,7 +41,7 @@ public class QAbstractRoleMapping<
 
         nestedMapping(F_AUTOASSIGN, AutoassignSpecificationType.class)
                 .addItemMapping(AutoassignSpecificationType.F_ENABLED,
-                        booleanMapper(path(q -> q.autoassignEnabled)));
+                        booleanMapper(path(q -> q.autoAssignEnabled)));
         addItemMapping(F_DISPLAY_NAME, PolyStringItemFilterProcessor.mapper(
                 path(q -> q.displayNameOrig), path(q -> q.displayNameNorm)));
         addItemMapping(F_IDENTIFIER, stringMapper(path(q -> q.identifier)));

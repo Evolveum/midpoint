@@ -4,28 +4,22 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale.qmodel.ref;
+package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
-import java.util.UUID;
-
-import com.evolveum.midpoint.repo.sqale.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 
 /**
- * Querydsl "row bean" type related to {@link QReference} and its subtypes.
- * This also works as "MObjectReference" as it does not need additional attributes.
+ * Querydsl "row bean" type related to {@link QAssignmentReference}.
  */
-public class MReference {
+public class MAssignmentReference extends MReference {
 
-    public UUID ownerOid;
-    public MReferenceType referenceType;
-    public UUID targetOid;
-    public MObjectType targetType;
-    public Integer relationId;
+    public Long assignmentCid;
 
     @Override
     public String toString() {
-        return "MReference{" +
+        return "MAssignmentReference{" +
                 "ownerOid=" + ownerOid +
+                ", assignmentCid=" + assignmentCid +
                 ", referenceType=" + referenceType +
                 ", targetOid=" + targetOid +
                 ", targetType=" + targetType +

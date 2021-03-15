@@ -355,4 +355,9 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     public CanonicalItemPath createCanonicalItemPath(@NotNull ItemPath itemPath) {
         return transformerSupport.prismContext().createCanonicalItemPath(itemPath);
     }
+
+    @NotNull
+    public QName normalizeRelation(QName qName) {
+        return transformerSupport.normalizeRelation(qName);
+    }
 }

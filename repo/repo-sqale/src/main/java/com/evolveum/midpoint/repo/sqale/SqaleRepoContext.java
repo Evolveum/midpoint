@@ -11,6 +11,7 @@ import javax.sql.DataSource;
 import javax.xml.namespace.QName;
 
 import com.querydsl.sql.types.EnumAsObjectType;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
@@ -54,6 +55,7 @@ public class SqaleRepoContext extends SqlRepoContext {
     }
 
     /** @see UriCache#searchId(QName) */
+    @NotNull
     public Integer searchCachedUriId(QName qName) {
         return uriCache.searchId(qName);
     }

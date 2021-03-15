@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,15 +7,16 @@
 
 package com.evolveum.midpoint.schema;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import java.util.Collection;
+import java.util.List;
+import javax.xml.namespace.QName;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * A component that holds current definition of object relations.
@@ -119,8 +120,9 @@ public interface RelationRegistry {
     @Nullable QName getDefaultRelationFor(RelationKindType kind);
 
     /**
-     * Returns a normalized relation name, i.e. the one that is used in the "ref" item on the definition. It should be qualified
-     * (so please DO NOT use unqualified relation names in the definitions!)
+     * Returns a normalized relation name, i.e. the one that is used in the "ref" item on the definition.
+     * It should be qualified (so please DO NOT use unqualified relation names in the definitions!)
+     * Returns default relation for null input, never returns null.
      *
      * If the relation is unknown, the relation name is returned unchanged.
      */
@@ -135,8 +137,8 @@ public interface RelationRegistry {
 
     /**
      * Returns aliases of a relation. Currently these are:
-     *  - unqualified version of the relation QName
-     *  - null if the relation is the default one
+     * - unqualified version of the relation QName
+     * - null if the relation is the default one
      *
      * --
      * In the future we might return some other values (e.g. explicitly configured aliases) as well.

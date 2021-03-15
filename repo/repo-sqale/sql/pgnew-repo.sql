@@ -62,15 +62,17 @@ CREATE TYPE ObjectType AS ENUM (
 
 CREATE TYPE ReferenceType AS ENUM (
     'ARCHETYPE',
-    'CREATE_APPROVER',
+    'ASSIGNMENT_CREATE_APPROVER',
+    'ASSIGNMENT_MODIFY_APPROVER',
     'DELEGATED',
     'INCLUDE',
-    'MODIFY_APPROVER',
+    'PROJECTION',
+    'OBJECT_CREATE_APPROVER',
+    'OBJECT_MODIFY_APPROVER',
     'OBJECT_PARENT_ORG',
     'PERSONA',
     'RESOURCE_BUSINESS_CONFIGURATION_APPROVER',
-    'ROLE_MEMBERSHIP',
-    'USER_ACCOUNT');
+    'ROLE_MEMBERSHIP');
 
 -- Schema based enums have the same name like their enum classes (I like the Type suffix here):
 CREATE TYPE ActivationStatusType AS ENUM ('ENABLED', 'DISABLED', 'ARCHIVED');
@@ -161,10 +163,13 @@ CREATE TABLE m_uri (
     id SERIAL NOT NULL PRIMARY KEY,
     uri VARCHAR(255) NOT NULL UNIQUE
 );
+
+INSERT INTO m_uri (id, uri)
+    VALUES (0, 'http://midpoint.evolveum.com/xml/ns/public/common/org-3#default');
 -- TODO pre-fill with various PrismConstants?
 -- endregion
 
--- region M_OBJECT/CONTAINER
+-- region for abstract tables m_object/container/reference
 -- Purely abstract table (no entries are allowed). Represents ObjectType+ArchetypeHolderType.
 -- See https://wiki.evolveum.com/display/midPoint/ObjectType
 -- Following is recommended for each concrete table (see m_resource just below for example):
@@ -179,8 +184,8 @@ CREATE TABLE m_object (
     oid UUID NOT NULL,
     -- objectType will be overridden with GENERATED value in concrete table
     objectType ObjectType NOT NULL,
-    name_norm VARCHAR(255) NOT NULL,
     name_orig VARCHAR(255) NOT NULL,
+    name_norm VARCHAR(255) NOT NULL,
     fullObject BYTEA,
     tenantRef_targetOid UUID,
     tenantRef_targetType ObjectType,
@@ -229,6 +234,21 @@ CREATE TABLE m_container (
     CHECK (FALSE) NO INHERIT
     -- add on concrete table (additional columns possible): PRIMARY KEY (owner_oid, cid)
 );
+
+-- Abstract reference table, for object but also other container references.
+CREATE TABLE m_reference (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    -- reference_type will be overridden with GENERATED value in concrete table
+    referenceType ReferenceType NOT NULL,
+    targetOid UUID NOT NULL, -- soft-references m_object
+    targetType ObjectType NOT NULL,
+    relation_id INTEGER NOT NULL, -- soft-references m_uri
+
+    -- prevents inserts to this table, but not to inherited ones; this makes it "abstract" table
+    CHECK (FALSE) NO INHERIT
+);
+-- Add this index for each sub-table (reference type is not necessary, each sub-table has just one).
+-- CREATE INDEX m_reference_targetOid_relation_id_idx ON m_reference (targetOid, relation_id);
 -- endregion
 
 -- region FOCUS related tables
@@ -241,8 +261,8 @@ CREATE TABLE m_focus (
     emailAddress VARCHAR(255),
     photo BYTEA, -- will be TOAST-ed if necessary
     locale VARCHAR(255),
-    locality_norm VARCHAR(255),
     locality_orig VARCHAR(255),
+    locality_norm VARCHAR(255),
     preferredLanguage VARCHAR(255),
     telephoneNumber VARCHAR(255),
     timezone VARCHAR(255),
@@ -269,23 +289,23 @@ CREATE TABLE m_focus (
 CREATE TABLE m_user (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('USER') STORED,
-    additionalName_norm VARCHAR(255),
     additionalName_orig VARCHAR(255),
+    additionalName_norm VARCHAR(255),
     employeeNumber VARCHAR(255),
-    familyName_norm VARCHAR(255),
     familyName_orig VARCHAR(255),
-    fullName_norm VARCHAR(255),
+    familyName_norm VARCHAR(255),
     fullName_orig VARCHAR(255),
-    givenName_norm VARCHAR(255),
+    fullName_norm VARCHAR(255),
     givenName_orig VARCHAR(255),
-    honorificPrefix_norm VARCHAR(255),
+    givenName_norm VARCHAR(255),
     honorificPrefix_orig VARCHAR(255),
-    honorificSuffix_norm VARCHAR(255),
+    honorificPrefix_norm VARCHAR(255),
     honorificSuffix_orig VARCHAR(255),
-    nickName_norm VARCHAR(255),
+    honorificSuffix_norm VARCHAR(255),
     nickName_orig VARCHAR(255),
-    title_norm VARCHAR(255),
-    title_orig VARCHAR(255)
+    nickName_norm VARCHAR(255),
+    title_orig VARCHAR(255),
+    title_norm VARCHAR(255)
 )
     INHERITS (m_focus);
 
@@ -310,9 +330,9 @@ CREATE INDEX m_user_employeeNumber_idx ON m_user (employeeNumber);
 CREATE TABLE m_abstract_role (
     -- will be overridden with GENERATED value in concrete table
     objectType ObjectType NOT NULL,
-    autoassign_enabled BOOLEAN,
-    displayName_norm VARCHAR(255),
+    autoAssignEnabled BOOLEAN,
     displayName_orig VARCHAR(255),
+    displayName_norm VARCHAR(255),
     identifier VARCHAR(255),
     ownerRef_targetOid UUID,
     ownerRef_targetType ObjectType,
@@ -366,7 +386,7 @@ CREATE TABLE m_service_type (
     serviceType VARCHAR(255)
 );
 CREATE INDEX iServiceTypeOid ON M_SERVICE_TYPE(SERVICE_OID);
-ALTER TABLE IF EXISTS m_service_type
+ALTER TABLE m_service_type
     ADD CONSTRAINT fk_service_type FOREIGN KEY (service_oid) REFERENCES m_service;
 */
 
@@ -497,7 +517,7 @@ CREATE TABLE m_acc_cert_wi (
 )
     INHERITS(m_container);
 
-ALTER TABLE IF EXISTS m_acc_cert_wi
+ALTER TABLE m_acc_cert_wi
     ADD CONSTRAINT m_acc_cert_wi_id_fk FOREIGN KEY (owner_oid, acc_cert_case_cid)
         REFERENCES m_acc_cert_case (owner_oid, cid)
             ON DELETE CASCADE;
@@ -514,20 +534,20 @@ CREATE TABLE m_acc_cert_wi_reference (
     PRIMARY KEY (owner_oid, acc_cert_case_cid, acc_cert_wi_cid, relation_id, targetOid)
 );
 
-ALTER TABLE IF EXISTS m_acc_cert_wi_reference
+ALTER TABLE m_acc_cert_wi_reference
     ADD CONSTRAINT m_acc_cert_wi_reference_id_fk
         FOREIGN KEY (owner_oid, acc_cert_case_cid, acc_cert_wi_cid)
         REFERENCES m_acc_cert_wi (owner_oid, acc_cert_case_cid, cid)
             ON DELETE CASCADE;
 /*
 CREATE INDEX iCertCampaignNameOrig ON m_acc_cert_campaign (name_orig);
-ALTER TABLE IF EXISTS m_acc_cert_campaign ADD CONSTRAINT uc_acc_cert_campaign_name UNIQUE (name_norm);
+ALTER TABLE m_acc_cert_campaign ADD CONSTRAINT uc_acc_cert_campaign_name UNIQUE (name_norm);
 CREATE INDEX iCaseObjectRefTargetOid ON m_acc_cert_case (objectRef_targetOid);
 CREATE INDEX iCaseTargetRefTargetOid ON m_acc_cert_case (targetRef_targetOid);
 CREATE INDEX iCaseTenantRefTargetOid ON m_acc_cert_case (tenantRef_targetOid);
 CREATE INDEX iCaseOrgRefTargetOid ON m_acc_cert_case (orgRef_targetOid);
 CREATE INDEX iCertDefinitionNameOrig ON m_acc_cert_definition (name_orig);
-ALTER TABLE IF EXISTS m_acc_cert_definition ADD CONSTRAINT uc_acc_cert_definition_name UNIQUE (name_norm);
+ALTER TABLE m_acc_cert_definition ADD CONSTRAINT uc_acc_cert_definition_name UNIQUE (name_norm);
 CREATE INDEX iCertWorkItemRefTargetOid ON m_acc_cert_wi_reference (targetOid);
  */
 -- endregion
@@ -599,7 +619,7 @@ CREATE INDEX iShadowObjectClass ON m_shadow (objectClass);
 CREATE INDEX iShadowFailedOperationType ON m_shadow (failedOperationType);
 CREATE INDEX iShadowSyncSituation ON m_shadow (synchronizationSituation);
 CREATE INDEX iShadowPendingOperationCount ON m_shadow (pendingOperationCount);
-ALTER TABLE IF EXISTS m_shadow
+ALTER TABLE m_shadow
     ADD CONSTRAINT iPrimaryIdentifierValueWithOC UNIQUE (primaryIdentifierValue, objectClass, resourceRef_targetOid);
  */
 
@@ -762,8 +782,8 @@ CREATE TABLE m_lookup_table_row (
     owner_oid UUID NOT NULL REFERENCES m_lookup_table(oid) ON DELETE CASCADE,
     row_id INTEGER NOT NULL,
     row_key VARCHAR(255),
-    label_norm VARCHAR(255),
     label_orig VARCHAR(255),
+    label_norm VARCHAR(255),
     row_value VARCHAR(255),
     lastChangeTimestamp TIMESTAMPTZ,
 
@@ -803,7 +823,7 @@ ALTER TABLE m_connector ADD CONSTRAINT m_connector_name_norm_key UNIQUE (name_no
 --     connector_oid UUID NOT NULL,
 --     targetSystemType VARCHAR(255)
 -- );
--- ALTER TABLE IF EXISTS m_connector_target_system
+-- ALTER TABLE m_connector_target_system
 --     ADD CONSTRAINT fk_connector_target_system FOREIGN KEY (connector_oid) REFERENCES m_connector;
 
 -- Represents ConnectorHostType, see https://wiki.evolveum.com/display/midPoint/Connector+Server
@@ -871,7 +891,7 @@ CREATE TABLE m_task_dependent (
     task_oid UUID NOT NULL,
     dependent VARCHAR(255)
 );
-ALTER TABLE IF EXISTS m_task_dependent
+ALTER TABLE m_task_dependent
     ADD CONSTRAINT fk_task_dependent FOREIGN KEY (task_oid) REFERENCES m_task;
 CREATE INDEX iTaskDependentOid ON M_TASK_DEPENDENT(TASK_OID);
 */
@@ -913,9 +933,9 @@ CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRef_targetOid);
 CREATE INDEX iCaseTypeParentRefTargetOid ON m_case(parentRef_targetOid);
 CREATE INDEX iCaseTypeRequestorRefTargetOid ON m_case(requestorRef_targetOid);
 CREATE INDEX iCaseTypeCloseTimestamp ON m_case(closeTimestamp);
-ALTER TABLE IF EXISTS m_case_wi
+ALTER TABLE m_case_wi
     ADD CONSTRAINT fk_case_wi_owner FOREIGN KEY (owner_oid) REFERENCES m_case;
-ALTER TABLE IF EXISTS m_case_wi_reference
+ALTER TABLE m_case_wi_reference
     ADD CONSTRAINT fk_case_wi_reference_owner FOREIGN KEY (owner_owner_oid, owner_id) REFERENCES m_case_wi;
 */
 -- endregion
@@ -1005,6 +1025,34 @@ CREATE INDEX m_assignment_tenantRef_targetOid_idx ON m_assignment (tenantRef_tar
 CREATE INDEX m_assignment_orgRef_targetOid_idx ON m_assignment (orgRef_targetOid);
 CREATE INDEX m_assignment_resourceRef_targetOid_idx ON m_assignment (resourceRef_targetOid);
 
+CREATE TABLE m_assignment_ref_create_approver (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    assignment_cid INTEGER NOT NULL,
+    referenceType ReferenceType GENERATED ALWAYS AS ('ASSIGNMENT_CREATE_APPROVER') STORED,
+
+    PRIMARY KEY (owner_oid, assignment_cid, referenceType, relation_id, targetOid)
+)
+    INHERITS (m_reference);
+
+ALTER TABLE m_assignment_ref_create_approver ADD CONSTRAINT m_assignment_ref_create_approver_id_fk
+    FOREIGN KEY (owner_oid, assignment_cid) REFERENCES m_assignment (owner_oid, cid);
+
+-- TODO index targetOid, relation_id?
+
+CREATE TABLE m_assignment_ref_modify_approver (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    assignment_cid INTEGER NOT NULL,
+    referenceType ReferenceType GENERATED ALWAYS AS ('ASSIGNMENT_MODIFY_APPROVER') STORED,
+
+    PRIMARY KEY (owner_oid, assignment_cid, referenceType, relation_id, targetOid)
+)
+    INHERITS (m_reference);
+
+ALTER TABLE m_assignment_ref_modify_approver ADD CONSTRAINT m_assignment_ref_modify_approver_id_fk
+    FOREIGN KEY (owner_oid, assignment_cid) REFERENCES m_assignment (owner_oid, cid);
+
+-- TODO index targetOid, relation_id?
+
 /* TODO - this is also not mapped in Java, obviously
 CREATE TABLE m_assignment_policy_situation (
   assignment_owner_oid UUID NOT NULL,
@@ -1012,20 +1060,8 @@ CREATE TABLE m_assignment_policy_situation (
   policySituation VARCHAR(255)
 );
 CREATE INDEX iAssignmentPolicySituationId ON M_ASSIGNMENT_POLICY_SITUATION(ASSIGNMENT_OID, ASSIGNMENT_ID);
-ALTER TABLE IF EXISTS m_assignment_policy_situation
+ALTER TABLE m_assignment_policy_situation
   ADD CONSTRAINT fk_assignment_policy_situation FOREIGN KEY (assignment_oid, assignment_id) REFERENCES m_assignment;
-
-CREATE TABLE m_assignment_reference (
-  owner_id        INTEGER         NOT NULL,
-  owner_owner_oid UUID  NOT NULL,
-  reference_type  INTEGER         NOT NULL,
-  relation        VARCHAR(157) NOT NULL,
-  targetOid       UUID  NOT NULL,
-  targetType      INTEGER,
-  PRIMARY KEY (owner_owner_oid, owner_id, reference_type, relation, targetOid)
-);
-ALTER TABLE IF EXISTS m_assignment_reference
-  ADD CONSTRAINT fk_assignment_reference FOREIGN KEY (owner_owner_oid, owner_id) REFERENCES m_assignment;
 */
 
 CREATE TABLE m_inducement (
@@ -1062,28 +1098,7 @@ CREATE TABLE m_trigger (
 CREATE INDEX m_trigger_timestampValue_idx ON m_trigger (timestampValue);
 -- endregion
 
--- region References
--- TODO: split to tables per reference_type, see RReferenceType, currently 10 different tables
---select reference_type, count(*) from m_reference group by reference_type order by 1;
---0	9712164 -- parent refs (orgs)
---1	36702345 -- accounts
---7	1 -- include, is it any good in DB?
---8	48756878 -- roles
---11 5 -- will grow to some fraction of role refs
-CREATE TABLE m_reference (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    -- reference_type will be overridden with GENERATED value in concrete table
-    referenceType ReferenceType NOT NULL,
-    targetOid UUID NOT NULL, -- soft-references m_object
-    targetType ObjectType NOT NULL,
-    relation_id INTEGER NOT NULL, -- soft-references m_uri
-
-    -- prevents inserts to this table, but not to inherited ones; this makes it "abstract" table
-    CHECK (FALSE) NO INHERIT
-);
--- Add this index for each sub-table (reference type is not necessary, each sub-table has just one).
--- CREATE INDEX m_reference_targetOid_relation_id_idx ON m_reference (targetOid, relation_id);
-
+-- region todo move to related aggregate
 CREATE TABLE m_ref_archetype (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('ARCHETYPE') STORED,
@@ -1094,17 +1109,6 @@ CREATE TABLE m_ref_archetype (
 
 CREATE INDEX m_ref_archetype_targetOid_relation_id_idx
     ON m_ref_archetype (targetOid, relation_id);
-
-CREATE TABLE m_ref_create_approver (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('CREATE_APPROVER') STORED,
-
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
-)
-    INHERITS (m_reference);
-
-CREATE INDEX m_ref_create_approver_targetOid_relation_id_idx
-    ON m_ref_create_approver (targetOid, relation_id);
 
 CREATE TABLE m_ref_delegated (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
@@ -1128,16 +1132,27 @@ CREATE TABLE m_ref_include (
 CREATE INDEX m_ref_include_targetOid_relation_id_idx
     ON m_ref_include (targetOid, relation_id);
 
-CREATE TABLE m_ref_modify_approver (
+CREATE TABLE m_ref_object_create_approver (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('MODIFY_APPROVER') STORED,
+    referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_CREATE_APPROVER') STORED,
 
     PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
 )
     INHERITS (m_reference);
 
-CREATE INDEX m_ref_modify_approver_targetOid_relation_id_idx
-    ON m_ref_modify_approver (targetOid, relation_id);
+CREATE INDEX m_ref_object_create_approver_targetOid_relation_id_idx
+    ON m_ref_object_create_approver (targetOid, relation_id);
+
+CREATE TABLE m_ref_object_modify_approver (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_MODIFY_APPROVER') STORED,
+
+    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+)
+    INHERITS (m_reference);
+
+CREATE INDEX m_ref_object_modify_approver_targetOid_relation_id_idx
+    ON m_ref_object_modify_approver (targetOid, relation_id);
 
 CREATE TABLE m_ref_object_parent_org (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
@@ -1183,16 +1198,16 @@ CREATE TABLE m_ref_role_membership (
 CREATE INDEX m_ref_role_member_targetOid_relation_id_idx
     ON m_ref_role_membership (targetOid, relation_id);
 
-CREATE TABLE m_ref_user_account (
+CREATE TABLE m_ref_projection (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('USER_ACCOUNT') STORED,
+    referenceType ReferenceType GENERATED ALWAYS AS ('PROJECTION') STORED,
 
     PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
 )
     INHERITS (m_reference);
 
-CREATE INDEX m_ref_user_account_targetOid_relation_id_idx
-    ON m_ref_user_account (targetOid, relation_id);
+CREATE INDEX m_ref_projection_targetOid_relation_id_idx
+    ON m_ref_projection (targetOid, relation_id);
 -- endregion
 
 -- region Extension support
@@ -1587,7 +1602,7 @@ CREATE INDEX iAuditResourceOidRecordId
 CREATE INDEX iCaseWorkItemRefTargetOid
   ON m_case_wi_reference (targetOid);
 
-ALTER TABLE IF EXISTS m_ext_item
+ALTER TABLE m_ext_item
   ADD CONSTRAINT iExtItemDefinition UNIQUE (itemName, itemType, kind);
 CREATE INDEX iObjectNameOrig
   ON m_object (name_orig);
@@ -1644,137 +1659,137 @@ CREATE INDEX iFocusValidTo
   ON m_focus (validTo);
 CREATE INDEX iFormNameOrig
   ON m_form (name_orig);
-ALTER TABLE IF EXISTS m_form
+ALTER TABLE m_form
   ADD CONSTRAINT uc_form_name UNIQUE (name_norm);
 CREATE INDEX iFunctionLibraryNameOrig
   ON m_function_library (name_orig);
-ALTER TABLE IF EXISTS m_function_library
+ALTER TABLE m_function_library
   ADD CONSTRAINT uc_function_library_name UNIQUE (name_norm);
 CREATE INDEX iGenericObjectNameOrig
   ON m_generic_object (name_orig);
-ALTER TABLE IF EXISTS m_generic_object
+ALTER TABLE m_generic_object
   ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm);
 CREATE INDEX iNodeNameOrig
   ON m_node (name_orig);
-ALTER TABLE IF EXISTS m_node
+ALTER TABLE m_node
   ADD CONSTRAINT uc_node_name UNIQUE (name_norm);
 CREATE INDEX iObjectTemplateNameOrig
   ON m_object_template (name_orig);
-ALTER TABLE IF EXISTS m_object_template
+ALTER TABLE m_object_template
   ADD CONSTRAINT uc_object_template_name UNIQUE (name_norm);
 CREATE INDEX iDisplayOrder
   ON m_org (displayOrder);
 CREATE INDEX iOrgNameOrig
   ON m_org (name_orig);
-ALTER TABLE IF EXISTS m_org
+ALTER TABLE m_org
   ADD CONSTRAINT uc_org_name UNIQUE (name_norm);
 CREATE INDEX iSequenceNameOrig
   ON m_sequence (name_orig);
-ALTER TABLE IF EXISTS m_sequence
+ALTER TABLE m_sequence
   ADD CONSTRAINT uc_sequence_name UNIQUE (name_norm);
 CREATE INDEX iSystemConfigurationNameOrig
   ON m_system_configuration (name_orig);
-ALTER TABLE IF EXISTS m_system_configuration
+ALTER TABLE m_system_configuration
   ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm);
-ALTER TABLE IF EXISTS m_assignment_ext_boolean
+ALTER TABLE m_assignment_ext_boolean
   ADD CONSTRAINT fk_a_ext_boolean_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE IF EXISTS m_assignment_ext_date
+ALTER TABLE m_assignment_ext_date
   ADD CONSTRAINT fk_a_ext_date_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE IF EXISTS m_assignment_ext_long
+ALTER TABLE m_assignment_ext_long
   ADD CONSTRAINT fk_a_ext_long_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE IF EXISTS m_assignment_ext_poly
+ALTER TABLE m_assignment_ext_poly
   ADD CONSTRAINT fk_a_ext_poly_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE IF EXISTS m_assignment_ext_reference
+ALTER TABLE m_assignment_ext_reference
   ADD CONSTRAINT fk_a_ext_reference_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE IF EXISTS m_assignment_ext_string
+ALTER TABLE m_assignment_ext_string
   ADD CONSTRAINT fk_a_ext_string_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
 
 -- These are created manually
-ALTER TABLE IF EXISTS m_assignment_ext_boolean
+ALTER TABLE m_assignment_ext_boolean
   ADD CONSTRAINT fk_a_ext_boolean_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE IF EXISTS m_assignment_ext_date
+ALTER TABLE m_assignment_ext_date
   ADD CONSTRAINT fk_a_ext_date_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE IF EXISTS m_assignment_ext_long
+ALTER TABLE m_assignment_ext_long
   ADD CONSTRAINT fk_a_ext_long_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE IF EXISTS m_assignment_ext_poly
+ALTER TABLE m_assignment_ext_poly
   ADD CONSTRAINT fk_a_ext_poly_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE IF EXISTS m_assignment_ext_reference
+ALTER TABLE m_assignment_ext_reference
   ADD CONSTRAINT fk_a_ext_reference_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE IF EXISTS m_assignment_ext_string
+ALTER TABLE m_assignment_ext_string
   ADD CONSTRAINT fk_a_ext_string_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 
-ALTER TABLE IF EXISTS m_audit_delta
+ALTER TABLE m_audit_delta
   ADD CONSTRAINT fk_audit_delta FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE IF EXISTS m_audit_item
+ALTER TABLE m_audit_item
   ADD CONSTRAINT fk_audit_item FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE IF EXISTS m_audit_prop_value
+ALTER TABLE m_audit_prop_value
   ADD CONSTRAINT fk_audit_prop_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE IF EXISTS m_audit_ref_value
+ALTER TABLE m_audit_ref_value
   ADD CONSTRAINT fk_audit_ref_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE IF EXISTS m_audit_resource
+ALTER TABLE m_audit_resource
   ADD CONSTRAINT fk_audit_resource FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE IF EXISTS m_focus_photo
+ALTER TABLE m_focus_photo
   ADD CONSTRAINT fk_focus_photo FOREIGN KEY (owner_oid) REFERENCES m_focus;
 ALTER TABLE m_object_policy_situation
   ADD CONSTRAINT fk_object_policy_situation FOREIGN KEY (object_oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_object_ext_boolean
+ALTER TABLE m_object_ext_boolean
   ADD CONSTRAINT fk_o_ext_boolean_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_object_ext_date
+ALTER TABLE m_object_ext_date
   ADD CONSTRAINT fk_o_ext_date_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_object_ext_long
+ALTER TABLE m_object_ext_long
   ADD CONSTRAINT fk_object_ext_long FOREIGN KEY (owner_oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_object_ext_poly
+ALTER TABLE m_object_ext_poly
   ADD CONSTRAINT fk_o_ext_poly_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_object_ext_reference
+ALTER TABLE m_object_ext_reference
   ADD CONSTRAINT fk_o_ext_reference_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_object_ext_string
+ALTER TABLE m_object_ext_string
   ADD CONSTRAINT fk_object_ext_string FOREIGN KEY (owner_oid) REFERENCES m_object;
 
 -- These are created manually
-ALTER TABLE IF EXISTS m_object_ext_boolean
+ALTER TABLE m_object_ext_boolean
   ADD CONSTRAINT fk_o_ext_boolean_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE IF EXISTS m_object_ext_date
+ALTER TABLE m_object_ext_date
   ADD CONSTRAINT fk_o_ext_date_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE IF EXISTS m_object_ext_long
+ALTER TABLE m_object_ext_long
   ADD CONSTRAINT fk_o_ext_long_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE IF EXISTS m_object_ext_poly
+ALTER TABLE m_object_ext_poly
   ADD CONSTRAINT fk_o_ext_poly_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE IF EXISTS m_object_ext_reference
+ALTER TABLE m_object_ext_reference
   ADD CONSTRAINT fk_o_ext_reference_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE IF EXISTS m_object_ext_string
+ALTER TABLE m_object_ext_string
   ADD CONSTRAINT fk_o_ext_string_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 
-ALTER TABLE IF EXISTS m_object_subtype
+ALTER TABLE m_object_subtype
   ADD CONSTRAINT fk_object_subtype FOREIGN KEY (object_oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_object_text_info
+ALTER TABLE m_object_text_info
   ADD CONSTRAINT fk_object_text_info_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_operation_execution
+ALTER TABLE m_operation_execution
   ADD CONSTRAINT fk_op_exec_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_org_closure
+ALTER TABLE m_org_closure
   ADD CONSTRAINT fk_ancestor FOREIGN KEY (ancestor_oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_org_closure
+ALTER TABLE m_org_closure
   ADD CONSTRAINT fk_descendant FOREIGN KEY (descendant_oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_org_org_type
+ALTER TABLE m_org_org_type
   ADD CONSTRAINT fk_org_org_type FOREIGN KEY (org_oid) REFERENCES m_org;
-ALTER TABLE IF EXISTS m_user_employee_type
+ALTER TABLE m_user_employee_type
   ADD CONSTRAINT fk_user_employee_type FOREIGN KEY (user_oid) REFERENCES m_user;
-ALTER TABLE IF EXISTS m_user_organization
+ALTER TABLE m_user_organization
   ADD CONSTRAINT fk_user_organization FOREIGN KEY (user_oid) REFERENCES m_user;
-ALTER TABLE IF EXISTS m_user_organizational_unit
+ALTER TABLE m_user_organizational_unit
   ADD CONSTRAINT fk_user_org_unit FOREIGN KEY (user_oid) REFERENCES m_user;
-ALTER TABLE IF EXISTS m_function_library
+ALTER TABLE m_function_library
   ADD CONSTRAINT fk_function_library FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_generic_object
+ALTER TABLE m_generic_object
   ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_focus;
-ALTER TABLE IF EXISTS m_node
+ALTER TABLE m_node
   ADD CONSTRAINT fk_node FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_object_template
+ALTER TABLE m_object_template
   ADD CONSTRAINT fk_object_template FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_org
+ALTER TABLE m_org
   ADD CONSTRAINT fk_org FOREIGN KEY (oid) REFERENCES m_abstract_role;
-ALTER TABLE IF EXISTS m_sequence
+ALTER TABLE m_sequence
   ADD CONSTRAINT fk_sequence FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_system_configuration
+ALTER TABLE m_system_configuration
   ADD CONSTRAINT fk_system_configuration FOREIGN KEY (oid) REFERENCES m_object;
 
 -- Indices for foreign keys; maintained manually

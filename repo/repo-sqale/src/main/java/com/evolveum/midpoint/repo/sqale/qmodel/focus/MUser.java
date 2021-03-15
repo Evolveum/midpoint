@@ -11,21 +11,21 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
  */
 public class MUser extends MFocus {
 
-    public String additionalNameNorm;
     public String additionalNameOrig;
+    public String additionalNameNorm;
     public String employeeNumber;
-    public String familyNameNorm;
     public String familyNameOrig;
-    public String fullNameNorm;
+    public String familyNameNorm;
     public String fullNameOrig;
-    public String givenNameNorm;
+    public String fullNameNorm;
     public String givenNameOrig;
-    public String honorificPrefixNorm;
+    public String givenNameNorm;
     public String honorificPrefixOrig;
-    public String honorificSuffixNorm;
+    public String honorificPrefixNorm;
     public String honorificSuffixOrig;
-    public String nickNameNorm;
+    public String honorificSuffixNorm;
     public String nickNameOrig;
-    public String titleNorm;
+    public String nickNameNorm;
     public String titleOrig;
+    public String titleNorm;
 }

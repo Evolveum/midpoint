@@ -74,7 +74,7 @@ public class SchemaService {
         return prismContext.getSchemaRegistry().determineTypeForClassRequired(schemaClass);
     }
 
-    public QName normalizeRelation(QName qName) {
+    public @NotNull QName normalizeRelation(QName qName) {
         return relationRegistry.normalizeRelation(qName);
     }
 

@@ -22,7 +22,7 @@ import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
@@ -75,9 +75,9 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
                         TimestampItemFilterProcessor.mapper(path(q -> q.modifyTimestamp)))
                 .addRefMapping(MetadataType.F_CREATE_APPROVER_REF,
-                        QReferenceMapping.INSTANCE_CREATE_APPROVER)
+                        QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER)
                 .addRefMapping(MetadataType.F_MODIFY_APPROVER_REF,
-                        QReferenceMapping.INSTANCE_MODIFY_APPROVER);
+                        QObjectReferenceMapping.INSTANCE_OBJECT_MODIFY_APPROVER);
 
         addItemMapping(F_TENANT_REF, RefItemFilterProcessor.mapper(
                 path(q -> q.tenantRefTargetOid),
@@ -86,9 +86,9 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         addItemMapping(F_LIFECYCLE_STATE, stringMapper(path(q -> q.lifecycleState)));
 
         // AssignmentHolderType
-        addRefMapping(F_ARCHETYPE_REF, QReferenceMapping.INSTANCE_ARCHETYPE);
-        addRefMapping(F_PARENT_ORG_REF, QReferenceMapping.INSTANCE_OBJECT_PARENT_ORG);
-        addRefMapping(F_ROLE_MEMBERSHIP_REF, QReferenceMapping.INSTANCE_ROLE_MEMBERSHIP);
+        addRefMapping(F_ARCHETYPE_REF, QObjectReferenceMapping.INSTANCE_ARCHETYPE);
+        addRefMapping(F_PARENT_ORG_REF, QObjectReferenceMapping.INSTANCE_OBJECT_PARENT_ORG);
+        addRefMapping(F_ROLE_MEMBERSHIP_REF, QObjectReferenceMapping.INSTANCE_ROLE_MEMBERSHIP);
 
         // version/cid_seq is not mapped for queries or deltas, it's managed by repo explicitly
         // TODO ext mapping can't be done statically

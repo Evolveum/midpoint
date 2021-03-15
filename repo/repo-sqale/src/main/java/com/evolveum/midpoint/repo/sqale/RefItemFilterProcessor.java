@@ -93,18 +93,13 @@ public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
         } else if (!filter.isOidNullAsAny()) {
             predicate = oidPath.isNull();
         }
-        if (ref.getRelation() == null) {
-            Integer defaultRelationId = ((SqaleRepoContext) context.sqlRepoContext())
-                    .searchCachedUriId(context.prismContext().getDefaultRelation());
-            predicate = ExpressionUtils.and(predicate,
-                    predicateWithNotTreated(relationIdPath, relationIdPath.eq(defaultRelationId)));
-        } else if (ref.getRelation().equals(PrismConstants.Q_ANY)) {
-            // no additional predicate needed
-        } else {
+        if (ref.getRelation() == null || !ref.getRelation().equals(PrismConstants.Q_ANY)) {
             Integer relationId = ((SqaleRepoContext) context.sqlRepoContext())
-                    .searchCachedUriId(ref.getRelation());
+                    .searchCachedUriId(context.normalizeRelation(ref.getRelation()));
             predicate = ExpressionUtils.and(predicate,
                     predicateWithNotTreated(relationIdPath, relationIdPath.eq(relationId)));
+        } else {
+            // relation == Q_ANY, no additional predicate needed
         }
         if (ref.getTargetType() != null) {
             MObjectType objectType = MObjectType.fromTypeQName(ref.getTargetType());
