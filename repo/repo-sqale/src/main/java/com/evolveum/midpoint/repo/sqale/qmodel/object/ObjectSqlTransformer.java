@@ -23,7 +23,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTransformerBase;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.AssignmentSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -124,36 +124,35 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
      *
      * *Always call this super method first in overriding methods.*
      *
-     * @param objectRow master row for added object
+     * @param row master row for the added object("aggregate root")
      * @param schemaObject schema objects for which the details are stored
      * @param jdbcSession JDBC session used to insert related rows
      */
     public void storeRelatedEntities(
-            @NotNull MObject objectRow, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) {
-        Objects.requireNonNull(objectRow.oid);
+            @NotNull R row, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) {
+        Objects.requireNonNull(row.oid);
 
         MetadataType metadata = schemaObject.getMetadata();
         if (metadata != null) {
-            storeRefs(objectRow, metadata.getCreateApproverRef(),
-                    MReferenceType.OBJECT_CREATE_APPROVER, jdbcSession);
-            storeRefs(objectRow, metadata.getModifyApproverRef(),
-                    MReferenceType.OBJECT_MODIFY_APPROVER, jdbcSession);
+            storeRefs(row, metadata.getCreateApproverRef(),
+                    QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER, jdbcSession);
+            storeRefs(row, metadata.getModifyApproverRef(),
+                    QObjectReferenceMapping.INSTANCE_OBJECT_MODIFY_APPROVER, jdbcSession);
         }
 
         List<TriggerType> triggers = schemaObject.getTrigger();
         if (!triggers.isEmpty()) {
             TriggerSqlTransformer transformer =
                     QTriggerMapping.INSTANCE.createTransformer(transformerSupport);
-            triggers.forEach(t -> transformer.insert(t, objectRow, jdbcSession));
+            triggers.forEach(t -> transformer.insert(t, row, jdbcSession));
         }
 
+        // schemaObject.getParentOrgRef() TODO
+        // TODO subtype? it's obsolete already
+        // TODO policySituation container
+        // TODO textInfo? or inline array? JSON?
+        //  repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, repositoryContext));
         /*
-        TODO
-        subtype? it's obsolete already
-        parentOrgRefs
-        repo.setPolicySituation(RUtil.listToSet(jaxb.getPolicySituation()));
-
-        repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, repositoryContext));
         for (OperationExecutionType opExec : jaxb.getOperationExecution()) {
             ROperationExecution rOpExec = new ROperationExecution(repo);
             ROperationExecution.fromJaxb(opExec, rOpExec, jaxb, repositoryContext, generatorResult);
@@ -161,10 +160,10 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         }
         */
         if (schemaObject instanceof AssignmentHolderType) {
-            storeAssignmentHolderEntities(objectRow, (AssignmentHolderType) schemaObject, jdbcSession);
+            storeAssignmentHolderEntities(row, (AssignmentHolderType) schemaObject, jdbcSession);
         }
 
-        /* TODO EAV extensions
+        /* TODO EAV extensions - the relevant code from old repo RObject#copyObjectInformationFromJAXB
         if (jaxb.getExtension() != null) {
             copyExtensionOrAttributesFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.EXTENSION, generatorResult);
         }
@@ -182,11 +181,11 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         }
 
         storeRefs(objectRow, schemaObject.getRoleMembershipRef(),
-                MReferenceType.ROLE_MEMBERSHIP, jdbcSession);
+                QObjectReferenceMapping.INSTANCE_ROLE_MEMBERSHIP, jdbcSession);
         storeRefs(objectRow, schemaObject.getDelegatedRef(),
-                MReferenceType.DELEGATED, jdbcSession);
+                QObjectReferenceMapping.INSTANCE_DELEGATED, jdbcSession);
         storeRefs(objectRow, schemaObject.getArchetypeRef(),
-                MReferenceType.ARCHETYPE, jdbcSession);
+                QObjectReferenceMapping.INSTANCE_ARCHETYPE, jdbcSession);
     }
 
     /**

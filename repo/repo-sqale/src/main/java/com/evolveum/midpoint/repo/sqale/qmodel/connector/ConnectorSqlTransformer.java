@@ -22,7 +22,8 @@ public class ConnectorSqlTransformer
     }
 
     @Override
-    public @NotNull MConnector toRowObjectWithoutFullObject(ConnectorType schemaObject, JdbcSession jdbcSession) {
+    public @NotNull MConnector toRowObjectWithoutFullObject(
+            ConnectorType schemaObject, JdbcSession jdbcSession) {
         MConnector row = super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
 
         row.connectorBundle = schemaObject.getConnectorBundle();

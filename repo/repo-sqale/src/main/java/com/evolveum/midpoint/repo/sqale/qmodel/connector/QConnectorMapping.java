@@ -10,14 +10,12 @@ import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterPr
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType.*;
 
 import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * Mapping between {@link QObject} and {@link ObjectType}.
+ * Mapping between {@link QConnector} and {@link ConnectorType}.
  */
 public class QConnectorMapping
         extends QObjectMapping<ConnectorType, QConnector, MConnector> {
