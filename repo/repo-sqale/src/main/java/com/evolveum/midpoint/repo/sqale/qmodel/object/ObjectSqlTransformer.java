@@ -31,10 +31,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R extends MObject>
         extends SqaleTransformerBase<S, Q, R> {
@@ -143,12 +140,17 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
                     MReferenceType.OBJECT_MODIFY_APPROVER, jdbcSession);
         }
 
+        List<TriggerType> triggers = schemaObject.getTrigger();
+        if (!triggers.isEmpty()) {
+            TriggerSqlTransformer transformer =
+                    QTriggerMapping.INSTANCE.createTransformer(transformerSupport);
+            triggers.forEach(t -> transformer.insert(t, objectRow, jdbcSession));
+        }
 
         /*
         TODO
         subtype? it's obsolete already
         parentOrgRefs
-        triggers
         repo.setPolicySituation(RUtil.listToSet(jaxb.getPolicySituation()));
 
         repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, repositoryContext));

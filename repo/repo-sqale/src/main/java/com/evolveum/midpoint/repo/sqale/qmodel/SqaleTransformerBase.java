@@ -185,7 +185,14 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
             QReferenceMapping<?, REF> mapping = referenceType.qReferenceMapping();
             ReferenceSqlTransformer<?, REF> transformer =
                     mapping.createTransformer(transformerSupport);
-            refs.forEach(ref -> transformer.storeRef(ref, ownerRow, jdbcSession));
+            refs.forEach(ref -> transformer.insert(ref, ownerRow, jdbcSession));
         }
+    }
+
+    /** Convenient insert shortcut when the row is fully populated. */
+    protected void insert(R row, JdbcSession jdbcSession) {
+        jdbcSession.newInsert(mapping.defaultAlias())
+                .populate(row)
+                .execute();
     }
 }

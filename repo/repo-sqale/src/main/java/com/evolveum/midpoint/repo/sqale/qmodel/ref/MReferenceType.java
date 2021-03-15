@@ -93,10 +93,6 @@ public enum MReferenceType {
         return (QReferenceMapping<?, R>) qReferenceMapping;
     }
 
-    public QObjectReferenceMapping qObjectReferenceMapping() {
-        return (QObjectReferenceMapping) qReferenceMapping;
-    }
-
     public Class<? extends Containerable> schemaType() {
         return schemaType;
     }
@@ -105,6 +101,7 @@ public enum MReferenceType {
         return itemName;
     }
 
+    // TODO: in old repo it's used by ObjectReferenceMapper.map, will we need it or will Q*Mapping definitions take care of it?
     public static MReferenceType getOwnerByQName(
             Class<? extends Containerable> typeClass, QName itemName) {
         Objects.requireNonNull(typeClass, "Schema type class must not be null");

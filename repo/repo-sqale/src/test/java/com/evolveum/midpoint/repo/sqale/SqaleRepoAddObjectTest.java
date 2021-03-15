@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -257,7 +258,19 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         assertThat(userRow.oid).isNotNull();
         assertThat(userRow.containerIdSeq).isEqualTo(1); // cid sequence is in initial state
 
-        // TODO assert ref rows
+        UUID userOid = UUID.fromString(user.getOid());
+        QObjectReference or = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        List<MReference> projectionRefs = select(or, or.ownerOid.eq(userOid));
+        assertThat(projectionRefs).hasSize(2)
+                .allMatch(rRow -> rRow.referenceType == MReferenceType.PROJECTION)
+                .allMatch(rRow -> rRow.ownerOid.equals(userOid))
+                .extracting(rRow -> rRow.targetOid.toString())
+                .containsExactlyInAnyOrder(targetRef1, targetRef2);
+        // this is the same set of refs queried from the super-table
+        QReference<MReference> r = aliasFor(QReference.CLASS);
+        List<MReference> refs = select(r, r.ownerOid.eq(userOid));
+        assertThat(refs).hasSize(2)
+                .allMatch(rRow -> rRow.referenceType == MReferenceType.PROJECTION);
     }
 
     @Test

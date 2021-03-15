@@ -51,7 +51,14 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         TestUtil.assertSuccess(opResult);
     }
 
-    /** Returns default query instance (alias) for the specified query type. */
+    /**
+     * Returns default query instance (alias) for the specified query type.
+     * Don't use this for multi-table types like references, use something like this instead:
+     *
+     * ----
+     * QObjectReference r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+     * ----
+     */
     protected <R, Q extends FlexibleRelationalPathBase<R>> Q aliasFor(Class<Q> entityPath) {
         return sqlRepoContext.getMappingByQueryType(entityPath).defaultAlias();
     }

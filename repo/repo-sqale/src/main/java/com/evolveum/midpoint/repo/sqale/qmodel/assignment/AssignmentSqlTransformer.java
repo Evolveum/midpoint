@@ -29,7 +29,7 @@ public class AssignmentSqlTransformer
     @SuppressWarnings("DuplicatedCode")
     public MAssignment insert(
             AssignmentType assignment, MObject ownerRow, JdbcSession jdbcSession) {
-        MAssignment row = super.toRowObject(assignment, ownerRow.oid);
+        MAssignment row = initRowObject(assignment, ownerRow.oid);
 
         row.ownerType = ownerRow.objectType;
         row.lifecycleState = assignment.getLifecycleState();
@@ -93,9 +93,7 @@ public class AssignmentSqlTransformer
         // TODO extensions stored inline (JSON)
 
         // insert before treating sub-entities
-        jdbcSession.newInsert(mapping.defaultAlias())
-                .populate(row)
-                .execute();
+        insert(row, jdbcSession);
 
         if (metadata != null) {
             storeRefs(row, metadata.getCreateApproverRef(),

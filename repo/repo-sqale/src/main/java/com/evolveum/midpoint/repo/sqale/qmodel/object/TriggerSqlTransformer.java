@@ -6,8 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
-import java.util.UUID;
-
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
@@ -20,10 +19,12 @@ public class TriggerSqlTransformer
         super(transformerSupport, mapping);
     }
 
-    public MTrigger toRowObject(TriggerType schemaObject, UUID ownerOid) {
-        MTrigger row = super.toRowObject(schemaObject, ownerOid);
+    public void insert(TriggerType schemaObject, MObject ownerRow, JdbcSession jdbcSession) {
+        MTrigger row = initRowObject(schemaObject, ownerRow.oid);
+
         row.handlerUriId = resolveUriToId(schemaObject.getHandlerUri());
         row.timestampValue = MiscUtil.asInstant(schemaObject.getTimestamp());
-        return row;
+
+        insert(row, jdbcSession);
     }
 }

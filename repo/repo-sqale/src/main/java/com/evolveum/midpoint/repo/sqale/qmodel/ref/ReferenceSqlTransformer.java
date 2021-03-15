@@ -26,7 +26,7 @@ public class ReferenceSqlTransformer<Q extends QReference<R>, R extends MReferen
      * care of the FK-columns initialization directly on the owning row object.
      * All the other columns are based on a single schema type, so there is no variation.
      */
-    public R storeRef(ObjectReferenceType schemaObject,
+    public void insert(ObjectReferenceType schemaObject,
             MReferenceOwner<R> ownerRow, JdbcSession jdbcSession) {
         R row = ownerRow.createReference();
         // row.referenceType is DB generated, must be kept NULL, but it will match referenceType
@@ -34,10 +34,6 @@ public class ReferenceSqlTransformer<Q extends QReference<R>, R extends MReferen
         row.targetOid = UUID.fromString(schemaObject.getOid());
         row.targetType = schemaTypeToObjectType(schemaObject.getType());
 
-        jdbcSession.newInsert(mapping.defaultAlias())
-                .populate(row)
-                .execute();
-
-        return row;
+        insert(row, jdbcSession);
     }
 }

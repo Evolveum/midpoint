@@ -25,11 +25,9 @@ public class ContainerSqlTransformer
     }
 
     /**
-     * Method can be overridden or overloaded as it is often called on a known transformer
-     * type with known additional needs, e.g. some type enum value, etc.
-     * This implementation takes care of the attributes of the base class {@link MContainer}.
+     * This creates the right type of object and fills in the base {@link MContainer} attributes.
      */
-    public R toRowObject(S schemaObject, UUID ownerOid) {
+    public R initRowObject(S schemaObject, UUID ownerOid) {
         R row = mapping.newRowObject();
         row.ownerOid = ownerOid;
         row.cid = schemaObject.asPrismContainerValue().getId();
