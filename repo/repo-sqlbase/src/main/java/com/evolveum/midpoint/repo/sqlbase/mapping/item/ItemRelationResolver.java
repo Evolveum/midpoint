@@ -23,9 +23,9 @@ public interface ItemRelationResolver {
 
     class ResolutionResult {
         public final SqlQueryContext<?, ?, ?> context;
-        public final QueryModelMapping mapping;
+        public final QueryModelMapping<?, ?, ?> mapping;
 
-        public ResolutionResult(SqlQueryContext<?, ?, ?> context, QueryModelMapping mapping) {
+        public ResolutionResult(SqlQueryContext<?, ?, ?> context, QueryModelMapping<?, ?, ?> mapping) {
             this.context = context;
             this.mapping = mapping;
         }
