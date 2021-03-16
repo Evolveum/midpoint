@@ -720,7 +720,7 @@ public class TestVillage extends AbstractStoryTest {
         PrismObject<UserType> userMikeAfter = getUser(USER_MIKE_OID);
         UserAsserter.forUser(userMikeAfter).
                 assertAssignments(2).
-                assertLinks(0);
+                assertLiveLinks(0);
     }
 
     @Test
@@ -755,7 +755,7 @@ public class TestVillage extends AbstractStoryTest {
 
         PrismObject<OrgType> org = getObject(OrgType.class, ORG_PROJECT_JOLLY_ROGER_OID);
         display("Org", org);
-        assertLinks(org, 2);
+        assertLiveLinks(org, 2);
 
         Entry ouEntry = openDJController.fetchAndAssertEntry("ou=Jolly Roger,dc=example,dc=com", "organizationalUnit");
         Entry groupEntry = openDJController.fetchAndAssertEntry(GROUP_PROJECT_JOLLY_ROGER_ADMIN_DN, GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_NAME);
@@ -880,7 +880,7 @@ public class TestVillage extends AbstractStoryTest {
         assertUser(user, user.getOid(), username, firstName + " " + lastName,
                 firstName, lastName);
         assertEmployeeNumber(user);
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
         assertAccount(user, RESOURCE_DUMMY_SOURCE_OID);
         assertAssignments(user, RoleType.class, 0);
 
@@ -898,14 +898,14 @@ public class TestVillage extends AbstractStoryTest {
         assertUser(user, user.getOid(), username, firstName + " " + lastName,
                 firstName, lastName);
         assertEmployeeNumber(user);
-        assertLinks(user, 2);
+        assertLiveLinks(user, 2);
         assertAccount(user, RESOURCE_DUMMY_SOURCE_OID);
 
         assertAssignments(user, RoleType.class, assignments);
         assertAssignedRole(user, ROLE_BASIC_OID);
 
         assertAccount(user, RESOURCE_OPENDJ_OID);
-        PrismReferenceValue linkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
+        PrismReferenceValue linkRef = getLiveLinkRef(user, RESOURCE_OPENDJ_OID);
         PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
         display("OpenDJ shadow linked to " + user, shadow);
         IntegrationTestTools.assertSecondaryIdentifier(shadow, "uid=" + username + ",ou=people,dc=example,dc=com");
@@ -931,7 +931,7 @@ public class TestVillage extends AbstractStoryTest {
         Entry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
         display("Group entry", groupEntry);
 
-        PrismReferenceValue accountLinkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
+        PrismReferenceValue accountLinkRef = getLiveLinkRef(user, RESOURCE_OPENDJ_OID);
         PrismObject<ShadowType> accountShadow = getShadowModel(accountLinkRef.getOid());
         String accountDn = IntegrationTestTools.getSecondaryIdentifier(accountShadow);
         openDJController.assertUniqueMember(groupEntry, accountDn);

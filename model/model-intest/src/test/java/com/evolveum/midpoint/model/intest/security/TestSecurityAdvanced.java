@@ -207,7 +207,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User with cleared password", user);
         assertAssignments(user, 1);
-        assertLinks(user, 0);
+        assertLiveLinks(user, 0);
         assertUserNoPassword(user);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);

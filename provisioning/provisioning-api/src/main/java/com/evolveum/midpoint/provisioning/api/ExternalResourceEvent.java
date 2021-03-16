@@ -19,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Externally-provided resource event. Used to inform provisioning module about the fact
  * that an object on a resource has changed.
  */
-public class ResourceEventDescription implements Serializable, DebugDumpable {
+public class ExternalResourceEvent implements ProvisioningEvent, Serializable, DebugDumpable {
 
     /**
      * The change - if known.
@@ -41,7 +41,8 @@ public class ResourceEventDescription implements Serializable, DebugDumpable {
      */
     private final String sourceChannel;
 
-    public ResourceEventDescription(ObjectDelta<ShadowType> objectDelta, PrismObject<ShadowType> resourceObject, PrismObject<ShadowType> oldRepoShadow, String sourceChannel) {
+    public ExternalResourceEvent(ObjectDelta<ShadowType> objectDelta, PrismObject<ShadowType> resourceObject,
+            PrismObject<ShadowType> oldRepoShadow, String sourceChannel) {
         this.objectDelta = objectDelta;
         this.resourceObject = resourceObject;
         this.oldRepoShadow = oldRepoShadow;
@@ -72,8 +73,11 @@ public class ResourceEventDescription implements Serializable, DebugDumpable {
 
     @Override
     public String toString() {
-        return "ResourceEventDescription(delta=" + objectDelta + ", currentResourceObject="
-                + SchemaDebugUtil.prettyPrint(resourceObject) + ", oldRepoShadow=" + SchemaDebugUtil.prettyPrint(oldRepoShadow) + ", sourceChannel=" + sourceChannel
+        return getClass().getSimpleName()
+                + "(delta=" + objectDelta
+                + ", currentResourceObject=" + SchemaDebugUtil.prettyPrint(resourceObject)
+                + ", oldRepoShadow=" + SchemaDebugUtil.prettyPrint(oldRepoShadow)
+                + ", sourceChannel=" + sourceChannel
                 + ")";
     }
 
@@ -81,9 +85,7 @@ public class ResourceEventDescription implements Serializable, DebugDumpable {
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         SchemaDebugUtil.indentDebugDump(sb, indent);
-        sb.append("ResourceEventDescription(");
-        sb.append(sourceChannel);
-        sb.append(")\n");
+        sb.append(getClass().getSimpleName()).append("(").append(sourceChannel).append(")\n");
 
         SchemaDebugUtil.indentDebugDump(sb, indent+1);
 

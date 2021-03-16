@@ -21,6 +21,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -31,7 +32,7 @@ public class DeleteFocusAction implements Action {
     private static final Trace LOGGER = TraceManager.getTrace(DeleteFocusAction.class);
 
     @Override
-    public <F extends FocusType> void handle(LensContext<F> context, SynchronizationSituation<F> situation,
+    public <F extends FocusType> void handle(@NotNull LensContext<F> context, SynchronizationSituation<F> situation,
             Map<QName, Object> parameters, Task task, OperationResult parentResult) {
 
         LensFocusContext<F> focusContext = context.getFocusContext();
@@ -43,7 +44,5 @@ public class DeleteFocusAction implements Action {
         } else {
             LOGGER.trace("No focus context");
         }
-
     }
-
 }

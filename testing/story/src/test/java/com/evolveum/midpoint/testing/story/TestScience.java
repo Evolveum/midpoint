@@ -10,7 +10,6 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
-import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
@@ -33,7 +32,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -180,10 +178,10 @@ public class TestScience  extends AbstractStoryTest {
         display("User after", userAfter);
 
         assertUserJack(userAfter);
-        assertLinks(userAfter, 3);
-        String accountStatsOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_STATS_OID);
-        String accountUnixOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_UNIX_OID);
-        String accountOpenDjOid = getLinkRefOid(userAfter, RESOURCE_OPENDJ_AD_SIMULATION_OID);
+        assertLiveLinks(userAfter, 3);
+        String accountStatsOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_STATS_OID);
+        String accountUnixOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_UNIX_OID);
+        String accountOpenDjOid = getLiveLinkRefOid(userAfter, RESOURCE_OPENDJ_AD_SIMULATION_OID);
 
         PrismObject<ShadowType> shadowStats = provisioningService.getObject(ShadowType.class, accountStatsOid, null, task, result);
         display("Stats account: ", shadowStats);
@@ -226,10 +224,10 @@ public class TestScience  extends AbstractStoryTest {
         AssertJUnit.assertEquals("Wrong number of link refs", 3, jackType.getLinkRef().size());
 
         assertUserJack(userJack);
-        assertLinks(userJack, 3);
-        String accountStatsOid = getLinkRefOid(userJack, RESOURCE_DUMMY_STATS_OID);
-        String accountUnixOid = getLinkRefOid(userJack, RESOURCE_DUMMY_UNIX_OID);
-        String accountOpenDjOid = getLinkRefOid(userJack, RESOURCE_OPENDJ_AD_SIMULATION_OID);
+        assertLiveLinks(userJack, 3);
+        String accountStatsOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_STATS_OID);
+        String accountUnixOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_UNIX_OID);
+        String accountOpenDjOid = getLiveLinkRefOid(userJack, RESOURCE_OPENDJ_AD_SIMULATION_OID);
 
         PrismObject<ShadowType> shadowStats = provisioningService.getObject(ShadowType.class, accountStatsOid, null, task, result);
         display("Stats account: ", shadowStats);
@@ -283,10 +281,10 @@ public class TestScience  extends AbstractStoryTest {
         AssertJUnit.assertEquals("Wrong number of link refs", 3, jackType.getLinkRef().size());
 
         assertUserJack(userJack);
-        assertLinks(userJack, 3);
-        String accountStatsOid = getLinkRefOid(userJack, RESOURCE_DUMMY_STATS_OID);
-        String accountUnixOid = getLinkRefOid(userJack, RESOURCE_DUMMY_UNIX_OID);
-        String accountOpenDjOid = getLinkRefOid(userJack, RESOURCE_OPENDJ_AD_SIMULATION_OID);
+        assertLiveLinks(userJack, 3);
+        String accountStatsOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_STATS_OID);
+        String accountUnixOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_UNIX_OID);
+        String accountOpenDjOid = getLiveLinkRefOid(userJack, RESOURCE_OPENDJ_AD_SIMULATION_OID);
 
         PrismObject<ShadowType> shadowStats = provisioningService.getObject(ShadowType.class, accountStatsOid, null, task, result);
         display("Stats account: ", shadowStats);

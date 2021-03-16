@@ -17,7 +17,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
@@ -65,7 +65,7 @@ public abstract class ErrorHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(ErrorHandler.class);
 
-    @Autowired protected ChangeNotificationDispatcher changeNotificationDispatcher;
+    @Autowired protected EventDispatcher eventDispatcher;
     @Autowired private ResourceManager resourceManager;
     @Autowired protected PrismContext prismContext;
 

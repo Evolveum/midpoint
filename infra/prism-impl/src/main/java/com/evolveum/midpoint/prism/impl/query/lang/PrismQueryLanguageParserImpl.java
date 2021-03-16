@@ -63,6 +63,18 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
             Preconditions.checkArgument(subfilterOrValue != null);
             schemaCheck(definition instanceof PrismPropertyDefinition<?>, "Definition %s is not property", definition);
             PrismPropertyDefinition<?> propDef = (PrismPropertyDefinition<?>) definition;
+
+            var valueSet = subfilterOrValue.valueSet();
+            if (valueSet != null) {
+
+                ArrayList<Object> values = new ArrayList<>();
+                for(SingleValueContext value : valueSet.values) {
+                    schemaCheck(value.literalValue() != null, "Only literal value is supported if multiple values are enumerated");
+                    values.add(parseLiteral(propDef.getTypeClass(), value.literalValue()));
+                }
+                return valuesFilter(propDef, path, matchingRule, values);
+            }
+
             SingleValueContext valueSpec = subfilterOrValue.singleValue();
             schemaCheck(valueSpec != null, "Single value is required.");
             if (valueSpec.path() != null) {
@@ -74,6 +86,12 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
                 return valueFilter(propDef, path, matchingRule, parsedValue);
             }
             throw new IllegalStateException();
+        }
+
+        protected ObjectFilter valuesFilter(PrismPropertyDefinition<?> propDef, ItemPath path,
+                QName matchingRule, ArrayList<Object> values) throws SchemaException {
+            schemaCheck(false, "Multiple values are not supported");
+            return null;
         }
 
         abstract ObjectFilter valueFilter(PrismPropertyDefinition<?> definition, ItemPath path, QName matchingRule,
@@ -139,6 +157,12 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
         public ObjectFilter propertyFilter(PrismPropertyDefinition<?> definition, ItemPath path,
                 QName matchingRule, ItemPath rightPath, PrismPropertyDefinition<?> rightDef) {
             return EqualFilterImpl.createEqual(path, definition, matchingRule, rightPath, rightDef);
+        }
+
+        @Override
+        protected ObjectFilter valuesFilter(PrismPropertyDefinition<?> definition, ItemPath path, QName matchingRule,
+                ArrayList<Object> values) throws SchemaException {
+            return EqualFilterImpl.createEqual(path, definition, matchingRule, context, values.toArray());
         }
     };
 

@@ -29,7 +29,7 @@
     <logger name="com.evolveum.midpoint.model.impl.sync.tasks.LiveSyncTaskHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.sync.tasks.recon" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.provisioning.impl.ChangeNotificationDispatcherImpl" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.provisioning.impl.EventDispatcherImpl" level="DEBUG" />
     <logger name="com.evolveum.midpoint.test" level="TRACE" />
     <logger name="com.evolveum.midpoint.model.common.Clock" level="DEBUG" />
 

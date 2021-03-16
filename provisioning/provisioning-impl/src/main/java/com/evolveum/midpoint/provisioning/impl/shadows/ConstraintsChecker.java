@@ -181,7 +181,9 @@ public class ConstraintsChecker {
     }
 
     private boolean checkAttributeUniqueness(PrismProperty identifier, RefinedObjectClassDefinition accountDefinition,
-                                             ResourceType resourceType, String oid, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ResourceType resourceType, String oid, Task task, OperationResult result) throws SchemaException,
+            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException {
 
         List<PrismPropertyValue<?>> identifierValues = identifier.getValues();
         if (identifierValues.isEmpty()) {
@@ -199,11 +201,12 @@ public class ConstraintsChecker {
                     .or().item(ShadowType.F_DEAD).isNull()
                 .endBlock()
                 .build();
-        boolean unique = checkUniqueness(oid, identifier, query, task, result);
-        return unique;
+        return checkUniqueness(oid, identifier, query, task, result);
     }
 
-    private boolean checkUniqueness(String oid, PrismProperty identifier, ObjectQuery query, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private boolean checkUniqueness(String oid, PrismProperty identifier, ObjectQuery query, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
 
         RefinedObjectClassDefinition objectClassDefinition = provisioningContext.getObjectClassDefinition();
         ResourceType resourceType = provisioningContext.getResource();

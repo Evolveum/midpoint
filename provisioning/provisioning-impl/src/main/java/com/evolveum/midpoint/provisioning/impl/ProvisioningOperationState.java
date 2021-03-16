@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.provisioning.api.ShadowDeathListener;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -20,6 +21,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import static java.util.Collections.singletonList;
+
 /**
  * @author semancik
  */
@@ -28,6 +31,7 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
     private A asyncResult;
     private PendingOperationExecutionStatusType executionStatus;
     private PrismObject<ShadowType> repoShadow;
+
     private Integer attemptNumber;
     private List<PendingOperationType> pendingOperations;
 
@@ -199,9 +203,7 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
     // TEMPORARY: TODO: remove
     public static <A extends AsynchronousOperationResult> ProvisioningOperationState<A> fromPendingOperation(
             PrismObject<ShadowType> repoShadow, PendingOperationType pendingOperation) {
-        List<PendingOperationType> pendingOperations = new ArrayList<>();
-        pendingOperations.add(pendingOperation);
-        return fromPendingOperations(repoShadow, pendingOperations);
+        return fromPendingOperations(repoShadow, singletonList(pendingOperation));
     }
 
     public static <A extends AsynchronousOperationResult> ProvisioningOperationState<A> fromPendingOperations(
@@ -210,7 +212,7 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
         if (pendingOperations == null || pendingOperations.isEmpty()) {
             throw new IllegalArgumentException("Empty list of pending operations, cannot create ProvisioningOperationState");
         }
-        opState.pendingOperations = pendingOperations;
+        opState.pendingOperations = new ArrayList<>(pendingOperations);
         // TODO: check that they have the same status
         opState.executionStatus = pendingOperations.get(0).getExecutionStatus();
         // TODO: better algorithm

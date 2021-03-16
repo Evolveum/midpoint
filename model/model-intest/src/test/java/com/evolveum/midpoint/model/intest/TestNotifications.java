@@ -557,7 +557,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         then();
         assertUserAfterByUsername(USERNAME_GREGOR)
                 .assertAssignments(1)
-                .assertLinks(2);
+                .assertLiveLinks(2);
 
         displayDumpable("Notifications", dummyTransport);
 

@@ -176,7 +176,7 @@ class ShadowFinder {
         return singleShadow;
     }
 
-    public Collection<PrismObject<ShadowType>> searchForPreviousDeadShadows(ProvisioningContext ctx,
+    Collection<PrismObject<ShadowType>> searchForPreviousDeadShadows(ProvisioningContext ctx,
             PrismObject<ShadowType> shadowToAdd, OperationResult result) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
@@ -200,7 +200,7 @@ class ShadowFinder {
         return deadShadowsFound;
     }
 
-    public PrismObject<ShadowType> lookupShadowBySecondaryIds(ProvisioningContext ctx,
+    PrismObject<ShadowType> lookupShadowBySecondaryIds(ProvisioningContext ctx,
             Collection<ResourceAttribute<?>> secondaryIdentifiers, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ExpressionEvaluationException {

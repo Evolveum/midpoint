@@ -1178,7 +1178,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertRelationDef(relations, SchemaConstants.ORG_MANAGER, "manager");
         assertRelationDef(relations, SchemaConstants.ORG_OWNER, "Master");
         assertRelationDef(relations, RELATION_PIRACY_CAPTAIN, "Captain");
-        assertEquals("Unexpected number of relation definitions", 8, relations.size());
+        assertEquals("Unexpected number of relation definitions", 9, relations.size());
     }
 
     /**

@@ -23,6 +23,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.opends.server.types.Entry;
 import org.opends.server.util.EmbeddedUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -423,7 +424,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 Collections.singletonList(linkRefDelta), parentResult);
 
         // Check if user object was modified in the repo
-        assertUserOneAccountRef(USER_JACK_OID);
+        assertUserOneLinkRef(USER_JACK_OID);
 
         // check LDAP
         Entry entry = openDJController.searchByUid(ACCOUNT_JACKIE_LDAP_UID);
@@ -511,13 +512,14 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertNoRepoThreadLocalCache();
         addObject(USER_JACKIE_FILE, task, parentResult);
         PrismObject<UserType> userJackieBefore = getUser(USER_JACKIE_OID);
-        UserAsserter.forUser(userJackieBefore).assertLinks(0);
+        UserAsserter.forUser(userJackieBefore)
+                .assertLiveLinks(0);
 
         PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
         UserAsserter.forUser(userJackBefore)
-                .assertLinks(1)
+                .assertLiveLinks(1)
                 .links()
-                .link(ACCOUNT_JACKIE_OID);
+                    .link(ACCOUNT_JACKIE_OID);
         //check if the jackie account already exists on the resource
 
         PrismObject<ShadowType> existingJackieAccount = getShadowRepo(ACCOUNT_JACKIE_OID);
@@ -529,7 +531,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         then("The dn and ri:uid will be jackie1 because jackie already exists and is liked to another user");
         PrismObject<UserType> userJackieAfter = getUser(USER_JACKIE_OID);
         UserAsserter.forUser(userJackieAfter)
-                .assertLinks(1);
+                .assertLiveLinks(1);
 
         ObjectReferenceType linkRef = userJackieAfter.asObjectable().getLinkRef().iterator().next();
         assertThat(linkRef.getOid()).withFailMessage("Wrong account linked")
@@ -609,9 +611,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
             executeChanges(abombaDelta, null, task, parentResult);
 
             assertUser(USER_ABOMBA_OID, "User before")
-                    .assertLinks(1);
+                    .assertLiveLinks(1);
 
-            String abombaOid = getLinkRefOid(USER_ABOMBA_OID, RESOURCE_OPENDJ_OID);
+            String abombaOid = getLiveLinkRefOid(USER_ABOMBA_OID, RESOURCE_OPENDJ_OID);
 
             ShadowType abombaShadow = repositoryService.getObject(ShadowType.class, abombaOid, null, parentResult).asObjectable();
             assertShadowName(abombaShadow, "uid=abomba,OU=people,DC=example,DC=com");
@@ -621,9 +623,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
             executeChanges(abomDelta, null, task, parentResult);
 
             assertUser(USER_ABOM_OID, "User before")
-                    .assertLinks(1);
+                    .assertLiveLinks(1);
 
-            String abomOid = getLinkRefOid(USER_ABOMBA_OID, RESOURCE_OPENDJ_OID);
+            String abomOid = getLiveLinkRefOid(USER_ABOMBA_OID, RESOURCE_OPENDJ_OID);
 
             ShadowType abomShadow = repositoryService.getObject(ShadowType.class, abomOid, null, parentResult).asObjectable();
             assertShadowName(abomShadow, "uid=abomba1,OU=people,DC=example,DC=com");
@@ -665,7 +667,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
             ObjectDelta<UserType> abombaDelta2 = createModifyUserAddAccount(USER_ABOMBA_OID, resourceTypeOpenDjrepo.asPrismObject(), "contractor");
             executeChanges(abombaDelta2, null, task, parentResult);
 
-            String abombaOid2 = assertUserOneAccountRef(USER_ABOMBA_OID);
+            String abombaOid2 = assertUserOneLinkRef(USER_ABOMBA_OID);
             ShadowType abombaShadow2 = repositoryService.getObject(ShadowType.class, abombaOid2, null, result).asObjectable();
             assertShadowName(abombaShadow2,
                     "uid=abomba,OU=people,DC=example,DC=com");
@@ -707,7 +709,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         UserAsserter.forUser(userAfter)
-                .assertLinks(0);
+                .assertLiveLinks(0);
 
         repositoryService.deleteObject(UserType.class, USER_GUYBRUSH_OID, parentResult);
     }
@@ -740,9 +742,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         UserAsserter.forUser(userBefore)
-                .assertLinks(1)
+                .assertLiveLinks(1)
                 .links()
-                .link(ACCOUNT_GUYBRUSH_OID);
+                    .link(ACCOUNT_GUYBRUSH_OID);
 
         // WHEN
         ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
@@ -769,7 +771,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         clock.resetOverride();
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         UserAsserter.forUser(userAfter)
-                .assertLinks(0);
+                .assertLiveLinks(0);
 
 //        repositoryService.deleteObject(UserType.class, USER_GUYBRUSH_OID, result);
     }
@@ -800,9 +802,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_NOT_FOUND_OID);
         UserAsserter.forUser(userBefore)
-                .assertLinks(1)
+                .assertLiveLinks(1)
                 .links()
-                .link(ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID);
+                    .link(ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID);
 
         Task task = taskManager.createTaskInstance();
 
@@ -828,9 +830,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         then();
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_NOT_FOUND_OID);
         UserAsserter.forUser(userAfter)
-                .assertLinks(1);
+                .assertLiveLinks(1);
 
-        String newShadowOid = getLinkRefOid(USER_GUYBRUSH_NOT_FOUND_OID, RESOURCE_OPENDJ_OID);
+        String newShadowOid = getLiveLinkRefOid(USER_GUYBRUSH_NOT_FOUND_OID, RESOURCE_OPENDJ_OID);
 
         assertThat(newShadowOid)
                 .withFailMessage("Unexpected that new and old shadows have the same oid")
@@ -862,9 +864,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         PrismObject<UserType> userBefore = getUser(USER_HECTOR_NOT_FOUND_OID);
         UserAsserter.forUser(userBefore)
-                .assertLinks(1)
+                .assertLiveLinks(1)
                 .links()
-                .link(ACCOUNT_HECTOR_OID);
+                    .link(ACCOUNT_HECTOR_OID);
 
         Task task = taskManager.createTaskInstance();
 
@@ -874,9 +876,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // THEN
         PrismObject<UserType> userAfter = getUser(USER_HECTOR_NOT_FOUND_OID);
         UserAsserter.forUser(userAfter)
-                .assertLinks(1)
+                .assertLiveLinks(1)
                 .links()
-                .link(ACCOUNT_HECTOR_OID);
+                    .link(ACCOUNT_HECTOR_OID);
 
         PrismObject<ShadowType> modifiedAccount = getShadowModel(ACCOUNT_HECTOR_OID);
         assertNotNull(modifiedAccount);
@@ -897,19 +899,18 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         OperationResult result = task.getResult();
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_OPENDJ_OID, null);
 
-        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
-        display("User before", userBefore);
-        UserAsserter.forUser(userBefore)
-                .assertLinks(1);
+        String liveLinKOidBefore = assertUserBefore(USER_GUYBRUSH_OID)
+                .links()
+                    .singleLive()
+                        .getOid();
 
-        ObjectReferenceType linkRef = userBefore.asObjectable().getLinkRef().iterator().next();
-        PrismObject<ShadowType> shadowBefore = getShadowModel(linkRef.getOid());
+        PrismObject<ShadowType> shadowBefore = getShadowModel(liveLinKOidBefore);
         display("Model Shadow before", shadowBefore);
 
         String dn = ShadowUtil.getAttributeValue(shadowBefore, RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
         openDJController.delete(dn);
 
-        PrismObject<ShadowType> repoShadowBefore = getShadowRepo(linkRef.getOid());
+        PrismObject<ShadowType> repoShadowBefore = getShadowRepo(liveLinKOidBefore);
         assertNotNull("Repo shadow is gone!", repoShadowBefore);
         display("Repository shadow before", repoShadowBefore);
         assertNotSame("Oh my! Shadow is dead!", repoShadowBefore.asObjectable().isDead(), Boolean.TRUE);
@@ -920,21 +921,20 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // THEN
         then();
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("User after", userAfter);
-        UserAsserter.forUser(userAfter)
-                .assertLinks(1);
+        String liveLinkOidAfter = assertUser(userAfter, "after")
+                .links()
+                    .assertLinks(1, isReaper() ? 0 : 1)
+                    .singleLive()
+                        .resolveTarget()
+                        .display("live shadow after")
+                        .getOid();
 
-        ObjectReferenceType linkRefAfter = userAfter.asObjectable().getLinkRef().iterator().next();
-        assertThat(linkRef.getOid()).withFailMessage("Old and new shadow with the same oid?")
-                .isNotEqualTo(linkRefAfter.getOid());
-
-        PrismObject<ShadowType> shadowAfter = getShadowModel(linkRefAfter.getOid());
-        display("Shadow after", shadowAfter);
-        assertNotNull("No shadow found", shadowAfter);
+        assertThat(liveLinKOidBefore).withFailMessage("Old and new shadow with the same oid?")
+                .isNotEqualTo(liveLinkOidAfter);
 
         Entry entryAfter = openDJController.fetchEntry(dn);
         display("Entry after", entryAfter);
@@ -953,17 +953,32 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
         UserAsserter.forUser(userBefore)
-                .assertLinks(1);
+                .links()
+                .assertLinks(1, isReaper() ? 0 : 1);
 
-        ObjectReferenceType linkRef = userBefore.asObjectable().getLinkRef().iterator().next();
-        String shadowOidBefore = linkRef.getOid();
-        PrismObject<ShadowType> shadowBefore = getShadowModel(shadowOidBefore);
-        display("Shadow before", shadowBefore);
+        String dn = null;
+        String liveOidBefore = null;
+        for (ObjectReferenceType linkRef : userBefore.asObjectable().getLinkRef()) {
+            String shadowOidBefore = linkRef.getOid();
+            PrismObject<ShadowType> shadowBefore = getShadowModel(shadowOidBefore);
+            display("Shadow before", shadowBefore);
 
-        String dn = ShadowUtil.getAttributeValue(shadowBefore, RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
-        openDJController.delete(dn);
+            if (dn == null) {
+                dn = ShadowUtil.getAttributeValue(shadowBefore, RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
+                if (dn != null) {
+                    openDJController.delete(dn);
+                }
+            }
 
-        repositoryService.deleteObject(ShadowType.class, shadowOidBefore, result);
+            if (ShadowUtil.isNotDead(linkRef)) {
+                liveOidBefore = linkRef.getOid();
+            }
+
+            repositoryService.deleteObject(ShadowType.class, shadowOidBefore, result);
+        }
+
+        assertThat(liveOidBefore).isNotNull();
+        assertThat(dn).isNotNull();
 
         // WHEN
         recomputeUser(USER_GUYBRUSH_OID, task, result);
@@ -974,17 +989,16 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("User after", userAfter);
-        UserAsserter.forUser(userAfter)
-                .assertLinks(1);
+        String liveOidAfter = assertUser(userAfter, "after")
+                .links()
+                    .singleLive()
+                    .resolveTarget()
+                        .display()
+                        .getOid();
 
-        ObjectReferenceType linkRefAfter = userAfter.asObjectable().getLinkRef().iterator().next();
-        String shadowOidAfter = linkRefAfter.getOid();
-        assertThat(shadowOidBefore).withFailMessage("Old and new shadow with the same oid?")
-                .isNotEqualTo(shadowOidAfter);
-
-        PrismObject<ShadowType> shadowAfter = getShadowModel(shadowOidAfter);
-        display("Shadow after", shadowAfter);
-        assertNotNull("No shadow found", shadowAfter);
+        assertThat(liveOidBefore)
+                .withFailMessage("Old and new shadow with the same oid?")
+                .isNotEqualTo(liveOidAfter);
 
         Entry entryAfter = openDJController.fetchEntry(dn);
         display("Entry after", entryAfter);
@@ -997,21 +1011,25 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
-        display("User before", userBefore);
-        String accountShadowOid = assertOneAccountRef(userBefore);
-        PrismObject<ShadowType> shadowBefore = getShadowModel(accountShadowOid);
-        display("Shadow before", shadowBefore);
+        UserAsserter<Void> asserter = assertUserBefore(USER_GUYBRUSH_OID);
+        asserter.setObjectResolver(createSimpleModelObjectResolver());
+
+        PrismObject<ShadowType> shadowBefore = asserter
+                .links()
+                    .assertLiveLinks(1)
+                    .singleLive()
+                        .resolveTarget()
+                            .display()
+                            .getObject();
 
         String dn = ShadowUtil.getAttributeValue(shadowBefore, RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
         openDJController.delete(dn);
 
-        // WHEN
+        when();
         deleteObject(UserType.class, USER_GUYBRUSH_OID, task, result);
 
-        // THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        then();
+        assertSuccess(result);
 
         assertNoObject(UserType.class, USER_GUYBRUSH_OID, task, result);
 
@@ -1035,7 +1053,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         repoAddObjectFromFile(USER_E_FILENAME, parentResult);
 
-        assertUser(USER_E_OID, getTestNameShort()).assertLinks(0);
+        assertUser(USER_E_OID, getTestNameShort())
+                .assertLiveLinks(0);
 
         XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
         assignAccount(UserType.class, USER_E_OID, RESOURCE_OPENDJ_OID, "internal", task, parentResult);
@@ -1045,9 +1064,10 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         display("add object communication problem result: ", parentResult);
         assertEquals("Expected handled error but got: " + parentResult.getStatus(), OperationResultStatus.IN_PROGRESS, parentResult.getStatus());
 
-        assertUser(USER_E_OID, "after").assertLinks(1);
+        assertUser(USER_E_OID, "after")
+                .assertLiveLinks(1);
 
-        String shadowEOid = getLinkRefOid(USER_E_OID, RESOURCE_OPENDJ_OID);
+        String shadowEOid = getLiveLinkRefOid(USER_E_OID, RESOURCE_OPENDJ_OID);
 
         assertRepoShadow(shadowEOid)
                 .display(getTestNameShort() + " Shadow after")
@@ -1085,9 +1105,10 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         Task task = getTestTask();
         OperationResult parentResult = task.getResult();
 
-        assertUser(USER_E_OID, "User before").assertLinks(1);
+        assertUser(USER_E_OID, "User before")
+                .assertLiveLinks(1);
 
-        String accountOid = getLinkRefOid(USER_E_OID, RESOURCE_OPENDJ_OID);
+        String accountOid = getLiveLinkRefOid(USER_E_OID, RESOURCE_OPENDJ_OID);
 
         //WHEN
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory()
@@ -1153,7 +1174,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         openDJController.assumeStopped();
         OperationResult parentResult = createOperationResult();
 
-        String accountOid = assertUserOneAccountRef(USER_JACK_OID);
+        String accountOid = assertUserOneLinkRef(USER_JACK_OID);
 
         Task task = taskManager.createTaskInstance();
 
@@ -1216,7 +1237,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(testName);
         OperationResult parentResult = task.getResult();
 
-        assertUserOneAccountRef(USER_DENIELS_OID);
+        assertUserOneLinkRef(USER_DENIELS_OID);
 
         //WHEN
         ObjectDelta deleteDelta = prismContext.deltaFactory().object().createDeleteDelta(ShadowType.class, ACCOUNT_DENIELS_OID);
@@ -1226,31 +1247,33 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
         assertUser(USER_DENIELS_OID, testName)
-                .assertLinks(1);
+                .assertLiveLinks(1);
 
         // THEN
+        // @formatter:off
         assertModelShadowNoFetch(ACCOUNT_DENIELS_OID)
                 .display(testName + "Shadow after")
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertNotDead()
                 .assertNoLegacyConsistency()
                 .attributes()
-                .assertHasPrimaryIdentifier()
-                .assertHasSecondaryIdentifier()
-                .end()
+                    .assertHasPrimaryIdentifier()
+                    .assertHasSecondaryIdentifier()
+                    .end()
                 .pendingOperations()
-                .singleOperation()
-                .display()
-                .assertType(PendingOperationTypeType.RETRY)
-                .assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
-                .assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .assertAttemptNumber(1)
-                .assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .delta()
-                .display()
-                .assertDelete();
+                    .singleOperation()
+                        .display()
+                        .assertType(PendingOperationTypeType.RETRY)
+                        .assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                        .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                        .assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .assertAttemptNumber(1)
+                        .assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .delta()
+                            .display()
+                            .assertDelete();
+        // @formatter:off
 
 //        clockForward("PT20M");
 //        assertNoModelShadowFuture(ACCOUNT_DENIELS_OID);
@@ -1315,7 +1338,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         repoAddObjectFromFile(USER_ELAINE_FILE, parentResult);
 
         assertUser(USER_ELAINE_OID, "User before")
-                .assertLinks(0);
+                .assertLiveLinks(0);
 
         Task task = taskManager.createTaskInstance();
 
@@ -1330,10 +1353,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         //THEN
         assertUser(USER_ELAINE_OID, "User after")
-                .assertLinks(1);
+                .assertLiveLinks(1);
 
-        String shadowOid = getLinkRefOid(USER_ELAINE_OID, RESOURCE_OPENDJ_OID);
+        String shadowOid = getLiveLinkRefOid(USER_ELAINE_OID, RESOURCE_OPENDJ_OID);
 
+        // @formatter:off
         assertRepoShadow(shadowOid)
                 .display(getTestNameShort() + ".Shadow after")
                 .assertKind(ShadowKindType.ACCOUNT)
@@ -1344,21 +1368,22 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertNoPrimaryIdentifierValue()
                 .assertNoLegacyConsistency()
                 .attributes()
-                .assertAttributes(LDAP_ATTRIBUTE_DN, LDAP_ATTRIBUTE_UID)
-                .end()
+                    .assertAttributes(LDAP_ATTRIBUTE_DN, LDAP_ATTRIBUTE_UID)
+                    .end()
                 .pendingOperations()
-                .singleOperation()
-                .display()
-                .assertType(PendingOperationTypeType.RETRY)
-                .assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
-                .assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .assertAttemptNumber(1)
-                .assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .delta()
-                .display()
-                .assertAdd();
+                    .singleOperation()
+                        .display()
+                        .assertType(PendingOperationTypeType.RETRY)
+                        .assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                        .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                        .assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .assertAttemptNumber(1)
+                        .assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .delta()
+                            .display()
+                            .assertAdd();
+        // @formatter:on
 
         //check futurized
 //        checkPostponedAccountWithAttributes(shadowOid, "elaine", "Elaine", "Marley", "Elaine Marley", FailedOperationTypeType.ADD, false, task, parentResult);
@@ -1371,7 +1396,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         OperationResult parentResult = createOperationResult();
 
         assertUser(USER_JACK_OID, "User before")
-                .assertLinks(1);
+                .assertLiveLinks(1);
 
         Collection<PropertyDelta> modifications = new ArrayList<>();
 
@@ -1399,34 +1424,36 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertNoMessage(parentResult); // TODO here should be some specific message
 
         assertUser(USER_JACKIE_OID, "User after first modify")
-                .assertLinks(1)
+                .assertLiveLinks(1)
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED)
                 .assertFullName("jackNew2");
 
-        String shadowOid = getLinkRefOid(USER_JACKIE_OID, RESOURCE_OPENDJ_OID);
+        String shadowOid = getLiveLinkRefOid(USER_JACKIE_OID, RESOURCE_OPENDJ_OID);
 
+        // @formatter:off
         assertModelShadowNoFetch(shadowOid)
                 .display(getTestNameShort() + "Shadow after")
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertNotDead()
                 .assertNoLegacyConsistency()
                 .attributes()
-                .assertHasPrimaryIdentifier()
-                .assertHasSecondaryIdentifier()
+                    .assertHasPrimaryIdentifier()
+                    .assertHasSecondaryIdentifier()
                 .end()
                 .pendingOperations()
-                .singleOperation()
-                .display()
-                .assertType(PendingOperationTypeType.RETRY)
-                .assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
-                .assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .assertAttemptNumber(1)
-                .assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .delta()
-                .display()
-                .assertModify();
+                    .singleOperation()
+                        .display()
+                        .assertType(PendingOperationTypeType.RETRY)
+                        .assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                        .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                        .assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .assertAttemptNumber(1)
+                        .assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .delta()
+                            .display()
+                            .assertModify();
+        // @formatter:on
 
         assertModelShadowFutureNoFetch(shadowOid)
                 .display()
@@ -1435,8 +1462,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertNoLegacyConsistency()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED) // MID-6420
                 .attributes()
-                .assertValue(LDAP_ATTRIBUTE_CN, "jackNew2")
-                .end()
+                    .assertValue(LDAP_ATTRIBUTE_CN, "jackNew2")
+                    .end()
                 .assertIsExists()
                 .end();
     }
@@ -1448,7 +1475,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         OperationResult parentResult = createOperationResult();
 
         assertUser(USER_JACKIE_OID, "User before")
-                .assertLinks(1)
+                .assertLiveLinks(1)
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED)
                 .assertFullName("jackNew2");
 
@@ -1482,12 +1509,12 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertThat(parentResult.getMessage()).startsWith("Error communicating with connector");
 
         assertUser(USER_JACKIE_OID, "User after first modify")
-                .assertLinks(1)
+                .assertLiveLinks(1)
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED)
                 .assertFullName("jackNew2a")
                 .assertGivenName("jackNew2a");
 
-        String shadowOid = getLinkRefOid(USER_JACKIE_OID, RESOURCE_OPENDJ_OID);
+        String shadowOid = getLiveLinkRefOid(USER_JACKIE_OID, RESOURCE_OPENDJ_OID);
 
         assertModelShadowNoFetch(shadowOid)
                 .display(getTestNameShort() + "Shadow after")
@@ -1562,7 +1589,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         repoAddObjectFromFile(USER_ANGELIKA_FILENAME, parentResult);
 
         assertUser(USER_ANGELIKA_OID, "User before")
-                .assertLinks(0);
+                .assertLiveLinks(0);
 
         Task task = taskManager.createTaskInstance();
 
@@ -1580,9 +1607,10 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertNoMessage(parentResult); // TODO here should be some specific message
 
         assertUser(USER_ANGELIKA_OID, "User after")
-                .assertLinks(1);
+                .assertLiveLinks(1);
 
-        String shadowOid = getLinkRefOid(USER_ANGELIKA_OID, RESOURCE_OPENDJ_OID);
+        String shadowOid = getLiveLinkRefOid(USER_ANGELIKA_OID, RESOURCE_OPENDJ_OID);
+        // @formatter:off
         assertRepoShadow(shadowOid)
                 .display(getTestNameShort() + ".Shadow after")
                 .assertKind(ShadowKindType.ACCOUNT)
@@ -1593,21 +1621,23 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertNoPrimaryIdentifierValue()
                 .assertNoLegacyConsistency()
                 .attributes()
-                .assertAttributes(LDAP_ATTRIBUTE_DN, LDAP_ATTRIBUTE_UID)
-                .end()
+                    .assertAttributes(LDAP_ATTRIBUTE_DN, LDAP_ATTRIBUTE_UID)
+                    .end()
                 .pendingOperations()
-                .singleOperation()
-                .display()
-                .assertType(PendingOperationTypeType.RETRY)
-                .assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
-                .assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .assertAttemptNumber(1)
-                .assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .delta()
-                .display()
-                .assertAdd();
+                    .singleOperation()
+                        .display()
+                        .assertType(PendingOperationTypeType.RETRY)
+                        .assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                        .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                        .assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .assertAttemptNumber(1)
+                        .assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .delta()
+                            .display()
+                            .assertAdd();
+        // @formatter:on
+
         //start openDJ
         openDJController.start();
         //and set the resource availability status to UP
@@ -1627,7 +1657,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         //prepare user
         repoAddObjectFromFile(USER_ALICE_FILENAME, parentResult);
         assertUser(USER_ALICE_OID, "User before")
-                .assertLinks(0);
+                .assertLiveLinks(0);
 
         //and add account to the user while resource is UP
         assignAccountToUser(USER_ALICE_OID, RESOURCE_OPENDJ_OID, "internal");
@@ -1636,15 +1666,16 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         openDJController.stop();
 
         assertUser(USER_ALICE_OID, "User after")
-                .assertLinks(1);
+                .assertLiveLinks(1);
 
-        String shadowOid = getLinkRefOid(USER_ALICE_OID, RESOURCE_OPENDJ_OID);
+        String shadowOid = getLiveLinkRefOid(USER_ALICE_OID, RESOURCE_OPENDJ_OID);
 
         //and make some modifications to the account while resource is DOWN
         XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
         modifyAccountShadowReplace(shadowOid, createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER), task, parentResult, "44332");
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
+        // @formatter:off
         assertModelShadowNoFetch(shadowOid)
                 .display(getTestNameShort() + "Shadow after")
                 .assertKind(ShadowKindType.ACCOUNT)
@@ -1654,23 +1685,24 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 // We will get that only when create operation is successful.
                 .assertNoLegacyConsistency()
                 .attributes()
-                .assertHasPrimaryIdentifier()
-                .assertHasSecondaryIdentifier()
-                .end()
+                    .assertHasPrimaryIdentifier()
+                    .assertHasSecondaryIdentifier()
+                    .end()
                 .pendingOperations()
-                .singleOperation()
-                .display()
-                .assertType(PendingOperationTypeType.RETRY)
-                .assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
-                .assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .assertAttemptNumber(1)
-                .assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .delta()
-                .display()
-                .assertModify()
-                .assertHasModification(createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER));
+                    .singleOperation()
+                        .display()
+                        .assertType(PendingOperationTypeType.RETRY)
+                        .assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                        .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                        .assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .assertAttemptNumber(1)
+                        .assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .delta()
+                            .display()
+                            .assertModify()
+                            .assertHasModification(createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER));
+        // @formatter:on
 
         //start openDJ
         openDJController.start();
@@ -1714,9 +1746,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         OperationResult parentResult = task.getResult();
 
         assertUser(USER_ALICE_OID, "User before")
-                .assertLinks(1);
+                .assertLiveLinks(1);
 
-        String shadowOid = getLinkRefOid(USER_ALICE_OID, RESOURCE_OPENDJ_OID);
+        String shadowOid = getLiveLinkRefOid(USER_ALICE_OID, RESOURCE_OPENDJ_OID);
         // WHEN (down)
         XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
         modifyUserChangePassword(USER_ALICE_OID, "DEADmenTELLnoTALES", task, parentResult);
@@ -1724,6 +1756,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // THEN
         //check the state after execution
+
+        // @formatter:off
         assertModelShadowNoFetch(shadowOid)
                 .display(getTestNameShort() + ".Shadow after")
                 .assertKind(ShadowKindType.ACCOUNT)
@@ -1733,40 +1767,37 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 // We will get that only when create operation is successful.
                 .assertNoLegacyConsistency()
                 .attributes()
-                .assertHasPrimaryIdentifier()
-                .assertHasSecondaryIdentifier()
-                .end()
+                    .assertHasPrimaryIdentifier()
+                    .assertHasSecondaryIdentifier()
+                    .end()
                 .pendingOperations()
-                .assertOperations(2)
-                .by()
-                .executionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                .find()
-                .display()
-                .assertType(PendingOperationTypeType.RETRY)
-                .assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
-                .assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .assertAttemptNumber(1)
-                .assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .delta()
-                .display()
-                .assertModify()
-                .assertHasModification(SchemaConstants.PATH_PASSWORD_VALUE)
-                .end()
-                .end()
-                .by()
-                .executionStatus(PendingOperationExecutionStatusType.COMPLETED)
-                .find()
-                .display()
-                .assertType(PendingOperationTypeType.RETRY)
-                .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
-                .assertResultStatus(OperationResultStatusType.SUCCESS)
-                .assertAttemptNumber(2)
-                .delta()
-                .display()
-                .assertModify()
-                .assertHasModification(createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER));
+                    .assertOperations(2)
+                    .by().executionStatus(PendingOperationExecutionStatusType.EXECUTING).find()
+                        .display()
+                        .assertType(PendingOperationTypeType.RETRY)
+                        .assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                        .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                        .assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .assertAttemptNumber(1)
+                        .assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .delta()
+                            .display()
+                            .assertModify()
+                            .assertHasModification(SchemaConstants.PATH_PASSWORD_VALUE)
+                            .end()
+                        .end()
+                    .by().executionStatus(PendingOperationExecutionStatusType.COMPLETED).find()
+                        .display()
+                        .assertType(PendingOperationTypeType.RETRY)
+                        .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                        .assertResultStatus(OperationResultStatusType.SUCCESS)
+                        .assertAttemptNumber(2)
+                        .delta()
+                            .display()
+                            .assertModify()
+                            .assertHasModification(createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER));
+        // @formatter:on
 
         //start openDJ
         openDJController.start();
@@ -1801,8 +1832,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         OperationResult result = task.getResult();
 
         assertUser(USER_ALICE_OID, "User before")
-                .assertLinks(1);
-        String shadowOid = getLinkRefOid(USER_ALICE_OID, RESOURCE_OPENDJ_OID);
+                .assertLiveLinks(1);
+        String shadowOid = getLiveLinkRefOid(USER_ALICE_OID, RESOURCE_OPENDJ_OID);
 
         // WHEN (down)
         when();
@@ -1813,6 +1844,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // THEN
         then();
         //check the state after execution
+
+        // @formatter:off
         assertModelShadowNoFetch(shadowOid)
                 .display(getTestNameShort() + ".Shadow after")
                 .assertKind(ShadowKindType.ACCOUNT)
@@ -1822,26 +1855,25 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 // We will get that only when create operation is successful.
                 .assertNoLegacyConsistency()
                 .attributes()
-                .assertHasPrimaryIdentifier()
-                .assertHasSecondaryIdentifier()
-                .end()
+                    .assertHasPrimaryIdentifier()
+                    .assertHasSecondaryIdentifier()
+                    .end()
                 .pendingOperations()
-                .assertOperations(3)
-                .by()
-                .executionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                .find()
-                .display()
-                .assertType(PendingOperationTypeType.RETRY)
-                .assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
-                .assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .assertAttemptNumber(1)
-                .assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .delta()
-                .display()
-                .assertModify()
-                .assertHasModification(SchemaConstants.PATH_PASSWORD_VALUE);
+                    .assertOperations(3)
+                    .by().executionStatus(PendingOperationExecutionStatusType.EXECUTING).find()
+                        .display()
+                        .assertType(PendingOperationTypeType.RETRY)
+                        .assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                        .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                        .assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .assertAttemptNumber(1)
+                        .assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .delta()
+                            .display()
+                            .assertModify()
+                            .assertHasModification(SchemaConstants.PATH_PASSWORD_VALUE);
+        // @formatter:on
 
         //start openDJ
         openDJController.start();
@@ -1875,7 +1907,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         repoAddObjectFromFile(USER_BOB_NO_GIVEN_NAME_FILENAME, parentResult);
 
         assertUser(USER_BOB_NO_GIVEN_NAME_OID, "User bofore")
-                .assertLinks(0);
+                .assertLiveLinks(0);
 
         Task task = taskManager.createTaskInstance();
 
@@ -1887,9 +1919,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertNoMessage(parentResult); // TODO here should be some specific message
 
         assertUser(USER_BOB_NO_GIVEN_NAME_OID, "User after")
-                .assertLinks(1);
+                .assertLiveLinks(1);
 
-        String shadowOid = getLinkRefOid(USER_BOB_NO_GIVEN_NAME_OID, RESOURCE_OPENDJ_OID);
+        String shadowOid = getLiveLinkRefOid(USER_BOB_NO_GIVEN_NAME_OID, RESOURCE_OPENDJ_OID);
 
         //start openDJ
         openDJController.start();
@@ -1912,10 +1944,10 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertNotDead()
                 .assertResource(RESOURCE_OPENDJ_OID)
                 .attributes()
-                .assertValue(LDAP_ATTRIBUTE_GIVENNAME, "Bob")
-                .assertValue(LDAP_ATTRIBUTE_UID, "bob")
-                .assertValue(LDAP_ATTRIBUTE_CN, "Bob Dylan")
-                .assertValue(LDAP_ATTRIBUTE_SN, "Dylan");
+                    .assertValue(LDAP_ATTRIBUTE_GIVENNAME, "Bob")
+                    .assertValue(LDAP_ATTRIBUTE_UID, "bob")
+                    .assertValue(LDAP_ATTRIBUTE_CN, "Bob Dylan")
+                    .assertValue(LDAP_ATTRIBUTE_SN, "Dylan");
 
     }
 
@@ -1927,7 +1959,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         repoAddObjectFromFile(USER_JOHN_WEAK_FILENAME, parentResult);
         assertUser(USER_JOHN_WEAK_OID, "User before")
-                .assertLinks(0);
+                .assertLiveLinks(0);
 
         Task task = taskManager.createTaskInstance();
 
@@ -1935,9 +1967,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assignAccountToUser(USER_JOHN_WEAK_OID, RESOURCE_OPENDJ_OID, "internal");
 
         assertUser(USER_JOHN_WEAK_OID, "User after")
-                .assertLinks(1);
+                .assertLiveLinks(1);
 
-        String shadowOid = getLinkRefOid(USER_JOHN_WEAK_OID, RESOURCE_OPENDJ_OID);
+        String shadowOid = getLiveLinkRefOid(USER_JOHN_WEAK_OID, RESOURCE_OPENDJ_OID);
         assertModelShadow(shadowOid)
                 .assertIsExists()
                 .assertNotDead()
@@ -1973,7 +2005,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         repoAddObjectFromFile(USER_DONALD_FILENAME, parentResult);
 
         assertUser(USER_DONALD_OID, "User before")
-                .assertLinks(0);
+                .assertLiveLinks(0);
 
         Task task = taskManager.createTaskInstance();
 
@@ -1981,9 +2013,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assignAccount(UserType.class, USER_DONALD_OID, RESOURCE_OPENDJ_OID, "internal");
 
         assertUser(USER_DONALD_OID, "User after")
-                .assertLinks(1);
+                .assertLiveLinks(1);
 
-        String shadowOid = getLinkRefOid(USER_DONALD_OID, RESOURCE_OPENDJ_OID);
+        String shadowOid = getLiveLinkRefOid(USER_DONALD_OID, RESOURCE_OPENDJ_OID);
 
         assertModelShadow(shadowOid)
                 .assertIsExists()
@@ -2032,8 +2064,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         OperationResult parentResult = createOperationResult();
 
         assertUser(USER_DONALD_OID, "User before")
-                .assertLinks(1);
-        String shadowOid = getLinkRefOid(USER_DONALD_OID, RESOURCE_OPENDJ_OID);
+                .assertLiveLinks(1);
+        String shadowOid = getLiveLinkRefOid(USER_DONALD_OID, RESOURCE_OPENDJ_OID);
 
         Task task = taskManager.createTaskInstance();
 
@@ -2080,9 +2112,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         openDJController.assumeStopped();
 
         assertUser(USER_DONALD_OID, "User before")
-                .assertLinks(1);
+                .assertLiveLinks(1);
 
-        String shadowOid = getLinkRefOid(USER_DONALD_OID, RESOURCE_OPENDJ_OID);
+        String shadowOid = getLiveLinkRefOid(USER_DONALD_OID, RESOURCE_OPENDJ_OID);
 
         // WHEN
         when();
@@ -2139,7 +2171,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         then();
         PrismObject<UserType> userAfter = getUser(USER_TRAINEE_OID);
-        assertUser(userAfter, " After ").assertName("trainee").assertLinks(1);
+        assertUser(userAfter, " After ").assertName("trainee")
+                .assertLiveLinks(1);
 
     }
 
@@ -2160,7 +2193,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(USER_TRAINEE_OID);
         assertUser(userAfter, " After ").assertName("trainee01");
 
-        String accountOid = assertOneAccountRef(userAfter);
+        String accountOid = assertOneLinkRef(userAfter);
 
         assertRepoShadow(accountOid)
                 .hasUnfinishedPendingOperations()
@@ -2193,7 +2226,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         display("add object communication problem result: ", parentResult);
         assertEquals("Expected success but got: " + parentResult.getStatus(), OperationResultStatus.HANDLED_ERROR, parentResult.getStatus());
 
-        String accountOid = assertUserOneAccountRef(USER_DISCOVERY_OID);
+        String accountOid = assertUserOneLinkRef(USER_DISCOVERY_OID);
 
         openDJController.start();
         assertTrue(EmbeddedUtils.isRunning());
@@ -2548,7 +2581,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         //then stop openDJ
         openDJController.stop();
 
-        String accountOid = assertUserOneAccountRef(USER_ALICE_OID);
+        String accountOid = assertUserOneLinkRef(USER_ALICE_OID);
 
         //and make some modifications to the account while resource is DOWN
         //WHEN
@@ -2569,7 +2602,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         ObjectDelta<UserType> emptyAliceDelta = prismContext.deltaFactory().object()
                 .createEmptyDelta(UserType.class, USER_ALICE_OID, ChangeType.MODIFY);
         modelService.executeChanges(MiscSchemaUtil.createCollection(emptyAliceDelta), executeOptions().reconcile(), task, parentResult);
-        accountOid = assertUserOneAccountRef(USER_ALICE_OID);
+        accountOid = assertUserOneLinkRef(USER_ALICE_OID);
 
         //and then try to get account -> result is that the modifications will be applied to the account
 //        ShadowType aliceAccount = checkNormalizedShadowWithAttributes(accountOid, "alice", "Jackkk", "alice", "alice", true, task, parentResult);
@@ -2611,8 +2644,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         taskManager.deleteTask(TASK_OPENDJ_RECONCILIATION_OID, result);
 
         // check if the account was added after reconciliation
-        UserType userE = repositoryService.getObject(UserType.class, USER_E_OID, null, result).asObjectable();
-        String accountOid = assertUserOneAccountRef(USER_E_OID);
+        String accountOid = assertUserOneLinkRef(USER_E_OID);
 
         ShadowType eAccount = checkNormalizedShadowWithAttributes(accountOid, "e", "eeeee", "e", "e", true, null, result);
         assertAttribute(eAccount, "employeeNumber", "emp4321");
@@ -2624,7 +2656,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertEquals(1, identifiers.size());
 
         // check if the account was modified during reconciliation process
-        String jackAccountOid = assertUserOneAccountRef(USER_JACK_OID);
+        String jackAccountOid = assertUserOneLinkRef(USER_JACK_OID);
         ShadowType modifiedAccount = checkNormalizedShadowBasic(jackAccountOid, "jack", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null, result);
         assertAttribute(modifiedAccount, "givenName", "Jackkk");
         assertAttribute(modifiedAccount, "employeeNumber", "emp4321");
@@ -2632,48 +2664,48 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // check if the account was marked as dead (or deleted) during the reconciliation process
         assert800DeadShadows();
 
-        accountOid = assertUserOneAccountRef(USER_JACKIE_OID);
+        accountOid = assertUserOneLinkRef(USER_JACKIE_OID);
         ShadowType jack2Shadow = checkNormalizedShadowBasic(accountOid, "jack2", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null, result);
         assertAttribute(jack2Shadow, "givenName", "jackNew2a");
         assertAttribute(jack2Shadow, "cn", "jackNew2a");
-
     }
 
     protected void assert800DeadShadows() throws CommonException {
         assertRepoShadow(ACCOUNT_DENIELS_OID)
                 .assertDead();
 
-        LinksAsserter linksAsserter = assertUser(USER_ELAINE_OID, "User after recon")
-                .assertLinks(2)
+        // @formatter:off
+        LinksAsserter<?, ?, ?> linksAsserter = assertUserAfter(USER_ELAINE_OID)
+                .assertLinks(1, 1)
                 .links();
 
-        ShadowReferenceAsserter notDeadShadow = linksAsserter.by()
+        ShadowReferenceAsserter<?> notDeadShadow = linksAsserter.by()
                 .dead(false)
                 .find();
 
         assertModelShadow(notDeadShadow.getOid())
                 .display()
                 .attributes()
-                .assertHasPrimaryIdentifier()
-                .assertHasSecondaryIdentifier()
-                .end()
+                    .assertHasPrimaryIdentifier()
+                    .assertHasSecondaryIdentifier()
+                    .end()
                 .end();
 
-        ShadowReferenceAsserter deadShadow = linksAsserter.by()
+        ShadowReferenceAsserter<?> deadShadow = linksAsserter.by()
                 .dead(true)
                 .find();
 
         assertModelShadowNoFetch(deadShadow.getOid())
                 .display()
                 .attributes()
-                .assertNoPrimaryIdentifier()
-                .end()
+                    .assertNoPrimaryIdentifier()
+                    .end()
                 .pendingOperations()
-                .singleOperation()
-                .display()
-                .delta()
-                .assertAdd();
-
+                    .singleOperation()
+                        .display()
+                        .delta()
+                            .assertAdd();
+        // @formatter:on
     }
 
     //MID-5844
@@ -2704,7 +2736,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // check if the account was added after reconciliation
         UserType userE = repositoryService.getObject(UserType.class, USER_E_OID, null, result).asObjectable();
-        String accountOid = assertUserOneAccountRef(USER_E_OID);
+        String accountOid = assertUserOneLinkRef(USER_E_OID);
 
         ShadowType eAccount = checkNormalizedShadowWithAttributes(accountOid, "e123", "eeeee", "e", "e", true, null, result);
         assertAttribute(eAccount, "employeeNumber", "emp4321");
@@ -2849,7 +2881,13 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         return userType;
     }
 
-    private String assertUserOneAccountRef(String userOid) throws Exception {
+    private String assertUserOneLinkRef(String userOid) throws Exception {
+        PrismObject<UserType> repoUser = getRepoUser(userOid);
+        return assertOneLinkRef(repoUser);
+    }
+
+    @NotNull
+    private PrismObject<UserType> getRepoUser(String userOid) throws ObjectNotFoundException, SchemaException {
         OperationResult parentResult = new OperationResult("getObject from repo");
 
         PrismObject<UserType> repoUser = repositoryService.getObject(
@@ -2857,11 +2895,10 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         parentResult.computeStatus();
         TestUtil.assertSuccess("getObject has failed", parentResult);
-
-        return assertOneAccountRef(repoUser);
+        return repoUser;
     }
 
-    private String assertOneAccountRef(PrismObject<UserType> user) {
+    private String assertOneLinkRef(PrismObject<UserType> user) {
 
         UserType repoUserType = user.asObjectable();
         display("User (repository)", user);
@@ -2871,6 +2908,16 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         ObjectReferenceType accountRef = accountRefs.get(0);
 
         return accountRef.getOid();
+    }
+
+    private String assertOneLiveLinkRef(PrismObject<UserType> user) {
+
+        UserType repoUserType = user.asObjectable();
+        display("User (repository)", user);
+
+        List<ObjectReferenceType> accountRefs = ShadowUtil.selectLiveLinks(repoUserType.getLinkRef());
+        assertEquals("Wrong # of live linkRefs", 1, accountRefs.size());
+        return accountRefs.get(0).getOid();
     }
 
     private void assertUserNoAccountRef(String userOid, OperationResult parentResult) throws Exception {
@@ -2975,5 +3022,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
     protected <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
         assertAttribute(resourceTypeOpenDjrepo, shadow.asObjectable(), attrName, expectedValues);
+    }
+
+    protected boolean isReaper() {
+        return false;
     }
 }

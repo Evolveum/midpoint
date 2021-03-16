@@ -171,20 +171,20 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
     }
 
     private void storeAssignmentHolderEntities(
-            MObject objectRow, AssignmentHolderType schemaObject, JdbcSession jdbcSession) {
+            MObject row, AssignmentHolderType schemaObject, JdbcSession jdbcSession) {
         List<AssignmentType> assignments = schemaObject.getAssignment();
         if (!assignments.isEmpty()) {
             AssignmentSqlTransformer transformer =
                     QAssignmentMapping.INSTANCE.createTransformer(transformerSupport);
             assignments.forEach(assignment ->
-                    transformer.insert(assignment, objectRow, jdbcSession));
+                    transformer.insert(assignment, row, jdbcSession));
         }
 
-        storeRefs(objectRow, schemaObject.getRoleMembershipRef(),
+        storeRefs(row, schemaObject.getRoleMembershipRef(),
                 QObjectReferenceMapping.INSTANCE_ROLE_MEMBERSHIP, jdbcSession);
-        storeRefs(objectRow, schemaObject.getDelegatedRef(),
+        storeRefs(row, schemaObject.getDelegatedRef(),
                 QObjectReferenceMapping.INSTANCE_DELEGATED, jdbcSession);
-        storeRefs(objectRow, schemaObject.getArchetypeRef(),
+        storeRefs(row, schemaObject.getArchetypeRef(),
                 QObjectReferenceMapping.INSTANCE_ARCHETYPE, jdbcSession);
     }
 

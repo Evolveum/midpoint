@@ -51,10 +51,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.api.ResourceEventDescription;
+import com.evolveum.midpoint.provisioning.api.ExternalResourceEvent;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -142,7 +142,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Autowired private ObjectMerger objectMerger;
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ClockworkMedic clockworkMedic;
-    @Autowired private ChangeNotificationDispatcher dispatcher;
+    @Autowired private EventDispatcher dispatcher;
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService cacheRepositoryService;
@@ -2272,11 +2272,24 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             PrismObject<ShadowType> resourceObject = getResourceObject(changeDescription);
             ObjectDelta<ShadowType> objectDelta = getObjectDelta(changeDescription, result);
 
-            ResourceEventDescription eventDescription = new ResourceEventDescription(objectDelta, resourceObject,
+            ExternalResourceEvent event = new ExternalResourceEvent(objectDelta, resourceObject,
                     oldRepoShadow, changeDescription.getChannel());
 
-            LOGGER.trace("Created event description:\n{}", eventDescription.debugDumpLazily());
-            dispatcher.notifyEvent(eventDescription, task, result);
+            LOGGER.trace("Created event description:\n{}", event.debugDumpLazily());
+            dispatcher.notifyEvent(event, task, result);
+        } catch (TunnelException te) {
+            Throwable cause = te.getCause();
+            if (cause instanceof CommonException) {
+                result.recordFatalError(cause);
+                throw (CommonException) cause;
+            } else if (cause != null) {
+                result.recordFatalError(cause);
+                throw new SystemException(cause);
+            } else {
+                // very strange case
+                result.recordFatalError(te);
+                throw te;
+            }
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;

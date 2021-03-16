@@ -62,6 +62,9 @@ public enum QuerydslUtils {
 
         // register other repository implementation specific types (like enums) out of this call
 
+        // logger on com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger
+        // DEBUG = show query, TRACE = add parameter values too (bindings)
+        querydslConfiguration.addListener(new SqlLogger());
         return querydslConfiguration;
     }
 

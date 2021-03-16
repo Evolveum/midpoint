@@ -207,8 +207,8 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
         PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
         assertNotNull("Unexpected null system configuration", systemConfiguration);
 
-        SynchronizationContext<UserType> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), shadow.asPrismObject(),
-                null, resourceType.asPrismObject(), null, prismContext, expressionFactory, task, null);
+        SynchronizationContext<UserType> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), null,
+                resourceType.asPrismObject(), null, prismContext, expressionFactory, task, null);
         syncCtx.setSystemConfiguration(systemConfiguration);
         syncCtx.setObjectSynchronization(objectSynchronizationType);
         syncCtx.setFocusClass(UserType.class);

@@ -18,19 +18,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSitua
  */
 public class SynchronizationSituation<F extends FocusType> {
 
-    private F currentOwner;
-    private F correlatedOwner;
-    private SynchronizationSituationType situation;
+    private final F linkedOwner;
+    private final F correlatedOwner;
+    private final SynchronizationSituationType situation;
 
-    public SynchronizationSituation(F currentOwner, F correlatedOwner, SynchronizationSituationType situation) {
+    public SynchronizationSituation(F linkedOwner, F correlatedOwner, SynchronizationSituationType situation) {
         Validate.notNull(situation, "Synchronization situation must not be null.");
-        this.currentOwner = currentOwner;
+        this.linkedOwner = linkedOwner;
         this.correlatedOwner = correlatedOwner;
         this.situation = situation;
     }
 
-    public F getCurrentOwner() {
-        return currentOwner;
+    public F getLinkedOwner() {
+        return linkedOwner;
     }
 
     public F getCorrelatedOwner() {

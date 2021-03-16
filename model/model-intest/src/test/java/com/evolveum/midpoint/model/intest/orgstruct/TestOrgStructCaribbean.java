@@ -14,7 +14,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -350,7 +349,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         assertRoleMembershipRef(userJackAfter, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, ORG_SCUMM_BAR_OID);
         assertAccount(userJackAfter, RESOURCE_DUMMY_OID); // From Scumm Bar
         assertAccount(userJackAfter, RESOURCE_DUMMY_YELLOW_OID);
-        assertLinks(userJackAfter, 2);
+        assertLiveLinks(userJackAfter, 2);
 
         assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_JACK_USERNAME);
         assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, USER_JACK_USERNAME,
@@ -386,7 +385,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         assertHasOrgs(userBarbossaAfter, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID);
         assertRoleMembershipRef(userBarbossaAfter, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID);
         assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID);
-        assertLinks(userBarbossaAfter, 1);
+        assertLiveLinks(userBarbossaAfter, 1);
 
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME);
         assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
@@ -423,7 +422,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         assertDelegatedRef(userGibbsAfter, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, ORG_SCUMM_BAR_OID, USER_JACK_OID);
         assertAccount(userGibbsAfter, RESOURCE_DUMMY_OID); // From Scumm Bar
         assertAccount(userGibbsAfter, RESOURCE_DUMMY_YELLOW_OID);
-        assertLinks(userGibbsAfter, 2);
+        assertLiveLinks(userGibbsAfter, 2);
 
         assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_GIBBS_USERNAME);
         assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, USER_GIBBS_USERNAME,
@@ -458,7 +457,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         assertRoleMembershipRef(userPintelAfter);
         assertDelegatedRef(userPintelAfter, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID, USER_BARBOSSA_OID);
         assertAccount(userPintelAfter, RESOURCE_DUMMY_RED_OID);
-        assertLinks(userPintelAfter, 1);
+        assertLiveLinks(userPintelAfter, 1);
 
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_PINTEL_USERNAME);
         assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_PINTEL_USERNAME,

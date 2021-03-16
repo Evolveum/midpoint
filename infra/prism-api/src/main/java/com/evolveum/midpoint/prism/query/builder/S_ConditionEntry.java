@@ -58,6 +58,10 @@ public interface S_ConditionEntry {
      * Creates filter matching oid and/or targetTypeName, any of them optional.
      * If both are null the result is the same like {@link #isNull()} (null ref OID matches).
      */
-    S_AtomicFilterExit ref(@Nullable String oid, @Nullable QName targetTypeName);
+    default S_AtomicFilterExit ref(@Nullable String oid, @Nullable QName targetTypeName) {
+        return ref(oid, targetTypeName, null);
+    }
+
+    S_AtomicFilterExit ref(@Nullable String oid, @Nullable QName targetTypeName, @Nullable QName relation);
     S_AtomicFilterExit isNull();
 }

@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.web.component.dialog;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
@@ -18,6 +15,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -40,6 +38,7 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
     private static final String ID_BUTTON_OK = "ok";
     private static final String ID_CANCEL_OK = "cancel";
     private static final String ID_WARNING_MESSAGE = "warningMessage";
+    private static final String ID_RELATION_REQUIRED = "relationRequired";
 
     private IModel<String> messageModel = null;
 
@@ -71,11 +70,15 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
             Map<String, String> optionsMap = new HashMap<>();
 //            optionsMap.put("nonSelectedText", createStringResource("LoggingConfigPanel.appenders.Inherit").getString());
             options.setObject(optionsMap);
-        ListMultipleChoicePanel<QName> relation = new ListMultipleChoicePanel<QName>(ID_RELATION, new ListModel<>(),
+        ListMultipleChoicePanel<QName> relation = new ListMultipleChoicePanel<QName>(ID_RELATION, Model.ofList(getDefaultRelations()),
                 new ListModel<QName>(getSupportedRelations()), WebComponentUtil.getRelationChoicesRenderer(getPageBase()), options);
         relation.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         relation.setOutputMarkupId(true);
         add(relation);
+
+        WebMarkupContainer relationRequired = new WebMarkupContainer(ID_RELATION_REQUIRED);
+        relationRequired.add(new VisibleBehaviour((() -> isRelationRequired())));
+        add(relationRequired);
 
         Label label = new Label(ID_WARNING_MESSAGE, messageModel);
         label.add(new VisibleBehaviour(() -> messageModel != null && messageModel.getObject() != null));
@@ -112,6 +115,10 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
 
     }
 
+    private boolean isRelationRequired() {
+        return true;
+    }
+
     protected void okPerformed(QName type, Collection<QName> relation, AjaxRequestTarget target) {
         // TODO Auto-generated method stub
 
@@ -131,6 +138,10 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
 
     protected List<QName> getSupportedRelations() {
         return WebComponentUtil.getAllRelations(getPageBase());
+    }
+
+    protected List<QName> getDefaultRelations() {
+        return new ArrayList<>();
     }
 
     protected boolean isFocusTypeSelectorVisible() {

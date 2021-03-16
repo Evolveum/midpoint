@@ -158,13 +158,13 @@ public class TestDependencyRename extends AbstractStoryTest {
         assertAssignedRole(userAfter, ROLE_BASIC_OID);
         assertAssignments(userAfter, 1);
 
-        assertLinks(userAfter, 2);
-        accountHermanPhonebookOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_PHONEBOOK_OID);
+        assertLiveLinks(userAfter, 2);
+        accountHermanPhonebookOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_PHONEBOOK_OID);
         PrismObject<ShadowType> shadowPhonebook = getShadowModel(accountHermanPhonebookOid);
         display("Shadow phonebook after", shadowPhonebook);
         assertShadowSecondaryIdentifier(shadowPhonebook, USER_HERMAN_USERNAME_FINAL, getDummyResourceType(RESOURCE_DUMMY_PHONEBOOK_ID), null);
 
-        accountHermanOpenDjOid = getLinkRefOid(userAfter, RESOURCE_OPENDJ_OID);
+        accountHermanOpenDjOid = getLiveLinkRefOid(userAfter, RESOURCE_OPENDJ_OID);
         PrismObject<ShadowType> shadowOpenDj = getShadowModel(accountHermanOpenDjOid);
         display("Shadow opendj after", shadowOpenDj);
         assertShadowSecondaryIdentifier(shadowOpenDj, openDJController.getAccountDn(USER_HERMAN_USERNAME_FINAL), resourceOpenDjType, caseIgnoreMatchingRule);
@@ -191,13 +191,13 @@ public class TestDependencyRename extends AbstractStoryTest {
         assertAssignedRole(userAfter, ROLE_BASIC_OID);
         assertAssignments(userAfter, 1);
 
-        assertLinks(userAfter, 2);
-        accountHermanPhonebookOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_PHONEBOOK_OID);
+        assertLiveLinks(userAfter, 2);
+        accountHermanPhonebookOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_PHONEBOOK_OID);
         PrismObject<ShadowType> shadowPhonebook = getShadowModel(accountHermanPhonebookOid);
         display("Shadow phonebook after", shadowPhonebook);
         assertShadowSecondaryIdentifier(shadowPhonebook, USER_HERMAN_USERNAME_MARLEY, getDummyResourceType(RESOURCE_DUMMY_PHONEBOOK_ID), null);
 
-        accountHermanOpenDjOid = getLinkRefOid(userAfter, RESOURCE_OPENDJ_OID);
+        accountHermanOpenDjOid = getLiveLinkRefOid(userAfter, RESOURCE_OPENDJ_OID);
         PrismObject<ShadowType> shadowOpenDj = getShadowModel(accountHermanOpenDjOid);
         display("Shadow opendj after", shadowOpenDj);
         assertShadowSecondaryIdentifier(shadowOpenDj, openDJController.getAccountDn(USER_HERMAN_USERNAME_MARLEY), resourceOpenDjType, caseIgnoreMatchingRule);
@@ -231,13 +231,13 @@ public class TestDependencyRename extends AbstractStoryTest {
         display("User after", userAfter);
         assertUser(userAfter, USER_CAPSIZE_USERNAME_FINAL, USER_CAPSIZE_GIVEN_NAME, USER_CAPSIZE_FAMILY_NAME);
 
-        assertLinks(userAfter, 2);
-        String accountPhonebookOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_PHONEBOOK_OID);
+        assertLiveLinks(userAfter, 2);
+        String accountPhonebookOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_PHONEBOOK_OID);
         PrismObject<ShadowType> shadowPhonebook = getShadowModel(accountPhonebookOid);
         display("Shadow phonebook after", shadowPhonebook);
         assertShadowSecondaryIdentifier(shadowPhonebook, USER_CAPSIZE_USERNAME_FINAL, getDummyResourceType(RESOURCE_DUMMY_PHONEBOOK_ID), null);
 
-        String accountOpenDjOid = getLinkRefOid(userAfter, RESOURCE_OPENDJ_OID);
+        String accountOpenDjOid = getLiveLinkRefOid(userAfter, RESOURCE_OPENDJ_OID);
         PrismObject<ShadowType> shadowOpenDj = getShadowModel(accountOpenDjOid);
         display("Shadow opendj after", shadowOpenDj);
         assertShadowSecondaryIdentifier(shadowOpenDj, openDJController.getAccountDn(USER_CAPSIZE_USERNAME_FINAL), resourceOpenDjType, caseIgnoreMatchingRule);

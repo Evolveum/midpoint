@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import org.apache.commons.lang.Validate;
 
@@ -16,7 +18,6 @@ import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -58,7 +59,7 @@ public class SynchronizationServiceUtils {
 
     private static <F extends FocusType> boolean isPolicyApplicable(ObjectSynchronizationType synchronizationPolicy, SynchronizationContext<F> syncCtx)
                     throws SchemaException {
-        ShadowType currentShadowType = syncCtx.getApplicableShadow().asObjectable();
+        ShadowType currentShadowType = syncCtx.getShadowedResourceObject().asObjectable();
 
         // objectClass
         QName shadowObjectClass = currentShadowType.getObjectClass();
@@ -91,7 +92,7 @@ public class SynchronizationServiceUtils {
         }
         ExpressionType conditionExpressionBean = synchronizationPolicy.getCondition();
         String desc = "condition in object synchronization " + synchronizationPolicy.getName();
-        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(null, syncCtx.getApplicableShadow(), null,
+        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(null, syncCtx.getShadowedResourceObject(), null,
                 syncCtx.getResource(), syncCtx.getSystemConfiguration(), null, syncCtx.getPrismContext());
         try {
             ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(syncCtx.getTask(), result));
@@ -100,5 +101,14 @@ public class SynchronizationServiceUtils {
         } finally {
             ModelExpressionThreadLocalHolder.popExpressionEnvironment();
         }
+    }
+
+    static boolean isLogDebug(ResourceObjectShadowChangeDescription change) {
+        // Reconciliation changes are routine. Do not let them pollute the log files.
+        return !SchemaConstants.CHANNEL_RECON_URI.equals(change.getSourceChannel());
+    }
+
+    static <F extends FocusType> boolean isLogDebug(SynchronizationContext<F> syncCtx) {
+        return !SchemaConstants.CHANNEL_RECON_URI.equals(syncCtx.getChannel());
     }
 }

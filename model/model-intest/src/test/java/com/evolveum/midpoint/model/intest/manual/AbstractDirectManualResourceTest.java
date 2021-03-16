@@ -1409,7 +1409,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
     protected <R> void assertDeprovisionedTimedOutUser(UserAsserter<R> userAsserter, String accountOid) throws Exception {
         userAsserter
-            .assertLinks(0);
+            .assertLiveLinks(0);
         assertNoShadow(accountOid);
     }
 
@@ -1763,7 +1763,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         assertSuccess(result);
 
         assertUserAfter(userWillOid)
-            .assertLinks(0);
+            .assertLiveLinks(0);
         // Shadow will not stay even in the "disable" case.
         // It was never created in the backing store
 
@@ -2100,7 +2100,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         OperationResult result = task.getResult();
 
         assertUserBefore(userWillOid)
-            .assertLinks(0);
+            .assertLiveLinks(0);
         assertNoShadow(accountWillOid);
 
         modifyUserReplace(userWillOid, UserType.F_FULL_NAME, task, result, createPolyString(USER_WILL_FULL_NAME));

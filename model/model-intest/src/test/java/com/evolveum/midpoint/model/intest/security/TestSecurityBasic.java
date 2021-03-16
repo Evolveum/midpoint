@@ -1799,7 +1799,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         user = getUser(USER_JACK_OID);
         display("Jack after red account link", user);
-        String accountRedOid = getLinkRefOid(user, RESOURCE_DUMMY_RED_OID);
+        String accountRedOid = getLiveLinkRefOid(user, RESOURCE_DUMMY_RED_OID);
         assertNotNull("Strange, red account not linked to jack", accountRedOid);
 
         // Linked to other user
@@ -2038,7 +2038,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
                 (task, result) -> modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_RED_FILE, task, result));
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("Jack after red account link", user);
-        String accountRedOid = getLinkRefOid(user, RESOURCE_DUMMY_RED_OID);
+        String accountRedOid = getLiveLinkRefOid(user, RESOURCE_DUMMY_RED_OID);
         assertNotNull("Strange, red account not linked to jack", accountRedOid);
         assertGetAllow(ShadowType.class, accountRedOid);
 
@@ -2058,7 +2058,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         executeChanges(userDelta, null, task, task.getResult());
 
         user = getUser(USER_JACK_OID);
-        assertLinks(user, 0);
+        assertLiveLinks(user, 0);
     }
 
     /**
@@ -2703,7 +2703,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertAssignments(user, 1);
-        assertLinks(user, 0);
+        assertLiveLinks(user, 0);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 

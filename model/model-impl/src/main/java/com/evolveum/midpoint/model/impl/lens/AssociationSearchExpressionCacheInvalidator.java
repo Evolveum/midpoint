@@ -14,37 +14,38 @@ import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * @author Pavol Mederly
+ * TODO
  */
 class AssociationSearchExpressionCacheInvalidator implements ResourceOperationListener, ResourceObjectChangeListener {
 
-    private AssociationSearchExpressionEvaluatorCache cache;
+    private final AssociationSearchExpressionEvaluatorCache cache;
 
-    public AssociationSearchExpressionCacheInvalidator(AssociationSearchExpressionEvaluatorCache cache) {
+    AssociationSearchExpressionCacheInvalidator(AssociationSearchExpressionEvaluatorCache cache) {
         this.cache = cache;
     }
 
     @Override
-    public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
+    public void notifyChange(@NotNull ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
         cache.invalidate(change.getResource(), change.getShadowedResourceObject());
     }
 
     @Override
-    public void notifySuccess(ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
+    public void notifySuccess(@NotNull ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
         notifyAny(operationDescription);
     }
 
     // we are quite paranoid, so we'll process also failures and in-progress events
 
     @Override
-    public void notifyFailure(ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
+    public void notifyFailure(@NotNull ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
         notifyAny(operationDescription);
     }
 
     @Override
-    public void notifyInProgress(ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
+    public void notifyInProgress(@NotNull ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
         notifyAny(operationDescription);
     }
 

@@ -346,7 +346,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", userJack);
         assertUserJack(userJack);
         assertNoAssignments(userJack);
-        assertLinks(userJack, 0);
+        assertLiveLinks(userJack, 0);
 
         assertNoDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, "X-"+ACCOUNT_JACK_DUMMY_UPCASE_NAME);
 
@@ -519,7 +519,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         assertUserJack(userJack);
         assertUserJack(userJack);
         assertNoAssignments(userJack);
-        assertLinks(userJack, 0);
+        assertLiveLinks(userJack, 0);
 
         assertNoDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME);
         assertNoDummyGroupMember(RESOURCE_DUMMY_UPCASE_NAME, GROUP_JOKER_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME);
@@ -599,7 +599,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         assertUserJack(userJack);
         assertUserJack(userJack);
         assertNoAssignments(userJack);
-        assertLinks(userJack, 0);
+        assertLiveLinks(userJack, 0);
 
         assertNoDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME);
         // MID-2147

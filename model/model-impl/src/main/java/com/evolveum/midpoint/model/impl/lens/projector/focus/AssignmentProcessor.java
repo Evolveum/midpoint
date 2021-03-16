@@ -443,7 +443,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
             @Override
             public void onAssigned(ResourceShadowDiscriminator rsd, String desc) throws SchemaException {
-                LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd);
+                LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd).context;
                 projectionContext.setAssigned(true);
                 projectionContext.setAssignedOldIfUnknown(false);
                 projectionContext.setLegalOldIfUnknown(false);
@@ -466,7 +466,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     // The projection should exist before the change but it does not
                     // This happens during reconciliation if there is an inconsistency.
                     // Pretend that the assignment was just added. That should do.
-                    projectionContext = LensUtil.getOrCreateProjectionContext(context, key);
+                    projectionContext = LensUtil.getOrCreateProjectionContext(context, key).context;
                 }
                 LOGGER.trace("Projection {} legal: unchanged (valid)", desc);
                 projectionContext.setAssigned(true);
@@ -515,7 +515,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                             LOGGER.trace("Projection {} skip: unassigned, processOnlyExistingProjCxts", desc);
                             return;
                         }
-                        projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd);
+                        projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd).context;
                     }
                     projectionContext.setAssigned(false);
                     projectionContext.setAssignedOldIfUnknown(true);

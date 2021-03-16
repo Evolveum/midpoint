@@ -541,7 +541,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertDummyDisabled("jack");
         assertDisableTimestampFocus(userJack, startTime, endTime);
 
-        String accountOid = getLinkRefOid(userJack, RESOURCE_DUMMY_OID);
+        String accountOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_OID);
         PrismObject<ShadowType> accountShadow = getShadowModel(accountOid);
         assertDisableTimestampShadow(accountShadow, startTime, endTime);
         assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
@@ -596,7 +596,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", userJack);
         assertUserJack(userJack, "Jack Sparrow");
 
-        String accountOid = getLinkRefOid(userJack, RESOURCE_DUMMY_OID);
+        String accountOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_OID);
         PrismObject<ShadowType> accountShadow = getShadowModel(accountOid);
         assertAdministrativeStatusDisabled(accountShadow);
         assertDisableTimestampShadow(accountShadow, startTime, endTime);
@@ -629,7 +629,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", userJack);
         assertUserJack(userJack, "Jack Sparrow");
 
-        String accountOid = getLinkRefOid(userJack, RESOURCE_DUMMY_OID);
+        String accountOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_OID);
         PrismObject<ShadowType> accountShadow = getShadowModel(accountOid);
         assertAdministrativeStatusDisabled(accountShadow);
         assertDisableTimestampShadow(accountShadow, null, startTime);
@@ -788,7 +788,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", userJack);
         assertUserJack(userJack);
         assertAccounts(USER_JACK_OID, 2);
-        accountRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
+        accountRedOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
 
         PrismObject<ShadowType> accountRedRepo = repositoryService.getObject(ShadowType.class, accountRedOid, null, result);
         display("Account red (repo)", accountRedRepo);
@@ -848,7 +848,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertDummyDisabled(RESOURCE_DUMMY_RED_NAME, "jack");
 
         assertAccounts(USER_JACK_OID, 2);
-        accountRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
+        accountRedOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         assertAccountShadowModel(accountRed, accountRedOid, ACCOUNT_JACK_DUMMY_USERNAME,
                 getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
@@ -935,7 +935,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", userJack);
         assertUserJack(userJack);
         assertAccounts(USER_JACK_OID, 2);
-        accountRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
+        accountRedOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         assertAccountShadowModel(accountRed, accountRedOid, ACCOUNT_JACK_DUMMY_USERNAME,
                 getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
@@ -975,7 +975,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", userJack);
         assertUserJack(userJack);
         assertAccounts(USER_JACK_OID, 2);
-        accountRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
+        accountRedOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
 
         PrismObject<ShadowType> accountRedRepo = repositoryService.getObject(ShadowType.class, accountRedOid, null, result);
         display("Account red (repo)", accountRedRepo);
@@ -1021,7 +1021,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", userJack);
         assertUserJack(userJack);
         assertAccounts(USER_JACK_OID, 2);
-        accountRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
+        accountRedOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
 
         PrismObject<ShadowType> accountRedRepo = repositoryService.getObject(ShadowType.class, accountRedOid, null, result);
         display("Account red (repo)", accountRedRepo);
@@ -1067,7 +1067,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", userJack);
         assertUserJack(userJack);
         assertAccounts(USER_JACK_OID, 2);
-        accountRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
+        accountRedOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
 
         PrismObject<ShadowType> accountRedRepo = repositoryService.getObject(ShadowType.class, accountRedOid, null, result);
         display("Account red (repo)", accountRedRepo);
@@ -1116,7 +1116,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
         assertUserJack(userJack);
-        accountYellowOid = getLinkRefOid(userJack, RESOURCE_DUMMY_YELLOW_OID);
+        accountYellowOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_YELLOW_OID);
 
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -1312,7 +1312,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
         assertUserJack(userAfter);
-        String accountKhakiOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_KHAKI_OID);
+        String accountKhakiOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_KHAKI_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountKhakiOid, null, result);
@@ -1884,7 +1884,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         // MID-3741
         assertRoleMembershipRef(userAfter);
 
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
 
         assertNoDummyAccount(USER_RAPP_USERNAME);
 
@@ -1923,7 +1923,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         // MID-3741
         assertRoleMembershipRef(userAfter);
 
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
 
         assertNoDummyAccount(USER_RAPP_USERNAME);
 
@@ -1954,7 +1954,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         assertAssignedRoles(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_CAPTAIN_OID);
         assertAssignments(userAfter, 2);
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
 
         // assignments are not active due to lifecycle, there should
         // be no roles in roleMembershipRef
@@ -1990,7 +1990,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         assertAssignedRoles(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_CAPTAIN_OID);
         assertAssignments(userAfter, 2);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         assertRoleMembershipRef(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_PIRATE_OID, ROLE_CAPTAIN_OID);
 
@@ -2030,7 +2030,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         assertAssignedRoles(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_CAPTAIN_OID);
         assertAssignments(userAfter, 2);
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
 
         // assignments are not active due to lifecycle, there should
         // be no roles in roleMembershipRef
@@ -2248,7 +2248,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> user = getUser(USER_HERMAN_OID);
         display("User after change execution", user);
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         DummyAccount khakiAccount = getDummyAccount(RESOURCE_DUMMY_KHAKI_NAME, USER_HERMAN_USERNAME);
         assertNotNull("No khaki account", khakiAccount);

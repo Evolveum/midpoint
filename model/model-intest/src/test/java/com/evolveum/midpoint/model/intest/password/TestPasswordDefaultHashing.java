@@ -71,7 +71,7 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
-        assertLinks(userBefore, 4);
+        assertLiveLinks(userBefore, 4);
 
         // WHEN
         reconcileUser(USER_JACK_OID, task, result);
@@ -82,8 +82,8 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
-        assertLinks(userAfter, 4);
-        accountJackYellowOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_YELLOW_OID);
+        assertLiveLinks(userAfter, 4);
+        accountJackYellowOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_YELLOW_OID);
 
         // Check account in dummy resource (yellow): password is too short for this, original password should remain there
         assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);

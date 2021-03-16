@@ -68,8 +68,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         repoAddObjectFromFile(ROLE_RED_JUDGE_FILE, initResult);
         repoAddObjectFromFile(ROLE_BIG_JUDGE_FILE, initResult);
-
-        DebugUtil.setDetailedDebugDump(true);
     }
 
     protected String getValidityScannerTaskFileName() {
@@ -198,7 +196,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User after", user);
-        assertLinks(user, 2);
+        assertLiveLinks(user, 2);
         assert11xUserOk(user);
 
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
@@ -519,7 +517,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
@@ -558,7 +556,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
@@ -596,7 +594,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
@@ -629,7 +627,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
-        assertLinks(user, 0);
+        assertLiveLinks(user, 0);
 
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
@@ -664,7 +662,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
@@ -699,7 +697,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
@@ -742,7 +740,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
-        assertLinks(user, 0);
+        assertLiveLinks(user, 0);
 
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
@@ -797,7 +795,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
@@ -842,7 +840,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
-        assertLinks(user, 0);
+        assertLiveLinks(user, 0);
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
 
@@ -871,7 +869,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
-        assertLinks(user, 0);
+        assertLiveLinks(user, 0);
 
         assertNoAssignments(user);
 
@@ -892,7 +890,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // preconditions
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User before", user);
-        assertLinks(user, 0);
+        assertLiveLinks(user, 0);
         assertNoAssignments(user);
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME); // just to be on the safe side
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME);
@@ -924,7 +922,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
@@ -963,7 +961,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
@@ -1001,7 +999,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
@@ -1038,7 +1036,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
@@ -1073,7 +1071,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
@@ -1108,7 +1106,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
@@ -1161,7 +1159,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
@@ -1216,7 +1214,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
@@ -1258,7 +1256,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
 
@@ -1293,7 +1291,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         assertNoAssignments(user);
 
@@ -1416,7 +1414,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Jack", userJack);
         assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
 
-        String accountRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
+        String accountRedOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
 
         XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
@@ -1511,7 +1509,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
 
-        assertLinks(userDrakeAfter, 0);
+        assertLiveLinks(userDrakeAfter, 0);
 
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, "drake");
     }
@@ -1534,7 +1532,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
 
-        String accountRedOid = getLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
+        String accountRedOid = getLiveLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
 
@@ -1558,7 +1556,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.ENABLED);
 
-        String accountRedOid = getLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
+        String accountRedOid = getLiveLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
 
@@ -1582,7 +1580,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.ENABLED);
 
-        String accountRedOid = getLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
+        String accountRedOid = getLiveLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
 
@@ -1606,7 +1604,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
 
-        String accountRedOid = getLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
+        String accountRedOid = getLiveLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
         assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
@@ -1631,7 +1629,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
 
-        String accountRedOid = getLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
+        String accountRedOid = getLiveLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
         assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
@@ -1656,7 +1654,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
 
-        assertLinks(userDrakeAfter, 0);
+        assertLiveLinks(userDrakeAfter, 0);
 
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, "drake");
     }
@@ -1742,14 +1740,14 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertDummyAccount(null, USER_HERMAN_USERNAME);
         PrismObject<UserType> user = getUser(USER_HERMAN_OID);
         display("User after", user);
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
     }
 
     private void assertRoleJudgeInValid() throws Exception {
         assertNoDummyAccount(null, USER_HERMAN_USERNAME);
         PrismObject<UserType> user = getUser(USER_HERMAN_OID);
         display("User after", user);
-        assertLinks(user, 0);
+        assertLiveLinks(user, 0);
     }
 
     private void modifyAssignmentAdministrativeStatus(String userOid, long assignmentId, ActivationStatusType status, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {

@@ -32,7 +32,8 @@ public enum RelationTypes {
     DEPUTY(SchemaConstants.ORG_DEPUTY, "Deputy", "", "", RelationKindType.DELEGATION, null /* no values */),
     APPROVER(SchemaConstants.ORG_APPROVER, "Approver", "fe fe-approver-object", "green", RelationKindType.APPROVER, null, ADMINISTRATION, GOVERNANCE, ORGANIZATION, SELF_SERVICE),
     OWNER(SchemaConstants.ORG_OWNER, "Owner", "fe fe-crown-object", "darkorange", RelationKindType.OWNER, null, ADMINISTRATION, GOVERNANCE, ORGANIZATION, SELF_SERVICE),
-    CONSENT(SchemaConstants.ORG_CONSENT, "Consent", "", "", RelationKindType.CONSENT, null, DATA_PROTECTION);
+    CONSENT(SchemaConstants.ORG_CONSENT, "Consent", "", "", RelationKindType.CONSENT, null, DATA_PROTECTION),
+    RELATED(SchemaConstants.ORG_RELATED, "Related", "", "", RelationKindType.RELATED, null);
 
     private final QName relation;
     private final String headerLabel;

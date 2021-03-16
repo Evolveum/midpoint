@@ -42,26 +42,26 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 @Component
-public class ResourceEventListenerImpl implements ResourceEventListener {
+public class ExternalResourceEventListenerImpl implements ExternalResourceEventListener {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ResourceEventListenerImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ExternalResourceEventListenerImpl.class);
 
     @Autowired private ShadowsFacade shadowsFacade;
     @Autowired private ChangeProcessingBeans changeProcessingBeans;
     @Autowired private ProvisioningContextFactory provisioningContextFactory;
-    @Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
+    @Autowired private EventDispatcher eventDispatcher;
     @Autowired private ResourceObjectConverter resourceObjectConverter;
 
     private final AtomicInteger currentSequenceNumber = new AtomicInteger(0);
 
     @PostConstruct
     public void registerForResourceObjectChangeNotifications() {
-        changeNotificationDispatcher.registerNotificationListener(this);
+        eventDispatcher.registerListener(this);
     }
 
     @PreDestroy
     public void unregisterForResourceObjectChangeNotifications() {
-        changeNotificationDispatcher.unregisterNotificationListener(this);
+        eventDispatcher.unregisterListener(this);
     }
 
     @Override
@@ -72,71 +72,74 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 
     // TODO clean up this!
     @Override
-    public void notifyEvent(ResourceEventDescription eventDescription, Task task, OperationResult result)
-            throws CommonException, GenericConnectorException {
+    public void notifyEvent(ExternalResourceEvent event, Task task, OperationResult result) {
 
-        Validate.notNull(eventDescription, "Event description must not be null.");
+        Validate.notNull(event, "Event description must not be null.");
         Validate.notNull(task, "Task must not be null.");
         Validate.notNull(result, "Operation result must not be null");
 
-        LOGGER.trace("Received event notification with the description: {}", eventDescription.debugDumpLazily());
+        LOGGER.trace("Received event notification with the description: {}", event.debugDumpLazily());
 
-        if (eventDescription.getResourceObject() == null && eventDescription.getObjectDelta() == null) {
+        if (event.getResourceObject() == null && event.getObjectDelta() == null) {
             throw new IllegalStateException("Neither current shadow, nor delta specified. It is required to have at least one of them specified.");
         }
 
-        applyDefinitions(eventDescription, result);
+        try {
+            applyDefinitions(event, result);
 
-        PrismObject<ShadowType> anyShadow = getAnyShadow(eventDescription);
-        ProvisioningContext ctx = provisioningContextFactory.create(anyShadow, task, result);
-        ctx.assertDefinition();
+            PrismObject<ShadowType> anyShadow = getAnyShadow(event);
+            ProvisioningContext ctx = provisioningContextFactory.create(anyShadow, task, result);
+            ctx.assertDefinition();
 
-        Object primaryIdentifierRealValue = getPrimaryIdentifierRealValue(anyShadow, eventDescription);
-        Collection<ResourceAttribute<?>> identifiers = emptyIfNull(ShadowUtil.getAllIdentifiers(anyShadow));
-        if (identifiers.isEmpty()) {
-            throw new SchemaException("No identifiers");
-        }
+            Object primaryIdentifierRealValue = getPrimaryIdentifierRealValue(anyShadow, event);
+            Collection<ResourceAttribute<?>> identifiers = emptyIfNull(ShadowUtil.getAllIdentifiers(anyShadow));
+            if (identifiers.isEmpty()) {
+                throw new SchemaException("No identifiers");
+            }
 
-        ObjectClassComplexTypeDefinition objectClassDefinition = ctx.getObjectClassDefinition().getObjectClassDefinition();
+            ObjectClassComplexTypeDefinition objectClassDefinition = ctx.getObjectClassDefinition().getObjectClassDefinition();
 
-        ExternalResourceObjectChange resourceObjectChange = new ExternalResourceObjectChange(
-                currentSequenceNumber.getAndIncrement(),
-                primaryIdentifierRealValue, objectClassDefinition, identifiers,
-                getResourceObject(eventDescription),
-                eventDescription.getObjectDelta(), ctx, resourceObjectConverter);
-        resourceObjectChange.initialize(task, result);
+            ExternalResourceObjectChange resourceObjectChange = new ExternalResourceObjectChange(
+                    currentSequenceNumber.getAndIncrement(),
+                    primaryIdentifierRealValue, objectClassDefinition, identifiers,
+                    getResourceObject(event),
+                    event.getObjectDelta(), ctx, resourceObjectConverter);
+            resourceObjectChange.initialize(task, result);
 
-        ShadowedExternalChange adoptedChange = new ShadowedExternalChange(resourceObjectChange, changeProcessingBeans);
-        adoptedChange.initialize(task, result);
+            ShadowedExternalChange adoptedChange = new ShadowedExternalChange(resourceObjectChange, changeProcessingBeans);
+            adoptedChange.initialize(task, result);
 
-        InitializationState initializationState = adoptedChange.getInitializationState();
-        initializationState.checkAfterInitialization();
-        if (initializationState.isOk()) {
-            ResourceObjectShadowChangeDescription shadowChangeDescription = adoptedChange.getShadowChangeDescription();
-            changeNotificationDispatcher.notifyChange(shadowChangeDescription, task, result);
-        } else {
-            Throwable t = initializationState.getExceptionEncountered();
-            if (t != null) {
-                // Currently we do very simple error handling: throw any exception to the client!
-                if (t instanceof CommonException) {
-                    throw (CommonException) t;
-                } else if (t instanceof RuntimeException) {
-                    throw (RuntimeException) t;
-                } else if (t instanceof Error) {
-                    throw (Error) t;
-                } else {
-                    throw new SystemException(t);
-                }
-            } else if (initializationState.isNotApplicable()) {
-                LOGGER.debug("Change is not applicable:\n{}", adoptedChange.debugDumpLazily());
-                result.recordNotApplicable();
+            InitializationState initializationState = adoptedChange.getInitializationState();
+            initializationState.checkAfterInitialization();
+            if (initializationState.isOk()) {
+                ResourceObjectShadowChangeDescription shadowChangeDescription = adoptedChange.getShadowChangeDescription();
+                eventDispatcher.notifyChange(shadowChangeDescription, task, result);
             } else {
-                throw new AssertionError();
+                Throwable t = initializationState.getExceptionEncountered();
+                if (t != null) {
+                    throw t;
+                } else if (initializationState.isNotApplicable()) {
+                    LOGGER.debug("Change is not applicable:\n{}", adoptedChange.debugDumpLazily());
+                    result.recordNotApplicable();
+                } else {
+                    throw new AssertionError();
+                }
+            }
+        } catch (Throwable t) {
+            // Currently we do very simple error handling: throw any exception to the client, wrapped if needed
+            if (t instanceof CommonException) {
+                throw new TunnelException(t);
+            } else if (t instanceof RuntimeException) {
+                throw (RuntimeException) t;
+            } else if (t instanceof Error) {
+                throw (Error) t;
+            } else {
+                throw new SystemException(t);
             }
         }
     }
 
-    private Object getPrimaryIdentifierRealValue(PrismObject<ShadowType> shadow, ResourceEventDescription context) throws SchemaException {
+    private Object getPrimaryIdentifierRealValue(PrismObject<ShadowType> shadow, ExternalResourceEvent context) throws SchemaException {
         Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
 
         Collection<Object> primaryIdentifierRealValues = new HashSet<>();
@@ -154,7 +157,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
         return primaryIdentifierRealValue;
     }
 
-    private void applyDefinitions(ResourceEventDescription eventDescription,
+    private void applyDefinitions(ExternalResourceEvent eventDescription,
             OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         if (eventDescription.getResourceObject() != null) {
             shadowsFacade.applyDefinition(eventDescription.getResourceObject(), parentResult);
@@ -170,7 +173,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
     }
 
     // consider moving back into ResourceEventDescription
-    private PrismObject<ShadowType> getAnyShadow(ResourceEventDescription eventDescription) {
+    private PrismObject<ShadowType> getAnyShadow(ExternalResourceEvent eventDescription) {
         PrismObject<ShadowType> shadow;
         if (eventDescription.getResourceObject() != null) {
             shadow = eventDescription.getResourceObject();
@@ -188,7 +191,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
     }
 
     // consider moving into ResourceEventDescription
-    private PrismObject<ShadowType> getResourceObject(ResourceEventDescription eventDescription) {
+    private PrismObject<ShadowType> getResourceObject(ExternalResourceEvent eventDescription) {
         if (eventDescription.getResourceObject() != null) {
             return eventDescription.getResourceObject();
         } else if (ObjectDelta.isAdd(eventDescription.getObjectDelta())) {

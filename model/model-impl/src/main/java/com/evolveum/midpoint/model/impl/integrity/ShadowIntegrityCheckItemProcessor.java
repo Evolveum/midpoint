@@ -323,13 +323,16 @@ public class ShadowIntegrityCheckItemProcessor
             return taskHandler.getProvisioningService().getObject(ShadowType.class, shadow.getOid(),
                     SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()),
                     task, result);
-        } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
-            checkResult.recordError(ShadowStatistics.CANNOT_FETCH_RESOURCE_OBJECT, new SystemException("The resource object couldn't be fetched", e));
+        } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException |
+                SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
+            checkResult.recordError(ShadowStatistics.CANNOT_FETCH_RESOURCE_OBJECT,
+                    new SystemException("The resource object couldn't be fetched", e));
             return null;
         }
     }
 
-    private void doFixIntent(ShadowCheckResult checkResult, PrismObject<ShadowType> fetchedShadow, PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, Task task, OperationResult result) throws SchemaException {
+    private void doFixIntent(ShadowCheckResult checkResult, PrismObject<ShadowType> fetchedShadow, PrismObject<ShadowType> shadow,
+            PrismObject<ResourceType> resource, Task task, OperationResult result) throws SchemaException {
         PrismObject<ShadowType> fullShadow;
 
         if (!getConfiguration().checkFetch) {
@@ -345,8 +348,8 @@ public class ShadowIntegrityCheckItemProcessor
         SynchronizationContext<? extends FocusType> syncCtx;
         try {
             syncCtx = taskHandler.getSynchronizationService()
-                    .loadSynchronizationContext(fullShadow, fullShadow, null, resource, task.getChannel(),
-                            null, taskHandler.getSystemObjectsCache().getSystemConfiguration(result), task, result);
+                    .loadSynchronizationContext(fullShadow, null, resource, task.getChannel(),
+                            null, null, task, result);
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             checkResult.recordError(ShadowStatistics.CANNOT_APPLY_FIX, new SystemException("Couldn't prepare fix for missing intent, because the synchronization policy couldn't be determined", e));
             return;

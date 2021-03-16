@@ -28,7 +28,7 @@ public class ValueFilterProcessor implements FilterProcessor<ValueFilter<?, ?>> 
 
     /** Query context here is not final as it can change during complex path resolution. */
     private SqlQueryContext<?, ?, ?> context;
-    private QueryModelMapping mapping;
+    private QueryModelMapping<?, ?, ?> mapping;
 
     public ValueFilterProcessor(SqlQueryContext<?, ?, ?> context) {
         this.context = context;

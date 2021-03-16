@@ -32,8 +32,8 @@ import java.util.stream.Collectors;
  */
 public class TaskUtil {
 
-    public static final long RUNS_CONTINUALLY = -1L;
-    public static final long ALREADY_PASSED = -2L;
+    private static final long RUNS_CONTINUALLY = -1L;
+    private static final long ALREADY_PASSED = -2L;
     public static final long NOW = 0L;
 
     public static List<String> tasksToOids(List<? extends Task> tasks) {
@@ -122,8 +122,7 @@ public class TaskUtil {
 
     private static Long getRetryAfter(TaskType task) {
         XMLGregorianCalendar nextRun = task.getNextRetryTimestamp();
-        Long retryAt = nextRun != null ? (XmlTypeConverter.toMillis(nextRun) - System.currentTimeMillis()) : null;
-        return retryAt;
+        return nextRun != null ? (XmlTypeConverter.toMillis(nextRun) - System.currentTimeMillis()) : null;
     }
 
     public static Long getScheduledToStartAgain(TaskType task) {
@@ -156,7 +155,7 @@ public class TaskUtil {
     public static String getProgressDescription(TaskType task, List<Object> localizationObject) {
         Long stalledSince = task.getStalledSince() != null ? XmlTypeConverter.toMillis(task.getStalledSince()) : null;
         if (stalledSince != null) {
-            localizationObject.add(new Date(stalledSince).toLocaleString());
+            localizationObject.add(new Date(stalledSince).toString());
             localizationObject.add(getRealProgressDescription(task));
             return "pageTasks.stalledSince";
         } else {

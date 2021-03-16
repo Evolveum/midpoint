@@ -8,14 +8,27 @@
 package com.evolveum.midpoint.model.impl;
 
 import com.evolveum.midpoint.common.ActivationComputer;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 
+import com.evolveum.midpoint.model.impl.lens.ClockworkConflictResolver;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
+import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionValueMetadataCreator;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.SchemaService;
+
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+
+import com.evolveum.midpoint.task.api.TaskManager;
+
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -54,6 +67,7 @@ public class ModelBeans {
     }
 
     @Autowired public PrismContext prismContext;
+    @Autowired public SchemaService schemaService;
     @Autowired public ModelObjectResolver modelObjectResolver;
     @Autowired @Qualifier("cacheRepositoryService") public RepositoryService cacheRepositoryService;
     @Autowired public MatchingRuleRegistry matchingRuleRegistry;
@@ -68,4 +82,12 @@ public class ModelBeans {
     @Autowired public ProvisioningService provisioningService;
     @Autowired public ProjectionValueMetadataCreator projectionValueMetadataCreator;
     @Autowired public ActivationComputer activationComputer;
+    @Autowired public Clock clock;
+    @Autowired public SecurityEnforcer securityEnforcer;
+    @Autowired public SecurityContextManager securityContextManager;
+    @Autowired public OperationalDataManager metadataManager;
+    @Autowired public TaskManager taskManager;
+    @Autowired public ExpressionFactory expressionFactory;
+    @Autowired(required = false) public WorkflowManager workflowManager; // not available e.g. during tests
+    @Autowired public ClockworkConflictResolver clockworkConflictResolver;
 }

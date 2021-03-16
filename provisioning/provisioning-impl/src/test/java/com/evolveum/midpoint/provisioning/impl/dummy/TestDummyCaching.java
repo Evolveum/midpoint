@@ -55,7 +55,6 @@ public class TestDummyCaching extends TestDummy {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        DebugUtil.setDetailedDebugDump(true);
     }
 
     @Override

@@ -295,11 +295,13 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     }
 
     @Override
-    public S_AtomicFilterExit ref(@Nullable String oid, @Nullable QName targetTypeName) {
-        if (oid == null && targetTypeName == null) {
+    public S_AtomicFilterExit ref(@Nullable String oid, @Nullable QName targetTypeName, @Nullable QName relation) {
+        if (oid == null && targetTypeName == null && relation == null) {
             return isNull();
         } else {
-            return ref(new PrismReferenceValueImpl(oid, targetTypeName));
+            PrismReferenceValueImpl value = new PrismReferenceValueImpl(oid, targetTypeName);
+            value.setRelation(relation);
+            return ref(value);
         }
     }
 

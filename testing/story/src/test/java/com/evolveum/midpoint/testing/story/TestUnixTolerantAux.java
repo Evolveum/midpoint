@@ -260,7 +260,7 @@ public class TestUnixTolerantAux extends TestUnix {
         assertNotNull("No user after", userAfter);
         display("User after", userAfter);
         assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
 
         assertNoObject(ShadowType.class, accountLargoOid, task, result);
 

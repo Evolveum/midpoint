@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
+import static java.util.Comparator.comparing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -26,9 +27,10 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.*;
+import com.evolveum.midpoint.repo.sqale.qmodel.resource.MResource;
+import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResource;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -334,13 +336,66 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
                 acd.oid.eq(UUID.fromString(accessCertificationDefinition.getOid())));
         assertThat(acds).hasSize(1);
         MAccessCertificationDefinition row = acds.get(0);
-        assertThat(cachedUriById(row.handlerUriId)).isEqualTo("handler-uri");
+        assertCachedUri(row.handlerUriId, "handler-uri");
         assertThat(row.lastCampaignStartedTimestamp).isEqualTo(lastCampaignStarted);
         assertThat(row.lastCampaignClosedTimestamp).isEqualTo(lastCampaignClosed);
         assertThat(row.ownerRefTargetOid).isEqualTo(ownerRefOid);
         assertThat(row.ownerRefTargetType).isEqualTo(MObjectType.USER);
-        assertThat(cachedUriById(row.ownerRefRelationId))
-                .isEqualTo(QNameUtil.qNameToUri(relationUri));
+        assertCachedUri(row.ownerRefRelationId, relationUri);
+    }
+
+    @Test
+    public void test902Resource() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("resource");
+        String objectName = "res" + getTestNumber();
+        UUID connectorOid = UUID.randomUUID();
+        QName approver1Relation = QName.valueOf("{https://random.org/ns}random-rel-1");
+        QName approver2Relation = QName.valueOf("{https://random.org/ns}random-rel-2");
+        QName connectorRelation = QName.valueOf("{https://random.org/ns}conn-rel");
+        ResourceType resource = new ResourceType(prismContext)
+                .name(objectName)
+                .business(new ResourceBusinessConfigurationType(prismContext)
+                        .administrativeState(ResourceAdministrativeStateType.DISABLED)
+                        .approverRef(UUID.randomUUID().toString(),
+                                UserType.COMPLEX_TYPE, approver1Relation)
+                        .approverRef(UUID.randomUUID().toString(),
+                                ServiceType.COMPLEX_TYPE, approver2Relation))
+                .operationalState(new OperationalStateType()
+                        .lastAvailabilityStatus(AvailabilityStatusType.BROKEN))
+                .connectorRef(connectorOid.toString(),
+                        ConnectorType.COMPLEX_TYPE, connectorRelation);
+
+        when("adding it to the repository");
+        repositoryService.addObject(resource.asPrismObject(), null, result);
+
+        then("it is stored and relevant attributes are in columns");
+        assertResult(result);
+
+        UUID resourceOid = UUID.fromString(resource.getOid());
+
+        QResource r = aliasFor(QResource.class);
+        MResource row = selectOne(r, r.oid.eq(resourceOid));
+        assertThat(row.businessAdministrativeState)
+                .isEqualTo(ResourceAdministrativeStateType.DISABLED);
+        assertThat(row.operationalStateLastAvailabilityStatus)
+                .isEqualTo(AvailabilityStatusType.BROKEN);
+        assertThat(row.connectorRefTargetOid).isEqualTo(connectorOid);
+        assertThat(row.connectorRefTargetType).isEqualTo(MObjectType.CONNECTOR);
+        assertCachedUri(row.connectorRefRelationId, connectorRelation);
+
+        QObjectReference ref = QObjectReferenceMapping
+                .INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER.defaultAlias();
+        List<MReference> refs = select(ref, ref.ownerOid.eq(resourceOid));
+        assertThat(refs).hasSize(2);
+
+        refs.sort(comparing(rr -> rr.targetType));
+        MReference refRow = refs.get(0);
+        assertThat(refRow.referenceType)
+                .isEqualTo(MReferenceType.RESOURCE_BUSINESS_CONFIGURATION_APPROVER);
+        assertThat(refRow.targetType).isEqualTo(MObjectType.SERVICE);
+        assertCachedUri(refRow.relationId, approver2Relation);
     }
     // endregion
 }

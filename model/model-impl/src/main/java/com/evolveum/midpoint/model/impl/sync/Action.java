@@ -17,11 +17,13 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author Vilo Repan
  */
 public interface Action {
 
-    <F extends FocusType> void handle(LensContext<F> context, SynchronizationSituation<F> situation, Map<QName,Object> parameters,
-            Task task, OperationResult parentResult) throws SchemaException;
+    <F extends FocusType> void handle(@NotNull LensContext<F> context, SynchronizationSituation<F> situation,
+            Map<QName,Object> parameters, Task task, OperationResult parentResult) throws SchemaException;
 }
