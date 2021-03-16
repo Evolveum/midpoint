@@ -1,0 +1,10 @@
+= RBAC Best Practice
+:page-wiki-name: RBAC Best Practice
+:page-upkeep-status: orange
+
+Do not create role that correspond to a single resource, such as "AD" or "Oracle".
+This is usually pointless.
+If you really want to assign just this one resource then use wiki:Assignment+Configuration[direct construction assignment] and wiki:Outbound+Mapping[outbound mappings]. If you want to create a role create something more generic such as "Basic Role" or "Employee".
+Even though it may really contain only one resource at the beginning it can be extended with more resources and logic later.
+
+// TODO: more?

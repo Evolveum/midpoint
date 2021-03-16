@@ -1,0 +1,13 @@
+= MidPoint Deployment and Maintenance
+:page-nav-title: Deployment and Maintenance
+:page-display-order: 900
+:page-upkeep-status: green
+:page-liquid:
+
+Following pages describe midPoint deployment and maintenance concepts.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

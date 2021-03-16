@@ -1,5 +1,7 @@
 = Basic MidPoint Concepts
 :page-nav-title: Concepts
+:page-display-order: 10
+:page-upkeep-status: green
 :page-liquid:
 
 Following pages describe basic midPoint concepts.
@@ -8,3 +10,5 @@ The concepts are re-used at many numerous places in midPoint.
 ++++
 {% children %}
 ++++
+
+include::../_reference-disclaimer.adoc[]

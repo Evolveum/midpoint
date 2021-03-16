@@ -1,6 +1,7 @@
 = Data Representation Formats
 :page-wiki-name: Objects, XML, JSON and others
 :page-description: Use of XML, JSON, YAML and other formats in midPoint.
+:page-upkeep-status: green
 
 midPoint is using objects composed of properties and containers, known as wiki:Prism+Objects[Prism Objects].
 MidPoint wiki:Data+Model[Data Model] specifies how the objects look like, what properties and containers they have, what are the types and multiplicities of the data and so on.

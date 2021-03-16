@@ -1,0 +1,13 @@
+= MidPoint Expressions and Mappings
+:page-nav-title: Expressions and Mappings
+:page-display-order: 200
+:page-upkeep-status: green
+:page-liquid:
+
+Following pages describe concepts related to expressions, mappings and data processing and transformation in general.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

@@ -1,0 +1,13 @@
+= MidPoint Roles and Policies
+:page-nav-title: Roles and Policies
+:page-display-order: 300
+:page-upkeep-status: green
+:page-liquid:
+
+Following pages describe midPoint mechanisms dealing with roles, policies, assignment, inducements and similar concepts.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

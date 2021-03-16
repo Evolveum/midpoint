@@ -1,0 +1,13 @@
+= MidPoint Administration User Interface
+:page-nav-title: Administration User Interface
+:page-display-order: 600
+:page-upkeep-status: green
+:page-liquid:
+
+Following pages describe MidPoint web-based administration user interface, its usage, configuration and customization.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]
