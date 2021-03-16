@@ -561,8 +561,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
         // Check accountRef
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-        assertLinks(userJack, 2);
-        String accountJackRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
+        assertLiveLinks(userJack, 2);
+        String accountJackRedOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
         assertNotNull(accountJackRedOid);
 
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
@@ -600,8 +600,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", userJack);
         assertUserJack(userJack, "Cpt. Jack Sparrow");
 
-        assertLinks(userJack, 2);
-        String accountJackRedOidAfter = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
+        assertLiveLinks(userJack, 2);
+        String accountJackRedOidAfter = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
         assertNotNull(accountJackRedOidAfter);
 
         // The change was not propagated here because of schema violation error
@@ -642,8 +642,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertUserJack(userJack, "Cpt. Jack Sparrow");
         assertEncryptedUserPassword(userJack, "whereStheRUM");
 
-        assertLinks(userJack, 2);
-        String accountJackRedOidAfter = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
+        assertLiveLinks(userJack, 2);
+        String accountJackRedOidAfter = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
         assertNotNull(accountJackRedOidAfter);
 
         // The change was not propagated here because of schema violation error
@@ -683,8 +683,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", userJack);
         PrismAsserts.assertPropertyValue(userJack, UserType.F_LOCALITY, createPolyString("High seas"));
 
-        assertLinks(userJack, 2);
-        String accountJackRedOidAfter = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
+        assertLiveLinks(userJack, 2);
+        String accountJackRedOidAfter = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
         assertNotNull(accountJackRedOidAfter);
 
         // The change was not propagated here because of schema violation error
@@ -1628,7 +1628,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
                     .assertArchetype(ARCHETYPE_EXTERNAL_USER.oid)
                     .assertRole(ROLE_NO_CREATE.oid)
                 .end()
-                .assertLinks(0);
+                .assertLiveLinks(0);
 
         PrismObject<SequenceType> sequenceAfter = getObjectViaRepo(SequenceType.class, SEQUENCE_EXTERNAL_USER.oid);
         displayDumpable("sequence", sequenceAfter);

@@ -232,7 +232,7 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
         String shadowOid = assertUser(user.getOid(), "after creation")
                 .display()
                 .links()
-                    .single()
+                    .singleLive()
                         .getOid();
 
         int before = countDummyAccountShadows(result);

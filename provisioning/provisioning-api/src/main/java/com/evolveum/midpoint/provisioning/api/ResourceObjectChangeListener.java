@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.api;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author Radovan Semancik
  */
@@ -31,6 +33,6 @@ public interface ResourceObjectChangeListener extends ProvisioningListener {
      *
      * @param change change description
      */
-    void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult);
+    void notifyChange(@NotNull ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult);
 
 }

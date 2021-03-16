@@ -141,13 +141,13 @@ public class TestOperationCounts extends AbstractStoryTest {
 
         assertUser(USER_ALICE_OID, "alice")
                 .assertFullName("Alice White")
-                .assertLinks(3)
+                .assertLiveLinks(3)
                 .projectionOnResource(RESOURCE_DUMMY_ONE_OID)
-                .end()
+                    .end()
                 .projectionOnResource(RESOURCE_DUMMY_TWO_OID)
-                .end()
+                    .end()
                 .projectionOnResource(RESOURCE_DUMMY_THREE_OID)
-                .end();
+                    .end();
 
         repoOpAsserter
                 .assertOp("addObject.UserType", 1)
@@ -187,13 +187,13 @@ public class TestOperationCounts extends AbstractStoryTest {
 
         assertUser(USER_BOB_OID, "bob")
                 .assertFullName("Bob Black")
-                .assertLinks(3)
+                .assertLiveLinks(3)
                 .projectionOnResource(RESOURCE_DUMMY_ONE_OID)
-                .end()
+                    .end()
                 .projectionOnResource(RESOURCE_DUMMY_TWO_OID)
-                .end()
+                    .end()
                 .projectionOnResource(RESOURCE_DUMMY_THREE_OID)
-                .end();
+                    .end();
 
         repoOpAsserter
                 .assertOp("addObject.UserType", 1)
@@ -234,7 +234,7 @@ public class TestOperationCounts extends AbstractStoryTest {
 
         assertUser(USER_BOB_OID, "bob")
                 .assertFullName("Bob Brown")
-                .assertLinks(3);
+                .assertLiveLinks(3);
 
         repoOpAsserter
                 .assertOp("addObject", 0)

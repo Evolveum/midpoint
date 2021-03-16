@@ -154,12 +154,12 @@ public class TestUuidExtension extends AbstractUuidTest {
     }
 
     private void assertLdapEmployee(PrismObject<UserType> user, String name, String firstName, String lastName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
         assertAssignments(user, RoleType.class, 1);
         assertAssignedRole(user, ROLE_EMPLOYEE_OID);
 
         assertAccount(user, RESOURCE_OPENDJ_OID);
-        PrismReferenceValue linkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
+        PrismReferenceValue linkRef = getLiveLinkRef(user, RESOURCE_OPENDJ_OID);
         PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
         display("OpenDJ shadow linked to "+user, shadow);
         IntegrationTestTools.assertSecondaryIdentifier(shadow, "uid="+user.getOid()+",ou=people,dc=example,dc=com");
@@ -170,7 +170,7 @@ public class TestUuidExtension extends AbstractUuidTest {
     }
 
     private void assertNoLdapEmployee(PrismObject<UserType> user) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
-        assertLinks(user, 0);
+        assertLiveLinks(user, 0);
         assertAssignments(user, RoleType.class, 0);
         assertNotAssignedRole(user, ROLE_EMPLOYEE_OID);
 

@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" oid="25dd0010-5115-4ac0-960f-4889d1b960ff">
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="25dd0010-5115-4ac0-960f-4889d1b960ff">
     <name>CSV1</name>
 
     <administrativeOperationalState>
@@ -14,10 +18,10 @@
             </q:equal>
         </filter>
     </connectorRef>
-    
+
     <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ConnectorConfigurationType">
         <icfc:configurationProperties xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="icfc:ConfigurationPropertiesType">
-            <icfccsvfile:filePath>shold-be-replaced-by-test-code</icfccsvfile:filePath>            
+            <icfccsvfile:filePath>shold-be-replaced-by-test-code</icfccsvfile:filePath>
             <icfccsvfile:uniqueAttribute>username</icfccsvfile:uniqueAttribute>
         </icfc:configurationProperties>
     </connectorConfiguration>
@@ -56,12 +60,12 @@
             </attribute>
         </objectType>
     </schemaHandling>
-    
+
     <synchronization>
         <objectSynchronization>
             <kind>account</kind>
             <intent>default</intent>
-            <focusType>c:UserType</focusType>            
+            <focusType>c:UserType</focusType>
             <enabled>true</enabled>
             <correlation>
                 <q:equal>

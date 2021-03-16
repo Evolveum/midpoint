@@ -2317,13 +2317,16 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         user.asObjectable().getLinkRef().add(linkRef);
     }
 
-    protected <F extends FocusType> void assertLinks(PrismObject<F> focus, int expectedNumLinks) {
+    protected <F extends FocusType> void assertLiveLinks(PrismObject<F> focus, int expectedNumLinks) {
         PrismReference linkRef = focus.findReference(FocusType.F_LINK_REF);
         if (linkRef == null) {
             assert expectedNumLinks == 0 : "Expected " + expectedNumLinks + " but " + focus + " has no linkRef";
             return;
         }
-        assertEquals("Wrong number of links in " + focus, expectedNumLinks, linkRef.size());
+        long liveLinks = linkRef.getValues().stream()
+                .filter(ref -> QNameUtil.match(SchemaConstants.ORG_DEFAULT, ref.getRelation()))
+                .count();
+        assertEquals("Wrong number of links in " + focus, expectedNumLinks, liveLinks);
     }
 
     protected void assertLinked(String userOid, String accountOid) throws ObjectNotFoundException, SchemaException {

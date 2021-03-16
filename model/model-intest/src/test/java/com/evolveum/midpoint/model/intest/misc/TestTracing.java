@@ -118,7 +118,7 @@ public class TestTracing extends AbstractEmptyModelIntegrationTest {
                     .assertAssignments(2)
                     .end()
                 .links()
-                    .assertLinks(1);
+                    .assertLiveLinks(1);
 
         RESOURCE_ILLEGAL.controller.assertAccountByUsername("joe")
                 .assertFullName("A\u0007B");

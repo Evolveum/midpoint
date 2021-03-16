@@ -270,7 +270,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
-            .assertLinks(0);
+            .assertLiveLinks(0);
     }
 
     /**
@@ -609,7 +609,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
-            .assertLinks(0);
+            .assertLiveLinks(0);
     }
 
     private void assertDummyTicket(String identifier, DummyItsmTicketStatus expectedStatus, String expectedBodyStart) throws Exception {

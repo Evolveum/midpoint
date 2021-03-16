@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
@@ -76,7 +76,7 @@ class AddHelper {
     @Autowired private ResourceObjectConverter resourceObjectConverter;
     @Autowired private ShadowCaretaker shadowCaretaker;
     @Autowired protected ShadowManager shadowManager;
-    @Autowired private ChangeNotificationDispatcher operationListener;
+    @Autowired private EventDispatcher eventDispatcher;
     @Autowired private AccessChecker accessChecker;
     @Autowired private ProvisioningContextFactory ctxFactory;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
@@ -104,7 +104,7 @@ class AddHelper {
             parentResult.recordFatalError(e);
             ResourceOperationDescription operationDescription = ProvisioningUtil.createResourceFailureDescription(
                     resourceObjectToAdd, ctx.getResource(), resourceObjectToAdd.createAddDelta(), parentResult);
-            operationListener.notifyFailure(operationDescription, task, parentResult);
+            eventDispatcher.notifyFailure(operationDescription, task, parentResult);
             throw e;
         }
 
@@ -130,7 +130,7 @@ class AddHelper {
             parentResult.recordFatalError(e);
             ResourceOperationDescription operationDescription = ProvisioningUtil.createResourceFailureDescription(
                     resourceObjectToAdd, ctx.getResource(), resourceObjectToAdd.createAddDelta(), parentResult);
-            operationListener.notifyFailure(operationDescription, task, parentResult);
+            eventDispatcher.notifyFailure(operationDescription, task, parentResult);
             throw e;
         }
         if (!(attributesContainer instanceof ResourceAttributeContainer)) {
@@ -201,7 +201,7 @@ class AddHelper {
                         // shadow was not created as resource object. It is dead on the spot. Make sure that error handler won't confuse
                         // this shadow with the conflicting shadow that it is going to discover.
                         // This may also be a gestation quantum state collapsing to tombstone
-                        shadowManager.markShadowTombstone(opState.getRepoShadow(), parentResult);
+                        shadowManager.markShadowTombstone(opState.getRepoShadow(), task, parentResult);
                         finalOperationStatus = handleAddError(ctx, resourceObjectToAdd, options, opState, innerException, failedOperationResult, task, parentResult);
                     } catch (Exception innerException) {
                         finalOperationStatus = handleAddError(ctx, resourceObjectToAdd, options, opState, innerException, parentResult.getLastSubresult(), task, parentResult);
@@ -212,7 +212,7 @@ class AddHelper {
                     // shadow was not created as resource object. It is dead on the spot. Make sure that error handler won't confuse
                     // this shadow with the conflicting shadow that it is going to discover.
                     // This may also be a gestation quantum state collapsing to tombstone
-                    shadowManager.markShadowTombstone(opState.getRepoShadow(), parentResult);
+                    shadowManager.markShadowTombstone(opState.getRepoShadow(), task, parentResult);
                     finalOperationStatus = handleAddError(ctx, resourceObjectToAdd, options, opState, e, failedOperationResult, task, parentResult);
                 }
 
@@ -369,9 +369,9 @@ class AddHelper {
                 delta, parentResult);
 
         if (opState.isExecuting()) {
-            operationListener.notifyInProgress(operationDescription, task, parentResult);
+            eventDispatcher.notifyInProgress(operationDescription, task, parentResult);
         } else if (opState.isCompleted()) {
-            operationListener.notifySuccess(operationDescription, task, parentResult);
+            eventDispatcher.notifySuccess(operationDescription, task, parentResult);
         }
     }
 

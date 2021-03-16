@@ -307,8 +307,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             for (ResourceShadowDiscriminator deletedOne : ctx.getHistoricResourceObjects()) {
                 if (resourceOid.equals(deletedOne.getResourceOid()) && deletedOne.getKind() == ShadowKindType.ACCOUNT
                         && deletedOne.getIntent() == null || "default"
-                        .equals(deletedOne.getIntent())) {        // TODO implement this seriously
-                    LOGGER.trace("Found deleted one: {}", deletedOne);  // TODO remove
+                        .equals(deletedOne.getIntent())) { // TODO implement this seriously
+                    LOGGER.trace("Found deleted one: {}", deletedOne); // TODO remove
                     return true;
                 }
             }
@@ -1830,8 +1830,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         discriminator.setKind(kind);
         discriminator.setIntent(intent);
 
-        SynchronizationContext<F> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), shadow.asPrismObject(),
-                null, resource.asPrismObject(), getCurrentTask().getChannel(), getPrismContext(), expressionFactory, getCurrentTask(), null);
+        SynchronizationContext<F> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), null,
+                resource.asPrismObject(), getCurrentTask().getChannel(), getPrismContext(), expressionFactory,
+                getCurrentTask(), null);
 
         ObjectSynchronizationType applicablePolicy = null;
 

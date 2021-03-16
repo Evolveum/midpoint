@@ -209,8 +209,14 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
     }
 
     @Override
-    public UserAsserter<RA> assertLinks(int expected) {
-        super.assertLinks(expected);
+    public UserAsserter<RA> assertLiveLinks(int expected) {
+        super.assertLiveLinks(expected);
+        return this;
+    }
+
+    @Override
+    public UserAsserter<RA> assertRelatedLinks(int expected) {
+        super.assertRelatedLinks(expected);
         return this;
     }
 

@@ -191,7 +191,7 @@ public class TestLdapComplex extends AbstractLongTest {
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("User after", userAfter);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         Entry entry = assertOpenDjAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         display("LDAP account after", entry);
@@ -221,7 +221,7 @@ public class TestLdapComplex extends AbstractLongTest {
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("User after", userAfter);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         Entry entry = assertOpenDjAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         display("LDAP account after", entry);

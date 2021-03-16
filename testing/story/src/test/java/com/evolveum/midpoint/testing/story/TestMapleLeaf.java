@@ -142,7 +142,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertNotNull("User is null", user);
 
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         PrismReference ref = user.findReference(UserType.F_LINK_REF);
         String shadowOid = ref.getOid();
@@ -171,7 +171,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertNotNull("User is null", user);
 
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         PrismReference ref = user.findReference(UserType.F_LINK_REF);
         String shadowOid = ref.getOid();
@@ -200,7 +200,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertNotNull("User is null", user);
 
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         PrismReference ref = user.findReference(UserType.F_LINK_REF);
         String shadowOid = ref.getOid();
@@ -229,7 +229,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertNotNull("User is null", user);
 
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         PrismReference ref = user.findReference(UserType.F_LINK_REF);
         String shadowOid = ref.getOid();
@@ -258,7 +258,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertNotNull("User is null", user);
 
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         PrismReference ref = user.findReference(UserType.F_LINK_REF);
         String shadowOid = ref.getOid();
@@ -288,7 +288,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertNotNull("User is null", user);
 
-        assertLinks(user, 1);
+        assertLiveLinks(user, 1);
 
         PrismReference ref = user.findReference(UserType.F_LINK_REF);
         String shadowOid = ref.getOid();

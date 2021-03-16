@@ -693,7 +693,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
             PrismObject<UserType> user = getUser(userOid);
             assertAssignments(user, expectedAssignments);
             if (expectedAssignments == 0) {
-                assertLinks(user, 0);
+                assertLiveLinks(user, 0);
             }
         }
     }

@@ -890,7 +890,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertUserJack(userBefore);
-        assertLinks(userBefore, 0);
+        assertLiveLinks(userBefore, 0);
         assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_COBALT_NAME, USER_JACK_USERNAME);
 
@@ -902,7 +902,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
         assertUserJack(userAfter);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         assertDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
         assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
@@ -1023,7 +1023,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
         assertUserJack(userAfter);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, ROLE_COBALT_NEVERLAND_VALUE);
@@ -1257,7 +1257,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
         assertUserJack(userAfter);
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
 
         assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_COBALT_NAME, USER_JACK_USERNAME);
@@ -1565,7 +1565,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
 
-        String accountRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
+        String accountRedOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
 
         XMLGregorianCalendar trigStart = clock.currentTimeXMLGregorianCalendar();
@@ -1605,7 +1605,7 @@ public class TestMapping extends AbstractMappingTest {
         dummyAuditService.clear();
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        String acccountRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
+        String acccountRedOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object()
@@ -2396,7 +2396,7 @@ public class TestMapping extends AbstractMappingTest {
         assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
                 USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
         assertNoAssignments(userAfter);
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
 
         // Check account in dummy resource
         assertNoDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
@@ -2807,7 +2807,7 @@ public class TestMapping extends AbstractMappingTest {
         assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
                 USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
         assertNoAssignments(userAfter);
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
 
         // Check account in dummy resource
         assertNoDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
@@ -2893,7 +2893,7 @@ public class TestMapping extends AbstractMappingTest {
         assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
                 USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
         assertNoAssignments(userAfter);
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
 
         // Check account in dummy resource
         assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
@@ -2989,7 +2989,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertNoAssignments(userBefore);
-        assertLinks(userBefore, 0);
+        assertLiveLinks(userBefore, 0);
 
         try {
             when();
@@ -3008,7 +3008,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
         assertNoAssignments(userAfter);
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
     }
 
     /**
@@ -3025,7 +3025,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 1);
-        assertLinks(userBefore, 1);
+        assertLiveLinks(userBefore, 1);
 
         when();
         assignRole(USER_JACK_OID, ROLE_ANTINIHILIST_OID, task, result);
@@ -3037,7 +3037,7 @@ public class TestMapping extends AbstractMappingTest {
         display("User after", userAfter);
         assertAssignments(userAfter, 2);
         assertAssignedRole(userAfter, ROLE_ANTINIHILIST_OID);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
     }
 
     /**
@@ -3052,7 +3052,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 2);
-        assertLinks(userBefore, 1);
+        assertLiveLinks(userBefore, 1);
 
         when();
         unassignRole(USER_JACK_OID, ROLE_ANTINIHILIST_OID, task, result);
@@ -3064,7 +3064,7 @@ public class TestMapping extends AbstractMappingTest {
         display("User after", userAfter);
         assertAssignments(userAfter, 1);
         assertNotAssignedRole(userAfter, ROLE_ANTINIHILIST_OID);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
     }
 
     /**
@@ -3079,7 +3079,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 1);
-        assertLinks(userBefore, 1);
+        assertLiveLinks(userBefore, 1);
 
         when();
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
@@ -3090,7 +3090,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
         assertAssignments(userAfter, 0);
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
     }
 
     /**
@@ -3185,7 +3185,7 @@ public class TestMapping extends AbstractMappingTest {
 
         assertService(SERVICE_ROUTER.oid, "service")
                 .display()
-                .assertLinks(1)
+                .assertLiveLinks(1)
                 .assertPassword(PASSWORD);
 
         DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_OUTBOUND_NAME);
@@ -3220,7 +3220,7 @@ public class TestMapping extends AbstractMappingTest {
 
         assertService(SERVICE_ROUTER.oid, "service")
                 .display()
-                .assertLinks(1)
+                .assertLiveLinks(1)
                 .assertPassword(NEW_PASSWORD);
 
         DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_OUTBOUND_NAME);
@@ -3253,7 +3253,7 @@ public class TestMapping extends AbstractMappingTest {
         then();
         assertServiceByName(SERVICE_BRIDGE_NAME, "service")
                 .display()
-                .assertLinks(1)
+                .assertLiveLinks(1)
                 .assertPassword(PASSWORD);
     }
 
@@ -3274,7 +3274,7 @@ public class TestMapping extends AbstractMappingTest {
         then();
         assertServiceByName(SERVICE_BRIDGE_NAME, "service")
                 .display()
-                .assertLinks(1)
+                .assertLiveLinks(1)
                 .assertPassword(NEW_PASSWORD);
     }
 
@@ -3301,7 +3301,7 @@ public class TestMapping extends AbstractMappingTest {
         then();
         assertServiceByName(SERVICE_GATEWAY_NAME, "service")
                 .display()
-                .assertLinks(1)
+                .assertLiveLinks(1)
                 .assertHasPassword();
     }
 
@@ -3327,7 +3327,7 @@ public class TestMapping extends AbstractMappingTest {
         then();
         assertServiceByName(SERVICE_GATEWAY_NAME, "service")
                 .display()
-                .assertLinks(1)
+                .assertLiveLinks(1)
                 .assertPassword(clearValueBefore);
     }
 

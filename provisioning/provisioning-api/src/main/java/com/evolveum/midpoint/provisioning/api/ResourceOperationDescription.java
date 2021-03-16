@@ -21,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  * @author Radovan Semancik
  */
-public class ResourceOperationDescription implements DebugDumpable {
+public class ResourceOperationDescription implements ProvisioningEvent, DebugDumpable {
 
     private ObjectDelta<? extends ShadowType> objectDelta;
     private PrismObject<? extends ShadowType> currentShadow;

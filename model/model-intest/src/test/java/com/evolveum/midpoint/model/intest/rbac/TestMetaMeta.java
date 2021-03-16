@@ -108,7 +108,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         assertAssignments(role, 1); // just direct assignment
         assertRoleMembershipRef(role /* no values */);
 
-        assertLinks(role, 1);
+        assertLiveLinks(role, 1);
         String shadowOid = roleType.getLinkRef().get(0).getOid();
         PrismObject<ShadowType> groupShadowModel = getShadowModel(shadowOid);
         display("Role shadow (model)", groupShadowModel);
@@ -336,7 +336,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         assertAssignments(role, 1); // just direct assignment
         assertRoleMembershipRef(role /* no values */);
 
-        assertLinks(role, 1);
+        assertLiveLinks(role, 1);
         String shadowOid = roleType.getLinkRef().get(0).getOid();
         PrismObject<ShadowType> groupShadowModel = getShadowModel(shadowOid);
         display("Role shadow (model)", groupShadowModel);
@@ -370,7 +370,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         assertAssignments(role, 1);
         assertRoleMembershipRef(role, ROLE_META_META_LEGACY_OID);
 
-        assertLinks(role, 1);
+        assertLiveLinks(role, 1);
         String shadowOid = roleType.getLinkRef().get(0).getOid();
         PrismObject<ShadowType> groupShadowModel = getShadowModel(shadowOid);
         display("Role shadow (model)", groupShadowModel);
@@ -412,7 +412,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         DummyGroup dummyGroupOne = getDummyGroup(null, GROUP_ONE_NAME);
         assertNotNull("No dummy group " + GROUP_ONE_NAME, dummyGroupOne);
 
-        assertLinks(roleAfter, 1);
+        assertLiveLinks(roleAfter, 1);
         String shadowOid = roleTypeAfter.getLinkRef().get(0).getOid();
         PrismObject<ShadowType> groupShadowModel = getShadowModel(shadowOid);
         display("Role shadow (model)", groupShadowModel);
@@ -514,7 +514,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         DummyGroup dummyGroup = getDummyGroup(null, groupName);
         assertNotNull("No dummy group " + groupName, dummyGroup);
 
-        assertLinks(role, 1);
+        assertLiveLinks(role, 1);
         String shadowOid = roleType.getLinkRef().get(0).getOid();
         PrismObject<ShadowType> groupShadowModel = getShadowModel(shadowOid);
         display("Role shadow (model)", groupShadowModel);
@@ -536,7 +536,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         assertAssignments(role, 1);
         assertRoleMembershipRef(role, ROLE_META_META_WORLD_OID);
 
-        assertLinks(role, 1);
+        assertLiveLinks(role, 1);
         String shadowOid = roleType.getLinkRef().get(0).getOid();
         PrismObject<ShadowType> groupShadowModel = getShadowModel(shadowOid);
         display("Role shadow (model)", groupShadowModel);

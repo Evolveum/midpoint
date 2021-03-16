@@ -332,7 +332,7 @@ public class TestDelivery extends AbstractStoryTest {
 
         PrismObject<UserType> userBobAfter = modelService.getObject(UserType.class, userBobOid, getOperationOptionsBuilder().item(UserType.F_JPEG_PHOTO).retrieve().build(), task, result);
         assertUser(userBobAfter, "after")
-                .assertLinks(1)
+                .assertLiveLinks(1)
                 .assignments()
                 .assertRole(ROLE_OPENDJ_OID);
 
@@ -356,7 +356,7 @@ public class TestDelivery extends AbstractStoryTest {
         PrismObject<UserType> userBobAfter = modelService.getObject(UserType.class, userBobOid, getOperationOptionsBuilder().item(UserType.F_JPEG_PHOTO).retrieve().build(), task, result);
         assertUser(userBobAfter, "after")
                 .assertJpegPhoto("SGVsbG8=".getBytes())
-                .assertLinks(1);
+                .assertLiveLinks(1);
 
         PrismObject<ShadowType> shadow = findShadowByNameViaModel(ShadowKindType.ACCOUNT, "default", "uid=bob,ou=People,dc=example,dc=com", resourceOpenDj, null, task, result);
         new ShadowAsserter<>(shadow)

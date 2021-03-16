@@ -218,7 +218,8 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
         accountRefVal.setObject(account);
-        ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountOid);
+        ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
+                .createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountOid);
         modifications.add(accountDelta);
 
         // WHEN
@@ -227,8 +228,9 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
-        // Check accountRef
-        assertUserNoAccountRefs(userJack);
+        assertUser(userJack, "after")
+                .assertLiveLinks(0)
+                .assertRelatedLinks(0); // The account was unlinked.
 
         // Check shadow (if it is unchanged)
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);

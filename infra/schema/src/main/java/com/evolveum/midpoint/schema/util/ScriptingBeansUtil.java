@@ -30,6 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressio
 
 import org.apache.commons.lang3.StringUtils;
 
+import static com.evolveum.midpoint.util.MiscUtil.castSafely;
+
 /**
  * Utility methods related to ScriptingExpressionType beans.
  */
@@ -91,7 +93,7 @@ public class ScriptingBeansUtil {
         try {
             try {
                 Object rawValue = PropertyUtils.getSimpleProperty(action, propertyName);
-                return MiscUtil.cast(rawValue, clazz);
+                return castSafely(rawValue, clazz);
             } catch (NoSuchMethodException e) {
                 if (Boolean.class.equals(clazz)) {
                     // Note that getSimpleProperty looks for "getX" instead of our "isX" getter for Boolean (not boolean) props.
@@ -112,7 +114,7 @@ public class ScriptingBeansUtil {
         try {
             String methodName = "is" + StringUtils.capitalize(propertyName);
             Object rawValue = MethodUtils.invokeExactMethod(action, methodName, new Object[0]);
-            return MiscUtil.cast(rawValue, Boolean.class);
+            return castSafely(rawValue, Boolean.class);
         } catch (NoSuchMethodException e) {
             // This can occur when dynamic parameters are used: the action is of generic type, not the specific one.
             return null;

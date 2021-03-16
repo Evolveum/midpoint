@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest.negative;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_RELATED;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -891,7 +893,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("User after", userAfter);
         assertAssignments(userAfter, 0);
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
 
         assertNoDummyAccount(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
@@ -934,7 +936,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         display("User after", userAfter);
         assertAssignments(userAfter, 1);
         // Failed after script. Account is not linked (may not really be created).
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
 
         // But we know that the account was created and that it exists
         assertDummyAccount(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
@@ -1068,7 +1070,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("User after", userAfter);
         assertAssignments(userAfter, 0);
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
 
         assertNoDummyAccount(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
     }
@@ -1103,7 +1105,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         display("User after", userAfter);
         assertAssignments(userAfter, 1);
         // Partial criticality. We assume that the account exists.
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         // But we know that the account was created and that it exists
         assertDummyAccount(RESOURCE_DUMMY_EBONY_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
@@ -1134,7 +1136,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("User after", userAfter);
         assertAssignments(userAfter, 1);
-        assertThat(getSingleLinkOid(userAfter)).isNotNull();
+        assertThat(getSingleLiveLinkOid(userAfter)).isNotNull();
 
         assertDummyAccount(RESOURCE_DUMMY_EBONY_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
 
@@ -1156,7 +1158,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         assertUserBefore(USER_GUYBRUSH_OID)
                 .displayWithProjections()
                 .assertAssignments(1)
-                .assertLinks(1);
+                .assertLiveLinks(1);
 
         // WHEN
         when();
@@ -1170,12 +1172,22 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         String shadowOid = assertUserAfter(USER_GUYBRUSH_OID)
                 .displayWithProjections()
                 .assertAssignments(0)
-                .singleLink()
-                .resolveTarget()
-                .display()
-                // TODO: not sure whether this should be dead or alive
-                .assertTombstone()
-                .getOid();
+                .links()
+                    .assertLinks(0, 2)
+                    .by().resourceOid(RESOURCE_DUMMY_BLACK_OID).dead(true).relation(ORG_RELATED).find()
+                        .resolveTarget()
+                            .display()
+                            .assertDead()
+                            .assertTombstone()
+                            .end()
+                        .end()
+                    .by().resourceOid(RESOURCE_DUMMY_EBONY_OID).dead(true).relation(ORG_RELATED).find()
+                        .resolveTarget()
+                            .display()
+                            .assertDead() // TODO: not sure whether this should be dead or alive
+                            .assertTombstone()
+                            .end()
+                        .getOid();
 
         assertNoDummyAccount(RESOURCE_DUMMY_EBONY_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
@@ -1187,7 +1199,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
         assertUserAfter(USER_GUYBRUSH_OID)
                 .assertAssignments(0)
-                .assertLinks(0);
+                .assertLiveLinks(0);
 
         assertNoShadow(shadowOid);
     }
@@ -1220,7 +1232,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("User after", userAfter);
         assertUser(userAfter, USER_GUYBRUSH_OID, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Guybrush", "Threepwood");
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
 
         assertNoDummyAccount(RESOURCE_DUMMY_BROKEN_VIOLET_NAME, "guybrush.3");
     }

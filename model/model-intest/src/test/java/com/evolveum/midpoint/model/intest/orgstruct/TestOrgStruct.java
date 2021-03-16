@@ -1607,7 +1607,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertNoAssignments(userBefore);
-        assertLinks(userBefore, 0);
+        assertLiveLinks(userBefore, 0);
 
         // WHEN
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_ORGTARGET_OID, null, task, result);

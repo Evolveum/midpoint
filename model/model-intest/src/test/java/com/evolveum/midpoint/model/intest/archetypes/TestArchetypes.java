@@ -520,7 +520,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                 .assertRoleMemberhipRefs(0)
                 .end()
             .links()
-                .assertNone();
+                .assertNoLiveLinks();
     }
 
     /**
@@ -610,7 +610,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
             .assertRoleMemberhipRefs(0)
             .end()
         .links()
-            .assertNone()
+            .assertNoLiveLinks()
             .end()
         .assertEmployeeNumber(CONTRACTOR_EMPLOYEE_NUMBER);
     }
@@ -644,7 +644,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
             .assertRoleMemberhipRefs(0)
             .end()
         .links()
-            .assertNone()
+            .assertNoLiveLinks()
             .end()
         .assertEmployeeNumber("Number ONE");
     }

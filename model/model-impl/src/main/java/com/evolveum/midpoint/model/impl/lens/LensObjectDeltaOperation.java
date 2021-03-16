@@ -57,7 +57,8 @@ public class LensObjectDeltaOperation<T extends ObjectType> extends ObjectDeltaO
         return "LensObjectDeltaOperation";
     }
 
-    @NotNull LensObjectDeltaOperationType toLensObjectDeltaOperationType() throws SchemaException {
+    @NotNull
+    public LensObjectDeltaOperationType toLensObjectDeltaOperationType() throws SchemaException {
         LensObjectDeltaOperationType retval = new LensObjectDeltaOperationType();
         DeltaConversionOptions options = DeltaConversionOptions.createSerializeReferenceNames();
         // Escaping invalid characters in serialized deltas could be questionable; see MID-6262.

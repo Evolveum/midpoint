@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowDiscriminatorType;
@@ -35,6 +37,9 @@ import org.apache.commons.lang3.ObjectUtils;
  * @author Radovan Semancik
  */
 public class ResourceShadowDiscriminator implements Serializable, DebugDumpable, ShortDumpable, HumanReadableDescribable {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceShadowDiscriminator.class);
+
     private static final long serialVersionUID = 346600684011645741L;
 
     private String resourceOid;

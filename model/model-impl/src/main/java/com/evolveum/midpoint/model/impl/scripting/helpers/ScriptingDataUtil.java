@@ -8,9 +8,10 @@
 package com.evolveum.midpoint.model.impl.scripting.helpers;
 
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
+import static com.evolveum.midpoint.util.MiscUtil.castSafely;
 
 /**
  * Utility methods related to processing data objects.
@@ -25,7 +26,7 @@ public class ScriptingDataUtil {
         } else if (value instanceof PrismValue) {
             return getRealValue((PrismValue) value, clazz);
         } else
-            return MiscUtil.cast(value, clazz);
+            return castSafely(value, clazz);
     }
 
     public static <T> T getRealValue(PrismValue prismValue, Class<T> clazz) throws SchemaException {
@@ -36,7 +37,7 @@ public class ScriptingDataUtil {
             if (realValue == null) {
                 throw new SchemaException("Real value of 'null' embedded in " + prismValue);
             } else {
-                return MiscUtil.cast(realValue, clazz);
+                return castSafely(realValue, clazz);
             }
         }
     }

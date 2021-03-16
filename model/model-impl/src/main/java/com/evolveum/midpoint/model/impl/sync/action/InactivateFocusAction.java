@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -30,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 public class InactivateFocusAction extends BaseAction {
 
     @Override
-    public <F extends FocusType> void handle(LensContext<F> context, SynchronizationSituation<F> situation,
+    public <F extends FocusType> void handle(@NotNull LensContext<F> context, SynchronizationSituation<F> situation,
             Map<QName, Object> parameters, Task task, OperationResult parentResult) {
         ActivationStatusType desiredStatus = ActivationStatusType.DISABLED;
 
@@ -51,7 +52,5 @@ public class InactivateFocusAction extends BaseAction {
                     focusContext.getOid(), pathAdminStatus, desiredStatus);
             focusContext.setPrimaryDelta(activationDelta);
         }
-
     }
-
 }

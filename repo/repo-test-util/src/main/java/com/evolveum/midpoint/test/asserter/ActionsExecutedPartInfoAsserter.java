@@ -50,6 +50,18 @@ public class ActionsExecutedPartInfoAsserter<RA> extends AbstractAsserter<RA> {
         }
     }
 
+    public ActionsExecutedPartInfoAsserter<RA> assertSuccessCount(ChangeTypeType operation, QName objectType, int from, int to) {
+        Counts counts = getCounts(e -> e.getOperation() == operation && QNameUtil.match(objectType, e.getObjectType()));
+        assertMinMax("Wrong # of successes for " + operation + ":" + objectType, from, to, counts.success);
+        return this;
+    }
+
+    public ActionsExecutedPartInfoAsserter<RA> assertFailureCount(ChangeTypeType operation, QName objectType, int from, int to) {
+        Counts counts = getCounts(e -> e.getOperation() == operation && QNameUtil.match(objectType, e.getObjectType()));
+        assertMinMax("Wrong # of failures for " + operation + ":" + objectType, from, to, counts.failure);
+        return this;
+    }
+
     public ActionsExecutedPartInfoAsserter<RA> assertCount(ChangeTypeType operation, QName objectType, int success, int failure) {
         Counts counts = getCounts(e -> e.getOperation() == operation && QNameUtil.match(objectType, e.getObjectType()));
         assertEquals("Wrong # of successes for " + operation + ":" + objectType, success, counts.success);

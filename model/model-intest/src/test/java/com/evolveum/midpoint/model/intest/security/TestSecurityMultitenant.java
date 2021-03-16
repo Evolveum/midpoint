@@ -263,7 +263,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
                     .assertTargetOid(ORG_ROOT_OID)
                     .end()
                 .end()
-            .assertLinks(0)
+            .assertLiveLinks(0)
             .assertParentOrgRefs(ORG_ROOT_OID);
 
         assertOrgAfter(ORG_CALADAN_OID)
@@ -274,7 +274,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
                     .assertTargetOid(ORG_ATREIDES_OID)
                     .end()
                 .end()
-            .assertLinks(0)
+            .assertLiveLinks(0)
             .assertParentOrgRefs(ORG_ATREIDES_OID);
 
         assertRoleAfter(ROLE_ATREIDES_ADMIN_OID)
@@ -290,7 +290,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
                 .end()
             .assertTenantRef(ORG_ATREIDES_OID)
             .assertParentOrgRefs(ORG_ATREIDES_OID)
-            .assertLinks(0);
+            .assertLiveLinks(0);
 
         assertUserAfter(USER_PAUL_ATREIDES_OID)
             .assertName(USER_PAUL_ATREIDES_NAME)
@@ -301,7 +301,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
                 .end()
             .assertTenantRef(ORG_ATREIDES_OID)
             .assertParentOrgRefs(ORG_ATREIDES_OID)
-            .assertLinks(0);
+            .assertLiveLinks(0);
 
         // Spacing Guild
 
@@ -313,7 +313,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
                     .assertTargetOid(ORG_ROOT_OID)
                     .end()
                 .end()
-            .assertLinks(0)
+            .assertLiveLinks(0)
             .assertParentOrgRefs(ORG_ROOT_OID);
 
         assertUserAfter(USER_EDRIC_OID)
@@ -325,7 +325,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
                 .end()
             .assertTenantRef(null)
             .assertParentOrgRefs(ORG_GUILD_OID)
-            .assertLinks(0);
+            .assertLiveLinks(0);
 
         // House Corrino
 
@@ -337,7 +337,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
                     .assertTargetOid(ORG_ROOT_OID)
                     .end()
                 .end()
-            .assertLinks(0)
+            .assertLiveLinks(0)
             .assertParentOrgRefs(ORG_ROOT_OID);
 
         assertOrgAfter(ORG_KAITAIN_OID)
@@ -348,7 +348,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
                     .assertTargetOid(ORG_CORRINO_OID)
                     .end()
                 .end()
-            .assertLinks(0)
+            .assertLiveLinks(0)
             .assertParentOrgRefs(ORG_CORRINO_OID);
 
         assertOrgAfter(ORG_IMPERIAL_PALACE_OID)
@@ -359,7 +359,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
                     .assertTargetOid(ORG_KAITAIN_OID)
                     .end()
                 .end()
-            .assertLinks(0)
+            .assertLiveLinks(0)
             .assertParentOrgRefs(ORG_KAITAIN_OID);
 
         assertGlobalStateUntouched();
@@ -444,7 +444,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
                 .end()
             .assertTenantRef(ORG_ATREIDES_OID)
             .assertParentOrgRefs(ORG_ATREIDES_OID)
-            .assertLinks(0);
+            .assertLiveLinks(0);
 
         assertGlobalStateUntouched();
     }
@@ -590,7 +590,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
                 .end()
             .assertTenantRef(ORG_ATREIDES_OID)
             .assertParentOrgRefs(ORG_ATREIDES_OID)
-            .assertLinks(0);
+            .assertLiveLinks(0);
 
         assertOrgAfter(ORG_CASTLE_CALADAN_OID)
             .assertName(ORG_CASTLE_CALADAN_NAME)
@@ -601,7 +601,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
                 .end()
             .assertTenantRef(ORG_ATREIDES_OID)
             .assertParentOrgRefs(ORG_CALADAN_OID)
-            .assertLinks(0);
+            .assertLiveLinks(0);
 
         assertGlobalStateUntouched();
     }

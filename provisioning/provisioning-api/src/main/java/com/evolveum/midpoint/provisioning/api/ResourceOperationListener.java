@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.api;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  *
  * This is an additional processing of the
@@ -39,9 +41,8 @@ public interface ResourceOperationListener extends ProvisioningListener {
      *
      * @param parentResult the result that can be used to collect subresults of the listener execution.
      *                         It is NOT the result of the operation that succeeded. That result is inside the
-     *                         operationDescription structure.
      */
-    public void notifySuccess(ResourceOperationDescription operationDescription, Task task, OperationResult parentResult);
+    void notifySuccess(@NotNull ResourceOperationDescription operationDescription, Task task, OperationResult parentResult);
 
 
     /**
@@ -69,7 +70,7 @@ public interface ResourceOperationListener extends ProvisioningListener {
      *                         It is NOT the result of the operation that failed. That result is inside the
      *                         operationDescription structure.
      */
-    public void notifyFailure(ResourceOperationDescription operationDescription, Task task, OperationResult parentResult);
+    void notifyFailure(@NotNull ResourceOperationDescription operationDescription, Task task, OperationResult parentResult);
 
     /**
      * Submits notification about provisioning operation that is in progress.
@@ -88,8 +89,7 @@ public interface ResourceOperationListener extends ProvisioningListener {
      *
      * @param parentResult the result that can be used to collect subresults of the listener execution.
      *                         It is NOT the result of the operation that is in progress. That result is inside the
-     *                         operationDescription structure.
      */
-    public void notifyInProgress(ResourceOperationDescription operationDescription, Task task, OperationResult parentResult);
+    void notifyInProgress(@NotNull ResourceOperationDescription operationDescription, Task task, OperationResult parentResult);
 
 }

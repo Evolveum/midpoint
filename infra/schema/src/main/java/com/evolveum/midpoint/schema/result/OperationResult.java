@@ -1474,6 +1474,18 @@ public class OperationResult
         recordStatus(OperationResultStatus.FATAL_ERROR, cause.getMessage(), cause);
     }
 
+    /**
+     * Records a fatal error if it was not recorded before.
+     * TODO Not 100% safe, because the fatal error could be recorded for some other reason.
+     *  We have to improve error reporting in general.
+     */
+    @Experimental
+    public void recordFatalErrorIfNeeded(Throwable t) {
+        if (status != OperationResultStatus.FATAL_ERROR) {
+            recordFatalError(t);
+        }
+    }
+
     public void recordFatalErrorNotFinish(Throwable cause) {
         recordStatusNotFinish(OperationResultStatus.FATAL_ERROR, cause.getMessage(), cause);
     }

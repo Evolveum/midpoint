@@ -112,7 +112,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
     /** Useful beans local to the Shadows package. */
     @NotNull protected final ShadowsLocalBeans localBeans;
 
-    public ShadowedChange(@NotNull ROC resourceObjectChange, ChangeProcessingBeans beans) {
+    ShadowedChange(@NotNull ROC resourceObjectChange, ChangeProcessingBeans beans) {
         this.initializationState = InitializationState.fromPreviousState(resourceObjectChange.getInitializationState());
         this.resourceObjectChange = resourceObjectChange;
         this.context = resourceObjectChange.getContext();
@@ -405,7 +405,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
 
     private void markRepoShadowTombstone(OperationResult result) throws SchemaException {
         if (!ShadowUtil.isDead(repoShadow) || ShadowUtil.isExists(repoShadow)) {
-            beans.shadowManager.markShadowTombstone(repoShadow, result);
+            beans.shadowManager.markShadowTombstone(repoShadow, context.getTask(), result);
         }
     }
 

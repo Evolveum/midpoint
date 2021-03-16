@@ -611,7 +611,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         assertUserBefore(USER_JACK_OID)
                 .links()
-                .assertNone();
+                .assertNoLiveLinks();
 
         ObjectDelta<UserType> delta = createAssignmentAssignmentHolderDelta(UserType.class, USER_JACK_OID,
                 ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
