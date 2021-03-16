@@ -12,7 +12,14 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
+import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
+
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -41,6 +48,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
+import org.jfree.util.ObjectTable;
 
 /**
  * Created by honchar.
@@ -120,9 +129,6 @@ public class TaskErrorsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
                 return "name";
             }
         });
-        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.status"), TaskErrorSelectableBeanImpl.F_STATUS));
-        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.recordType"), TaskErrorSelectableBeanImpl.F_RECORD_TYPE));
-        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.realOwner"), TaskErrorSelectableBeanImpl.F_REAL_OWNER));
         columns.add(new AbstractColumn<>(createStringResource("pageTaskEdit.taskErros.timestamp"), TaskErrorSelectableBeanImpl.F_ERROR_TIMESTAMP) {
             private static final long serialVersionUID = 1L;
 
@@ -134,7 +140,19 @@ public class TaskErrorsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
             }
 
         });
+        columns.add(new EnumPropertyColumn<>(createStringResource("pageTaskEdit.taskErros.status"), TaskErrorSelectableBeanImpl.F_STATUS));
         columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.message"), TaskErrorSelectableBeanImpl.F_MESSAGE));
+        columns.add(new EnumPropertyColumn<>(createStringResource("pageTaskEdit.taskErros.recordType"), TaskErrorSelectableBeanImpl.F_RECORD_TYPE));
+        columns.add(new AjaxLinkColumn<>(createStringResource("pageTaskEdit.taskErros.realOwner"), TaskErrorSelectableBeanImpl.F_REAL_OWNER_DESCRIPTION) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<TaskErrorSelectableBeanImpl<ObjectType>> rowModel) {
+                TaskErrorSelectableBeanImpl<ObjectType> object = rowModel.getObject();
+                PrismObject<ObjectType> realOwner = object.getRealOwner();
+                WebComponentUtil.dispatchToObjectDetailsPage(realOwner.getCompileTimeClass(), realOwner.getOid(), TaskErrorsTabPanel.this, false);
+            }
+        });
+
         return columns;
     }
 
