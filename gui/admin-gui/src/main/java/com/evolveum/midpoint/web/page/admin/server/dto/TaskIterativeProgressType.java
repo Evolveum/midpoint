@@ -25,6 +25,7 @@ public class TaskIterativeProgressType implements Serializable {
     public static final String F_CURRENT_ITEMS = "currentItems";
     public static final String F_PROGRESS = "progress";
     public static final String F_TITLE = "title";
+    public static final String F_WALLCLOCK_THROUGHPUT = "wallClockThroughput";
 
     private ProcessedItemSetType successProcessedItemSetType;
     private ProcessedItemSetType failureProcessedItemSetType;
@@ -34,6 +35,7 @@ public class TaskIterativeProgressType implements Serializable {
 
     private PieChartConfiguration progress;
     private String title = "";
+    private String wallClockThroughput;
 
     public TaskIterativeProgressType(IterativeTaskPartItemsProcessingInformationType processingInfoType, TaskType taskType) {
         for (ProcessedItemSetType processedItem : processingInfoType.getProcessed()) {
@@ -133,12 +135,14 @@ public class TaskIterativeProgressType implements Serializable {
         Long wallClock = computeWallClock(objectsTotal, taskType);
         long throughput = computeThroughput(wallClock);
         if (partUri != null) {
-            title = getString("TaskIterativeProgress.part." + partUri);
+            title = getString("TaskIterativeProgress.part." + partUri, objectsTotal);
         } else {
-            title = getString("TaskOperationStatisticsPanel.processingInfo");
+            title = getString("TaskOperationStatisticsPanel.processingInfo", objectsTotal);
         }
-        title += getString("TaskStatePanel.message.objectsTotal",
-                objectsTotal, wallClock, throughput);
+
+        wallClockThroughput = getString("TaskIterativeProgress.wallClock.throughput", wallClock, throughput);
+//        title += getString("TaskStatePanel.message.objectsTotal",
+//                objectsTotal, wallClock, throughput);
     }
 
     private int getTotalCount() {
