@@ -10,20 +10,20 @@ package com.evolveum.midpoint.web.component.progress;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 
+import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsOperationEntryType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -83,8 +83,8 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
         ListView<ProvisioningStatisticsLineDto> provisioningLines = new ListView<>(ID_PROVISIONING_STATISTICS_LINES, new PropertyModel<>(getModel(), StatisticsDto.F_PROVISIONING_LINES)) {
             protected void populateItem(final ListItem<ProvisioningStatisticsLineDto> item) {
 
-                ListDataProvider<ProvisioningStatisticsOperationEntryType> provider = new ListDataProvider<>(StatisticsPanel.this, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_OPERATIONS));
-                BoxedTablePanel<ProvisioningStatisticsOperationEntryType> provisioningTable = new BoxedTablePanel<>(ID_PROVISIONING_OPERATIONS, provider, createProvisioningStatisticsColumns()) {
+                ListDataProvider<ProvisioningStatisticsOperationDto> provider = new ListDataProvider<>(StatisticsPanel.this, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_OPERATIONS));
+                BoxedTablePanel<ProvisioningStatisticsOperationDto> provisioningTable = new BoxedTablePanel<>(ID_PROVISIONING_OPERATIONS, provider, createProvisioningStatisticsColumns()) {
 
                     @Override
                     protected WebMarkupContainer createHeader(String headerId) {
@@ -92,7 +92,7 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
                     }
 
                     @Override
-                    protected Item<ProvisioningStatisticsOperationEntryType> customizeNewRowItem(Item<ProvisioningStatisticsOperationEntryType> item, IModel<ProvisioningStatisticsOperationEntryType> model) {
+                    protected Item<ProvisioningStatisticsOperationDto> customizeNewRowItem(Item<ProvisioningStatisticsOperationDto> item, IModel<ProvisioningStatisticsOperationDto> model) {
                         item.add(AttributeModifier.append("class", new ReadOnlyModel<>(() -> {
                             if (model.getObject() != null && OperationResultStatusType.FATAL_ERROR == model.getObject().getStatus()) {
                                 return "bg-red disabled color-palette";
@@ -154,20 +154,26 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
         contentsPanel.add(lastMessage);
     }
 
-    private List<IColumn<ProvisioningStatisticsOperationEntryType, String>> createProvisioningStatisticsColumns() {
-        List<IColumn<ProvisioningStatisticsOperationEntryType, String>> columns = new ArrayList<>();
-        columns.add(createProvisioningStatisticsPropertyColumns(ProvisioningStatisticsOperationEntryType.F_OPERATION));
-        columns.add(createProvisioningStatisticsPropertyColumns(ProvisioningStatisticsOperationEntryType.F_COUNT));
-        columns.add(createProvisioningStatisticsPropertyColumns(ProvisioningStatisticsOperationEntryType.F_MAX_TIME));
-        columns.add(createProvisioningStatisticsPropertyColumns(ProvisioningStatisticsOperationEntryType.F_MIN_TIME));
-        columns.add(createProvisioningStatisticsPropertyColumns(ProvisioningStatisticsOperationEntryType.F_STATUS));
-        columns.add(createProvisioningStatisticsPropertyColumns(ProvisioningStatisticsOperationEntryType.F_TOTAL_TIME));
+    private List<IColumn<ProvisioningStatisticsOperationDto, String>> createProvisioningStatisticsColumns() {
+        List<IColumn<ProvisioningStatisticsOperationDto, String>> columns = new ArrayList<>();
+        columns.add(createProvisioningStatisticsPropertyColumn(ProvisioningStatisticsOperationEntryType.F_OPERATION));
+        columns.add(createProvisioningStatisticsPropertyEnumColumn(ProvisioningStatisticsOperationEntryType.F_STATUS));
+        columns.add(createProvisioningStatisticsPropertyColumn(ProvisioningStatisticsOperationEntryType.F_COUNT));
+        columns.add(new PropertyColumn<>(createStringResource("StatisticsPanel.provisioningStatistics.averageTime"), ProvisioningStatisticsOperationDto.F_AVG_TIME));
+        columns.add(createProvisioningStatisticsPropertyColumn(ProvisioningStatisticsOperationEntryType.F_MIN_TIME));
+        columns.add(createProvisioningStatisticsPropertyColumn(ProvisioningStatisticsOperationEntryType.F_MAX_TIME));
+        columns.add(createProvisioningStatisticsPropertyColumn(ProvisioningStatisticsOperationEntryType.F_TOTAL_TIME));
         return columns;
     }
 
-    private IColumn<ProvisioningStatisticsOperationEntryType, String> createProvisioningStatisticsPropertyColumns(QName column) {
+    private IColumn<ProvisioningStatisticsOperationDto, String> createProvisioningStatisticsPropertyColumn(QName column) {
         String columnName = column.getLocalPart();
         return new PropertyColumn<>(createStringResource("ProvisioningStatisticsOperationEntryType." + columnName), columnName);
+    }
+
+    private IColumn<ProvisioningStatisticsOperationDto, String> createProvisioningStatisticsPropertyEnumColumn(QName column) {
+        String columnName = column.getLocalPart();
+        return new EnumPropertyColumn<>(createStringResource("ProvisioningStatisticsOperationEntryType." + columnName), columnName);
     }
 
     private List<IColumn<MappingsLineDto, String>> createMappingsColumn() {
