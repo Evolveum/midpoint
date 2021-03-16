@@ -26424,7 +26424,7 @@
                                Configuration for allowed search modes for search. All search mode are allowed by default.
                            </xsd:documentation>
                            <xsd:appinfo>
-                               <a:displayName>SearchBoxConfigurationType.defaultMode</a:displayName>
+                               <a:displayName>SearchBoxConfigurationType.allowedMode</a:displayName>
                            </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>

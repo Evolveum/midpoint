@@ -160,11 +160,17 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         GuiObjectListPanelConfigurationType additionalPanel = getAdditionalPanelConfig();
         if (additionalPanel != null && additionalPanel.getSearchBoxConfiguration() != null) {
             defaultScopeConfiguration = additionalPanel.getSearchBoxConfiguration().getScopeConfiguration();
+            if (defaultScopeConfiguration == null) {
+                defaultScopeConfiguration = new ScopeSearchItemConfigurationType();
+            }
             if (defaultScopeConfiguration.getDefaultValue() == null) {
                 defaultScopeConfiguration.setDefaultValue(additionalPanel.getSearchBoxConfiguration().getDefaultScope());
             }
 
             defaultObjectTypeConfiguration = additionalPanel.getSearchBoxConfiguration().getObjectTypeConfiguration();
+            if (defaultObjectTypeConfiguration == null) {
+                defaultObjectTypeConfiguration = new ObjectTypeSearchItemConfigurationType();
+            }
             if (defaultObjectTypeConfiguration.getDefaultValue() == null) {
                 if (additionalPanel.getSearchBoxConfiguration().getDefaultObjectType() != null) {
                     defaultObjectTypeClass = (Class<ObjectType>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(),
@@ -1200,6 +1206,19 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
+            protected List<QName> getDefaultRelations() {
+                List<QName> defaultRelations = new ArrayList<>();
+                QName defaultRelation = AbstractRoleMemberPanel.this.getSupportedRelations().getDefaultRelation();
+                if (defaultRelation != null) {
+                    defaultRelations.add(AbstractRoleMemberPanel.this.getSupportedRelations().getDefaultRelation());
+                } else {
+                    defaultRelations.add(RelationTypes.MEMBER.getRelation());
+                }
+                return defaultRelations;
+
+            }
+
+            @Override
             protected boolean isFocusTypeSelectorVisible() {
                 return !QueryScope.SELECTED.equals(scope);
             }
@@ -1241,6 +1260,19 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             @Override
             protected List<QName> getSupportedRelations() {
                 return AbstractRoleMemberPanel.this.getSupportedRelations().getAvailableRelationList();
+            }
+
+            @Override
+            protected List<QName> getDefaultRelations() {
+                List<QName> defaultRelations = new ArrayList<>();
+                QName defaultRelation = AbstractRoleMemberPanel.this.getSupportedRelations().getDefaultRelation();
+                if (defaultRelation != null) {
+                    defaultRelations.add(AbstractRoleMemberPanel.this.getSupportedRelations().getDefaultRelation());
+                } else {
+                    defaultRelations.add(RelationTypes.MEMBER.getRelation());
+                }
+                return defaultRelations;
+
             }
 
             protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
@@ -1298,6 +1330,19 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 @Override
                 protected List<QName> getSupportedRelations() {
                     return AbstractRoleMemberPanel.this.getSupportedRelations().getAvailableRelationList();
+                }
+
+                @Override
+                protected List<QName> getDefaultRelations() {
+                    List<QName> defaultRelations = new ArrayList<>();
+                    QName defaultRelation = AbstractRoleMemberPanel.this.getSupportedRelations().getDefaultRelation();
+                    if (defaultRelation != null) {
+                        defaultRelations.add(AbstractRoleMemberPanel.this.getSupportedRelations().getDefaultRelation());
+                    } else {
+                        defaultRelations.add(RelationTypes.MEMBER.getRelation());
+                    }
+                    return defaultRelations;
+
                 }
 
                 protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {

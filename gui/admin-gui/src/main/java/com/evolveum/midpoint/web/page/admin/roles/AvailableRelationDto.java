@@ -16,6 +16,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -74,8 +75,10 @@ public class AvailableRelationDto implements Serializable {
         if (allowAny && QNameUtil.match(defaultRelation, PrismConstants.Q_ANY)){
             return defaultRelation;
         }
-        if (availableRelationList != null && availableRelationList.contains(defaultRelation)) {
-            return defaultRelation;
+        if (availableRelationList != null && QNameUtil.contains(availableRelationList, defaultRelation)) {
+            QName finalDefaultRelation = defaultRelation;
+            return availableRelationList.stream().filter(e -> QNameUtil.match(e, finalDefaultRelation))
+                    .collect(Collectors.toList()).iterator().next();
         }
         return null;
     }
