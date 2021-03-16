@@ -549,9 +549,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     }
 
     private void setTaskInitialState(PrismObjectWrapper<TaskType> taskWrapper, boolean run) throws SchemaException {
-        if (!isAdd()) {
-            return;
-        }
         PrismPropertyWrapper<TaskExecutionStateType> executionStatus = taskWrapper.findProperty(ItemPath.create(TaskType.F_EXECUTION_STATUS));
         PrismPropertyWrapper<TaskSchedulingStateType> schedulingState = taskWrapper.findProperty(ItemPath.create(TaskType.F_SCHEDULING_STATE));
         if (executionStatus == null || schedulingState == null) {
@@ -560,6 +557,9 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         if (run) {
             setTaskInitiallyRunning(executionStatus, schedulingState);
         } else {
+            if (!isAdd()) {
+                return;
+            }
             setTaskInitiallySuspended(executionStatus, schedulingState);
         }
     }
