@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
+import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Predicate;
 import com.querydsl.sql.SQLQuery;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class SqaleRepoBaseTest extends AbstractSpringTest
@@ -122,5 +124,13 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     protected String cachedUriById(Integer uriId) {
         QUri qUri = QUri.DEFAULT;
         return selectOne(qUri, qUri.id.eq(uriId)).uri;
+    }
+
+    protected void assertCachedUri(Integer uriId, QName qName) {
+        assertCachedUri(uriId, QNameUtil.qNameToUri(qName));
+    }
+
+    protected void assertCachedUri(Integer uriId, String uri) {
+        assertThat(cachedUriById(uriId)).isEqualTo(uri);
     }
 }

@@ -13,9 +13,9 @@ import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCase;
 import com.evolveum.midpoint.repo.sqale.qmodel.QDashboard;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObjectCollection;
+import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCase;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnector;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHost;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocus;
@@ -40,54 +40,45 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public enum MObjectType {
 
     // mapping of codes and schema types must be unique
-    ABSTRACT_ROLE(16, QAbstractRole.CLASS, AbstractRoleType.class),
-    ACCESS_CERTIFICATION_CAMPAIGN(22, null, AccessCertificationCampaignType.class),
-    ACCESS_CERTIFICATION_DEFINITION(21, null, AccessCertificationDefinitionType.class),
-    ARCHETYPE(29, QArchetype.class, ArchetypeType.class),
-    ASSIGNMENT_HOLDER(18, QAssignmentHolder.class, AssignmentHolderType.class),
-    CASE(26, QCase.class, CaseType.class),
-    CONNECTOR(0, QConnector.class, ConnectorType.class),
-    CONNECTOR_HOST(1, QConnectorHost.class, ConnectorHostType.class),
-    DASHBOARD(30, QDashboard.class, DashboardType.class),
-    FOCUS(17, QFocus.CLASS, FocusType.class),
-    FORM(25, null, FormType.class),
-    FUNCTION_LIBRARY(27, null, FunctionLibraryType.class),
-    GENERIC_OBJECT(2, null, GenericObjectType.class),
-    LOOKUP_TABLE(20, QLookupTable.class, LookupTableType.class),
-    NODE(14, QNode.class, NodeType.class),
-    OBJECT(3, QObject.CLASS, ObjectType.class),
-    OBJECT_COLLECTION(28, QObjectCollection.class, ObjectCollectionType.class),
-    OBJECT_TEMPLATE(13, null, ObjectTemplateType.class),
-    ORG(15, null, OrgType.class),
-    REPORT(11, QReport.class, ReportType.class),
-    REPORT_DATA(12, QReportData.class, ReportDataType.class),
-    RESOURCE(5, null, ResourceType.class),
-    ROLE(7, QRole.class, RoleType.class),
-    SECURITY_POLICY(19, QSecurityPolicy.class, SecurityPolicyType.class),
-    SEQUENCE(23, null, SequenceType.class),
-    SERVICE(24, QService.class, ServiceType.class),
-    SHADOW(6, null, ShadowType.class),
-    SYSTEM_CONFIGURATION(8, QSystemConfiguration.class, SystemConfigurationType.class),
-    TASK(9, QTask.class, TaskType.class),
-    USER(10, QUser.class, UserType.class),
-    VALUE_POLICY(4, QValuePolicy.class, ValuePolicyType.class);
+    ABSTRACT_ROLE(QAbstractRole.CLASS, AbstractRoleType.class),
+    ACCESS_CERTIFICATION_CAMPAIGN(null, AccessCertificationCampaignType.class),
+    ACCESS_CERTIFICATION_DEFINITION(null, AccessCertificationDefinitionType.class),
+    ARCHETYPE(QArchetype.class, ArchetypeType.class),
+    ASSIGNMENT_HOLDER(QAssignmentHolder.class, AssignmentHolderType.class),
+    CASE(QCase.class, CaseType.class),
+    CONNECTOR(QConnector.class, ConnectorType.class),
+    CONNECTOR_HOST(QConnectorHost.class, ConnectorHostType.class),
+    DASHBOARD(QDashboard.class, DashboardType.class),
+    FOCUS(QFocus.CLASS, FocusType.class),
+    FORM(null, FormType.class),
+    FUNCTION_LIBRARY(null, FunctionLibraryType.class),
+    GENERIC_OBJECT(null, GenericObjectType.class),
+    LOOKUP_TABLE(QLookupTable.class, LookupTableType.class),
+    NODE(QNode.class, NodeType.class),
+    OBJECT(QObject.CLASS, ObjectType.class),
+    OBJECT_COLLECTION(QObjectCollection.class, ObjectCollectionType.class),
+    OBJECT_TEMPLATE(null, ObjectTemplateType.class),
+    ORG(null, OrgType.class),
+    REPORT(QReport.class, ReportType.class),
+    REPORT_DATA(QReportData.class, ReportDataType.class),
+    RESOURCE(null, ResourceType.class),
+    ROLE(QRole.class, RoleType.class),
+    SECURITY_POLICY(QSecurityPolicy.class, SecurityPolicyType.class),
+    SEQUENCE(null, SequenceType.class),
+    SERVICE(QService.class, ServiceType.class),
+    SHADOW(null, ShadowType.class),
+    SYSTEM_CONFIGURATION(QSystemConfiguration.class, SystemConfigurationType.class),
+    TASK(QTask.class, TaskType.class),
+    USER(QUser.class, UserType.class),
+    VALUE_POLICY(QValuePolicy.class, ValuePolicyType.class);
 
-    // TODO drop the codes, pg enum type will cover it
-    private final int code;
     private final Class<? extends QObject<?>> queryType;
     private final Class<? extends ObjectType> schemaType;
 
-    MObjectType(
-            int code,
-            Class<? extends QObject<?>> queryType,
-            Class<? extends ObjectType> schemaType) {
-        this.code = code;
+    MObjectType(Class<? extends QObject<?>> queryType, Class<? extends ObjectType> schemaType) {
         this.queryType = queryType;
         this.schemaType = schemaType;
     }
-
-    // DB code -> enum conversion
-    public static final Map<Integer, MObjectType> CODE_TO_ENUM = new HashMap<>();
 
     // schema type QName -> enum conversion
     public static final Map<Class<? extends ObjectType>, MObjectType> SCHEMA_TYPE_TO_ENUM =
@@ -95,10 +86,6 @@ public enum MObjectType {
 
     static {
         for (MObjectType value : values()) {
-            if (CODE_TO_ENUM.put(value.code, value) != null) {
-                throw new IllegalArgumentException("MObjectTypeMapping value " + value
-                        + " uses duplicate code: " + value.code);
-            }
             if (SCHEMA_TYPE_TO_ENUM.put(value.schemaType, value) != null) {
                 throw new IllegalArgumentException("MObjectTypeMapping value " + value
                         + " uses duplicate schema type: " + value.schemaType);
@@ -115,10 +102,6 @@ public enum MObjectType {
     public static MObjectType fromSchemaType(Class<? extends ObjectType> objectTypeClass) {
         return Objects.requireNonNull(SCHEMA_TYPE_TO_ENUM.get(objectTypeClass),
                 "No MObjectTypeMapping found for object type " + objectTypeClass);
-    }
-
-    public int code() {
-        return code;
     }
 
     public Class<? extends QObject<?>> getQueryType() {

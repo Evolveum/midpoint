@@ -36,7 +36,6 @@ public enum MReferenceType {
 
     DELEGATED(AssignmentHolderType.class, AssignmentHolderType.F_DELEGATED_REF),
 
-    // TODO map in QObjectTemplate when it exists,
     INCLUDE(ObjectTemplateType.class, ObjectTemplateType.F_INCLUDE_REF),
 
     PROJECTION(FocusType.class, FocusType.F_LINK_REF),
@@ -49,7 +48,6 @@ public enum MReferenceType {
 
     PERSONA(FocusType.class, FocusType.F_PERSONA_REF),
 
-    // TODO map in QResource when it exists,
     RESOURCE_BUSINESS_CONFIGURATION_APPROVER(
             ResourceType.class, ResourceBusinessConfigurationType.F_APPROVER_REF),
 
