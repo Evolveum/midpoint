@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.schema.util;
+package com.evolveum.midpoint.schema.util.task;
 
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -17,9 +17,9 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * @author mederly
+ * Utility methods related to task work state and work state management.
  */
-public class TaskWorkStateTypeUtil {
+public class TaskWorkStateUtil {
 
     public static WorkBucketType findBucketByNumber(List<WorkBucketType> buckets, int sequentialNumber) {
         return buckets.stream()
@@ -47,12 +47,16 @@ public class TaskWorkStateTypeUtil {
     }
 
     public static int getCompleteBucketsNumber(TaskType taskType) {
-        if (taskType.getWorkState() == null) {
+        return getCompleteBucketsNumber(taskType.getWorkState());
+    }
+
+    public static int getCompleteBucketsNumber(TaskWorkStateType workState) {
+        if (workState == null) {
             return 0;
         }
         Integer max = null;
         int notComplete = 0;
-        for (WorkBucketType bucket : taskType.getWorkState().getBucket()) {
+        for (WorkBucketType bucket : workState.getBucket()) {
             if (max == null || bucket.getSequentialNumber() > max) {
                 max = bucket.getSequentialNumber();
             }
@@ -116,5 +120,62 @@ public class TaskWorkStateTypeUtil {
     @Nullable
     public static Integer getPartitionSequentialNumber(@NotNull TaskType taskType) {
         return taskType.getWorkManagement() != null ? taskType.getWorkManagement().getPartitionSequentialNumber() : null;
+    }
+
+    /**
+     * @return True if the task is a coordinator (in the bucketing sense).
+     */
+    public static boolean isCoordinator(TaskType task) {
+        return getKind(task) == TaskKindType.COORDINATOR;
+    }
+
+    /**
+     * @return True if the task is a partitioned master.
+     */
+    public static boolean isPartitionedMaster(TaskType task) {
+        return getKind(task) == TaskKindType.PARTITIONED_MASTER;
+    }
+
+    /**
+     * @return Task kind: standalone, coordinator, worker, partitioned master.
+     */
+    @NotNull
+    public static TaskKindType getKind(TaskType task) {
+        if (task.getWorkManagement() != null && task.getWorkManagement().getTaskKind() != null) {
+            return task.getWorkManagement().getTaskKind();
+        } else {
+            return TaskKindType.STANDALONE;
+        }
+    }
+
+    public static boolean isManageableTreeRoot(TaskType taskType) {
+        return isCoordinator(taskType) || isPartitionedMaster(taskType);
+    }
+
+    public static boolean isWorkStateHolder(TaskType taskType) {
+        return (isCoordinator(taskType) || hasBuckets(taskType)) && !isCoordinatedWorker(taskType);
+    }
+
+    static boolean hasBuckets(TaskType taskType) {
+        if (taskType.getWorkState() == null) {
+            return false;
+        }
+        if (taskType.getWorkState().getNumberOfBuckets() != null && taskType.getWorkState().getNumberOfBuckets() > 1) {
+            return true;
+        }
+        List<WorkBucketType> buckets = taskType.getWorkState().getBucket();
+        if (buckets.size() > 1) {
+            return true;
+        } else {
+            return buckets.size() == 1 && buckets.get(0).getContent() != null;
+        }
+    }
+
+    private static boolean isCoordinatedWorker(TaskType taskType) {
+        return taskType.getWorkManagement() != null && TaskKindType.WORKER == taskType.getWorkManagement().getTaskKind();
+    }
+
+    public static boolean isAllWorkComplete(TaskType task) {
+        return task.getWorkState() != null && Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete());
     }
 }

@@ -21,7 +21,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
-import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -194,7 +194,7 @@ public class DeleteTaskHandler implements TaskHandler {
                     ObjectDelta<?> delta = prismContext.deltaFactory().object().createDeleteDelta(objectType, object.getOid());
 
                     String objectName = PolyString.getOrig(object.getName());
-                    String objectDisplayName = StatisticsUtil.getDisplayName(object);
+                    String objectDisplayName = TaskOperationStatsUtil.getDisplayName(object);
                     String objectOid = object.getOid();
                     IterationItemInformation info = new IterationItemInformation(objectName, objectDisplayName, objectTypeName, objectOid);
 

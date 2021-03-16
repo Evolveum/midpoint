@@ -14,7 +14,7 @@ import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -148,14 +148,14 @@ public class TaskOperationUtils {
     @NotNull
     private static List<TaskType> getPlainTasks(List<TaskType> selectedTasks) {
         return selectedTasks.stream()
-                .filter(task -> !TaskTypeUtil.isManageableTreeRoot(task))
+                .filter(task -> !TaskWorkStateUtil.isManageableTreeRoot(task))
                 .collect(Collectors.toList());
     }
 
     @NotNull
     private static List<TaskType> getTreeRoots(List<TaskType> selectedTasks) {
         return selectedTasks.stream()
-                .filter(TaskTypeUtil::isManageableTreeRoot)
+                .filter(TaskWorkStateUtil::isManageableTreeRoot)
                 .collect(Collectors.toList());
     }
 }

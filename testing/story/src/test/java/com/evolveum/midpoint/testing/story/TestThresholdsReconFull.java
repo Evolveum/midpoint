@@ -11,7 +11,7 @@ import static org.testng.Assert.assertNull;
 
 import java.io.File;
 
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -122,7 +122,7 @@ public class TestThresholdsReconFull extends TestThresholds {
 
         assertTaskSchedulingState(TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, TaskSchedulingStateType.READY);
 
-        assertEquals(TaskTypeUtil.getItemsProcessedWithFailure(taskAfter.getStoredOperationStatsOrClone()), 0);
+        assertEquals(TaskOperationStatsUtil.getItemsProcessedWithFailure(taskAfter.getStoredOperationStatsOrClone()), 0);
 
         PrismObject<UserType> user10 = findUserByUsername("user10");
         assertNull(user10);

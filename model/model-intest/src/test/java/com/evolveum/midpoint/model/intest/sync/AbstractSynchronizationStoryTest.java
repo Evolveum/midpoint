@@ -19,8 +19,7 @@ import javax.xml.namespace.QName;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -157,8 +156,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
         String syncTaskOid = getSyncTaskOid(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
         PrismObject<TaskType> syncTaskTree = getTaskTree(syncTaskOid);
-        OperationStatsType stats = TaskTypeUtil.getOperationStatsFromTree(syncTaskTree.asObjectable(), prismContext);
-        displayValue("sync task stats", StatisticsUtil.format(stats));
+        OperationStatsType stats = TaskOperationStatsUtil.getOperationStatsFromTree(syncTaskTree.asObjectable(), prismContext);
+        displayValue("sync task stats", TaskOperationStatsUtil.format(stats));
         if (isReconciliation()) {
             // Checking MID-6532 implementation (if multi-part tasks)
             // TODO check for other kinds of sync tasks, improve asserts
@@ -962,8 +961,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
         String syncTaskOid = getSyncTaskOid(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
         PrismObject<TaskType> syncTaskTree = getTaskTree(syncTaskOid);
-        OperationStatsType stats = TaskTypeUtil.getOperationStatsFromTree(syncTaskTree.asObjectable(), prismContext);
-        displayValue("sync task stats", StatisticsUtil.format(stats));
+        OperationStatsType stats = TaskOperationStatsUtil.getOperationStatsFromTree(syncTaskTree.asObjectable(), prismContext);
+        displayValue("sync task stats", TaskOperationStatsUtil.format(stats));
 
         // notifications
         notificationManager.setDisabled(true);

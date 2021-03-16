@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.task.quartzimpl.work.segmentation;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkSegmentationStrategy;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +32,7 @@ public class NumericWorkSegmentationStrategy extends BaseWorkSegmentationStrateg
         super(configuration, prismContext);
         this.configuration = configuration;
         this.bucketsConfiguration = (NumericWorkSegmentationType)
-                TaskWorkStateTypeUtil.getWorkSegmentationConfiguration(configuration);
+                TaskWorkStateUtil.getWorkSegmentationConfiguration(configuration);
     }
 
     @Override

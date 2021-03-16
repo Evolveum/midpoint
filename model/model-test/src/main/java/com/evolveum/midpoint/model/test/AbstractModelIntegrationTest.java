@@ -28,6 +28,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.statistics.*;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
+import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
+import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.apache.commons.lang.StringUtils;
@@ -3206,7 +3209,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void dumpTaskAndSubtasks(TaskType task, int level) throws SchemaException {
         String xml = prismContext.xmlSerializer().serialize(task.asPrismObject());
         displayValue("Task (level " + level + ")", xml);
-        for (TaskType subtask : TaskTypeUtil.getResolvedSubtasks(task)) {
+        for (TaskType subtask : TaskTreeUtil.getResolvedSubtasks(task)) {
             dumpTaskAndSubtasks(subtask, level + 1);
         }
     }
@@ -3224,13 +3227,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected long getTreeRunDurationMillis(String rootTaskOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<TaskType> rootTask = getTaskTree(rootTaskOid);
-        return TaskTypeUtil.getAllTasksStream(rootTask.asObjectable())
+        return TaskTreeUtil.getAllTasksStream(rootTask.asObjectable())
                 .mapToLong(this::getTaskRunDurationMillis)
                 .max().orElse(0);
     }
 
     protected void displayOperationStatistics(OperationStatsType statistics) {
-        displayValue("Task operation statistics for " + getTestNameShort(), StatisticsUtil.format(statistics));
+        displayValue("Task operation statistics for " + getTestNameShort(), TaskOperationStatsUtil.format(statistics));
     }
 
     @Nullable
@@ -3238,9 +3241,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         PrismObject<TaskType> rootTask = getTaskTree(rootTaskOid);
-        return TaskTypeUtil.getAllTasksStream(rootTask.asObjectable())
+        return TaskTreeUtil.getAllTasksStream(rootTask.asObjectable())
                 .map(TaskType::getOperationStats)
-                .reduce(StatisticsUtil::sum)
+                .reduce(TaskOperationStatsUtil::sum)
                 .orElse(null);
     }
 
@@ -6009,6 +6012,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected TaskAsserter<Void> assertTask(TaskType task, String message) {
         return TaskAsserter.forTask(task.asPrismObject(), message);
+    }
+
+    protected TaskProgressInformationAsserter<Void> assertTaskProgress(TaskProgressInformation info, String message) {
+        TaskProgressInformationAsserter<Void> asserter = new TaskProgressInformationAsserter<>(info, message);
+        initializeAsserter(asserter);
+        return asserter;
     }
 
     protected RepoOpAsserter createRepoOpAsserter() {

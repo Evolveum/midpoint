@@ -13,7 +13,9 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
+import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
+import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +30,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -245,15 +246,15 @@ public class DefaultColumnUtils {
                 return "";
             } else if (itemPath.equivalent(TaskType.F_SCHEDULE)) {
                 List<Object> localizationObject = new ArrayList<>();
-                String key = TaskUtil.createScheduledToRunAgain(task, localizationObject);
+                String key = TaskTypeUtil.createScheduledToRunAgain(task, localizationObject);
                 Object[] params = localizationObject.isEmpty() ? null : localizationObject.toArray();
                 return localization.translate(key, params, Locale.getDefault(), key);
             } else if (itemPath.equivalent(ItemPath.create(TaskType.F_OPERATION_STATS, OperationStatsType.F_ITERATIVE_TASK_INFORMATION,
                     IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT))) { // TODO MID-6850
-                return String.valueOf(TaskTypeUtil.getItemsProcessedWithFailure(task)); // TODO or aggregated?
+                return String.valueOf(TaskOperationStatsUtil.getItemsProcessedWithFailure(task)); // TODO or aggregated?
             } else if (itemPath.equivalent(TaskType.F_PROGRESS)) {
                 List<Object> localizationObject = new ArrayList<>();
-                String key = TaskUtil.getProgressDescription(task, localizationObject);
+                String key = TaskProgressUtil.getProgressDescription(task, localizationObject);
                 Object[] params = localizationObject.isEmpty() ? null : localizationObject.toArray();
                 return localization.translate(key, params, Locale.getDefault(), key);
             }

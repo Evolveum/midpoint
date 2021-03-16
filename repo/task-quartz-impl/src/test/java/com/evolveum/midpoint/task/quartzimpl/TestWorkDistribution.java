@@ -9,7 +9,7 @@ package com.evolveum.midpoint.task.quartzimpl;
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
 
-import static com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil.sortBucketsBySequentialNumber;
+import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.sortBucketsBySequentialNumber;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType.SUCCESS;
 
@@ -22,6 +22,8 @@ import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
 
+import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -33,7 +35,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.StructuredTaskProgress;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
@@ -721,7 +722,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             assertOptimizedCompletedBuckets(coordinatorAfter);
 
             // Some of the "closed" successes were counted in the task that is now removed.
-            int missingClosed = TaskTypeUtil.getProgressForOutcome(deletedTask.getStructuredProgressOrClone(), SUCCESS, false);
+            int missingClosed = TaskProgressUtil.getProgressForOutcome(deletedTask.getStructuredProgressOrClone(), SUCCESS, false);
 
             assertTotalSuccessCountInProgress(107 - missingClosed, 0, coordinatorAfter.listSubtasks(result));
         } finally {
