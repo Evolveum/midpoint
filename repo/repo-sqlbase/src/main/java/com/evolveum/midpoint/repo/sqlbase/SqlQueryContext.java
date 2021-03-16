@@ -164,7 +164,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
             query.limit(NO_PAGINATION_LIMIT);
         }
 
-        // SQL logging is on DEBUG level of: com.querydsl.sql
+        // see com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger for logging details
         Q entity = root();
         List<Tuple> data = query
                 .select(buildSelectExpressions(entity, query))
