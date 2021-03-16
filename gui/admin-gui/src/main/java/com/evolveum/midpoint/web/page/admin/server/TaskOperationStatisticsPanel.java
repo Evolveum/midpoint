@@ -13,6 +13,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskIterativeProgressType;
 
 import org.apache.wicket.Component;
@@ -34,7 +35,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -65,7 +65,7 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
            @Override
            protected OperationStatsType load() {
                PrismObject<TaskType> task = getModelObject().getObject();
-               return TaskTypeUtil.getOperationStatsFromTree(task.asObjectable(), getPrismContext());
+               return TaskOperationStatsUtil.getOperationStatsFromTree(task.asObjectable(), getPrismContext());
            }
        };
     }

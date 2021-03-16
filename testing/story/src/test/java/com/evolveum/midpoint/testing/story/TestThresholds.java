@@ -18,7 +18,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -294,6 +294,6 @@ public abstract class TestThresholds extends AbstractStoryTest {
         // TODO separate the statistics dump
         OperationStatsType stats = taskAfter.getStoredOperationStatsOrClone();
         displayValue("Iterative statistics", IterativeTaskInformation.format(stats.getIterativeTaskInformation()));
-        return TaskTypeUtil.getItemsProcessedWithFailure(stats);
+        return TaskOperationStatsUtil.getItemsProcessedWithFailure(stats);
     }
 }

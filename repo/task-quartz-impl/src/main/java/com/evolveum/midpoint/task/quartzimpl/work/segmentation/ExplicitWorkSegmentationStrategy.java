@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.task.quartzimpl.work.segmentation;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkSegmentationStrategy;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +26,7 @@ public class ExplicitWorkSegmentationStrategy extends BaseWorkSegmentationStrate
     public ExplicitWorkSegmentationStrategy(@NotNull TaskWorkManagementType configuration, PrismContext prismContext) {
         super(configuration, prismContext);
         this.bucketsConfiguration = (ExplicitWorkSegmentationType)
-                TaskWorkStateTypeUtil.getWorkSegmentationConfiguration(configuration);
+                TaskWorkStateUtil.getWorkSegmentationConfiguration(configuration);
     }
 
     @Override

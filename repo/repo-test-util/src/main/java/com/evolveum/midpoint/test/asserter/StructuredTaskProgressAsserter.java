@@ -10,7 +10,7 @@ package com.evolveum.midpoint.test.asserter;
 import static org.testng.AssertJUnit.assertEquals;
 
 import com.evolveum.midpoint.schema.statistics.StructuredTaskProgress;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StructuredTaskProgressType;
@@ -79,15 +79,15 @@ public class StructuredTaskProgressAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     private int getSuccessCount(boolean open) {
-        return TaskTypeUtil.getProgressForOutcome(information, ItemProcessingOutcomeType.SUCCESS, open);
+        return TaskProgressUtil.getProgressForOutcome(information, ItemProcessingOutcomeType.SUCCESS, open);
     }
 
     private int getFailureCount(boolean open) {
-        return TaskTypeUtil.getProgressForOutcome(information, ItemProcessingOutcomeType.FAILURE, open);
+        return TaskProgressUtil.getProgressForOutcome(information, ItemProcessingOutcomeType.FAILURE, open);
     }
 
     private int getSkipCount(boolean open) {
-        return TaskTypeUtil.getProgressForOutcome(information, ItemProcessingOutcomeType.SKIP, open);
+        return TaskProgressUtil.getProgressForOutcome(information, ItemProcessingOutcomeType.SKIP, open);
     }
 
     private int getNonFailureCount(boolean open) {

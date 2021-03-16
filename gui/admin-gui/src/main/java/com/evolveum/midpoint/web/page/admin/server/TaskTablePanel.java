@@ -10,6 +10,8 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
+import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionState;
 
@@ -44,8 +46,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
-import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -276,7 +277,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId, final IModel<SelectableBean<TaskType>> rowModel) {
-                if (!TaskTypeUtil.isPartitionedMaster(rowModel.getObject().getValue())) {
+                if (!TaskWorkStateUtil.isPartitionedMaster(rowModel.getObject().getValue())) {
                     cellItem.add(new Label(componentId,
                             (IModel<Object>) () -> getProgressDescription(rowModel.getObject())));
                 } else {
@@ -305,7 +306,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId, IModel<SelectableBean<TaskType>> rowModel) {
                 TaskType task = rowModel.getObject().getValue();
-                cellItem.add(new Label(componentId, new Model<>(TaskTypeUtil.getItemsProcessedWithFailureFromTree(task, getPrismContext()))));
+                cellItem.add(new Label(componentId, new Model<>(TaskOperationStatsUtil.getItemsProcessedWithFailureFromTree(task, getPrismContext()))));
             }
         };
     }
@@ -320,7 +321,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     private String getRealProgressDescription(SelectableBean<TaskType> task) {
-        if (TaskTypeUtil.isWorkStateHolder(task.getValue())) {
+        if (TaskWorkStateUtil.isWorkStateHolder(task.getValue())) {
             return getBucketedTaskProgressDescription(task.getValue());
         } else {
             return getPlainTaskProgressDescription(task.getValue());
@@ -342,25 +343,11 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     private Integer getCompleteBuckets(TaskType taskType) {
-        return TaskWorkStateTypeUtil.getCompleteBucketsNumber(taskType);
+        return TaskWorkStateUtil.getCompleteBucketsNumber(taskType);
     }
 
     private String getPlainTaskProgressDescription(TaskType taskType) {
-        Long currentProgress = taskType.getProgress();
-        if (currentProgress == null && taskType.getExpectedTotal() == null) {
-            return "";      // the task handler probably does not report progress at all
-        } else {
-            StringBuilder sb = new StringBuilder();
-            if (currentProgress != null) {
-                sb.append(currentProgress);
-            } else {
-                sb.append("0");
-            }
-            if (taskType.getExpectedTotal() != null) {
-                sb.append("/").append(taskType.getExpectedTotal());
-            }
-            return sb.toString();
-        }
+        return TaskProgressUtil.getPlainTaskProgressDescription(taskType);
     }
 
     private Long getStalledSince(TaskType taskType) {
@@ -932,7 +919,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
             return false;
         }
         TaskType task = getTask((IModel<SelectableBean<TaskType>>) rowModel, isHeader);
-        return task != null && TaskTypeUtil.isCoordinator(task);
+        return task != null && TaskWorkStateUtil.isCoordinator(task);
     }
 
     // must be static, otherwise JVM crashes (probably because of some wicket serialization issues)
@@ -942,7 +929,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
             return false;
         }
         TaskType task = getTask((IModel<SelectableBean<TaskType>>) rowModel, isHeader);
-        return task != null && TaskTypeUtil.isManageableTreeRoot(task);
+        return task != null && TaskWorkStateUtil.isManageableTreeRoot(task);
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")

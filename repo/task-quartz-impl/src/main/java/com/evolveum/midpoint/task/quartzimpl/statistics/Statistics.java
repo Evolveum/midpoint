@@ -17,6 +17,7 @@ import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -377,7 +378,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
             Class<T> clazz;
             if (object != null) {
                 name = PolyString.getOrig(object.getName());
-                displayName = StatisticsUtil.getDisplayName(object);
+                displayName = TaskOperationStatsUtil.getDisplayName(object);
                 definition = object.getDefinition();
                 clazz = object.getCompileTimeClass();
                 oid = object.getOid();

@@ -13,7 +13,7 @@ import java.io.File;
 import java.util.List;
 import javax.xml.bind.JAXBElement;
 
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -342,8 +342,8 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", false);
 
         TaskType recomputeTask = getTask(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID).asObjectable();
-        assertEquals("Wrong success count", 1, TaskTypeUtil.getItemsProcessedWithSuccess(recomputeTask));
-        assertEquals("Wrong failure count", 0, TaskTypeUtil.getItemsProcessedWithFailure(recomputeTask));
+        assertEquals("Wrong success count", 1, TaskOperationStatsUtil.getItemsProcessedWithSuccess(recomputeTask));
+        assertEquals("Wrong failure count", 0, TaskOperationStatsUtil.getItemsProcessedWithFailure(recomputeTask));
 
         assertUsers(7);
 
@@ -424,8 +424,8 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", false);
 
         TaskType recomputeTask = getTask(TASK_USER_RECOMPUTE_LIGHT_OID).asObjectable();
-        assertEquals("Wrong success count", 7, TaskTypeUtil.getItemsProcessedWithSuccess(recomputeTask));
-        assertEquals("Wrong failure count", 0, TaskTypeUtil.getItemsProcessedWithFailure(recomputeTask));
+        assertEquals("Wrong success count", 7, TaskOperationStatsUtil.getItemsProcessedWithSuccess(recomputeTask));
+        assertEquals("Wrong failure count", 0, TaskOperationStatsUtil.getItemsProcessedWithFailure(recomputeTask));
 
         assertUser(USER_JACK_OID, "user jack after")
                 .display()

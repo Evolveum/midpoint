@@ -81,7 +81,7 @@ public class JobExecutor implements InterruptableJob {
         }
     }
 
-    public void executeInternal(OperationResult result)
+    private void executeInternal(OperationResult result)
             throws StopJobException, SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
         stateCheck(beans != null, "Task manager beans are not correctly set");
