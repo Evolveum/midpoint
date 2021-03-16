@@ -48,13 +48,13 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User Jack", userJack);
         assertNoAssignments(userJack);
-        assertLinks(userJack, 0);
+        assertLiveLinks(userJack, 0);
         assertNoAuthorizations(userJack);
 
         PrismObject<UserType> userBarbossa = getUser(USER_BARBOSSA_OID);
         display("User Barbossa", userBarbossa);
         assertNoAssignments(userBarbossa);
-        assertLinks(userBarbossa, 0);
+        assertLiveLinks(userBarbossa, 0);
         assertNoAuthorizations(userBarbossa);
     }
 
@@ -81,13 +81,13 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         display("User Barbossa after", userBarbossaAfter);
         assertAssignedDeputy(userBarbossaAfter, USER_JACK_OID);
         assertAssignments(userBarbossaAfter, 1);
-        assertLinks(userBarbossaAfter, 0);
+        assertLiveLinks(userBarbossaAfter, 0);
         assertNoAuthorizations(userBarbossaAfter);
 
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
         assertNoAssignments(userJackAfter);
-        assertLinks(userJackAfter, 0);
+        assertLiveLinks(userJackAfter, 0);
         assertNoAuthorizations(userJackAfter);
 
     }
@@ -114,13 +114,13 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
         display("User Barbossa after", userBarbossaAfter);
         assertNoAssignments(userBarbossaAfter);
-        assertLinks(userBarbossaAfter, 0);
+        assertLiveLinks(userBarbossaAfter, 0);
         assertNoAuthorizations(userBarbossaAfter);
 
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
         assertNoAssignments(userJackAfter);
-        assertLinks(userJackAfter, 0);
+        assertLiveLinks(userJackAfter, 0);
         assertNoAuthorizations(userJackAfter);
 
     }
@@ -149,13 +149,13 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(userJackAfter, ROLE_PIRATE_OID);
         assertAssignments(userJackAfter, 1);
         assertAccount(userJackAfter, RESOURCE_DUMMY_OID);
-        assertLinks(userJackAfter, 1);
+        assertLiveLinks(userJackAfter, 1);
         assertAuthorizations(userJackAfter, AUTZ_LOOT_URL);
 
         PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
         display("User Barbossa after", userBarbossaAfter);
         assertNoAssignments(userBarbossaAfter);
-        assertLinks(userBarbossaAfter, 0);
+        assertLiveLinks(userBarbossaAfter, 0);
         assertNoAuthorizations(userBarbossaAfter);
 
     }
@@ -185,7 +185,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignedNoRole(userBarbossaAfter);
         assertAssignments(userBarbossaAfter, 1);
         assertAccount(userBarbossaAfter, RESOURCE_DUMMY_OID);
-        assertLinks(userBarbossaAfter, 1);
+        assertLiveLinks(userBarbossaAfter, 1);
         assertAuthorizations(userBarbossaAfter, AUTZ_LOOT_URL);
 
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
@@ -193,7 +193,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(userJackAfter, ROLE_PIRATE_OID);
         assertAssignments(userJackAfter, 1);
         assertAccount(userJackAfter, RESOURCE_DUMMY_OID);
-        assertLinks(userJackAfter, 1);
+        assertLiveLinks(userJackAfter, 1);
         assertAuthorizations(userJackAfter, AUTZ_LOOT_URL);
 
     }
@@ -222,7 +222,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
         display("User Barbossa after", userBarbossaAfter);
         assertNoAssignments(userBarbossaAfter);
-        assertLinks(userBarbossaAfter, 0);
+        assertLiveLinks(userBarbossaAfter, 0);
         assertNoAuthorizations(userBarbossaAfter);
 
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
@@ -230,7 +230,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(userJackAfter, ROLE_PIRATE_OID);
         assertAssignments(userJackAfter, 1);
         assertAccount(userJackAfter, RESOURCE_DUMMY_OID);
-        assertLinks(userJackAfter, 1);
+        assertLiveLinks(userJackAfter, 1);
         assertAuthorizations(userJackAfter, AUTZ_LOOT_URL);
 
     }
@@ -246,7 +246,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userGuybrushBefore = getUser(USER_GUYBRUSH_OID);
         display("User Guybrush before", userGuybrushBefore);
-        assertLinks(userGuybrushBefore, 1);
+        assertLiveLinks(userGuybrushBefore, 1);
 
         // WHEN
         when();
@@ -262,13 +262,13 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         display("User Barbossa after", userBarbossaAfter);
         assertAssignedDeputy(userBarbossaAfter, USER_GUYBRUSH_OID);
         assertAssignments(userBarbossaAfter, 1);
-        assertLinks(userBarbossaAfter, 0);
+        assertLiveLinks(userBarbossaAfter, 0);
         assertNoAuthorizations(userBarbossaAfter);
 
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
         display("User Guybrush after", userGuybrushAfter);
         assertNoAssignments(userGuybrushAfter);
-        assertLinks(userGuybrushAfter, 1);
+        assertLiveLinks(userGuybrushAfter, 1);
         assertNoAuthorizations(userGuybrushAfter);
 
     }
@@ -299,14 +299,14 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(userGuybrushAfter, ROLE_PIRATE_OID);
         assertAssignments(userGuybrushAfter, 1);
         assertAccount(userGuybrushAfter, RESOURCE_DUMMY_OID);
-        assertLinks(userGuybrushAfter, 1);
+        assertLiveLinks(userGuybrushAfter, 1);
         assertAuthorizations(userGuybrushAfter, AUTZ_LOOT_URL);
 
         PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
         display("User Barbossa after", userBarbossaAfter);
         assertAssignedDeputy(userBarbossaAfter, USER_GUYBRUSH_OID);
         assertAssignments(userBarbossaAfter, 1);
-        assertLinks(userBarbossaAfter, 0);
+        assertLiveLinks(userBarbossaAfter, 0);
         assertAuthorizations(userBarbossaAfter, AUTZ_LOOT_URL);
 
     }
@@ -336,7 +336,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignedNoRole(userBarbossaAfter);
         assertAssignments(userBarbossaAfter, 1);
         assertAccount(userBarbossaAfter, RESOURCE_DUMMY_OID);
-        assertLinks(userBarbossaAfter, 1);
+        assertLiveLinks(userBarbossaAfter, 1);
         assertAuthorizations(userBarbossaAfter, AUTZ_LOOT_URL);
 
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
@@ -344,7 +344,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(userGuybrushAfter, ROLE_PIRATE_OID);
         assertAssignments(userGuybrushAfter, 1);
         assertAccount(userGuybrushAfter, RESOURCE_DUMMY_OID);
-        assertLinks(userGuybrushAfter, 1);
+        assertLiveLinks(userGuybrushAfter, 1);
         assertAuthorizations(userGuybrushAfter, AUTZ_LOOT_URL);
 
     }
@@ -371,7 +371,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
         display("User Guybrush after", userGuybrushAfter);
         assertNoAssignments(userGuybrushAfter);
-        assertLinks(userGuybrushAfter, 0);
+        assertLiveLinks(userGuybrushAfter, 0);
         assertNoAuthorizations(userGuybrushAfter);
 
         PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
@@ -379,7 +379,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignedDeputy(userBarbossaAfter, USER_GUYBRUSH_OID);
         assertAssignments(userBarbossaAfter, 1);
         assertAccount(userBarbossaAfter, RESOURCE_DUMMY_OID);
-        assertLinks(userBarbossaAfter, 1);
+        assertLiveLinks(userBarbossaAfter, 1);
         assertNoAuthorizations(userBarbossaAfter);
 
     }
@@ -408,13 +408,13 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         display("User Barbossa after", userBarbossaAfter);
         assertAssignedDeputy(userBarbossaAfter, USER_GUYBRUSH_OID);
         assertAssignments(userBarbossaAfter, 1);
-        assertLinks(userBarbossaAfter, 0);
+        assertLiveLinks(userBarbossaAfter, 0);
         assertNoAuthorizations(userBarbossaAfter);
 
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
         display("User Guybrush after", userGuybrushAfter);
         assertNoAssignments(userGuybrushAfter);
-        assertLinks(userGuybrushAfter, 0);
+        assertLiveLinks(userGuybrushAfter, 0);
         assertNoAuthorizations(userGuybrushAfter);
 
     }
@@ -437,13 +437,13 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
         display("User Barbossa after", userBarbossaAfter);
         assertNoAssignments(userBarbossaAfter);
-        assertLinks(userBarbossaAfter, 0);
+        assertLiveLinks(userBarbossaAfter, 0);
         assertNoAuthorizations(userBarbossaAfter);
 
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
         display("User Guybrush after", userGuybrushAfter);
         assertNoAssignments(userGuybrushAfter);
-        assertLinks(userGuybrushAfter, 0);
+        assertLiveLinks(userGuybrushAfter, 0);
         assertNoAuthorizations(userGuybrushAfter);
 
     }
@@ -492,13 +492,13 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAccount(userJackAfter, RESOURCE_DUMMY_OID);
         assertAccount(userJackAfter, RESOURCE_DUMMY_RED_OID);
         assertAccount(userJackAfter, RESOURCE_DUMMY_CYAN_OID);
-        assertLinks(userJackAfter, 3);
+        assertLiveLinks(userJackAfter, 3);
         assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
 
         PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
         display("User Barbossa after", userBarbossaAfter);
         assertNoAssignments(userBarbossaAfter);
-        assertLinks(userBarbossaAfter, 0);
+        assertLiveLinks(userBarbossaAfter, 0);
         assertNoAuthorizations(userBarbossaAfter);
 
     }
@@ -526,13 +526,13 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignedNoRole(userBarbossaAfter);
         assertAssignments(userBarbossaAfter, 1);
         assertAccount(userBarbossaAfter, RESOURCE_DUMMY_OID);
-        assertLinks(userBarbossaAfter, 1);
+        assertLiveLinks(userBarbossaAfter, 1);
         assertAuthorizations(userBarbossaAfter, AUTZ_LOOT_URL);
 
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
         assertAssignments(userJackAfter, 7);
-        assertLinks(userJackAfter, 3);
+        assertLiveLinks(userJackAfter, 3);
         assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
 
     }
@@ -557,13 +557,13 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
         display("User Barbossa after", userBarbossaAfter);
         assertNoAssignments(userBarbossaAfter);
-        assertLinks(userBarbossaAfter, 0);
+        assertLiveLinks(userBarbossaAfter, 0);
         assertNoAuthorizations(userBarbossaAfter);
 
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
         assertAssignments(userJackAfter, 7);
-        assertLinks(userJackAfter, 3);
+        assertLiveLinks(userJackAfter, 3);
         assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
 
     }
@@ -592,13 +592,13 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignedNoRole(userBarbossaAfter);
         assertAssignments(userBarbossaAfter, 1);
         assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID);
-        assertLinks(userBarbossaAfter, 1);
+        assertLiveLinks(userBarbossaAfter, 1);
         assertAuthorizations(userBarbossaAfter, AUTZ_SAIL_URL);
 
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
         assertAssignments(userJackAfter, 7);
-        assertLinks(userJackAfter, 3);
+        assertLiveLinks(userJackAfter, 3);
         assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
 
     }
@@ -629,14 +629,14 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         display("User Barbossa after", userBarbossaAfter);
         assertNoAssignments(userBarbossaAfter);
         assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID); // Resource red has delayed delete
-        assertLinks(userBarbossaAfter, 1);
+        assertLiveLinks(userBarbossaAfter, 1);
         assertNoAuthorizations(userBarbossaAfter);
         TestUtil.assertModifyTimestamp(userBarbossaAfter, startTs, endTs);
 
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
         assertAssignments(userJackAfter, 7);
-        assertLinks(userJackAfter, 3);
+        assertLiveLinks(userJackAfter, 3);
         assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
     }
 
@@ -662,13 +662,13 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignedNoRole(userBarbossaAfter);
         assertAssignments(userBarbossaAfter, 1);
         assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID);
-        assertLinks(userBarbossaAfter, 1);
+        assertLiveLinks(userBarbossaAfter, 1);
         assertNoAuthorizations(userBarbossaAfter);
 
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
         assertAssignments(userJackAfter, 7);
-        assertLinks(userJackAfter, 3);
+        assertLiveLinks(userJackAfter, 3);
         assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
 
     }
@@ -697,14 +697,14 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         display("User Barbossa after", userBarbossaAfter);
         assertNoAssignments(userBarbossaAfter);
         assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID); // Resource red has delayed delete
-        assertLinks(userBarbossaAfter, 1);
+        assertLiveLinks(userBarbossaAfter, 1);
         assertNoAuthorizations(userBarbossaAfter);
         TestUtil.assertModifyTimestamp(userBarbossaAfter, startTs, endTs);
 
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
         assertAssignments(userJackAfter, 7);
-        assertLinks(userJackAfter, 3);
+        assertLiveLinks(userJackAfter, 3);
         assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
 
     }
@@ -754,7 +754,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAccount(userJackAfter, RESOURCE_DUMMY_OID);
         assertAccount(userJackAfter, RESOURCE_DUMMY_RED_OID);
         assertAccount(userJackAfter, RESOURCE_DUMMY_CYAN_OID);
-        assertLinks(userJackAfter, 3);
+        assertLiveLinks(userJackAfter, 3);
         assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL, AUTZ_DRINK_URL);
     }
 
@@ -777,7 +777,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         display("User Jack after", userJackAfter);
         assertAssignedRole(userJackAfter, ROLE_DRINKER_OID);
         assertAssignments(userJackAfter, 8);
-        assertLinks(userJackAfter, 3);
+        assertLiveLinks(userJackAfter, 3);
         assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL, AUTZ_DRINK_URL);
 
         PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
@@ -785,7 +785,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBarbossaAfter, 1);
         assertAssignedDeputy(userBarbossaAfter, USER_JACK_OID);
         assertNotAssignedRole(userBarbossaAfter, ROLE_DRINKER_OID);
-        assertLinks(userBarbossaAfter, 1);
+        assertLiveLinks(userBarbossaAfter, 1);
         assertAuthorizations(userBarbossaAfter, AUTZ_DRINK_URL);
     }
 
@@ -802,7 +802,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         display("User Guybrush after", userGuybrushBefore);
         assertAssignments(userGuybrushBefore, 0);
         assertNotAssignedRole(userGuybrushBefore, ROLE_DRINKER_OID);
-        assertLinks(userGuybrushBefore, 0);
+        assertLiveLinks(userGuybrushBefore, 0);
         assertNoAuthorizations(userGuybrushBefore);
 
         // WHEN
@@ -822,7 +822,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userGuybrushAfter, 1);
         assertAssignedDeputy(userGuybrushAfter, USER_BARBOSSA_OID);
         assertNotAssignedRole(userGuybrushAfter, ROLE_DRINKER_OID);
-        assertLinks(userGuybrushAfter, 0);
+        assertLiveLinks(userGuybrushAfter, 0);
         assertAuthorizations(userGuybrushAfter, AUTZ_DRINK_URL);
     }
 
@@ -851,21 +851,21 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         display("User Barbossa after", userBarbossaAfter);
         assertNoAssignments(userBarbossaAfter);
         assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID); // Resource red has delayed delete
-        assertLinks(userBarbossaAfter, 1);
+        assertLiveLinks(userBarbossaAfter, 1);
         assertNoAuthorizations(userBarbossaAfter);
         TestUtil.assertModifyTimestamp(userBarbossaAfter, startTs, endTs);
 
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
         assertAssignments(userJackAfter, 8);
-        assertLinks(userJackAfter, 3);
+        assertLiveLinks(userJackAfter, 3);
         assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL, AUTZ_DRINK_URL);
 
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
         display("User Guybrush after", userGuybrushAfter);
         assertAssignments(userGuybrushAfter, 1);
         assertAssignedDeputy(userGuybrushAfter, USER_BARBOSSA_OID);
-        assertLinks(userGuybrushAfter, 0);
+        assertLiveLinks(userGuybrushAfter, 0);
         assertNoAuthorizations(userGuybrushAfter);
     }
 
@@ -889,7 +889,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
         display("User Guybrush after", userGuybrushAfter);
         assertAssignments(userGuybrushAfter, 0);
-        assertLinks(userGuybrushAfter, 0);
+        assertLiveLinks(userGuybrushAfter, 0);
         assertNoAuthorizations(userGuybrushAfter);
 
     }
@@ -913,7 +913,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBarbossaAfter, 1);
         assertAssignedDeputy(userBarbossaAfter, USER_JACK_OID);
         assertNotAssignedRole(userBarbossaAfter, ROLE_DRINKER_OID);
-        assertLinks(userBarbossaAfter, 3);
+        assertLiveLinks(userBarbossaAfter, 3);
         assertAuthorizations(userBarbossaAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL, AUTZ_DRINK_URL);
     }
 
@@ -929,7 +929,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         display("User Guybrush after", userGuybrushBefore);
         assertAssignments(userGuybrushBefore, 0);
         assertNotAssignedRole(userGuybrushBefore, ROLE_DRINKER_OID);
-        assertLinks(userGuybrushBefore, 0);
+        assertLiveLinks(userGuybrushBefore, 0);
         assertNoAuthorizations(userGuybrushBefore);
 
         // WHEN
@@ -948,7 +948,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userGuybrushAfter, 1);
         assertAssignedDeputy(userGuybrushAfter, USER_BARBOSSA_OID);
         assertNotAssignedRole(userGuybrushAfter, ROLE_DRINKER_OID);
-        assertLinks(userGuybrushAfter, 0);
+        assertLiveLinks(userGuybrushAfter, 0);
         assertNoAuthorizations(userGuybrushAfter);
     }
 
@@ -971,7 +971,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
         display("User Guybrush after", userGuybrushAfter);
         assertAssignments(userGuybrushAfter, 0);
-        assertLinks(userGuybrushAfter, 0);
+        assertLiveLinks(userGuybrushAfter, 0);
         assertNoAuthorizations(userGuybrushAfter);
     }
 
@@ -987,7 +987,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         display("User Guybrush after", userGuybrushBefore);
         assertAssignments(userGuybrushBefore, 0);
         assertNotAssignedRole(userGuybrushBefore, ROLE_DRINKER_OID);
-        assertLinks(userGuybrushBefore, 0);
+        assertLiveLinks(userGuybrushBefore, 0);
         assertNoAuthorizations(userGuybrushBefore);
 
         // WHEN
@@ -1004,7 +1004,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userGuybrushAfter, 1);
         assertAssignedDeputy(userGuybrushAfter, USER_BARBOSSA_OID);
         assertNotAssignedRole(userGuybrushAfter, ROLE_DRINKER_OID);
-        assertLinks(userGuybrushAfter, 0);
+        assertLiveLinks(userGuybrushAfter, 0);
         assertNoAuthorizations(userGuybrushAfter);
     }
 
@@ -1025,7 +1025,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
         display("User Guybrush after", userGuybrushAfter);
         assertAssignments(userGuybrushAfter, 0);
-        assertLinks(userGuybrushAfter, 0);
+        assertLiveLinks(userGuybrushAfter, 0);
         assertNoAuthorizations(userGuybrushAfter);
     }
 
@@ -1046,7 +1046,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
         display("User Barbossa after", userBarbossaAfter);
         assertAssignments(userBarbossaAfter, 0);
-        assertLinks(userBarbossaAfter, 1);
+        assertLiveLinks(userBarbossaAfter, 1);
         assertNoAuthorizations(userBarbossaAfter);
     }
 
@@ -1074,13 +1074,13 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignedNoRole(userBarbossaAfter);
         assertAssignments(userBarbossaAfter, 1);
         assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID);
-        assertLinks(userBarbossaAfter, 1);
+        assertLiveLinks(userBarbossaAfter, 1);
         assertAuthorizations(userBarbossaAfter, AUTZ_DRINK_URL);
 
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
         assertAssignments(userJackAfter, 8);
-        assertLinks(userJackAfter, 3);
+        assertLiveLinks(userJackAfter, 3);
         assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL, AUTZ_DRINK_URL);
 
     }
@@ -1111,14 +1111,14 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         display("User Barbossa after", userBarbossaAfter);
         assertNoAssignments(userBarbossaAfter);
         assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID); // Resource red has delayed delete
-        assertLinks(userBarbossaAfter, 1);
+        assertLiveLinks(userBarbossaAfter, 1);
         assertNoAuthorizations(userBarbossaAfter);
         TestUtil.assertModifyTimestamp(userBarbossaAfter, startTs, endTs);
 
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
         assertAssignments(userJackAfter, 8);
-        assertLinks(userJackAfter, 3);
+        assertLiveLinks(userJackAfter, 3);
         assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL, AUTZ_DRINK_URL);
 
     }
@@ -1153,7 +1153,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
         display("User Jack before", userJackBefore);
         assertAssignments(userJackBefore, 8);
-        assertLinks(userJackBefore, 3);
+        assertLiveLinks(userJackBefore, 3);
         assertAuthorizations(userJackBefore, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL, AUTZ_DRINK_URL);
 
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
@@ -1179,14 +1179,14 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAccount(userBarbossaAfter, RESOURCE_DUMMY_OID);
         assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID);
         assertAccount(userBarbossaAfter, RESOURCE_DUMMY_CYAN_OID);
-        assertLinks(userBarbossaAfter, 3);
+        assertLiveLinks(userBarbossaAfter, 3);
         // Command autz should NOT be here, it is not delegable MID-3550
         assertAuthorizations(userBarbossaAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_DRINK_URL);
 
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
         assertAssignments(userJackAfter, 8);
-        assertLinks(userJackAfter, 3);
+        assertLiveLinks(userJackAfter, 3);
         assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL, AUTZ_DRINK_URL);
 
     }
@@ -1215,13 +1215,13 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignedDeputy(userBarbossaAfter, USER_JACK_OID);
         assertAssignedNoRole(userBarbossaAfter);
         assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID); // Resource red has delayed delete
-        assertLinks(userBarbossaAfter, 1);
+        assertLiveLinks(userBarbossaAfter, 1);
         assertNoAuthorizations(userBarbossaAfter);
 
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
         assertAssignments(userJackAfter, 8);
-        assertLinks(userJackAfter, 3);
+        assertLiveLinks(userJackAfter, 3);
         assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL, AUTZ_DRINK_URL);
 
     }

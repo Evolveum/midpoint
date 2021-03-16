@@ -108,7 +108,7 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
         //GIVEN
         PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
         UserAsserter.forUser(userJackBefore).activation().assertAdministrativeStatus(ActivationStatusType.ENABLED);
-        UserAsserter.forUser(userJackBefore).links().assertLinks(0);
+        UserAsserter.forUser(userJackBefore).links().assertLiveLinks(0);
 
         //WHEN
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -125,7 +125,7 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED)
                 .end()
             .links()
-                .assertLinks(2);
+                .assertLiveLinks(2);
 
         String shadowActivationNativeSimulatedOid = userAfterAsserter
                 .links()
@@ -178,7 +178,7 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
                 .assertAdministrativeStatus(ActivationStatusType.DISABLED)
                 .end()
             .links()
-                .assertLinks(2);
+                .assertLiveLinks(2);
 
         String shadowActivationNativeSimulatedOid = userAfterAsserter
                 .links()

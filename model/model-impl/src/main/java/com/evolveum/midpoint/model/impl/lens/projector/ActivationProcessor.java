@@ -184,28 +184,27 @@ public class ActivationProcessor implements ProjectorProcessor {
         }
 
         // Activation is computed on projector start but can be recomputed in the respective wave again.
-        // So let us skip this safety check. An alternative would be to skip all activation processing
+        // So we allow existingDecision to be non-null. An alternative would be to skip all activation processing
         // in such a case. But the current approach is closer to the previous implementation and safer.
-
-//        if (existingDecision != null) {
-//            throw new IllegalStateException("Decision "+existingDecision+" already present for projection "+projCtxDesc);
-//        }
 
         if (synchronizationIntent == SynchronizationIntent.UNLINK) {
             setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.UNLINK, result);
-            LOGGER.trace("Evaluated decision for {} to {} because of unlink synchronization intent, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.UNLINK);
+            LOGGER.trace("Evaluated decision for {} to {} because of unlink synchronization intent, "
+                    + "skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.UNLINK);
             return;
         }
 
         if (projCtx.isTombstone()) {
             if (projCtx.isDelete() && ModelExecuteOptions.isForce(context.getOptions())) {
                 setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.DELETE, result);
-                LOGGER.trace("Evaluated decision for tombstone {} to {} (force), skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.DELETE);
+                LOGGER.trace("Evaluated decision for tombstone {} to {} (force), skipping further activation processing",
+                        projCtxDesc, SynchronizationPolicyDecision.DELETE);
             } else {
                 // Let's keep tombstones linked until they expire. So we do not have shadows without owners.
                 // This is also needed for async delete operations.
                 setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.KEEP, result);
-                LOGGER.trace("Evaluated decision for {} to {} because it is tombstone, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.KEEP);
+                LOGGER.trace("Evaluated decision for {} to {} because it is tombstone, skipping further activation processing",
+                        projCtxDesc, SynchronizationPolicyDecision.KEEP);
             }
             return;
         }
@@ -213,7 +212,8 @@ public class ActivationProcessor implements ProjectorProcessor {
         if (synchronizationIntent == SynchronizationIntent.DELETE || projCtx.isDelete()) {
             // TODO: is this OK?
             setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.DELETE, result);
-            LOGGER.trace("Evaluated decision for {} to {}, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.DELETE);
+            LOGGER.trace("Evaluated decision for {} to {}, skipping further activation processing", projCtxDesc,
+                    SynchronizationPolicyDecision.DELETE);
             return;
         }
 

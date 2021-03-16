@@ -188,7 +188,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
 
         assertUserAfter(USER_JACK_OID)
                 .links()
-                .assertNone();
+                .assertNoLiveLinks();
 
         assertNoShadow(accountJackOid);
 

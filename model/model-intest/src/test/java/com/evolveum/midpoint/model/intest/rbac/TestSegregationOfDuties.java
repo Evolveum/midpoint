@@ -914,7 +914,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertNotAssignedRole(userAfter, ROLE_COLOR_GREEN_OID);
         assertNotAssignedRole(userAfter, ROLE_COLOR_RED_OID);
         assertNotAssignedRole(userAfter, ROLE_COLOR_NONE_OID);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
@@ -1017,7 +1017,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertNotAssignedRole(userAfter, ROLE_COLOR_GREEN_OID);
         assertNotAssignedRole(userAfter, ROLE_COLOR_BLUE_OID);
         assertNotAssignedRole(userAfter, ROLE_COLOR_NONE_OID);
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
 
         assertNoDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
     }

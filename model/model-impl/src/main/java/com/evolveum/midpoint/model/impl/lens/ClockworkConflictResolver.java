@@ -64,7 +64,7 @@ public class ClockworkConflictResolver {
         }
     }
 
-    <O extends ObjectType> void createConflictWatcherAfterFocusAddition(LensContext<O> context, String oid, String expectedVersion) {
+    public <O extends ObjectType> void createConflictWatcherAfterFocusAddition(LensContext<O> context, String oid, String expectedVersion) {
         // The watcher can already exist; if the OID was pre-existing in the object.
         if (context.getFocusConflictWatcher() == null) {
             ConflictWatcher watcher = context.createAndRegisterFocusConflictWatcher(oid, repositoryService);

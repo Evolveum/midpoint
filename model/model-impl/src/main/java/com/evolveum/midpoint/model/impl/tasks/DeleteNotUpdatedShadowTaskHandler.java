@@ -11,6 +11,8 @@ import java.util.Date;
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -178,6 +180,7 @@ public class DeleteNotUpdatedShadowTaskHandler
             change.setObjectDelta(shadow.createDeleteDelta());
             change.setResource(ctx.resource);
             change.setShadowedResourceObject(shadow);
+            change.setSourceChannel(SchemaConstants.CHANNEL_CLEANUP_URI);
             synchronizationService.notifyChange(change, workerTask, result);
         }
     }

@@ -1697,7 +1697,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         org = getObject(OrgType.class, orgMeleeIslandOid);
         groupMeleeIslandOid = getLinkRefOid(org, getResourceOid(), ShadowKindType.ENTITLEMENT, INTENT_GROUP);
         ouMeleeIslandOid = getLinkRefOid(org, getResourceOid(), ShadowKindType.GENERIC, INTENT_OU_TOP);
-        assertLinks(org, 2);
+        assertLiveLinks(org, 2);
 
         PrismObject<ShadowType> shadowGroup = getShadowModel(groupMeleeIslandOid);
         display("Shadow: group (model)", shadowGroup);
@@ -1808,7 +1808,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         PrismObject<OrgType> orgAfter = getObject(OrgType.class, orgMeleeIslandOid);
         groupMeleeIslandOid = getLinkRefOid(orgAfter, getResourceOid(), ShadowKindType.ENTITLEMENT, INTENT_GROUP);
         ouMeleeIslandOid = getLinkRefOid(orgAfter, getResourceOid(), ShadowKindType.GENERIC, INTENT_OU_TOP);
-        assertLinks(orgAfter, 2);
+        assertLiveLinks(orgAfter, 2);
 
         PrismObject<ShadowType> shadowGroup = getShadowModel(groupMeleeIslandOid);
         display("Shadow: group (model)", shadowGroup);

@@ -74,7 +74,7 @@ public class TestExistentialIssues extends AbstractStoryTest {
         assertAdministrativeStatusDisabled(userAfter);
         assertEffectiveStatus(userAfter, ActivationStatusType.DISABLED);
         assertAssignments(userAfter, 0);
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
 
         assertNoDummyAccount(RESOURCE_DUMMY_LAZY_NAME, USER_DESCARTES_USERNAME);
     }
@@ -101,7 +101,7 @@ public class TestExistentialIssues extends AbstractStoryTest {
         assertAdministrativeStatusDisabled(userAfter);
         assertEffectiveStatus(userAfter, ActivationStatusType.DISABLED);
         assertAssignments(userAfter, 1);
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
 
         assertNoDummyAccount(RESOURCE_DUMMY_LAZY_NAME, USER_DESCARTES_USERNAME);
     }
@@ -128,7 +128,7 @@ public class TestExistentialIssues extends AbstractStoryTest {
         assertAdministrativeStatusEnabled(userAfter);
         assertEffectiveStatus(userAfter, ActivationStatusType.ENABLED);
         assertAssignments(userAfter, 1);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         assertDummyAccount(RESOURCE_DUMMY_LAZY_NAME, USER_DESCARTES_USERNAME, USER_DESCARTES_FULL_NAME, true);
     }
@@ -155,7 +155,7 @@ public class TestExistentialIssues extends AbstractStoryTest {
         assertAdministrativeStatusDisabled(userAfter);
         assertEffectiveStatus(userAfter, ActivationStatusType.DISABLED);
         assertAssignments(userAfter, 1);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         assertDummyAccount(RESOURCE_DUMMY_LAZY_NAME, USER_DESCARTES_USERNAME, USER_DESCARTES_FULL_NAME, false);
     }
@@ -182,7 +182,7 @@ public class TestExistentialIssues extends AbstractStoryTest {
         assertAdministrativeStatusEnabled(userAfter);
         assertEffectiveStatus(userAfter, ActivationStatusType.ENABLED);
         assertAssignments(userAfter, 1);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         assertDummyAccount(RESOURCE_DUMMY_LAZY_NAME, USER_DESCARTES_USERNAME, USER_DESCARTES_FULL_NAME, true);
     }
@@ -209,7 +209,7 @@ public class TestExistentialIssues extends AbstractStoryTest {
         assertAdministrativeStatusEnabled(userAfter);
         assertEffectiveStatus(userAfter, ActivationStatusType.ENABLED);
         assertAssignments(userAfter, 0);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         assertDummyAccount(RESOURCE_DUMMY_LAZY_NAME, USER_DESCARTES_USERNAME, USER_DESCARTES_FULL_NAME, false);
     }

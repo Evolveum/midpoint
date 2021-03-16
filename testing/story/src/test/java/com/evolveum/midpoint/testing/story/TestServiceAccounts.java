@@ -113,7 +113,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
         serviceAccountShadowOid = assertServiceAfterByName(ACCOUNT_RUM_STORAGE_DUMMY_USERNAME)
                 .assertDescription(ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME)
                 .links()
-                .single()
+                .singleLive()
                 .resolveTarget()
                 .assertLife()
                 .assertKind(ShadowKindType.ACCOUNT)
@@ -158,7 +158,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
         assertServiceAfterByName(ACCOUNT_RUM_STORAGE_DUMMY_USERNAME)
                 .assertDescription(ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME)
                 .links()
-                .single()
+                .singleLive()
                 .resolveTarget()
                 .assertLife()
                 .assertKind(ShadowKindType.ACCOUNT)
@@ -202,7 +202,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
         assertServiceAfterByName(ACCOUNT_RUM_STORAGE_DUMMY_USERNAME)
                 .assertDescription(ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME)
                 .links()
-                .single()
+                .singleLive()
                 .resolveTarget()
                 .assertLife()
                 .assertKind(ShadowKindType.ACCOUNT)
@@ -377,7 +377,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
         assertServiceAfter(SERVICE_BARELLIUM_OID)
                 .assertName(SERVICE_BARELLIUM_NAME)
                 .assertDescription(SERVICE_BARELLIUM_DESCRIPTION)
-                .assertLinks(0);
+                .assertLiveLinks(0);
 
         assertNoDummyAccount(ACCOUNT_BARELLIUM_DUMMY_USERNAME);
     }

@@ -152,16 +152,33 @@ public class LensUtil {
         return context.findProjectionContext(rsd);
     }
 
-    public static <F extends ObjectType> LensProjectionContext getOrCreateProjectionContext(LensContext<F> context,
-            ResourceShadowDiscriminator rsd) {
-        LensProjectionContext accountSyncContext = context.findProjectionContext(rsd);
-        if (accountSyncContext == null) {
-            accountSyncContext = context.createProjectionContext(rsd);
-            ResourceType resource = context.getResource(rsd.getResourceOid());
-            accountSyncContext.setResource(resource);
+    // FIXME temporary solution
+    public static class GetOrCreateProjectionContextResult {
+        public final LensProjectionContext context;
+        public final boolean created;
+
+        private GetOrCreateProjectionContextResult(LensProjectionContext context, boolean created) {
+            this.context = context;
+            this.created = created;
         }
-        accountSyncContext.setDoReconciliation(context.isDoReconciliationForAllProjections());
-        return accountSyncContext;
+    }
+
+    @NotNull
+    public static <F extends ObjectType> GetOrCreateProjectionContextResult getOrCreateProjectionContext(LensContext<F> context,
+            ResourceShadowDiscriminator rsd) {
+        LensProjectionContext existingCtx = context.findProjectionContext(rsd);
+        if (existingCtx != null) {
+            LOGGER.trace("Found existing context for {}: {}", rsd.toHumanReadableDescription(), existingCtx);
+            existingCtx.setDoReconciliation(context.isDoReconciliationForAllProjections());
+            return new GetOrCreateProjectionContextResult(existingCtx, false);
+        } else {
+            LensProjectionContext newCtx = context.createProjectionContext(rsd);
+            LOGGER.trace("Created new context for {}: {}", rsd.toHumanReadableDescription(), newCtx);
+            ResourceType resource = context.getResource(rsd.getResourceOid());
+            newCtx.setResource(resource);
+            newCtx.setDoReconciliation(context.isDoReconciliationForAllProjections());
+            return new GetOrCreateProjectionContextResult(newCtx, true);
+        }
     }
 
     public static <F extends ObjectType> LensProjectionContext createAccountContext(LensContext<F> context, ResourceShadowDiscriminator rsd){

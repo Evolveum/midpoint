@@ -16,6 +16,8 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
@@ -25,23 +27,24 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  * also other information. This is useful to completely describe a change that was detected on the resource.
  *
  * This object can describe either relative change or new absolute state. In case of relative change the "objectDelta"
- * property will be provided. In case of description of new absolute state the "currentShadow" value will be provided.
+ * property will be provided. In case of description of new absolute state the "shadowedResourceObject" value will be provided.
  * It may happen that both of them will be provided if both are known (and efficiently detected). In such a case the
  * implementation may choose any one to process.
  *
  * @author Radovan Semancik
  */
-public class ResourceObjectShadowChangeDescription implements DebugDumpable, Serializable {
+public class ResourceObjectShadowChangeDescription implements ProvisioningEvent, DebugDumpable, Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Current "shadowed" resource object. I.e. it is the resource object combined with its repository shadow
+     * Current shadowed resource object. "Shadowed" means that it is the resource object combined with its repository shadow
      * in a specific way. (Please see the shadows package in provisioning-impl.)
      *
-     * It describes the state after the change.
+     * It describes the state _after_ the change being described.
      *
      * Must not be null. If the resource has no read capability, it should be constructed using cached attributes.
-     * If the object was deleted, this must be the last state. (Usually, a dead shadow is presented here.)
+     * If the object was deleted, this must be the last state. (Usually, a dead shadow is presented here. This is the only
+     * situation where attributes can be missing.)
      *
      * It must exist in repo. The only exception is when the object delta is delete.
      */
@@ -62,10 +65,12 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
     private PrismObject<ResourceType> resource;
 
     /** Is this a simulated operation? TODO reconsider this flag here. */
-    private boolean simulate = false;
+    private boolean simulate;
 
-    /** We want to just clean - i.e. unlink - a dead shadow. TODO reconsider using custom interface for this. */
-    private boolean cleanDeadShadow = false;
+    /**
+     * Does the shadow exist in repo? Null means "we don't know".
+     */
+    private Boolean shadowExistsInRepo;
 
     /**
      * Identifies (synchronizable) item processing as part of which this change description was generated.
@@ -84,11 +89,11 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
         this.objectDelta = objectDelta;
     }
 
-    public PrismObject<ShadowType> getShadowedResourceObject() {
-        return shadowedResourceObject;
+    public @NotNull PrismObject<ShadowType> getShadowedResourceObject() {
+        return java.util.Objects.requireNonNull(shadowedResourceObject);
     }
 
-    public void setShadowedResourceObject(PrismObject<ShadowType> shadowedResourceObject) {
+    public void setShadowedResourceObject(@NotNull PrismObject<ShadowType> shadowedResourceObject) {
         this.shadowedResourceObject = shadowedResourceObject;
     }
 
@@ -116,12 +121,12 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
         this.simulate = simulate;
     }
 
-    public boolean isCleanDeadShadow() {
-        return cleanDeadShadow;
+    public Boolean getShadowExistsInRepo() {
+        return shadowExistsInRepo;
     }
 
-    public void setCleanDeadShadow(boolean cleanDeadShadow) {
-        this.cleanDeadShadow = cleanDeadShadow;
+    public void setShadowExistsInRepo(Boolean shadowExistsInRepo) {
+        this.shadowExistsInRepo = shadowExistsInRepo;
     }
 
     public String getItemProcessingIdentifier() {
@@ -141,6 +146,7 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
         }
         stateCheck(shadowedResourceObject != null, "No shadowed resource object present");
         stateCheck(shadowedResourceObject.getOid() != null, "Shadowed resource object without OID");
+        shadowedResourceObject.checkConsistence();
         ShadowUtil.checkConsistence(shadowedResourceObject,"shadowed resource object in change notification");
     }
 
@@ -157,7 +163,6 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
                 + ", resource=" + resource
                 + ", processing=" + itemProcessingIdentifier
                 + (simulate ? " SIMULATE" : "")
-                + (cleanDeadShadow ? " CLEAN DEAD SHADOW" : "")
                 + ")";
     }
 
@@ -204,10 +209,6 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
         sb.append("\n");
         SchemaDebugUtil.indentDebugDump(sb, indent+1);
         sb.append("simulate: ").append(simulate);
-
-        sb.append("\n");
-        SchemaDebugUtil.indentDebugDump(sb, indent+1);
-        sb.append("cleanDeadShadow: ").append(cleanDeadShadow);
 
         sb.append("\n");
         SchemaDebugUtil.indentDebugDump(sb, indent+1);

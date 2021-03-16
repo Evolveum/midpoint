@@ -9,10 +9,12 @@ package com.evolveum.midpoint.model.impl.sync;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -47,14 +49,12 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationContext.class);
 
     /**
-     * TODO: this is technically a shadow, but in fact we assume all attributes (etc) are here
+     * Normally, this is shadowed resource object, i.e. shadow + attributes (simply saying).
+     * In the case of object deletion, the last known shadow can be used, i.e. without attributes.
+     *
+     * See {@link ResourceObjectShadowChangeDescription#getShadowedResourceObject()}.
      */
-    private final PrismObject<ShadowType> applicableShadow;
-
-    /**
-     * TODO: this is practically unused
-     */
-    private final PrismObject<ShadowType> resourceObject;
+    @NotNull private final PrismObject<ShadowType> shadowedResourceObject;
 
     /**
      * Original delta that triggered this synchronization. (If known.)
@@ -70,12 +70,17 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
     private ObjectSynchronizationType objectSynchronization;
     private Class<F> focusClass;
-    private F currentOwner;
+
+    /** Owner that was found to be linked (in repo) to the shadow being synchronized. */
+    private F linkedOwner;
+
+    /** Owner that was found by synchronization sorter or correlation expression(s). */
     private F correlatedOwner;
+
+    /** Situation determined by the sorter or the synchronization service. */
     private SynchronizationSituationType situation;
 
     private String intent;
-
     private String tag;
 
     private boolean reactionEvaluated = false;
@@ -91,11 +96,10 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     @Experimental
     private final String itemProcessingIdentifier;
 
-    public SynchronizationContext(PrismObject<ShadowType> applicableShadow, PrismObject<ShadowType> resourceObject,
+    public SynchronizationContext(@NotNull PrismObject<ShadowType> shadowedResourceObject,
             ObjectDelta<ShadowType> resourceObjectDelta, PrismObject<ResourceType> resource, String channel,
             PrismContext prismContext, ExpressionFactory expressionFactory, Task task, String itemProcessingIdentifier) {
-        this.applicableShadow = applicableShadow;
-        this.resourceObject = resourceObject;
+        this.shadowedResourceObject = shadowedResourceObject;
         this.resourceObjectDelta = resourceObjectDelta;
         this.resource = resource;
         this.channel = channel;
@@ -111,12 +115,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     }
 
     public boolean isProtected() {
-        if (applicableShadow == null) {
-            return false;
-        }
-
-        ShadowType currentShadowType = applicableShadow.asObjectable();
-        return BooleanUtils.isTrue(currentShadowType.isProtectedObject());
+        return BooleanUtils.isTrue(shadowedResourceObject.asObjectable().isProtectedObject());
     }
 
     public ShadowKindType getKind() {
@@ -212,7 +211,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
             ExpressionType expression = reaction.getCondition();
             String desc = "condition in synchronization reaction on " + reaction.getSituation()
                     + (reaction.getName() != null ? " (" + reaction.getName() + ")" : "");
-            VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(getFocus(), applicableShadow, null,
+            VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(getFocus(), shadowedResourceObject, null,
                     resource, systemConfiguration, null, prismContext);
             variables.put(ExpressionConstants.VAR_RESOURCE_OBJECT_DELTA, resourceObjectDelta, ObjectDelta.class);
             try {
@@ -234,8 +233,8 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     @Nullable
     private PrismObject<? extends ObjectType> getFocus() {
         PrismObject<? extends ObjectType> focus;
-        if (currentOwner != null) {
-            focus = currentOwner.asPrismObject();
+        if (linkedOwner != null) {
+            focus = linkedOwner.asPrismObject();
         } else if (correlatedOwner != null) {
             focus = correlatedOwner.asPrismObject();
         } else {
@@ -295,12 +294,8 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return null;
     }
 
-    public PrismObject<ShadowType> getApplicableShadow() {
-        return applicableShadow;
-    }
-
-    public PrismObject<ShadowType> getResourceObject() {
-        return resourceObject;
+    public @NotNull PrismObject<ShadowType> getShadowedResourceObject() {
+        return shadowedResourceObject;
     }
 
     public PrismObject<ResourceType> getResource() {
@@ -331,8 +326,8 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return focusClass;
     }
 
-    public F getCurrentOwner() {
-        return currentOwner;
+    public F getLinkedOwner() {
+        return linkedOwner;
     }
 
     public F getCorrelatedOwner() {
@@ -356,8 +351,8 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         this.focusClass = focusClass;
     }
 
-    public void setCurrentOwner(F owner) {
-        this.currentOwner = owner;
+    public void setLinkedOwner(F owner) {
+        this.linkedOwner = owner;
     }
 
     public void setCorrelatedOwner(F correlatedFocus) {
@@ -408,11 +403,11 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         this.task = task;
     }
 
-    public boolean isShadowExistsInRepo() {
+    boolean isShadowExistsInRepo() {
         return shadowExistsInRepo;
     }
 
-    public void setShadowExistsInRepo(boolean shadowExistsInRepo) {
+    void setShadowExistsInRepo(boolean shadowExistsInRepo) {
         this.shadowExistsInRepo = shadowExistsInRepo;
     }
 
@@ -428,7 +423,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return itemProcessingIdentifier;
     }
 
-    public RefinedObjectClassDefinition findRefinedObjectClassDefinition() throws SchemaException {
+    RefinedObjectClassDefinition findRefinedObjectClassDefinition() throws SchemaException {
         RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
         return refinedResourceSchema.getRefinedDefinition(getKind(), getIntent());
     }
@@ -452,15 +447,14 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(SynchronizationContext.class, indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "applicableShadow", applicableShadow, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "shadowedResourceObject", shadowedResourceObject, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "resource", resource, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "systemConfiguration", systemConfiguration, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "channel", channel, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "expressionProfile", expressionProfile, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "objectSynchronization", objectSynchronization, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "focusClass", focusClass, indent + 1);
-        DebugUtil.debugDumpWithLabelToStringLn(sb, "currentOwner", currentOwner, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "currentOwner", linkedOwner, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "correlatedOwner", correlatedOwner, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "situation", situation, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "intent", intent, indent + 1);

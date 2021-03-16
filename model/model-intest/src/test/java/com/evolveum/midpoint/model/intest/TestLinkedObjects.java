@@ -154,21 +154,21 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
 
         assertService(TOKEN_BLUE.oid, "after init")
                 .display()
-                .assertLinks(1)
+                .assertLiveLinks(1)
                 .getObjectable();
         refresh(TOKEN_BLUE, task, result);
         assertHwToken(TOKEN_BLUE, "blue", null, null);
 
         assertService(TOKEN_GREEN.oid, "after init")
                 .display()
-                .assertLinks(1);
+                .assertLiveLinks(1);
         refresh(TOKEN_GREEN, task, result);
         assertHwToken(TOKEN_GREEN, "green", null, null);
 
         assertService(TOKEN_RED.oid, "after init")
                 .display()
                 .assertAdministrativeStatus(ActivationStatusType.DISABLED)
-                .assertLinks(1);
+                .assertLiveLinks(1);
         refresh(TOKEN_RED, task, result);
         assertHwToken(TOKEN_RED, "red", null, null);
     }

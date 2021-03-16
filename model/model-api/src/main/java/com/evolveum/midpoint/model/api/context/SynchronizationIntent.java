@@ -30,7 +30,8 @@ public enum SynchronizationIntent {
     KEEP,
 
     /**
-     * Existing account that should be unlinked (but NOT deleted)
+     * Existing account that should be unlinked (but NOT deleted). By unlinking we mean physically removing
+     * a value from `linkRef`. This intent should be used only when really needed.
      */
     UNLINK,
 

@@ -39,10 +39,10 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
 
     private static final Trace LOGGER = TraceManager.getTrace(LensOwnerResolver.class);
 
-    private LensContext<F> context;
-    private ObjectResolver objectResolver;
-    private Task task;
-    private OperationResult result;
+    private final LensContext<F> context;
+    private final ObjectResolver objectResolver;
+    private final Task task;
+    private final OperationResult result;
 
     public LensOwnerResolver(LensContext<F> context, ObjectResolver objectResolver, Task task,
             OperationResult result) {
@@ -59,16 +59,18 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
             return null;
         }
         if (object.canRepresent(ShadowType.class)) {
-            LensFocusContext<F> focusContext = (LensFocusContext<F>) context.getFocusContext();
+            LensFocusContext<F> focusContext = context.getFocusContext();
             if (focusContext == null) {
                 return null;
             } else if (focusContext.getObjectNew() != null) {
                 // If we create both owner and shadow in the same operation (see e.g. MID-2027), we have to provide object new
                 // Moreover, if the authorization would be based on a property that is being changed along with the
                 // the change being authorized, we would like to use changed version.
+                //noinspection unchecked
                 return (PrismObject<FO>) focusContext.getObjectNew();
             } else if (focusContext.getObjectCurrent() != null) {
                 // This could be useful if the owner is being deleted.
+                //noinspection unchecked
                 return (PrismObject<FO>) focusContext.getObjectCurrent();
             } else {
                 return null;
@@ -87,6 +89,7 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
                     }
                     context.setCachedOwner(ownerType.asPrismObject());
                 }
+                //noinspection unchecked
                 return (PrismObject<FO>) context.getCachedOwner();
             }
 
@@ -111,6 +114,7 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
             if (owners.size() > 1) {
                 LOGGER.warn("More than one owner of {}: {}", object, owners);
             }
+            //noinspection unchecked
             return (PrismObject<FO>) owners.get(0);
         } else if (object.canRepresent(AbstractRoleType.class)) {
             // TODO: get owner from roleMembershipRef;relation=owner (MID-5689)
@@ -125,6 +129,7 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
                 if (ownerType == null) {
                     return null;
                 }
+                //noinspection unchecked
                 return (PrismObject<FO>) ownerType.asPrismObject();
             } catch (ObjectNotFoundException | SchemaException e) {
                 LOGGER.error("Error resolving owner of {}: {}", object, e.getMessage(), e);
@@ -135,5 +140,4 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
             return null;
         }
     }
-
 }

@@ -112,10 +112,10 @@ public class TestAsyncProvisioning extends AbstractStoryTest {
         assertSuccess(result);
         assertUserAfter(jim.getOid())
                 .assertAssignments(1)
-                .assertLinks(1);
+                .assertLiveLinks(1);
         assertUserAfterByUsername("_jim")
                 .assertAssignments(0)
-                .assertLinks(1)
+                .assertLiveLinks(1)
                 .assertFullName("Jim Beam")
                 .assertDescription("This is 'jim' called 'Jim Beam'");
     }
@@ -140,11 +140,11 @@ public class TestAsyncProvisioning extends AbstractStoryTest {
         assertSuccess(result);
         assertUserAfter(jim.getOid())
                 .assertAssignments(1)
-                .assertLinks(1)
+                .assertLiveLinks(1)
                 .assertFullName("Jim BEAM");
         assertUserAfterByUsername("_jim")
                 .assertAssignments(0)
-                .assertLinks(1)
+                .assertLiveLinks(1)
                 .assertFullName("Jim BEAM")
                 .assertDescription("This is 'jim' called 'Jim BEAM'");
     }

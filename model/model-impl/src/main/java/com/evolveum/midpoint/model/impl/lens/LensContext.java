@@ -104,6 +104,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     private String channel;
 
     private LensFocusContext<F> focusContext;
+
+    /**
+     * Projection contexts. No null elements are allowed here.
+     */
     @NotNull private final Collection<LensProjectionContext> projectionContexts = new ArrayList<>();
 
     /**
@@ -347,6 +351,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     @Override
+    @NotNull
     public Collection<LensProjectionContext> getProjectionContexts() {
         return projectionContexts;
     }
@@ -355,7 +360,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return projectionContexts.iterator();
     }
 
-    public void addProjectionContext(LensProjectionContext projectionContext) {
+    public void addProjectionContext(@NotNull LensProjectionContext projectionContext) {
         projectionContexts.add(projectionContext);
     }
 
@@ -1490,7 +1495,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return conflictingProjectionContexts;
     }
 
-    public void addConflictingProjectionContext(LensProjectionContext conflictingContext) {
+    public void addConflictingProjectionContext(@NotNull LensProjectionContext conflictingContext) {
         conflictingProjectionContexts.add(conflictingContext);
     }
 
@@ -1792,5 +1797,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     @Experimental
     private boolean hasRottenReallyExecutedDelta() {
         return rottenExecutedDeltas.stream().anyMatch(ObjectDeltaOperation::wasReallyExecuted);
+    }
+
+    public boolean isForcedFocusDelete() {
+        return focusContext != null && focusContext.isDelete() && ModelExecuteOptions.isForce(options);
     }
 }

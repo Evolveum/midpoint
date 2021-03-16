@@ -319,15 +319,13 @@ public interface ProvisioningService {
             CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
     /**
-     * <p>Deletes object with specified OID.</p>
-     * <p>
-     *   Delete operation always deletes the resource object - or at least tries to. But this operation may
-     *   or may not delete  the repository shadow. The shadow may remain in a dead (thombstone) state.
-     *   In that case the delete operation returns such shadow to indicate that repository shadow was not deleted.
-     * <p>
-     * Must fail if object with specified OID
-     * does not exists. Should be atomic.
-     * </p>
+     * Deletes object with specified OID.
+     *
+     * Delete operation always deletes the resource object - or at least tries to. But this operation may
+     * or may not delete  the repository shadow. The shadow may remain in a dead (tombstone) state.
+     * In that case the delete operation returns such shadow to indicate that repository shadow was not deleted.
+     *
+     * Must fail if object with specified OID does not exist. Should be atomic.
      *
      * @param oid
      *            OID of object to delete
@@ -336,20 +334,22 @@ public interface ProvisioningService {
      * @param parentResult
      *            parent OperationResult (in/out)
      *
-     * @return Dead repository shadow - if it exists after delete. Otherwise returns null.
+     * @return Current (usually dead) repository shadow - if it exists after delete. Otherwise returns null.
+     *         For objects different from shadows (and when using raw deletion) returns null.
      *
      * @throws ObjectNotFoundException
      *             specified object does not exist
-     * @throws ConfigurationException
      * @throws SecurityViolationException
-     *                 Security violation while communicating with the connector or processing provisioning policies
+     *             security violation while communicating with the connector or processing provisioning policies
      * @throws IllegalArgumentException
      *             wrong OID format, described change is not applicable
      * @throws GenericConnectorException
      *             unknown connector framework error
      */
-    <T extends ObjectType> PrismObject<T> deleteObject(Class<T> type, String oid, ProvisioningOperationOptions option, OperationProvisioningScriptsType scripts, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
+    <T extends ObjectType> PrismObject<T> deleteObject(Class<T> type, String oid, ProvisioningOperationOptions option,
+            OperationProvisioningScriptsType scripts, Task task, OperationResult parentResult) throws ObjectNotFoundException,
+            CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException,
+            ExpressionEvaluationException;
 
     /**
      * Executes a single provisioning script.

@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -26,17 +27,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 public class LinkAction implements Action {
 
     @Override
-    public <F extends FocusType> void handle(LensContext<F> context, SynchronizationSituation<F> situation,
+    public <F extends FocusType> void handle(@NotNull LensContext<F> context, SynchronizationSituation<F> situation,
             Map<QName, Object> parameters, Task task, OperationResult parentResult) {
 
         // Just add the candidate focus to the context. It will be linked in
         // synchronization.
 
-        F focusType = situation.getCorrelatedOwner();
+        F focus = situation.getCorrelatedOwner();
         LensFocusContext<F> focusContext = context.createFocusContext();
-        PrismObject<F> focusOld = (PrismObject<F>) focusType.asPrismObject();
-        focusContext.setLoadedObject(focusOld);
-
+        //noinspection unchecked
+        focusContext.setLoadedObject((PrismObject<F>) focus.asPrismObject());
     }
-
 }

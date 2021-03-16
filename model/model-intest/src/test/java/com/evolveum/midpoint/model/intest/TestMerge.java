@@ -70,14 +70,14 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
 
         jackDummyAccountOid = assertAccount(userJackBefore, RESOURCE_DUMMY_OID);
         jackDummyAccountRedOid = assertAccount(userJackBefore, RESOURCE_DUMMY_RED_OID);
-        assertLinks(userJackBefore, 2);
+        assertLiveLinks(userJackBefore, 2);
 
         PrismObject<UserType> userGuybrushBefore = getUser(USER_GUYBRUSH_OID);
         display("Guybrush before", userGuybrushBefore);
 
         guybrushDummyAccountOid = assertAccount(userGuybrushBefore, RESOURCE_DUMMY_OID);
         guybrushDummyAccountCyanOid = assertAccount(userGuybrushBefore, RESOURCE_DUMMY_CYAN_OID);
-        assertLinks(userGuybrushBefore, 2);
+        assertLiveLinks(userGuybrushBefore, 2);
 
         displayValue("Jack DUMMY account", jackDummyAccountOid);
         displayValue("Jack RED account", jackDummyAccountRedOid);
@@ -190,7 +190,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         assertLinked(object, jackDummyAccountOid);
         assertLinked(object, jackDummyAccountRedOid);
         assertLinked(object, guybrushDummyAccountCyanOid);
-        assertLinks(object, 3);
+        assertLiveLinks(object, 3);
     }
 
     /**

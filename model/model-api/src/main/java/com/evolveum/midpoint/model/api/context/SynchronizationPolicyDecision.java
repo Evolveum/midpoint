@@ -33,7 +33,8 @@ public enum SynchronizationPolicyDecision {
     KEEP,
 
     /**
-     * Existing account that is going to be unlinked (but NOT deleted)
+     * Existing account that should be unlinked (but NOT deleted). By unlinking we mean either physically removing
+     * a value from `linkRef`.
      */
     UNLINK,
 

@@ -352,7 +352,6 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         LensProjectionContext conflictingAccountContext = context.findProjectionContext(projContext.getResourceShadowDiscriminator(), fullConflictingShadow.getOid());
         if (conflictingAccountContext == null) {
             conflictingAccountContext = LensUtil.createAccountContext(context, projContext.getResourceShadowDiscriminator());
-//                                                    conflictingAccountContext = context.createProjectionContext(accountContext.getResourceShadowDiscriminator());
             conflictingAccountContext.setOid(fullConflictingShadow.getOid());
             conflictingAccountContext.setObjectOld(fullConflictingShadow.clone());
             conflictingAccountContext.setObjectCurrent(fullConflictingShadow);
@@ -404,18 +403,12 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         projContext.setObjectCurrent(fullConflictingShadow);
         projContext.setOid(fullConflictingShadow.getOid());
         projContext.setFullShadow(true);
-//                                    result.computeStatus();
-//                                    // if the result is fatal error, it may mean that the
-//                                    // already exists exception occurs before..but in this
-//                                    // scenario it means, the exception was handled and we
-//                                    // can mute the result to give better understanding of
-//                                    // the situation which happened
-//                                    if (result.isError()){
-//                                        result.muteError();
-//                                    }
+        projContext.setExists(true);
+
         // Re-do this same iteration again (do not increase iteration count).
         // It will recompute the values and therefore enforce the user deltas and enable reconciliation
-        LOGGER.trace("Will skip uniqueness check to avoid endless loop. Reason: conflicting projection is already linked to the current focus.");
+        LOGGER.trace("Will skip uniqueness check to avoid endless loop. "
+                + "Reason: conflicting projection is already linked to the current focus.");
     }
 
     private boolean willResetIterationCounter(LensProjectionContext projectionContext) throws SchemaException {
@@ -609,9 +602,8 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         if (policyDecision == SynchronizationPolicyDecision.UNLINK) {
             // We will not update accounts that are being unlinked.
             // we cannot skip deleted accounts here as the delete delta will be skipped as well
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Skipping post-recon processing of value for {} because the decision is {}", projContext.getHumanReadableName(), policyDecision);
-            }
+            LOGGER.trace("Skipping post-recon processing of value for {} because the decision is {}",
+                    projContext.getHumanReadableName(), policyDecision);
             return;
         }
 

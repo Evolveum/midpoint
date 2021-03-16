@@ -103,7 +103,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         assertTelephoneNumber(userAfter, USER_JACK_TELEPHONE_NUMBER);
         assertEffectiveActivation(userAfter, ActivationStatusType.DISABLED);
         // User is in draft lifecycle. Assignments are not active. Therefore account does not exist yet.
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
     }
 
     @Test
@@ -194,7 +194,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         assertLifecycleState(userAfter, null);
         assertTelephoneNumber(userAfter, USER_JACK_TELEPHONE_NUMBER);
         assertEffectiveActivation(userAfter, ActivationStatusType.ENABLED);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
     }
 
     @Test

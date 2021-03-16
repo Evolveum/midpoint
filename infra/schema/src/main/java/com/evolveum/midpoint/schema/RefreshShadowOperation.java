@@ -18,6 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class RefreshShadowOperation implements DebugDumpable {
 
     private PrismObject<ShadowType> refreshedShadow;
+
     private Collection<ObjectDeltaOperation<ShadowType>> executedDeltas;
     private OperationResult refreshResult;
 
@@ -66,6 +67,7 @@ public class RefreshShadowOperation implements DebugDumpable {
         return result;
     }
 
+    @SuppressWarnings("RedundantIfStatement")
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;

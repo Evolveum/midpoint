@@ -22,8 +22,8 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.provisioning.api.ResourceEventDescription;
-import com.evolveum.midpoint.provisioning.api.ResourceEventListener;
+import com.evolveum.midpoint.provisioning.api.ExternalResourceEvent;
+import com.evolveum.midpoint.provisioning.api.ExternalResourceEventListener;
 import com.evolveum.midpoint.provisioning.impl.InitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
@@ -45,7 +45,7 @@ import javax.xml.namespace.QName;
  * converter, i.e. completely processed - except for repository (shadow) connection.
  *
  * Usually derived from {@link UcfChange} but may be also provided externally -
- * see {@link ResourceEventListener#notifyEvent(ResourceEventDescription, Task, OperationResult)}.
+ * see {@link ExternalResourceEventListener#notifyEvent(ExternalResourceEvent, Task, OperationResult)}.
  */
 @SuppressWarnings("JavadocReference")
 public abstract class ResourceObjectChange implements InitializableMixin {
@@ -102,7 +102,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
      * Delta from the resource - if known.
      * Definitions from the resource schema should be applied (in initialized/OK state). - TODO clarify + check
      *
-     * See {@link UcfChange#objectDelta} and {@link ResourceEventDescription#objectDelta}.
+     * See {@link UcfChange#objectDelta} and {@link ExternalResourceEvent#objectDelta}.
      */
     protected final ObjectDelta<ShadowType> objectDelta;
 
@@ -130,7 +130,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
      * 5. If initialization failed:
      *    a. Nothing guaranteed.
      *
-     * See {@link UcfChange#resourceObject} and {@link ResourceEventDescription#resourceObject}.
+     * See {@link UcfChange#resourceObject} and {@link ExternalResourceEvent#resourceObject}.
      */
     protected PrismObject<ShadowType> resourceObject;
 

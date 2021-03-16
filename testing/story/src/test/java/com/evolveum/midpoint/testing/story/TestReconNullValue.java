@@ -177,7 +177,7 @@ public class TestReconNullValue extends AbstractStoryTest {
         PrismObject<UserType> userAfter = getObjectByName(UserType.class, USER_0_NAME);
         display("User after adding attribute honorificPrefix", userAfter);
 
-        String accountOid = getLinkRefOid(userAfter, RESOURCE_OPENDJ_OID);
+        String accountOid = getLiveLinkRefOid(userAfter, RESOURCE_OPENDJ_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -229,7 +229,7 @@ public class TestReconNullValue extends AbstractStoryTest {
         PrismObject<UserType> userAfter = getObjectByName(UserType.class, USER_0_NAME);
         display("User after deleting attribute honorificPrefix", userAfter);
 
-        String accountOid = getLinkRefOid(userAfter, RESOURCE_OPENDJ_OID);
+        String accountOid = getLiveLinkRefOid(userAfter, RESOURCE_OPENDJ_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -282,7 +282,7 @@ public class TestReconNullValue extends AbstractStoryTest {
         PrismObject<UserType> userAfter = getObjectByName(UserType.class, USER_0_NAME);
         display("User smack after adding attribute title", userAfter);
 
-        String accountOid = getLinkRefOid(userAfter, RESOURCE_OPENDJ_OID);
+        String accountOid = getLiveLinkRefOid(userAfter, RESOURCE_OPENDJ_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -335,7 +335,7 @@ public class TestReconNullValue extends AbstractStoryTest {
         PrismObject<UserType> userAfter = getObjectByName(UserType.class, USER_0_NAME);
         display("User smack after adding attribute title", userAfter);
 
-        String accountOid = getLinkRefOid(userAfter, RESOURCE_OPENDJ_OID);
+        String accountOid = getLiveLinkRefOid(userAfter, RESOURCE_OPENDJ_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -384,7 +384,7 @@ public class TestReconNullValue extends AbstractStoryTest {
         PrismObject<UserType> userAfter = getObjectByName(UserType.class, USER_0_NAME);
         display("User smack after adding attribute title", userAfter);
 
-        String accountOid = getLinkRefOid(userAfter, RESOURCE_OPENDJ_OID);
+        String accountOid = getLiveLinkRefOid(userAfter, RESOURCE_OPENDJ_OID);
 
         // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);

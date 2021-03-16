@@ -104,6 +104,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setShadowedResourceObject(accountShadowJack);
         change.setResource(getDummyResourceObject());
+        change.setSourceChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
         // WHEN
         synchronizationService.notifyChange(change, task, result);
@@ -348,6 +349,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         ObjectDelta<ShadowType> syncDelta = prismContext.deltaFactory().object()
                 .createDeleteDelta(ShadowType.class, accountShadowJackDummyOid);
         change.setObjectDelta(syncDelta);
+        change.setSourceChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
         // WHEN
         when();
@@ -377,7 +379,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         assertUserAfter(USER_JACK_OID)
             .links()
-                .single()
+                .singleAny()
                     .assertOid(accountShadowJackDummyOid);
 
         assertRepoShadow(accountShadowJackDummyOid)
@@ -385,7 +387,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
             .assertIteration(0)
             .assertIterationToken("")
             .assertSynchronizationSituation(SynchronizationSituationType.DELETED);
-
 
         // Cleanup
         unlinkUser(USER_JACK_OID, accountShadowJackDummyOid);
@@ -419,6 +420,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setShadowedResourceObject(accountShadowCalypso);
         change.setResource(getDummyResourceObject());
+        change.setSourceChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
         // WHEN
         when();
@@ -462,6 +464,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setShadowedResourceObject(accountShadowCalypso);
         change.setResource(getDummyResourceObject());
+        change.setSourceChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
         displayDumpable("Change notification", change);
 
@@ -493,7 +496,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         OperationResult result = task.getResult();
 
         assertUserBefore(USER_JACK_OID)
-            .assertLinks(0);
+                .assertLiveLinks(0)
+                .assertRelatedLinks(0);
         setDebugListener();
 
         PrismObject<ShadowType> accountShadowJack = repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILE, result);
@@ -512,6 +516,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setShadowedResourceObject(accountShadowJack);
         change.setResource(getDummyResourceObject());
+        change.setSourceChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
         // WHEN
         when();
@@ -548,7 +553,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         TestUtil.assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
         assertLinked(userAfter, shadow);
     }
 
@@ -571,6 +576,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         ObjectDelta<ShadowType> syncDelta = prismContext.deltaFactory().object()
                 .createDeleteDelta(ShadowType.class, accountShadowJackDummyOid);
         change.setObjectDelta(syncDelta);
+        change.setSourceChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
         repositoryService.deleteObject(ShadowType.class, accountShadowJackDummyOid, result);
 
@@ -599,7 +605,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         PrismAsserts.assertNoDelta("Unexpected account primary delta", accCtx.getPrimaryDelta());
 
         assertUserAfter(USER_JACK_OID)
-            .assertLinks(0);
+            .assertLiveLinks(0);
 
         assertNoObject(ShadowType.class, accountShadowJackDummyOid, task, result);
     }
@@ -617,7 +623,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
-        assertLinks(userBefore, 0);
+        assertLiveLinks(userBefore, 0);
         setDebugListener();
 
         PrismObject<ShadowType> accountShadowJack = repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILE, result);
@@ -638,6 +644,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setShadowedResourceObject(accountShadowJack);
         change.setResource(getDummyResourceObject());
+        change.setSourceChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
         // WHEN
         when();
@@ -667,7 +674,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJack.getOid());
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowJackDummyOid);
         assertSituation(shadow, SynchronizationSituationType.LINKED);
@@ -688,7 +695,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
-        assertLinks(userBefore, 1);
+        assertLiveLinks(userBefore, 1);
         setDebugListener();
 
         displayDumpable("Dummy resource before", getDummyResource());
@@ -699,6 +706,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         PrismObject<ShadowType> accountShadowJackBefore = getShadowModelNoFetch(accountShadowJackDummyOid);
         change.setShadowedResourceObject(accountShadowJackBefore);
         change.setResource(getDummyResourceObject());
+        change.setSourceChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
         // WHEN
         when();
@@ -728,7 +736,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJackDummyOid);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         PrismObject<ShadowType> shadowAfter = getShadowModelNoFetch(accountShadowJackDummyOid);
         assertSituation(shadowAfter, SynchronizationSituationType.LINKED);
@@ -777,7 +785,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJackDummyOid);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         PrismObject<ShadowType> shadowAfter = getShadowModelNoFetch(accountShadowJackDummyOid);
         assertSituation(shadowAfter, SynchronizationSituationType.LINKED);
@@ -823,7 +831,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJackDummyOid);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        assertLinks(userAfter, 2);
+        assertLiveLinks(userAfter, 2);
         accountShadowJackDummyLimitedOid = assertAccount(userAfter, RESOURCE_DUMMY_LIMITED_OID);
 
         PrismObject<ShadowType> shadowDummyAfter = getShadowModelNoFetch(accountShadowJackDummyOid);
@@ -850,7 +858,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
-        assertLinks(userBefore, 2);
+        assertLiveLinks(userBefore, 2);
         getDummyResource().resetBreakMode();
         setDebugListener();
 
@@ -865,6 +873,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         PrismObject<ShadowType> accountShadowLimitedJackBefore = getShadowModelNoFetch(accountShadowJackDummyLimitedOid);
         change.setShadowedResourceObject(accountShadowLimitedJackBefore);
         change.setResource(getDummyResourceObject(RESOURCE_DUMMY_LIMITED_NAME));
+        change.setSourceChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_MODIFICATION_COUNT);
@@ -908,7 +917,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 1);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        assertLinks(userAfter, 2);
+        assertLiveLinks(userAfter, 2);
 
         displayDumpable("Dummy resource after", getDummyResource());
 
@@ -946,6 +955,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setShadowedResourceObject(shadowPirates);
         change.setResource(getDummyResourceObject());
+        change.setSourceChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
         // WHEN
         when();

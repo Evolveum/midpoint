@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -470,5 +471,17 @@ public class ProvisioningContext extends StateReporter {
                 return toHumanReadableDescription();
             }
         };
+    }
+
+    public boolean isInMaintenance() throws ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
+        return ResourceTypeUtil.isInMaintenance(getResource());
+    }
+
+    public void checkNotInMaintenance() throws ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
+        if (isInMaintenance()) {
+            throw new MaintenanceException("Resource " + getResource() + " is in the maintenance");
+        }
     }
 }
