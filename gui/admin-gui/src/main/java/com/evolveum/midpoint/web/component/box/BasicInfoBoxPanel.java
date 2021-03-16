@@ -22,7 +22,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
  * @author semancik
  * @author skublik
  */
-public class BasicInfoBoxPanel extends InfoBoxPanel{
+public class BasicInfoBoxPanel extends InfoBoxPanel<InfoBoxType> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_PROGRESS = "progress";

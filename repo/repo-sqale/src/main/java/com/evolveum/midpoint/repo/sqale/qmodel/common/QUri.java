@@ -18,6 +18,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 /**
  * Querydsl query type for {@value #TABLE_NAME} table that contains repetitive URIs (e.g. channels).
  * This entity is not registered to any schema type so it doesn't have related mapping class.
+ * Use {@link #DEFAULT} for default alias directly.
  */
 public class QUri extends FlexibleRelationalPathBase<MUri> {
 

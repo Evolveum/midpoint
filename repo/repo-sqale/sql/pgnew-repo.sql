@@ -505,31 +505,33 @@ ALTER TABLE m_archetype ADD CONSTRAINT m_archetype_name_norm_key UNIQUE (name_no
 -- endregion
 
 -- region Access Certification object tables
--- TODO not mapped yet (to the end of m_acc_cert* region)
-CREATE TABLE m_acc_cert_definition (
+-- Represents AccessCertificationDefinitionType, see https://wiki.evolveum.com/display/midPoint/Access+Certification
+CREATE TABLE m_access_cert_definition (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_DEFINITION') STORED,
     handlerUri_id INTEGER, -- soft-references m_uri
-    lastCampaignClosedTimestamp TIMESTAMPTZ,
     lastCampaignStartedTimestamp TIMESTAMPTZ,
+    lastCampaignClosedTimestamp TIMESTAMPTZ,
     ownerRef_targetOid UUID,
     ownerRef_targetType ObjectType,
     ownerRef_relation_id INTEGER -- soft-references m_uri
 )
     INHERITS (m_object);
 
-CREATE TRIGGER m_acc_cert_definition_oid_insert_tr BEFORE INSERT ON m_acc_cert_definition
+CREATE TRIGGER m_access_cert_definition_oid_insert_tr BEFORE INSERT ON m_access_cert_definition
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
-CREATE TRIGGER m_acc_cert_definition_update_tr BEFORE UPDATE ON m_acc_cert_definition
+CREATE TRIGGER m_access_cert_definition_update_tr BEFORE UPDATE ON m_access_cert_definition
     FOR EACH ROW EXECUTE PROCEDURE before_update_object();
-CREATE TRIGGER m_acc_cert_definition_oid_delete_tr AFTER DELETE ON m_acc_cert_definition
+CREATE TRIGGER m_access_cert_definition_oid_delete_tr AFTER DELETE ON m_access_cert_definition
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
-CREATE INDEX m_acc_cert_definition_name_orig_idx ON m_acc_cert_definition (name_orig);
-ALTER TABLE m_acc_cert_definition ADD CONSTRAINT m_acc_cert_definition_name_norm_key UNIQUE (name_norm);
-CREATE INDEX m_acc_cert_definition_ext_idx ON m_acc_cert_definition USING gin (ext);
+CREATE INDEX m_access_cert_definition_name_orig_idx ON m_access_cert_definition (name_orig);
+ALTER TABLE m_access_cert_definition
+    ADD CONSTRAINT m_access_cert_definition_name_norm_key UNIQUE (name_norm);
+CREATE INDEX m_access_cert_definition_ext_idx ON m_access_cert_definition USING gin (ext);
 
-CREATE TABLE m_acc_cert_campaign (
+-- TODO not mapped yet
+CREATE TABLE m_access_cert_campaign (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CAMPAIGN') STORED,
     definitionRef_targetOid UUID,
@@ -547,18 +549,18 @@ CREATE TABLE m_acc_cert_campaign (
 )
     INHERITS (m_object);
 
-CREATE TRIGGER m_acc_cert_campaign_oid_insert_tr BEFORE INSERT ON m_acc_cert_campaign
+CREATE TRIGGER m_access_cert_campaign_oid_insert_tr BEFORE INSERT ON m_access_cert_campaign
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
-CREATE TRIGGER m_acc_cert_campaign_update_tr BEFORE UPDATE ON m_acc_cert_campaign
+CREATE TRIGGER m_access_cert_campaign_update_tr BEFORE UPDATE ON m_access_cert_campaign
     FOR EACH ROW EXECUTE PROCEDURE before_update_object();
-CREATE TRIGGER m_acc_cert_campaign_oid_delete_tr AFTER DELETE ON m_acc_cert_campaign
+CREATE TRIGGER m_access_cert_campaign_oid_delete_tr AFTER DELETE ON m_access_cert_campaign
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
-CREATE INDEX m_acc_cert_campaign_name_orig_idx ON m_acc_cert_campaign (name_orig);
-ALTER TABLE m_acc_cert_campaign ADD CONSTRAINT m_acc_cert_campaign_name_norm_key UNIQUE (name_norm);
-CREATE INDEX m_acc_cert_campaign_ext_idx ON m_acc_cert_campaign USING gin (ext);
+CREATE INDEX m_access_cert_campaign_name_orig_idx ON m_access_cert_campaign (name_orig);
+ALTER TABLE m_access_cert_campaign ADD CONSTRAINT m_access_cert_campaign_name_norm_key UNIQUE (name_norm);
+CREATE INDEX m_access_cert_campaign_ext_idx ON m_access_cert_campaign USING gin (ext);
 
-CREATE TABLE m_acc_cert_case (
+CREATE TABLE m_access_cert_case (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
     containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CASE') STORED,
     administrativeStatus INTEGER,
@@ -596,7 +598,7 @@ CREATE TABLE m_acc_cert_case (
 )
     INHERITS(m_container);
 
-CREATE TABLE m_acc_cert_wi (
+CREATE TABLE m_access_cert_wi (
     owner_oid UUID NOT NULL, -- PK+FK
     acc_cert_case_cid INTEGER NOT NULL, -- PK+FK
     containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_WORK_ITEM') STORED,
@@ -613,12 +615,12 @@ CREATE TABLE m_acc_cert_wi (
 )
     INHERITS(m_container);
 
-ALTER TABLE m_acc_cert_wi
-    ADD CONSTRAINT m_acc_cert_wi_id_fk FOREIGN KEY (owner_oid, acc_cert_case_cid)
-        REFERENCES m_acc_cert_case (owner_oid, cid)
+ALTER TABLE m_access_cert_wi
+    ADD CONSTRAINT m_access_cert_wi_id_fk FOREIGN KEY (owner_oid, acc_cert_case_cid)
+        REFERENCES m_access_cert_case (owner_oid, cid)
             ON DELETE CASCADE;
 
-CREATE TABLE m_acc_cert_wi_reference (
+CREATE TABLE m_access_cert_wi_reference (
     owner_oid UUID NOT NULL, -- PK+FK
     acc_cert_case_cid INTEGER NOT NULL, -- PK+FK
     acc_cert_wi_cid INTEGER NOT NULL, -- PK+FK
@@ -630,21 +632,21 @@ CREATE TABLE m_acc_cert_wi_reference (
     PRIMARY KEY (owner_oid, acc_cert_case_cid, acc_cert_wi_cid, relation_id, targetOid)
 );
 
-ALTER TABLE m_acc_cert_wi_reference
-    ADD CONSTRAINT m_acc_cert_wi_reference_id_fk
+ALTER TABLE m_access_cert_wi_reference
+    ADD CONSTRAINT m_access_cert_wi_reference_id_fk
         FOREIGN KEY (owner_oid, acc_cert_case_cid, acc_cert_wi_cid)
-        REFERENCES m_acc_cert_wi (owner_oid, acc_cert_case_cid, cid)
+        REFERENCES m_access_cert_wi (owner_oid, acc_cert_case_cid, cid)
             ON DELETE CASCADE;
 /*
-CREATE INDEX iCertCampaignNameOrig ON m_acc_cert_campaign (name_orig);
-ALTER TABLE m_acc_cert_campaign ADD CONSTRAINT uc_acc_cert_campaign_name UNIQUE (name_norm);
-CREATE INDEX iCaseObjectRefTargetOid ON m_acc_cert_case (objectRef_targetOid);
-CREATE INDEX iCaseTargetRefTargetOid ON m_acc_cert_case (targetRef_targetOid);
-CREATE INDEX iCaseTenantRefTargetOid ON m_acc_cert_case (tenantRef_targetOid);
-CREATE INDEX iCaseOrgRefTargetOid ON m_acc_cert_case (orgRef_targetOid);
-CREATE INDEX iCertDefinitionNameOrig ON m_acc_cert_definition (name_orig);
-ALTER TABLE m_acc_cert_definition ADD CONSTRAINT uc_acc_cert_definition_name UNIQUE (name_norm);
-CREATE INDEX iCertWorkItemRefTargetOid ON m_acc_cert_wi_reference (targetOid);
+CREATE INDEX iCertCampaignNameOrig ON m_access_cert_campaign (name_orig);
+ALTER TABLE m_access_cert_campaign ADD CONSTRAINT uc_access_cert_campaign_name UNIQUE (name_norm);
+CREATE INDEX iCaseObjectRefTargetOid ON m_access_cert_case (objectRef_targetOid);
+CREATE INDEX iCaseTargetRefTargetOid ON m_access_cert_case (targetRef_targetOid);
+CREATE INDEX iCaseTenantRefTargetOid ON m_access_cert_case (tenantRef_targetOid);
+CREATE INDEX iCaseOrgRefTargetOid ON m_access_cert_case (orgRef_targetOid);
+CREATE INDEX iCertDefinitionNameOrig ON m_access_cert_definition (name_orig);
+ALTER TABLE m_access_cert_definition ADD CONSTRAINT uc_access_cert_definition_name UNIQUE (name_norm);
+CREATE INDEX iCertWorkItemRefTargetOid ON m_access_cert_wi_reference (targetOid);
  */
 -- endregion
 
@@ -1229,7 +1231,7 @@ CREATE INDEX m_inducement_resourceRef_targetOid_idx ON m_inducement (resourceRef
 CREATE TABLE m_trigger (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     containerType ContainerType GENERATED ALWAYS AS ('TRIGGER') STORED,
-    handlerUri_id INTEGER,
+    handlerUri_id INTEGER, -- soft-references m_uri
     timestampValue TIMESTAMPTZ,
 
     PRIMARY KEY (owner_oid, cid)

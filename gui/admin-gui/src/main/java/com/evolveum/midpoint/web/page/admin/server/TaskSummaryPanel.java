@@ -165,37 +165,34 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
     @Override
     protected IModel<String> getTitleModel() {
-        return new IModel<String>() {
-            @Override
-            public String getObject() {
-                    TaskType taskType = getModelObject();
+        return (IModel<String>) () -> {
+                TaskType taskType = getModelObject();
 
-                    String rv;
-                    if (taskType.getExpectedTotal() != null) {
-                        rv = createStringResource("TaskSummaryPanel.progressWithTotalKnown", taskType.getProgress(), taskType.getExpectedTotal())
-                                .getString();
-                    } else {
-                        rv = createStringResource("TaskSummaryPanel.progressWithTotalUnknown", taskType.getProgress()).getString();
+                String rv;
+                if (taskType.getExpectedTotal() != null) {
+                    rv = createStringResource("TaskSummaryPanel.progressWithTotalKnown", taskType.getProgress(), taskType.getExpectedTotal())
+                            .getString();
+                } else {
+                    rv = createStringResource("TaskSummaryPanel.progressWithTotalUnknown", taskType.getProgress()).getString();
+                }
+                if (taskType.getExecutionStatus() != null) {
+                    switch (taskType.getExecutionStatus()) {
+                        case SUSPENDED:
+                            rv += " " + getString("TaskSummaryPanel.progressIfSuspended");
+                            break;
+                        case CLOSED:
+                            rv += " " + getString("TaskSummaryPanel.progressIfClosed");
+                            break;
+                        case WAITING:
+                            rv += " " + getString("TaskSummaryPanel.progressIfWaiting");
+                            break;
                     }
-                    if (taskType.getExecutionStatus() != null) {
-                        switch (taskType.getExecutionStatus()) {
-                            case SUSPENDED:
-                                rv += " " + getString("TaskSummaryPanel.progressIfSuspended");
-                                break;
-                            case CLOSED:
-                                rv += " " + getString("TaskSummaryPanel.progressIfClosed");
-                                break;
-                            case WAITING:
-                                rv += " " + getString("TaskSummaryPanel.progressIfWaiting");
-                                break;
-                        }
-                    }
-                    Long stalledSince = WebComponentUtil.xgc2long(taskType.getStalledSince());
-                    if (stalledSince != null) {
-                        rv += " " + getString("TaskSummaryPanel.progressIfStalled", WebComponentUtil.formatDate(new Date(stalledSince)));
-                    }
-                    return rv;
-            }
+                }
+                Long stalledSince = WebComponentUtil.xgc2long(taskType.getStalledSince());
+                if (stalledSince != null) {
+                    rv += " " + getString("TaskSummaryPanel.progressIfStalled", WebComponentUtil.formatDate(new Date(stalledSince)));
+                }
+                return rv;
         };
     }
 
@@ -217,33 +214,30 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
     @Override
     protected IModel<String> getTitle3Model() {
-        return new IModel<String>() {
-            @Override
-            public String getObject() {
+        return (IModel<String>) () -> {
 
-                TaskType taskType = getModelObject();
-                if (taskType == null) {
-                    return null;
-                }
-                long started = XmlTypeConverter.toMillis(taskType.getLastRunStartTimestamp());
-                long finished = XmlTypeConverter.toMillis(taskType.getLastRunFinishTimestamp());
-                if (started == 0) {
-                    return null;
-                }
-                TaskDtoExecutionState status = TaskDtoExecutionState.fromTaskExecutionStatus(
-                        taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);
-                if (status.equals(TaskDtoExecutionState.RUNNING)
-                        || finished == 0 || finished < started) {
+            TaskType taskType = getModelObject();
+            if (taskType == null) {
+                return null;
+            }
+            long started = XmlTypeConverter.toMillis(taskType.getLastRunStartTimestamp());
+            long finished = XmlTypeConverter.toMillis(taskType.getLastRunFinishTimestamp());
+            if (started == 0) {
+                return null;
+            }
+            TaskDtoExecutionState status = TaskDtoExecutionState.fromTaskExecutionStatus(
+                    taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);
+            if (status.equals(TaskDtoExecutionState.RUNNING)
+                    || finished == 0 || finished < started) {
 
-                    return getString("TaskStatePanel.message.executionTime.notFinished",
-                            WebComponentUtil.getShortDateTimeFormattedValue(new Date(started), getPageBase()),
-                            DurationFormatUtils.formatDurationHMS(System.currentTimeMillis() - started));
-                } else {
-                    return getString("TaskStatePanel.message.executionTime.finished",
-                            WebComponentUtil.getShortDateTimeFormattedValue(new Date(started), getPageBase()),
-                            WebComponentUtil.getShortDateTimeFormattedValue(new Date(finished), getPageBase()),
-                            DurationFormatUtils.formatDurationHMS(finished - started));
-                }
+                return getString("TaskStatePanel.message.executionTime.notFinished",
+                        WebComponentUtil.getShortDateTimeFormattedValue(new Date(started), getPageBase()),
+                        DurationFormatUtils.formatDurationHMS(System.currentTimeMillis() - started));
+            } else {
+                return getString("TaskStatePanel.message.executionTime.finished",
+                        WebComponentUtil.getShortDateTimeFormattedValue(new Date(started), getPageBase()),
+                        WebComponentUtil.getShortDateTimeFormattedValue(new Date(finished), getPageBase()),
+                        DurationFormatUtils.formatDurationHMS(finished - started));
             }
         };
     }

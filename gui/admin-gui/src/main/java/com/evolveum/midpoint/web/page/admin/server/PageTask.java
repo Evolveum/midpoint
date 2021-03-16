@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -158,9 +160,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         createCleanupPerformanceButton(repeatingView);
         createCleanupResultsButton(repeatingView);
 
-        createRefreshNowIconButton(repeatingView);
-        createResumePauseButton(repeatingView);
-
 //        AjaxIconButton cleanupErrors = new AjaxIconButton(repeatingView.newChildId(), new Model<>(GuiStyleConstants.CLASS_ICON_TRASH),
 //        createStringResource("operationalButtonsPanel.cleanupErrors")) {
 //
@@ -175,10 +174,16 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
         setOutputMarkupId(true);
 
-        final Label status = new Label(repeatingView.newChildId(), this::createRefreshingLabel);
-        status.setOutputMarkupId(true);
-        repeatingView.add(status);
+    }
 
+    //TODO later migrate higher.. this might be later used for all focuses
+    @Override
+    protected void initStateButtons(RepeatingView stateButtonsView) {
+        createRefreshNowIconButton(stateButtonsView);
+        createResumePauseButton(stateButtonsView);
+        final Label status = new Label(stateButtonsView.newChildId(), this::createRefreshingLabel);
+        status.setOutputMarkupId(true);
+        stateButtonsView.add(status);
     }
 
     private void createSuspendButton(RepeatingView repeatingView) {
@@ -194,7 +199,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             }
         };
         suspend.add(new VisibleBehaviour(() -> WebComponentUtil.canSuspendTask(getTask(), PageTask.this)));
-        suspend.add(AttributeAppender.append("class", "btn-danger"));
+        suspend.add(AttributeAppender.append("class", "btn-danger btn-sm"));
         repeatingView.add(suspend);
     }
 
@@ -210,7 +215,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                 afterOperation(target, result);
             }
         };
-        resume.add(AttributeAppender.append("class", "btn-primary"));
+        resume.add(AttributeAppender.append("class", "btn-primary btn-sm"));
         resume.add(new VisibleBehaviour(() -> WebComponentUtil.canResumeTask(getTask(), PageTask.this)));
         repeatingView.add(resume);
     }
@@ -225,7 +230,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                 afterOperation(target, result);
             }
         };
-        runNow.add(AttributeAppender.append("class", "btn-success"));
+        runNow.add(AttributeAppender.append("class", "btn-success btn-sm"));
         runNow.add(new VisibleBehaviour(() -> WebComponentUtil.canRunNowTask(getTask(), PageTask.this)));
         repeatingView.add(runNow);
     }
@@ -257,7 +262,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                 return isNotRunning();
             }
         });
-        manageLivesyncToken.add(AttributeAppender.append("class", "btn-default"));
+        manageLivesyncToken.add(AttributeAppender.append("class", "btn-default btn-sm"));
         manageLivesyncToken.setOutputMarkupId(true);
         repeatingView.add(manageLivesyncToken);
     }
@@ -294,7 +299,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             }
         };
         download.add(new VisibleBehaviour(this::isDownloadReportVisible));
-        download.add(AttributeAppender.append("class", "btn-primary"));
+        download.add(AttributeAppender.append("class", "btn-primary btn-sm"));
         repeatingView.add(download);
     }
 
@@ -519,12 +524,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         PrismObjectWrapper<TaskType> taskWrapper = getObjectWrapper();
         try {
             // TODO MID-6783
-            PrismPropertyWrapper<TaskExecutionStateType> executionStatus = taskWrapper.findProperty(ItemPath.create(TaskType.F_EXECUTION_STATUS));
-            if (run) {
-                executionStatus.getValue().setRealValue(TaskExecutionStateType.RUNNABLE);
-            } else {
-                executionStatus.getValue().setRealValue(TaskExecutionStateType.SUSPENDED);
-            }
+            setTaskInitialState(taskWrapper, run);
 
             setupOwner(taskWrapper);
             setupRecurrence(taskWrapper);
@@ -546,6 +546,32 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         }
 
         super.savePerformed(target);
+    }
+
+    private void setTaskInitialState(PrismObjectWrapper<TaskType> taskWrapper, boolean run) throws SchemaException {
+        if (!isAdd()) {
+            return;
+        }
+        PrismPropertyWrapper<TaskExecutionStateType> executionStatus = taskWrapper.findProperty(ItemPath.create(TaskType.F_EXECUTION_STATUS));
+        PrismPropertyWrapper<TaskSchedulingStateType> schedulingState = taskWrapper.findProperty(ItemPath.create(TaskType.F_SCHEDULING_STATE));
+        if (executionStatus == null || schedulingState == null) {
+            throw new SchemaException("Task cannot be set as running, no execution status or scheduling status present");
+        }
+        if (run) {
+            setTaskInitiallyRunning(executionStatus, schedulingState);
+        } else {
+            setTaskInitiallySuspended(executionStatus, schedulingState);
+        }
+    }
+
+    private void setTaskInitiallyRunning(PrismPropertyWrapper<TaskExecutionStateType> executionStatus, PrismPropertyWrapper<TaskSchedulingStateType> schedulingState) throws SchemaException {
+        executionStatus.getValue().setRealValue(TaskExecutionStateType.RUNNABLE);
+        schedulingState.getValue().setRealValue(TaskSchedulingStateType.READY);
+    }
+
+    private void setTaskInitiallySuspended(PrismPropertyWrapper<TaskExecutionStateType> executionStatus, PrismPropertyWrapper<TaskSchedulingStateType> schedulingState) throws SchemaException {
+        executionStatus.getValue().setRealValue(TaskExecutionStateType.SUSPENDED);
+        schedulingState.getValue().setRealValue(TaskSchedulingStateType.SUSPENDED);
     }
 
     private void setupOwner(PrismObjectWrapper<TaskType> taskWrapper) throws SchemaException {

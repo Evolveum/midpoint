@@ -10,44 +10,34 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
+import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OutcomeKeyedCounterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationTransitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
-public class SynchronizationSituationTransitionPanel extends BasePanel<SynchronizationSituationTransitionType> {
+public class SynchronizationSituationTransitionPanel extends BasePanel<List<SynchronizationSituationTransitionType>> {
 
-    private static final String ID_PROCESSING_START = "processingStart";
-    private static final String ID_SYNC_START =  "syncStart";
-    private static final String ID_SYNC_END = "syncEnd";
-    private static final String ID_EXCLUSION_REASON = "exclusionReason";
-    private static final String ID_TOTAL_COUNT = "totalCount";
-    private static final String ID_OUTCOME_TABLE = "outcomeTable";
-    private static final String ID_COLLAPSE_EXPAND = "collapseExpand";
-    private static final String ID_BOX_BODY = "boxBody";
-    private static final String ID_BUTTON_ICON = "buttonIcon";
+    private static final String ID_SYNCHORNIZATION_SITUATIONS_TRANSITIONS = "synchronizationSituationTransitions";
+    private static final String ID_SYNCHRONIZATION_SITUATIONS_TRANSITION_TITLE = "syncSituationTranstitionTitle";
 
-    private boolean isExpanded = false;
-
-    public SynchronizationSituationTransitionPanel(String id, IModel<SynchronizationSituationTransitionType> model) {
+    public SynchronizationSituationTransitionPanel(String id, IModel<List<SynchronizationSituationTransitionType>> model) {
         super(id, model);
     }
 
@@ -58,45 +48,85 @@ public class SynchronizationSituationTransitionPanel extends BasePanel<Synchroni
     }
 
     private void initLayout() {
-        add(createLabelItem(ID_PROCESSING_START, createSituationLabel(getModel(), SynchronizationSituationTransitionType.F_ON_PROCESSING_START)));
-        add(createLabelItem(ID_SYNC_START, createSituationLabel(getModel(), SynchronizationSituationTransitionType.F_ON_SYNCHRONIZATION_START)));
-        add(createLabelItem(ID_SYNC_END, createSituationLabel(getModel(), SynchronizationSituationTransitionType.F_ON_SYNCHRONIZATION_END)));
-        add(createLabelItem(ID_EXCLUSION_REASON, new PropertyModel<>(getModel(), SynchronizationSituationTransitionType.F_EXCLUSION_REASON.getLocalPart())));
-        add(new Label(ID_TOTAL_COUNT, new ReadOnlyModel<>(() -> getTotalCount(getModel()))));
 
-        IModel<List<OutcomeKeyedCounterType>> outcomeCounterModel = new PropertyModel<>(getModel(), SynchronizationSituationTransitionType.F_COUNTER.getLocalPart());
-        ListDataProvider<OutcomeKeyedCounterType> outcomeCounterProvider = new ListDataProvider<>(this, outcomeCounterModel);
-
-        WebMarkupContainer boxBody = new WebMarkupContainer(ID_BOX_BODY);
-        boxBody.add(new VisibleBehaviour(() -> isExpanded));
-        add(boxBody);
-
-        BoxedTablePanel<OutcomeKeyedCounterType> table =
-                new BoxedTablePanel<>(ID_OUTCOME_TABLE, outcomeCounterProvider, createOutcomeKeyedContainerColumns()) {
-                    @Override
-                    protected boolean hideFooterIfSinglePage() {
-                        return true;
-                    }
-                };
-
-        table.setOutputMarkupId(true);
-        boxBody.add(table);
-
-        AjaxButton collapseExpand = new AjaxButton(ID_COLLAPSE_EXPAND) {
+        BoxedTablePanel<SynchronizationSituationTransitionType> transitions = new BoxedTablePanel<>(ID_SYNCHORNIZATION_SITUATIONS_TRANSITIONS, new ListDataProvider(this, getModel()), createColumns()) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                isExpanded = !isExpanded;
-                target.add(SynchronizationSituationTransitionPanel.this);
+            protected boolean hideFooterIfSinglePage() {
+                return true;
             }
-        };
-        collapseExpand.setOutputMarkupId(true);
-        add(collapseExpand);
 
-        WebMarkupContainer buttonIcon = new WebMarkupContainer(ID_BUTTON_ICON);
-        buttonIcon.add(AttributeModifier.replace("class", new ReadOnlyModel<>(() -> isExpanded ? "fa fa-minus" : "fa fa-plus")));
-        collapseExpand.add(buttonIcon);
-        setOutputMarkupId(true);
+            @Override
+            protected WebMarkupContainer createHeader(String headerId) {
+                return new HeaderFragment(headerId, ID_SYNCHRONIZATION_SITUATIONS_TRANSITION_TITLE, SynchronizationSituationTransitionPanel.this);
+            }
+
+        };
+        transitions.setOutputMarkupId(true);
+        add(transitions);
+
+    }
+
+    private List<IColumn<SynchronizationSituationTransitionType, String>> createColumns() {
+        List<IColumn<SynchronizationSituationTransitionType, String>> columns = new ArrayList<>();
+        columns.add(new EnumPropertyColumn<>(createStringResource("SynchronizationSituationTransitionType.onProcessingStart"), SynchronizationSituationTransitionType.F_ON_PROCESSING_START.getLocalPart(), "SynchronizationSituationTransitionType.UNKNOWN"));
+        columns.add(new EnumPropertyColumn<>(createStringResource("SynchronizationSituationTransitionType.onSynchronizationStart"), SynchronizationSituationTransitionType.F_ON_SYNCHRONIZATION_START.getLocalPart(), "SynchronizationSituationTransitionType.UNKNOWN"));
+        columns.add(new EnumPropertyColumn<>(createStringResource("SynchronizationSituationTransitionType.onSynchronizationEnd"), SynchronizationSituationTransitionType.F_ON_SYNCHRONIZATION_END.getLocalPart(), "SynchronizationSituationTransitionType.UNKNOWN"));
+        columns.add(new EnumPropertyColumn<>(createStringResource("SynchronizationSituationTransitionType.exclusionReason"), SynchronizationSituationTransitionType.F_EXCLUSION_REASON.getLocalPart()));
+        columns.add(new AbstractColumn<>(createStringResource("SynchronizationSituationTransitionType.countSuccess")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SynchronizationSituationTransitionType>> item, String s, IModel<SynchronizationSituationTransitionType> iModel) {
+                item.add(new Label(s, getCountFor(iModel.getObject(), ItemProcessingOutcomeType.SUCCESS)));
+            }
+        });
+        columns.add(new AbstractColumn<>(createStringResource("SynchronizationSituationTransitionType.countError")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SynchronizationSituationTransitionType>> item, String s, IModel<SynchronizationSituationTransitionType> iModel) {
+                item.add(new Label(s, getCountFor(iModel.getObject(), ItemProcessingOutcomeType.FAILURE)));
+            }
+        });
+        columns.add(new AbstractColumn<>(createStringResource("SynchronizationSituationTransitionType.countSkip")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SynchronizationSituationTransitionType>> item, String s, IModel<SynchronizationSituationTransitionType> iModel) {
+                item.add(new Label(s, getCountFor(iModel.getObject(), ItemProcessingOutcomeType.SKIP)));
+            }
+        });
+        columns.add(new AbstractColumn<>(createStringResource("SynchronizationSituationTransitionType.totalCount")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SynchronizationSituationTransitionType>> item, String s, IModel<SynchronizationSituationTransitionType> iModel) {
+                item.add(new Label(s, getTotalCount(iModel)));
+            }
+        });
+        return columns;
+    }
+
+    private String getCountFor(SynchronizationSituationTransitionType item, ItemProcessingOutcomeType outcome) {
+        if (item == null) {
+            return "0";
+        }
+
+        int count = 0;
+        List<OutcomeKeyedCounterType> counters = item.getCounter();
+        for (OutcomeKeyedCounterType counter : counters) {
+            QualifiedItemProcessingOutcomeType counterOutcome = counter.getOutcome();
+            if (counterOutcome == null || outcome != counterOutcome.getOutcome()) {
+                continue;
+            }
+            count += getCount(counter);
+        }
+        return Integer.toString(count);
+    }
+
+    private int getCount(OutcomeKeyedCounterType counter) {
+        if (counter == null || counter.getCount() == null) {
+            return 0;
+        }
+
+        return counter.getCount();
     }
 
     private int incrementCounter(Integer totalCount, OutcomeKeyedCounterType counter) {
@@ -108,30 +138,6 @@ public class SynchronizationSituationTransitionPanel extends BasePanel<Synchroni
         totalCount += counterCount;
         return totalCount;
     }
-    private Label createLabelItem(String id, IModel<String> model) {
-        Label label = new Label(id, model);
-        label.setRenderBodyOnly(true);
-        return label;
-    }
-
-    private IModel<String> createSituationLabel(IModel<SynchronizationSituationTransitionType> syncSituationModel, QName stage) {
-        return new ReadOnlyModel<>(() -> {
-            SynchronizationSituationTransitionType transition = syncSituationModel.getObject();
-            if (transition == null) {
-                return null;
-            }
-            PrismProperty<SynchronizationSituationType> syncSituation = transition.asPrismContainerValue().findProperty(ItemPath.create(stage));
-            if (syncSituation == null) {
-                return "Unknown";
-            }
-            SynchronizationSituationType syncSituationType = syncSituation.getRealValue();
-            if (syncSituationType == null) {
-                return "Unknown";
-            }
-            return syncSituationType.value();
-        });
-    }
-
 
     private String getTotalCount(IModel<SynchronizationSituationTransitionType> syncSituationTrasitionModel) {
         if (syncSituationTrasitionModel == null) {
@@ -151,26 +157,11 @@ public class SynchronizationSituationTransitionPanel extends BasePanel<Synchroni
         return Integer.toString(totalCount);
     }
 
-    private List<IColumn<OutcomeKeyedCounterType, String>> createOutcomeKeyedContainerColumns() {
-        List<IColumn<OutcomeKeyedCounterType, String>> syncColumns = new ArrayList<>();
-        syncColumns.add(createQualifiedItemPropertyColumn(QualifiedItemProcessingOutcomeType.F_QUALIFIER_URI));
-        syncColumns.add(createQualifiedItemPropertyColumn(QualifiedItemProcessingOutcomeType.F_OUTCOME));
-        syncColumns.add(createPropertyColumn());
-        return syncColumns;
-    }
+    class HeaderFragment extends Fragment {
 
-    private <T> PropertyColumn<T, String> createPropertyColumn() {
-        String columnName = OutcomeKeyedCounterType.F_COUNT.getLocalPart();
-        return new PropertyColumn<>(createStringResource("OutcomeKeyedCounterType." + columnName), columnName);
-    }
+        public HeaderFragment(String id, String markupId, MarkupContainer markupProvider) {
+            super(id, markupId, markupProvider);
+        }
 
-    private PropertyColumn<OutcomeKeyedCounterType, String> createQualifiedItemPropertyColumn(QName columnName) {
-        String columnNameString = columnName.getLocalPart();
-        StringResourceModel columnDisplayName = createStringResource("QualifiedItemProcessingOutcomeType." + columnNameString);
-        return new PropertyColumn<>(columnDisplayName, createQualifiedItemExpression(columnNameString));
-    }
-
-    private String createQualifiedItemExpression(String itemName) {
-        return OutcomeKeyedCounterType.F_OUTCOME.getLocalPart() + "." + itemName;
     }
 }

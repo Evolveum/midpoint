@@ -23,7 +23,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -45,9 +45,10 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
     private static final String ID_PROCESSING_INFO = "processingInfo";
     private static final String ID_SYNCHRONIZATION_STATISTICS = "synchronizationStatistics";
     private static final String ID_SYNCHORNIZATION_SITUATIONS_TRANSITIONS = "synchronizationSituationTransitions";
-    private static final String ID_SYNCHORNIZATION_SITUATIONS_TRANSITION = "synchronizationSituationTransition";
     private static final String ID_ACTION_ENTRY = "actionEntry";
+    private static final String ID_ACTION_ENTRY_TITLE = "actionEntryTitle";
     private static final String ID_RESULTING_ENTRY = "resultingEntry";
+    private static final String ID_RESULTING_ENTRY_TITLE ="resultingEntryTitle";
 
     private LoadableModel<OperationStatsType> statisticsModel;
 
@@ -94,7 +95,7 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
             protected IModel<TaskIterativeProgressType> createProgressModel(ListItem<IterativeTaskPartItemsProcessingInformationType> item) {
                 return new ReadOnlyModel<>(() -> {
                     IterativeTaskPartItemsProcessingInformationType taskInfo = item.getModelObject();
-                    return new TaskIterativeProgressType(taskInfo, TaskOperationStatisticsPanel.this.getModelObject().getObject().asObjectable(), getPageBase());
+                    return new TaskIterativeProgressType(taskInfo, TaskOperationStatisticsPanel.this.getModelObject().getObject().asObjectable());
                 });
             }
         };
@@ -108,16 +109,7 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
         add(syncTransitionParent);
 
         PropertyModel<List<SynchronizationSituationTransitionType>> syncInfoModel = new PropertyModel<>(statisticsModel, getSynchronizationTransitionExpression());
-        ListView<SynchronizationSituationTransitionType> transitions = new ListView<>(ID_SYNCHORNIZATION_SITUATIONS_TRANSITIONS, syncInfoModel) {
-
-            @Override
-            protected void populateItem(ListItem<SynchronizationSituationTransitionType> item) {
-                IModel<SynchronizationSituationTransitionType> syncSituationTransitionModel = item.getModel();
-                SynchronizationSituationTransitionPanel synchronizationSituationTransitionPanel = new SynchronizationSituationTransitionPanel(ID_SYNCHORNIZATION_SITUATIONS_TRANSITION, syncSituationTransitionModel);
-                item.add(synchronizationSituationTransitionPanel);
-            }
-        };
-
+        SynchronizationSituationTransitionPanel transitions = new SynchronizationSituationTransitionPanel(ID_SYNCHORNIZATION_SITUATIONS_TRANSITIONS, syncInfoModel);
         transitions.setOutputMarkupId(true);
         syncTransitionParent.add(transitions);
 
@@ -129,6 +121,11 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
             @Override
             protected boolean hideFooterIfSinglePage() {
                 return true;
+            }
+
+            @Override
+            protected WebMarkupContainer createHeader(String headerId) {
+                return new Fragment(headerId, ID_ACTION_ENTRY_TITLE, TaskOperationStatisticsPanel.this);
             }
         };
 
@@ -143,6 +140,11 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
             protected boolean hideFooterIfSinglePage() {
                 return true;
             }
+
+                    @Override
+                    protected WebMarkupContainer createHeader(String headerId) {
+                        return new Fragment(headerId, ID_RESULTING_ENTRY_TITLE, TaskOperationStatisticsPanel.this);
+                    }
         };
 
         resultingEntry.setOutputMarkupId(true);
