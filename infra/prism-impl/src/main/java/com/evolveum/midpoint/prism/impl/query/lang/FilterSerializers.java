@@ -180,7 +180,16 @@ public class FilterSerializers {
     }
 
     static void typeFilter(TypeFilterImpl source, QueryWriter target) throws NotSupportedException {
-        checkSupported(false, "Filter TypeFilterImpl Not Supported");
+        target.writeSelf();
+        target.writeFilterName(TYPE);
+        target.writeRawValue(source.getType());
+        target.writeFilterName(AND);
+        var nested = source.getFilter();
+        if (nested instanceof OrFilter) {
+            target.writeNestedFilter(nested);
+        } else {
+            target.writeFilter(nested);
+        }
     }
 
     static void undefinedFilter(UndefinedFilterImpl source, QueryWriter target)

@@ -38,6 +38,7 @@ class FilterNames {
     public static final QName IS_ROOT = queryName("isRoot");
     public static final QName NOT = queryName("not");
     public static final QName NOT_EQUAL = queryName("notEqual");
+    public static final QName TYPE = queryName("type");
 
     static final BiMap<String, QName> ALIAS_TO_NAME = ImmutableBiMap.<String, QName>builder()
             .put("=", EQUAL)

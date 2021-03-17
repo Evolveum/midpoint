@@ -13,7 +13,16 @@
     <q:type>
         <q:type>UserType</q:type>
         <q:filter>
-            <q:none/>
+            <q:and>
+                <q:equal>
+                    <q:path>givenName</q:path>
+                    <q:value>Jack</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>locality</q:path>
+                    <q:value>Caribbean</q:value>
+                    </q:equal>
+                </q:and>
         </q:filter>
     </q:type>
 </q:filter>
