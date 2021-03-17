@@ -1,0 +1,316 @@
+= Expression and Mapping Variables
+:page-nav-title: Variables
+:page-wiki-name: Expression Variables
+
+There are many variables that can be used in midPoint expressions and mappings.
+Some of the variables are available in all the expressions, some are specific to some places.
+This page provides a summary of expression variables.
+
+
+== Use of Variables
+
+The variables are used in a native way that is dictated by the language in which the expression is written.
+Therefore Groovy scripts will just use simple variable names:
+
+.Variables in Groovy
+[source,groovy]
+----
+givenName + ' ' + familyName
+----
+
+while the path expressions use the dollar sign to prefix the variables:
+
+.Variable in path expression
+[source]
+----
+$givenName
+----
+
+
+== Using Object Items
+
+While some variables used in the expressions are simple (scalar) values, MidPoint works mostly with objects and therefore many variables are full-blown objects.
+It is important to know how access the items of the objects (properties, containers and references).
+
+In scripting expressions the access to the properties is following the model given by object-oriented programming.
+E.g. in the Groovy and Python the properties are accessed in the same way as Java object properties:
+
+.Accessing property in Groovy and Python
+[source,groovy]
+----
+focus.getGivenName()
+----
+
+When going deeper in the item hierarchy take care about the null values.
+E.g. Groovy has a nice safe navigation operator (`?.`) that comes really handy here:
+
+.Safe navigation in Groovy
+[source,groovy]
+----
+focus?.getActivation()?.getAdministrativeStatus()
+----
+
+However there is a special language that is used to reference items inside prism objects: wiki:Item+Path[item path]. This language is designed to process the paths in a very efficient way and it is used at many places in midPoint.
+The item path has a natural way how to reference the items inside a variable:
+
+.Item path
+[source]
+----
+$focus/activation/administrativeStatus
+----
+
+
+== Variable vs Source
+
+Every programmer knows what an variable is.
+But variables are usually too simple to handle the wiki:Relativity[relative change model] used in midPoint.
+In midPoint we do not just need to know that user property `organization` has a values `foo` and `bar`. What we need to know is that before the operation there was a value of `foo`. Even more important is to know the currently processed operation is adding the value of `bar`. Why we need that? There are two reasons:
+
+Firstly, the variables may be multi-value and in that case we want to  transform each value individually.
+E.g. these values may be translated to group names, e.g. by prefixing them with string 'org-'. We do not want the expression to implement loops that iterate over all the values.
+MidPoint is smart, it is completely schema-based.
+MidPoint knows that the property is multi-value and it can implement the iteration once and for all.
+It can even implement it more reliably than the average programmer by checking for null values and empty strings and so on.
+So, midPoint needs a way how to process values one by one.
+
+Secondly, there are no transactions in the IDM field and locking makes more problems than it solves.
+MidPoint is not relying on any of these mechanisms.
+But that means midPoint needs to be very careful with the values.
+This is not a big deal with single-value properties.
+These properties can have at most one value, so whoever comes later overwrites the previous state.
+This is usually the expected behavior.
+But it is a completely different story for multi-value properties.
+We usually do *not* want to overwrite all the values of a multi-value property.
+What we usually do is adding and removing individual values.
+E.g. adding user to a project, removing from a specific group and so on.
+So, if we are adding user to organization `bar`, we want to process that single value, transform it to `org-bar` and use that as a name of the group.
+Then we want to add user's account to the `org-bar` group.
+But we do not want to disturb other groups that the account may already be a member of.
+The account will be obviously also in group `org-foo`, but it may also be in the group `project-titanic` and  `adhoc-fight-club`. Maybe the `project-titanic` group is also managed by midPoint.
+But it comes from a very different expression and we will need to merge the results of the two expressions when midPoint determines the final value.
+But in the meantime we need to process each expression individually.
+And then there is the `adhoc-fight-club` group which is not managed by midPoint at all (remember the first rule of the Fight Club?). Therefore if we just compile the list of groups in midPoint and then overwrite the entire list with a set of new values, the `adhoc-fight-club` value would disappear.
+I guess this wouldn't go well with the Fight Club members.
+Therefore midPoint needs to know which individual values were changed and how they were transformed so it can compile the final wiki:Deltas[delta] which can be merged with other deltas produced by other expressions and that will not destroy the existing state of the target system.
+
+Therefore midPoint has a concept of _source_, which is like a very smart change-sensitive variable.
+The source will be usually presented as a simple single-value variable in the expressions.
+Even though the underlying property is multi-value and it has been changed in a very strange way the expression will work just with each individual value.
+MidPoint will do all the complex stuff in the background.
+MidPoint will feed the correct values to the expression.
+MidPoint will execute the expression as many times as necessary.
+MidPoint will keep track which values are added and which are removed so the expression code does not need to care.
+The expression will simply transform each value.
+MidPoint will do all the other complex stuff.
+
+The concept of source is specific to the concept of wiki:Mapping[mapping]. Mapping is the magic stuff that takes care of the complexity associated with the relative changes.
+Therefore sources can be used everywhere where the expression is inside a mapping (inbound, outbound, object template, ...). It cannot be used outside of the mapping (e.g. in correlation expression).
+In that case there is no relativistic change which means that the source is not needed at all and normal variables will do just fine.
+
+The source can be define by the mapping by simply specifying the path of the item which the source should represent:
+
+[source,xml]
+----
+<outbound>
+    <source>
+        <path>$focus/organization</path>
+    </source>
+    ...
+----
+
+If the source is specified like this, then it can be used inside an expression just as a simple variable.
+Like this:
+
+[source,xml]
+----
+    ...
+    <expression>
+        <script>
+            <code>
+                'org-' + organization
+            </code>
+        </script>
+    </expression>
+    ...
+----
+
+MidPoint will take care that the variable `organization` will be filled with appropriate value, the the expression will be executed as many times as needed and that the result of the expression will be interpreted in a proper way to maintain the relative change model.
+All that the mapping definition needs is proper definition of sources and an expression to transform a single value.
+
+
+== Context
+
+Many mappings are executed in a _context_. E.g. an outbound mapping for an account assumes that the source properties will be usually taken from the user properties.
+Therefore we say that the account outbound mappings are executed in the context of the _user_. The context acts as a default "root" for source specification.
+Therefore for outbound expressions there is a short-hand way how to specify the sources:
+
+[source,xml]
+----
+<outbound>
+    <source>
+        <path>organization</path>
+    </source>
+    ...
+----
+
+This specification means the same as `$focus/organization` or `$user/organization` because this outbound expression is executed in the context of the user, therefore `$focus` is the default root of all source paths.
+
+
+== List of Variables
+
+[%autowidth]
+|===
+| Variable name | Type | Used in | Alternative names | Description
+
+| `input`
+| varies
+| almost everywhere
+|
+| Magic variable that contains the default input of the expression.
+In inbound mappings it is the value of the source attribute.
+In other expressions that have a single source this variable has the same value as the source.
+
+
+| `focus`
+| subclasses of `FocusType`
+| inbound, outbound, object template, assignments
+| `user`
+| Represents wiki:Focus+and+Projections[focal object] which is usually a user.
+
+
+| `projection`
+| `ShadowType`
+| inbound, outbound, assigments (construction)
+| `account, shadow`
+| Represents wiki:Focus+and+Projections[projection] in a form of wiki:Shadow+Objects[shadow]. This is usually the account.
+
+
+| `resource`
+| ResourceType
+| inbound, outbound, assigments (construction)
+|
+| Contains resource definition of the resource where the projection belongs.
+
+
+| `operation`
+| `string`
+| in every mapping
+|
+| Contains values `add`, `modify` or `delete` that describe the character of the wiki:Deltas[object delta].
+
+
+| `actor`
+| `UserType`
+| everywhere
+|
+| The user that is executing the operation - directly or indirectly.
+It may be currently logged-in user (for synchronous operations) or owner of the task (for asynchronous operations).
+
+
+| `configuration`
+| `SystemConfigurationType`
+| everywhere
+|
+| Contains system configuration object.
+The wiki:Custom+Schema+Extension[extension] of system configuration may be used to contains system-wide configuration and constants.
+
+
+| `iteration`
+| `integer`
+| object template, outbound
+|
+| Numeric value describing the current wiki:Iteration[iteration]. It starts with 0 and increments on every iteration.
+
+
+| `iterationToken`
+| `string`
+| object template, outbound
+|
+| String value describing the current wiki:Iteration[iteration]. It is usually suffix that is appended to the username or a similar "extension" of the value.
+It should have different value for every iteration.
+The actual value is determined by the iteration settings.
+
+
+| `legal`
+| `boolean`
+| activation mappings
+|
+| Set to true if the processed projection is legal, i.e. when it should exist.
+The projection is usually legal if there is an wiki:Assignment[assignment] for it.
+But the projection may also be legal without an assignment, e.g. if wiki:Projection+Policy[assignment policy enforcement] is set to NONE.
+
+
+| `assigned`
+| `boolean`
+| activation mappings
+|
+| Set to true if the processed projection is assigned.
+That means explicitly if there is a valid assignment for that projection.
+
+
+| `administrativeStatus`
+| `ActivationStatusType`
+| activation mappings
+|
+| Real `administrativeStatus` of the projection.
+This is used in activation mapping where the automatic input to the expression may contain a computed value compiled from `administrativeStatus` and validity constraint.
+This variable will contain the real administrative status that was not affected by the computation.
+
+
+| `focusExists`
+| `boolean`
+| activation mappings
+|
+| Set to true if the focus (e.g. user) exists.
+This variable behaves as the source, therefore correct vales describing the state before the operation and after the operation will be supplied as necessary.
+This is especially important for add and delete operations.
+
+
+| `associationTargetObjectClassDefinition`
+| RefinedObjectClassDefinition
+| outbound
+|
+| Contains a definition of the association target (wiki:Entitlements[entitlement]). Used in expressions that need to do advanced logic on associations and entitlements.
+
+
+| `entitlement`
+| ShadowType
+| inbound
+|
+| ShadowType for the existing group in the resource.
+Used in the inbound script expression when there is a need to manage group membership.
+
+
+|===
+
+In addition to these variables there are other special purpose variables.
+These are documented on a separate pages that document the mechanism.
+E.g. the variables specific to assignment processing are described in the wiki:Assignment+Configuration[Assignment Configuration] page.
+
+
+== Alternative Variable Names and Missing Variables
+
+Although midPoint has wiki:Architecture+and+Design[solid architectural background] it is not a software where every little detail was defined by a big design upfront.
+MidPoint is continuously evolving.
+And also the expression and mapping code is evolving.
+
+Some variable names have alternatives.
+E.g. the `focus` variable can be often referred to as `user`. This is legacy of the humble beginnings of midPoint when midPoint can only process users and accounts.
+This is a long time ago and midPoint is now very wiki:Generic+Synchronization[generic]. Therefore also the variable names refer to generic concepts.
+*Alternative variable names are not considered DEPRECATED*. Please, if you can try to avoid the use of the alternative names.
+They will work quite OK for some time.
+But sooner or later they are going to disappear.
+
+Due to midPoint history all the variables that are supposed to be universally available to all expressions may not be actually available in some cases.
+If you expect an variable to be available and it is not then you have probably found a bug.
+Please wiki:Creating+a+Bug+Report[report the bug]. We will fix that.
+
+
+== See Also
+
+* wiki:Expression[Expression]
+
+* wiki:Mapping[Mapping]
+
+* wiki:Troubleshooting+Mappings[Troubleshooting Mappings]
+

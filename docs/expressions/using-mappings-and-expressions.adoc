@@ -1,0 +1,56 @@
+= Using Mappings and Expressions
+:page-display-order: 50
+:page-wiki-name: Using Mappings and Expressions
+:page-upkeep-status: yellow
+
+Expressions and mappings are very efficient way how to customize midPoint.
+They are short specifications how to transform source values to another value(s).
+
+Expressions and mappings are used thought midPoint in many places.
+For example, the expressions copy values from user to accounts, the expressions compute values, the expressions define conditional evaluation.
+Expressions are the most efficient way how to define logic in midPoint.
+Expressions can use a variety of options including the use of scripting languages such as Groovy, JavaScript and Python.
+
+Expressions and mappings are small, fit for the purpose and usually associated with the data that they operate on.
+Therefore they are quite easy to maintain.
+MidPoint will execute them only when they are needed.
+Therefore they are also efficient.
+
+
+== Mapping
+
+Mapping is a complex solution for reflecting one value to the other.
+E.g. a mapping is used to reflect a value of user's family name to the `sn` LDAP account attribute.
+It can also be used together with expressions for form complex transformations, form a value from several sources and so.
+Mappings are very flexible.
+There are options for specifying fixed values, point to other attributes using path or even using script expressions.
+Mappings are the "brain" of all synchronization functions, they are used in RBAC and user templates, they are everywhere.
+
+Mappings are intelligent.
+Mappings are not only aware of the source values, but they also know how the source values are changed and can efficiently reflect that change to the target values.
+Therefore maintaining the wiki:Relativity[relative change model] through the entire midPoint system.
+The mapping also knows what are its sources and targets and therefore also compensates for correct data type conversions.
+Mapping is the best tool to customize midPoint behavior.
+It is used e.g. in wiki:Outbound+Mapping[outbound mappings], wiki:Inbound+Mapping[inbound mappings], wiki:Assignment[assignments], wiki:Advanced+Hybrid+RBAC[roles] and so on.
+
+See wiki:Mapping[Mapping] page for more details.
+
+
+== Expression
+
+Expression is the part of midPoint that contains logic.
+It is usually part of a mapping, form wiki:Correlation+and+Confirmation+Expressions[correlation and confirmation expressions] and so on.
+The expression can be simple data pointers, invocation of Java classes or there may be complex script code to determine the result.
+Expressions are very flexible, with several options to use right now and much more options planned for the future.
+
+See wiki:Expression[Expression] page for more details.
+
+
+== See Also
+
+* wiki:Mapping[Mapping]
+
+* wiki:Expression[Expression]
+
+* wiki:Mapping+Evaluation+Examples[Mapping Evaluation Examples]
+

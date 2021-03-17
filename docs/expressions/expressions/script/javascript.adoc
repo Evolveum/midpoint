@@ -1,0 +1,32 @@
+= JavaScript Expressions
+:page-nav-title: JavaScript
+:page-wiki-name: ECMAScript Expressions
+:page-upkeep-status: green
+
+ECMAScript (JavaScript) is a supported expression language in midPoint.
+Its language URL is:
+
+ http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript
+
+
+== Examples
+
+=== User name
+
+Following code returns a `name` property of a user.
+It is using ternary operator (`?` and `:`) to make sure this code works as expected even if user is `null`. User can be `null` is some situations, such as when evaluating outbound expression for a deleted user.
+Therefore the use of similar safe constructs is advised in almost all situations.
+
+[source,javascript]
+----
+user == null ? null : user.getName();
+----
+
+
+=== Create fullName
+
+[source,javascript]
+----
+user.getGivenName() + ' ' + user.getFamilyName();
+----
+

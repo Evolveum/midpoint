@@ -1,0 +1,232 @@
+= Mapping Relativity
+:page-wiki-name: Mapping Relativity
+:page-upkeep-status: orange
+:page-toc: top
+
+
+== Relativity
+
+MidPoint mappings are designed to work correctly with the wiki:Relativity[relative change model] that is a fundamental principle of midPoint operation.
+Simply speaking the mapping does not just maps the source values to the target values.
+It also maps the corresponding deltas.
+
+TODO: better explanation:
+
+* Picture how a delta is translated through mapping
+
+* correct support for multi-value properties
+
+
+== Scripting Expressions in Mappings
+
+Most expression types used in mappings are built to work with deltas `(asIs` expressions, `path` expressions) and they do it correctly and efficiently.
+However scripting expressions are different.
+Scripting languages are not designed to work with deltas.
+The variables and return values of scripting languages are simple static values.
+Therefore we need a little trick to make them work correctly with deltas without sacrificing the simplicity and convenience of traditional scripting approach: Scripting expression is usually evaluated individually for every applicable value.
+The applicable value is either old or new value of the property or value added or removed by the delta.
+The mapping knows which expression input values were added, removed or stay unchanged and therefore it can assume the same also for expression output values and construct the resulting delta.
+In other words the delta is first decomposed into individual values, then an expression is evaluated for each of these values and then resulting values are composed back to a delta.
+
+TODO: picture
+
+This approach may be quite simple for a single changed property.
+But it gets considerably complicated when multiple changes occur at the same time.
+In such a case the input deltas needs to be decomposed into combinations of values from all the deltas and then composed back.
+MidPoint mappings fully support this mechanism also for multi-value properties.
+
+
+=== Script Expression Sources
+
+For the scripting expression to work correctly the mapping must be able to identify what was changed and which part of the change is important for the script.
+E.g. it is not sufficient to know that user properties `fullName`, `familyName` and `employeeType` changed (as represented in wiki:Deltas[object delta]). The mapping must know that only the `fullName` property is important for the script.
+Otherwise the mapping would need to combine all the changes from all the applicable deltas and execute the script for all the applicable combinations.
+The number of possible combinations can be significantly large if multiple multi-value properties change.
+As the script in this case only cares about the value of `fullName` attribute then most of such executions will be pointless anyway and the results would be discarded.
+Which is obviously a waste of resources.
+But the mapping does not know which script executions to discard until it has the return value - unless there is way to specify that only the `fullName` property is interesting for the script.
+There is no generic implicit way how to do it with a scripting language code that will work sufficiently well for all supported scripting languages.
+Therefore an explicit method is needed: mapping `source` definition.
+
+The `source` definition tells the mapping that only a specific properties are interesting for the mapping.
+Therefore the script evaluation code in the mapping knows how to efficiently construct input values for the script, when to evaluate it and, most importantly, when there is no need to evaluate it.
+Therefore correct specification of `source` in a mapping that contains a scripting expression is critical for correct evaluation of such expression.
+If a `source` declaration is missing then a script may not be invoked at all and will not pass a value to the output.
+If too many `source` declarations are present for a script then the script may be invoked too often which might result in waste of system resources.
+
+TODO: better explanation:
+
+* Picture how a delta is translated through SCRIPTING mapping
+
+* relative and absolute mode
+
+
+=== Expression null Values
+
+Mappings usually work only with values that are non-null.
+The mapping simply ignores all properties and deltas without a value.
+Therefore a script will usually not be executed with all its input values set to `null`. However there are two cases when mapping needs to deal with empty values:
+
+* when a change causes empty property to become non-empty,
+
+* when a change causes non-empty values to become empty.
+
+E.g. these cases needs to be handled for scripts that supply a default values for empty properties.
+In this case the script must be executed with a `null` input parameter otherwise the script would not have any chance to produce a value.
+Similar reasoning also applies to mapping conditions that checks for "negative" cases, e.g. a condition that will assign a default role if no other role is assigned to a user.
+
+Therefore a script needs to check for `null` input values to be able to correctly respond to all situations.
+However this may make scripting code ugly and complex, littered with checks for null inputs.
+Therefore there is a way how to avoid invoking script with `null` inputs:
+
+.Avoid passign null values to script
+[source,xml]
+----
+<mapping>
+    ...
+    <expression>
+        <script>
+            <includeNullInputs>false</includeNullInputs>
+            <code>...</code>
+        </script>
+    </expression>
+</mapping>
+----
+
+Please note that this setting will skip execution of a script if *all* inputs are null.
+This means that the script will be executed with non-null values only if there is a single mapping source.
+If there are several mapping sources then the script still may be executed with `null` inputs, e.g. in case that one source is `null` while the others are non-null.
+In such a case this setting will make the script execution more efficient (skipping some executions) however proper checking for null values is still needed.
+
+There is also a convenient wiki:Script+Expression+Functions[script function]`basic.isEmpty()` that can provide null-safe check for empty value:
+
+.Null-safe check for empty value
+[source,xml]
+----
+<mapping>
+    ...
+    <condition>
+        <script>
+            <code>basic.isEmpty(input)</code>
+        </script>
+    </condition>
+</mapping>
+----
+
+
+== Mapping Condition
+
+Mapping conditions are also _relative_. This means that the condition is not evaluated for simple `true` or `false` value.
+MidPoint is watching how the condition value changes:
+
+[%autowidth]
+|===
+| Old value of condition | New value of condition | Effect | Description
+
+| true
+| true
+| No change +
+(value present)
+| Mapping is active and there is no change to this situation.
+The value that the mapping produces is added or removed as expected (based on the source delta).
+No special handling for this situation. +
+This is also the *default* interpretation if no condition is present.
+
+
+| true
+| false
+| Value removed
+| Mapping becomes inactive.
+The mapping (most likely) produced some value before this change happened.
+And now it is not producing any such value.
+Therefore midPoint will try to remove the value that was produced by the mapping. +
+The value is removed even if there is no change in the value produced by mapping expression.
+This is understandable, as the entire mapping becomes inactive.
+Any values that were previously produced by the mapping should be removed.
+
+
+| false
+| true
+| Value added
+| Mapping becomes active.
+The mapping produced no values before this change happened.
+But now the mapping is producing some values (most likely).
+Therefore such values should be added. +
+The value is added even if there is no change in the value produced by mapping expression.
+This is understandable, as the entire mapping becomes active.
+Any values of the mapping in its previous inactive state were ignored.
+Therefore they should be added now when the mapping becomes active.
+
+
+| false
+| false
+| No change +
+(value not present)
+| Mapping is inactive and there is no change to this situation.
+Mapping values were ignored before, they are also ignored after.
+Nothing to do.
+
+
+|===
+
+This is a very intentional behavior.
+It is designed to enable simple mappings that behave in a relativistic way.
+For example:
+
+[source,xml]
+----
+<item>
+    <ref>organization<ref>
+    <mapping>
+        <source>
+            <path>costCenter</path>
+         </source>
+         <expression>
+	         <value>ACME, Inc.</value>
+         </expression>
+         <condition>
+             <script>
+                 <code>costCenter.startsWith('A')</code>
+             </script>
+         </condition>
+    </mapping>
+</item>
+----
+
+This wiki:Object+Template[object template] mapping will set the organization property of a user to `ACME, Inc.` in case that the cost center code starts with letter A. Mapping expression is completely static literal value.
+Yet the mapping is behaving in the usual relativistic way because there is an condition.
+When the condition becomes `true` then `ACME, Inc.` is added.
+When the condition becomes `false` then `ACME, Inc.` is removed.
+This is perhaps simple and intuitive.
+
+What may be very confusing is when (relativistic) conditions are combines with (relativistic) expressions.
+This approach may even be needed to implement some special cases.
+But it should not be required in the common case.
+The rule of the thumb is to use either complex condition or complex expression, but not both - at least until you know precisely what you are doing.
+
+A clever reader may wonder why are conditions needed at all.
+Complex expressions may implement all the logic that is usually placed into the condition.
+And clever reader might be right for most of the cases.
+But it is important to keep in mind that mapping is much more than just its expression.
+There are other settings such as mapping _range_. A condition that is `false` will inactivate all the aspects of the mapping.
+Whereas mapping expression can only control the value that the mapping produces.
+But it cannot control other processing of that value that takes place in the mapping.
+
+
+== Limitations
+
+While midPoint is built with wiki:Relativity[Relativity] in mind, this relativity is not complete.
+MidPoint evolution, and especially financial and scheduling constraints, forced us to make compromises during midPoint development.
+This does not affect correctness of midPoint computation, but it may affect performance.
+The deployments that rely on a lightweight processing of large number of small changes may be affected.
+Please see wiki:Complete+Relativity[Complete Relativity] page for more details.
+
+
+== See Also
+
+* wiki:Relativity[Relativity]
+
+* wiki:Mappings+and+Expressions[Mappings and Expressions]
+
+* wiki:Complete+Relativity[Complete Relativity]
+
