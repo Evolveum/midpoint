@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
@@ -53,6 +54,11 @@ public class StartupConfiguration implements MidpointConfiguration {
     private static final String LOGBACK_EXTRA_CONFIG_FILENAME = "logback-extra.xml";
 
     private static final Trace LOGGER = TraceManager.getTrace(StartupConfiguration.class);
+
+    private static final List<String> SENSITIVE_CONFIGURATION_VARIABLES = Arrays.asList(
+        "jdbcPassword",
+        "keyStorePassword"
+    );
 
     private boolean silent = false;
 
@@ -119,7 +125,12 @@ public class StartupConfiguration implements MidpointConfiguration {
             Iterator<String> i = sub.getKeys();
             while (i.hasNext()) {
                 String key = i.next();
-                LOGGER.debug("    {} = {}", key, sub.getString(key));
+                if (key != null
+                        && !SENSITIVE_CONFIGURATION_VARIABLES.stream().filter(s -> key.contains(s)).collect(Collectors.toList()).isEmpty()) {
+                    LOGGER.debug("    {} = [value]", key);
+                } else {
+                    LOGGER.debug("    {} = {}", key, sub.getString(key));
+                }
             }
         }
     }
