@@ -539,7 +539,10 @@ public class LeftMenuPanel extends BasePanel<Void> {
     private MainMenuItem createRepositoryObjectsMenu() {
         MainMenuItem repositoryObjectsMenu = createMainMenuItem("PageAdmin.menu.top.configuration.repositoryObjects", "fa fa-file-text");
         repositoryObjectsMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.configuration.repositoryObjectsList", PageDebugList.class));
-        repositoryObjectsMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.configuration.repositoryObjectView", PageDebugView.class));
+        boolean editActive = classMatches(PageDebugView.class);
+        if (editActive) {
+            repositoryObjectsMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.configuration.repositoryObjectView", PageDebugView.class));
+        }
         return repositoryObjectsMenu;
     }
 

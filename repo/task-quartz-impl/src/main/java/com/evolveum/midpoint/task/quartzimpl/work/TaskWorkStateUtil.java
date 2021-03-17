@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.task.quartzimpl.work;
 
-import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 
 import java.util.List;
@@ -15,14 +14,12 @@ import java.util.List;
 /**
  * Companion to TaskWorkStateTypeUtil. However, here are methods that cannot be implemented in schema layer
  * e.g. because they require Task objects.
- *
- * @author mederly
  */
 public class TaskWorkStateUtil {
 
     public static Task findWorkerByBucketNumber(List<Task> workers, int sequentialNumber) {
         for (Task worker : workers) {
-            if (worker.getWorkState() != null && TaskWorkStateTypeUtil
+            if (worker.getWorkState() != null && com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil
                     .findBucketByNumber(worker.getWorkState().getBucket(), sequentialNumber) != null) {
                 return worker;
             }

@@ -77,10 +77,14 @@ CREATE TYPE ReferenceType AS ENUM (
 -- Schema based enums have the same name like their enum classes (I like the Type suffix here):
 CREATE TYPE ActivationStatusType AS ENUM ('ENABLED', 'DISABLED', 'ARCHIVED');
 
+CREATE TYPE AvailabilityStatusType AS ENUM ('DOWN', 'UP', 'BROKEN');
+
 CREATE TYPE TimeIntervalStatusType AS ENUM ('BEFORE', 'IN', 'AFTER');
 
 CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ERROR',
     'FATAL_ERROR', 'HANDLED_ERROR', 'NOT_APPLICABLE', 'IN_PROGRESS', 'UNKNOWN');
+
+CREATE TYPE ResourceAdministrativeStateType AS ENUM ('ENABLED', 'DISABLED');
 
 CREATE TYPE TaskExecutionStatusType AS ENUM ('RUNNABLE', 'WAITING', 'SUSPENDED', 'CLOSED');
 
@@ -172,10 +176,10 @@ INSERT INTO m_uri (id, uri)
 -- region for abstract tables m_object/container/reference
 -- Purely abstract table (no entries are allowed). Represents ObjectType+ArchetypeHolderType.
 -- See https://wiki.evolveum.com/display/midPoint/ObjectType
--- Following is recommended for each concrete table (see m_resource just below for example):
+-- Following is recommended for each concrete table (see m_resource for example):
 -- 1) override OID like this (PK+FK): oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
 -- 2) define object type class (change value): objectType ObjectType GENERATED ALWAYS AS ('XY') STORED,
--- 3) add three triggers <table_name>_oid_{insert|update|delete}_tr as shown below
+-- 3) add three triggers <table_name>_oid_{insert|update|delete}_tr
 -- 4) add indexes for name_norm and name_orig columns (name_norm as unique)
 -- 5) the rest varies on the concrete table, other indexes or constraints, etc.
 -- 6) any required FK must be created on the concrete table, even for inherited columns
@@ -651,15 +655,15 @@ CREATE INDEX iCertWorkItemRefTargetOid ON m_access_cert_wi_reference (targetOid)
 -- endregion
 
 -- region OTHER object tables
--- TODO not mapped yet
+-- Represents ResourceType, see https://wiki.evolveum.com/display/midPoint/Resource+Configuration
 CREATE TABLE m_resource (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('RESOURCE') STORED,
-    administrativeState INTEGER,
+    business_administrativeState ResourceAdministrativeStateType,
+    operationalState_lastAvailabilityStatus AvailabilityStatusType,
     connectorRef_targetOid UUID,
     connectorRef_targetType ObjectType,
-    connectorRef_relation_id INTEGER, -- soft-references m_uri
-    o16_lastAvailabilityStatus INTEGER
+    connectorRef_relation_id INTEGER -- soft-references m_uri
 )
     INHERITS (m_object);
 

@@ -92,6 +92,7 @@
             <class name="com.evolveum.midpoint.model.intest.sync.TestLiveSyncTaskMechanics"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestLiveSyncTaskMechanicsMultithreaded"/>
             <class name="com.evolveum.midpoint.model.intest.reporting.TestTaskReporting"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestProgressReporting"/>
         </classes>
     </test>
     <test name="Async updates" preserve-order="true" parallel="false" verbose="10">

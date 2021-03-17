@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -337,7 +337,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         //assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 0);
 
-        assertEquals("Wrong success count", NUMBER_OF_GENERATED_USERS, TaskTypeUtil.getItemsProcessedWithSuccess(statistics));
+        assertEquals("Wrong success count", NUMBER_OF_GENERATED_USERS, TaskOperationStatsUtil.getItemsProcessedWithSuccess(statistics));
     }
 
     @Test
@@ -376,7 +376,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         //assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 0);
 
-        assertEquals("Wrong success count", NUMBER_OF_GENERATED_USERS, TaskTypeUtil.getItemsProcessedWithSuccess(statistics));
+        assertEquals("Wrong success count", NUMBER_OF_GENERATED_USERS, TaskOperationStatsUtil.getItemsProcessedWithSuccess(statistics));
     }
 
     @Test
@@ -419,7 +419,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
         //dumpTaskTree(TASK_RECOMPUTE_MULTINODE_OID, result);
 
-        assertEquals("Wrong success count", NUMBER_OF_GENERATED_USERS, TaskTypeUtil.getItemsProcessedWithSuccess(statistics));
+        assertEquals("Wrong success count", NUMBER_OF_GENERATED_USERS, TaskOperationStatsUtil.getItemsProcessedWithSuccess(statistics));
     }
 
     @Test
@@ -463,7 +463,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
         //dumpTaskTree(TASK_RECOMPUTE_MULTINODE_OID, result);
 
-        assertEquals("Wrong success count", NUMBER_OF_GENERATED_USERS, TaskTypeUtil.getItemsProcessedWithSuccess(statistics));
+        assertEquals("Wrong success count", NUMBER_OF_GENERATED_USERS, TaskOperationStatsUtil.getItemsProcessedWithSuccess(statistics));
     }
 
     @Test
@@ -508,7 +508,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         //assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 0);
 
-        assertEquals("Wrong success count", NUMBER_OF_GENERATED_USERS, TaskTypeUtil.getItemsProcessedWithSuccess(statistics));
+        assertEquals("Wrong success count", NUMBER_OF_GENERATED_USERS, TaskOperationStatsUtil.getItemsProcessedWithSuccess(statistics));
     }
 
     @Test

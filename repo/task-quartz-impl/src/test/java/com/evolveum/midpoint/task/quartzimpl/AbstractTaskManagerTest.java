@@ -22,7 +22,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
 
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
+import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
 import com.evolveum.midpoint.task.quartzimpl.tasks.TaskStateManager;
 
@@ -261,7 +262,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
 
     void assertTotalSuccessCountInIterativeInfo(int expectedCount, Collection<? extends Task> workers) {
         int successCount = workers.stream()
-                .mapToInt(w -> TaskTypeUtil.getItemsProcessedWithSuccess(w.getStoredOperationStatsOrClone()))
+                .mapToInt(w -> TaskOperationStatsUtil.getItemsProcessedWithSuccess(w.getStoredOperationStatsOrClone()))
                 .sum();
         assertThat(successCount).isEqualTo(expectedCount);
     }
@@ -270,14 +271,14 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
         int successClosed = getSuccessClosed(workers);
         assertThat(successClosed).isEqualTo(expectedClosed);
         int successOpen = workers.stream()
-                .mapToInt(w -> TaskTypeUtil.getProgressForOutcome(w.getStructuredProgressOrClone(), SUCCESS, true))
+                .mapToInt(w -> TaskProgressUtil.getProgressForOutcome(w.getStructuredProgressOrClone(), SUCCESS, true))
                 .sum();
         assertThat(successOpen).isEqualTo(expectedOpen);
     }
 
     private int getSuccessClosed(Collection<? extends Task> workers) {
         return workers.stream()
-                    .mapToInt(w -> TaskTypeUtil.getProgressForOutcome(w.getStructuredProgressOrClone(), SUCCESS, false))
+                    .mapToInt(w -> TaskProgressUtil.getProgressForOutcome(w.getStructuredProgressOrClone(), SUCCESS, false))
                     .sum();
     }
 
@@ -341,7 +342,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
             List<? extends Task> tasks = coordinatorTask.listSubtasks(result);
             int total = 0;
             for (Task task : tasks) {
-                int count = or0(TaskTypeUtil.getItemsProcessed(task.getStoredOperationStatsOrClone()));
+                int count = or0(TaskOperationStatsUtil.getItemsProcessed(task.getStoredOperationStatsOrClone()));
                 display("Task " + task + ": " + count + " items processed");
                 total += count;
             }

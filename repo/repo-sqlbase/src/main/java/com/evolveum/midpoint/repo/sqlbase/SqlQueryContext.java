@@ -24,10 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectOrdering;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ObjectFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
@@ -167,7 +164,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
             query.limit(NO_PAGINATION_LIMIT);
         }
 
-        // SQL logging is on DEBUG level of: com.querydsl.sql
+        // see com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger for logging details
         Q entity = root();
         List<Tuple> data = query
                 .select(buildSelectExpressions(entity, query))
@@ -359,5 +356,10 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     @NotNull
     public QName normalizeRelation(QName qName) {
         return transformerSupport.normalizeRelation(qName);
+    }
+
+    public FilterProcessor<InOidFilter> createInOidFilter(SqlQueryContext<?, ?, ?> context) {
+        // not supported for audit, overridden in repo-sqale
+        throw new UnsupportedOperationException();
     }
 }

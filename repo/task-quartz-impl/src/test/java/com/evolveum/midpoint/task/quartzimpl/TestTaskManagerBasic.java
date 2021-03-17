@@ -22,6 +22,9 @@ import java.util.Collections;
 import java.util.List;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
+
+import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
@@ -47,7 +50,6 @@ import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskConstants;
@@ -791,7 +793,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
                     .item(TaskType.F_SUBTASK_REF).retrieve()
                     .build();
             TaskType task = taskManager.getObject(TaskType.class, taskOid, options, result).asObjectable();
-            int totalSuccessCount = or0(TaskTypeUtil.getItemsProcessed(task.getOperationStats()));
+            int totalSuccessCount = or0(TaskOperationStatsUtil.getItemsProcessed(task.getOperationStats()));
             System.out.println((System.currentTimeMillis() - start) + ": subtasks: " + task.getSubtaskRef().size() +
                     ", progress = " + task.getProgress() + ", objects = " + totalSuccessCount);
             if (task.getSchedulingState() != TaskSchedulingStateType.READY) {
@@ -1084,13 +1086,13 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
 
     private void assertTaskTree(TaskType rootWithChildren, String child1Oid, String child2Oid, String child11Oid) {
         assertEquals("Wrong # of children of root", 2, rootWithChildren.getSubtaskRef().size());
-        TaskType child1 = TaskTypeUtil.findChild(rootWithChildren, child1Oid);
-        TaskType child2 = TaskTypeUtil.findChild(rootWithChildren, child2Oid);
+        TaskType child1 = TaskTreeUtil.findChild(rootWithChildren, child1Oid);
+        TaskType child2 = TaskTreeUtil.findChild(rootWithChildren, child2Oid);
         assertNotNull(child1);
         assertNotNull(child2);
         assertEquals("Wrong # of children of child1", 1, child1.getSubtaskRef().size());
         assertEquals("Wrong # of children of child2", 0, child2.getSubtaskRef().size());
-        TaskType child11 = TaskTypeUtil.findChild(child1, child11Oid);
+        TaskType child11 = TaskTreeUtil.findChild(child1, child11Oid);
         assertNotNull(child11);
     }
 

@@ -11,7 +11,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
 import com.evolveum.midpoint.schema.statistics.OutcomeKeyedCounterTypeUtil;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 
@@ -95,15 +95,15 @@ public class IterativeTaskInfoAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     private int getSuccessCount() {
-        return TaskTypeUtil.getItemsProcessedWithSuccess(information);
+        return TaskOperationStatsUtil.getItemsProcessedWithSuccess(information);
     }
 
     private int getFailureCount() {
-        return TaskTypeUtil.getItemsProcessedWithFailure(information);
+        return TaskOperationStatsUtil.getItemsProcessedWithFailure(information);
     }
 
     private int getSkipCount() {
-        return TaskTypeUtil.getItemsProcessedWithSkip(information);
+        return TaskOperationStatsUtil.getItemsProcessedWithSkip(information);
     }
 
     private int getNonFailureCount() {
@@ -111,6 +111,6 @@ public class IterativeTaskInfoAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     private String getLastFailedObjectName() {
-        return TaskTypeUtil.getLastProcessedObjectName(information, OutcomeKeyedCounterTypeUtil::isFailure);
+        return TaskOperationStatsUtil.getLastProcessedObjectName(information, OutcomeKeyedCounterTypeUtil::isFailure);
     }
 }

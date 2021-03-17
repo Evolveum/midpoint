@@ -30,7 +30,7 @@ public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
     @Override
     protected LookupTableType getPredefinedValues(PrismProperty<String> item, WrapperContext ctx) {
         PrismObject<?> prismObject = getParent(ctx);
-        if (!TaskType.class.equals(prismObject.getCompileTimeClass())) {
+        if (prismObject == null || !TaskType.class.equals(prismObject.getCompileTimeClass())) {
             return super.getPredefinedValues(item, ctx);
         }
 

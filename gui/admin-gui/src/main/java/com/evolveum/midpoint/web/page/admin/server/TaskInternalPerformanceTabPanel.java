@@ -14,7 +14,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
@@ -122,7 +122,7 @@ public class TaskInternalPerformanceTabPanel extends BasePanel<PrismObjectWrappe
             return "No operation statistics available";
         }
 
-        Integer iterations = TaskTypeUtil.getItemsProcessed(statistics);
+        Integer iterations = TaskOperationStatsUtil.getItemsProcessed(statistics);
         Integer seconds = getSeconds(task);
 
         AbstractStatisticsPrinter.Options options = new AbstractStatisticsPrinter.Options(formatModel.getObject(),

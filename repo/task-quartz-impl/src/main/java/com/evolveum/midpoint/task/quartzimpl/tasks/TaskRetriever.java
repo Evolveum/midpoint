@@ -15,7 +15,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.*;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
@@ -234,10 +234,10 @@ public class TaskRetriever {
         if (task instanceof Task) {
             ((TaskQuartzImpl) task).addSubtask(subtaskBean);
         } else if (task instanceof TaskType) {
-            TaskTypeUtil.addSubtask((TaskType) task, subtaskBean, prismContext);
+            TaskTreeUtil.addSubtask((TaskType) task, subtaskBean, prismContext);
         } else if (task instanceof PrismObject<?>) {
             //noinspection unchecked
-            TaskTypeUtil.addSubtask(((PrismObject<TaskType>) task).asObjectable(), subtaskBean, prismContext);
+            TaskTreeUtil.addSubtask(((PrismObject<TaskType>) task).asObjectable(), subtaskBean, prismContext);
         } else {
             throw new IllegalArgumentException("task: " + task);
         }

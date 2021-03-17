@@ -34,6 +34,7 @@ public class TaskInfoBoxPanel extends InfoBoxPanel<TaskInfoBoxType> {
     @Override
     protected void customInitLayout(WebMarkupContainer parentInfoBox, IModel<TaskInfoBoxType> model, Class<? extends IRequestablePage> linkPage) {
 
+
         Label duration = new Label(ID_DURATION, new ReadOnlyModel<>(() -> WebComponentUtil.formatDurationWordsForLocal(model.getObject().getDuration(), true, true, getPageBase())));
         parentInfoBox.add(duration);
 

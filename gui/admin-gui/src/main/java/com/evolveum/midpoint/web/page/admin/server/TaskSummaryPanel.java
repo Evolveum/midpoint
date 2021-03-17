@@ -12,7 +12,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
@@ -202,7 +202,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
             @Override
             public String getObject() {
                 TaskType taskType = getModelObject();
-                String lastSuccess = TaskTypeUtil.getLastSuccessObjectName(taskType);
+                String lastSuccess = TaskOperationStatsUtil.getLastSuccessObjectName(taskType);
                 if (lastSuccess != null) {
                     return createStringResource("TaskSummaryPanel.lastProcessed", lastSuccess).getString();
                 } else {

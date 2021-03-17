@@ -21,7 +21,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.VersionPrecondition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
@@ -56,7 +56,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil.findBucketByNumber;
+import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.findBucketByNumber;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -211,7 +211,7 @@ public class WorkStateManager {
             return null;
         }
         List<WorkBucketType> buckets = new ArrayList<>(workState.getBucket());
-        TaskWorkStateTypeUtil.sortBucketsBySequentialNumber(buckets);
+        TaskWorkStateUtil.sortBucketsBySequentialNumber(buckets);
         for (WorkBucketType bucket : buckets) {
             if (bucket.getState() == WorkBucketStateType.READY) {
                 return bucket;
@@ -535,7 +535,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
     private void completeWorkBucketMultiNode(Context ctx, int sequentialNumber, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         TaskWorkStateType workState = getWorkState(ctx.coordinatorTask);
-        WorkBucketType bucket = TaskWorkStateTypeUtil.findBucketByNumber(workState.getBucket(), sequentialNumber);
+        WorkBucketType bucket = TaskWorkStateUtil.findBucketByNumber(workState.getBucket(), sequentialNumber);
         if (bucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + ctx.coordinatorTask);
         }
@@ -560,7 +560,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
     private void deleteBucketFromWorker(Context ctx, int sequentialNumber, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ObjectAlreadyExistsException {
         TaskWorkStateType workerWorkState = getWorkState(ctx.workerTask);
-        WorkBucketType workerBucket = TaskWorkStateTypeUtil.findBucketByNumber(workerWorkState.getBucket(), sequentialNumber);
+        WorkBucketType workerBucket = TaskWorkStateUtil.findBucketByNumber(workerWorkState.getBucket(), sequentialNumber);
         if (workerBucket == null) {
             //LOGGER.warn("No work bucket with sequential number of " + sequentialNumber + " in worker task " + ctx.workerTask);
             //return;
@@ -573,7 +573,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
     private void completeWorkBucketStandalone(Context ctx, int sequentialNumber, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         TaskWorkStateType workState = getWorkState(ctx.workerTask);
-        WorkBucketType bucket = TaskWorkStateTypeUtil.findBucketByNumber(workState.getBucket(), sequentialNumber);
+        WorkBucketType bucket = TaskWorkStateUtil.findBucketByNumber(workState.getBucket(), sequentialNumber);
         if (bucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + ctx.workerTask);
         }
@@ -607,7 +607,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
     private void releaseWorkBucketMultiNode(Context ctx, int sequentialNumber, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         TaskWorkStateType workState = getWorkState(ctx.coordinatorTask);
-        WorkBucketType bucket = TaskWorkStateTypeUtil.findBucketByNumber(workState.getBucket(), sequentialNumber);
+        WorkBucketType bucket = TaskWorkStateUtil.findBucketByNumber(workState.getBucket(), sequentialNumber);
         if (bucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + ctx.coordinatorTask);
         }
@@ -640,7 +640,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
     private void compressCompletedBuckets(Task task, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         List<WorkBucketType> buckets = new ArrayList<>(getWorkState(task).getBucket());
-        TaskWorkStateTypeUtil.sortBucketsBySequentialNumber(buckets);
+        TaskWorkStateUtil.sortBucketsBySequentialNumber(buckets);
         List<WorkBucketType> completeBuckets = buckets.stream()
                 .filter(b -> b.getState() == WorkBucketStateType.COMPLETE)
                 .collect(Collectors.toList());
@@ -757,7 +757,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
         Context ctx = createContext(workerTask.getOid(), () -> true, null, false, result);
 
         TaskWorkManagementType config = ctx.getWorkStateConfiguration();
-        AbstractWorkSegmentationType bucketsConfig = TaskWorkStateTypeUtil.getWorkSegmentationConfiguration(config);
+        AbstractWorkSegmentationType bucketsConfig = TaskWorkStateUtil.getWorkSegmentationConfiguration(config);
         WorkBucketContentHandler handler = handlerFactory.getHandler(workBucket.getContent());
         List<ObjectFilter> conjunctionMembers = new ArrayList<>(
                 handler.createSpecificFilters(workBucket, bucketsConfig, type, itemDefinitionProvider));

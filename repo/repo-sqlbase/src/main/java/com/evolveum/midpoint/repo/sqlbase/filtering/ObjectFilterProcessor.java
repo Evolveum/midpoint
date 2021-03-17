@@ -35,6 +35,9 @@ public class ObjectFilterProcessor implements FilterProcessor<ObjectFilter> {
                     .process((ValueFilter<?, ?>) filter);
 // TODO see QueryInterpreter.findAndCreateRestrictionInternal for uncovered cases
 //  } else if (filter instanceof OrgFilter) {
+        } else if (filter instanceof InOidFilter) {
+            return context.createInOidFilter(context)
+                    .process((InOidFilter) filter);
         } else if (filter instanceof AllFilter) {
             return Expressions.asBoolean(true).isTrue();
         } else if (filter instanceof NoneFilter) {

@@ -48,6 +48,7 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
 
     private static final String ID_CHART = "chart";
     private static final String ID_PROGRESS_SUMMARY = "progressSummary";
+    private static final String ID_WALLCLOCK_THROUGHPUT = "wallClockThroughput";
 
     public TaskIterativeInformationPanel(String id, IModel<IterativeTaskInformationType> model) {
         super(id, model);
@@ -91,6 +92,10 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
                 Label summary = new Label(ID_PROGRESS_SUMMARY, new PropertyModel<>(progressModel, TaskIterativeProgressType.F_TITLE));
                 summary.setOutputMarkupId(true);
                 item.add(summary);
+
+                Label wallClockThroughput = new Label(ID_WALLCLOCK_THROUGHPUT, new PropertyModel<>(progressModel, TaskIterativeProgressType.F_WALLCLOCK_THROUGHPUT));
+                summary.setOutputMarkupId(true);
+                item.add(wallClockThroughput);
 
                 ChartJsPanel<PieChartConfiguration> chartPanel = new ChartJsPanel<>(ID_CHART, new PropertyModel<>(progressModel, TaskIterativeProgressType.F_PROGRESS));
                 item.add(chartPanel);
