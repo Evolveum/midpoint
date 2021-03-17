@@ -899,9 +899,16 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected boolean isCollectionViewPanel() {
-        return isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget();
+        return isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget() || defaultCollectionExists();
     }
 
+    private boolean defaultCollectionExists() {
+        return getCollectionViewForAllObject() != null;
+    }
+
+    private CompiledObjectCollectionView getCollectionViewForAllObject() {
+        return getPageBase().getCompiledGuiProfile().findObjectCollectionView(WebComponentUtil.containerClassToQName(getPrismContext(), getType()), null);
+    }
 
     protected ISelectableDataProvider getDataProvider() {
         BoxedTablePanel<PO> table = getTable();
