@@ -158,6 +158,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected static final ItemPath ACTIVATION_VALID_TO_PATH = SchemaConstants.PATH_ACTIVATION_VALID_TO;
     protected static final ItemPath PASSWORD_VALUE_PATH = SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 
+    protected static final ItemPath PATH_ADMINISTRATIVE_AVAILABILITY_STATUS_PATH = ItemPath.create(
+            ResourceType.F_ADMINISTRATIVE_OPERATIONAL_STATE,
+            AdministrativeOperationalStateType.F_ADMINISTRATIVE_AVAILABILITY_STATUS);
+
     private static final String DEFAULT_CHANNEL = SchemaConstants.CHANNEL_USER_URI;
 
     protected static final String LOG_PREFIX_FAIL = "SSSSS=X ";
@@ -6829,5 +6833,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 }
             }
         };
+    }
+
+    protected void modifyResourceMaintenance(String resourceOid, AdministrativeAvailabilityStatusType mode,
+            Task task, OperationResult result)
+            throws CommonException {
+        ObjectDelta<ResourceType> objectDelta = prismContext.deltaFactory().object()
+                .createModificationReplaceProperty(ResourceType.class, resourceOid,
+                        PATH_ADMINISTRATIVE_AVAILABILITY_STATUS_PATH, mode);
+
+        provisioningService.applyDefinition(objectDelta, task, result);
+        provisioningService.modifyObject(ResourceType.class, objectDelta.getOid(),
+                objectDelta.getModifications(), null, null, task, result);
     }
 }

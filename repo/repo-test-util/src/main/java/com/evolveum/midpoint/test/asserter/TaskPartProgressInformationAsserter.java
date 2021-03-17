@@ -9,6 +9,7 @@ package com.evolveum.midpoint.test.asserter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.evolveum.midpoint.schema.util.task.ItemsProgressInformation;
 import com.evolveum.midpoint.schema.util.task.TaskPartProgressInformation;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -97,5 +98,19 @@ public class TaskPartProgressInformationAsserter<RA> extends AbstractAsserter<RA
         int completedBuckets = getCompletedBuckets();
         assertThat(completedBuckets).as("completed buckets").isGreaterThanOrEqualTo(expected);
         return this;
+    }
+
+    public TaskPartProgressInformationAsserter<RA> assertNoBucketInformation() {
+        assertThat(information.getBucketsProgress()).isNull();
+        return this;
+    }
+
+    public ItemsProgressInformationAsserter<TaskPartProgressInformationAsserter<RA>> items() {
+        ItemsProgressInformation items = information.getItemsProgress();
+        assertThat(items).as("items progress information").isNotNull();
+        ItemsProgressInformationAsserter<TaskPartProgressInformationAsserter<RA>> asserter =
+                new ItemsProgressInformationAsserter<>(items, this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
     }
 }

@@ -56,9 +56,6 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
     private static final File RESOURCE_CSV_CONTENT_FILE = new File(TEST_DIR, "data-resource1.csv");
     private static final File ROLE1_FILE = new File(TEST_DIR, "role1.xml");
 
-    private static final ItemPath PATH_ADMINISTRATIVE_AVAILABILITY_STATUS = ItemPath.create(
-            ResourceType.F_ADMINISTRATIVE_OPERATIONAL_STATE, AdministrativeOperationalStateType.F_ADMINISTRATIVE_AVAILABILITY_STATUS);
-
     private static String sourceFilePath;
 
     private static final File SHADOW_FILE = new File(TEST_DIR, "shadow-user1.xml");
@@ -752,22 +749,11 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
     }
 
     private void turnMaintenanceModeOn(Task task, OperationResult result) throws Exception {
-        switchResourceMaintenance(AdministrativeAvailabilityStatusType.MAINTENANCE, task, result);
+        modifyResourceMaintenance(RESOURCE_OID, AdministrativeAvailabilityStatusType.MAINTENANCE, task, result);
     }
 
     private void turnMaintenanceModeOff(Task task, OperationResult result) throws Exception {
-        switchResourceMaintenance(AdministrativeAvailabilityStatusType.OPERATIONAL, task, result);
-    }
-
-    private void switchResourceMaintenance(AdministrativeAvailabilityStatusType mode, Task task, OperationResult result)
-            throws Exception {
-        ObjectDelta<ResourceType> objectDelta = prismContext.deltaFactory().object()
-                .createModificationReplaceProperty(ResourceType.class, RESOURCE_OID,
-                        PATH_ADMINISTRATIVE_AVAILABILITY_STATUS, mode);
-
-        provisioningService.applyDefinition(objectDelta, task, result);
-        provisioningService.modifyObject(ResourceType.class, objectDelta.getOid(),
-                objectDelta.getModifications(), null, null, task, result);
+        modifyResourceMaintenance(RESOURCE_OID, AdministrativeAvailabilityStatusType.OPERATIONAL, task, result);
     }
 
     private void assertTwoPendingOperations (PrismObject<ShadowType> shadow,

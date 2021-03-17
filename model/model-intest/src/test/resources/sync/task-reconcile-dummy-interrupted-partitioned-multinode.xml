@@ -13,7 +13,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-    <name>Reconcile: Dummy Interrupted Multinode</name>
+    <name>Reconcile: Dummy Interrupted Partitioned Multinode</name>
 
     <extension>
         <ext:kind>account</ext:kind>
@@ -39,7 +39,7 @@
                             <discriminator>attributes/name</discriminator>
                             <boundary>
                                 <position>0</position>
-                                <characters>v</characters>
+                                <characters>w</characters>
                             </boundary>
                             <boundary>
                                 <position>1</position>
