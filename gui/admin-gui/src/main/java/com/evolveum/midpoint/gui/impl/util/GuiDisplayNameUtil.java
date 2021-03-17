@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -116,7 +118,8 @@ public class GuiDisplayNameUtil {
         String description = richHyperlink.getDescription();
         String targetUrl = richHyperlink.getTargetUrl();
         if (StringUtils.isNotEmpty(label)) {
-            return  label + (StringUtils.isNotEmpty(description) ? (" - " + description) : "");
+            return PageBase.createStringResourceStatic(null, label).getString()
+                    + (StringUtils.isNotEmpty(description) ? (" - " + PageBase.createStringResourceStatic(null, description).getString()) : "");
         } else if (StringUtils.isNotEmpty(targetUrl)) {
             return targetUrl;
         }
