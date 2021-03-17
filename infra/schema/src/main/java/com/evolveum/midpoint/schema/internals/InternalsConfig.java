@@ -8,6 +8,8 @@ package com.evolveum.midpoint.schema.internals;
 
 import org.apache.commons.configuration2.Configuration;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * @author semancik
  *
@@ -60,6 +62,7 @@ public class InternalsConfig {
         return prismMonitoring;
     }
 
+    @VisibleForTesting
     public static void setPrismMonitoring(boolean prismMonitoring) {
         InternalsConfig.prismMonitoring = prismMonitoring;
     }
