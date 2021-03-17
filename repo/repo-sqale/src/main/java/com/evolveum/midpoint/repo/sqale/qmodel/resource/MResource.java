@@ -8,8 +8,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.resource;
 
 import java.util.UUID;
 
-import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAdministrativeStateType;
 

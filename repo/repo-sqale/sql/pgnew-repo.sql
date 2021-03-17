@@ -200,7 +200,10 @@ CREATE TABLE m_object (
     lifecycleState TEXT/*VARCHAR(255)*/, -- TODO what is this? how many distinct values?
     cid_seq BIGINT NOT NULL DEFAULT 1, -- sequence for container id, next free cid
     version INTEGER NOT NULL DEFAULT 1,
-    -- add GIN index for concrete tables where more than hundreds of entries are expected (see m_user)
+    -- complex DB columns, add indexes as needed per concrete table, e.g. see m_user
+    policySituations TEXT[], -- TODO experimental, compare with [] in JSONB, check performance, indexing, etc. first
+    subtypes TEXT[],
+    textInfo TEXT[], -- TODO not mapped yet
     ext JSONB,
     -- metadata
     creatorRef_targetOid UUID,
@@ -483,16 +486,6 @@ CREATE TRIGGER m_service_oid_delete_tr AFTER DELETE ON m_service
 
 CREATE INDEX m_service_name_orig_idx ON m_service (name_orig);
 ALTER TABLE m_service ADD CONSTRAINT m_service_name_norm_key UNIQUE (name_norm);
-
-/* TODO as array/JSON, it's List<String>
-CREATE TABLE m_service_type (
-    service_oid VARCHAR(36) NOT NULL,
-    serviceType VARCHAR(255)
-);
-CREATE INDEX iServiceTypeOid ON M_SERVICE_TYPE(SERVICE_OID);
-ALTER TABLE m_service_type
-    ADD CONSTRAINT fk_service_type FOREIGN KEY (service_oid) REFERENCES m_service;
-*/
 
 -- Represents ArchetypeType, see https://wiki.evolveum.com/display/midPoint/Archetypes
 CREATE TABLE m_archetype (

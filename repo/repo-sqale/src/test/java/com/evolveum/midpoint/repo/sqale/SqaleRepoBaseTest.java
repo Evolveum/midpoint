@@ -20,6 +20,7 @@ import org.testng.annotations.BeforeClass;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -132,5 +133,11 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     protected void assertCachedUri(Integer uriId, String uri) {
         assertThat(cachedUriById(uriId)).isEqualTo(uri);
+    }
+
+    /** Sets original and normalized name for provided {@link MObject}. */
+    protected void setName(MObject object, String origName) {
+        object.nameOrig = origName;
+        object.nameNorm = prismContext.getDefaultPolyStringNormalizer().normalize(origName);
     }
 }
