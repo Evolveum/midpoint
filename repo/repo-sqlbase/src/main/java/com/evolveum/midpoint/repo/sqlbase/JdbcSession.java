@@ -27,11 +27,19 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * Wrapper around JDBC {@link java.sql.Connection} representing "session", typically a transaction.
- * Connection is prepared for the transaction (auto-commit is disabled), but
- * {@link #startTransaction()} or {@link #startReadOnlyTransaction()} must be called explicitly.
+ * Wrapper around JDBC {@link Connection} representing "session", typically a transactional one.
+ * The construction can be fluently followed by {@link #startTransaction()} or its variants.
+ * Without starting the transaction connection will likely be in auto-commit mode.
+ * Use {@link #commit()} or {@link #rollback()} to finish the transaction.
+ *
  * While not typical, multiple transactions can be executed in sequence (not concurrently).
- * Object is {@link AutoCloseable} and can be used in try-with-resource blocks.
+ * The next transaction starts immediately after committing/rolling back the previous one, there
+ * is no need to explicitly start another transaction if one of {@link #startTransaction()} methods
+ * was called before.
+ * Using multiple transactions is in general discouraged in favour of multiple try-with-resource
+ * blocks each using new session (physical SQL connections are pooled, of course).
+ *
+ * Object is {@link AutoCloseable} and can be used in try-with-resource blocks (which is preferred).
  * If transaction is still active during closing the JDBC session, it commits the transaction.
  * If database does not support read-only transactions directly,
  * {@link #commit()} executes rollback instead.
