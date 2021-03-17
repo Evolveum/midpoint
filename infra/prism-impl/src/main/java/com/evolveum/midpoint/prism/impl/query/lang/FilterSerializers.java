@@ -183,12 +183,14 @@ public class FilterSerializers {
         target.writeSelf();
         target.writeFilterName(TYPE);
         target.writeRawValue(source.getType());
-        target.writeFilterName(AND);
         var nested = source.getFilter();
-        if (nested instanceof OrFilter) {
-            target.writeNestedFilter(nested);
-        } else {
-            target.writeFilter(nested);
+        if(nested != null) {
+            target.writeFilterName(AND);
+            if (nested instanceof OrFilter) {
+                target.writeNestedFilter(nested);
+            } else {
+                target.writeFilter(nested);
+            }
         }
     }
 

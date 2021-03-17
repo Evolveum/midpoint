@@ -282,6 +282,15 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
                     return OrgFilterImpl.createRootOrg();
                 }
             })
+            .put(TYPE, new SelfFilterFactory("type" ) {
+
+                @Override
+                protected ObjectFilter create(PrismContainerDefinition<?> parentDef, QName matchingRule,
+                        SubfilterOrValueContext subfilterOrValue) throws SchemaException {
+                    QName type = requireLiteral(QName.class, filterName,subfilterOrValue.singleValue());
+                    return TypeFilterImpl.createType(type, null);
+                }
+            })
             .build();
 
     private final Map<QName, ItemFilterFactory> notFilterFactories = ImmutableMap.<QName, ItemFilterFactory>builder()
@@ -323,8 +332,8 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
 
     protected <T> T requireLiteral(Class<T> type, String filterName, SingleValueContext value) throws SchemaException {
         schemaCheck(value != null, "%s literal must be specified for %s.", type.getSimpleName(), filterName);
-        schemaCheck(value.literalValue() != null, "%s literal must be specified for %s.", type.getSimpleName(), filterName);
-        return parseLiteral(type, value.literalValue());
+        schemaCheck(value.literalValue() != null || value.path() != null, "%s literal must be specified for %s.", type.getSimpleName(), filterName);
+        return parseLiteral(type, value);
     }
 
     public PrismQueryLanguageParserImpl(PrismContext context, Map<String, String> namespaceContext) {
@@ -379,35 +388,33 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
 
         ImmutableList.Builder<ObjectFilter> filters = ImmutableList.builder();
 
-        ItemFilterContext typeFilter = null;
+        TypeFilter typeFilter = null;
         var iterator = unparsed.iterator();
         while (iterator.hasNext()) {
             var next = iterator.next();
             if (next instanceof GenFilterContext) {
                 ItemFilterContext itemFilter = ((GenFilterContext) next).itemFilter();
-                if (FilterNames.TYPE.equals(filterName(itemFilter.filterName()))) {
-                    typeFilter = itemFilter;
-                    iterator.remove(); // We extract type out of and components
+                // If AND contains type filter, we extract it out in order to determine
+                // more specific type
+                if (itemFilter.negation() == null && FilterNames.TYPE.equals(filterName(itemFilter.filterName()))) {
+                    typeFilter = (TypeFilter) itemFilter(complexType, typeDef, itemFilter);
+                    iterator.remove(); // We remove it from subfilters, since we are moving it u
                 }
             }
         }
-        QName type = null;
         if (typeFilter != null) {
-            type = parseLiteral(QName.class, typeFilter.subfilterOrValue().singleValue());
-            typeDef = complexType.getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByType(type);
-
+            typeDef = complexType.getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByType(typeFilter.getType());
         }
         for (FilterContext filter : unparsed) {
             filters.add(parseFilter(complexType, typeDef, filter));
         }
         ObjectFilter andFilter = context.queryFactory().createAndOptimized(filters.build());
-        if (type != null) {
-            andFilter = TypeFilterImpl.createType(type, andFilter);
+        if (typeFilter != null) {
+            typeFilter.setFilter(andFilter);
+            return typeFilter;
         }
         return andFilter;
     }
-
-
 
     private <E extends FilterContext> void expand(List<FilterContext> expanded, Class<E> expandable, Function<E,List<FilterContext>> expander, List<FilterContext> notExpanded) {
         for (FilterContext filterContext : notExpanded) {
