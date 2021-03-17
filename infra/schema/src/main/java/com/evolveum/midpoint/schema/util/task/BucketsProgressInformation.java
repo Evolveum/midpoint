@@ -65,4 +65,12 @@ public class BucketsProgressInformation implements DebugDumpable, Serializable {
         DebugUtil.debugDumpWithLabel(sb, "Expected buckets", expectedBuckets, indent);
         return sb.toString();
     }
+
+    public float getPercentage() {
+        if (expectedBuckets != null && expectedBuckets > 0) {
+            return (float) getCompletedBuckets() / expectedBuckets;
+        } else {
+            return Float.NaN;
+        }
+    }
 }

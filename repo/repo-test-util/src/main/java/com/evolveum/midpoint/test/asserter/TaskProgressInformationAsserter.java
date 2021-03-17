@@ -47,13 +47,17 @@ public class TaskProgressInformationAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
-    public TaskPartProgressInformationAsserter<TaskProgressInformationAsserter<RA>> currentPart() {
-        TaskPartProgressInformation currentPartInformation = information.getCurrentPartInformation();
-        assertThat(currentPartInformation).as("current part information").isNotNull();
+    public TaskPartProgressInformationAsserter<TaskProgressInformationAsserter<RA>> part(String uri) {
+        TaskPartProgressInformation partInformation = information.getParts().get(uri);
+        assertThat(partInformation).as("part information for: " + uri).isNotNull();
         TaskPartProgressInformationAsserter<TaskProgressInformationAsserter<RA>> asserter =
-                new TaskPartProgressInformationAsserter<>(currentPartInformation, this, getDetails());
+                new TaskPartProgressInformationAsserter<>(partInformation, this, getDetails());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    public TaskPartProgressInformationAsserter<TaskProgressInformationAsserter<RA>> currentPart() {
+        return part(information.getCurrentPartUri());
     }
 
     @Override

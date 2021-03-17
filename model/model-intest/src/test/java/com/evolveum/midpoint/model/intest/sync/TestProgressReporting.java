@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.intest.sync;
 import java.io.File;
 import java.util.Collection;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.task.TaskPartProgressInformation;
@@ -16,7 +17,8 @@ import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.test.TestResource;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -27,14 +29,13 @@ import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTes
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import static org.testng.AssertJUnit.*;
 
 /**
  * Tests for MID-6011.
  *
- * TODO move to reporting package.
+ * TODO consider moving to reporting package
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -49,16 +50,23 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
     @SuppressWarnings("FieldCanBeLocal")
     private DummyInterruptedSyncResource interruptedSyncResource;
 
-    private static final TestResource<TaskType> TASK_RECONCILE_DUMMY = new TestResource<>(TEST_DIR, "task-reconcile-dummy-interrupted-partitioned.xml", "83eef280-d420-417a-929d-796eed202e02");
-    private static final TestResource<TaskType> TASK_RECONCILE_DUMMY_MULTINODE = new TestResource<>(TEST_DIR, "task-reconcile-dummy-interrupted-partitioned-multinode.xml", "9a52b7a4-afda-4b22-932e-f45b9f90cf95");
+    private static final TestResource<TaskType> TASK_RECONCILE_DUMMY =
+            new TestResource<>(TEST_DIR, "task-reconcile-dummy-interrupted.xml", "944f7dbd-b221-4df3-b975-781c7794af6e");
+    private static final TestResource<TaskType> TASK_RECONCILE_DUMMY_PARTITIONED =
+            new TestResource<>(TEST_DIR, "task-reconcile-dummy-interrupted-partitioned.xml", "83eef280-d420-417a-929d-796eed202e02");
+    private static final TestResource<TaskType> TASK_RECONCILE_DUMMY_PARTITIONED_MULTINODE
+            = new TestResource<>(TEST_DIR, "task-reconcile-dummy-interrupted-partitioned-multinode.xml", "9a52b7a4-afda-4b22-932e-f45b9f90cf95");
 
-    private static final TestResource<TaskType> TASK_RECOMPUTE_ROLES = new TestResource<>(TEST_DIR, "task-recompute-roles.xml", "42869247-9bf1-4198-acea-3326f5ab2c34");
-    private static final TestResource<TaskType> TASK_RECOMPUTE_ROLES_MULTINODE = new TestResource<>(TEST_DIR, "task-recompute-roles-multinode.xml", "c8cfe559-3888-4b39-b835-3aead9a46581");
+    private static final TestResource<TaskType> TASK_RECOMPUTE_ROLES
+            = new TestResource<>(TEST_DIR, "task-recompute-roles.xml", "42869247-9bf1-4198-acea-3326f5ab2c34");
+    private static final TestResource<TaskType> TASK_RECOMPUTE_ROLES_MULTINODE
+            = new TestResource<>(TEST_DIR, "task-recompute-roles-multinode.xml", "c8cfe559-3888-4b39-b835-3aead9a46581");
 
-    private static final TestResource<TaskType> METAROLE_SLOWING_DOWN = new TestResource<>(TEST_DIR, "metarole-slowing-down.xml", "b7218b57-fb8a-4dfd-a4c0-976849a4640c");
+    private static final TestResource<TaskType> METAROLE_SLOWING_DOWN
+            = new TestResource<>(TEST_DIR, "metarole-slowing-down.xml", "b7218b57-fb8a-4dfd-a4c0-976849a4640c");
 
-    private static final int USERS = 1000;
-    private static final int ROLES = 1000;
+    private static final int USERS = 200;
+    private static final int ROLES = 200;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -68,22 +76,51 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
         interruptedSyncResource.init(dummyResourceCollection, initTask, initResult);
 
         addObject(METAROLE_SLOWING_DOWN, initTask, initResult);
+        createShadowWithPendingOperation();
     }
 
     /**
      * Reconciliation suspend + resume - check for progress reporting issues.
      */
     @Test
-    public void test100ReconciliationSuspensionSingleNode() throws Exception {
-        executeReconciliation(TASK_RECONCILE_DUMMY, "u", 1);
+    public void test100ReconciliationSuspension() throws Exception {
+        executeNonBucketedReconciliation(TASK_RECONCILE_DUMMY, "u", 1);
+    }
+
+    private void createShadowWithPendingOperation() throws CommonException {
+        Task task = createTask();
+        OperationResult result = task.getResult(); // Must be separate from initResult because of IN_PROGRESS status
+
+        String resourceOid = interruptedSyncResource.getController().getResource().getOid();
+        UserType user = new UserType(prismContext)
+                .name("pending")
+                .beginAssignment()
+                    .beginConstruction()
+                        .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                        .<AssignmentType>end()
+                    .end();
+        addObject(user.asPrismObject(), task, result);
+
+        modifyResourceMaintenance(resourceOid, AdministrativeAvailabilityStatusType.MAINTENANCE, task, result);
+        deleteObject(UserType.class, user.getOid(), task, result);
+
+        modifyResourceMaintenance(resourceOid, AdministrativeAvailabilityStatusType.OPERATIONAL, task, result);
+    }
+
+    /**
+     *
+     */
+    @Test
+    public void test110ReconciliationSuspensionPartitioned() throws Exception {
+        executeBucketedReconciliation(TASK_RECONCILE_DUMMY_PARTITIONED, "v", 1);
     }
 
     @Test
-    public void test110ReconciliationSuspensionMultiNode() throws Exception {
-        executeReconciliation(TASK_RECONCILE_DUMMY_MULTINODE, "v", 2);
+    public void test120ReconciliationSuspensionPartitionedMultiNode() throws Exception {
+        executeBucketedReconciliation(TASK_RECONCILE_DUMMY_PARTITIONED_MULTINODE, "w", 2);
     }
 
-    private void executeReconciliation(TestResource<TaskType> reconciliationTask, String accountPrefix, int workers)
+    private void executeNonBucketedReconciliation(TestResource<TaskType> reconciliationTask, String accountPrefix, int workers)
             throws Exception {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
@@ -95,13 +132,16 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
 
         addObject(reconciliationTask.file, task, result);
 
-        when();
+        when("1st run");
+
         System.out.println("Waiting before suspending task tree.");
-        Thread.sleep(10000L);
+        Thread.sleep(3000L);
 
         System.out.println("Suspending task tree.");
         boolean stopped = taskManager.suspendTaskTree(reconciliationTask.oid, 10000, result);
         assertTrue("Not all tasks were stopped", stopped);
+
+        then("1st run");
 
         System.out.println("Task tree suspended.");
         Collection<SelectorOptions<GetOperationOptions>> getSubtasks = getOperationOptionsBuilder()
@@ -110,8 +150,28 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
         PrismObject<TaskType> rootAfterSuspension1 = taskManager.getObject(TaskType.class, reconciliationTask.oid, getSubtasks, result);
         displayValue("Tree after suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension1.asObjectable()));
 
+        assertTask(rootAfterSuspension1.asObjectable(), "1st")
+                .display()
+                .structuredProgress()
+                    .display();
+
         TaskProgressInformation progress1 = TaskProgressInformation.fromTaskTree(rootAfterSuspension1.asObjectable());
-        displayDumpable("Progress after 1st suspension", progress1);
+        assertTaskProgress(progress1, "after 1st run")
+                .display()
+                .assertAllPartsCount(3)
+                .assertCurrentPartNumber(2)
+                .part(ModelPublicConstants.RECONCILIATION_OPERATION_COMPLETION_PART_URI)
+                    .assertNoBucketInformation()
+//                    .assertItems(1, null)
+//                    .assertComplete()
+                    .end()
+                .currentPart()
+                    .assertNoBucketInformation()
+                    .items()
+                        .assertProgressGreaterThanZero();
+//                        .assertNoExpectedTotal();
+
+        when("2nd run");
 
         System.out.println("Resuming task tree.");
         taskManager.resumeTaskTree(reconciliationTask.oid, result);
@@ -123,18 +183,63 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
         boolean stopped2 = taskManager.suspendTaskTree(reconciliationTask.oid, 10000, result);
         assertTrue("Not all tasks were stopped", stopped2);
 
+        then("2nd run");
+
         System.out.println("Task tree suspended.");
         PrismObject<TaskType> rootAfterSuspension2 = taskManager.getObject(TaskType.class, reconciliationTask.oid, getSubtasks, result);
         displayValue("Tree after second suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension2.asObjectable()));
 
-        TaskProgressInformation progress2 = TaskProgressInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
-        displayDumpable("Progress after 2nd suspension", progress2);
+        assertTask(rootAfterSuspension2.asObjectable(), "1st")
+                .display()
+                .structuredProgress()
+                    .display(); // TODO assert parts
 
-        // THEN
+        TaskProgressInformation progress2 = TaskProgressInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
+        assertTaskProgress(progress2, "after 2nd suspension")
+                .display()
+                .assertAllPartsCount(3)
+                .assertCurrentPartNumber(2)
+                .currentPart()
+                    .assertNoBucketInformation()
+                    .items()
+                        .assertProgressGreaterThanZero();
+    }
+
+    private void executeBucketedReconciliation(TestResource<TaskType> reconciliationTask, String accountPrefix, int workers)
+            throws Exception {
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        given();
+        for (int i = 0; i < USERS; i++) {
+            interruptedSyncResource.getController().addAccount(String.format("%s%03d", accountPrefix, i));
+        }
+
+        addObject(reconciliationTask.file, task, result);
 
         int bucketSize = 10;
 
-        TaskPartProgressInformation info1 = assertTaskProgress(progress1, "after 1st suspension")
+        when("1st run");
+
+        System.out.println("Waiting before suspending task tree.");
+        Thread.sleep(3000L);
+
+        System.out.println("Suspending task tree.");
+        boolean stopped = taskManager.suspendTaskTree(reconciliationTask.oid, 10000, result);
+        assertTrue("Not all tasks were stopped", stopped);
+
+        then("1st run");
+
+        System.out.println("Task tree suspended.");
+        Collection<SelectorOptions<GetOperationOptions>> getSubtasks = getOperationOptionsBuilder()
+                .item(TaskType.F_SUBTASK_REF).retrieve()
+                .build();
+        PrismObject<TaskType> rootAfterSuspension1 = taskManager.getObject(TaskType.class, reconciliationTask.oid, getSubtasks, result);
+        displayValue("Tree after suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension1.asObjectable()));
+
+        TaskProgressInformation progress1 = TaskProgressInformation.fromTaskTree(rootAfterSuspension1.asObjectable());
+        TaskPartProgressInformation info1 = assertTaskProgress(progress1, "after 1st run")
+                .display()
                 .assertAllPartsCount(3)
                 .assertCurrentPartNumber(2)
                 .currentPart()
@@ -142,7 +247,29 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
                     .assertBucketsItemsConsistency(bucketSize, workers)
                     .get();
 
+
+        when("2nd run");
+
+        System.out.println("Resuming task tree.");
+        taskManager.resumeTaskTree(reconciliationTask.oid, result);
+
+        System.out.println("Waiting before suspending task tree second time...");
+        Thread.sleep(3000L);
+
+        System.out.println("Suspending task tree.");
+        boolean stopped2 = taskManager.suspendTaskTree(reconciliationTask.oid, 10000, result);
+        assertTrue("Not all tasks were stopped", stopped2);
+
+        then("2nd run");
+
+        System.out.println("Task tree suspended.");
+        PrismObject<TaskType> rootAfterSuspension2 = taskManager.getObject(TaskType.class, reconciliationTask.oid, getSubtasks, result);
+        displayValue("Tree after second suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension2.asObjectable()));
+
+        TaskProgressInformation progress2 = TaskProgressInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
+
         TaskPartProgressInformation info2 = assertTaskProgress(progress2, "after 2nd suspension")
+                .display()
                 .assertAllPartsCount(3)
                 .assertCurrentPartNumber(2)
                 .currentPart()
@@ -174,7 +301,7 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        // GIVEN
+        given();
         System.out.println("Importing roles.");
         for (int i = 0; i < ROLES; i++) {
             RoleType role = new RoleType(prismContext)
@@ -188,23 +315,40 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
         System.out.println("Importing recompute task.");
         addObject(recomputationTask.file, task, result);
 
-        // WHEN
+        int bucketSize = 10;
+
+        when("1st run");
+
         System.out.println("Waiting before suspending task tree.");
-        Thread.sleep(10000L);
+        Thread.sleep(3000L);
 
         System.out.println("Suspending task tree.");
         boolean stopped = taskManager.suspendTaskTree(recomputationTask.oid, 10000, result);
         assertTrue("Not all tasks were stopped", stopped);
-
         System.out.println("Task tree suspended.");
+
+        then("1st run");
+
         Collection<SelectorOptions<GetOperationOptions>> getSubtasks = getOperationOptionsBuilder()
                 .item(TaskType.F_SUBTASK_REF).retrieve()
                 .build();
         PrismObject<TaskType> rootAfterSuspension1 = taskManager.getObject(TaskType.class, recomputationTask.oid, getSubtasks, result);
         displayValue("Tree after suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension1.asObjectable()));
 
+        assertTask(rootAfterSuspension1.asObjectable(), "1st")
+                .display();
+
         TaskProgressInformation progress1 = TaskProgressInformation.fromTaskTree(rootAfterSuspension1.asObjectable());
-        displayDumpable("Progress after 1st suspension", progress1);
+        TaskPartProgressInformation info1 = assertTaskProgress(progress1, "after 1st suspension")
+                .display()
+                .assertAllPartsCount(1)
+                .assertCurrentPartNumber(1)
+                .currentPart()
+                    .assertExpectedBuckets(100)
+                    .assertBucketsItemsConsistency(bucketSize, workers)
+                    .get();
+
+        when("2nd run");
 
         System.out.println("Resuming task tree.");
         taskManager.resumeTaskTree(recomputationTask.oid, result);
@@ -215,33 +359,25 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
         System.out.println("Suspending task tree.");
         boolean stopped2 = taskManager.suspendTaskTree(recomputationTask.oid, 10000, result);
         assertTrue("Not all tasks were stopped", stopped2);
-
         System.out.println("Task tree suspended.");
+
+        then("2nd run");
+
         PrismObject<TaskType> rootAfterSuspension2 = taskManager.getObject(TaskType.class, recomputationTask.oid, getSubtasks, result);
         displayValue("Tree after second suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension2.asObjectable()));
 
+        assertTask(rootAfterSuspension2.asObjectable(), "2nd")
+                .display();
+
         TaskProgressInformation progress2 = TaskProgressInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
-        displayDumpable("Progress after second suspension", progress2);
-
-        // THEN
-
-        int bucketSize = 10;
-
-        TaskPartProgressInformation info1 = assertTaskProgress(progress1, "after 1st suspension")
-                .assertAllPartsCount(1)
-                .assertCurrentPartNumber(1)
-                .currentPart()
-                    .assertExpectedBuckets(100)
-                    .assertBucketsItemsConsistency(bucketSize, workers)
-                .get();
-
         TaskPartProgressInformation info2 = assertTaskProgress(progress2, "after 2nd suspension")
+                .display()
                 .assertAllPartsCount(1)
                 .assertCurrentPartNumber(1)
                 .currentPart()
                     .assertExpectedBuckets(100) // todo consistency
-                .assertCompletedBucketsAtLeast(info1.getBucketsProgress().getCompletedBuckets())
-                .get();
+                    .assertCompletedBucketsAtLeast(info1.getBucketsProgress().getCompletedBuckets())
+                    .get();
 
 //        assertProgressVsBuckets(items2, completedBuckets2, bucketSize, workers);
 

@@ -84,4 +84,12 @@ public class ItemsProgressInformation implements DebugDumpable, Serializable {
         DebugUtil.debugDumpWithLabel(sb, "Expected total", expectedTotal, indent);
         return sb.toString();
     }
+
+    public float getPercentage() {
+        if (expectedTotal != null && expectedTotal > 0) {
+            return (float) progress / expectedTotal;
+        } else {
+            return Float.NaN;
+        }
+    }
 }

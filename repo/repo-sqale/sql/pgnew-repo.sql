@@ -250,6 +250,7 @@ CREATE TABLE m_reference (
 
     -- prevents inserts to this table, but not to inherited ones; this makes it "abstract" table
     CHECK (FALSE) NO INHERIT
+    -- add PK (referenceType is the same per table): PRIMARY KEY (owner_oid, relation_id, targetOid)
 );
 -- Add this index for each sub-table (reference type is not necessary, each sub-table has just one).
 -- CREATE INDEX m_reference_targetOid_relation_id_idx ON m_reference (targetOid, relation_id);
@@ -260,7 +261,7 @@ CREATE TABLE m_ref_archetype (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('ARCHETYPE') STORED,
 
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+    PRIMARY KEY (owner_oid, relation_id, targetOid)
 )
     INHERITS (m_reference);
 
@@ -272,7 +273,7 @@ CREATE TABLE m_ref_delegated (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('DELEGATED') STORED,
 
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+    PRIMARY KEY (owner_oid, relation_id, targetOid)
 )
     INHERITS (m_reference);
 
@@ -284,7 +285,7 @@ CREATE TABLE m_ref_object_create_approver (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_CREATE_APPROVER') STORED,
 
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+    PRIMARY KEY (owner_oid, relation_id, targetOid)
 )
     INHERITS (m_reference);
 
@@ -296,7 +297,7 @@ CREATE TABLE m_ref_object_modify_approver (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_MODIFY_APPROVER') STORED,
 
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+    PRIMARY KEY (owner_oid, relation_id, targetOid)
 )
     INHERITS (m_reference);
 
@@ -308,7 +309,7 @@ CREATE TABLE m_ref_object_parent_org (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_PARENT_ORG') STORED,
 
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+    PRIMARY KEY (owner_oid, relation_id, targetOid)
 )
     INHERITS (m_reference);
 
@@ -320,7 +321,7 @@ CREATE TABLE m_ref_role_membership (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('ROLE_MEMBERSHIP') STORED,
 
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+    PRIMARY KEY (owner_oid, relation_id, targetOid)
 )
     INHERITS (m_reference);
 
@@ -367,7 +368,7 @@ CREATE TABLE m_ref_persona (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('PERSONA') STORED,
 
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+    PRIMARY KEY (owner_oid, relation_id, targetOid)
 )
     INHERITS (m_reference);
 
@@ -379,7 +380,7 @@ CREATE TABLE m_ref_projection (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('PROJECTION') STORED,
 
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+    PRIMARY KEY (owner_oid, relation_id, targetOid)
 )
     INHERITS (m_reference);
 
@@ -680,9 +681,10 @@ ALTER TABLE m_resource ADD CONSTRAINT m_resource_name_norm_key UNIQUE (name_norm
 -- stores ResourceType/business/approverRef
 CREATE TABLE m_ref_resource_business_configuration_approver (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('RESOURCE_BUSINESS_CONFIGURATION_APPROVER') STORED,
+    referenceType ReferenceType GENERATED ALWAYS AS
+        ('RESOURCE_BUSINESS_CONFIGURATION_APPROVER') STORED,
 
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+    PRIMARY KEY (owner_oid, relation_id, targetOid)
 )
     INHERITS (m_reference);
 
@@ -1076,7 +1078,7 @@ CREATE TABLE m_ref_include (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('INCLUDE') STORED,
 
-    PRIMARY KEY (owner_oid, referenceType, relation_id, targetOid)
+    PRIMARY KEY (owner_oid, relation_id, targetOid)
 )
     INHERITS (m_reference);
 
