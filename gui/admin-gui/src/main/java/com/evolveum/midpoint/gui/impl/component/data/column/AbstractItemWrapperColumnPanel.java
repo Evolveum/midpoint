@@ -80,7 +80,6 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
         }
         switch (columnType) {
             case STRING:
-                LOGGER.info("creating label for {}", item.getModelObject());
                 Label label = new Label(ID_VALUE, new ReadOnlyModel<>(() -> createLabel(item.getModelObject())));
                 item.add(label);
                 break;
