@@ -198,10 +198,38 @@ public class TaskProgressInformation implements DebugDumpable, Serializable {
                 '}';
     }
 
+    public String toHumanReadableString(boolean longForm) {
+        StringBuilder sb = new StringBuilder();
+        currentPartToHumanReadableString(sb, longForm);
+        if (isMultiPart()) {
+            if (longForm) {
+                sb.append(" in part ").append(getCurrentPartNumber()).append(" of ").append(getAllPartsCount());
+            } else {
+                sb.append(" in ").append(getCurrentPartNumber()).append("/").append(getAllPartsCount());
+            }
+        }
+        return sb.toString();
+    }
+
+    private void currentPartToHumanReadableString(StringBuilder sb, boolean longForm) {
+        TaskPartProgressInformation currentPart = getCurrentPartInformation();
+        if (currentPart == null) {
+            return; // TODO?
+        } else {
+            sb.append(currentPart.toHumanReadableString(longForm));
+        }
+    }
+
+    private boolean isMultiPart() {
+        return getAllPartsCount() > 1;
+    }
+
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.debugDumpLabelLn(sb, getClass().getSimpleName(), indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "Long form", toHumanReadableString(true), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Short form", toHumanReadableString(false), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "All parts count", allPartsCount, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "Current part number", currentPartNumber, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "Current part URI", currentPartUri, indent + 1);

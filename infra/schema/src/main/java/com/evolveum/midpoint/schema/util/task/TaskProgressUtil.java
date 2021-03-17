@@ -9,6 +9,9 @@ package com.evolveum.midpoint.schema.util.task;
 
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
+import static java.util.Collections.singleton;
+
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -31,7 +34,7 @@ public class TaskProgressUtil {
         }
     }
 
-    private static int getCounts(List<TaskPartProgressType> parts,
+    private static int getCounts(Collection<TaskPartProgressType> parts,
             Predicate<OutcomeKeyedCounterType> counterFilter, boolean open) {
         return parts.stream()
                 .flatMap(part -> (open ? part.getOpen() : part.getClosed()).stream())
@@ -110,6 +113,7 @@ public class TaskProgressUtil {
     }
 
     public static int getTotalProgress(TaskPartProgressType progress) {
-        return 0;
+        return getCounts(singleton(progress), c -> true, true) +
+                getCounts(singleton(progress), c -> true, false);
     }
 }

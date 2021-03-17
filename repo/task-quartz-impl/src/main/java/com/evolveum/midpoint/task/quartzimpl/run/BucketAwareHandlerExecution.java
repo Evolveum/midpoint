@@ -137,16 +137,15 @@ class BucketAwareHandlerExecution {
     private WorkBucketType getWorkBucket(OperationResult result) throws ExitExecutionException {
         WorkBucketType bucket;
         try {
-            try {
-                bucket = beans.workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, task::canRun, initialExecution,
-                        task.getWorkBucketStatisticsCollector(), result);
-            } catch (InterruptedException e) {
-                LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
-                if (task.canRun()) {
-                    throw new IllegalStateException("Unexpected InterruptedException: " + e.getMessage(), e);
-                } else {
-                    throw new ExitExecutionException(createInterruptedTaskRunResult(task));
-                }
+            bucket = beans.workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, task::canRun, initialExecution,
+                    task.getWorkBucketStatisticsCollector(), result);
+        } catch (InterruptedException e) {
+            LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
+            if (!task.canRun()) {
+                throw new ExitExecutionException(createInterruptedTaskRunResult(task));
+            } else {
+                LoggingUtils.logUnexpectedException(LOGGER, "Unexpected InterruptedException in {}", e, task);
+                throw new ExitExecutionException(task, "Unexpected InterruptedException: " + e.getMessage(), e);
             }
         } catch (Throwable t) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't allocate a work bucket for task {}", t, task);

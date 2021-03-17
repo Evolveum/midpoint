@@ -116,4 +116,49 @@ public class TaskPartProgressInformation implements DebugDumpable, Serializable 
         DebugUtil.debugDumpWithLabel(sb, "Total items progress", itemsProgress, indent);
         return sb.toString();
     }
+
+    public boolean isBucketed() {
+        return bucketsProgress != null &&
+                (bucketsProgress.getExpectedBuckets() == null || bucketsProgress.getExpectedBuckets() > 1);
+    }
+
+    public String toHumanReadableString(boolean longForm) {
+        if (isBucketed()) {
+            return toHumanReadableStringForBucketed(longForm);
+        } else if (itemsProgress != null) {
+            return toHumanReadableStringForNonBucketed(longForm);
+        } else {
+            return "?"; // TODO
+        }
+    }
+
+    private String toHumanReadableStringForNonBucketed(boolean longForm) {
+        float percentage = itemsProgress.getPercentage();
+        if (Float.isNaN(percentage)) {
+            return String.valueOf(itemsProgress.getProgress());
+        }
+        if (longForm) {
+            return String.format("%.1f%% (%d of %d)", percentage * 100,
+                    itemsProgress.getProgress(), itemsProgress.getExpectedTotal());
+        } else {
+            return String.format("%.1f%%", percentage * 100);
+        }
+    }
+
+    private String toHumanReadableStringForBucketed(boolean longForm) {
+        float percentage = bucketsProgress.getPercentage();
+        if (Float.isNaN(percentage)) {
+            if (longForm) {
+                return bucketsProgress.getCompletedBuckets() + " buckets";
+            } else {
+                return bucketsProgress.getCompletedBuckets() + "b";
+            }
+        }
+        if (longForm) {
+            return String.format("%.1f%% (%d of %d buckets)", percentage * 100,
+                    bucketsProgress.getCompletedBuckets(), bucketsProgress.getExpectedBuckets());
+        } else {
+            return String.format("%.1f%%", percentage * 100);
+        }
+    }
 }
