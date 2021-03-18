@@ -229,14 +229,17 @@ vacuum full analyze;
 SELECT pg_size_pretty(pg_database_size('midpoint'));
 
 -- show tables + their toast tables ordered from the largest toast table
--- ut = user table, tt = toast table
-select ut.oid, ut.relname, ut.relkind, tt.relkind, tt.relname, tt.relpages, tt.reltuples
-from pg_class ut
-    inner join pg_class tt on ut.reltoastrelid = tt.oid
-    inner join pg_namespace ns ON ut.relnamespace = ns.oid
-where ut.relkind = 'r' and tt.relkind = 't'
-    and ns.nspname = 'public'
-order by relpages desc;
+-- t = table, tt = toast table
+select t.oid as table_oid,
+    t.relname as table_name,
+    tt.relname as toast_name,
+    pg_size_pretty(pg_relation_size(t.oid)) AS table_size,
+    pg_size_pretty(pg_relation_size(tt.oid)) AS toast_size,
+    pg_size_pretty(pg_relation_size(t.oid) + coalesce(pg_relation_size(tt.oid), 0)) AS total_size
+from pg_class t
+         left join pg_class tt on t.reltoastrelid = tt.oid and tt.relkind = 't'
+where t.relkind = 'r' and t.relnamespace = (select oid from pg_namespace where nspname = 'public')
+order by total_size desc;
 
 -- find sequence name for serial column (e.g. to alter its value later)
 select pg_get_serial_sequence('m_qname', 'id');
