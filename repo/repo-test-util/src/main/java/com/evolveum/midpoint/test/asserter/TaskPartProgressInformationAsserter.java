@@ -60,6 +60,10 @@ public class TaskPartProgressInformationAsserter<RA> extends AbstractAsserter<RA
         return information.getBucketsProgress() != null ? information.getBucketsProgress().getCompletedBuckets() : 0;
     }
 
+    private int getCompletedItems() {
+        return information.getItemsProgress() != null ? information.getItemsProgress().getProgress() : 0;
+    }
+
     public TaskPartProgressInformationAsserter<RA> assertItems(int expectedProgress, Integer expectedTotal) {
         int progress = information.getItemsProgress() != null ? information.getItemsProgress().getProgress() : 0;
         Integer total = information.getItemsProgress() != null ? information.getItemsProgress().getExpectedTotal() : null;
@@ -97,6 +101,12 @@ public class TaskPartProgressInformationAsserter<RA> extends AbstractAsserter<RA
     public TaskPartProgressInformationAsserter<RA> assertCompletedBucketsAtLeast(int expected) {
         int completedBuckets = getCompletedBuckets();
         assertThat(completedBuckets).as("completed buckets").isGreaterThanOrEqualTo(expected);
+        return this;
+    }
+
+    public TaskPartProgressInformationAsserter<RA> assertItemsProgressAtLeast(int expected) {
+        int completedItems = getCompletedItems();
+        assertThat(completedItems).as("completed items").isGreaterThanOrEqualTo(expected);
         return this;
     }
 

@@ -137,9 +137,8 @@ class ItemProcessingGatekeeper<I> {
 
             acknowledgeItemProcessed(result);
 
-            RunningStatisticsSnapshot stats = computeStatisticsSnapshot();
-            incrementProgressAndStoreTaskStats(stats, result);
-            logOperationEnd(stats, result);
+            incrementProgressAndUpdateStatistics(result);
+            logOperationEnd(result);
 
             cleanupAndSummarizeResults(result, parentResult);
 
@@ -239,7 +238,8 @@ class ItemProcessingGatekeeper<I> {
         return partExecution.getProcessShortNameCapitalized();
     }
 
-    private void logOperationEnd(RunningStatisticsSnapshot statSnapshot, OperationResult result) {
+    private void logOperationEnd(OperationResult result) {
+        RunningStatisticsSnapshot statSnapshot = computeStatisticsSnapshot();
         // TODO make this configurable per task or per task type; or switch to DEBUG
         logger.info("{} of {} {} done with status {} (this one: {} ms, avg: {} ms) (total progress: {}, wall clock avg: {} ms)",
                 getProcessShortNameCapitalized(), iterationItemInformation,
@@ -302,18 +302,13 @@ class ItemProcessingGatekeeper<I> {
     }
 
     private Operation recordIterativeOperationStart() {
-        if (getReportingOptions().isEnableIterationStatistics()) {
-            return workerTask.recordIterativeOperationStart(
-                    new IterativeOperationStartInfo(iterationItemInformation, partExecution.getPartUri()));
-        } else {
-            return Operation.none();
-        }
+        return workerTask.recordIterativeOperationStart(
+                new IterativeOperationStartInfo(iterationItemInformation, partExecution.getPartUri()));
     }
 
     private void recordIterativeOperationEnd(Operation operation) {
-        if (getReportingOptions().isEnableIterationStatistics()) {
-            operation.done(processingResult.outcome, processingResult.exception);
-        }
+        // Does NOT increase structured progress. (Currently.)
+        operation.done(processingResult.outcome, processingResult.exception);
     }
 
     private void onSyncItemProcessingStart() {
@@ -428,22 +423,33 @@ class ItemProcessingGatekeeper<I> {
     /**
      * Increments the progress and gives a task a chance to update its statistics.
      */
-    private void incrementProgressAndStoreTaskStats(RunningStatisticsSnapshot statSnapshot, OperationResult result) {
-        result.addContext(OperationResult.CONTEXT_PROGRESS, statSnapshot.totalProgress);
+    private void incrementProgressAndUpdateStatistics(OperationResult result) {
 
-        // TODO TODO TODO
-        synchronized (coordinatorTask) {
-            coordinatorTask.setProgress(statSnapshot.totalProgress);
-            coordinatorTask.incrementStructuredProgress(partExecution.partUri,
-                    processingResult.outcome);
+        // The structured progress is maintained only in the coordinator task
+        coordinatorTask.incrementStructuredProgress(partExecution.partUri, processingResult.outcome);
 
-            if (partExecution.isMultithreaded()) {
-                workerTask.incrementProgressAndStoreStatsIfNeeded();
-            }
-            // TODO Should we update task operation result as well?
-            // FIXME this should not be called from the worker task!
-            coordinatorTask.storeOperationStatsAndProgressIfNeeded(); // includes flushPendingModifications
+        if (partExecution.isMultithreaded()) {
+            assert workerTask.isTransient();
+
+            // In lightweight subtasks we store progress and operational statistics.
+            // We DO NOT store structured progress there.
+            workerTask.incrementProgressTransient();
+            workerTask.updateStatisticsInTaskPrism(true);
+
+            // In coordinator we have to update the statistics in prism:
+            // operation stats, structured progress, and progress itself
+            coordinatorTask.updateStatisticsInTaskPrism(false);
+
+        } else {
+
+            // Structured progress is incremented. Now we simply update all the stats in the coordinator task.
+            coordinatorTask.updateStatisticsInTaskPrism(true);
+
         }
+
+        // If needed, let us write current statistics into the repository.
+        // There is no need to do this for worker task, because it is either the same as the coordinator, or it's a LAT.
+        coordinatorTask.storeStatisticsIntoRepositoryIfTimePassed(result);
     }
 
     private PrismContext getPrismContext() {

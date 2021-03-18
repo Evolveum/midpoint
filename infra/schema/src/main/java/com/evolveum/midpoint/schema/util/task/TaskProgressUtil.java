@@ -34,6 +34,14 @@ public class TaskProgressUtil {
         }
     }
 
+    public static int getProgressForOutcome(TaskPartProgressType part, ItemProcessingOutcomeType outcome, boolean open) {
+        if (part != null) {
+            return getCounts(singleton(part), getCounterFilter(outcome), open);
+        } else {
+            return 0;
+        }
+    }
+
     private static int getCounts(Collection<TaskPartProgressType> parts,
             Predicate<OutcomeKeyedCounterType> counterFilter, boolean open) {
         return parts.stream()
@@ -113,7 +121,52 @@ public class TaskProgressUtil {
     }
 
     public static int getTotalProgress(TaskPartProgressType progress) {
-        return getCounts(singleton(progress), c -> true, true) +
-                getCounts(singleton(progress), c -> true, false);
+        return getTotalProgressOpen(progress) + getTotalProgressClosed(progress);
+    }
+
+    private static int getTotalProgressClosed(TaskPartProgressType progress) {
+        return getCounts(singleton(progress), c -> true, false);
+    }
+
+    public static int getTotalProgressOpen(TaskPartProgressType progress) {
+        return getCounts(singleton(progress), c -> true, true);
+    }
+
+    public static int getTotalProgressClosed(StructuredTaskProgressType progress) {
+        if (progress == null) {
+            return 0;
+        }
+        return getCounts(progress.getPart(), c -> true, false);
+    }
+
+    public static int getTotalProgressOpen(StructuredTaskProgressType progress) {
+        if (progress == null) {
+            return 0;
+        }
+        return getCounts(progress.getPart(), c -> true, true);
+    }
+
+    public static TaskPartProgressType getCurrentPart(StructuredTaskProgressType progress) {
+        return progress.getPart().stream()
+                .filter(part -> Objects.equals(part.getPartUri(), progress.getCurrentPartUri()))
+                .findAny().orElse(null);
+    }
+
+    public static int getTotalProgressForCurrentPart(StructuredTaskProgressType progress) {
+        if (progress == null) {
+            return 0;
+        }
+        TaskPartProgressType currentPart = getCurrentPart(progress);
+        if (currentPart == null) {
+            return 0;
+        }
+        return getTotalProgress(currentPart);
+    }
+
+    /**
+     * Returns a value suitable for storing in task.progress property.
+     */
+    public static long getTotalProgress(StructuredTaskProgressType progress) {
+        return getTotalProgressOpen(progress) + getTotalProgressClosed(progress);
     }
 }

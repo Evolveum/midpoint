@@ -352,7 +352,7 @@ public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy
         private void checkConsistency() {
             for (int i = 0; i < configuredBoundaries.size(); i++) {
                 String configuredBoundary = configuredBoundaries.get(i);
-                argCheck(configuredBoundary != null, "Boundary characters for position %d are not defined: %s",
+                argCheck(configuredBoundary != null, "Boundary characters for position %s are not defined: %s",
                         i, configuredBoundaries);
             }
         }

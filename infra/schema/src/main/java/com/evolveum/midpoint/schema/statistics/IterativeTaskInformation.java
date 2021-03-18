@@ -29,6 +29,9 @@ import static java.util.Objects.requireNonNull;
 /**
  * This is "live" iterative task information.
  *
+ * BEWARE: When explicitly enabled, automatically updates also the structured progress when recording operation end.
+ * This is somewhat experimental and should be reconsidered.
+ *
  * Thread safety: Must be thread safe.
  *
  * 1. Updates are invoked in the context of the thread executing the task.
@@ -285,9 +288,6 @@ public class IterativeTaskInformation {
             done(ItemProcessingOutcomeType.FAILURE, t);
         }
 
-        static Operation none() {
-            return NoneOperation.INSTANCE;
-        }
     }
 
     /**
@@ -307,7 +307,7 @@ public class IterativeTaskInformation {
          */
         @NotNull private final ProcessedItemType processedItem;
 
-        public OperationImpl(@NotNull IterativeOperationStartInfo operation, @NotNull ProcessedItemType processedItem) {
+        OperationImpl(@NotNull IterativeOperationStartInfo operation, @NotNull ProcessedItemType processedItem) {
             // The processedItem is stored only in memory; so there is no way of having null here.
             this.operationId = requireNonNull(processedItem.getOperationId());
             this.operation = operation;
@@ -328,23 +328,6 @@ public class IterativeTaskInformation {
             if (progressCollector != null) {
                 progressCollector.incrementStructuredProgress(operation.getPartUri(), outcome);
             }
-        }
-    }
-
-    /**
-     * Dummy "no-op" operation that is used when recording is not available.
-     * We avoid returning null in order to allow clients safely call {@link Operation} methods
-     * without the ugly nullity checks.
-     */
-    private static class NoneOperation implements Operation {
-        public static final Operation INSTANCE = new NoneOperation();
-
-        @Override
-        public void done(ItemProcessingOutcomeType outcome, Throwable exception) {
-        }
-
-        @Override
-        public void done(QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
         }
     }
 }

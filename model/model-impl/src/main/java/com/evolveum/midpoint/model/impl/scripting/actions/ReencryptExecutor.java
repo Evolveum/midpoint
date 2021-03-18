@@ -73,10 +73,10 @@ public class ReencryptExecutor extends BaseActionExecutor {
                         }
                     }
                     result.computeStatus();
-                    operationsHelper.recordEnd(context, op, null);
+                    operationsHelper.recordEnd(context, op, null, result);
                 } catch (Throwable ex) {
                     result.recordFatalError("Couldn't reencrypt object", ex);
-                    operationsHelper.recordEnd(context, op, ex);
+                    operationsHelper.recordEnd(context, op, ex, result);
                     Throwable exception = processActionException(ex, NAME, value, context);
                     context.println("Couldn't reencrypt " + prismObject.toString() + drySuffix(dryRun) + exceptionSuffix(exception));
                 }

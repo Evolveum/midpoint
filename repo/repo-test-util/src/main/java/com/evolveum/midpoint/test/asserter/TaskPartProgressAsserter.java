@@ -10,54 +10,53 @@ package com.evolveum.midpoint.test.asserter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
-import com.evolveum.midpoint.schema.statistics.StructuredTaskProgress;
 import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StructuredTaskProgressType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartProgressType;
 
 /**
- *  Asserter that checks structured task progress.
+ *  Asserter that checks `TaskPartProgressType` objects.
  */
 @SuppressWarnings("WeakerAccess")
-public class StructuredTaskProgressAsserter<RA> extends AbstractAsserter<RA> {
+public class TaskPartProgressAsserter<RA> extends AbstractAsserter<RA> {
 
-    private final StructuredTaskProgressType information;
+    private final TaskPartProgressType information;
 
-    StructuredTaskProgressAsserter(StructuredTaskProgressType information, RA returnAsserter, String details) {
+    TaskPartProgressAsserter(TaskPartProgressType information, RA returnAsserter, String details) {
         super(returnAsserter, details);
         this.information = information;
     }
 
-    public StructuredTaskProgressAsserter<RA> assertOpenCounts(int success, int failure, int skip) {
+    public TaskPartProgressAsserter<RA> assertOpenCounts(int success, int failure, int skip) {
         assertSuccessCount(success, true);
         assertFailureCount(failure, true);
         assertSkipCount(skip, true);
         return this;
     }
 
-    public StructuredTaskProgressAsserter<RA> assertSuccessCount(int success, boolean open) {
+    public TaskPartProgressAsserter<RA> assertSuccessCount(int success, boolean open) {
         assertEquals("Wrong value of total success counter", success, getSuccessCount(open));
         return this;
     }
 
-    public StructuredTaskProgressAsserter<RA> assertSkipCount(int skip, boolean open) {
+    public TaskPartProgressAsserter<RA> assertSkipCount(int skip, boolean open) {
         assertEquals("Wrong value of total skip counter", skip, getSkipCount(open));
         return this;
     }
 
-    public StructuredTaskProgressAsserter<RA> assertSuccessCount(int min, int max, boolean open) {
+    public TaskPartProgressAsserter<RA> assertSuccessCount(int min, int max, boolean open) {
         assertBetween(getSuccessCount(open), min, max, "Total success counter");
         return this;
     }
 
-    public StructuredTaskProgressAsserter<RA> assertFailureCount(int failure, boolean open) {
+    public TaskPartProgressAsserter<RA> assertFailureCount(int failure, boolean open) {
         assertEquals("Wrong value of total failure counter", failure, getFailureCount(open));
         return this;
     }
 
-    public StructuredTaskProgressAsserter<RA> assertFailureCount(int min, int max, boolean open) {
+    public TaskPartProgressAsserter<RA> assertFailureCount(int min, int max, boolean open) {
         assertBetween(getFailureCount(open), min, max, "Total failure counter");
         return this;
     }
@@ -70,13 +69,23 @@ public class StructuredTaskProgressAsserter<RA> extends AbstractAsserter<RA> {
         }
     }
 
+    public TaskPartProgressAsserter<RA> assertComplete() {
+        assertThat(information.isComplete()).as("complete").isTrue();
+        return this;
+    }
+
+    public TaskPartProgressAsserter<RA> assertNotComplete() {
+        assertThat(information.isComplete()).as("complete").isNotEqualTo(Boolean.TRUE);
+        return this;
+    }
+
     @Override
     protected String desc() {
         return getDetails();
     }
 
-    public StructuredTaskProgressAsserter<RA> display() {
-        IntegrationTestTools.display(desc(), StructuredTaskProgress.format(information));
+    public TaskPartProgressAsserter<RA> display() {
+        IntegrationTestTools.display(desc(), DebugUtil.debugDump(information));
         return this;
     }
 
@@ -94,14 +103,5 @@ public class StructuredTaskProgressAsserter<RA> extends AbstractAsserter<RA> {
 
     private int getNonFailureCount(boolean open) {
         return getSuccessCount(open) + getSkipCount(open);
-    }
-
-    public TaskPartProgressAsserter<StructuredTaskProgressAsserter<RA>> currentPart() {
-        TaskPartProgressType currentPart = TaskProgressUtil.getCurrentPart(information);
-        assertThat(currentPart).as("current part").isNotNull();
-        TaskPartProgressAsserter<StructuredTaskProgressAsserter<RA>> asserter =
-                new TaskPartProgressAsserter<>(currentPart, this, getDetails());
-        copySetupTo(asserter);
-        return asserter;
     }
 }

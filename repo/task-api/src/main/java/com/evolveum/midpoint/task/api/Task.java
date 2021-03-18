@@ -17,7 +17,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.StatisticsCollector;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformationCollector;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -56,7 +55,7 @@ import org.jetbrains.annotations.Nullable;
  * @author Radovan Semancik
  * @author Pavol Mederly
  */
-public interface Task extends DebugDumpable, StatisticsCollector, SynchronizationInformationCollector {
+public interface Task extends DebugDumpable, StatisticsCollector {
 
     String DOT_INTERFACE = Task.class.getName() + ".";
 
@@ -607,6 +606,11 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
     void setProgress(Long value);
 
     /**
+     * Increments legacy progress without creating a pending modification.
+     */
+    void incrementProgressTransient();
+
+    /**
      * "Immediate" version of {@link #setProgress(Long)}.
      *
      * BEWARE: this method can take quite a long time to execute, if invoked in a cycle.
@@ -622,6 +626,8 @@ public interface Task extends DebugDumpable, StatisticsCollector, Synchronizatio
 
     /**
      * Gets information from the current task and - for running task - its transient subtasks (aka worker threads).
+     *
+     * Clients beware: Update thread-local statistics before! They are not updated inside this method.
      */
     OperationStatsType getAggregatedLiveOperationStats();
 

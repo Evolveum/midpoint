@@ -57,11 +57,17 @@ public class StructuredTaskProgress {
 
     /**
      * Sets the part information. Should be called when part processing starts.
+     *
+     * Here we also remove any open items in this part.
      */
     public synchronized void setPartInformation(String partUri, Integer partNumber, Integer expectedParts) {
         value.setCurrentPartUri(partUri);
         value.setCurrentPartNumber(partNumber);
         value.setExpectedParts(expectedParts);
+        TaskPartProgressType part = findOrCreateMatchingPart(value.getPart(), partUri, prismContext);
+//        System.out.printf("New part registered: URI = %s, number = %d, expected parts = %d\n", partUri, partNumber, expectedParts);
+//        System.out.printf("Open items cleared: %d\n", TaskProgressUtil.getTotalProgressOpen(part));
+        part.getOpen().clear();
     }
 
     /**
@@ -72,21 +78,37 @@ public class StructuredTaskProgress {
                 findOrCreateMatchingPart(value.getPart(), partUri, prismContext);
         int count = OutcomeKeyedCounterTypeUtil.incrementCounter(part.getOpen(), outcome, prismContext);
         LOGGER.trace("Incremented structured progress to {}. Part uri = {}, outcome = {}", count, partUri, outcome);
+//        System.out.printf("Incremented structured progress to %s. Part uri = %s, outcome = %s\n", count, partUri, outcome);
     }
 
     /**
      * Moves "open" counters to "closed" state.
      */
-    public synchronized void updateStructuredProgressOnWorkBucketCompletion() {
+    public synchronized void changeOnWorkBucketCompletion() {
         LOGGER.trace("Updating structured progress on work bucket completion. Part URI: {}", value.getCurrentPartUri());
         Optional<TaskPartProgressType> partOptional = findMatchingPart(value.getPart(), value.getCurrentPartUri());
         if (partOptional.isPresent()) {
             TaskPartProgressType part = partOptional.get();
             OutcomeKeyedCounterTypeUtil.addCounters(part.getClosed(), part.getOpen());
+//            System.out.printf("Updating progress on work bucket completion. Moving %d items from open to closed.\n",
+//                    TaskProgressUtil.getTotalProgressOpen(part));
             part.getOpen().clear();
         } else {
-            LOGGER.trace("Didn't update structured progress for part {} as there are no records present for that part",
+            LOGGER.warn("Didn't update structured progress for part {} as there are no records present for that part",
                     value.getCurrentPartUri());
+        }
+    }
+
+    public synchronized void markAsComplete() {
+        LOGGER.trace("Closing structured progress. Part URI: {}", value.getCurrentPartUri());
+        Optional<TaskPartProgressType> partOptional = findMatchingPart(value.getPart(), value.getCurrentPartUri());
+        if (partOptional.isPresent()) {
+            TaskPartProgressType part = partOptional.get();
+            part.setComplete(true);
+//            System.out.printf("Updating progress on work completion. Part = %s\n", part);
+        } else {
+            LOGGER.warn("Didn't mark structured progress for part {} as complete because there are no records"
+                            + " present for that part", value.getCurrentPartUri());
         }
     }
 

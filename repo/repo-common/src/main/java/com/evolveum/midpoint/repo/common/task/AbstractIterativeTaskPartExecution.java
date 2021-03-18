@@ -10,8 +10,10 @@ package com.evolveum.midpoint.repo.common.task;
 import static com.evolveum.midpoint.repo.common.task.AnnotationSupportUtil.createFromAnnotation;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 
+import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.StructuredTaskProgressType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -134,13 +136,13 @@ public abstract class AbstractIterativeTaskPartExecution<I,
      * Relative number of the part within this physical task. Starting at 1.
      */
     @Experimental
-    int partNumber;
+    private int partNumber;
 
     /**
      * Expected number of parts.
      */
     @Experimental
-    int expectedParts;
+    private int expectedParts;
 
     protected AbstractIterativeTaskPartExecution(@NotNull TE taskExecution) {
         this.taskHandler = taskExecution.taskHandler;
@@ -148,7 +150,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         this.localCoordinatorTask = taskExecution.localCoordinatorTask;
         this.logger = taskHandler.getLogger();
         this.runResult = taskExecution.getCurrentRunResult();
-        this.statistics = new ItemProcessingStatistics(localCoordinatorTask.getProgress());
+        this.statistics = new ItemProcessingStatistics();
         this.processShortNameCapitalized = taskHandler.getTaskTypeName();
         this.contextDescription = "";
         this.errorHandlingStrategyExecutor = new ErrorHandlingStrategyExecutor(
@@ -171,13 +173,13 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         initialize(opResult);
 
         prepareItemSource(opResult);
-        setProgressAndExpectedItems(opResult);
+        setExpectedTotal(opResult);
 
         itemProcessor = setupItemProcessor(opResult);
         coordinator = setupCoordinator();
 
         try {
-            coordinator.createWorkerTasks();
+            coordinator.createWorkerTasks(getReportingOptions());
             processItems(opResult);
         } finally {
             // This is redundant in the case of live sync event handling (because the handler gets a notification when all
@@ -188,8 +190,6 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         }
 
         setOperationResult(opResult);
-
-        runResult.setProgress(getTotalProgress());
 
         if (getReportingOptions().isLogFinishInfo()) {
             logFinishInfo(opResult);
@@ -204,6 +204,10 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
     private void setStructuredProgressPartInformation() {
         taskExecution.localCoordinatorTask.setStructuredProgressPartInformation(partUri, partNumber, expectedParts);
+
+        // The task progress can be out of sync with the actual progress e.g. because of open items (that have been zeroed above).
+        StructuredTaskProgressType structuredProgress = localCoordinatorTask.getStructuredProgressOrClone();
+        localCoordinatorTask.setProgress((long) TaskProgressUtil.getTotalProgressForCurrentPart(structuredProgress));
     }
 
     // TODO finish this method
@@ -237,7 +241,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
      * Computes expected total and sets the value in the task. E.g. for search-iterative tasks we count the objects here.
      * TODO reconsider
      */
-    protected void setProgressAndExpectedItems(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
+    protected void setExpectedTotal(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
             ObjectAlreadyExistsException {
     }
@@ -319,13 +323,14 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
     public Long heartbeat() {
         // If we exist then we run. So just return the progress count.
-        return getTotalProgress();
+        return localCoordinatorTask.getProgress();
     }
 
     private void logFinishInfo(OperationResult opResult) {
+        // TODO all buckets
         String finishMessage = "Finished " + getProcessShortName() + " (" + localCoordinatorTask + "). ";
         String statMsg =
-                "Processed " + statistics.getItemsProcessed() + " objects in " + statistics.getWallTime() / 1000
+                "Processed (in current bucket) " + statistics.getItemsProcessed() + " objects in " + statistics.getWallTime() / 1000
                         + " seconds, got " + statistics.getErrors() + " errors.";
         if (statistics.getItemsProcessed() > 0) {
             statMsg += " Average time for one object: " + statistics.getAverageTime() + " milliseconds" +
@@ -380,10 +385,6 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         this.contextDescription = ObjectUtils.defaultIfNull(value, "");
     }
 
-    public long getTotalProgress() {
-        return statistics.getTotalProgress();
-    }
-
     ErrorHandlingStrategyExecutor.Action determineErrorAction(@NotNull OperationResultStatus status,
             @NotNull Throwable exception, ItemProcessingRequest<?> request, OperationResult result) {
         return errorHandlingStrategyExecutor.determineAction(status, exception, request.getObjectOidToRecordRetryTrigger(), result);
@@ -429,5 +430,11 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
     public void setExpectedParts(int expectedParts) {
         this.expectedParts = expectedParts;
+    }
+
+    void markStructuredProgressComplete(OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException,
+            SchemaException {
+        localCoordinatorTask.markStructuredProgressAsComplete();
+        localCoordinatorTask.flushPendingModifications(result);
     }
 }

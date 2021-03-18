@@ -12,12 +12,33 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcess
 
 /**
  * Object capable of receiving updates on structured progress.
+ *
+ * NOTE: These methods do NOT update information in `task.prism`. They only affect `task.statistics`. Do not forget
+ * to call appropriate "update" methods afterwards.
+ *
+ * NOTE: Structured progress is NOT maintained in worker LATs.
  */
 @Experimental
 public interface StructuredProgressCollector {
 
+    /**
+     * Signals to structured progress that we entered specified task part.
+     * This clears the 'open' progress items.
+     */
     void setStructuredProgressPartInformation(String partUri, Integer partNumber, Integer expectedParts);
 
+    /**
+     * Increments structured progress in given part.
+     */
     void incrementStructuredProgress(String partUri, QualifiedItemProcessingOutcomeType outcome);
 
+    /**
+     * Marks structured progress for given part as complete.
+     */
+    void markStructuredProgressAsComplete();
+
+    /**
+     * Adapts structured progress when a bucket is complete. This moves all 'open' items to 'closed'.
+     */
+    void changeStructuredProgressOnWorkBucketCompletion();
 }

@@ -51,8 +51,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
     @Override
     public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
         return new StatisticsCollectionStrategy()
-                .fromStoredValues()
-                .maintainIterationStatistics();
+                .fromStoredValues();
     }
 
     @Override

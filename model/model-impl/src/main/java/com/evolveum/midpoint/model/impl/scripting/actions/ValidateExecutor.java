@@ -11,6 +11,9 @@ import static com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.O
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValidationResultType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,16 +23,10 @@ import com.evolveum.midpoint.model.api.validator.Scope;
 import com.evolveum.midpoint.model.api.validator.ValidationResult;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.ScriptExecutionException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 
@@ -44,8 +41,6 @@ public class ValidateExecutor extends BaseActionExecutor {
 
     @Autowired
     private ResourceValidator resourceValidator;
-
-    private static final Trace LOGGER = TraceManager.getTrace(ValidateExecutor.class);
 
     private static final String NAME = "validate";
 
@@ -63,21 +58,25 @@ public class ValidateExecutor extends BaseActionExecutor {
             PrismValue value = item.getValue();
             OperationResult result = operationsHelper.createActionResult(item, this, globalResult);
             context.checkTaskStop();
-            if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof ResourceType) {
-                PrismObject<ResourceType> resourceTypePrismObject = ((PrismObjectValue) value).asPrismObject();
+            if (value instanceof PrismObjectValue && ((PrismObjectValue<?>) value).asObjectable() instanceof ResourceType) {
+                //noinspection unchecked
+                PrismObject<ResourceType> resourceTypePrismObject = ((PrismObjectValue<ResourceType>) value).asPrismObject();
                 ResourceType resourceType = resourceTypePrismObject.asObjectable();
                 Operation op = operationsHelper.recordStart(context, resourceType);
                 try {
                     ValidationResult validationResult = resourceValidator.validate(resourceTypePrismObject, Scope.THOROUGH, null, context.getTask(), result);
 
-                    PrismContainer pc = prismContext.getSchemaRegistry().findContainerDefinitionByElementName(SchemaConstantsGenerated.C_VALIDATION_RESULT).instantiate();
+                    PrismContainerDefinition<ValidationResultType> pcd = prismContext.getSchemaRegistry()
+                            .findContainerDefinitionByElementName(SchemaConstantsGenerated.C_VALIDATION_RESULT);
+                    PrismContainer<ValidationResultType> pc = pcd.instantiate();
+                    //noinspection unchecked
                     pc.add(validationResult.toValidationResultType().asPrismContainerValue());
 
                     context.println("Validated " + resourceTypePrismObject + ": " + validationResult.getIssues().size() + " issue(s)");
-                    operationsHelper.recordEnd(context, op, null);
+                    operationsHelper.recordEnd(context, op, null, result);
                     output.add(new PipelineItem(pc.getValue(), item.getResult()));
                 } catch (SchemaException|RuntimeException e) {
-                    operationsHelper.recordEnd(context, op, e);
+                    operationsHelper.recordEnd(context, op, e, result);
                     context.println("Error validation " + resourceTypePrismObject + ": " + e.getMessage());
                     //noinspection ThrowableNotThrown
                     processActionException(e, NAME, value, context);

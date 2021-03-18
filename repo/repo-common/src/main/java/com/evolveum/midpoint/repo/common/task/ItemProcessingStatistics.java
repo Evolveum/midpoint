@@ -12,16 +12,17 @@ import com.google.common.util.concurrent.AtomicDouble;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Maintains selected statistical information related to processing items in during task part execution.
+ * Maintains selected statistical information related to processing items during task part execution.
+ * For bucketed tasks this is bound to a single bucket.
  *
  * Must be thread safe.
  */
 public class ItemProcessingStatistics {
 
-    /** Number of items processed during the task part execution. (So not counting items in other buckets, for example.) */
+    /** Number of items processed during the task part execution (in current bucket). */
     private final AtomicInteger itemsProcessed = new AtomicInteger();
 
-    /** Number of items experiencing errors during the task part execution. */
+    /** Number of items experiencing errors during the task part execution (in current bucket). */
     private final AtomicInteger errors = new AtomicInteger();
 
     /**
@@ -30,17 +31,10 @@ public class ItemProcessingStatistics {
      */
     private final AtomicDouble totalTimeProcessing = new AtomicDouble();
 
-    /**
-     * Initial progress of the task - i.e. when this bucket in the current part started.
-     * TODO what to do with multi part tasks like the reconciliation?
-     */
-    private final long initialProgress;
-
     /** The time when the task part execution started. */
     protected final long startTimeMillis;
 
-    ItemProcessingStatistics(long initialProgress) {
-        this.initialProgress = initialProgress;
+    ItemProcessingStatistics() {
         this.startTimeMillis = System.currentTimeMillis();
     }
 
@@ -48,23 +42,16 @@ public class ItemProcessingStatistics {
         return totalTimeProcessing.addAndGet(delta);
     }
 
-    long incrementProgress() {
-        return initialProgress + itemsProcessed.incrementAndGet();
+    int incrementProgress() {
+        return itemsProcessed.incrementAndGet();
     }
 
     int incrementErrors() {
         return errors.incrementAndGet();
     }
 
-    /**
-     * @return Total progress to be recorded into the task. Computed as initial progress plus number of items processed.
-     */
-    public long getTotalProgress() {
-        return initialProgress + itemsProcessed.get();
-    }
-
     final Double getAverageTime() {
-        long count = getTotalProgress();
+        int count = getItemsProcessed();
         if (count > 0) {
             double total = totalTimeProcessing.get();
             return total / count;
@@ -74,7 +61,7 @@ public class ItemProcessingStatistics {
     }
 
     final Double getWallAverageTime() {
-        long count = getTotalProgress();
+        int count = getItemsProcessed();
         if (count > 0) {
             return (double) getWallTime() / count;
         } else {

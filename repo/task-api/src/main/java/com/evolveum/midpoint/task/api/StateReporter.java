@@ -167,7 +167,7 @@ public class StateReporter {
 
     private void recordState(String message) {
         if (task != null) {
-            task.recordState(message);
+            task.recordStateMessage(message);
         }
     }
 

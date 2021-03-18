@@ -8,10 +8,12 @@
 package com.evolveum.midpoint.task.quartzimpl;
 
 import ch.qos.logback.classic.Level;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
 import com.evolveum.midpoint.task.quartzimpl.statistics.WorkBucketStatisticsCollector;
@@ -28,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -61,9 +62,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
      * Access to this structure should be synchronized because of deleteLightweightAsynchronousSubtasks method.
      * (This means we could replace ConcurrentHashMap with plain HashMap but let's keep that just for certainty.)
      */
-    private final Map<String, RunningTaskQuartzImpl> lightweightAsynchronousSubtasks = new ConcurrentHashMap<>();
-
-    private RunningTaskQuartzImpl parentForLightweightAsynchronousTask;
+    private final Map<String, RunningLightweightTaskImpl> lightweightAsynchronousSubtasks = new ConcurrentHashMap<>();
 
     /**
      * Is the task handler allowed to run, or should it stop as soon as possible?
@@ -71,26 +70,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     private volatile boolean canRun = true;
 
     /**
-     * The code that should be run for asynchronous transient tasks.
-     * (As opposed to asynchronous persistent tasks, where the handler is specified
-     * via Handler URI in task prism object.)
-     */
-    private LightweightTaskHandler lightweightTaskHandler;
-
-    /**
-     * Future representing executing (or submitted-to-execution) lightweight task handler.
-     */
-    private Future lightweightHandlerFuture;
-
-    /**
-     * An indication whether lightweight handler is currently executing or not.
-     * Used for waiting upon its completion (because java.util.concurrent facilities are not able
-     * to show this for cancelled/interrupted tasks).
-     */
-    private volatile boolean lightweightHandlerExecuting;
-
-    /**
-     * Thread in which this task's lightweight handler is executing.
+     * Thread in which this task's handler is executing.
      */
     private volatile Thread executingThread;
 
@@ -99,6 +79,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
      */
     private final AtomicInteger objectsSeen = new AtomicInteger(0);
 
+    /** TODO */
     private Level originalProfilingLevel;
 
     public RunningTaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, @NotNull PrismObject<TaskType> taskPrism,
@@ -107,11 +88,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
         this.rootTaskOid = rootTaskOid;
     }
 
-    @Override
-    public RunningTaskQuartzImpl getParentForLightweightAsynchronousTask() {
-        return parentForLightweightAsynchronousTask;
-    }
-
+    //region Task execution (canRun, executing thread)
     /**
      * Signal the task to shut down.
      * It may not stop immediately, but it should stop eventually.
@@ -130,49 +107,36 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
         return canRun;
     }
 
+    public Thread getExecutingThread() {
+        return executingThread;
+    }
+
+    public void setExecutingThread(Thread executingThread) {
+        this.executingThread = executingThread;
+    }
+    //endregion
+
+    //region Subtasks
     @Override
-    public RunningTask createSubtask(LightweightTaskHandler handler) {
-        RunningTaskQuartzImpl sub = beans.taskInstantiator.toRunningTaskInstance(createSubtask(), rootTaskOid);
-        sub.setLightweightTaskHandler(handler);
+    public @NotNull RunningLightweightTask createSubtask(@NotNull LightweightTaskHandler handler) {
+        RunningLightweightTaskImpl sub = beans.taskInstantiator
+                .toRunningLightweightTaskInstance(createSubtask(), rootTaskOid, this, handler);
         assert sub.getTaskIdentifier() != null;
         synchronized (lightweightAsynchronousSubtasks) {
             lightweightAsynchronousSubtasks.put(sub.getTaskIdentifier(), sub);
         }
-        sub.parentForLightweightAsynchronousTask = this;
         return sub;
     }
 
-    public void setLightweightTaskHandler(LightweightTaskHandler lightweightTaskHandler) {
-        this.lightweightTaskHandler = lightweightTaskHandler;
-    }
-
     @Override
-    public LightweightTaskHandler getLightweightTaskHandler() {
-        return lightweightTaskHandler;
-    }
-
-    @Override
-    public boolean isLightweightAsynchronousTask() {
-        return lightweightTaskHandler != null;
-    }
-
-    void setLightweightHandlerFuture(Future lightweightHandlerFuture) {
-        this.lightweightHandlerFuture = lightweightHandlerFuture;
-    }
-
-    public Future getLightweightHandlerFuture() {
-        return lightweightHandlerFuture;
-    }
-
-    @Override
-    public Collection<? extends RunningTaskQuartzImpl> getLightweightAsynchronousSubtasks() {
+    public Collection<? extends RunningLightweightTaskImpl> getLightweightAsynchronousSubtasks() {
         synchronized (lightweightAsynchronousSubtasks) {
             return List.copyOf(lightweightAsynchronousSubtasks.values());
         }
     }
 
     @Override
-    public Collection<? extends RunningTaskQuartzImpl> getRunningLightweightAsynchronousSubtasks() {
+    public Collection<? extends RunningLightweightTaskImpl> getRunningLightweightAsynchronousSubtasks() {
         // beware: Do not touch task prism here, because of thread safety
         return getLightweightAsynchronousSubtasks().stream()
                 .filter(subtask -> subtask.isRunning() &&
@@ -181,7 +145,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     }
 
     @Override
-    public Collection<? extends RunningTaskQuartzImpl> getRunnableOrRunningLightweightAsynchronousSubtasks() {
+    public Collection<? extends RunningLightweightTaskImpl> getRunnableOrRunningLightweightAsynchronousSubtasks() {
         // beware: Do not touch task prism here, because of thread safety
         return getLightweightAsynchronousSubtasks().stream()
                 .filter(subtask -> subtask.isRunnable() || subtask.isRunning())
@@ -201,49 +165,18 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
             lightweightAsynchronousSubtasks.clear();
         }
     }
+    //endregion
 
+    //region Statistics
     @Override
-    public boolean lightweightHandlerStartRequested() {
-        return lightweightHandlerFuture != null;
-    }
-
-    // just a shortcut
-    @Override
-    public void startLightweightHandler() {
-        beans.lightweightTaskManager.startLightweightTask(this);
-    }
-
-    public void setLightweightHandlerExecuting(boolean lightweightHandlerExecuting) {
-        this.lightweightHandlerExecuting = lightweightHandlerExecuting;
-    }
-
-    public boolean isLightweightHandlerExecuting() {
-        return lightweightHandlerExecuting;
-    }
-
-    public Thread getExecutingThread() {
-        return executingThread;
-    }
-
-    public void setExecutingThread(Thread executingThread) {
-        this.executingThread = executingThread;
-    }
-
-    // Operational data
-
-    @Override
-    public void storeOperationStatsDeferred() {
-        refreshLowLevelStatistics();
-        setOperationStats(getAggregatedLiveOperationStats());
-        setStructuredProgress(getLiveStructuredTaskProgress());
-    }
-
-    @Override
-    public void refreshLowLevelStatistics() {
+    public void refreshThreadLocalStatistics() {
         Thread taskThread = getExecutingThread();
         if (taskThread != null) {
             if (Thread.currentThread().getId() == taskThread.getId()) {
                 statistics.refreshLowLevelStatistics(taskManager);
+            } else {
+                LOGGER.warn("Called refreshThreadLocalStatistics on wrong task. Task thread: {}, current thread: {}, task: {}",
+                        taskThread, Thread.currentThread(), this);
             }
         } else {
             LOGGER.warn("Task thread is null for {}; current thread = {}", this, Thread.currentThread());
@@ -251,13 +184,44 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     }
 
     @Override
-    public void storeOperationStatsAndProgress() {
+    public void updateStatisticsInTaskPrism(boolean updateThreadLocalStatistics) {
+        if (updateThreadLocalStatistics) {
+            refreshThreadLocalStatistics();
+        }
+        updateOperationalStatsInTaskPrism();
+        updateStructuredProgressAndProgressInTaskPrism();
+    }
+
+    private void updateOperationalStatsInTaskPrism() {
+        setOperationStatsTransient(getAggregatedLiveOperationStats());
+    }
+
+    private void updateStructuredProgressAndProgressInTaskPrism() {
+        StructuredTaskProgressType progress = statistics.getStructuredTaskProgress();
+        if (progress != null) {
+            setStructuredProgressTransient(progress);
+            setProgressTransient(TaskProgressUtil.getTotalProgress(progress));
+        } else {
+            // structured progress is not maintained in this task
+        }
+    }
+
+    @Override
+    public void storeStatisticsIntoRepositoryIfTimePassed(OperationResult result) {
+        if (lastOperationStatsUpdateTimestamp == null ||
+                System.currentTimeMillis() - lastOperationStatsUpdateTimestamp > operationStatsUpdateInterval) {
+            storeStatisticsIntoRepository(result);
+        }
+    }
+
+    @Override
+    public void storeStatisticsIntoRepository(OperationResult result) {
         try {
-            storeOperationStatsDeferred();
-            addPendingModification(createPropertyDeltaIfPersistent(TaskType.F_PROGRESS, getProgress()));
+            addPendingModification(createContainerDeltaIfPersistent(TaskType.F_OPERATION_STATS, getStoredOperationStatsOrClone()));
             addPendingModification(createContainerDeltaIfPersistent(TaskType.F_STRUCTURED_PROGRESS, getStructuredProgressOrClone()));
+            addPendingModification(createPropertyDeltaIfPersistent(TaskType.F_PROGRESS, getProgress()));
             addPendingModification(createPropertyDeltaIfPersistent(TaskType.F_EXPECTED_TOTAL, getExpectedTotal()));
-            flushPendingModifications(new OperationResult(DOT_INTERFACE + ".storeOperationStats")); // TODO fixme
+            flushPendingModifications(result);
             lastOperationStatsUpdateTimestamp = System.currentTimeMillis();
         } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't store statistical information into task {}", e, this);
@@ -265,34 +229,21 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     }
 
     @Override
-    public void storeOperationStatsAndProgressIfNeeded() {
-        if (lastOperationStatsUpdateTimestamp == null ||
-                System.currentTimeMillis() - lastOperationStatsUpdateTimestamp > operationStatsUpdateInterval) {
-            storeOperationStatsAndProgress();
-        } else {
-            refreshLowLevelStatistics();
-        }
+    public void updateAndStoreStatisticsIntoRepository(boolean updateThreadLocalStatistics, OperationResult result) {
+        updateStatisticsInTaskPrism(updateThreadLocalStatistics);
+        storeStatisticsIntoRepository(result);
     }
 
     @Override
-    public Long getLastOperationStatsUpdateTimestamp() {
-        return lastOperationStatsUpdateTimestamp;
-    }
-
-    @Override
-    public void setOperationStatsUpdateInterval(long interval) {
+    public void setStatisticsRepoStoreInterval(long interval) {
         this.operationStatsUpdateInterval = interval;
     }
 
     @Override
-    public long getOperationStatsUpdateInterval() {
-        return operationStatsUpdateInterval;
-    }
-
-    @Override
-    public void incrementProgressAndStoreStatsIfNeeded() {
-        setProgress(getProgress() + 1);
-        storeOperationStatsAndProgressIfNeeded();
+    public void incrementProgressAndStoreStatisticsIfTimePassed(OperationResult result) {
+        incrementProgressTransient();
+        updateStatisticsInTaskPrism(true);
+        storeStatisticsIntoRepositoryIfTimePassed(result);
     }
 
     @Override
@@ -305,20 +256,31 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
         statistics.incrementStructuredProgress(partUri, outcome);
     }
 
-    public void updateStructuredProgressOnWorkBucketCompletion() {
-        statistics.updateStructuredProgressOnWorkBucketCompletion();
+    @Override
+    public void markStructuredProgressAsComplete() {
+        statistics.markStructuredProgressAsComplete();
     }
 
     @Override
-    public boolean isAsynchronous() {
-        return getPersistenceStatus() == TaskPersistenceStatus.PERSISTENT
-                || isLightweightAsynchronousTask(); // note: if it has lightweight task handler, it must be transient
+    public void changeStructuredProgressOnWorkBucketCompletion() {
+        statistics.changeStructuredProgressOnWorkBucketCompletion();
     }
 
     /**
-     * Beware: this can be called from any thread: the task thread itself, one of the workers, or from an external (unrelated)
-     * thread. This is important because some of the statistics retrieved are thread-local ones.
+     * Returns true if the task runs asynchronously.
+     */
+    @Override
+    public boolean isAsynchronous() {
+        return true;
+    }
+
+    /**
+     * Gets aggregated live operation statistics from this task and its subtasks.
      *
+     * Clients beware: Update thread-local statistics before!
+     *
+     * Implementers beware: This method can be called from any thread: the task thread itself, one of the workers, or from
+     * an external (unrelated) thread. This is important because some of the statistics retrieved are thread-local ones.
      * So we should NOT fetch thread-local statistics into task structures here!
      */
     @Override
@@ -330,42 +292,21 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
         return statistics.getAggregatedOperationStats(subCollections);
     }
 
-    public StructuredTaskProgressType getLiveStructuredTaskProgress() {
-        return statistics.getStructuredTaskProgress();
-    }
-
     @Override
-    public void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy, boolean initialExecution) {
-        if (initialExecution && strategy.isStartFromZero()) {
-            statistics.startCollectingOperationStatsFromZero(strategy.isMaintainIterationStatistics(),
-                    strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics(),
-                    beans.sqlPerformanceMonitorsCollection);
-            setProgress(0L);
-            storeOperationStatsAndProgress();
-        } else {
-            OperationStatsType stored = getStoredOperationStatsOrClone();
-            statistics.startCollectingOperationStatsFromStoredValues(stored, strategy.isMaintainIterationStatistics(),
-                    strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics(),
-                    initialExecution, beans.sqlPerformanceMonitorsCollection);
-        }
+    public void startCollectingStatistics(@NotNull StatisticsCollectionStrategy strategy) {
+        statistics.startCollectingStatistics(this, strategy, beans.sqlPerformanceMonitorsCollection);
     }
 
-    void startCollectingLowLevelStatistics() {
-        if (beans.sqlPerformanceMonitorsCollection != null) {
-            statistics.startCollectingLowLevelStatistics(beans.sqlPerformanceMonitorsCollection);
-        }
-    }
-
-    Statistics getStatistics() {
+    private Statistics getStatistics() {
         return statistics;
     }
 
     public WorkBucketStatisticsCollector getWorkBucketStatisticsCollector() {
         return statistics;
     }
+    //endregion
 
-    // TODO consider what to do with this
-
+    //region Tracing and profiling
     @Override
     public int getAndIncrementObjectsSeen() {
         return objectsSeen.getAndIncrement();
@@ -432,9 +373,12 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
         removeTracingRequests();
         setTracingProfile(null);
     }
+    //endregion
 
+    //region Misc
     @Override
     public @NotNull String getRootTaskOid() {
         return rootTaskOid;
     }
+    //endregion
 }

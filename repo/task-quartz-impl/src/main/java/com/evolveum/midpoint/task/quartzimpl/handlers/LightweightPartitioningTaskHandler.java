@@ -140,7 +140,6 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
 
         }
 
-        runResult.setProgress(runResult.getProgress() + 1);
         opResult.computeStatusIfUnknown();
         counterManager.cleanupCounters(task.getOid());
 
@@ -182,7 +181,6 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
     public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
         return new StatisticsCollectionStrategy()
                 .fromZero()
-                .maintainIterationStatistics()
                 .maintainSynchronizationStatistics()
                 .maintainActionsExecutedStatistics();
     }

@@ -662,7 +662,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             Holder<Task> suspensionVictim = new Holder<>();
             workBucketsTaskHandler.setProcessor((task, bucket, index) -> {
                 if (index == 44) {
-                    task.storeOperationStatsAndProgress(); // to store operational stats for this task
+                    task.updateAndStoreStatisticsIntoRepository(true, new OperationResult("storeStats"));
                     display("Going to suspend " + task);
                     new Thread(() -> {
                         taskStateManager.suspendTaskNoException((TaskQuartzImpl) task, TaskManager.DO_NOT_WAIT, new OperationResult("suspend"));
@@ -748,7 +748,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             Holder<Task> exceptionVictim = new Holder<>();
             workBucketsTaskHandler.setProcessor((task, bucket, index) -> {
                 if (index == 44) {
-                    task.storeOperationStatsAndProgress(); // to store operational stats for this task
+                    task.updateAndStoreStatisticsIntoRepository(true, new OperationResult("storeStats"));
                     display("Going to explode in " + task);
                     exceptionVictim.setValue(task);
                     throw new IllegalStateException("Bum");

@@ -65,8 +65,8 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
     private static final TestResource<TaskType> METAROLE_SLOWING_DOWN
             = new TestResource<>(TEST_DIR, "metarole-slowing-down.xml", "b7218b57-fb8a-4dfd-a4c0-976849a4640c");
 
-    private static final int USERS = 200;
-    private static final int ROLES = 200;
+    private static final int USERS = 400;
+    private static final int ROLES = 400;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -84,7 +84,7 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
      */
     @Test
     public void test100ReconciliationSuspension() throws Exception {
-        executeNonBucketedReconciliation(TASK_RECONCILE_DUMMY, "u", 1);
+        executePlainReconciliation(TASK_RECONCILE_DUMMY, "u", 1);
     }
 
     private void createShadowWithPendingOperation() throws CommonException {
@@ -112,15 +112,16 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
      */
     @Test
     public void test110ReconciliationSuspensionPartitioned() throws Exception {
-        executeBucketedReconciliation(TASK_RECONCILE_DUMMY_PARTITIONED, "v", 1);
+        executePartitionedBucketedReconciliation(TASK_RECONCILE_DUMMY_PARTITIONED, "v", 1);
     }
 
     @Test
     public void test120ReconciliationSuspensionPartitionedMultiNode() throws Exception {
-        executeBucketedReconciliation(TASK_RECONCILE_DUMMY_PARTITIONED_MULTINODE, "w", 2);
+        executePartitionedBucketedReconciliation(TASK_RECONCILE_DUMMY_PARTITIONED_MULTINODE, "w", 2);
     }
 
-    private void executeNonBucketedReconciliation(TestResource<TaskType> reconciliationTask, String accountPrefix, int workers)
+    @SuppressWarnings("SameParameterValue")
+    private void executePlainReconciliation(TestResource<TaskType> reconciliationTask, String accountPrefix, int workers)
             throws Exception {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
@@ -135,7 +136,7 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
         when("1st run");
 
         System.out.println("Waiting before suspending task tree.");
-        Thread.sleep(3000L);
+        Thread.sleep(6000L);
 
         System.out.println("Suspending task tree.");
         boolean stopped = taskManager.suspendTaskTree(reconciliationTask.oid, 10000, result);
@@ -160,16 +161,17 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
                 .display()
                 .assertAllPartsCount(3)
                 .assertCurrentPartNumber(2)
+                .checkConsistence()
                 .part(ModelPublicConstants.RECONCILIATION_OPERATION_COMPLETION_PART_URI)
                     .assertNoBucketInformation()
-//                    .assertItems(1, null)
-//                    .assertComplete()
+                    .assertItems(1, null)
+                    .assertComplete()
                     .end()
                 .currentPart()
                     .assertNoBucketInformation()
                     .items()
-                        .assertProgressGreaterThanZero();
-//                        .assertNoExpectedTotal();
+                        .assertProgressGreaterThanZero()
+                        .assertNoExpectedTotal();
 
         when("2nd run");
 
@@ -205,8 +207,8 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
                         .assertProgressGreaterThanZero();
     }
 
-    private void executeBucketedReconciliation(TestResource<TaskType> reconciliationTask, String accountPrefix, int workers)
-            throws Exception {
+    private void executePartitionedBucketedReconciliation(TestResource<TaskType> reconciliationTask, String accountPrefix,
+            int workers) throws Exception {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
@@ -222,7 +224,7 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
         when("1st run");
 
         System.out.println("Waiting before suspending task tree.");
-        Thread.sleep(3000L);
+        Thread.sleep(6000L);
 
         System.out.println("Suspending task tree.");
         boolean stopped = taskManager.suspendTaskTree(reconciliationTask.oid, 10000, result);
@@ -237,6 +239,22 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
         PrismObject<TaskType> rootAfterSuspension1 = taskManager.getObject(TaskType.class, reconciliationTask.oid, getSubtasks, result);
         displayValue("Tree after suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension1.asObjectable()));
 
+        assertTask(rootAfterSuspension1.asObjectable(), "after 1st run")
+                .subtaskForPart(1)
+                    .display()
+                    .structuredProgress()
+                        .display()
+                        .assertSuccessCount(1, false)
+                        .currentPart()
+                            .assertComplete()
+                            .end()
+                        .end()
+                    .end()
+                .subtaskForPart(2)
+                    .display()
+                    .structuredProgress()
+                        .display();
+
         TaskProgressInformation progress1 = TaskProgressInformation.fromTaskTree(rootAfterSuspension1.asObjectable());
         TaskPartProgressInformation info1 = assertTaskProgress(progress1, "after 1st run")
                 .display()
@@ -246,7 +264,6 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
                     .assertExpectedBuckets(100)
                     .assertBucketsItemsConsistency(bucketSize, workers)
                     .get();
-
 
         when("2nd run");
 
@@ -266,22 +283,34 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
         PrismObject<TaskType> rootAfterSuspension2 = taskManager.getObject(TaskType.class, reconciliationTask.oid, getSubtasks, result);
         displayValue("Tree after second suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension2.asObjectable()));
 
-        TaskProgressInformation progress2 = TaskProgressInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
+        assertTask(rootAfterSuspension2.asObjectable(), "after 2nd run")
+                .subtaskForPart(1)
+                    .display()
+                    .structuredProgress()
+                        .display()
+                        .assertSuccessCount(1, false)
+                        .currentPart()
+                            .assertComplete()
+                            .end()
+                        .end()
+                    .end()
+                .subtaskForPart(2)
+                    .display()
+                    .structuredProgress()
+                        .display();
 
+        TaskProgressInformation progress2 = TaskProgressInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
         TaskPartProgressInformation info2 = assertTaskProgress(progress2, "after 2nd suspension")
                 .display()
                 .assertAllPartsCount(3)
                 .assertCurrentPartNumber(2)
+                .checkConsistence()
                 .currentPart()
-                    .assertExpectedBuckets(100) // todo consistency
+                    .assertExpectedBuckets(100)
                     .assertCompletedBucketsAtLeast(info1.getBucketsProgress().getCompletedBuckets())
+                    .assertItemsProgressAtLeast(info1.getItemsProgress().getProgress())
+                    .assertBucketsItemsConsistency(bucketSize, workers)
                     .get();
-
-//        assertProgressVsBuckets(items2, completedBuckets2, bucketSize, workers);
-
-        // The following two tests currently fail. It is not currently not possible to treat progress precisely in bucketed tasks.
-        //assertFalse("Progress went backwards", progress1.getProgress() > progress2.getProgress());
-        //assertProgressVsBuckets(progress2.getProgress() - progress1.getProgress(), progress2.getCompletedBuckets() - progress1.getCompletedBuckets(), bucketSize, 2);
     }
 
     /**
@@ -320,7 +349,7 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
         when("1st run");
 
         System.out.println("Waiting before suspending task tree.");
-        Thread.sleep(3000L);
+        Thread.sleep(6000L);
 
         System.out.println("Suspending task tree.");
         boolean stopped = taskManager.suspendTaskTree(recomputationTask.oid, 10000, result);
@@ -367,7 +396,9 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
         displayValue("Tree after second suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension2.asObjectable()));
 
         assertTask(rootAfterSuspension2.asObjectable(), "2nd")
-                .display();
+                .display()
+                .structuredProgress()
+                    .display();
 
         TaskProgressInformation progress2 = TaskProgressInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
         TaskPartProgressInformation info2 = assertTaskProgress(progress2, "after 2nd suspension")
@@ -375,14 +406,10 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
                 .assertAllPartsCount(1)
                 .assertCurrentPartNumber(1)
                 .currentPart()
-                    .assertExpectedBuckets(100) // todo consistency
+                    .assertExpectedBuckets(100)
+                    .assertBucketsItemsConsistency(bucketSize, workers)
                     .assertCompletedBucketsAtLeast(info1.getBucketsProgress().getCompletedBuckets())
+                    .assertItemsProgressAtLeast(info1.getItemsProgress().getProgress())
                     .get();
-
-//        assertProgressVsBuckets(items2, completedBuckets2, bucketSize, workers);
-
-        // The following two tests currently fail. It is not currently not possible to treat progress precisely in bucketed tasks.
-        //assertFalse("Progress went backwards", progress1.getProgress() > progress2.getProgress());
-        //assertProgressVsBuckets(progress2.getProgress() - progress1.getProgress(), progress2.getCompletedBuckets() - progress1.getCompletedBuckets(), bucketSize, 2);
     }
 }

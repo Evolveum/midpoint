@@ -309,6 +309,10 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public void incrementProgressTransient() {
+    }
+
+    @Override
     public void setProgressImmediate(Long progress, OperationResult parentResult) {
         throw new UnsupportedOperationException();
     }
@@ -540,7 +544,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void recordState(String message) {
+    public void recordStateMessage(String message) {
     }
 
     @Override
@@ -574,10 +578,6 @@ public class NullTaskImpl implements Task {
 
     @Override
     public void onSyncItemProcessingEnd(@NotNull String processingIdentifier, @NotNull QualifiedItemProcessingOutcomeType outcome) {
-    }
-
-    @Override
-    public void resetEnvironmentalPerformanceInformation(EnvironmentalPerformanceInformationType value) {
     }
 
     @Override

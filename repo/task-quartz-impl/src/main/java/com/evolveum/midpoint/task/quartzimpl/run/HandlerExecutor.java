@@ -56,13 +56,13 @@ public class HandlerExecutor {
     private TaskRunResult executePlainTaskHandler(RunningTaskQuartzImpl task, TaskPartitionDefinitionType partition,
             TaskHandler handler, OperationResult result) throws ExitExecutionException {
         try {
-            startCollectingOperationStatsForInitialExecution(task, handler);
+            startCollectingStatistics(task, handler);
 
             LOGGER.trace("Executing non-bucketed task handler {}", handler.getClass().getName());
             TaskRunResult runResult = handler.run(task, partition);
             LOGGER.trace("runResult is {} for {}", runResult, task);
 
-            storeOperationStatsPersistently(task, result);
+            storeStatisticsPersistently(task, result);
 
             checkNullRunResult(task, runResult);
             return runResult;
@@ -83,22 +83,14 @@ public class HandlerExecutor {
         }
     }
 
-    static void startCollectingOperationStatsForInitialExecution(RunningTask task, TaskHandler handler) {
-        task.startCollectingOperationStats(handler.getStatisticsCollectionStrategy(), true);
+    static void startCollectingStatistics(RunningTask task, TaskHandler handler) {
+        task.startCollectingStatistics(handler.getStatisticsCollectionStrategy());
     }
 
-    static void startCollectingOperationStatsForFurtherExecutions(RunningTask task, TaskHandler handler) {
-        task.startCollectingOperationStats(handler.getStatisticsCollectionStrategy(), false);
-    }
-
-    static void storeOperationStatsPersistently(RunningTaskQuartzImpl task, OperationResult result)
+    static void storeStatisticsPersistently(RunningTaskQuartzImpl task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         try {
-            task.storeOperationStatsDeferred();
-            task.flushPendingModifications(result);
-        } catch (ObjectNotFoundException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't store operation statistics to {}", e, task);
-            // intentionally continuing
+            task.updateAndStoreStatisticsIntoRepository(true, result);
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't store operation statistics to {}", e, task);
             // intentionally continuing

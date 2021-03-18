@@ -675,6 +675,13 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
+    public void incrementProgressTransient() {
+        synchronized (prismAccess) {
+            setProgressTransient(getProgress() + 1);
+        }
+    }
+
+    @Override
     public StructuredTaskProgressType getStructuredProgressOrClone() {
         return getContainerableOrClone(TaskType.F_STRUCTURED_PROGRESS);
     }
@@ -2094,7 +2101,7 @@ public class TaskQuartzImpl implements Task {
     //region Statistics collection
 
     @Override
-    public void recordState(String message) {
+    public void recordStateMessage(String message) {
         statistics.recordState(message);
     }
 
@@ -2173,11 +2180,6 @@ public class TaskQuartzImpl implements Task {
     public void markObjectActionExecutedBoundary() {
         LOGGER.trace("markObjectActionExecutedBoundary: {}", this);
         statistics.markObjectActionExecutedBoundary();
-    }
-
-    @Override
-    public void resetEnvironmentalPerformanceInformation(EnvironmentalPerformanceInformationType value) {
-        statistics.resetEnvironmentalPerformanceInformation(value);
     }
 
     @Override

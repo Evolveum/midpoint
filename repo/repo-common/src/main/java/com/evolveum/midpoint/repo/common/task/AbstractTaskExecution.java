@@ -90,11 +90,8 @@ public abstract class AbstractTaskExecution
     @NotNull
     private TaskWorkBucketProcessingResult createRunResult() {
         TaskWorkBucketProcessingResult runResult = new TaskWorkBucketProcessingResult();
-        if (previousRunResult != null) {
-            runResult.setProgress(previousRunResult.getProgress());
-        } else {
-            runResult.setProgress(0L);
-        }
+        // Intentionally not setting the progress in runResult.
+        // These task handlers do not use this feature. We manage task result ourselves.
         runResult.setOperationResult(taskOperationResult);
         return runResult;
     }
@@ -128,6 +125,8 @@ public abstract class AbstractTaskExecution
                 partExecution.setExpectedParts(partExecutions.size());
                 currentTaskPartExecution.set(partExecution);
 
+                markPreviousPartComplete(partExecutions, i);
+
                 OperationResult opResult = taskOperationResult.createSubresult(taskHandler.taskOperationPrefix + ".part" + (i+1)); // TODO
                 try {
                     partExecution.run(opResult);
@@ -155,6 +154,18 @@ public abstract class AbstractTaskExecution
             throw t;
         } finally {
             taskHandler.unregisterExecution(localCoordinatorTask);
+        }
+    }
+
+    /**
+     * We intentionally do not do this on part completion because we can be in a bucket.
+     * The last part is marked as complete directly by task execution object, when the task manager
+     * tells it that there are no more buckets.
+     */
+    private void markPreviousPartComplete(List<? extends AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> partExecutions,
+            int currentPartIndex) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        if (currentPartIndex > 0) {
+            partExecutions.get(currentPartIndex - 1).markStructuredProgressComplete(taskOperationResult);
         }
     }
 
