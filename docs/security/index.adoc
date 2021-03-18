@@ -1,0 +1,13 @@
+= MidPoint Security Configuration
+:page-nav-title: Security
+:page-display-order: 700
+:page-upkeep-status: green
+:page-liquid:
+
+Following pages describe mechanism that deal with security, auditing, authentication, authorization and related topics.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

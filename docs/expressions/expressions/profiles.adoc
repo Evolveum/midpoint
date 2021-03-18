@@ -1,0 +1,203 @@
+= Expression Profile Configuration
+:page-nav-title: Expression Profiles
+:page-wiki-name: Expression Profile Configuration
+:page-since: "4.0"
+:page-alias: { "parent" : "/midpoint/reference/security/" }
+
+[NOTE]
+.Limited feature
+====
+This is a limited midPoint feature.
+This feature currently supports only some specific use-cases.
+We are perfectly capable to finish the feature, just the funding for the work is needed.
+Please consider the possibility for wiki:Subscriptions+and+Sponsoring[supporting] development of this feature by using midPoint Platform subscription.
+If you are midPoint Platform subscriber and this feature is within the goals of your deployment you may be able to use your subscription to endorse implementation of this feature.
+====
+
+
+== Introduction
+
+See wiki:Expression+Profiles[Expression Profiles] page for a generic introduction to expression profile concepts.
+
+
+== Expression Profile Specification
+
+Expression profiles are defined in wiki:System+Configuration+Object[system configuration]:
+
+[source,xml]
+----
+<systemConfiguration>
+    ...
+    <expressions>
+        <expressionProfile>
+            <identifier>safe</identifier>
+            <decision>deny</decision> <!-- default decision of those evaluators that are not explicitly enumerated. -->
+            <evaluator>
+                <type>asIs</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>path</type>
+                <decision>allow</decision>
+            </evaluator>
+            ...
+            <evaluator>
+                <type>script</type>
+                <decision>deny</decision> <!-- default decision of those script languages that are not explicitly enumerated. -->
+                <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                    <decision>allow</decision>
+                    <typeChecking>true</typeChecking>
+                    <permissionProfile>script-safe</permissionProfile>
+                </script>
+            </evaluator>
+        </expressionProfile>
+
+        <permissionProfile>
+            <identifier>script-safe</identifier>
+            <decision>deny</decision> <!-- Default decision for those classes that are not explicitly enumerated. -->
+            <package>
+                <name>com.evolveum.midpoint.xml.ns._public.common.common_3</name>
+                <description>MidPoint common schema - generated bean classes</description>
+                <decision>allow</decision>
+            </package>
+            ...
+            <class>
+                <name>java.lang.Integer</name>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>java.lang.String</name>
+                <description>String operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
+                <decision>allow</decision> <!-- Default decision for those methods that are not explicitly enumerated. -->
+                <method>
+                        <name>execute</name>
+                        <decision>deny</decision>
+                </method>
+            </class>
+            ...
+        </permissionProfile>
+    </expressions>
+
+</systemConfiguration>
+----
+
+The configuration consists of two parts: expression profile and permission profile.
+
+Expression profile specifies which expression evaluators are allowed.
+E.g. the configuration about specifies that `asIs`, `path` and `script` evaluators are allowed.
+The profile can also parametrize the use of evaluators.
+For example the profile above is constraining the use of `script` evaluator only to Groovy language.
+And that same specification is also setting type-checking evaluation mode and applying permission profile to all evaluated scripts.
+
+Permission profile specifies, which part of the Java platform can the evaluator touch.
+This is applicable almost exclusively to `script` evaluators, as other evaluators cannot directly access Java classes and methods.
+Simply speaking, the permission profile works as an access list that decides which classes and methods can be used and which cannot be used.
+
+Permission profile is separated from expression profile, as it is expected that permission profiles may be long and complex in practice.
+And it is also expected that the same profile may apply to several scripting languages.
+The primary purpose of the permission profile is to constrain access to the (Java) platform which is not language-specific.
+Therefore it is expected that this will be reusable.
+
+
+== Expression Profile Usage
+
+The primary usage pattern for expression profiles is in conjunction with wiki:Archetypes[archetypes]. The idea is that archetype policy will identify expression profiles that should be applied to all the expression in archetyped objects.
+However, this use is planned for the future and it is not yet supported in midPoint 4.0.
+
+Alternatively, expression profiles may be configured in defaultObjectPolicyConfiguration in wiki:System+Configuration+Object[system configuration]:
+
+[source,xml]
+----
+<systemConfiguration>
+    ...
+    <defaultObjectPolicyConfiguration>
+        <type>ReportType</type>
+        <expressionProfile>safe</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    ...
+</systemConfiguration>
+----
+
+This is also the method how to specify default expression profile for a particular type of an object.
+
+
+== Security Considerations
+
+Expression profiles are inherently sensitive from information security point of view.
+However, the problem that expression profiles are trying to solve is not a simple one.
+Especially constraining scripting languages is a huge task.
+Scripting languages are designed to be flexible and security considerations are often not very important for scripting languages.
+Therefore please be very cautious when dealing with scripts, expression and permission profiles.
+The best recommendation is still not to allow any untrusted party to set up any expressions.
+But in case that this is not feasible, expression profiles may be useful.
+
+Please exercise extreme caution especially when dealing with permission profiles.
+Those profiles may get quite complex when it comes to Java platform itself.
+For example, many methods in `java.lang.System` object are very dangerous (e.g. `exit()` method).
+However, the same class contains methods that are reasonably safe and that are also quite frequently used (e.g.` currentTimeMillis()`). Therefore it often needed to cherry-pick the methods on a very fine level.
+And the situation is made worse by the script languages themselves, as they often extend the platform to make it more convenient for a user.
+For example, Groovy adds `execute(...)` method to `String` class that can be used to execute arbitrary process.
+While this is very convenient from Groovy programmer's point of view, it is an utter security disaster.
+Yet another dangerous thing is a dynamic invocation based on Java Reflection framework.
+This may even be tightly integrated into some scripting languages.
+Therefore be very careful and analyse the situation properly.
+Do not rely on default configuration that comes with midPoint.
+This configuration is wiki:Security+Guide[not meant to be completely secure]. The setup may vary in various environments, some scripts need to be less poweful, some must be more poweful, some environments are more tolerant to risk and would prefer more flexibility while other environments will heavily constrain flexibility to eliminate the risk.
+One size does not fit all.
+
+Currently, Groovy is the only language that can be constrained by a permission profile.
+And even in the case of Groovy, this constraining is quite shallow.
+There is no wiki:Expression+Profiles:+Full+Implementation[sandboxing] yet.
+Groovy scripts are constrained only on compilation level.
+I.e. the compiler of Groovy scripts will allow or deny a use of specific class or a method.
+For this method to work, the compiler needs to know types of all the variables and parameters used by the script.
+Therefore in this case a special _type checking_ mode of Groovy script evaluation must be used.
+Otherwise the script can assign the `System` object to a dynamic (untyped) variable and then invoke `exit()` method on that variable.
+This is not possible in a type checking mode, as in that case Groovy compiler will determine types for all variables.
+The script is checked for proper access to classes and methods or the scripts will not compile.
+Either way, some level of security is assured.
+However, this protection is still not perfect.
+The compiler-based protection only examines the script on the surface.
+Therefore the script cannot execute `System.exit()` directly.
+But somewhere in the system there may be a method which can be tricked to executing System.exit() under some circumstances.
+If such method is used, the compiler does not know that invoking that method may bring the system down.
+This can only be achieved by a run-time _sandboxing_ of the script execution.
+While Java platform supports this concept, it is not implemented into midPoint script evaluator yet.
+Please see wiki:Expression+Profiles:+Full+Implementation[Expression Profiles: Full Implementation] for the details.
+
+
+== Limitations
+
+Expression profiles is currently a very limited feature.
+General infrastructure for expression profiles is implemented in midPoint core, however it is not applied to all expressions.
+In fact, the only type of expression that is constrained by expression profiles are expression in JasperReport reports used in midPoint - and even that is partial.
+E.g. the ability to secure audit reports may not be complete currently.
+
+For scripting evaluators, the only scripting language that can be constrained by a permission profile is Groovy.
+Other languages do not have this ability yet.
+And even Groovy is only constrained on a "compilation level" (see security considerations above).
+
+Support for expression profile identification in archetype policy is missing.
+
+There may be performance issues when using expression profiles, especially when used with big and complex permission profiles.
+The code is not yet optimized for performance.
+
+As of midPoint 4.0 we provide the expression profiles in "AS IS" form.
+We do not make any claims about security or insecurity of expression profiles.
+I.e. we do not claim that expression profiles are completely secure.
+If you are using expression profiles you are doing that completely on your own risk.
+Proper security testing is more than recommended in such case.
+
+See wiki:Expression+Profiles:+Full+Implementation[Expression Profiles: Full Implementation] for the details about our plans for the future of expression profiles.
+
+
+== See Also
+
+* wiki:Expression+Profiles[Expression Profiles]
+
+* wiki:Security+Guide[Security Guide]
+
+* wiki:Expression+Profiles:+Full+Implementation[Expression Profiles: Full Implementation]
+
+

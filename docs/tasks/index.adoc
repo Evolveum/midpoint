@@ -1,0 +1,12 @@
+= MidPoint Task Management Configuration
+:page-nav-title: Task Management
+:page-upkeep-status: green
+:page-liquid:
+
+Following pages describe mechanism that deal with task management, server tasks, task scheduling and similar topics.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

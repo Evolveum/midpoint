@@ -1,0 +1,61 @@
+= Power of Attorney Configuration
+:page-nav-title: Power of Attorney
+:page-wiki-name: Power of Attorney Configuration
+:page-since: "3.7"
+:page-upkeep-status: green
+
+
+== Introduction
+
+MidPoint currently has a very limited implementation of wiki:Power+of+Attorney[power of attorney]. The implementation is limited only to see and manage wiki:Approval[approval work items] of another user.
+This feature can be used to allow managers of approvers to see their work items and act upon them.
+
+== Authorization
+
+Attorney authorization is needed for the manager to enable this functionality.
+The manager acts as an attorney for the approver.
+Therefore the manager role should contain the following authorization:
+
+[source,xml]
+----
+    <authorization>
+        <name>attorney-manager-workitems</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#attorney</action>
+        <object>
+            <type>UserType</type>
+            <orgRelation>
+                <subjectRelation>org:manager</subjectRelation>
+                <scope>allDescendants</scope>
+                <includeReferenceOrg>true</includeReferenceOrg>
+            </orgRelation>
+        </object>
+        <limitations>
+            <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myWorkItems</action>
+            <!-- simple way to read objects -->
+            <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        </limitations>
+    </authorization>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#attorneyWorkItems</action>
+    </authorization>
+----
+
+This authorization given the manager power of attorney (action) over the subordinate employees (object).
+The power of attorney is limited only to workitem-related actions (limitations).
+
+
+== User Interface Support
+
+As the functionality is currently hardcoded to the workitem-related operations there is no feature to switch the whole user interface to the donor view.
+The attorney will only see a new menu item in the workitem section that allows the attorney to work with the workitems of the donor.
+
+== Limitations
+
+++++
+{% include missing-incomplete.html %}
+++++
+
+== See Also
+
+* xref:authorization/[Authorization]
+

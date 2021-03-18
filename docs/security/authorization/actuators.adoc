@@ -1,0 +1,34 @@
+= Spring Boot Actuator Endpoints Authorizations
+:page-nav-title: Spring Boot Actuators
+:page-wiki-name: Spring Boot Actuator Endpoints Authorizations
+
+In the midPoint, we now support these endpoint actions:
+
+[%autowidth]
+|===
+| Action | Allowed access to endpoint
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-actuator-3#all
+| All supported endpoints
+
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-actuator-3#threadDump
+| 'BASE\_MIDPOINT\_URL'/actuator/threaddump
+
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-actuator-3#heapDump
+| 'BASE\_MIDPOINT\_URL'/actuator/heapdump
+
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-actuator-3#env
+| 'BASE\_MIDPOINT\_URL'/actuator/env and 'BASE\_MIDPOINT\_URL'/actuator/env/\**
+
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-actuator-3#info
+| 'BASE\_MIDPOINT\_URL'/actuator/info
+
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-actuator-3#metrics
+| 'BASE\_MIDPOINT\_URL'/actuator/metrics and 'BASE\_MIDPOINT\_URL'/actuator/metrics/\**
+
+|===

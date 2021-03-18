@@ -1,5 +1,6 @@
 = MidPoint Configuration Reference
 :page-nav-title: Configuration Reference
+:page-display-order: 90
 :page-upkeep-status: green
 :page-liquid:
 

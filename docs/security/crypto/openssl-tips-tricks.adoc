@@ -1,0 +1,10 @@
+= OpenSSL Tips & Tricks
+:page-wiki-name: OpenSSL Tips&Tricks
+
+== Converting key pair to PCKS#12 format
+
+[source,bash]
+----
+openssl pkcs12 -export -out example.pfx -inkey example-privkey.pem -in example-cert.pem
+----
+

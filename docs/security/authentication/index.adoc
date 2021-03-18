@@ -1,0 +1,9 @@
+= MidPoint Authentication Configuration
+:page-nav-title: Authentication
+:page-upkeep-status: yellow
+
+// TODO: introduction
+
+++++
+{% children %}
+++++

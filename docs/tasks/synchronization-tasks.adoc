@@ -1,0 +1,111 @@
+= Synchronization Tasks
+:page-wiki-name: Synchronization Tasks
+:page-upkeep-status: orange
+
+Synchronization tasks are midPoint wiki:Task[server tasks] that handle bulk wiki:Synchronization[synchronization] of midpoint objects.
+Synchronization tasks typically take care of scheduled user reconciliation or continuous live synchronization.
+But the tasks can be used in an ad-hoc manner to handle migration tasks such as initial user import or cleanup and administration tasks such as ad-hoc user recompute.
+
+[TIP]
+====
+All the synchronization tasks are using the same wiki:Synchronization[synchronization mechanism]. See the wiki:Synchronization[Synchronization] page for an introduction.
+
+For all the synchronization tasks to work correctly the wiki:Synchronization+Configuration[synchronization section] of wiki:Resource+Configuration[resource configuration] must be set up properly.
+See wiki:Synchronization+Configuration[Synchronization Configuration] page for more details.
+====
+
+
+== Target Specification
+
+The synchronization task needs to know what it has to synchronize.
+The task needs to know:
+
+* What *resource* to synchronize.
+This is specified by using the `objectRef` property of the task.
+
+* What *objects* on the resource to synchronize.
+It has to know which wiki:Kind,+Intent+and+ObjectClass[object classes, kinds or intents] to synchronize.
+This is specified using the properties `objectclass`, `kind` and `intent` of the task extension.
+
+[NOTE]
+====
+MidPoint 3.2 has a capability to synchronize all objects (all object classes) of a particular resource that supports it.
+This feature introduced a change in the meaning of object specification:
+
+In midPoint 3.2 and later, if there is no object specification (objectclass, kind or intent) then the task will try to synchronize all object classes.
+This may fail if the resource or the synchronization mechanism does not support synchronization of all object classes.
+
+In midPoint versions prior to 3.2, if there was no object specification then the task located a default account object type and used that for synchronization.
+====
+
+
+== Live Synchronization
+
+TODO
+
+
+== Reconciliation
+
+The following task will run reconciliation on resource `ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2`. It will reconcile objects of `inetOrgPerson` object class.
+The reconciliation will be running every hour (3600 seconds).
+
+.Reconciliation task (XML)
+[source,xml]
+----
+<task xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+	<name>Reconciliation: Example Resource</name>
+	<extension>
+		<mext:objectclass>ri:inetOrgPerson</mext:objectclass>
+    </extension>
+	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+	<executionStatus>runnable</executionStatus>
+	<category>Reconciliation</category>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
+	<objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
+	<recurrence>recurring</recurrence>
+	<schedule>
+        <interval>3600</interval>
+    </schedule>
+</task>
+----
+
+
+== Import
+
+[TIP]
+====
+Import of default accounts can be initiated from the midPoint GUI by clicking the "Import Accounts" button on resource details page.
+====
+
+The following task will import all objects of `inetOrgPerson` object class from resource `ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2`. The task will run only once.
+
+.Import Accounts task (XML)
+[source,xml]
+----
+<task xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+	<name>Import: Example Resource</name>
+	<extension>
+		<mext:objectclass>ri:inetOrgPerson</mext:objectclass>
+    </extension>
+	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+	<executionStatus>runnable</executionStatus>
+	<category>ImportingAccounts</category>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</handlerUri>
+	<objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
+	<recurrence>single</recurrence>
+</task>
+----
+
+
+== See Also
+
+* wiki:Synchronization[Synchronization]
+
+* wiki:Synchronization+Configuration[Synchronization Configuration]
+
+* wiki:Task[Task]
+
+* wiki:Recompute+Task[Recompute Task]
+
+* wiki:Connector+Development+Guide[Connector Development Guide - DiscoverySupport]
+
