@@ -87,6 +87,11 @@ Can be used both for numeric, alphanumeric comparisons and other comparison type
 | `givenName startsWith "Jo"`
 | Matches if the item starts with, ends with or contains specified string.
 
+| Fulltext
+| `fullText`
+| `. fullText "John"`
+| Performs fulltext search (if enabled)
+
 |====
 
 TODO: Anything else?
@@ -122,12 +127,38 @@ There is a usual set of logic operators:
 | Any of the subfilters is true.
 
 | `not`
-| `not activation/effectiveStatus = "enabled"`
+| `givenName not startsWith "J"`
+`givenName != "John"`
 | Logical negation.
 
 |====
 
 == Advanced Usage
+
+|====
+| Operator | Example | Description
+
+| InOid
+|
+|
+
+| Type
+| `. type UserType and givenName = "John"`
+|
+
+
+
+| Exists
+|
+|
+
+
+| Matches
+|
+|
+
+|====
+
 
 TODO: inOid, type
 
