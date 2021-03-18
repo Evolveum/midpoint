@@ -11,5 +11,9 @@ package com.evolveum.midpoint.repo.sql.data.common.type;
  */
 public enum RObjectExtensionType {
 
-    EXTENSION, ATTRIBUTES
+    /** Type of extension value for all objects except for Shadow. */
+    EXTENSION,
+
+    /** Type of extension value for shadow attributes. */
+    ATTRIBUTES
 }
