@@ -19,10 +19,10 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
 import com.evolveum.midpoint.repo.sqale.UriCache;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceOwner;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;

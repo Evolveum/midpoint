@@ -12,7 +12,7 @@ import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.sql.ColumnMetadata;
 
-import com.evolveum.midpoint.repo.sqale.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
@@ -42,7 +42,7 @@ public class QResource extends QObject<MResource> {
     public final EnumPath<ResourceAdministrativeStateType> businessAdministrativeState =
             createEnum("businessAdministrativeState", ResourceAdministrativeStateType.class,
                     BUSINESS_ADMINISTRATIVE_STATE);
-    public final EnumPath<AvailabilityStatusType>  operationalStateLastAvailabilityStatus =
+    public final EnumPath<AvailabilityStatusType> operationalStateLastAvailabilityStatus =
             createEnum("operationalStateLastAvailabilityStatus", AvailabilityStatusType.class,
                     OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS);
     public final UuidPath connectorRefTargetOid =

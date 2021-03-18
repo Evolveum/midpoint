@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale;
+package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +23,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTable;
 import com.evolveum.midpoint.repo.sqale.qmodel.node.QNode;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping.QAssignmentHolder;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReport;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportData;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QAbstractRole;

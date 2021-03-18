@@ -12,8 +12,8 @@ import java.time.Instant;
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 
-import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;

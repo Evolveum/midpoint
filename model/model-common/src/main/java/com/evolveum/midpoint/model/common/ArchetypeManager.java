@@ -179,9 +179,11 @@ public class ArchetypeManager implements Cache {
 
         // Try to find appropriate system configuration section for this object.
         ObjectPolicyConfigurationType objectPolicy = determineObjectPolicyConfiguration(object, result);
-        // TODO: cache the result of the merge
+
         ArchetypePolicyType mergedPolicy = merge(archetypePolicy, objectPolicy);
         if (archetype != null && mergedPolicy != null) {
+            // FIXME: ObjectPolicy  was determined on object type/subtype, but is cached as merged policy for whole
+            // archetype, investigate if this is correct
             archetypePolicyCache.put(archetype.getOid(), mergedPolicy);
         }
         return mergedPolicy;
@@ -216,10 +218,12 @@ public class ArchetypeManager implements Cache {
             if (superPolicy == null) {
                 return null;
             }
+            // FIXME: probably no need to clone, caller pass this to function, which also invokes clone
             return superPolicy.clone();
         }
 
         if (superPolicy == null) {
+            // FIXME: probably no need to clone, caller pass this to function, which also invokes clone
             return currentPolicy.clone();
         }
 
@@ -728,6 +732,7 @@ public class ArchetypeManager implements Cache {
             return archetypePolicy.clone();
         }
         ArchetypePolicyType resultPolicy = archetypePolicy.clone();
+
         if (archetypePolicy.getApplicablePolicies() == null && objectPolicy.getApplicablePolicies() != null) {
             resultPolicy.setApplicablePolicies(objectPolicy.getApplicablePolicies().clone());
         }

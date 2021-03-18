@@ -14,7 +14,9 @@ import com.querydsl.sql.types.EnumAsObjectType;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
+import com.evolveum.midpoint.repo.sqale.support.QuerydslJsonbType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
@@ -45,6 +47,9 @@ public class SqaleRepoContext extends SqlRepoContext {
         querydslConfig.register(new EnumAsObjectType<>(TaskExecutionStateType.class));
         querydslConfig.register(new EnumAsObjectType<>(TaskWaitingReasonType.class));
         querydslConfig.register(new EnumAsObjectType<>(TimeIntervalStatusType.class));
+
+        // JSONB type support
+        querydslConfig.register(new QuerydslJsonbType());
 
         uriCache = new UriCache();
     }

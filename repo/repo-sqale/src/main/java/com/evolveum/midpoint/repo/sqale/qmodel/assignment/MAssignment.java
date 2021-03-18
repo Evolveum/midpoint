@@ -9,8 +9,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceOwner;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;

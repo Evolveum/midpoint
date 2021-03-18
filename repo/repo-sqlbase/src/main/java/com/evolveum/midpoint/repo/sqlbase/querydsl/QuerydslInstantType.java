@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
  * with and without calendar parameter, results can be off by default timezone offset.
  * This works for us using JDBC - the question is: What method is used by ORM/JPA?
  */
-public class InstantType extends JSR310InstantType {
+public class QuerydslInstantType extends JSR310InstantType {
 
     @Nullable
     @Override

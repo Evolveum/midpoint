@@ -584,7 +584,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             VariablesMap variablesMap = new VariablesMap();
             variablesMap.put(ExpressionConstants.VAR_OBJECT, rowValue, rowValue.getClass());
             if (columnItem != null) {
-                variablesMap.put(ExpressionConstants.VAR_INPUT, columnItem, columnItem.getDefinition().getTypeClass());
+                variablesMap.put(ExpressionConstants.VAR_INPUT, columnItem, columnItem.getDefinition());
             }
             Collection<String> evaluatedValues = ExpressionUtil.evaluateStringExpression(variablesMap, getPageBase().getPrismContext(), expression,
                     MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
@@ -899,9 +899,16 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected boolean isCollectionViewPanel() {
-        return isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget();
+        return isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget() || defaultCollectionExists();
     }
 
+    private boolean defaultCollectionExists() {
+        return getCollectionViewForAllObject() != null;
+    }
+
+    private CompiledObjectCollectionView getCollectionViewForAllObject() {
+        return getPageBase().getCompiledGuiProfile().findObjectCollectionView(WebComponentUtil.containerClassToQName(getPrismContext(), getType()), null);
+    }
 
     protected ISelectableDataProvider getDataProvider() {
         BoxedTablePanel<PO> table = getTable();

@@ -10,9 +10,9 @@ import java.time.Instant;
 import java.util.UUID;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceOwner;
+import com.evolveum.midpoint.repo.sqale.support.Jsonb;
 
 /**
  * Querydsl "row bean" type related to {@link QObject}.
@@ -32,7 +32,10 @@ public class MObject implements MReferenceOwner<MReference> {
     public String lifecycleState;
     public Long containerIdSeq; // next available container ID (for PCV of multi-valued containers)
     public Integer version;
-    public byte[] ext;
+    // complex DB fields
+    public String[] policySituations;
+    public String[] subtypes;
+    public Jsonb ext;
     // metadata
     public UUID creatorRefTargetOid;
     public MObjectType creatorRefTargetType;
