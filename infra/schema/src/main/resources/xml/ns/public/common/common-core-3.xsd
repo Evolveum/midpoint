@@ -3404,6 +3404,19 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="wallClockTimeSpent" type="xsd:long" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            How many milliseconds did we spend in this part?
+                        </p>
+                        <p>
+                            Beware when interpreting summed-up structured progress information: the real wall-clock spent
+                            is not always the sum of the constituents.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="taskPartProgress" type="tns:TaskPartProgressType" />

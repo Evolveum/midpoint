@@ -334,7 +334,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
                         + " seconds, got " + statistics.getErrors() + " errors.";
         if (statistics.getItemsProcessed() > 0) {
             statMsg += " Average time for one object: " + statistics.getAverageTime() + " milliseconds" +
-                    " (wall clock time average: " + statistics.getWallAverageTime() + " ms).";
+                    " (wall clock time average: " + statistics.getAverageWallClockTime() + " ms).";
         }
         if (!localCoordinatorTask.canRun()) {
             statMsg += " Task was interrupted during processing.";

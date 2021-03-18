@@ -42,12 +42,12 @@ public class ItemProcessingStatistics {
         return totalTimeProcessing.addAndGet(delta);
     }
 
-    int incrementProgress() {
-        return itemsProcessed.incrementAndGet();
+    void incrementProgress() {
+        itemsProcessed.incrementAndGet();
     }
 
-    int incrementErrors() {
-        return errors.incrementAndGet();
+    void incrementErrors() {
+        errors.incrementAndGet();
     }
 
     final Double getAverageTime() {
@@ -60,10 +60,19 @@ public class ItemProcessingStatistics {
         }
     }
 
-    final Double getWallAverageTime() {
+    final Double getAverageWallClockTime() {
         int count = getItemsProcessed();
         if (count > 0) {
             return (double) getWallTime() / count;
+        } else {
+            return null;
+        }
+    }
+
+    Double getThroughput() {
+        Double wallAverageTime = getAverageWallClockTime();
+        if (wallAverageTime != null) {
+            return 60000.0 / wallAverageTime;
         } else {
             return null;
         }

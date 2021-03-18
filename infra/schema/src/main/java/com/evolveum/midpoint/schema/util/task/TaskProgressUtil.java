@@ -147,20 +147,18 @@ public class TaskProgressUtil {
     }
 
     public static TaskPartProgressType getCurrentPart(StructuredTaskProgressType progress) {
-        return progress.getPart().stream()
-                .filter(part -> Objects.equals(part.getPartUri(), progress.getCurrentPartUri()))
-                .findAny().orElse(null);
+        if (progress == null) {
+            return null;
+        } else {
+            return progress.getPart().stream()
+                    .filter(part -> Objects.equals(part.getPartUri(), progress.getCurrentPartUri()))
+                    .findAny().orElse(null);
+        }
     }
 
     public static int getTotalProgressForCurrentPart(StructuredTaskProgressType progress) {
-        if (progress == null) {
-            return 0;
-        }
         TaskPartProgressType currentPart = getCurrentPart(progress);
-        if (currentPart == null) {
-            return 0;
-        }
-        return getTotalProgress(currentPart);
+        return currentPart != null ? getTotalProgress(currentPart) : 0;
     }
 
     /**
@@ -168,5 +166,9 @@ public class TaskProgressUtil {
      */
     public static long getTotalProgress(StructuredTaskProgressType progress) {
         return getTotalProgressOpen(progress) + getTotalProgressClosed(progress);
+    }
+
+    public static String getCurrentPartUri(StructuredTaskProgressType structuredTaskProgress) {
+        return structuredTaskProgress != null ? structuredTaskProgress.getCurrentPartUri() : null;
     }
 }

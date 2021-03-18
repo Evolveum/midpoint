@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
+import com.evolveum.midpoint.schema.util.task.TaskPartPerformanceInformation;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -80,7 +81,7 @@ class ItemProcessingGatekeeper<I> {
     @NotNull private final Trace logger;
 
     /** Timing information related to the execution of this item. */
-    @NotNull private final Timing timing;
+    @NotNull private final Timing timing = new Timing();
 
     /**
      * Tuple "name, display name, type, OID" that is to be written to the iterative task information.
@@ -113,7 +114,6 @@ class ItemProcessingGatekeeper<I> {
         this.coordinatorTask = partExecution.localCoordinatorTask;
         this.workerTask = workerTask;
         this.logger = partExecution.getLogger();
-        this.timing = new Timing();
         this.iterationItemInformation = request.getIterationItemInformation();
     }
 
@@ -123,21 +123,18 @@ class ItemProcessingGatekeeper<I> {
 
             startTracingAndDynamicProfiling();
             logOperationStart();
-            Operation operation = recordIterativeOperationStart();
-            onSyncItemProcessingStart();
+            Operation operation = updateStatisticsOnStart();
 
             OperationResult result = doProcessItem(parentResult);
 
             stopTracingAndDynamicProfiling(result, parentResult);
             writeOperationExecutionRecord(result);
-            recordIterativeOperationEnd(operation);
-            onSyncItemProcessingEnd();
 
             canContinue = checkIfCanContinue(result) && canContinue;
 
             acknowledgeItemProcessed(result);
 
-            incrementProgressAndUpdateStatistics(result);
+            updateStatisticsOnEnd(operation, result);
             logOperationEnd(result);
 
             cleanupAndSummarizeResults(result, parentResult);
@@ -238,25 +235,36 @@ class ItemProcessingGatekeeper<I> {
         return partExecution.getProcessShortNameCapitalized();
     }
 
+    /** Must come after item and task statistics are updated. */
     private void logOperationEnd(OperationResult result) {
-        RunningStatisticsSnapshot statSnapshot = computeStatisticsSnapshot();
-        // TODO make this configurable per task or per task type; or switch to DEBUG
-        logger.info("{} of {} {} done with status {} (this one: {} ms, avg: {} ms) (total progress: {}, wall clock avg: {} ms)",
-                getProcessShortNameCapitalized(), iterationItemInformation,
-                getContextDesc(), result.getStatus(),
-                String.format(Locale.US, "%,.1f", timing.durationNanos / 1000000.0f),
-                String.format(Locale.US, "%,.1f", statSnapshot.totalTime / statSnapshot.totalProgress),
-                statSnapshot.totalProgress,
-                statSnapshot.totalTimeMillis / statSnapshot.totalProgress);
+
+        logger.info("{} of {} {} done with status {}. Took {} ms.", getProcessShortNameCapitalized(), iterationItemInformation,
+                getContextDesc(), result.getStatus(), String.format(Locale.US, "%,.1f", timing.durationNanos / 1000000.0f));
+
+        ItemProcessingStatistics partExecutionStatistics = getStatistics();
+        logger.info("In current bucket: Items: {} (errors: {}). Average: {} ms. Wall-clock average: {} ms. Throughput: {} per minute.",
+                String.format(Locale.US, "%,d", partExecutionStatistics.getItemsProcessed()),
+                String.format(Locale.US, "%,d", partExecutionStatistics.getErrors()),
+                String.format(Locale.US, "%,.1f", partExecutionStatistics.getAverageTime()),
+                String.format(Locale.US, "%,.1f", partExecutionStatistics.getAverageWallClockTime()),
+                String.format(Locale.US, "%,.1f", partExecutionStatistics.getThroughput()));
+
+
+        OperationStatsType operationStats = coordinatorTask.getStoredOperationStatsOrClone();
+        StructuredTaskProgressType structuredProgress = coordinatorTask.getStructuredProgressOrClone();
+        TaskPartPerformanceInformation partPerfInfo = TaskPartPerformanceInformation.forCurrentPart(operationStats, structuredProgress);
+        logger.info("In current part: Items: {} (progress: {}, errors: {}). Average: {} ms. Wall-clock average: {} ms. Throughput: {} per minute.",
+                String.format(Locale.US, "%,d", partPerfInfo.getItemsProcessed()),
+                String.format(Locale.US, "%,d", partPerfInfo.getProgress()),
+                String.format(Locale.US, "%,d", partPerfInfo.getErrors()),
+                String.format(Locale.US, "%.1f", partPerfInfo.getAverageTime()),
+                String.format(Locale.US, "%.1f", partPerfInfo.getAverageWallClockTime()),
+                String.format(Locale.US, "%.1f", partPerfInfo.getThroughput()));
 
         if (isError() && getReportingOptions().isLogErrors()) {
             logger.error("{} of object {} {} failed: {}", getProcessShortNameCapitalized(), iterationItemInformation,
                     getContextDesc(), processingResult.getMessage(), processingResult.exception);
         }
-
-        // TODO is this necessary?
-        logger.trace("{} finished for {} {}, result:\n{}", getProcessShortNameCapitalized(), iterationItemInformation,
-                getContextDesc(), result.debugDumpLazily());
     }
 
     /**
@@ -405,26 +413,33 @@ class ItemProcessingGatekeeper<I> {
         return getTaskHandler().taskOperationPrefix;
     }
 
-    private RunningStatisticsSnapshot computeStatisticsSnapshot() {
-        RunningStatisticsSnapshot runningStatisticsSnapshot = new RunningStatisticsSnapshot();
+    private @NotNull Operation updateStatisticsOnStart() {
+        onSyncItemProcessingStart();
+        return recordIterativeOperationStart();
+    }
+
+    private void updateStatisticsOnEnd(Operation operation, OperationResult result) {
+        recordIterativeOperationEnd(operation);
+        onSyncItemProcessingEnd();
+
+        updateStatisticsInPartExecution();
+        updateStatisticsInTasks(result);
+    }
+
+    private void updateStatisticsInPartExecution() {
         timing.recordEnd();
-
-        ItemProcessingStatistics runningStatistics = getStatistics();
-        runningStatisticsSnapshot.totalTime = runningStatistics.addDuration(timing.durationNanos / 1000000.0);
-        runningStatisticsSnapshot.totalProgress = runningStatistics.incrementProgress();
-        runningStatisticsSnapshot.totalTimeMillis = System.currentTimeMillis() - partExecution.getStartTimeMillis();
-
+        ItemProcessingStatistics partStatistics = getStatistics();
+        partStatistics.incrementProgress();
         if (isError()) {
-            runningStatistics.incrementErrors();
+            partStatistics.incrementErrors();
         }
-        return runningStatisticsSnapshot;
+        partStatistics.addDuration(timing.durationNanos / 1000000.0);
     }
 
     /**
      * Increments the progress and gives a task a chance to update its statistics.
      */
-    private void incrementProgressAndUpdateStatistics(OperationResult result) {
-
+    private void updateStatisticsInTasks(OperationResult result) {
         // The structured progress is maintained only in the coordinator task
         coordinatorTask.incrementStructuredProgress(partExecution.partUri, processingResult.outcome);
 
@@ -459,29 +474,16 @@ class ItemProcessingGatekeeper<I> {
     /** Information on the time aspect of the processing of this item. */
     private static class Timing {
 
-        private final long startTimeMillis;
         private final long startTimeNanos;
         private long durationNanos;
 
         private Timing() {
-            this.startTimeMillis = System.currentTimeMillis();
             this.startTimeNanos = System.nanoTime();
         }
 
         private void recordEnd() {
             durationNanos = System.nanoTime() - startTimeNanos;
         }
-    }
-
-    /**
-     * Snapshot of selected overall statistics after applying a delta from this execution.
-     * It is used just to aggregate related parameters passed among methods in this call.
-     */
-    @Experimental
-    private static class RunningStatisticsSnapshot {
-        private double totalTime;
-        private long totalProgress;
-        private long totalTimeMillis;
     }
 
     @Experimental

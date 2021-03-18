@@ -20,6 +20,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcess
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StructuredTaskProgressType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartProgressType;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 /**
  * This is "live" structured task progress information.
  *
@@ -143,6 +145,7 @@ public class StructuredTaskProgress {
     private static void addPartInformation(@NotNull TaskPartProgressType sum, @NotNull TaskPartProgressType delta) {
         OutcomeKeyedCounterTypeUtil.addCounters(sum.getClosed(), delta.getClosed());
         OutcomeKeyedCounterTypeUtil.addCounters(sum.getOpen(), delta.getOpen());
+        sum.setWallClockTimeSpent(or0(sum.getWallClockTimeSpent()) + or0(delta.getWallClockTimeSpent()));
     }
 
     public static String format(StructuredTaskProgressType source) {

@@ -21,13 +21,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static com.evolveum.midpoint.util.MiscUtil.or0;
+
+import static java.util.Collections.singleton;
 
 /**
  * Utility methods related to task operation statistics.
@@ -143,16 +145,67 @@ public class TaskOperationStatsUtil {
         }
     }
 
+    public static IterativeTaskPartItemsProcessingInformationType getIterativeInfoForCurrentPart(OperationStatsType statistics,
+            StructuredTaskProgressType structuredTaskProgress) {
+        if (statistics == null || statistics.getIterativeTaskInformation() == null) {
+            return null;
+        }
+        String currentPartUri = TaskProgressUtil.getCurrentPartUri(structuredTaskProgress);
+        return statistics.getIterativeTaskInformation().getPart().stream()
+                .filter(part -> Objects.equals(part.getPartUri(), currentPartUri))
+                .findFirst().orElse(null);
+    }
+
+    public static int getItemsProcessedForCurrentPart(OperationStatsType statistics,
+            StructuredTaskProgressType structuredTaskProgress) {
+        return getItemsProcessed(
+                getIterativeInfoForCurrentPart(statistics, structuredTaskProgress));
+    }
+
+    public static int getItemsProcessed(IterativeTaskPartItemsProcessingInformationType info) {
+        if (info == null) {
+            return 0;
+        } else {
+            return getCounts(singleton(info), set -> true);
+        }
+    }
+
+    public static int getErrors(IterativeTaskPartItemsProcessingInformationType info) {
+        if (info == null) {
+            return 0;
+        } else {
+            return getCounts(singleton(info), OutcomeKeyedCounterTypeUtil::isFailure);
+        }
+    }
+
+    public static Long getTotalTime(IterativeTaskPartItemsProcessingInformationType info) {
+        if (info == null) {
+            return null;
+        } else {
+            return getTotalTime(singleton(info), set -> true);
+        }
+    }
+
     /**
      * Returns sum of `count` values from processing information conforming to given predicate.
      */
-    private static int getCounts(List<IterativeTaskPartItemsProcessingInformationType> parts,
+    private static int getCounts(Collection<IterativeTaskPartItemsProcessingInformationType> parts,
             Predicate<ProcessedItemSetType> itemSetFilter) {
         return parts.stream()
                 .flatMap(component -> component.getProcessed().stream())
                 .filter(Objects::nonNull)
                 .filter(itemSetFilter)
                 .mapToInt(p -> or0(p.getCount()))
+                .sum();
+    }
+
+    private static long getTotalTime(Collection<IterativeTaskPartItemsProcessingInformationType> parts,
+            Predicate<ProcessedItemSetType> itemSetFilter) {
+        return parts.stream()
+                .flatMap(component -> component.getProcessed().stream())
+                .filter(Objects::nonNull)
+                .filter(itemSetFilter)
+                .mapToLong(p -> or0(p.getDuration()))
                 .sum();
     }
 
