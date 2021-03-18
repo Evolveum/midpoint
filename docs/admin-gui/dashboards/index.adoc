@@ -1,0 +1,521 @@
+= Dashboard Configuration
+:page-nav-title: Dashboards
+:page-wiki-name: Dashboard configuration
+:page-since: "4.2"
+:page-toc: top
+
+
+For basic information about this feature please see wiki:Customizable+Dashboards[Customizable Dashboards] and wiki:Dashboards,+Widgets+and+Reports+Design+Notes[Dashboards, Widgets and Reports Design Notes].
+
+Here we describe configurable dashboard and report, which is generated from a dashboard.
+
+For whole sample please see link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/dashboard[dashboard-system-status].
+
+
+== Dashboard
+
+Dashboard is new configurable object in midpoint, which show basic information about state of Midpoint.
+Dashboard contains name, display with label and widgets.
+
+[source,xml]
+----
+<dashboard>
+     <name>system-status-dashboard</name>
+     <display>
+         <label>System Status Dashboard</label>
+     </display>
+     <widget>
+         ...
+     </widget>
+     <widget>
+         ...
+     </widget>
+     ...
+         <visibility>hidden</visibility> <!-- deprecated since 4.3, use configurableUserDashboard in adminGuiConfig instead -->
+</dashboard>
+----
+
+In 4.2 dashboards are shown automatically when defined.
+Since 4.3 there is a need for configuration to define which dashboards should be shown in the left (sidebar) menu.
+The configuration is show bellow:
+
+++++
+{% include since.html since="4.3" %}
+++++
+
+.Configuration to show dashboard in the menu
+[source,xml]
+----
+<adminGuiConfiguration>
+        ....
+        <configurableUserDashboard>
+            <identifier>admin-dashboard</identifier>
+                <display>
+                        <label>Admin dashboard</label>
+                </display>
+        <configurableDashboardRef oid="00000000-0000-0000-0001-000000000001" relation="org:default" type="c:DashboardType"/>
+                <visibility>visible</visibility>
+        </configurableUserDashboard>
+</adminGuiConfiguration>
+----
+
+The example above show how to configure dashboards to be shown in the left (sidebar) menu.
+Property _display_ defines the name of the link which is shown in the menu.
+If it isn't defined, the display property of referenced DashboardType is used.
+Property _configurableDashboardRef_ is used to reference specific DashboardType.
+If it isn't defined, midPoint ignores the whole configuration.
+For visibility settings, since 4.3 use _visibility_ property in _configurableUserDashboard_ instead of visibility in DashboardType.
+
+We have two kinds of widgets, widget for _objectCollection_ and widget for _objectType_.
+
+
+=== Widget
+
+Widget contains three basic variable.
+
+
+==== display
+
+Display properties of the widget.
+Variables:
+
+[%autowidth]
+|===
+| Name | Type | Description
+
+| label
+| String
+| Displayed name of Widget.
+
+
+| `color`
+| String
+| Defaul color of background for widget.
+
+
+| `icon -> cssClass`
+| String
+| `CssClass for widget icon for example "fa fa-user".`
+
+
+| cssStyle
+| String
+| CssStyle for widget for example "color: #444 !important" for change of font color.
+
+
+|===
+
+
+==== data
+
+Data which widget display.
+We have two kinds of data for objectCollection or for objectType.
+Variables:
+
+[%autowidth]
+|===
+| Name | Type | Description
+
+| `sourceType`
+| `DashboardWidgetSourceTypeType`
+| Type of widget content data source.
+It is an identifier that specifies the type of the information (content) of the widget.
+This specifies type of data source for the widget content.
+This is enumeration type and posible values is  _objectCollection_ (content of widget is based on object collection), __auditSearch__ (content of the widget will be based on data from special object collection with audit trail search) and _object_ (content of the widget will be based on data from a single object)
+
+
+| `collection`
+| `CollectionRefSpecificationType`
+| Specification of an explicit or implicit object collection that will be used as data source for the view.
+Contains variable _collectionRef,_ which is reference to object collection is displayed in widget.
+
+
+| `objectRef`
+| `ObjectReferenceType`
+| Specification of a single object as a widget data source.
+
+
+|===
+
+Example of widget data source for object collection:
+
+[source,xml]
+----
+<data>
+    <sourceType>objectCollection</sourceType> <!-- or 'auditSearch' -->
+    <collection>
+        <collectionRef oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259" type="c:ObjectCollectionType"/>
+    </collection>
+</data>
+----
+
+Example of widget data source for object type:
+
+[source,xml]
+----
+<data>
+    <sourceType>object</sourceType>
+    <objectRef oid="00000000-0000-0000-0000-000000000005" type="c:TaskType"/>
+</data>
+----
+
+
+==== presentation
+
+Presentation define how will be data presented.
+We define four basic kind of presentation percentage (50%), separated with slash (5/10), separated with "of" (5 of 10) and only value (5).
+Presentation contains three variables.
+
+
+===== dataField
+
+First is _dataField_, which is properties of a specific widget data field.
+Note that the order of dataField elements is NOT significant.
+The field order is given by specific presentation style.
+Variables for _dataField:_
+
+[%autowidth]
+|===
+| Name | Type | Description
+
+| `fieldType`
+| `DashboardWidgetDataFieldTypeType`
+| Type of the field.
+We support value 'value' and 'unit' now.
+'value' is data field, which define displaying basic information, so number.
+"unit" define units for number.
+
+
+| `expression`
+| `ExpressionType`
+| Expression that produces value to display in the field.
+
+
+|===
+
+For fiedType "value", we define new type of expression ProportionalExpressionEvaluatorType "proportional" with variable _style_. Variable _style_ is enumeration type with value "percentage" (for example 50%), "value-slash-domain" (for example 5/10), "value-of-domain" (for example 5 of 10) and "value-only" (for example 5).
+
+
+
+===== variation
+
+Next presentation variable is _variation_. Conditional variation in the way how the widget is displayed.
+Variations may change colors or icons of the widget based on a condition.
+Variables for _variation_:
+
+[%autowidth]
+|===
+| Name | Type | Description
+
+| `condition`
+| `ExpressionType`
+| Condition for the variation.
+The variation will be active if the condition evaluates to true.
+
+
+| `display`
+| `DisplayType`
+| Display properties to apply in case that the condition is true.
+Those display properties specify only those presentation aspects that are different from the usual presenation.
+This is supposed to be merged with the primary display properties of the widget.
+E.g. if the variation only changes widget color, only color needs to be specified here.
+Icon and other styles are taken from the primary widget display properties.
+
+
+|===
+
+_Condition_ can get three variables:
+
+[%autowidth]
+|===
+| Name | Type | Description | sourceType in data of widget
+
+| `proportional`
+| IntegerStatType
+| Integer stat (statistic) entry.
+This entry contains stat value, together with domain value.
+| objectCollection, auditSearch
+
+
+| `policySituations`
+| Collection<String>
+| Colection of policy situations.
+| objectCollection
+
+
+| `object`
+| base on displayed object in widget
+| Processed object.
+| object
+
+
+|===
+
+
+===== view
+
+Last variable of presentation is _view_, this variable is processed for report and we will look on it below.
+
+
+Example of `presentation`:
+
+[source,xml]
+----
+<presentation>
+    <dataField>
+        <fieldType>value</fieldType>
+        <expression>
+            <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ProportionalExpressionEvaluatorType">
+                <style>percentage</style>
+            </proportional>
+        </expression>
+    </dataField>
+    <dataField>
+        <fieldType>unit</fieldType>
+        <expression>
+             <value>up</value>
+        </expression>
+    </dataField>
+    <variation>
+         <condition>
+             <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                <code>
+                    policySituations.contains("#resourceHealthDanger")
+                </code>
+             </script>
+         </condition>
+         <display>
+             <color>#dd4b39</color>
+         </display>
+    </variation>
+</presentation>
+----
+
+
+=== Object Collection
+
+You can see basic configuration for objectCollection on wiki:Object+Collections+and+Views+Configuration#ObjectCollectionsandViewsConfiguration-ObjectCollection[Object Collection].  For dashboard we can use policyRule with policyTreshold for define some policySituation.
+Example of object collection for resource, which have status UP:
+
+[source,xml]
+----
+<objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                                  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                                  oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259">
+    <name>Resources Up</name>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <collectionStats>
+                    <collection>
+                        <interpretation>explicit</interpretation>
+                    </collection>
+                </collectionStats>
+            </policyConstraints>
+            <policySituation>#resourceHealthDanger</policySituation>
+            <policyThreshold>
+                <highWaterMark>
+                    <percentage>99.9</percentage>
+                </highWaterMark>
+            </policyThreshold>
+        </policyRule>
+    </assignment>
+    <type>ResourceType</type>
+    <filter>
+        <q:equal>
+            <q:path>operationalState/lastAvailabilityStatus</q:path>
+            <q:value>up</q:value>
+        </q:equal>
+    </filter>
+    <domain>
+        <collectionRef oid="00000000-0000-0000-0001-000000000006" type="c:ObjectCollectionType"/>
+    </domain>
+</objectCollection>
+----
+
+Variable _domain_ is a set of object that is "all the things" for this collection.
+For example collection of "up resources" will have a domain "all resources".
+In this example we use _policyRule_ with _policySituation_, which we can check in variation of widget presentation.
+When policyTreshold is met policySituation from policyRule is presented in variation.
+_policyThreshold_ have two important variables for us, lowWaterMark and highWaterMark.
+
+lowWaterMark is lower bound of the threshold. Lowest value for which the policy rule is activated. The policy rule will be triggered for all values starting from this value up until the high water mark (closed interval). If no low water mark is specified then the policy rule will be activated for all values up to the high water mark. Policy rule with a threshold that does not have any water marks will never be activated.
+
+highWaterMark is upper bound of the threshold. Highest value for which the policy rule is activated. The policy rule will be triggered for all values starting from low water mark up until this value (closed interval). If no high water mark is specified then the policy rule will be activated for all values that are greater than or equal to high water mark.
+
+Both variables are WaterMarkType type, which contains variables count and percentage.
+
+
+We have special object collection for widget, which use audit records. You have to define sql select for audit records in object collection for audit search.
+
+[source,xml]
+----
+<objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                                  oid="16be4077-53fd-4ada-b0cc-572318e855f5">
+    <name>Error audit record</name>
+    <auditSearch>
+        <recordQuery>from RAuditEventRecord as aer where aer.outcome=3 and aer.eventStage=1</recordQuery>
+        <domainQuery>from RAuditEventRecord as aer where aer.eventStage=1</domainQuery>
+        <interval>P1D</interval>
+    </auditSearch>
+</objectCollection>
+----
+
+
+Object collection for audit records variable auditSearch and it have variables:
+
+[%autowidth]
+|===
+| Name | Type | Description
+
+| `recordQuery`
+| `String`
+| SQL query for audit records.
+Defines which audit records belong to the collection.
+
+
+| `domainQuery`
+| `String`
+| SqlQuery for audit records.
+Defines a set of object that is "all the things" for this collection.
+
+
+
+| `interval`
+| `String`
+| Defines what old records will be displayed.
+
+
+|===
+
+
+== View
+
+When we create new dashboard, than we can see it in midpoint gui.
+Next screenshot is displayed link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/dashboard[dashboard-system-status].
+
+image::dashboard-screenshot.png[]
+
+
+== Report
+
+You may generate HTML report from the dashboard.
+Following code shows how to do it.
+
+[source,xml]
+----
+<report>
+    <name>System Status Dashboard report</name>
+    <reportEngine>dashboard</reportEngine>
+    <dashboard>
+        <dashboardRef oid="--OID OF DASHBOARD--" >
+        </dashboardRef>
+                <showOnlyWidgetsTable>false</showOnlyWidgetsTable>
+    </dashboard>
+</report>
+----
+
+Some export configuration (for example html) create report with table of widgets and tables for objects from each widget and variable _showOnlyWidgetsTable_ define that created report contains only table for widgets.
+For report is important _view_ variable in widget presentation.
+Specifies a view for report of an object collection that is the result of the widget.
+Defines columns of table in report.
+When we don't use view, report will be contained default columns.
+In expression of column you can use variable 'object' which represent searched object or object defined in tag _path_. For more information about view configuration please see wiki:Object+Collections+and+Views+Configuration#ObjectCollectionsandViewsConfiguration-Views[Views].
+
+[WARNING]
+====
+Definition of _view_ is EXPERIMENTAL.
+It works only for some case, some parts are hardcoded, untested or do not even work at all.
+Use at your own risk.
+But it is perhaps best not to use this at all until the code stabilizes.
+
+====
+
+.Example of view for RoleType
+[source,xml]
+----
+                <presentation>
+                        ...
+                        <view>
+                <column>
+                    <name>nameColumn</name>
+                    <c:path>name</c:path>
+                    <display>
+                        <label>Name</label>
+                    </display>
+                </column>
+                <column>
+                    <name>members</name>
+                    <display>
+                        <label>Members</label>
+                    </display>
+                    <previousColumn>nameColumn</previousColumn>
+                                        <export>
+                            <expression>
+                                <script>
+                                    <code>
+                                        import com.evolveum.midpoint.prism.query.*
+                                        import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+
+                                        query = prismContext.queryFor(UserType.class).item(AssignmentHolderType.F_ROLE_MEMBERSHIP_REF).ref(object.getOid()).build();
+
+                                        objects = midpoint.searchObjects(UserType.class, query)
+                                        return objects.size();
+                                          </code>
+                                </script>
+                            </expression>
+                                        </export>
+                </column>
+            </view>
+                </presentation>
+----
+
+Final view is result of merging of defaultView in objectCollection object, view in dashboard for current widget and view in report for same type of objects as is in widget.
+Example of view in report:
+
+.Example of view in Report
+[source,xml]
+----
+<report>
+    ...
+    <dashboard>
+        ...
+                <view>
+                <column>
+                    <name>givenNameColumn</name>
+                <c:path>givenName</c:path>
+                <display>
+                        <label>Given name</label>
+                </display>
+            </column>
+                        <type>UserType</type>
+        </view>
+                <view>
+                <column>
+                    <name>nameColumn</name>
+                <c:path>name</c:path>
+                <display>
+                        <label>Name</label>
+                </display>
+            </column>
+                        <type>RoleType</type>
+        </view>
+    </dashboard>
+</report>
+----
+
+
+wiki:Example+of+dashboard+report:+Shadow+of+resource[Shadow of resource]
+
+wiki:Example+of+dashboard+report:+Number+of+members[Number of members]
+
+wiki:Example+of+dashboard+report:+Using+policySituation+for+report[Using policySituation for report]
+
+wiki:Example+of+dashboard+report:+Audit+events+which+change+administrativeStatus+on+resource[Audit events which change administrativeStatus on resource]
+
+
+'''
+
+For whole sample please see link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/dashboard[dashboard-system-status].
+

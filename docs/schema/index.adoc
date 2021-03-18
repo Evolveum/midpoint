@@ -1,0 +1,13 @@
+= MidPoint Schema and Archetypes
+:page-nav-title: Schema and Archetypes
+:page-display-order: 250
+:page-upkeep-status: green
+:page-liquid:
+
+Following pages describe concepts related to schema, data model, object structure, types and archetypes.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

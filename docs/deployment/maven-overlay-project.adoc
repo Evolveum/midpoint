@@ -1,0 +1,76 @@
+= MidPoint Customization With Maven Overlay Project
+:page-nav-title: Overlay Project
+:page-wiki-name: Customization With Overlay Project
+:page-upkeep-status: yellow
+:page-toc: top
+
+
+== Introduction
+
+There are many ways how to customize midPoint behavior.
+MidPoint is designed with practicality in mind and therefore the most frequent customizations can be done by configuration.
+But it is not possible to make everything configurable.
+Some customizations needs extension or even modification of midPoint code.
+
+This page describes how to set up and maintain an _overlay project_ that contains midPoint customizations.
+
+
+== How Overlay Works?
+
+Overlay projects takes midPoint binary distribution (`midpoint.war`), extracts it, adds your customization to it and then repackages it again.
+The customizations may be configuration files, web resources (HTML, CSS, images) and even Java code.
+The overlay can also override stock midPoint files and classes and replace them with custom versions.
+
+The overlay project is build using Apache Maven.
+As midPoint itself is built using Maven and midPoint development binaries are also distributed in Maven repositories this is a natural choice.
+
+The overlay project contains only the customized files.
+There is no need to copy stock midPoint sources and even binaries.
+The Maven will download everything that it needs directly from Evolveum repositories.
+As the overlay project only contains customizations it can easily be maintained in a version control system.
+
+[NOTE]
+====
+Overlay project is combination of link:https://maven.apache.org/plugins/maven-war-plugin/overlays.html[Maven WAR Overlay] with link:https://docs.spring.io/spring-boot/docs/current/maven-plugin/repackage-mojo.html[Spring Boot repackaging]. Before Spring Boot adoption it was only the first, and in the future, we hope it will be mainly (and only) Spring Boot packaging - in the meantime, both parts are important.
+====
+
+
+== Example Overlay Projects
+
+Following overlay examples are maintained by midPoint team for demonstration and documentation purposes:
+
+* Basic link:https://github.com/Evolveum/midpoint-overlay-example[Evolveum/midpoint-overlay-example] - this one serves two purposes:
+
+** It provides simple GUI customization example, see link:https://github.com/Evolveum/midpoint-overlay-example/blob/master/README.adoc[README] for its description.
+
+** It documents link:https://github.com/Evolveum/midpoint-overlay-example/blob/master/doc/overlay-development.adoc[midPoint overlay development] in general, including points like schema extension and custom initial objects.
+
+
+
+* link:https://github.com/Evolveum/midpoint-custom-soap-service-wsdl[Evolveum/midpoint-custom-soap-service-wsdl] with CXF-based SOAP web-service.
+This demonstrates overlay as a part of Maven multi-module project.
+link:https://github.com/Evolveum/midpoint-custom-service/blob/master/README.adoc[README] provides quick hints about using CXF for SOAP web-services on topics like WSDL vs code-first, WS-Security and how to use midPoint authorizations.
+
+* link:https://github.com/Evolveum/midpoint-custom-soap-service[Evolveum/midpoint-custom-soap-service] is simplified SOAP web-service using code-first approach using basic authentication from midPoint.
+
+* Finally there is link:https://github.com/Evolveum/midpoint-custom-rest-service[Evolveum/midpoint-custom-rest-service] showing REST service also implemented with CXF, but from version 4.2 also experimental (but much simpler) Spring MVC endpoint.
+
+
+== Overlay development
+
+Development document is now part of the link:https://github.com/Evolveum/midpoint-overlay-example[basic overlay example] - see link:https://github.com/Evolveum/midpoint-overlay-example/blob/master/doc/overlay-development.adoc[midPoint overlay development]. It describes how to build and run the project (including IDE), how to develop against fresh snapshots, how the wiki:MidPoint+Home+Directory[MidPoint Home Directory] customizations and initial-objects customizations work.
+
+The document also includes link:https://github.com/Evolveum/midpoint-overlay-example/blob/master/doc/overlay-development.adoc#overlay-upgrade-notes[overlay upgrade notes] (starting with upgrade to midPoint 4.1).
+
+
+== TODO Describe
+
+* bundling connectors
+
+
+== See Also
+
+* wiki:GUI+Development+Guide[GUI Development Guide]
+
+* wiki:Look+&+Feel+Customization+HOWTO[Look & Feel Customization HOWTO]
+

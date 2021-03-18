@@ -1,0 +1,44 @@
+= Summary Panel Customization
+:page-wiki-name: Summary Panel Customization
+:page-since: "3.7"
+:page-experimental: true
+:page-upkeep-status: yellow
+
+Looks like this:
+
+image::summary-pannel-customized.png[]
+
+Works like this:
+
+[source]
+----
+   <adminGuiConfiguration>
+       <objectDetails>
+           <objectDetailsPage>
+               <type>UserType</type>
+               <summaryPanel>
+                   <displayName>
+                       <expression>
+                           <script>
+                               <code>'Agent ' + object.getGivenName()?.getOrig()?.take(1)</code>
+                           </script>
+                       </expression>
+                   </displayName>
+                   <organization>
+                       <expression>
+                           <script>
+                               <code>orgs.collect({ it.getOrgType().join(':') + ':' + it.getName().getOrig() }).join(', ')</code>
+                           </script>
+                       </expression>
+                   </organization>
+               </summaryPanel>
+           </objectDetailsPage>
+       </objectDetails>
+   </adminGuiConfiguration>
+----
+
+
+== See Also
+
+* xref:../admin-gui-config/[]
+

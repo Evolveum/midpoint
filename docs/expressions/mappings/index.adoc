@@ -1,7 +1,7 @@
 = Mappings
 :page-wiki-name: Mapping
 :page-display-order: 70
-:page-upkeep-status: orange
+:page-upkeep-status: red
 :page-toc: top
 
 
