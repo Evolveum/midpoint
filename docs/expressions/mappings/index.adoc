@@ -794,13 +794,10 @@ The default value for exclusive flag is *false*.
 
 === Tolerant
 
-When set to true, allows attribute/property values that are set outside of this mapping.
-I. e. it allows other values that set by this mapping.
-The default value for tolerant setting depends on when the mapping is used.
-It is assumed to be true in inbound mappings, it is assumed to be false in other mappings.
-This default setting was chosen to maintain behaviour which is compatible with previous midPoint versions.
-Support for this setting is currently *EXPERIMENTAL*. Use the tolerant setting for resource attribute when needed.
-
+WARNING: Mapping `tolerant` setting was an experimental setting in old versions of midPoint.
+When set to true, it allowed attribute/property values that are set outside of the mapping.
+It was completely replaced by the _range_ mechanism.
+The `tolerant` setting was removed in midPoint 4.0.
 
 === Channel
 
