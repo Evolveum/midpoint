@@ -13,7 +13,7 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.PrimaryKey;
 
-import com.evolveum.midpoint.repo.sqale.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
@@ -50,8 +50,7 @@ public class QReference<T extends MReference> extends FlexibleRelationalPathBase
             createEnum("targetType", MObjectType.class, TARGET_TYPE);
     public final NumberPath<Integer> relationId = createInteger("relationId", RELATION_ID);
 
-    public final PrimaryKey<T> pk =
-            createPrimaryKey(ownerOid, referenceType, relationId, targetOid);
+    public final PrimaryKey<T> pk = createPrimaryKey(ownerOid, relationId, targetOid);
 
     public QReference(Class<T> type, String variable) {
         this(type, variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

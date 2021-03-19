@@ -22,7 +22,10 @@ import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.AbstractPrismTest;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismInternalTestUtil;
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
+import com.evolveum.midpoint.prism.foo.ObjectType;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.impl.xnode.ListXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
@@ -31,10 +34,10 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.FullTextFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -52,7 +55,7 @@ public class TestQueryConverters extends AbstractPrismTest {
 
     private static final File FILTER_USER_NAME_FILE = new File(TEST_DIR, "filter-user-name.xml");
     private static final File FILTER_USER_AND_FILE = new File(TEST_DIR, "filter-user-and.xml");
-    private static final File FILTER_TYPE_USER_NONE = new File(TEST_DIR, "filter-type-user-none.xml");
+    private static final File FILTER_TYPE_USER_AND = new File(TEST_DIR, "filter-type-user-and-xml.xml");
     private static final File FILTER_NOT_IN_OID = new File(TEST_DIR, "filter-not-in-oid.xml");
     private static final File FILTER_NOT_FULL_TEXT = new File(TEST_DIR, "filter-not-full-text.xml");
 
@@ -146,10 +149,10 @@ public class TestQueryConverters extends AbstractPrismTest {
     }
 
     @Test
-    public void testFilterTypeUserNone() throws Exception {
-        SearchFilterType filterType = PrismTestUtil.parseAnyValue(FILTER_TYPE_USER_NONE);
+    public void testFilterTypeUserAnd() throws Exception {
+        SearchFilterType filterType = PrismTestUtil.parseAnyValue(FILTER_TYPE_USER_AND);
 
-        ObjectQuery query = toObjectQuery(UserType.class, filterType);
+        ObjectQuery query = toObjectQuery(ObjectType.class, filterType);
         displayQuery(query);
 
         assertNotNull(query);
@@ -158,21 +161,30 @@ public class TestQueryConverters extends AbstractPrismTest {
         assertTrue("Filter is not of TYPE type", filter instanceof TypeFilter);
 
         ObjectFilter subFilter = ((TypeFilter) filter).getFilter();
-        assertTrue("Filter is not of NONE type", subFilter instanceof NoneFilter);
+        assertTrue("Filter is not of NONE type", subFilter instanceof AndFilter);
 
-        QueryType convertedQueryType = toQueryType(query);
-        System.out.println("Re-converted query type");
-        System.out.println(convertedQueryType.debugDump());
 
-//        Element filterClauseElement = convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext());
-//        logger.info(convertedQueryType.getFilter().getFilterClauseXNode().debugDump());
-//
-//        System.out.println("Serialized filter (JAXB->DOM)");
-//        String filterAsString = DOMUtil.serializeDOMToString(filterClauseElement);
-//        System.out.println(filterAsString);
-//        logger.info(filterAsString);
-//
-//        DomAsserts.assertElementQName(filterClauseElement, new QName(PrismConstants.NS_QUERY, "type"));
+
+        String[] variants = new String[] {
+            ". type UserType and givenName = 'Jack' and locality = 'Caribbean'",
+            "(. type UserType and givenName = 'Jack') and locality = 'Caribbean'",
+            ". type UserType and (givenName = 'Jack' and locality = 'Caribbean')",
+            ". type UserType and (givenName = 'Jack') and (locality = 'Caribbean')",
+            "givenName = 'Jack' and locality = 'Caribbean' and . type UserType",
+            "givenName = 'Jack' and (. type UserType and locality = 'Caribbean')",
+        };
+
+        for(String variant : variants) {
+            ObjectFilter lang = parseFilter(ObjectType.class, variant);
+            display("Query DSL variant: " +  variant);
+            assertEquals(lang.toString(), filter.toString());
+        }
+        PrismQuerySerialization serialized = getPrismContext().querySerializer().serialize(filter, PrismNamespaceContext.of(UserType.F_NAME.getNamespaceURI()));
+        assertEquals(serialized.filterText(), variants[0]);
+    }
+
+    private <C extends Containerable> ObjectFilter parseFilter(Class<C> typeClass, String string) throws SchemaException {
+        return getPrismContext().createQueryParser().parseQuery(typeClass, string);
     }
 
     @Test

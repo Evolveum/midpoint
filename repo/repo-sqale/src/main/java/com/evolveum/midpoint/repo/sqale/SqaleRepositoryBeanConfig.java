@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHostMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableRowMapping;
@@ -122,6 +123,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(FocusType.COMPLEX_TYPE, QFocusMapping.INSTANCE)
                 .register(ConnectorType.COMPLEX_TYPE, QConnectorMapping.INSTANCE)
                 .register(ConnectorHostType.COMPLEX_TYPE, QConnectorHostMapping.INSTANCE)
+                .register(GenericObjectType.COMPLEX_TYPE, QGenericObjectMapping.INSTANCE)
                 .register(LookupTableType.COMPLEX_TYPE, QLookupTableMapping.INSTANCE)
                 .register(LookupTableRowType.COMPLEX_TYPE, QLookupTableRowMapping.INSTANCE)
                 .register(NodeType.COMPLEX_TYPE, QNodeMapping.INSTANCE)

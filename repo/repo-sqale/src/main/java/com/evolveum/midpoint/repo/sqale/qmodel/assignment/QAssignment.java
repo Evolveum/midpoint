@@ -6,14 +6,17 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
+import static com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath.JSONB_TYPE;
+
 import java.sql.Types;
 import java.time.Instant;
 
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 
-import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
@@ -58,8 +61,9 @@ public class QAssignment extends QContainer<MAssignment> {
     // TODO UUID or not? our control or outside?
     public static final ColumnMetadata EXT_OID =
             ColumnMetadata.named("extOid").ofType(Types.VARCHAR).withSize(36);
-    public static final ColumnMetadata EXT =
-            ColumnMetadata.named("ext").ofType(Types.BINARY);
+    public static final ColumnMetadata POLICY_SITUATIONS =
+            ColumnMetadata.named("policySituations").ofType(Types.ARRAY);
+    public static final ColumnMetadata EXT = ColumnMetadata.named("ext").ofType(JSONB_TYPE);
     // construction columns
     public static final ColumnMetadata RESOURCE_REF_TARGET_OID =
             ColumnMetadata.named("resourceRef_targetOid").ofType(UuidPath.UUID_TYPE);
@@ -136,7 +140,9 @@ public class QAssignment extends QContainer<MAssignment> {
             createInteger("tenantRefRelationId", TENANT_REF_RELATION_ID);
     public final NumberPath<Integer> extId = createInteger("extId", EXT_ID);
     public final StringPath extOid = createString("extOid", EXT_OID);
-    public final ArrayPath<byte[], Byte> ext = createByteArray("ext", EXT); // TODO is byte[] the right type?
+    public final ArrayPath<Integer[], Integer> policySituations =
+            createArray("policySituations", Integer[].class, POLICY_SITUATIONS);
+    public final JsonbPath ext = createJsonb("ext", EXT);
     // construction attributes
     public final UuidPath resourceRefTargetOid =
             createUuid("resourceRefTargetOid", RESOURCE_REF_TARGET_OID);

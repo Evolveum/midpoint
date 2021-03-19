@@ -75,7 +75,9 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
      * As this is intended for inserts *DO NOT* set {@link MObject#objectType} to any value,
      * it must be NULL otherwise the DB will complain about the value for the generated column.
      *
-     * OID may be null, hence the method does NOT create any sub-entities, see {@link }
+     * OID may be null, hence the method does NOT create any sub-entities, see
+     * {@link #storeRelatedEntities(MObject, ObjectType, JdbcSession)}.
+     * Try to keep order of fields here, in M-class (MObject for this one) and in SQL the same.
      */
     @SuppressWarnings("DuplicatedCode") // see comment for metadata lower
     @NotNull
@@ -83,8 +85,21 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         R row = mapping.newRowObject();
 
         row.oid = oidToUUid(schemaObject.getOid());
-
+        // objectType MUST be left NULL, it's determined by PG
         setPolyString(schemaObject.getName(), o -> row.nameOrig = o, n -> row.nameNorm = n);
+        // fullObject is managed outside of this method
+        setReference(schemaObject.getTenantRef(), jdbcSession,
+                o -> row.tenantRefTargetOid = o,
+                t -> row.tenantRefTargetType = t,
+                r -> row.tenantRefRelationId = r);
+        row.lifecycleState = schemaObject.getLifecycleState();
+        // containerIdSeq is managed outside of this method
+        row.version = SqaleUtils.objectVersionAsInt(schemaObject);
+
+        // complex DB fields
+        row.policySituations = processCacheableUris(schemaObject.getPolicySituation(), jdbcSession);
+        row.subtypes = schemaObject.getSubtype().toArray(String[]::new);
+        // TODO extensions stored inline (JSON) - that is ext column
 
         // This is duplicate code with AssignmentSqlTransformer.toRowObject, but making interface
         // and needed setters (fields are not "interface-able") would create much more code.
@@ -104,16 +119,6 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
             row.modifyChannelId = processCacheableUri(metadata.getModifyChannel(), jdbcSession);
             row.modifyTimestamp = MiscUtil.asInstant(metadata.getModifyTimestamp());
         }
-
-        setReference(schemaObject.getTenantRef(), jdbcSession,
-                o -> row.tenantRefTargetOid = o,
-                t -> row.tenantRefTargetType = t,
-                r -> row.tenantRefRelationId = r);
-        row.lifecycleState = schemaObject.getLifecycleState();
-        row.version = SqaleUtils.objectVersionAsInt(schemaObject);
-
-        // TODO extensions stored inline (JSON)
-
         return row;
     }
 

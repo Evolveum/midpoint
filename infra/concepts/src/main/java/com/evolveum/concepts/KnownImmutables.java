@@ -17,12 +17,18 @@ class KnownImmutables {
     private static final Set<Class<?>> KNOWN_IMMUTABLES = ImmutableSet.<Class<?>>builder()
 
             .add(Void.class, Class.class, String.class, Character.class)
-            .add(Byte.class, Short.class, Long.class, BigInteger.class)
+            .add(Byte.class, Short.class, Integer.class, Long.class, BigInteger.class)
             .add(Float.class, Double.class, BigDecimal.class)
+
+            .add(byte.class, short.class, int.class, long.class)
+            .add(float.class, double.class)
+
             // FIXME: Add common classes from java.time.*
 
             // Collections.empty*  (they are private)
-            .add(Collections.EMPTY_LIST.getClass(), Collections.EMPTY_SET.getClass(), Collections.EMPTY_MAP.getClass())
+            .add(Collections.emptyList().getClass())
+            .add(Collections.emptySet().getClass())
+            .add(Collections.emptyMap().getClass())
 
             // Collections.singleton* classes (they are private)
             .add(Collections.singleton("").getClass())
@@ -37,7 +43,7 @@ class KnownImmutables {
             return true;
         }
         if (object instanceof MutationBehaviourAware<?>) {
-            return ((MutationBehaviourAware) object).mutable();
+            return ((MutationBehaviourAware<?>) object).mutable();
         }
         if (object instanceof String) {
             return true;

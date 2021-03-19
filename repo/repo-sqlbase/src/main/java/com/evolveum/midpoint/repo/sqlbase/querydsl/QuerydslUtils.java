@@ -58,7 +58,7 @@ public enum QuerydslUtils {
 
         // See InstantType javadoc for the reasons why we need this to support Instant.
         // Alternatively we may stick to Timestamp and go on with our miserable lives. ;-)
-        querydslConfiguration.register(new InstantType());
+        querydslConfiguration.register(new QuerydslInstantType());
 
         // register other repository implementation specific types (like enums) out of this call
 

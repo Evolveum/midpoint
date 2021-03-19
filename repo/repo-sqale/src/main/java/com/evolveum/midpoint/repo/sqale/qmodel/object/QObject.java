@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
+import static com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath.JSONB_TYPE;
+
 import java.sql.Types;
 import java.time.Instant;
 
@@ -14,9 +16,9 @@ import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.ForeignKey;
 import com.querydsl.sql.PrimaryKey;
 
-import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
@@ -55,8 +57,12 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
             ColumnMetadata.named("cid_seq").ofType(Types.BIGINT).notNull();
     public static final ColumnMetadata VERSION =
             ColumnMetadata.named("version").ofType(Types.INTEGER).notNull();
-    public static final ColumnMetadata EXT =
-            ColumnMetadata.named("ext").ofType(Types.BINARY);
+    // complex DB fields
+    public static final ColumnMetadata POLICY_SITUATIONS =
+            ColumnMetadata.named("policySituations").ofType(Types.ARRAY);
+    public static final ColumnMetadata SUBTYPES =
+            ColumnMetadata.named("subtypes").ofType(Types.ARRAY);
+    public static final ColumnMetadata EXT = ColumnMetadata.named("ext").ofType(JSONB_TYPE);
     // metadata columns
     public static final ColumnMetadata CREATOR_REF_TARGET_OID =
             ColumnMetadata.named("creatorRef_targetOid").ofType(UuidPath.UUID_TYPE);
@@ -95,7 +101,12 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     public final StringPath lifecycleState = createString("lifecycleState", LIFECYCLE_STATE);
     public final NumberPath<Long> containerIdSeq = createLong("containerIdSeq", CID_SEQ);
     public final NumberPath<Integer> version = createInteger("version", VERSION);
-    public final ArrayPath<byte[], Byte> ext = createByteArray("ext", EXT); // TODO is byte[] the right type?
+    // complex DB fields
+    public final ArrayPath<Integer[], Integer> policySituations =
+            createArray("policySituations", Integer[].class, POLICY_SITUATIONS);
+    public final ArrayPath<String[], String> subtypes =
+            createArray("subtypes", String[].class, SUBTYPES);
+    public final JsonbPath ext = createJsonb("ext", EXT);
     // metadata attributes
     public final UuidPath creatorRefTargetOid =
             createUuid("creatorRefTargetOid", CREATOR_REF_TARGET_OID);

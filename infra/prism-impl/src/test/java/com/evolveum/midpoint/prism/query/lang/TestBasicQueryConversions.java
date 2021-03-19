@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismInternalTestUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
+import com.evolveum.midpoint.prism.foo.ObjectType;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryFactory;
 import com.evolveum.midpoint.prism.impl.query.FullTextFilterImpl;
@@ -216,6 +217,23 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
                         .endBlock()
                         .buildFilter();
         verify("familyName = 'Sparrow' and fullName contains 'arr' "
+                + "and (givenName = 'Jack' or givenName = 'Jackie')", filter);
+    }
+
+    @Test
+    public void testTypeAndMatch() throws Exception {
+        ObjectFilter filter =
+                getPrismContext().queryFor(ObjectType.class)
+                        .type(UserType.class)
+                        .item(UserType.F_FAMILY_NAME).eq("Sparrow")
+                        .and().item(UserType.F_FULL_NAME).contains("arr")
+                        .and()
+                        .block()
+                        .item(UserType.F_GIVEN_NAME).eq("Jack")
+                        .or().item(UserType.F_GIVEN_NAME).eq("Jackie")
+                        .endBlock()
+                        .buildFilter();
+        verify(". type UserType and familyName = 'Sparrow' and fullName contains 'arr' "
                 + "and (givenName = 'Jack' or givenName = 'Jackie')", filter);
     }
 

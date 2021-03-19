@@ -7,23 +7,22 @@
 package com.evolveum.midpoint.repo.sqlbase.querydsl;
 
 import java.sql.Types;
-import java.util.UUID;
 
 import com.querydsl.core.types.PathMetadata;
-import com.querydsl.core.types.dsl.ComparablePath;
+import com.querydsl.core.types.dsl.SimplePath;
 
-public class UuidPath extends ComparablePath<UUID> {
+public class JsonbPath extends SimplePath<Jsonb> {
 
-    private static final long serialVersionUID = -7475296682846579579L;
+    private static final long serialVersionUID = -5018414609329370755L;
 
     /**
-     * Alias for {@link Types#OTHER} working in tandem with {@link UuidPath}.
+     * Alias for {@link Types#OTHER} working in tandem with {@link JsonbPath}.
      * This is important especially for setting NULLs explicitly, OTHER works, JAVA_OBJECT not.
      * Reasons for this are deep in PostgreSQL JDBC driver.
      */
-    public static final int UUID_TYPE = Types.OTHER;
+    public static final int JSONB_TYPE = Types.OTHER;
 
-    public UuidPath(PathMetadata metadata) {
-        super(UUID.class, metadata);
+    public JsonbPath(PathMetadata metadata) {
+        super(Jsonb.class, metadata);
     }
 }
