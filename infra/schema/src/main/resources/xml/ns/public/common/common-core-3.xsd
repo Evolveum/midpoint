@@ -767,6 +767,7 @@
     </xsd:complexType>
     <xsd:element name="genericObject" type="tns:GenericObjectType" substitutionGroup="tns:object"/>
 
+    <xsd:element name="trigger" type="tns:TriggerType"/>
     <xsd:complexType name="TriggerType">
            <xsd:annotation>
             <xsd:documentation>
