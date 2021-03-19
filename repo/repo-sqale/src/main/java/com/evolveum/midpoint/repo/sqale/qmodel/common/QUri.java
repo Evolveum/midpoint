@@ -31,7 +31,7 @@ public class QUri extends FlexibleRelationalPathBase<MUri> {
     public static final ColumnMetadata ID =
             ColumnMetadata.named("id").ofType(Types.INTEGER).notNull();
     public static final ColumnMetadata URI =
-            ColumnMetadata.named("uri").ofType(Types.VARCHAR).withSize(255).notNull();
+            ColumnMetadata.named("uri").ofType(Types.VARCHAR).notNull();
 
     public final NumberPath<Integer> id = createInteger("id", ID);
     public final StringPath uri = createString("uri", URI);
