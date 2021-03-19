@@ -1128,7 +1128,6 @@ CREATE INDEX m_function_library_name_orig_idx ON m_function_library (name_orig);
 ALTER TABLE m_function_library ADD CONSTRAINT m_function_library_name_norm_key UNIQUE (name_norm);
 
 -- Represents SequenceType, see https://wiki.evolveum.com/display/midPoint/Sequences
--- TODO not mapped
 CREATE TABLE m_sequence (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('SEQUENCE') STORED
@@ -1146,7 +1145,6 @@ CREATE INDEX m_sequence_name_orig_idx ON m_sequence (name_orig);
 ALTER TABLE m_sequence ADD CONSTRAINT m_sequence_name_norm_key UNIQUE (name_norm);
 
 -- Represents FormType, see https://wiki.evolveum.com/display/midPoint/Custom+forms
--- TODO not mapped
 CREATE TABLE m_form (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('SEQUENCE') STORED
