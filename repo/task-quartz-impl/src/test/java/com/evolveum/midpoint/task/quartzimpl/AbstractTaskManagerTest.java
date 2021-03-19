@@ -248,6 +248,15 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
         }, timeoutInterval, sleepInterval);
     }
 
+    void waitForTaskRunFinish(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval,
+            long laterThan) throws CommonException {
+        waitFor("Waiting for task run finish later than " + laterThan, () -> {
+            Task task = taskManager.getTaskWithResult(taskOid, result);
+            IntegrationTestTools.display("Task while waiting for run finish later than " + laterThan, task);
+            return or0(task.getLastRunFinishTimestamp()) > laterThan;
+        }, timeoutInterval, sleepInterval);
+    }
+
     void suspendAndDeleteTasks(String... oids) {
         taskManager.suspendAndDeleteTasks(Arrays.asList(oids), 20000L, true, new OperationResult("dummy"));
     }

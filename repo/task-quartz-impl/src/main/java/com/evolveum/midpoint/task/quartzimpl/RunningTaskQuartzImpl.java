@@ -312,12 +312,12 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     @Override
     public void startCollectingStatistics(@NotNull StatisticsCollectionStrategy strategy) {
         statistics.startCollectingStatistics(this, strategy, beans.sqlPerformanceMonitorsCollection);
-
-        OperationStatsType stored = getStoredOperationStatsOrClone();
-        if (stored != null) {
-            String formatted = IterativeTaskInformation.format(stored.getIterativeTaskInformation());
-            System.out.println("In " + this + " ITI reset to:\n" + formatted);
-        }
+//
+//        OperationStatsType stored = getStoredOperationStatsOrClone();
+//        if (stored != null) {
+//            String formatted = IterativeTaskInformation.format(stored.getIterativeTaskInformation());
+//            System.out.println("In " + this + " ITI reset to:\n" + formatted);
+//        }
     }
 
     private Statistics getStatistics() {
