@@ -19,6 +19,7 @@ public class IterativeOperationStartInfo {
 
     private final IterationItemInformation item;
     private final long startTimestamp;
+    private final Long partStartTimestamp;
     private final String partUri;
 
     /**
@@ -34,13 +35,18 @@ public class IterativeOperationStartInfo {
     }
 
     public IterativeOperationStartInfo(IterationItemInformation item, String partUri) {
-        this(item, System.currentTimeMillis(), partUri);
+        this(item, System.currentTimeMillis(), partUri, null);
     }
 
-    public IterativeOperationStartInfo(IterationItemInformation item, long startTimestamp, String partUri) {
+    public IterativeOperationStartInfo(IterationItemInformation item, String partUri, Long partStartTimestamp) {
+        this(item, System.currentTimeMillis(), partUri, partStartTimestamp);
+    }
+
+    public IterativeOperationStartInfo(IterationItemInformation item, long startTimestamp, String partUri, Long partStartTimestamp) {
         this.item = item;
         this.startTimestamp = startTimestamp;
         this.partUri = partUri;
+        this.partStartTimestamp = partStartTimestamp;
     }
 
     public IterationItemInformation getItem() {
@@ -49,6 +55,10 @@ public class IterativeOperationStartInfo {
 
     public long getStartTimestamp() {
         return startTimestamp;
+    }
+
+    public Long getPartStartTimestamp() {
+        return partStartTimestamp;
     }
 
     public String getPartUri() {
@@ -68,6 +78,7 @@ public class IterativeOperationStartInfo {
         return getClass().getSimpleName() + "{" +
                 "item=" + item +
                 ", startTimestamp=" + startTimestamp +
+                ", partStartTimestamp=" + partStartTimestamp +
                 ", partUri=" + partUri +
                 ", structuredProgressCollector=" + structuredProgressCollector +
                 '}';

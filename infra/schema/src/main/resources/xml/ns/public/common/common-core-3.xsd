@@ -3404,19 +3404,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="wallClockTimeSpent" type="xsd:long" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            How many milliseconds did we spend in this part?
-                        </p>
-                        <p>
-                            Beware when interpreting summed-up structured progress information: the real wall-clock spent
-                            is not always the sum of the constituents.
-                        </p>
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="taskPartProgress" type="tns:TaskPartProgressType" />
@@ -25870,6 +25857,42 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Items that are currently being processed by the task.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="execution" type="tns:TaskPartExecutionRecordType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Information about individual task part executions. Needed e.g. to compute real throughput.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="TaskPartExecutionRecordType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about individual task part execution. Needed e.g. to compute real throughput.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.3</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="startTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When the execution started.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When the execution ended (or current time, in order to avoid information loss).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

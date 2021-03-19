@@ -89,4 +89,8 @@ public class ItemProcessingStatistics {
     public int getItemsProcessed() {
         return itemsProcessed.get();
     }
+
+    public long getStartTimeMillis() {
+        return startTimeMillis;
+    }
 }

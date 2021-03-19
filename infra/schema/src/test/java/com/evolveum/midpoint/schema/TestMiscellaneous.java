@@ -14,6 +14,8 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.evolveum.midpoint.schema.util.task.WallClockTimeComputer;
+
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.*;
@@ -94,5 +96,48 @@ public class TestMiscellaneous extends AbstractSchemaTest {
 
         ObjectReferenceType reference = user.getLinkRef().get(0);
         assertThat(reference.getFilter()).as("filter in simple reference").isNull();
+    }
+
+    @Test
+    public void testWallClockComputer1() {
+        assertThat(new WallClockTimeComputer(new long[][] {
+                { 1000, 1100 }, // 100
+                { 1000, 1110 }, // +10
+                { 700, 800 }, // 100
+                { 650, 850 }, // +100
+                { 3000, 3200} // +200
+        }).compute()).isEqualTo(510);
+    }
+
+    @Test
+    public void testWallClockComputerEmpty() {
+        assertThat(new WallClockTimeComputer(new long[][] {}).compute()).isEqualTo(0);
+    }
+
+    @Test
+    public void testWallClockComputerSame() {
+        assertThat(new WallClockTimeComputer(new long[][] {
+                { 100, 110 },
+                { 100, 110 },
+                { 100, 110 }
+        }).compute()).isEqualTo(10);
+    }
+
+    @Test
+    public void testWallClockComputerDisjunct() {
+        assertThat(new WallClockTimeComputer(new long[][] {
+                { 100, 110 },
+                { 200, 210 },
+                { 300, 310 }
+        }).compute()).isEqualTo(30);
+    }
+
+    @Test
+    public void testWallClockComputerJoint() {
+        assertThat(new WallClockTimeComputer(new long[][] {
+                { 100, 110 },
+                { 110, 120 },
+                { 120, 130 }
+        }).compute()).isEqualTo(30);
     }
 }

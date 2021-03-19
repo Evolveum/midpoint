@@ -18,6 +18,7 @@ import org.apache.commons.collections.buffer.CircularFifoBuffer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
@@ -94,11 +95,34 @@ public class IterativeTaskInformation {
 
         IterativeTaskPartItemsProcessingInformationType matchingPart =
                 findOrCreateMatchingPart(value.getPart(), operation.getPartUri());
-        List<ProcessedItemType> currentList = matchingPart.getCurrent();
+        updatePartExecutions(matchingPart, operation.getPartStartTimestamp());
 
+        List<ProcessedItemType> currentList = matchingPart.getCurrent();
         currentList.add(processedItem);
         LOGGER.trace("Recorded current operation. Current list size: {}. Operation: {}", currentList.size(), operation);
         return new OperationImpl(operation, processedItem);
+    }
+
+    private void updatePartExecutions(IterativeTaskPartItemsProcessingInformationType part, Long partStartTimestamp) {
+        if (partStartTimestamp == null) {
+            return;
+        }
+        findOrCreateMatchingExecutionRecord(part.getExecution(), partStartTimestamp)
+                .setEndTimestamp(XmlTypeConverter.createXMLGregorianCalendar());
+    }
+
+    private TaskPartExecutionRecordType findOrCreateMatchingExecutionRecord(List<TaskPartExecutionRecordType> records,
+            long partStartTimestamp) {
+        XMLGregorianCalendar startAsGregorian = XmlTypeConverter.createXMLGregorianCalendar(partStartTimestamp);
+        for (TaskPartExecutionRecordType record : records) {
+            if (startAsGregorian.equals(record.getStartTimestamp())) {
+                return record;
+            }
+        }
+        TaskPartExecutionRecordType newRecord = new TaskPartExecutionRecordType(prismContext)
+                .startTimestamp(startAsGregorian);
+        records.add(newRecord);
+        return newRecord;
     }
 
     /**
@@ -106,7 +130,7 @@ public class IterativeTaskInformation {
      * Must be synchronized because of this external access.
      */
     private synchronized void recordOperationEnd(IterativeOperationStartInfo operation, long operationId,
-                                                 ProcessedItemType processedItem, QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
+            ProcessedItemType processedItem, QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
         Optional<IterativeTaskPartItemsProcessingInformationType> matchingPartOptional =
                 findMatchingPart(value.getPart(), operation.getPartUri());
         if (matchingPartOptional.isPresent()) {
@@ -122,6 +146,7 @@ public class IterativeTaskInformation {
             long operationId, ProcessedItemType processedItem, QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
         removeFromCurrentOperations(part, operationId);
         addToProcessedItemSet(part, operation, processedItem, outcome, exception);
+        updatePartExecutions(part, operation.getPartStartTimestamp());
     }
 
     /** Updates the corresponding `processed` statistics. Creates and stores appropriate `lastItem` record. */
@@ -204,6 +229,7 @@ public class IterativeTaskInformation {
             @NotNull IterativeTaskPartItemsProcessingInformationType delta) {
         addProcessed(sum.getProcessed(), delta.getProcessed());
         addCurrent(sum.getCurrent(), delta.getCurrent());
+        sum.getExecution().addAll(CloneUtil.cloneCollectionMembers(delta.getExecution()));
     }
 
     /** Adds `processed` items information */

@@ -311,7 +311,8 @@ class ItemProcessingGatekeeper<I> {
 
     private Operation recordIterativeOperationStart() {
         return workerTask.recordIterativeOperationStart(
-                new IterativeOperationStartInfo(iterationItemInformation, partExecution.getPartUri()));
+                new IterativeOperationStartInfo(
+                        iterationItemInformation, partExecution.getPartUri(), partExecution.getPartStartTimestamp()));
     }
 
     private void recordIterativeOperationEnd(Operation operation) {

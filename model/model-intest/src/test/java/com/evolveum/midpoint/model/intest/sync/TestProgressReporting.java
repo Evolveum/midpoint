@@ -154,7 +154,11 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
         assertTask(rootAfterSuspension1.asObjectable(), "1st")
                 .display()
                 .structuredProgress()
-                    .display();
+                    .display()
+                    .end()
+                .iterativeTaskInformation()
+                    .display()
+                    .end();
 
         TaskProgressInformation progress1 = TaskProgressInformation.fromTaskTree(rootAfterSuspension1.asObjectable());
         assertTaskProgress(progress1, "after 1st run")
@@ -191,10 +195,14 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
         PrismObject<TaskType> rootAfterSuspension2 = taskManager.getObject(TaskType.class, reconciliationTask.oid, getSubtasks, result);
         displayValue("Tree after second suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension2.asObjectable()));
 
-        assertTask(rootAfterSuspension2.asObjectable(), "1st")
+        assertTask(rootAfterSuspension2.asObjectable(), "2nd")
                 .display()
                 .structuredProgress()
-                    .display(); // TODO assert parts
+                    .display()
+                    .end()
+                .iterativeTaskInformation()
+                    .display()
+                    .end();;
 
         TaskProgressInformation progress2 = TaskProgressInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
         assertTaskProgress(progress2, "after 2nd suspension")
@@ -253,7 +261,11 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
                 .subtaskForPart(2)
                     .display()
                     .structuredProgress()
-                        .display();
+                        .display()
+                        .end()
+                    .iterativeTaskInformation()
+                        .display()
+                        .end();
 
         TaskProgressInformation progress1 = TaskProgressInformation.fromTaskTree(rootAfterSuspension1.asObjectable());
         TaskPartProgressInformation info1 = assertTaskProgress(progress1, "after 1st run")
@@ -297,7 +309,11 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
                 .subtaskForPart(2)
                     .display()
                     .structuredProgress()
-                        .display();
+                        .display()
+                        .end()
+                    .iterativeTaskInformation()
+                        .display()
+                        .end();
 
         TaskProgressInformation progress2 = TaskProgressInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
         TaskPartProgressInformation info2 = assertTaskProgress(progress2, "after 2nd suspension")

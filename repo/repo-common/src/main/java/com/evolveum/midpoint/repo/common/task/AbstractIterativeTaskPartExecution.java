@@ -437,4 +437,8 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         localCoordinatorTask.markStructuredProgressAsComplete();
         localCoordinatorTask.flushPendingModifications(result);
     }
+
+    public long getPartStartTimestamp() {
+        return statistics.getStartTimeMillis();
+    }
 }

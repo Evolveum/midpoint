@@ -146,14 +146,20 @@ public class TaskOperationStatsUtil {
     }
 
     public static IterativeTaskPartItemsProcessingInformationType getIterativeInfoForCurrentPart(OperationStatsType statistics,
-            StructuredTaskProgressType structuredTaskProgress) {
+            StructuredTaskProgressType structuredProgress) {
+        return getIterativeInfoForPart(statistics,
+                TaskProgressUtil.getCurrentPartUri(structuredProgress));
+    }
+
+    private static IterativeTaskPartItemsProcessingInformationType getIterativeInfoForPart(OperationStatsType statistics,
+            String partUri) {
         if (statistics == null || statistics.getIterativeTaskInformation() == null) {
             return null;
+        } else {
+            return statistics.getIterativeTaskInformation().getPart().stream()
+                    .filter(part -> Objects.equals(part.getPartUri(), partUri))
+                    .findFirst().orElse(null);
         }
-        String currentPartUri = TaskProgressUtil.getCurrentPartUri(structuredTaskProgress);
-        return statistics.getIterativeTaskInformation().getPart().stream()
-                .filter(part -> Objects.equals(part.getPartUri(), currentPartUri))
-                .findFirst().orElse(null);
     }
 
     public static int getItemsProcessedForCurrentPart(OperationStatsType statistics,
@@ -178,11 +184,11 @@ public class TaskOperationStatsUtil {
         }
     }
 
-    public static Long getTotalTime(IterativeTaskPartItemsProcessingInformationType info) {
+    public static Long getProcessingTime(IterativeTaskPartItemsProcessingInformationType info) {
         if (info == null) {
             return null;
         } else {
-            return getTotalTime(singleton(info), set -> true);
+            return getProcessingTime(singleton(info), set -> true);
         }
     }
 
@@ -199,7 +205,7 @@ public class TaskOperationStatsUtil {
                 .sum();
     }
 
-    private static long getTotalTime(Collection<IterativeTaskPartItemsProcessingInformationType> parts,
+    private static long getProcessingTime(Collection<IterativeTaskPartItemsProcessingInformationType> parts,
             Predicate<ProcessedItemSetType> itemSetFilter) {
         return parts.stream()
                 .flatMap(component -> component.getProcessed().stream())
@@ -403,5 +409,10 @@ public class TaskOperationStatsUtil {
                     .append("\n");
         }
         return sb.toString();
+    }
+
+    public static long getWallClockTime(IterativeTaskPartItemsProcessingInformationType info) {
+        return new WallClockTimeComputer(info.getExecution())
+                .compute();
     }
 }

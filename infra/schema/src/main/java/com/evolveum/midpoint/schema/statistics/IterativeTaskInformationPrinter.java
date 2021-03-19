@@ -64,6 +64,8 @@ public class IterativeTaskInformationPrinter extends AbstractStatisticsPrinter<I
                 record.add(null);
             }
         }
+
+        // TODO current
     }
 
     private Long getDuration(ProcessedItemType item) {

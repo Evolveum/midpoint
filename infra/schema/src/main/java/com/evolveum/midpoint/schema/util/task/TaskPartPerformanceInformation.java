@@ -20,31 +20,30 @@ public class TaskPartPerformanceInformation {
     private final int itemsProcessed;
     private final int errors;
     private final int progress;
-    private final Long totalTime;
+    private final Long processingTime;
     private final Long wallClockTime;
 
-    private TaskPartPerformanceInformation(int itemsProcessed, int errors, int progress, Long totalTime, Long wallClockTime) {
+    private TaskPartPerformanceInformation(int itemsProcessed, int errors, int progress, Long processingTime, Long wallClockTime) {
         this.itemsProcessed = itemsProcessed;
         this.errors = errors;
         this.progress = progress;
-        this.totalTime = totalTime;
+        this.processingTime = processingTime;
         this.wallClockTime = wallClockTime;
     }
 
     public static TaskPartPerformanceInformation forCurrentPart(OperationStatsType operationStats,
             StructuredTaskProgressType structuredProgress) {
 
-        TaskPartProgressType currentPart = TaskProgressUtil.getCurrentPart(structuredProgress);
         IterativeTaskPartItemsProcessingInformationType info = TaskOperationStatsUtil
                 .getIterativeInfoForCurrentPart(operationStats, structuredProgress);
 
         int itemsProcessed = TaskOperationStatsUtil.getItemsProcessed(info);
         int errors = TaskOperationStatsUtil.getErrors(info);
         int progress = TaskProgressUtil.getTotalProgressForCurrentPart(structuredProgress);
-        Long totalTime = TaskOperationStatsUtil.getTotalTime(info);
-        Long wallClockTimeSpent = currentPart != null ? currentPart.getWallClockTimeSpent() : null;
+        Long processingTime = TaskOperationStatsUtil.getProcessingTime(info);
+        Long wallClockTime = TaskOperationStatsUtil.getWallClockTime(info);
 
-        return new TaskPartPerformanceInformation(itemsProcessed, errors, progress, totalTime, wallClockTimeSpent);
+        return new TaskPartPerformanceInformation(itemsProcessed, errors, progress, processingTime, wallClockTime);
     }
 
     public int getItemsProcessed() {
@@ -64,8 +63,8 @@ public class TaskPartPerformanceInformation {
     }
 
     public Double getAverageTime() {
-        if (totalTime != null && itemsProcessed > 0) {
-            return (double) totalTime / itemsProcessed;
+        if (processingTime != null && itemsProcessed > 0) {
+            return (double) processingTime / itemsProcessed;
         } else {
             return null;
         }
