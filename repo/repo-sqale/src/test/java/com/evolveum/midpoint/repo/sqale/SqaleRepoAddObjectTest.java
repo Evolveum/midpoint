@@ -25,7 +25,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDe
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
-import com.evolveum.midpoint.repo.sqale.qmodel.focus.MFocus;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.MGenericObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
@@ -431,7 +431,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         assertCachedUri(refRow.relationId, approver2Relation);
     }
 
-    // this covers mapping of attributes in FocusSqlTransformer
+    // this covers mapping of attributes in FocusSqlTransformer + GenericObject
     @Test
     public void test910GenericObject() throws Exception {
         OperationResult result = createOperationResult();
@@ -463,7 +463,9 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
                         .validFrom(MiscUtil.asXMLGregorianCalendar(5L))
                         .validTo(MiscUtil.asXMLGregorianCalendar(6L))
                         .validityChangeTimestamp(MiscUtil.asXMLGregorianCalendar(7L))
-                        .archiveTimestamp(MiscUtil.asXMLGregorianCalendar(8L)));
+                        .archiveTimestamp(MiscUtil.asXMLGregorianCalendar(8L)))
+                // this is the only additional persisted field for GenericObject
+                .objectType("some-custom-object-type-uri");
 
         when("adding it to the repository");
         repositoryService.addObject(genericObject.asPrismObject(), null, result);
@@ -471,7 +473,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         then("it is stored and relevant attributes are in columns");
         assertResult(result);
 
-        MFocus row = selectObjectByOid(QGenericObject.class, UUID.fromString(genericObject.getOid()));
+        MGenericObject row = selectObjectByOid(QGenericObject.class, UUID.fromString(genericObject.getOid()));
         assertThat(row.costCenter).isEqualTo("cost-center");
         assertThat(row.emailAddress).isEqualTo("email-address");
         assertThat(row.photo).isEqualTo(new byte[] { 1, 2, 3, 4, 5 });
@@ -495,6 +497,9 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         assertThat(row.validTo).isEqualTo(Instant.ofEpochMilli(6));
         assertThat(row.validityChangeTimestamp).isEqualTo(Instant.ofEpochMilli(7));
         assertThat(row.archiveTimestamp).isEqualTo(Instant.ofEpochMilli(8));
+
+        // field specific to GenericObjectType
+        assertCachedUri(row.genericObjectTypeId, "some-custom-object-type-uri");
     }
 
     // TODO test for focus' related entities?

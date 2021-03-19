@@ -400,7 +400,8 @@ CREATE INDEX m_ref_projection_targetOid_relation_id_idx
 -- Represents GenericObjectType, see https://wiki.evolveum.com/display/midPoint/Generic+Objects
 CREATE TABLE m_generic_object (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('GENERIC_OBJECT') STORED
+    objectType ObjectType GENERATED ALWAYS AS ('GENERIC_OBJECT') STORED,
+    genericObjectType_id INTEGER NOT NULL -- GenericObjectType#objectType, soft-references m_uri
 )
     INHERITS (m_focus);
 
@@ -411,6 +412,8 @@ CREATE TRIGGER m_generic_object_update_tr BEFORE UPDATE ON m_generic_object
 CREATE TRIGGER m_generic_object_oid_delete_tr AFTER DELETE ON m_generic_object
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
+-- TODO unique per genericObjectType_id?
+--  No indexes for GenericObjectType#objectType were in old repo, what queries are expected?
 CREATE INDEX m_generic_object_name_orig_idx ON m_generic_object (name_orig);
 ALTER TABLE m_generic_object ADD CONSTRAINT m_generic_object_name_norm_key UNIQUE (name_norm);
 -- endregion
