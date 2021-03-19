@@ -8,8 +8,6 @@ package com.evolveum.midpoint.repo.sqale;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.slf4j.LoggerFactory;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
@@ -17,9 +15,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -33,13 +30,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
 
     private String sanityUserOid;
-
-    @BeforeClass
-    public void init() {
-        // TODO remove later, just for initial debugging
-        ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(SqlLogger.class))
-                .setLevel(ch.qos.logback.classic.Level.TRACE);
-    }
 
     @Test
     public void test000Sanity() {

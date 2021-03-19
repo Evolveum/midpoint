@@ -57,6 +57,7 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
             ColumnMetadata.named("cid_seq").ofType(Types.BIGINT).notNull();
     public static final ColumnMetadata VERSION =
             ColumnMetadata.named("version").ofType(Types.INTEGER).notNull();
+    // complex DB fields
     public static final ColumnMetadata POLICY_SITUATIONS =
             ColumnMetadata.named("policySituations").ofType(Types.ARRAY);
     public static final ColumnMetadata SUBTYPES =
@@ -100,6 +101,7 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     public final StringPath lifecycleState = createString("lifecycleState", LIFECYCLE_STATE);
     public final NumberPath<Long> containerIdSeq = createLong("containerIdSeq", CID_SEQ);
     public final NumberPath<Integer> version = createInteger("version", VERSION);
+    // complex DB fields
     public final ArrayPath<Integer[], Integer> policySituations =
             createArray("policySituations", Integer[].class, POLICY_SITUATIONS);
     public final ArrayPath<String[], String> subtypes =
