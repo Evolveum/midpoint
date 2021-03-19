@@ -618,8 +618,7 @@ public final class WebComponentUtil {
     }
 
     public static <T extends Containerable> QName containerClassToQName(PrismContext prismContext, Class<T> clazz) {
-        PrismContainerDefinition<T> def = prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(clazz);
-        return def == null ? null : def.getTypeName();
+        return prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(clazz).getTypeName();
     }
 
     public static TaskType createSingleRecurrenceTask(String taskName, QName applicableType, ObjectQuery query,
