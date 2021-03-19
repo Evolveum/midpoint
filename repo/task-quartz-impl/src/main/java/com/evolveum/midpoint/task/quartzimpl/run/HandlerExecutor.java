@@ -62,7 +62,7 @@ public class HandlerExecutor {
             TaskRunResult runResult = handler.run(task, partition);
             LOGGER.trace("runResult is {} for {}", runResult, task);
 
-            storeStatisticsPersistently(task, result);
+            updateAndStoreStatisticsIntoRepository(task, result);
 
             checkNullRunResult(task, runResult);
             return runResult;
@@ -87,7 +87,7 @@ public class HandlerExecutor {
         task.startCollectingStatistics(handler.getStatisticsCollectionStrategy());
     }
 
-    static void storeStatisticsPersistently(RunningTaskQuartzImpl task, OperationResult result)
+    static void updateAndStoreStatisticsIntoRepository(RunningTaskQuartzImpl task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         try {
             task.updateAndStoreStatisticsIntoRepository(true, result);

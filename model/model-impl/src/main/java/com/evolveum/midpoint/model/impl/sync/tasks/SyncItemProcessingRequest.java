@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.sync.tasks;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.task.CorrelatableProcessingRequest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class SyncItemProcessingRequest<SE extends SynchronizationEvent>
         extends ItemProcessingRequest<SE>
-        implements Comparable<SyncItemProcessingRequest<SE>> {
+        implements Comparable<SyncItemProcessingRequest<SE>>, CorrelatableProcessingRequest {
 
     SyncItemProcessingRequest(SE item, AbstractIterativeItemProcessor<SE, ?, ?, ?, ?> itemProcessor) {
         super(item, itemProcessor);
@@ -90,7 +91,7 @@ public class SyncItemProcessingRequest<SE extends SynchronizationEvent>
             return event.getShadowOid();
         }
         ResourceObjectShadowChangeDescription changeDescription = event.getChangeDescription();
-        if (changeDescription != null && changeDescription.getShadowedResourceObject() != null) {
+        if (changeDescription != null) {
             return changeDescription.getShadowedResourceObject().getOid(); // TODO
         } else {
             return null;
@@ -106,5 +107,13 @@ public class SyncItemProcessingRequest<SE extends SynchronizationEvent>
         } else {
             return null;
         }
+    }
+
+    @Override
+    public String toString() {
+        return "SyncItemProcessingRequest{" +
+                "item=" + item +
+                ", identifier='" + identifier + '\'' +
+                '}';
     }
 }

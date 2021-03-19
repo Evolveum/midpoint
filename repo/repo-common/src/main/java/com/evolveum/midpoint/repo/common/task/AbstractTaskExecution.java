@@ -24,6 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Collections.singletonList;
@@ -70,6 +71,11 @@ public abstract class AbstractTaskExecution
      * Error-related state of this task. Drives the suspend/continue decisions.
      */
     @NotNull private final ErrorState errorState = new ErrorState();
+
+    /**
+     * Part executions. Initialized in the {@link #run()} method.
+     */
+    private List<? extends AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> partExecutions;
 
     private final AtomicReference<AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> currentTaskPartExecution
             = new AtomicReference<>();
@@ -118,7 +124,7 @@ public abstract class AbstractTaskExecution
 
             initialize(taskOperationResult);
 
-            List<? extends AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> partExecutions = createPartExecutions();
+            partExecutions = createPartExecutions();
             for (int i = 0; i < partExecutions.size(); i++) {
                 AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?> partExecution = partExecutions.get(i);
                 partExecution.setPartNumber(i + 1);
@@ -239,5 +245,10 @@ public abstract class AbstractTaskExecution
 
     public @NotNull String getRootTaskOid() {
         return localCoordinatorTask.getRootTaskOid();
+    }
+
+    public boolean isInternallyMultipart() {
+        return Objects.requireNonNull(partExecutions, "Part executions were not initialized yet")
+                .size() > 1;
     }
 }

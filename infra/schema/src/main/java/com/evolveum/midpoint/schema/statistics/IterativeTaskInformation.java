@@ -10,6 +10,7 @@ package com.evolveum.midpoint.schema.statistics;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.util.task.WallClockTimeComputer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -229,7 +230,16 @@ public class IterativeTaskInformation {
             @NotNull IterativeTaskPartItemsProcessingInformationType delta) {
         addProcessed(sum.getProcessed(), delta.getProcessed());
         addCurrent(sum.getCurrent(), delta.getCurrent());
-        sum.getExecution().addAll(CloneUtil.cloneCollectionMembers(delta.getExecution()));
+        addExecutionRecords(sum, delta);
+    }
+
+    private static void addExecutionRecords(@NotNull IterativeTaskPartItemsProcessingInformationType sum, @NotNull IterativeTaskPartItemsProcessingInformationType delta) {
+        List<TaskPartExecutionRecordType> nonOverlappingRecords =
+                new WallClockTimeComputer(sum.getExecution(), delta.getExecution())
+                        .getNonOverlappingRecords();
+        sum.getExecution().clear();
+        nonOverlappingRecords.sort(Comparator.comparing(r -> XmlTypeConverter.toMillis(r.getStartTimestamp())));
+        sum.getExecution().addAll(CloneUtil.cloneCollectionMembers(nonOverlappingRecords));
     }
 
     /** Adds `processed` items information */

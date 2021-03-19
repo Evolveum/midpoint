@@ -70,9 +70,14 @@ class BucketAwareHandlerExecution {
 
         resetWorkStateAndStatisticsIfWorkComplete(result);
 
-        startCollectingStatistics(task, handler);
-
         for (; task.canRun(); initialExecution = false) {
+
+            // We must start collecting statistics inside this cycle. The reason is that - in multithreaded scenarios -
+            // some of the statistics exist only in LATs (e.g. iteration statistics) and so their source form simply disappear
+            // on previous bucket end. Their aggregated form is preserved in this running (non-LAT) parent, but is overwritten
+            // as soon as next cycle starts with new LATs. Therefore we copy the aggregated form into internal structures
+            // as initial values, to be preserved.
+            startCollectingStatistics(task, handler);
 
             WorkBucketType bucket = getWorkBucket(result);
             if (bucket == null) {
@@ -113,7 +118,7 @@ class BucketAwareHandlerExecution {
             beans.workStateManager.completeWorkBucket(task.getOid(), bucket.getSequentialNumber(),
                     task.getWorkBucketStatisticsCollector(), result);
             task.changeStructuredProgressOnWorkBucketCompletion();
-            storeStatisticsPersistently(task, result);
+            updateAndStoreStatisticsIntoRepository(task, result);
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't complete work bucket for task {}", e, task);
             throw new ExitExecutionException(task, "Couldn't complete work bucket: " + e.getMessage(), e);
@@ -126,7 +131,7 @@ class BucketAwareHandlerExecution {
             runResult = handler.run(task, bucket, partition, runResult);
             LOGGER.trace("runResult is {} for {}", runResult, task);
 
-            storeStatisticsPersistently(task, result);
+            updateAndStoreStatisticsIntoRepository(task, result);
 
             checkNullRunResult(task, runResult);
 

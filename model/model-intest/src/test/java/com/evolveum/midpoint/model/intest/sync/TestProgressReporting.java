@@ -10,6 +10,7 @@ import java.io.File;
 import java.util.Collection;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.task.TaskPartProgressInformation;
@@ -25,7 +26,6 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -34,21 +34,23 @@ import static org.testng.AssertJUnit.*;
 
 /**
  * Tests for MID-6011.
- *
- * TODO consider moving to reporting package
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestProgressReporting extends AbstractInitializedModelIntegrationTest {
+public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
 
-    private static final File TEST_DIR = new File("src/test/resources/sync");
+    private static final File TEST_DIR = new File("src/test/resources/reporting");
 
     /**
      * We currently do not use slow-down nor error inducing behavior of this resource
      * but let's keep it here.
+     *
+     * BEWARE: It is "imported" from `sync` directory.
      */
     @SuppressWarnings("FieldCanBeLocal")
     private DummyInterruptedSyncResource interruptedSyncResource;
+
+    private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
     private static final TestResource<TaskType> TASK_RECONCILE_DUMMY =
             new TestResource<>(TEST_DIR, "task-reconcile-dummy-interrupted.xml", "944f7dbd-b221-4df3-b975-781c7794af6e");
@@ -77,6 +79,16 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
 
         addObject(METAROLE_SLOWING_DOWN, initTask, initResult);
         createShadowWithPendingOperation();
+    }
+
+    @Override
+    protected File getSystemConfigurationFile() {
+        return SYSTEM_CONFIGURATION_FILE;
+    }
+
+    @Override
+    protected boolean isAvoidLoggingChange() {
+        return false; // We need custom logging.
     }
 
     /**

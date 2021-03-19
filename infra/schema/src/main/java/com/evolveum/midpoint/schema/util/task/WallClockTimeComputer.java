@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.util.task;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -14,6 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartExecutionRec
 
 import com.google.common.annotations.VisibleForTesting;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,31 +27,34 @@ public class WallClockTimeComputer {
     private static final Trace LOGGER = TraceManager.getTrace(WallClockTimeComputer.class);
 
     private final Set<Interval> intervals;
+    private final Set<Interval> nonOverlappingIntervals;
 
-    WallClockTimeComputer(List<TaskPartExecutionRecordType> executionRecords) {
-        intervals = executionRecords.stream()
+    @SafeVarargs
+    public WallClockTimeComputer(List<TaskPartExecutionRecordType>... lists) {
+        intervals = Arrays.stream(lists)
+                .flatMap(Collection::stream)
                 .map(Interval::create)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
+        nonOverlappingIntervals = eliminateOverlaps(this.intervals);
     }
 
     @VisibleForTesting
     public WallClockTimeComputer(long[][] inputs) {
         intervals = Arrays.stream(inputs)
-                .map(pair -> new Interval(pair[0], pair[1]))
+                .map(pair -> Interval.create(pair[0], pair[1]))
                 .collect(Collectors.toSet());
+        nonOverlappingIntervals = eliminateOverlaps(this.intervals);
     }
 
-    public long compute() {
-        LOGGER.trace("Intervals at input: {}", intervals);
+    public long getSummaryTime() {
+        return summarize(nonOverlappingIntervals);
+    }
 
-        Set<Interval> nonOverlapping = eliminateOverlaps(this.intervals);
-        LOGGER.trace("Non-overlapping intervals: {}", nonOverlapping);
-
-        long time = summarize(nonOverlapping);
-        LOGGER.trace("Summary time: {}", time);
-
-        return time;
+    public List<TaskPartExecutionRecordType> getNonOverlappingRecords() {
+        return nonOverlappingIntervals.stream()
+                .map(Interval::getRecord)
+                .collect(Collectors.toList());
     }
 
     private static long summarize(Set<Interval> intervals) {
@@ -62,6 +67,7 @@ public class WallClockTimeComputer {
      * Eliminates overlaps.
      */
     private static Set<Interval> eliminateOverlaps(Set<Interval> intervals) {
+        LOGGER.trace("Intervals at input: {}", intervals);
         Set<Interval> newIntervals = new HashSet<>();
         for (Interval interval : intervals) {
             for (;;) {
@@ -75,6 +81,7 @@ public class WallClockTimeComputer {
                 }
             }
         }
+        LOGGER.trace("Non-overlapping intervals: {}", newIntervals);
         return newIntervals;
     }
 
@@ -85,19 +92,22 @@ public class WallClockTimeComputer {
     }
 
     private static class Interval {
-        private final long from;
-        private final long to;
+        private final long fromMillis;
+        private final long toMillis;
+        private final TaskPartExecutionRecordType record;
 
-        Interval(long from, long to) {
-            this.from = from;
-            this.to = to;
+        Interval(long fromMillis, long toMillis, TaskPartExecutionRecordType record) {
+            this.fromMillis = fromMillis;
+            this.toMillis = toMillis;
+            this.record = record;
         }
 
         private static Interval create(TaskPartExecutionRecordType record) {
             if (record.getStartTimestamp() != null && record.getEndTimestamp() != null) {
                 Interval interval = new Interval(
                         XmlTypeConverter.toMillis(record.getStartTimestamp()),
-                        XmlTypeConverter.toMillis(record.getEndTimestamp()));
+                        XmlTypeConverter.toMillis(record.getEndTimestamp()),
+                        record);
                 if (interval.isValid()) {
                     return interval;
                 } else {
@@ -110,21 +120,30 @@ public class WallClockTimeComputer {
             }
         }
 
+        @VisibleForTesting
+        private static Interval create(long fromMillis, long toMillis) {
+            return new Interval(fromMillis, toMillis, null);
+        }
+
         private boolean isValid() {
-            return from <= to;
+            return fromMillis <= toMillis;
         }
 
         public long getTime() {
-            return to - from;
+            return toMillis - fromMillis;
         }
 
-        public boolean contains(long point) {
-            return point >= from && point <= to;
+        public TaskPartExecutionRecordType getRecord() {
+            return record;
+        }
+
+        private boolean contains(long point) {
+            return point >= fromMillis && point <= toMillis;
         }
 
         @Override
         public String toString() {
-            return "<" + from + ", " + to + ">";
+            return "<" + fromMillis + ", " + toMillis + ">";
         }
 
         @Override
@@ -136,21 +155,52 @@ public class WallClockTimeComputer {
                 return false;
             }
             Interval interval = (Interval) o;
-            return from == interval.from && to == interval.to;
+            return fromMillis == interval.fromMillis && toMillis == interval.toMillis;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(from, to);
+            return Objects.hash(fromMillis, toMillis);
         }
 
         private boolean overlapsWith(Interval other) {
-            return contains(other.from) || contains(other.to) ||
-                    other.contains(from) || other.contains(to);
+            return contains(other.fromMillis) || contains(other.toMillis) ||
+                    other.contains(fromMillis) || other.contains(toMillis);
         }
 
         public Interval mergeWith(Interval other) {
-            return new Interval(Math.min(from, other.from), Math.max(to, other.to));
+            boolean useRecords;
+            if (record == null && other.record == null) {
+                useRecords = false;
+            } else if (record != null && other.record != null) {
+                useRecords = true;
+            } else {
+                throw new IllegalStateException("Mixing test and non-test intervals: " + this + " vs " + other);
+            }
+
+            long newFromMillis;
+            long newToMillis;
+            XMLGregorianCalendar newFromXml;
+            XMLGregorianCalendar newToXml;
+            if (fromMillis <= other.fromMillis) {
+                newFromMillis = fromMillis;
+                newFromXml = useRecords ? record.getStartTimestamp() : null;
+            } else {
+                newFromMillis = other.fromMillis;
+                newFromXml = useRecords ? other.record.getStartTimestamp() : null;
+            }
+            if (toMillis >= other.toMillis) {
+                newToMillis = toMillis;
+                newToXml = useRecords ? record.getEndTimestamp() : null;
+            } else {
+                newToMillis = other.toMillis;
+                newToXml = useRecords ? other.record.getEndTimestamp() : null;
+            }
+
+            return new Interval(newFromMillis, newToMillis, useRecords ?
+                    new TaskPartExecutionRecordType(PrismContext.get())
+                        .startTimestamp(newFromXml)
+                        .endTimestamp(newToXml) : null);
         }
     }
 }

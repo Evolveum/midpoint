@@ -106,12 +106,12 @@ public class TestMiscellaneous extends AbstractSchemaTest {
                 { 700, 800 }, // 100
                 { 650, 850 }, // +100
                 { 3000, 3200} // +200
-        }).compute()).isEqualTo(510);
+        }).getSummaryTime()).isEqualTo(510);
     }
 
     @Test
     public void testWallClockComputerEmpty() {
-        assertThat(new WallClockTimeComputer(new long[][] {}).compute()).isEqualTo(0);
+        assertThat(new WallClockTimeComputer(new long[][] {}).getSummaryTime()).isEqualTo(0);
     }
 
     @Test
@@ -120,7 +120,7 @@ public class TestMiscellaneous extends AbstractSchemaTest {
                 { 100, 110 },
                 { 100, 110 },
                 { 100, 110 }
-        }).compute()).isEqualTo(10);
+        }).getSummaryTime()).isEqualTo(10);
     }
 
     @Test
@@ -129,7 +129,7 @@ public class TestMiscellaneous extends AbstractSchemaTest {
                 { 100, 110 },
                 { 200, 210 },
                 { 300, 310 }
-        }).compute()).isEqualTo(30);
+        }).getSummaryTime()).isEqualTo(30);
     }
 
     @Test
@@ -138,6 +138,6 @@ public class TestMiscellaneous extends AbstractSchemaTest {
                 { 100, 110 },
                 { 110, 120 },
                 { 120, 130 }
-        }).compute()).isEqualTo(30);
+        }).getSummaryTime()).isEqualTo(30);
     }
 }

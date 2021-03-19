@@ -30,6 +30,8 @@ import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 
+import java.util.Objects;
+
 /**
  * Represents an execution of a generic iterative part of a task.
  *
@@ -438,7 +440,27 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         localCoordinatorTask.flushPendingModifications(result);
     }
 
+    /**
+     * When did current part start?
+     *
+     * We need this for execution record creation that is needed for wall clock average and throughput computation.
+     *
+     * However, answering this question is a bit tricky because of bucketed runs. By recording part start when the bucket
+     * starts is precise, but
+     *
+     * 1. does not take bucket management overhead into account,
+     * 2. generates a lot of execution records - more than we can reasonably handle.
+     *
+     * So, for all except multi-part runs (that are never bucketed by definition) we use regular task start information.
+     *
+     * All of this will change when bucketing will be (eventually) rewritten.
+     */
     public long getPartStartTimestamp() {
-        return statistics.getStartTimeMillis();
+        if (taskExecution.isInternallyMultipart()) {
+            return statistics.getStartTimeMillis();
+        } else {
+            return Objects.requireNonNull(localCoordinatorTask.getLastRunStartTimestamp(),
+                    () -> "No last run start timestamp in " + localCoordinatorTask);
+        }
     }
 }

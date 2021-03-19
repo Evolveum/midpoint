@@ -368,7 +368,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 .displayOperationResult()
                 .assertPartialError()
                 .assertClosed()
-                .assertProgress(1) // may change in the future
+                .assertProgress(11)
                 .iterativeTaskInformation()
                     .display()
                     .assertSuccessCount(7)

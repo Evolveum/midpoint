@@ -413,6 +413,6 @@ public class TaskOperationStatsUtil {
 
     public static long getWallClockTime(IterativeTaskPartItemsProcessingInformationType info) {
         return new WallClockTimeComputer(info.getExecution())
-                .compute();
+                .getSummaryTime();
     }
 }

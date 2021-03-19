@@ -47,7 +47,17 @@ public class StructuredTaskProgress {
         this.prismContext = prismContext;
         if (value != null) {
             addTo(this.value, value);
+            setGlobalInformation(this.value, value);
         }
+    }
+
+    /**
+     * Global information is not "additive". So it is applied only when refreshing remembered value.
+     */
+    private static void setGlobalInformation(StructuredTaskProgressType current, StructuredTaskProgressType initial) {
+        current.setCurrentPartUri(initial.getCurrentPartUri());
+        current.setCurrentPartNumber(initial.getCurrentPartNumber());
+        current.setExpectedParts(initial.getExpectedParts());
     }
 
     /** Returns a current value of this statistics. It is copied because of thread safety issues. */

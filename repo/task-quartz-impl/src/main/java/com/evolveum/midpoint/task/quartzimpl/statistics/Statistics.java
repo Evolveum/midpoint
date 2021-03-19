@@ -441,8 +441,19 @@ public class Statistics implements WorkBucketStatisticsCollector {
 
     public void startCollectingStatistics(@NotNull RunningTask task,
             @NotNull StatisticsCollectionStrategy strategy, SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
-
         OperationStatsType initialOperationStats = getOrCreateInitialOperationStats(task);
+        startCollectingRegularOperationStats(initialOperationStats, strategy);
+        startCollectingThreadLocalStatistics(initialOperationStats, sqlPerformanceMonitors);
+        startCollectingStructuredProgress(task, strategy);
+    }
+
+    @NotNull
+    private OperationStatsType getOrCreateInitialOperationStats(@NotNull RunningTask task) {
+        OperationStatsType stored = task.getStoredOperationStatsOrClone();
+        return stored != null ? stored : new OperationStatsType(PrismContext.get());
+    }
+
+    private void startCollectingRegularOperationStats(OperationStatsType initialOperationStats, @NotNull StatisticsCollectionStrategy strategy) {
         resetEnvironmentalPerformanceInformation(initialOperationStats.getEnvironmentalPerformanceInformation());
         resetIterativeTaskInformation(initialOperationStats.getIterativeTaskInformation());
         if (strategy.isMaintainSynchronizationStatistics()) {
@@ -456,21 +467,19 @@ public class Statistics implements WorkBucketStatisticsCollector {
             actionsExecutedInformation = null;
         }
         resetWorkBucketManagementPerformanceInformation(initialOperationStats.getWorkBucketManagementPerformanceInformation());
-        setInitialValuesForLowLevelStatistics(initialOperationStats);
+    }
 
+    private void startCollectingThreadLocalStatistics(OperationStatsType initialOperationStats, SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
+        setInitialValuesForThreadLocalStatistics(initialOperationStats);
+        startCollectingThreadLocalStatistics(sqlPerformanceMonitors);
+    }
+
+    private void startCollectingStructuredProgress(@NotNull RunningTask task, @NotNull StatisticsCollectionStrategy strategy) {
         if (strategy.isMaintainStructuredProgress()) {
             structuredProgress = new StructuredTaskProgress(task.getStructuredProgressOrClone(), PrismContext.get());
         } else {
             structuredProgress = null;
         }
-
-        startCollectingThreadLocalStatistics(sqlPerformanceMonitors);
-    }
-
-    @NotNull
-    private OperationStatsType getOrCreateInitialOperationStats(@NotNull RunningTask task) {
-        OperationStatsType stored = task.getStoredOperationStatsOrClone();
-        return stored != null ? stored : new OperationStatsType(PrismContext.get());
     }
 
     /**
@@ -500,7 +509,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
         OperationsPerformanceMonitor.INSTANCE.startThreadLocalPerformanceInformationCollection();
     }
 
-    private void setInitialValuesForLowLevelStatistics(OperationStatsType operationStats) {
+    private void setInitialValuesForThreadLocalStatistics(OperationStatsType operationStats) {
         initialRepositoryPerformanceInformation = operationStats != null ? operationStats.getRepositoryPerformanceInformation() : null;
         initialCachesPerformanceInformation = operationStats != null ? operationStats.getCachesPerformanceInformation() : null;
         initialOperationsPerformanceInformation = operationStats != null ? operationStats.getOperationsPerformanceInformation() : null;
