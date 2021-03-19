@@ -97,7 +97,7 @@ public class StructuredTaskProgressAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     public TaskPartProgressAsserter<StructuredTaskProgressAsserter<RA>> currentPart() {
-        TaskPartProgressType currentPart = TaskProgressUtil.getCurrentPart(information);
+        TaskPartProgressType currentPart = TaskProgressUtil.getForCurrentPart(information);
         assertThat(currentPart).as("current part").isNotNull();
         TaskPartProgressAsserter<StructuredTaskProgressAsserter<RA>> asserter =
                 new TaskPartProgressAsserter<>(currentPart, this, getDetails());

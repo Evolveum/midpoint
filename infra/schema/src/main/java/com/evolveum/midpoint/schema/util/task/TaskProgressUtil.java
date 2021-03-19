@@ -16,9 +16,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.statistics.OutcomeKeyedCounterTypeUtil;
+import com.evolveum.midpoint.schema.statistics.*;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -146,19 +149,32 @@ public class TaskProgressUtil {
         return getCounts(progress.getPart(), c -> true, true);
     }
 
-    public static TaskPartProgressType getCurrentPart(StructuredTaskProgressType progress) {
+    public static TaskPartProgressType getForCurrentPart(StructuredTaskProgressType progress) {
+        if (progress == null) {
+            return null;
+        } else {
+            return getForPart(progress, progress.getCurrentPartUri());
+        }
+    }
+
+    public static TaskPartProgressType getForPart(StructuredTaskProgressType progress, String partUri) {
         if (progress == null) {
             return null;
         } else {
             return progress.getPart().stream()
-                    .filter(part -> Objects.equals(part.getPartUri(), progress.getCurrentPartUri()))
+                    .filter(part -> Objects.equals(part.getPartUri(), partUri))
                     .findAny().orElse(null);
         }
     }
 
     public static int getTotalProgressForCurrentPart(StructuredTaskProgressType progress) {
-        TaskPartProgressType currentPart = getCurrentPart(progress);
+        TaskPartProgressType currentPart = getForCurrentPart(progress);
         return currentPart != null ? getTotalProgress(currentPart) : 0;
+    }
+
+    public static int getTotalProgressForPart(StructuredTaskProgressType progress, String partUri) {
+        TaskPartProgressType forPart = getForPart(progress, partUri);
+        return forPart != null ? getTotalProgress(forPart) : 0;
     }
 
     /**
@@ -170,5 +186,18 @@ public class TaskProgressUtil {
 
     public static String getCurrentPartUri(StructuredTaskProgressType structuredTaskProgress) {
         return structuredTaskProgress != null ? structuredTaskProgress.getCurrentPartUri() : null;
+    }
+
+    @Experimental
+    public static StructuredTaskProgressType getStructuredProgressFromTree(TaskType task) {
+        StructuredTaskProgressType aggregate = new StructuredTaskProgressType(PrismContext.get());
+        Stream<TaskType> subTasks = TaskTreeUtil.getAllTasksStream(task);
+        subTasks.forEach(subTask -> {
+            StructuredTaskProgressType progress = subTask.getStructuredProgress();
+            if (progress != null) {
+                StructuredTaskProgress.addTo(aggregate, progress);
+            }
+        });
+        return aggregate;
     }
 }

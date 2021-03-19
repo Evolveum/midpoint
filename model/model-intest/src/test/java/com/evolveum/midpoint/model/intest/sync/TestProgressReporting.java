@@ -14,6 +14,7 @@ import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.task.TaskPartProgressInformation;
+import com.evolveum.midpoint.schema.util.task.TaskPerformanceInformation;
 import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.test.TestResource;
@@ -98,12 +99,12 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
      */
     @Test
     public void test100Reconcile_0T_NB_NP() throws Exception {
-        executePlainReconciliation(TASK_RECONCILE_DUMMY_0T_NB_NP, "a", 1);
+        executePlainReconciliation(TASK_RECONCILE_DUMMY_0T_NB_NP, "a");
     }
 
     @Test
     public void test110Reconcile_2T_NB_NP() throws Exception {
-        executePlainReconciliation(TASK_RECONCILE_DUMMY_2T_NB_NP, "b", 1);
+        executePlainReconciliation(TASK_RECONCILE_DUMMY_2T_NB_NP, "b");
     }
 
     private void createShadowWithPendingOperation() throws CommonException {
@@ -140,7 +141,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private void executePlainReconciliation(TestResource<TaskType> reconciliationTask, String accountPrefix, int workers)
+    private void executePlainReconciliation(TestResource<TaskType> reconciliationTask, String accountPrefix)
             throws Exception {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
@@ -196,6 +197,9 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                         .assertProgressGreaterThanZero()
                         .assertNoExpectedTotal();
 
+        TaskPerformanceInformation perf1 = TaskPerformanceInformation.fromTaskTree(rootAfterSuspension1.asObjectable());
+        displayDumpable("perf after 1st run", perf1);
+
         when("2nd run");
 
         System.out.println("Resuming task tree.");
@@ -221,7 +225,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                     .end()
                 .iterativeTaskInformation()
                     .display()
-                    .end();;
+                    .end();
 
         TaskProgressInformation progress2 = TaskProgressInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
         assertTaskProgress(progress2, "after 2nd suspension")
@@ -232,6 +236,9 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                     .assertNoBucketInformation()
                     .items()
                         .assertProgressGreaterThanZero();
+
+        TaskPerformanceInformation perf2 = TaskPerformanceInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
+        displayDumpable("perf after 2nd run", perf2);
     }
 
     private void executePartitionedBucketedReconciliation(TestResource<TaskType> reconciliationTask, String accountPrefix,
@@ -296,6 +303,9 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                     .assertBucketsItemsConsistency(bucketSize, workers)
                     .get();
 
+        TaskPerformanceInformation perf1 = TaskPerformanceInformation.fromTaskTree(rootAfterSuspension1.asObjectable());
+        displayDumpable("perf after 1st run", perf1);
+
         when("2nd run");
 
         System.out.println("Resuming task tree.");
@@ -335,7 +345,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                         .end();
 
         TaskProgressInformation progress2 = TaskProgressInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
-        TaskPartProgressInformation info2 = assertTaskProgress(progress2, "after 2nd suspension")
+        assertTaskProgress(progress2, "after 2nd suspension")
                 .display()
                 .assertAllPartsCount(3)
                 .assertCurrentPartNumber(2)
@@ -346,6 +356,9 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                     .assertItemsProgressAtLeast(info1.getItemsProgress().getProgress())
                     .assertBucketsItemsConsistency(bucketSize, workers)
                     .get();
+
+        TaskPerformanceInformation perf2 = TaskPerformanceInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
+        displayDumpable("perf after 2nd run", perf2);
     }
 
     /**
@@ -412,6 +425,9 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                     .assertBucketsItemsConsistency(bucketSize, workers)
                     .get();
 
+        TaskPerformanceInformation perf1 = TaskPerformanceInformation.fromTaskTree(rootAfterSuspension1.asObjectable());
+        displayDumpable("perf after 1st run", perf1);
+
         when("2nd run");
 
         System.out.println("Resuming task tree.");
@@ -436,7 +452,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                     .display();
 
         TaskProgressInformation progress2 = TaskProgressInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
-        TaskPartProgressInformation info2 = assertTaskProgress(progress2, "after 2nd suspension")
+        assertTaskProgress(progress2, "after 2nd suspension")
                 .display()
                 .assertAllPartsCount(1)
                 .assertCurrentPartNumber(1)
@@ -446,5 +462,8 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                     .assertCompletedBucketsAtLeast(info1.getBucketsProgress().getCompletedBuckets())
                     .assertItemsProgressAtLeast(info1.getItemsProgress().getProgress())
                     .get();
+
+        TaskPerformanceInformation perf2 = TaskPerformanceInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
+        displayDumpable("perf after 2nd run", perf2);
     }
 }
