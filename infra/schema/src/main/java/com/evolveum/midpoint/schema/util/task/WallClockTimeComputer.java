@@ -51,6 +51,14 @@ public class WallClockTimeComputer {
         return summarize(nonOverlappingIntervals);
     }
 
+    public XMLGregorianCalendar getEarliestStartTime() {
+        return nonOverlappingIntervals.stream()
+                .filter(Objects::nonNull)
+                .map(Interval::getStartTime)
+                .min(Comparator.comparing(XmlTypeConverter::toMillis))
+                .orElse(null);
+    }
+
     public List<TaskPartExecutionRecordType> getNonOverlappingRecords() {
         return nonOverlappingIntervals.stream()
                 .map(Interval::getRecord)
@@ -201,6 +209,15 @@ public class WallClockTimeComputer {
                     new TaskPartExecutionRecordType(PrismContext.get())
                         .startTimestamp(newFromXml)
                         .endTimestamp(newToXml) : null);
+        }
+
+        public XMLGregorianCalendar getStartTime() {
+            if (record != null) {
+                return record.getStartTimestamp();
+            } else {
+                // Record is null only in low-level tests. But let us provide reasonable info also in that case.
+                return XmlTypeConverter.createXMLGregorianCalendar(fromMillis);
+            }
         }
     }
 }

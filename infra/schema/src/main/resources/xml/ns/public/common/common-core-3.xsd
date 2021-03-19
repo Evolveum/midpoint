@@ -25914,10 +25914,10 @@
             <xsd:extension base="tns:OutcomeKeyedCounterType">
                 <xsd:sequence>
                     <!-- outcome and count are inherited -->
-                    <xsd:element name="duration" type="xsd:long" minOccurs="0">
+                    <xsd:element name="duration" type="xsd:double" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Total time spent while processing items in this set.
+                                Total time spent while processing items in this set (in milliseconds).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

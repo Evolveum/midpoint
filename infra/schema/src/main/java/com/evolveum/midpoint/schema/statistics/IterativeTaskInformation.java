@@ -84,32 +84,39 @@ public class IterativeTaskInformation {
      * Returns an object that should receive the status of the operation, in order to record
      * the operation end.
      */
-    public synchronized Operation recordOperationStart(IterativeOperationStartInfo operation) {
-        IterationItemInformation item = operation.getItem();
+    public synchronized Operation recordOperationStart(IterativeOperationStartInfo startInfo) {
+        IterationItemInformation item = startInfo.getItem();
         ProcessedItemType processedItem = new ProcessedItemType(prismContext)
                 .name(item.getObjectName())
                 .displayName(item.getObjectDisplayName())
                 .type(item.getObjectType())
                 .oid(item.getObjectOid())
-                .startTimestamp(XmlTypeConverter.createXMLGregorianCalendar(operation.getStartTimestamp()))
+                .startTimestamp(XmlTypeConverter.createXMLGregorianCalendar(startInfo.getStartTimeMillis()))
                 .operationId(getNextOperationId());
 
         IterativeTaskPartItemsProcessingInformationType matchingPart =
-                findOrCreateMatchingPart(value.getPart(), operation.getPartUri());
-        updatePartExecutions(matchingPart, operation.getPartStartTimestamp());
+                findOrCreateMatchingPart(value.getPart(), startInfo.getPartUri());
+        updatePartExecutions(matchingPart, startInfo.getPartStartTimestamp(), System.currentTimeMillis());
 
         List<ProcessedItemType> currentList = matchingPart.getCurrent();
         currentList.add(processedItem);
-        LOGGER.trace("Recorded current operation. Current list size: {}. Operation: {}", currentList.size(), operation);
-        return new OperationImpl(operation, processedItem);
+        LOGGER.trace("Recorded current operation. Current list size: {}. Operation: {}", currentList.size(), startInfo);
+        return new OperationImpl(startInfo, processedItem);
     }
 
-    private void updatePartExecutions(IterativeTaskPartItemsProcessingInformationType part, Long partStartTimestamp) {
+    public synchronized void recordPartExecutionEnd(String partUri, long partStartTimestamp, long partEndTimestamp) {
+        IterativeTaskPartItemsProcessingInformationType matchingPart =
+                findOrCreateMatchingPart(value.getPart(), partUri);
+        updatePartExecutions(matchingPart, partStartTimestamp, partEndTimestamp);
+    }
+
+    private void updatePartExecutions(IterativeTaskPartItemsProcessingInformationType part, Long partStartTimestamp,
+            long currentTimeMillis) {
         if (partStartTimestamp == null) {
             return;
         }
         findOrCreateMatchingExecutionRecord(part.getExecution(), partStartTimestamp)
-                .setEndTimestamp(XmlTypeConverter.createXMLGregorianCalendar());
+                .setEndTimestamp(XmlTypeConverter.createXMLGregorianCalendar(currentTimeMillis));
     }
 
     private TaskPartExecutionRecordType findOrCreateMatchingExecutionRecord(List<TaskPartExecutionRecordType> records,
@@ -127,39 +134,43 @@ public class IterativeTaskInformation {
     }
 
     /**
-     * Records the operation end. It is private because it is called externally (through Operation interface).
-     * Must be synchronized because of this external access.
+     * Records the operation end. Must be synchronized because it is called externally (through Operation interface).
      */
-    private synchronized void recordOperationEnd(IterativeOperationStartInfo operation, long operationId,
-            ProcessedItemType processedItem, QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
+    private synchronized void recordOperationEnd(OperationImpl operation, QualifiedItemProcessingOutcomeType outcome,
+            Throwable exception) {
+        String partUri = operation.startInfo.getPartUri();
+
         Optional<IterativeTaskPartItemsProcessingInformationType> matchingPartOptional =
-                findMatchingPart(value.getPart(), operation.getPartUri());
+                findMatchingPart(value.getPart(), partUri);
         if (matchingPartOptional.isPresent()) {
-            recordToPart(matchingPartOptional.get(), operation, operationId, processedItem, outcome, exception);
+            recordOperationEndToPart(matchingPartOptional.get(), operation, outcome, exception);
         } else {
             LOGGER.warn("Couldn't record operation end. Task part {} was not found for {}",
-                    operation.getPartUri(), operation);
+                    partUri, operation);
         }
     }
 
     /** The actual recording of operation end. */
-    private void recordToPart(IterativeTaskPartItemsProcessingInformationType part, IterativeOperationStartInfo operation,
-            long operationId, ProcessedItemType processedItem, QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
-        removeFromCurrentOperations(part, operationId);
-        addToProcessedItemSet(part, operation, processedItem, outcome, exception);
-        updatePartExecutions(part, operation.getPartStartTimestamp());
+    private void recordOperationEndToPart(IterativeTaskPartItemsProcessingInformationType part, OperationImpl operation,
+            QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
+
+        removeFromCurrentOperations(part, operation.operationId);
+        addToProcessedItemSet(part, operation, outcome, exception);
+
+        // We use operation end time to ensure consistency with other statistics that rely on operation end time.
+        updatePartExecutions(part, operation.startInfo.getPartStartTimestamp(), operation.endTimeMillis);
     }
 
     /** Updates the corresponding `processed` statistics. Creates and stores appropriate `lastItem` record. */
-    private void addToProcessedItemSet(IterativeTaskPartItemsProcessingInformationType part, IterativeOperationStartInfo operation,
-            ProcessedItemType processedItem, QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
+    private void addToProcessedItemSet(IterativeTaskPartItemsProcessingInformationType part, OperationImpl operation,
+            QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
+
         ProcessedItemSetType itemSet = findOrCreateProcessedItemSet(part, outcome);
         itemSet.setCount(or0(itemSet.getCount()) + 1);
-        long endTimestamp = System.currentTimeMillis();
-        long duration = endTimestamp - operation.getStartTimestamp();
-        itemSet.setDuration(or0(itemSet.getDuration()) + duration);
-        ProcessedItemType processedItemClone = processedItem.clone(); // to remove the parent
-        processedItemClone.setEndTimestamp(XmlTypeConverter.createXMLGregorianCalendar(endTimestamp));
+
+        itemSet.setDuration(or0(itemSet.getDuration()) + operation.getDurationRounded());
+        ProcessedItemType processedItemClone = operation.processedItem.clone(); // cloning to remove the parent
+        processedItemClone.setEndTimestamp(XmlTypeConverter.createXMLGregorianCalendar(operation.endTimeMillis));
         if (exception != null) {
             processedItemClone.setMessage(exception.getMessage());
         }
@@ -308,10 +319,6 @@ public class IterativeTaskInformation {
      */
     public interface Operation {
 
-        void done(ItemProcessingOutcomeType outcome, Throwable exception);
-
-        void done(QualifiedItemProcessingOutcomeType outcome, Throwable exception);
-
         default void succeeded() {
             done(ItemProcessingOutcomeType.SUCCESS, null);
         }
@@ -324,6 +331,18 @@ public class IterativeTaskInformation {
             done(ItemProcessingOutcomeType.FAILURE, t);
         }
 
+        default void done(ItemProcessingOutcomeType outcome, Throwable exception) {
+            QualifiedItemProcessingOutcomeType qualifiedOutcome =
+                    new QualifiedItemProcessingOutcomeType(PrismContext.get())
+                            .outcome(outcome);
+            done(qualifiedOutcome, exception);
+        }
+
+        void done(QualifiedItemProcessingOutcomeType outcome, Throwable exception);
+
+        double getDurationRounded();
+
+        long getEndTimeMillis();
     }
 
     /**
@@ -335,7 +354,7 @@ public class IterativeTaskInformation {
         private final long operationId;
 
         /** Client-supplied operation information. */
-        @NotNull private final IterativeOperationStartInfo operation;
+        @NotNull private final IterativeOperationStartInfo startInfo;
 
         /**
          * The processed item structure generated when recording operation start.
@@ -343,27 +362,45 @@ public class IterativeTaskInformation {
          */
         @NotNull private final ProcessedItemType processedItem;
 
-        OperationImpl(@NotNull IterativeOperationStartInfo operation, @NotNull ProcessedItemType processedItem) {
+        private long endTimeMillis;
+        private long endTimeNanos;
+
+        OperationImpl(@NotNull IterativeOperationStartInfo startInfo, @NotNull ProcessedItemType processedItem) {
             // The processedItem is stored only in memory; so there is no way of having null here.
             this.operationId = requireNonNull(processedItem.getOperationId());
-            this.operation = operation;
+            this.startInfo = startInfo;
             this.processedItem = processedItem;
-        }
-
-        public void done(ItemProcessingOutcomeType simpleOutcome, Throwable exception) {
-            QualifiedItemProcessingOutcomeType qualifiedOutcome =
-                    new QualifiedItemProcessingOutcomeType(prismContext)
-                            .outcome(simpleOutcome);
-            done(qualifiedOutcome, exception);
         }
 
         @Override
         public void done(QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
-            recordOperationEnd(operation, operationId, processedItem, outcome, exception);
-            StructuredProgressCollector progressCollector = operation.getStructuredProgressCollector();
+//            System.out.println("DONE: " + startInfo);
+            setEndTimes();
+            recordOperationEnd(this, outcome, exception);
+            StructuredProgressCollector progressCollector = startInfo.getStructuredProgressCollector();
             if (progressCollector != null) {
-                progressCollector.incrementStructuredProgress(operation.getPartUri(), outcome);
+                progressCollector.incrementStructuredProgress(startInfo.getPartUri(), outcome);
             }
+        }
+
+        private void setEndTimes() {
+            endTimeMillis = System.currentTimeMillis();
+            endTimeNanos = System.nanoTime();
+        }
+
+        @Override
+        public double getDurationRounded() {
+            if (endTimeNanos == 0) {
+                throw new IllegalStateException("Operation has not finished yet");
+            } else {
+                double tensOfMicroseconds = Math.round((endTimeNanos - startInfo.getStartTimeNanos()) / 10000.0);
+                return tensOfMicroseconds / 100.0;
+            }
+        }
+
+        @Override
+        public long getEndTimeMillis() {
+            return endTimeMillis;
         }
     }
 }

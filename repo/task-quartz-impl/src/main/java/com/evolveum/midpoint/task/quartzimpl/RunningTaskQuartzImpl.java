@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
 import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
@@ -162,8 +163,24 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
                 LOGGER.error("Task {} has {} runnable/running lightweight subtasks: {}", this, livingSubtasks.size(), livingSubtasks);
                 throw new IllegalStateException("There are runnable/running subtasks in the parent task");
             }
+            migrateStatisticsFromLightweightSubtasks();
             lightweightAsynchronousSubtasks.clear();
         }
+    }
+
+    /**
+     * In multithreaded scenarios some of the statistics exist only in LATs (e.g. iteration statistics).
+     * Now we are going to remove these LATs. We have to preserve the data somehow.
+     *
+     * The easiest way seems to be:
+     * 1. Compute current state of the statistics (using standard method).
+     * 2. Store this state as new "initial values" into {@link Statistics} class.
+     *
+     * Beware that we hold the lock on async subtasks.
+     */
+    private void migrateStatisticsFromLightweightSubtasks() {
+        updateOperationalStatsInTaskPrism();
+        statistics.restartCollectingStatistics(this, beans.sqlPerformanceMonitorsCollection);
     }
     //endregion
 
@@ -295,6 +312,12 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     @Override
     public void startCollectingStatistics(@NotNull StatisticsCollectionStrategy strategy) {
         statistics.startCollectingStatistics(this, strategy, beans.sqlPerformanceMonitorsCollection);
+
+        OperationStatsType stored = getStoredOperationStatsOrClone();
+        if (stored != null) {
+            String formatted = IterativeTaskInformation.format(stored.getIterativeTaskInformation());
+            System.out.println("In " + this + " ITI reset to:\n" + formatted);
+        }
     }
 
     private Statistics getStatistics() {

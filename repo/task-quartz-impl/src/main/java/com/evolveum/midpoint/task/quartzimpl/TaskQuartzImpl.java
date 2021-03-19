@@ -2127,6 +2127,10 @@ public class TaskQuartzImpl implements Task {
         return statistics.recordIterativeOperationStart(operation);
     }
 
+    public void recordPartExecutionEnd(String partUri, long partStartTimestamp, long partEndTimestamp) {
+        statistics.recordPartExecutionEnd(partUri, partStartTimestamp, partEndTimestamp);
+    }
+
     @Override
     public void onSyncItemProcessingStart(@NotNull String processingIdentifier, @Nullable SynchronizationSituationType situationBefore) {
         statistics.onSyncItemProcessingStart(processingIdentifier, situationBefore);

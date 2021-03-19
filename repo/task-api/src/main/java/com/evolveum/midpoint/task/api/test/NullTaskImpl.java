@@ -589,6 +589,10 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public void recordPartExecutionEnd(String partUri, long partStartTimestamp, long partEndTimestamp) {
+    }
+
+    @Override
     public IterativeTaskInformation.@NotNull Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
         throw new UnsupportedOperationException();
     }

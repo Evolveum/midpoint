@@ -62,12 +62,12 @@ public class Statistics implements WorkBucketStatisticsCollector {
         this.prismContext = prismContext;
     }
 
-    private EnvironmentalPerformanceInformation environmentalPerformanceInformation = new EnvironmentalPerformanceInformation();
-    private SynchronizationInformation synchronizationInformation; // has to be explicitly enabled (by setting non-null value)
-    private IterativeTaskInformation iterativeTaskInformation = new IterativeTaskInformation(PrismContext.get()); // just to have any value
-    private ActionsExecutedInformation actionsExecutedInformation; // has to be explicitly enabled (by setting non-null value)
+    private volatile EnvironmentalPerformanceInformation environmentalPerformanceInformation = new EnvironmentalPerformanceInformation();
+    private volatile SynchronizationInformation synchronizationInformation; // has to be explicitly enabled (by setting non-null value)
+    private volatile IterativeTaskInformation iterativeTaskInformation = new IterativeTaskInformation(PrismContext.get()); // just to have any value
+    private volatile ActionsExecutedInformation actionsExecutedInformation; // has to be explicitly enabled (by setting non-null value)
 
-    private StructuredTaskProgress structuredProgress = null; // has to be explicitly enabled (by setting non-null value)
+    private volatile StructuredTaskProgress structuredProgress = null; // has to be explicitly enabled (by setting non-null value)
 
     /**
      * This data structure is synchronized explicitly. Because it is updated infrequently, it should be sufficient.
@@ -298,35 +298,35 @@ public class Statistics implements WorkBucketStatisticsCollector {
         environmentalPerformanceInformation.recordMappingOperation(objectOid, objectName, objectTypeName, mappingName, duration);
     }
 
-    public synchronized void onSyncItemProcessingStart(@NotNull String processingIdentifier,
+    public void onSyncItemProcessingStart(@NotNull String processingIdentifier,
             @Nullable SynchronizationSituationType beforeOperation) {
         if (synchronizationInformation != null) {
             synchronizationInformation.onItemProcessingStart(processingIdentifier, beforeOperation);
         }
     }
 
-    public synchronized void onSynchronizationStart(@Nullable String processingIdentifier,
+    public void onSynchronizationStart(@Nullable String processingIdentifier,
             @Nullable String shadowOid, @Nullable SynchronizationSituationType situation) {
         if (synchronizationInformation != null) {
             synchronizationInformation.onSynchronizationStart(processingIdentifier, shadowOid, situation);
         }
     }
 
-    public synchronized void onSynchronizationExclusion(@Nullable String processingIdentifier,
+    public void onSynchronizationExclusion(@Nullable String processingIdentifier,
             @NotNull SynchronizationExclusionReasonType exclusionReason) {
         if (synchronizationInformation != null) {
             synchronizationInformation.onSynchronizationExclusion(processingIdentifier, exclusionReason);
         }
     }
 
-    public synchronized void onSynchronizationSituationChange(@Nullable String processingIdentifier,
+    public void onSynchronizationSituationChange(@Nullable String processingIdentifier,
             @Nullable String shadowOid, @Nullable SynchronizationSituationType situation) {
         if (synchronizationInformation != null) {
             synchronizationInformation.onSynchronizationSituationChange(processingIdentifier, shadowOid, situation);
         }
     }
 
-    public synchronized void onSyncItemProcessingEnd(@NotNull String processingIdentifier,
+    public void onSyncItemProcessingEnd(@NotNull String processingIdentifier,
             @NotNull QualifiedItemProcessingOutcomeType outcome) {
         if (synchronizationInformation != null) {
             synchronizationInformation.onSyncItemProcessingEnd(processingIdentifier, outcome);
@@ -334,8 +334,12 @@ public class Statistics implements WorkBucketStatisticsCollector {
     }
 
     @NotNull
-    public synchronized IterativeTaskInformation.Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
+    public IterativeTaskInformation.Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
         return iterativeTaskInformation.recordOperationStart(operation);
+    }
+
+    public void recordPartExecutionEnd(String partUri, long partStartTimestamp, long partEndTimestamp) {
+        iterativeTaskInformation.recordPartExecutionEnd(partUri, partStartTimestamp, partEndTimestamp);
     }
 
     public void setStructuredProgressPartInformation(String partUri, Integer partNumber, Integer expectedParts) {
@@ -442,9 +446,19 @@ public class Statistics implements WorkBucketStatisticsCollector {
     public void startCollectingStatistics(@NotNull RunningTask task,
             @NotNull StatisticsCollectionStrategy strategy, SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
         OperationStatsType initialOperationStats = getOrCreateInitialOperationStats(task);
-        startCollectingRegularOperationStats(initialOperationStats, strategy);
-        startCollectingThreadLocalStatistics(initialOperationStats, sqlPerformanceMonitors);
+        startOrRestartCollectingRegularOperationStats(initialOperationStats, strategy.isMaintainSynchronizationStatistics(),
+                strategy.isMaintainActionsExecutedStatistics());
+        startOrRestartCollectingThreadLocalStatistics(initialOperationStats, sqlPerformanceMonitors);
         startCollectingStructuredProgress(task, strategy);
+    }
+
+    public void restartCollectingStatistics(@NotNull RunningTask task, SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
+        OperationStatsType newInitialValues = getOrCreateInitialOperationStats(task);
+        startOrRestartCollectingRegularOperationStats(newInitialValues,
+                synchronizationInformation != null,
+                actionsExecutedInformation != null);
+        startOrRestartCollectingThreadLocalStatistics(newInitialValues, sqlPerformanceMonitors);
+        // Structured progress restart is not needed, as it is not maintained in LATs.
     }
 
     @NotNull
@@ -453,15 +467,16 @@ public class Statistics implements WorkBucketStatisticsCollector {
         return stored != null ? stored : new OperationStatsType(PrismContext.get());
     }
 
-    private void startCollectingRegularOperationStats(OperationStatsType initialOperationStats, @NotNull StatisticsCollectionStrategy strategy) {
+    private void startOrRestartCollectingRegularOperationStats(OperationStatsType initialOperationStats,
+            boolean maintainSynchronizationStatistics, boolean maintainActionsExecutedStatistics) {
         resetEnvironmentalPerformanceInformation(initialOperationStats.getEnvironmentalPerformanceInformation());
         resetIterativeTaskInformation(initialOperationStats.getIterativeTaskInformation());
-        if (strategy.isMaintainSynchronizationStatistics()) {
+        if (maintainSynchronizationStatistics) {
             resetSynchronizationInformation(initialOperationStats.getSynchronizationInformation());
         } else {
             synchronizationInformation = null;
         }
-        if (strategy.isMaintainActionsExecutedStatistics()) {
+        if (maintainActionsExecutedStatistics) {
             resetActionsExecutedInformation(initialOperationStats.getActionsExecutedInformation());
         } else {
             actionsExecutedInformation = null;
@@ -469,9 +484,10 @@ public class Statistics implements WorkBucketStatisticsCollector {
         resetWorkBucketManagementPerformanceInformation(initialOperationStats.getWorkBucketManagementPerformanceInformation());
     }
 
-    private void startCollectingThreadLocalStatistics(OperationStatsType initialOperationStats, SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
+    private void startOrRestartCollectingThreadLocalStatistics(OperationStatsType initialOperationStats,
+            SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
         setInitialValuesForThreadLocalStatistics(initialOperationStats);
-        startCollectingThreadLocalStatistics(sqlPerformanceMonitors);
+        startOrRestartCollectingThreadLocalStatistics(sqlPerformanceMonitors);
     }
 
     private void startCollectingStructuredProgress(@NotNull RunningTask task, @NotNull StatisticsCollectionStrategy strategy) {
@@ -501,7 +517,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
         cachingConfigurationDump = dump;
     }
 
-    public void startCollectingThreadLocalStatistics(SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
+    public void startOrRestartCollectingThreadLocalStatistics(SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
         if (sqlPerformanceMonitors != null) {
             sqlPerformanceMonitors.startThreadLocalPerformanceInformationCollection();
         }

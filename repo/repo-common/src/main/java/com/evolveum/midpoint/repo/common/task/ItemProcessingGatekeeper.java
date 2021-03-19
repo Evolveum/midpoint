@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.common.task;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
@@ -80,8 +81,8 @@ class ItemProcessingGatekeeper<I> {
     /** Task handler related logger. It is here to enable turning on logging for specific task types. */
     @NotNull private final Trace logger;
 
-    /** Timing information related to the execution of this item. */
-    @NotNull private final Timing timing = new Timing();
+    /** Current {@link Operation}. Contains e.g. the timing information. */
+    private Operation operation;
 
     /**
      * Tuple "name, display name, type, OID" that is to be written to the iterative task information.
@@ -123,7 +124,7 @@ class ItemProcessingGatekeeper<I> {
 
             startTracingAndDynamicProfiling();
             logOperationStart();
-            Operation operation = updateStatisticsOnStart();
+            operation = updateStatisticsOnStart();
 
             OperationResult result = doProcessItem(parentResult);
 
@@ -134,7 +135,7 @@ class ItemProcessingGatekeeper<I> {
 
             acknowledgeItemProcessed(result);
 
-            updateStatisticsOnEnd(operation, result);
+            updateStatisticsOnEnd(result);
             logOperationEnd(result);
 
             cleanupAndSummarizeResults(result, parentResult);
@@ -227,8 +228,8 @@ class ItemProcessingGatekeeper<I> {
         parentResult.summarize();
     }
 
-    private ItemProcessingStatistics getStatistics() {
-        return partExecution.statistics;
+    private CurrentBucketStatistics getCurrentBucketStatistics() {
+        return partExecution.bucketStatistics;
     }
 
     private String getProcessShortNameCapitalized() {
@@ -238,33 +239,57 @@ class ItemProcessingGatekeeper<I> {
     /** Must come after item and task statistics are updated. */
     private void logOperationEnd(OperationResult result) {
 
-        logger.info("{} of {} {} done with status {}. Took {} ms.", getProcessShortNameCapitalized(), iterationItemInformation,
-                getContextDesc(), result.getStatus(), String.format(Locale.US, "%,.1f", timing.durationNanos / 1000000.0f));
-
-        ItemProcessingStatistics partExecutionStatistics = getStatistics();
-        logger.info("In current bucket: Items: {} (errors: {}). Average: {} ms. Wall-clock average: {} ms. Throughput: {} per minute.",
-                String.format(Locale.US, "%,d", partExecutionStatistics.getItemsProcessed()),
-                String.format(Locale.US, "%,d", partExecutionStatistics.getErrors()),
-                String.format(Locale.US, "%,.1f", partExecutionStatistics.getAverageTime()),
-                String.format(Locale.US, "%,.1f", partExecutionStatistics.getAverageWallClockTime()),
-                String.format(Locale.US, "%,.1f", partExecutionStatistics.getThroughput()));
-
-
-        OperationStatsType operationStats = coordinatorTask.getStoredOperationStatsOrClone();
-        StructuredTaskProgressType structuredProgress = coordinatorTask.getStructuredProgressOrClone();
-        TaskPartPerformanceInformation partPerfInfo = TaskPartPerformanceInformation.forCurrentPart(operationStats, structuredProgress);
-        logger.info("In current part: Items: {} (progress: {}, errors: {}). Average: {} ms. Wall-clock average: {} ms. Throughput: {} per minute.",
-                String.format(Locale.US, "%,d", partPerfInfo.getItemsProcessed()),
-                String.format(Locale.US, "%,d", partPerfInfo.getProgress()),
-                String.format(Locale.US, "%,d", partPerfInfo.getErrors()),
-                String.format(Locale.US, "%.1f", partPerfInfo.getAverageTime()),
-                String.format(Locale.US, "%.1f", partPerfInfo.getAverageWallClockTime()),
-                String.format(Locale.US, "%.1f", partPerfInfo.getThroughput()));
+        logResultAndExecutionStatistics(result);
 
         if (isError() && getReportingOptions().isLogErrors()) {
             logger.error("{} of object {} {} failed: {}", getProcessShortNameCapitalized(), iterationItemInformation,
                     getContextDesc(), processingResult.getMessage(), processingResult.exception);
         }
+    }
+
+    // TODO deduplicate with statistics output in AbstractIterativeTaskPartExecution
+    // TODO decide on the final form of these messages
+    // TODO turn on/off via reporting options
+    private void logResultAndExecutionStatistics(OperationResult result) {
+        if (!logger.isDebugEnabled()) {
+            return;
+        }
+
+        CurrentBucketStatistics bucketStatistics = getCurrentBucketStatistics();
+
+        long now = operation.getEndTimeMillis();
+
+        OperationStatsType operationStats = coordinatorTask.getStoredOperationStatsOrClone();
+        StructuredTaskProgressType structuredProgress = coordinatorTask.getStructuredProgressOrClone();
+        TaskPartPerformanceInformation partStatistics =
+                TaskPartPerformanceInformation.forCurrentPart(operationStats, structuredProgress);
+
+        String message = String.format(Locale.US,
+                "%s of %s %s done with status %s.\n\n"
+                        + "Items processed: %,d in current bucket and %,d in current part.\n"
+                        + "Errors: %,d in current bucket and %,d in current part.\n"
+                        + "Real progress is %,d.\n\n"
+                        + "Duration for this item was %,.1f ms. Average duration is %,.1f ms (in current bucket) and %,.1f ms (in current part).\n"
+                        + "Wall clock average is %,.1f ms (in current bucket) and %,.1f ms (in current part).\n"
+                        + "Average throughput is %,.1f items per minute (in current bucket) and %,.1f items per minute (in current part).\n\n"
+                        + "Processing time is %,.1f ms (for current bucket) and %,.1f ms (for current part)\n"
+                        + "Wall-clock time is %,d ms (for current bucket) and %,d ms (for current part)\n"
+                        + "Start time was:\n"
+                        + " - for current bucket: %s\n"
+                        + " - for current part:   %s\n",
+                getProcessShortNameCapitalized(), iterationItemInformation, getContextDesc(), result.getStatus(),
+                bucketStatistics.getItemsProcessed(), partStatistics.getItemsProcessed(),
+                bucketStatistics.getErrors(), partStatistics.getErrors(),
+                partStatistics.getProgress(),
+                operation.getDurationRounded(), bucketStatistics.getAverageTime(), partStatistics.getAverageTime(),
+                bucketStatistics.getAverageWallClockTime(now), partStatistics.getAverageWallClockTime(),
+                bucketStatistics.getThroughput(now), partStatistics.getThroughput(),
+                bucketStatistics.getProcessingTime(), partStatistics.getProcessingTime(),
+                bucketStatistics.getWallClockTime(now), partStatistics.getWallClockTime(),
+                XmlTypeConverter.createXMLGregorianCalendar(bucketStatistics.getStartTimeMillis()),
+                partStatistics.getEarliestStartTime());
+
+        logger.debug("{}", message);
     }
 
     /**
@@ -419,22 +444,21 @@ class ItemProcessingGatekeeper<I> {
         return recordIterativeOperationStart();
     }
 
-    private void updateStatisticsOnEnd(Operation operation, OperationResult result) {
+    private void updateStatisticsOnEnd(OperationResult result) {
         recordIterativeOperationEnd(operation);
         onSyncItemProcessingEnd();
 
-        updateStatisticsInPartExecution();
+        updateStatisticsInPartExecutionObject();
         updateStatisticsInTasks(result);
     }
 
-    private void updateStatisticsInPartExecution() {
-        timing.recordEnd();
-        ItemProcessingStatistics partStatistics = getStatistics();
+    private void updateStatisticsInPartExecutionObject() {
+        CurrentBucketStatistics partStatistics = getCurrentBucketStatistics();
         partStatistics.incrementProgress();
         if (isError()) {
             partStatistics.incrementErrors();
         }
-        partStatistics.addDuration(timing.durationNanos / 1000000.0);
+        partStatistics.addDuration(operation.getDurationRounded());
     }
 
     /**
@@ -472,21 +496,6 @@ class ItemProcessingGatekeeper<I> {
         return taskExecution.getPrismContext();
     }
 
-    /** Information on the time aspect of the processing of this item. */
-    private static class Timing {
-
-        private final long startTimeNanos;
-        private long durationNanos;
-
-        private Timing() {
-            this.startTimeNanos = System.nanoTime();
-        }
-
-        private void recordEnd() {
-            durationNanos = System.nanoTime() - startTimeNanos;
-        }
-    }
-
     @Experimental
     private static class ProcessingResult {
 
@@ -508,7 +517,7 @@ class ItemProcessingGatekeeper<I> {
                     "Error without exception");
         }
 
-        public static ProcessingResult fromOperationResult(OperationResult result, PrismContext prismContext) {
+        static ProcessingResult fromOperationResult(OperationResult result, PrismContext prismContext) {
             if (result.isError()) {
                 // This is an error without visible top-level exception, so we have to find one.
                 Throwable exception = RepoCommonUtils.getResultException(result);

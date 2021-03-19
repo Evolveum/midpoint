@@ -13,11 +13,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Maintains selected statistical information related to processing items during task part execution.
- * For bucketed tasks this is bound to a single bucket.
+ * Currently this means it is bound to a single bucket.
  *
  * Must be thread safe.
  */
-public class ItemProcessingStatistics {
+public class CurrentBucketStatistics {
 
     /** Number of items processed during the task part execution (in current bucket). */
     private final AtomicInteger itemsProcessed = new AtomicInteger();
@@ -31,11 +31,18 @@ public class ItemProcessingStatistics {
      */
     private final AtomicDouble totalTimeProcessing = new AtomicDouble();
 
-    /** The time when the task part execution started. */
-    protected final long startTimeMillis;
+    /** The wall clock time when the bucket execution started. */
+    protected volatile long startTimeMillis;
 
-    ItemProcessingStatistics() {
+    /** When the bucket execution ended. */
+    protected volatile Long endTimeMillis;
+
+    void recordStart() {
         this.startTimeMillis = System.currentTimeMillis();
+    }
+
+    void recordEnd() {
+        this.endTimeMillis = System.currentTimeMillis();
     }
 
     public double addDuration(double delta) {
@@ -60,17 +67,21 @@ public class ItemProcessingStatistics {
         }
     }
 
-    final Double getAverageWallClockTime() {
+    final double getProcessingTime() {
+        return totalTimeProcessing.get();
+    }
+
+    Double getAverageWallClockTime(long now) {
         int count = getItemsProcessed();
         if (count > 0) {
-            return (double) getWallTime() / count;
+            return (double) getWallClockTime(now) / count;
         } else {
             return null;
         }
     }
 
-    Double getThroughput() {
-        Double wallAverageTime = getAverageWallClockTime();
+    Double getThroughput(long now) {
+        Double wallAverageTime = getAverageWallClockTime(now);
         if (wallAverageTime != null) {
             return 60000.0 / wallAverageTime;
         } else {
@@ -78,8 +89,16 @@ public class ItemProcessingStatistics {
         }
     }
 
-    final long getWallTime() {
-        return System.currentTimeMillis() - startTimeMillis;
+    public final long getWallClockTime(long now) {
+        return now - startTimeMillis;
+    }
+
+    public long getStartTimeMillis() {
+        return startTimeMillis;
+    }
+
+    public Long getEndTimeMillis() {
+        return endTimeMillis;
     }
 
     public int getErrors() {
@@ -88,9 +107,5 @@ public class ItemProcessingStatistics {
 
     public int getItemsProcessed() {
         return itemsProcessed.get();
-    }
-
-    public long getStartTimeMillis() {
-        return startTimeMillis;
     }
 }

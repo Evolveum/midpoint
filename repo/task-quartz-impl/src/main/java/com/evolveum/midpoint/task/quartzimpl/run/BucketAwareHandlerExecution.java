@@ -69,15 +69,9 @@ class BucketAwareHandlerExecution {
     @NotNull public TaskRunResult execute(OperationResult result) throws ExitExecutionException {
 
         resetWorkStateAndStatisticsIfWorkComplete(result);
+        startCollectingStatistics(task, handler);
 
         for (; task.canRun(); initialExecution = false) {
-
-            // We must start collecting statistics inside this cycle. The reason is that - in multithreaded scenarios -
-            // some of the statistics exist only in LATs (e.g. iteration statistics) and so their source form simply disappear
-            // on previous bucket end. Their aggregated form is preserved in this running (non-LAT) parent, but is overwritten
-            // as soon as next cycle starts with new LATs. Therefore we copy the aggregated form into internal structures
-            // as initial values, to be preserved.
-            startCollectingStatistics(task, handler);
 
             WorkBucketType bucket = getWorkBucket(result);
             if (bucket == null) {

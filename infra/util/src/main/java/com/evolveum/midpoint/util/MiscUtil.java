@@ -1034,6 +1034,10 @@ public class MiscUtil {
         return Objects.requireNonNullElse(value, 0L);
     }
 
+    public static double or0(Double value) {
+        return Objects.requireNonNullElse(value, 0.0);
+    }
+
     public static Integer min(Integer a, Integer b) {
         if (a == null) {
             return b;

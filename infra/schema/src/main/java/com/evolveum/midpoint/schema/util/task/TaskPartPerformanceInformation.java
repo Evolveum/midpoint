@@ -10,7 +10,10 @@ package com.evolveum.midpoint.schema.util.task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskPartItemsProcessingInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StructuredTaskProgressType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartProgressType;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import static java.util.Collections.emptyList;
 
 /**
  * Extract of the most relevant performance information about a task part.
@@ -20,15 +23,18 @@ public class TaskPartPerformanceInformation {
     private final int itemsProcessed;
     private final int errors;
     private final int progress;
-    private final Long processingTime;
+    private final double processingTime;
     private final Long wallClockTime;
+    private final XMLGregorianCalendar earliestStartTime;
 
-    private TaskPartPerformanceInformation(int itemsProcessed, int errors, int progress, Long processingTime, Long wallClockTime) {
+    private TaskPartPerformanceInformation(int itemsProcessed, int errors, int progress, double processingTime,
+            Long wallClockTime, XMLGregorianCalendar earliestStartTime) {
         this.itemsProcessed = itemsProcessed;
         this.errors = errors;
         this.progress = progress;
         this.processingTime = processingTime;
         this.wallClockTime = wallClockTime;
+        this.earliestStartTime = earliestStartTime;
     }
 
     public static TaskPartPerformanceInformation forCurrentPart(OperationStatsType operationStats,
@@ -40,10 +46,16 @@ public class TaskPartPerformanceInformation {
         int itemsProcessed = TaskOperationStatsUtil.getItemsProcessed(info);
         int errors = TaskOperationStatsUtil.getErrors(info);
         int progress = TaskProgressUtil.getTotalProgressForCurrentPart(structuredProgress);
-        Long processingTime = TaskOperationStatsUtil.getProcessingTime(info);
-        Long wallClockTime = TaskOperationStatsUtil.getWallClockTime(info);
+        double processingTime = TaskOperationStatsUtil.getProcessingTime(info);
 
-        return new TaskPartPerformanceInformation(itemsProcessed, errors, progress, processingTime, wallClockTime);
+        WallClockTimeComputer wallClockTimeComputer =
+                new WallClockTimeComputer(info != null ? info.getExecution() : emptyList());
+
+        long wallClockTime = wallClockTimeComputer.getSummaryTime();
+        XMLGregorianCalendar earliestStartTime = wallClockTimeComputer.getEarliestStartTime();
+
+        return new TaskPartPerformanceInformation(itemsProcessed, errors, progress, processingTime,
+                wallClockTime, earliestStartTime);
     }
 
     public int getItemsProcessed() {
@@ -62,9 +74,13 @@ public class TaskPartPerformanceInformation {
         return errors;
     }
 
+    public double getProcessingTime() {
+        return processingTime;
+    }
+
     public Double getAverageTime() {
-        if (processingTime != null && itemsProcessed > 0) {
-            return (double) processingTime / itemsProcessed;
+        if (itemsProcessed > 0) {
+            return processingTime / itemsProcessed;
         } else {
             return null;
         }
@@ -85,5 +101,9 @@ public class TaskPartPerformanceInformation {
         } else {
             return null;
         }
+    }
+
+    public XMLGregorianCalendar getEarliestStartTime() {
+        return earliestStartTime;
     }
 }

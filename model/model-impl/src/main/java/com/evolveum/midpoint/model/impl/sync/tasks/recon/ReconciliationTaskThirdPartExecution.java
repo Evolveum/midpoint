@@ -103,7 +103,7 @@ class ReconciliationTaskThirdPartExecution
     @Override
     protected void finish(OperationResult opResult) throws SchemaException {
         super.finish(opResult);
-        taskExecution.reconResult.setShadowReconCount(statistics.getItemsProcessed());
+        taskExecution.reconResult.setShadowReconCount(bucketStatistics.getItemsProcessed());
     }
 
     protected static class ItemProcessor

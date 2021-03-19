@@ -145,6 +145,7 @@ public class TaskOperationStatsUtil {
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static IterativeTaskPartItemsProcessingInformationType getIterativeInfoForCurrentPart(OperationStatsType statistics,
             StructuredTaskProgressType structuredProgress) {
         return getIterativeInfoForPart(statistics,
@@ -162,6 +163,7 @@ public class TaskOperationStatsUtil {
         }
     }
 
+    @SuppressWarnings("unused")
     public static int getItemsProcessedForCurrentPart(OperationStatsType statistics,
             StructuredTaskProgressType structuredTaskProgress) {
         return getItemsProcessed(
@@ -184,9 +186,9 @@ public class TaskOperationStatsUtil {
         }
     }
 
-    public static Long getProcessingTime(IterativeTaskPartItemsProcessingInformationType info) {
+    public static double getProcessingTime(IterativeTaskPartItemsProcessingInformationType info) {
         if (info == null) {
-            return null;
+            return 0;
         } else {
             return getProcessingTime(singleton(info), set -> true);
         }
@@ -205,13 +207,13 @@ public class TaskOperationStatsUtil {
                 .sum();
     }
 
-    private static long getProcessingTime(Collection<IterativeTaskPartItemsProcessingInformationType> parts,
+    private static double getProcessingTime(Collection<IterativeTaskPartItemsProcessingInformationType> parts,
             Predicate<ProcessedItemSetType> itemSetFilter) {
         return parts.stream()
                 .flatMap(component -> component.getProcessed().stream())
                 .filter(Objects::nonNull)
                 .filter(itemSetFilter)
-                .mapToLong(p -> or0(p.getDuration()))
+                .mapToDouble(p -> or0(p.getDuration()))
                 .sum();
     }
 

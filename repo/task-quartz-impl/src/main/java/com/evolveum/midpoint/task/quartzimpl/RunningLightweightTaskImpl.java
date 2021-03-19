@@ -103,7 +103,7 @@ public class RunningLightweightTaskImpl extends RunningTaskQuartzImpl implements
             try {
                 lightweightHandlerExecuting = true;
                 setExecutingThread(Thread.currentThread());
-                statistics.startCollectingThreadLocalStatistics(beans.sqlPerformanceMonitorsCollection);
+                statistics.startOrRestartCollectingThreadLocalStatistics(beans.sqlPerformanceMonitorsCollection);
                 beans.cacheConfigurationManager.setThreadLocalProfiles(getCachingProfiles());
                 OperationResult.setThreadLocalHandlingStrategy(getOperationResultHandlingStrategyName());
                 setExecutionState(TaskExecutionStateType.RUNNING);

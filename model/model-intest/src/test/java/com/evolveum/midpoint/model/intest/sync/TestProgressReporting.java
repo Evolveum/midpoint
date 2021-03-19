@@ -52,8 +52,10 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static final TestResource<TaskType> TASK_RECONCILE_DUMMY =
-            new TestResource<>(TEST_DIR, "task-reconcile-dummy-interrupted.xml", "944f7dbd-b221-4df3-b975-781c7794af6e");
+    private static final TestResource<TaskType> TASK_RECONCILE_DUMMY_0T_NB_NP =
+            new TestResource<>(TEST_DIR, "task-reconcile-dummy-0t-nb-np.xml", "a9b042dd-0a67-4829-b0c4-a51026af0070");
+    private static final TestResource<TaskType> TASK_RECONCILE_DUMMY_2T_NB_NP =
+            new TestResource<>(TEST_DIR, "task-reconcile-dummy-2t-nb-np.xml", "944f7dbd-b221-4df3-b975-781c7794af6e");
     private static final TestResource<TaskType> TASK_RECONCILE_DUMMY_PARTITIONED =
             new TestResource<>(TEST_DIR, "task-reconcile-dummy-interrupted-partitioned.xml", "83eef280-d420-417a-929d-796eed202e02");
     private static final TestResource<TaskType> TASK_RECONCILE_DUMMY_PARTITIONED_MULTINODE
@@ -95,8 +97,13 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
      * Reconciliation suspend + resume - check for progress reporting issues.
      */
     @Test
-    public void test100ReconciliationSuspension() throws Exception {
-        executePlainReconciliation(TASK_RECONCILE_DUMMY, "u", 1);
+    public void test100Reconcile_0T_NB_NP() throws Exception {
+        executePlainReconciliation(TASK_RECONCILE_DUMMY_0T_NB_NP, "a", 1);
+    }
+
+    @Test
+    public void test110Reconcile_2T_NB_NP() throws Exception {
+        executePlainReconciliation(TASK_RECONCILE_DUMMY_2T_NB_NP, "b", 1);
     }
 
     private void createShadowWithPendingOperation() throws CommonException {
@@ -120,15 +127,15 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
-     *
+     * TODO
      */
     @Test
-    public void test110ReconciliationSuspensionPartitioned() throws Exception {
+    public void test120ReconciliationSuspensionPartitioned() throws Exception {
         executePartitionedBucketedReconciliation(TASK_RECONCILE_DUMMY_PARTITIONED, "v", 1);
     }
 
     @Test
-    public void test120ReconciliationSuspensionPartitionedMultiNode() throws Exception {
+    public void test130ReconciliationSuspensionPartitionedMultiNode() throws Exception {
         executePartitionedBucketedReconciliation(TASK_RECONCILE_DUMMY_PARTITIONED_MULTINODE, "w", 2);
     }
 

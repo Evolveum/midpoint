@@ -18,9 +18,11 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 public class IterativeOperationStartInfo {
 
     private final IterationItemInformation item;
-    private final long startTimestamp;
-    private final Long partStartTimestamp;
     private final String partUri;
+    private final Long partStartTimestamp;
+
+    private final long startTimeMillis;
+    private final long startTimeNanos;
 
     /**
      * If present, we use this object to increment the structured progress on operation completion.
@@ -35,26 +37,28 @@ public class IterativeOperationStartInfo {
     }
 
     public IterativeOperationStartInfo(IterationItemInformation item, String partUri) {
-        this(item, System.currentTimeMillis(), partUri, null);
+        this(item, partUri, null);
     }
 
     public IterativeOperationStartInfo(IterationItemInformation item, String partUri, Long partStartTimestamp) {
-        this(item, System.currentTimeMillis(), partUri, partStartTimestamp);
-    }
-
-    public IterativeOperationStartInfo(IterationItemInformation item, long startTimestamp, String partUri, Long partStartTimestamp) {
         this.item = item;
-        this.startTimestamp = startTimestamp;
         this.partUri = partUri;
         this.partStartTimestamp = partStartTimestamp;
+
+        this.startTimeMillis = System.currentTimeMillis();
+        this.startTimeNanos = System.nanoTime();
     }
 
     public IterationItemInformation getItem() {
         return item;
     }
 
-    public long getStartTimestamp() {
-        return startTimestamp;
+    public long getStartTimeMillis() {
+        return startTimeMillis;
+    }
+
+    public long getStartTimeNanos() {
+        return startTimeNanos;
     }
 
     public Long getPartStartTimestamp() {
@@ -77,7 +81,7 @@ public class IterativeOperationStartInfo {
     public String toString() {
         return getClass().getSimpleName() + "{" +
                 "item=" + item +
-                ", startTimestamp=" + startTimestamp +
+                ", startTimeMillis=" + startTimeMillis +
                 ", partStartTimestamp=" + partStartTimestamp +
                 ", partUri=" + partUri +
                 ", structuredProgressCollector=" + structuredProgressCollector +
