@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<!-- (c) 2020 Evolveum, All rights reserved -->
-<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <s:type>c:ResourceType</s:type>
-    <s:action>
-        <s:type>test-resource</s:type>
-    </s:action>
-</s:search>

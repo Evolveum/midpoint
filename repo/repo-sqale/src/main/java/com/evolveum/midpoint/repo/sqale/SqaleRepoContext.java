@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
-import com.evolveum.midpoint.repo.sqale.support.QuerydslJsonbType;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslJsonbType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;

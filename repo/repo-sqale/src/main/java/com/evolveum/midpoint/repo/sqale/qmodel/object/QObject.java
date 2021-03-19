@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
-import static com.evolveum.midpoint.repo.sqale.support.JsonbPath.JSONB_TYPE;
+import static com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath.JSONB_TYPE;
 
 import java.sql.Types;
 import java.time.Instant;
@@ -17,8 +17,8 @@ import com.querydsl.sql.ForeignKey;
 import com.querydsl.sql.PrimaryKey;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
-import com.evolveum.midpoint.repo.sqale.support.JsonbPath;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
@@ -100,8 +100,8 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     public final StringPath lifecycleState = createString("lifecycleState", LIFECYCLE_STATE);
     public final NumberPath<Long> containerIdSeq = createLong("containerIdSeq", CID_SEQ);
     public final NumberPath<Integer> version = createInteger("version", VERSION);
-    public final ArrayPath<String[], String> policySituations =
-            createArray("policySituations", String[].class, POLICY_SITUATIONS);
+    public final ArrayPath<Integer[], Integer> policySituations =
+            createArray("policySituations", Integer[].class, POLICY_SITUATIONS);
     public final ArrayPath<String[], String> subtypes =
             createArray("subtypes", String[].class, SUBTYPES);
     public final JsonbPath ext = createJsonb("ext", EXT);
@@ -145,13 +145,5 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
 
     public QObject(Class<T> type, String variable, String schema, String table) {
         super(type, variable, schema, table);
-    }
-
-    // TODO consider whether to move this to repo-sqlbase (with PG JDBC dep) or we create
-    //  subclass of FlexibleRelationalPathBase common for sqale repo (this may be handy for container extensions too)
-
-    /** Creates {@link UuidPath} path for a property and registers column metadata for it. */
-    protected JsonbPath createJsonb(String property, ColumnMetadata columnMetadata) {
-        return addMetadata(add(new JsonbPath(forProperty(property))), columnMetadata);
     }
 }

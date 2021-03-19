@@ -43,7 +43,6 @@
         <module>longtest</module>
         <module>story</module>
         <module>rest</module>
-        <module>schrodingertest</module>
     </modules>
 
     <properties>
@@ -57,8 +56,6 @@
         <skipLongTests>true</skipLongTests>
         <skipRestTests>true</skipRestTests>
         <skipStoryTests>true</skipStoryTests>
-        <!-- By default we skip Schrodinger tests. This is not part of "extra" tests. -->
-        <skipSchrodingerTests>true</skipSchrodingerTests>
     </properties>
 
     <profiles>
@@ -79,7 +76,6 @@
                 <skipLongTests>false</skipLongTests>
                 <skipRestTests>false</skipRestTests>
                 <skipStoryTests>false</skipStoryTests>
-                <!-- Schrodinger tests are separate, we don't want them in this profile -->
             </properties>
         </profile>
     </profiles>

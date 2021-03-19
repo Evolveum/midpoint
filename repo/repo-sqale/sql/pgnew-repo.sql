@@ -14,6 +14,7 @@
 -- just in case PUBLIC schema was dropped (fastest way to remove all midpoint objects)
 -- drop schema public cascade;
 CREATE SCHEMA IF NOT EXISTS public;
+CREATE EXTENSION IF NOT EXISTS intarray; -- support for indexing INTEGER[] columns
 
 -- region custom enum types
 -- Some enums are from schema, some are only defined in repo-sqale.
@@ -201,7 +202,8 @@ CREATE TABLE m_object (
     cid_seq BIGINT NOT NULL DEFAULT 1, -- sequence for container id, next free cid
     version INTEGER NOT NULL DEFAULT 1,
     -- complex DB columns, add indexes as needed per concrete table, e.g. see m_user
-    policySituations TEXT[], -- TODO experimental, compare with [] in JSONB, check performance, indexing, etc. first
+    -- TODO compare with [] in JSONB, check performance, indexing, etc. first
+    policySituations INTEGER[], -- soft-references m_uri, add index per table as/if needed
     subtypes TEXT[],
     textInfo TEXT[], -- TODO not mapped yet
     ext JSONB,
@@ -428,6 +430,7 @@ CREATE TRIGGER m_user_oid_delete_tr AFTER DELETE ON m_user
 
 CREATE INDEX m_user_name_orig_idx ON m_user (name_orig);
 ALTER TABLE m_user ADD CONSTRAINT m_user_name_norm_key UNIQUE (name_norm);
+CREATE INDEX m_user_policySituation_idx ON m_user USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_user_ext_idx ON m_user USING gin (ext);
 CREATE INDEX m_user_fullName_orig_idx ON m_user (fullName_orig);
 CREATE INDEX m_user_familyName_orig_idx ON m_user (familyName_orig);
@@ -719,6 +722,7 @@ CREATE TRIGGER m_shadow_oid_delete_tr AFTER DELETE ON m_shadow
 
 CREATE INDEX m_shadow_name_orig_idx ON m_shadow (name_orig);
 ALTER TABLE m_shadow ADD CONSTRAINT m_shadow_name_norm_key UNIQUE (name_norm);
+CREATE INDEX m_shadow_policySituation_idx ON m_shadow USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin (ext);
 /*
 TODO: reconsider, especially boolean things like dead (perhaps WHERE in other indexes?)
@@ -1111,6 +1115,7 @@ CREATE TABLE m_assignment_type (
     -- TODO what is this? see RAssignment.getExtension (both extId/Oid)
     extId INTEGER,
     extOid TEXT/*VARCHAR(36)*/, -- is this UUID too?
+    policySituations INTEGER[], -- soft-references m_uri, add index per table
     ext JSONB,
     -- construction
     resourceRef_targetOid UUID,
@@ -1155,6 +1160,7 @@ CREATE TABLE m_assignment (
 )
     INHERITS(m_assignment_type);
 
+CREATE INDEX m_assignment_policySituation_idx ON m_assignment USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_assignment_ext_idx ON m_assignment USING gin (ext);
 -- TODO was: CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);
 -- administrativeStatus has 3 states (ENABLED/DISABLED/ARCHIVED), not sure it's worth indexing
@@ -1196,17 +1202,6 @@ ALTER TABLE m_assignment_ref_modify_approver ADD CONSTRAINT m_assignment_ref_mod
     FOREIGN KEY (owner_oid, assignment_cid) REFERENCES m_assignment (owner_oid, cid);
 
 -- TODO index targetOid, relation_id?
-
-/* TODO - this is also not mapped in Java, obviously
-CREATE TABLE m_assignment_policy_situation (
-  assignment_owner_oid UUID NOT NULL,
-  assignment_cid INTEGER NOT NULL,
-  policySituation TEXT/*VARCHAR(255)*/
-);
-CREATE INDEX iAssignmentPolicySituationId ON M_ASSIGNMENT_POLICY_SITUATION(ASSIGNMENT_OID, ASSIGNMENT_ID);
-ALTER TABLE m_assignment_policy_situation
-  ADD CONSTRAINT fk_assignment_policy_situation FOREIGN KEY (assignment_oid, assignment_id) REFERENCES m_assignment;
-*/
 
 CREATE TABLE m_inducement (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
@@ -1762,8 +1757,6 @@ ALTER TABLE m_object_ext_reference
 ALTER TABLE m_object_ext_string
   ADD CONSTRAINT fk_o_ext_string_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 
-ALTER TABLE m_object_subtype
-  ADD CONSTRAINT fk_object_subtype FOREIGN KEY (object_oid) REFERENCES m_object;
 ALTER TABLE m_object_text_info
   ADD CONSTRAINT fk_object_text_info_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
 ALTER TABLE m_operation_execution
@@ -1811,7 +1804,6 @@ CREATE INDEX iObjectExtLongItemId ON M_OBJECT_EXT_LONG(ITEM_ID);
 CREATE INDEX iObjectExtPolyItemId ON M_OBJECT_EXT_POLY(ITEM_ID);
 CREATE INDEX iObjectExtReferenceItemId ON M_OBJECT_EXT_REFERENCE(ITEM_ID);
 CREATE INDEX iObjectExtStringItemId ON M_OBJECT_EXT_STRING(ITEM_ID);
-CREATE INDEX iObjectSubtypeOid ON M_OBJECT_SUBTYPE(OBJECT_OID);
 CREATE INDEX iOrgOrgTypeOid ON M_ORG_ORG_TYPE(ORG_OID);
 
 -- Thanks to Patrick Lightbody for submitting this...

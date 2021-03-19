@@ -136,6 +136,11 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
         return addMetadata(add(new UuidPath(forProperty(property))), columnMetadata);
     }
 
+    /** Creates {@link JsonbPath} path for a property and registers column metadata for it. */
+    protected JsonbPath createJsonb(String property, ColumnMetadata columnMetadata) {
+        return addMetadata(add(new JsonbPath(forProperty(property))), columnMetadata);
+    }
+
     /**
      * Works like default {@link RelationalPathBase#addMetadata(Path, ColumnMetadata)}
      * and on top of it adds the information necessary to use dynamic/extension columns
