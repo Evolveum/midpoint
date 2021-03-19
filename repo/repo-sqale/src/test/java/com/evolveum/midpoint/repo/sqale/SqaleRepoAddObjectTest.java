@@ -35,6 +35,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.MResource;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResource;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QSystemConfiguration;
+import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
+import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -406,10 +408,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         then("it is stored and relevant attributes are in columns");
         assertResult(result);
 
-        UUID resourceOid = UUID.fromString(resource.getOid());
-
-        QResource r = aliasFor(QResource.class);
-        MResource row = selectOne(r, r.oid.eq(resourceOid));
+        MResource row = selectObjectByOid(QResource.class, resource.getOid());
         assertThat(row.businessAdministrativeState)
                 .isEqualTo(ResourceAdministrativeStateType.DISABLED);
         assertThat(row.operationalStateLastAvailabilityStatus)
@@ -420,7 +419,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
 
         QObjectReference ref = QObjectReferenceMapping
                 .INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER.defaultAlias();
-        List<MReference> refs = select(ref, ref.ownerOid.eq(resourceOid));
+        List<MReference> refs = select(ref, ref.ownerOid.eq(row.oid));
         assertThat(refs).hasSize(2);
 
         refs.sort(comparing(rr -> rr.targetType));
@@ -473,7 +472,8 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         then("it is stored and relevant attributes are in columns");
         assertResult(result);
 
-        MGenericObject row = selectObjectByOid(QGenericObject.class, UUID.fromString(genericObject.getOid()));
+        MGenericObject row = selectObjectByOid(
+                QGenericObject.class, UUID.fromString(genericObject.getOid()));
         assertThat(row.costCenter).isEqualTo("cost-center");
         assertThat(row.emailAddress).isEqualTo("email-address");
         assertThat(row.photo).isEqualTo(new byte[] { 1, 2, 3, 4, 5 });
@@ -527,17 +527,76 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         then("it is stored and relevant attributes are in columns");
         assertResult(result);
 
-        QAccessCertificationDefinition acd = aliasFor(QAccessCertificationDefinition.class);
-        List<MAccessCertificationDefinition> acds = select(acd,
-                acd.oid.eq(UUID.fromString(accessCertificationDefinition.getOid())));
-        assertThat(acds).hasSize(1);
-        MAccessCertificationDefinition row = acds.get(0);
+        MAccessCertificationDefinition row = selectObjectByOid(
+                QAccessCertificationDefinition.class, accessCertificationDefinition.getOid());
         assertCachedUri(row.handlerUriId, "handler-uri");
         assertThat(row.lastCampaignStartedTimestamp).isEqualTo(lastCampaignStarted);
         assertThat(row.lastCampaignClosedTimestamp).isEqualTo(lastCampaignClosed);
         assertThat(row.ownerRefTargetOid).isEqualTo(ownerRefOid);
         assertThat(row.ownerRefTargetType).isEqualTo(MObjectType.USER);
         assertCachedUri(row.ownerRefRelationId, relationUri);
+    }
+
+    @Test
+    public void test930Task() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("task");
+        String objectName = "task" + getTestNumber();
+        UUID objectRefOid = UUID.randomUUID();
+        UUID ownerRefOid = UUID.randomUUID();
+        QName relationUri = QName.valueOf("{https://some.uri}someRelation");
+        var task = new TaskType(prismContext)
+                .name(objectName)
+                .taskIdentifier("task-id")
+                .binding(TaskBindingType.LOOSE)
+                .category("category")
+                .completionTimestamp(MiscUtil.asXMLGregorianCalendar(1L))
+                .executionStatus(TaskExecutionStateType.RUNNABLE)
+                // TODO full result?
+                .handlerUri("handler-uri")
+                .lastRunStartTimestamp(MiscUtil.asXMLGregorianCalendar(1L))
+                .lastRunFinishTimestamp(MiscUtil.asXMLGregorianCalendar(2L))
+                .node("node")
+                .objectRef(objectRefOid.toString(), OrgType.COMPLEX_TYPE, relationUri)
+                .ownerRef(ownerRefOid.toString(), UserType.COMPLEX_TYPE, relationUri)
+                .parent("parent")
+                .recurrence(TaskRecurrenceType.RECURRING)
+                .resultStatus(OperationResultStatusType.UNKNOWN)
+                .threadStopAction(ThreadStopActionType.RESCHEDULE)
+                .waitingReason(TaskWaitingReasonType.OTHER_TASKS)
+                .dependent("dep-task-1")
+                .dependent("dep-task-2");
+
+        when("adding it to the repository");
+        repositoryService.addObject(task.asPrismObject(), null, result);
+
+        then("it is stored and relevant attributes are in columns");
+        assertResult(result);
+
+        MTask row = selectObjectByOid(QTask.class, task.getOid());
+        assertThat(row.taskIdentifier).isEqualTo("task-id");
+        assertThat(row.binding).isEqualTo(TaskBindingType.LOOSE);
+        assertThat(row.category).isEqualTo("category");
+        assertThat(row.completionTimestamp).isEqualTo(Instant.ofEpochMilli(1));
+        assertThat(row.executionStatus).isEqualTo(TaskExecutionStateType.RUNNABLE);
+        assertCachedUri(row.handlerUriId, "handler-uri");
+        assertThat(row.lastRunStartTimestamp).isEqualTo(Instant.ofEpochMilli(1));
+        assertThat(row.lastRunFinishTimestamp).isEqualTo(Instant.ofEpochMilli(2));
+        assertThat(row.node).isEqualTo("node");
+        assertThat(row.objectRefTargetOid).isEqualTo(objectRefOid);
+        assertThat(row.objectRefTargetType).isEqualTo(MObjectType.ORG);
+        assertCachedUri(row.objectRefRelationId, relationUri);
+        assertThat(row.ownerRefTargetOid).isEqualTo(ownerRefOid);
+        assertThat(row.ownerRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(row.ownerRefRelationId, relationUri);
+        assertThat(row.parent).isEqualTo("parent");
+        assertThat(row.recurrence).isEqualTo(TaskRecurrenceType.RECURRING);
+        assertThat(row.resultStatus).isEqualTo(OperationResultStatusType.UNKNOWN);
+        assertThat(row.threadStopAction).isEqualTo(ThreadStopActionType.RESCHEDULE);
+        assertThat(row.waitingReason).isEqualTo(TaskWaitingReasonType.OTHER_TASKS);
+        assertThat(row.dependentTaskIdentifiers)
+                .containsExactlyInAnyOrder("dep-task-1", "dep-task-2");
     }
     // endregion
 }

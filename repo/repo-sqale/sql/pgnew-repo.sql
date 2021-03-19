@@ -89,9 +89,15 @@ CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ER
 
 CREATE TYPE ResourceAdministrativeStateType AS ENUM ('ENABLED', 'DISABLED');
 
+CREATE TYPE TaskBindingType AS ENUM ('LOOSE', 'TIGHT');
+
 CREATE TYPE TaskExecutionStatusType AS ENUM ('RUNNABLE', 'WAITING', 'SUSPENDED', 'CLOSED');
 
+CREATE TYPE TaskRecurrenceType AS ENUM ('SINGLE', 'RECURRING');
+
 CREATE TYPE TaskWaitingReasonType AS ENUM ('OTHER_TASKS', 'OTHER');
+
+CREATE TYPE ThreadStopActionType AS ENUM ('RESTART', 'RESCHEDULE', 'SUSPEND', 'CLOSE');
 -- endregion
 
 -- region OID-pool table
@@ -207,7 +213,7 @@ CREATE TABLE m_object (
     -- TODO compare with [] in JSONB, check performance, indexing, etc. first
     policySituations INTEGER[], -- soft-references m_uri, add index per table as/if needed
     subtypes TEXT[],
-    textInfo TEXT[], -- TODO not mapped yet
+    textInfo TEXT[], -- TODO not mapped yet, see RObjectTextInfo#createItemsSet
     ext JSONB,
     -- metadata
     creatorRef_targetOid UUID,
@@ -458,6 +464,19 @@ CREATE INDEX m_user_fullName_orig_idx ON m_user (fullName_orig);
 CREATE INDEX m_user_familyName_orig_idx ON m_user (familyName_orig);
 CREATE INDEX m_user_givenName_orig_idx ON m_user (givenName_orig);
 CREATE INDEX m_user_employeeNumber_idx ON m_user (employeeNumber);
+
+/* TODO JSON of polystrings?
+CREATE TABLE m_user_organization (
+  user_oid UUID NOT NULL,
+  norm     TEXT/*VARCHAR(255)*/,
+  orig     TEXT/*VARCHAR(255)*/
+);
+CREATE TABLE m_user_organizational_unit (
+  user_oid UUID NOT NULL,
+  norm     TEXT/*VARCHAR(255)*/,
+  orig     TEXT/*VARCHAR(255)*/
+);
+ */
 -- endregion
 
 -- region ROLE related tables
@@ -583,7 +602,8 @@ CREATE TRIGGER m_access_cert_campaign_oid_delete_tr AFTER DELETE ON m_access_cer
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_access_cert_campaign_name_orig_idx ON m_access_cert_campaign (name_orig);
-ALTER TABLE m_access_cert_campaign ADD CONSTRAINT m_access_cert_campaign_name_norm_key UNIQUE (name_norm);
+ALTER TABLE m_access_cert_campaign
+    ADD CONSTRAINT m_access_cert_campaign_name_norm_key UNIQUE (name_norm);
 CREATE INDEX m_access_cert_campaign_ext_idx ON m_access_cert_campaign USING gin (ext);
 
 CREATE TABLE m_access_cert_case (
@@ -987,14 +1007,15 @@ ALTER TABLE m_connector_host ADD CONSTRAINT m_connector_host_name_norm_key UNIQU
 CREATE TABLE m_task (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('TASK') STORED,
-    binding INTEGER,
+    taskIdentifier TEXT/*VARCHAR(255)*/,
+    binding TaskBindingType,
     category TEXT/*VARCHAR(255)*/,
     completionTimestamp TIMESTAMPTZ,
     executionStatus TaskExecutionStatusType,
     fullResult BYTEA,
     handlerUri_id INTEGER, -- soft-references m_uri
-    lastRunFinishTimestamp TIMESTAMPTZ,
     lastRunStartTimestamp TIMESTAMPTZ,
+    lastRunFinishTimestamp TIMESTAMPTZ,
     node TEXT/*VARCHAR(255)*/, -- node_id only for information purposes
     objectRef_targetOid UUID,
     objectRef_targetType ObjectType,
@@ -1003,11 +1024,11 @@ CREATE TABLE m_task (
     ownerRef_targetType ObjectType,
     ownerRef_relation_id INTEGER, -- soft-references m_uri
     parent TEXT/*VARCHAR(255)*/, -- value of taskIdentifier
-    recurrence INTEGER,
+    recurrence TaskRecurrenceType,
     resultStatus OperationResultStatusType,
-    taskIdentifier TEXT/*VARCHAR(255)*/,
-    threadStopAction INTEGER,
-    waitingReason TaskWaitingReasonType
+    threadStopAction ThreadStopActionType,
+    waitingReason TaskWaitingReasonType,
+    dependentTaskIdentifiers TEXT[] -- contains values of taskIdentifier
 )
     INHERITS (m_object);
 
@@ -1023,16 +1044,7 @@ ALTER TABLE m_task ADD CONSTRAINT m_task_name_norm_key UNIQUE (name_norm);
 CREATE INDEX m_task_parent_idx ON m_task (parent);
 CREATE INDEX m_task_objectRef_targetOid_idx ON m_task(objectRef_targetOid);
 ALTER TABLE m_task ADD CONSTRAINT m_task_taskIdentifier_key UNIQUE (taskIdentifier);
-
-/* TODO inline as array or json to m_task
-CREATE TABLE m_task_dependent (
-    task_oid UUID NOT NULL,
-    dependent TEXT/*VARCHAR(255)*/
-);
-ALTER TABLE m_task_dependent
-    ADD CONSTRAINT fk_task_dependent FOREIGN KEY (task_oid) REFERENCES m_task;
-CREATE INDEX iTaskDependentOid ON M_TASK_DEPENDENT(TASK_OID);
-*/
+CREATE INDEX m_task_dependentTaskIdentifiers_idx ON m_task USING GIN(dependentTaskIdentifiers);
 
 -- Represents CaseType, see https://wiki.evolveum.com/display/midPoint/Case+Management
 CREATE TABLE m_case (
@@ -1110,7 +1122,6 @@ CREATE INDEX m_ref_include_targetOid_relation_id_idx
 
 -- region FunctionLibrary/Sequence/Form tables
 -- Represents FunctionLibraryType, see https://wiki.evolveum.com/display/midPoint/Function+Libraries
--- TODO not mapped
 CREATE TABLE m_function_library (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('FUNCTION_LIBRARY') STORED
@@ -1598,16 +1609,6 @@ CREATE TABLE m_org_closure (
   descendant_oid UUID NOT NULL,
   val            INTEGER,
   PRIMARY KEY (ancestor_oid, descendant_oid)
-);
-CREATE TABLE m_user_organization (
-  user_oid UUID NOT NULL,
-  norm     TEXT/*VARCHAR(255)*/,
-  orig     TEXT/*VARCHAR(255)*/
-);
-CREATE TABLE m_user_organizational_unit (
-  user_oid UUID NOT NULL,
-  norm     TEXT/*VARCHAR(255)*/,
-  orig     TEXT/*VARCHAR(255)*/
 );
 
 CREATE TABLE m_org (

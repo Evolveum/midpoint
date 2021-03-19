@@ -15,9 +15,7 @@ import com.querydsl.sql.ColumnMetadata;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
@@ -32,7 +30,7 @@ public class QTask extends QObject<MTask> {
     public static final ColumnMetadata TASK_IDENTIFIER =
             ColumnMetadata.named("taskIdentifier").ofType(Types.VARCHAR);
     public static final ColumnMetadata BINDING =
-            ColumnMetadata.named("binding").ofType(Types.INTEGER);
+            ColumnMetadata.named("binding").ofType(Types.OTHER);
     public static final ColumnMetadata CATEGORY =
             ColumnMetadata.named("category").ofType(Types.VARCHAR);
     public static final ColumnMetadata COMPLETION_TIMESTAMP =
@@ -64,13 +62,15 @@ public class QTask extends QObject<MTask> {
     public static final ColumnMetadata PARENT =
             ColumnMetadata.named("parent").ofType(Types.VARCHAR);
     public static final ColumnMetadata RECURRENCE =
-            ColumnMetadata.named("recurrence").ofType(Types.INTEGER);
+            ColumnMetadata.named("recurrence").ofType(Types.OTHER);
     public static final ColumnMetadata RESULT_STATUS =
             ColumnMetadata.named("resultStatus").ofType(Types.OTHER);
     public static final ColumnMetadata THREAD_STOP_ACTION =
-            ColumnMetadata.named("threadStopAction").ofType(Types.INTEGER);
+            ColumnMetadata.named("threadStopAction").ofType(Types.OTHER);
     public static final ColumnMetadata WAITING_REASON =
             ColumnMetadata.named("waitingReason").ofType(Types.OTHER);
+    public static final ColumnMetadata DEPENDENT_TASK_IDENTIFIERS =
+            ColumnMetadata.named("dependentTaskIdentifiers").ofType(Types.ARRAY);
 
     // columns and relations
     public final StringPath taskIdentifier = createString("taskIdentifier", TASK_IDENTIFIER);
@@ -100,13 +100,16 @@ public class QTask extends QObject<MTask> {
     public final NumberPath<Integer> ownerRefRelationId =
             createInteger("ownerRefRelationId", OWNER_REF_RELATION_ID);
     public final StringPath parent = createString("parent", PARENT);
-    public final NumberPath<Integer> recurrence = createInteger("recurrence", RECURRENCE);
+    public final EnumPath<TaskRecurrenceType> recurrence =
+            createEnum("recurrence", TaskRecurrenceType.class, RECURRENCE);
     public final EnumPath<OperationResultStatusType> resultStatus =
             createEnum("resultStatus", OperationResultStatusType.class, RESULT_STATUS);
-    public final NumberPath<Integer> threadStopAction =
-            createInteger("threadStopAction", THREAD_STOP_ACTION);
+    public final EnumPath<ThreadStopActionType> threadStopAction =
+            createEnum("threadStopAction", ThreadStopActionType.class, THREAD_STOP_ACTION);
     public final EnumPath<TaskWaitingReasonType> waitingReason =
             createEnum("waitingReason", TaskWaitingReasonType.class, WAITING_REASON);
+    public final ArrayPath<String[], String> dependentTaskIdentifiers =
+            createArray("dependentTaskIdentifiers", String[].class, DEPENDENT_TASK_IDENTIFIERS);
 
     public QTask(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

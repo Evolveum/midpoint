@@ -35,10 +35,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.node.QNodeMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QTriggerMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.other.QDashboardMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.other.QFormMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.other.QObjectCollectionMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.other.QSequenceMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.other.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportDataMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportMapping;
@@ -124,6 +121,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(DashboardType.COMPLEX_TYPE, QDashboardMapping.INSTANCE)
                 .register(FocusType.COMPLEX_TYPE, QFocusMapping.INSTANCE)
                 .register(FormType.COMPLEX_TYPE, QFormMapping.INSTANCE)
+                .register(FunctionLibraryType.COMPLEX_TYPE, QFunctionLibraryMapping.INSTANCE)
                 .register(ConnectorType.COMPLEX_TYPE, QConnectorMapping.INSTANCE)
                 .register(ConnectorHostType.COMPLEX_TYPE, QConnectorHostMapping.INSTANCE)
                 .register(GenericObjectType.COMPLEX_TYPE, QGenericObjectMapping.INSTANCE)
