@@ -32,9 +32,9 @@ import java.util.stream.Collectors;
 public class MockParallelTaskHandler implements TaskHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(MockParallelTaskHandler.class);
-    public static final int NUM_SUBTASKS = 500;
-    public static final String NS_EXT = "http://myself.me/schemas/whatever";
-    public static final ItemName DURATION_QNAME = new ItemName(NS_EXT, "duration", "m");
+    static final int NUM_SUBTASKS = 15; // Shouldn't be too high because of concurrent repository access.
+    private static final String NS_EXT = "http://myself.me/schemas/whatever";
+    private static final ItemName DURATION_QNAME = new ItemName(NS_EXT, "duration", "m");
 
     private TaskManagerQuartzImpl taskManager;
 
@@ -56,7 +56,7 @@ public class MockParallelTaskHandler implements TaskHandler {
         private final long duration;
         private static final long STEP = 100;
 
-        public MyLightweightTaskHandler(Integer duration) {
+        MyLightweightTaskHandler(Integer duration) {
             this.duration = duration != null ? duration : 86400L * 1000L * 365000L; // 1000 years
         }
 
@@ -92,10 +92,10 @@ public class MockParallelTaskHandler implements TaskHandler {
             hasExited = true;
         }
 
-        public boolean hasRun() {
+        boolean hasRun() {
             return hasRun;
         }
-        public boolean hasExited() {
+        boolean hasExited() {
             return hasExited;
         }
     }
@@ -183,7 +183,7 @@ public class MockParallelTaskHandler implements TaskHandler {
         this.taskManager = taskManager;
     }
 
-    public RunningTask getLastTaskExecuted() {
+    RunningTask getLastTaskExecuted() {
         return lastTaskExecuted;
     }
 
