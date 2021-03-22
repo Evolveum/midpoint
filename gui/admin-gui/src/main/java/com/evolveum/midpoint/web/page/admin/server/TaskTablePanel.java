@@ -313,41 +313,12 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     private String getProgressDescription(SelectableBean<TaskType> task) {
         Long stalledSince = getStalledSince(task.getValue());
+        String realProgress = WebComponentUtil.getTaskProgressInformation(task.getValue(), false, getPageBase());
         if (stalledSince != null) {
-            return getString("pageTasks.stalledSince", new Date(stalledSince).toLocaleString(), getRealProgressDescription(task));
+            return getString("pageTasks.stalledSince", new Date(stalledSince).toLocaleString(), realProgress);
         } else {
-            return WebComponentUtil.getTaskProgressInformation(task.getValue(), false, getPageBase());
+            return realProgress;
         }
-    }
-
-    private String getRealProgressDescription(SelectableBean<TaskType> task) {
-        if (TaskWorkStateUtil.isWorkStateHolder(task.getValue())) {
-            return getBucketedTaskProgressDescription(task.getValue());
-        } else {
-            return getPlainTaskProgressDescription(task.getValue());
-        }
-    }
-
-    private String getBucketedTaskProgressDescription(TaskType taskType) {
-        int completeBuckets = getCompleteBuckets(taskType);
-        Integer expectedBuckets = getExpectedBuckets(taskType);
-        if (expectedBuckets == null) {
-            return String.valueOf(completeBuckets);
-        } else {
-            return (completeBuckets * 100 / expectedBuckets) + "%";
-        }
-    }
-
-    private Integer getExpectedBuckets(TaskType taskType) {
-        return taskType.getWorkState() != null ? taskType.getWorkState().getNumberOfBuckets() : null;
-    }
-
-    private Integer getCompleteBuckets(TaskType taskType) {
-        return TaskWorkStateUtil.getCompleteBucketsNumber(taskType);
-    }
-
-    private String getPlainTaskProgressDescription(TaskType taskType) {
-        return TaskProgressUtil.getPlainTaskProgressDescription(taskType);
     }
 
     private Long getStalledSince(TaskType taskType) {
