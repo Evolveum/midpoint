@@ -316,7 +316,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         if (stalledSince != null) {
             return getString("pageTasks.stalledSince", new Date(stalledSince).toLocaleString(), getRealProgressDescription(task));
         } else {
-            return getRealProgressDescription(task);
+            return WebComponentUtil.getTaskProgressInformation(task.getValue(), false, getPageBase());
         }
     }
 

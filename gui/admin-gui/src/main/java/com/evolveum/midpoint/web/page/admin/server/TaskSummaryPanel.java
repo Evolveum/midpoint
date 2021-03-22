@@ -6,6 +6,15 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -13,10 +22,11 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
+import com.evolveum.midpoint.schema.util.task.TaskPartProgressInformation;
+import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
-import com.evolveum.midpoint.web.component.refresh.Refreshable;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
@@ -24,13 +34,6 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author mederly
@@ -41,19 +44,14 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskSummaryPanel.class);
 
-    private static final String ID_TAG_REFRESH = "refreshTag";
-
-    private Refreshable refreshable;
-
-    public TaskSummaryPanel(String id, IModel<TaskType> model, Refreshable refreshable, final PageBase parentPage) {
+    public TaskSummaryPanel(String id, IModel<TaskType> model, final PageBase parentPage) {
         super(id, TaskType.class, model, parentPage);
-        this.refreshable = refreshable;
     }
 
     @Override
     protected List<SummaryTag<TaskType>> getSummaryTagComponentList(){
         List<SummaryTag<TaskType>> summaryTagList = new ArrayList<>();
-        SummaryTag<TaskType> tagExecutionStatus = new SummaryTag<TaskType>(ID_SUMMARY_TAG, getModel()) {
+        SummaryTag<TaskType> tagExecutionStatus = new SummaryTag<>(ID_SUMMARY_TAG, getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -75,7 +73,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         };
         summaryTagList.add(tagExecutionStatus);
 
-        SummaryTag<TaskType> tagResult = new SummaryTag<TaskType>(ID_SUMMARY_TAG, getModel()) {
+        SummaryTag<TaskType> tagResult = new SummaryTag<>(ID_SUMMARY_TAG, getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -97,7 +95,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         };
         summaryTagList.add(tagResult);
 
-        SummaryTag<TaskType> tagLiveSyncToken = new SummaryTag<TaskType>(ID_SUMMARY_TAG, getModel()) {
+        SummaryTag<TaskType> tagLiveSyncToken = new SummaryTag<>(ID_SUMMARY_TAG, getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -168,14 +166,8 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         return (IModel<String>) () -> {
                 TaskType taskType = getModelObject();
 
-                String rv;
-                if (taskType.getExpectedTotal() != null) {
-                    rv = createStringResource("TaskSummaryPanel.progressWithTotalKnown", taskType.getProgress(), taskType.getExpectedTotal())
-                            .getString();
-                } else {
-                    rv = createStringResource("TaskSummaryPanel.progressWithTotalUnknown", taskType.getProgress()).getString();
-                }
-                if (taskType.getExecutionStatus() != null) {
+            String rv = WebComponentUtil.getTaskProgressInformation(taskType, true, getPageBase());
+            if (taskType.getExecutionStatus() != null) {
                     switch (taskType.getExecutionStatus()) {
                         case SUSPENDED:
                             rv += " " + getString("TaskSummaryPanel.progressIfSuspended");
@@ -198,16 +190,13 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
     @Override
     protected IModel<String> getTitle2Model() {
-        return new IModel<String>() {
-            @Override
-            public String getObject() {
-                TaskType taskType = getModelObject();
-                String lastSuccess = TaskOperationStatsUtil.getLastSuccessObjectName(taskType);
-                if (lastSuccess != null) {
-                    return createStringResource("TaskSummaryPanel.lastProcessed", lastSuccess).getString();
-                } else {
-                    return "";
-                }
+        return (IModel<String>) () -> {
+            TaskType taskType = getModelObject();
+            String lastSuccess = TaskOperationStatsUtil.getLastSuccessObjectName(taskType);
+            if (lastSuccess != null) {
+                return createStringResource("TaskSummaryPanel.lastProcessed", lastSuccess).getString();
+            } else {
+                return "";
             }
         };
     }

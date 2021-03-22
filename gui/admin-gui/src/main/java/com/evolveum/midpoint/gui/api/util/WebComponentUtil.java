@@ -27,6 +27,8 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.util.task.TaskPartProgressInformation;
+import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -4999,5 +5001,19 @@ public final class WebComponentUtil {
             return null;
         }
         return calAsLong;
+    }
+
+    public static String getTaskProgressInformation(TaskType taskType, boolean longForm, PageBase pageBase) {
+        TaskProgressInformation progress = TaskProgressInformation.fromTaskTree(taskType);
+        TaskPartProgressInformation partProgress = progress.getCurrentPartInformation();
+        String partProgressHumanReadable = partProgress.toHumanReadableString(longForm);
+
+        if (longForm) {
+            partProgressHumanReadable = StringUtils.replaceOnce(partProgressHumanReadable, "of", "TaskSymmaryPanel.progress.of");
+            partProgressHumanReadable = StringUtils.replaceOnce(partProgressHumanReadable, "buckets", "TaskSummaryPanel.progress.buckets");
+        }
+
+        String rv = pageBase.getString("TaskSummaryPanel.progress.info." + (longForm ? "long" : "short"), partProgressHumanReadable, progress.getCurrentPartNumber(), progress.getAllPartsCount());
+        return rv;
     }
 }

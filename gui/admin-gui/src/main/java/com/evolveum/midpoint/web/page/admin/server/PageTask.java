@@ -133,7 +133,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     @Override
     protected ObjectSummaryPanel<TaskType> createSummaryPanel(IModel<TaskType> summaryModel) {
-        return new TaskSummaryPanel(ID_SUMMARY_PANEL, summaryModel, this, this);
+        return new TaskSummaryPanel(ID_SUMMARY_PANEL, summaryModel, this);
     }
 
     @Override
