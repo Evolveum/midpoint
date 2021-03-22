@@ -115,7 +115,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
         // THEN
         String coordinatorTaskOid = coordinatorTaskOid();
         try {
-            waitForTaskProgress(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
+            waitForTaskRunFinish(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 0);
 
             TaskQuartzImpl coordinatorTask = taskManager.getTaskPlain(coordinatorTaskOid(), result);
             List<? extends Task> workers = coordinatorTask.listSubtasks(result);
@@ -177,9 +177,11 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
         try {
             // THEN (worker is created and executed)
             then("1: import task");
-            waitForTaskProgress(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
+            waitForTaskRunFinish(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 0);
 
             TaskQuartzImpl coordinatorTask = taskManager.getTaskPlain(coordinatorTaskOid(), result);
+            long lastRunFinish = coordinatorTask.getLastRunFinishTimestamp();
+
             List<TaskQuartzImpl> workers = coordinatorTask.listSubtasks(result);
             assertEquals("Wrong # of workers", 1, workers.size());
 
@@ -196,11 +198,12 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             // (2) ------------------------------------------------------------------------------------ WHEN (wait for coordinator next run)
             when("2: wait for coordinator next run");
             // TODO adapt this when the coordinator progress will be reported in other ways
-            waitForTaskProgress(coordinatorTaskOid, result, 30000, DEFAULT_SLEEP_INTERVAL, 2);
+            waitForTaskRunFinish(coordinatorTaskOid, result, 30000, DEFAULT_SLEEP_INTERVAL, lastRunFinish);
 
             // THEN (worker is still present and executed)
             then("2: wait for coordinator next run");
             coordinatorTask = taskManager.getTaskPlain(coordinatorTaskOid(), result);
+            lastRunFinish = coordinatorTask.getLastRunFinishTimestamp();
             workers = coordinatorTask.listSubtasks(result);
             assertEquals("Wrong # of workers", 1, workers.size());
 
@@ -259,7 +262,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 
             // (5) ------------------------------------------------------------------------------------  WHEN (suspend the tree while worker is executing)
             when("5: suspend the tree while worker is executing");
-            waitForTaskProgress(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 3);
+            waitForTaskRunFinish(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, lastRunFinish);
             stopped = taskManager.suspendTaskTree(coordinatorTaskOid, DEFAULT_TIMEOUT, result);
 
             // THEN (tasks are suspended)
@@ -325,7 +328,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
         // THEN
         String masterTaskOid = taskOid("r");
         try {
-            waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
+            waitForTaskRunFinish(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 0);
 
             TaskQuartzImpl masterTask = taskManager.getTaskPlain(masterTaskOid, result);
             List<? extends Task> subtasks = masterTask.listSubtasks(result);
@@ -374,7 +377,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
         // THEN
         String masterTaskOid = taskOid("r");
         try {
-            waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
+            waitForTaskRunFinish(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 0);
 
             TaskQuartzImpl masterTask = taskManager.getTaskPlain(masterTaskOid, result);
             List<? extends Task> subtasks = masterTask.listSubtasks(result);
@@ -437,7 +440,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
         // THEN
         String masterTaskOid = taskOid("r");
         try {
-            waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
+            waitForTaskRunFinish(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 0);
 
             TaskQuartzImpl masterTask = taskManager.getTaskPlain(masterTaskOid, result);
             List<? extends Task> subtasks = masterTask.listSubtasks(result);

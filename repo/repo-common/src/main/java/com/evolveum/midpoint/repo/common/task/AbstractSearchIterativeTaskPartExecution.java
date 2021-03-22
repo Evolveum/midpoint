@@ -144,18 +144,11 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
     }
 
     @Override
-    protected void setProgressAndExpectedItems(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
+    protected void setExpectedTotal(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
             ObjectAlreadyExistsException {
-        Long expectedTotal = computeExpectedTotalIfApplicable(opResult);
-        setProgressAndExpectedTotal(expectedTotal, opResult);
-    }
-
-    private void setProgressAndExpectedTotal(Long expectedTotal, OperationResult opResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        localCoordinatorTask.setProgress(runResult.getProgress());
-        if (expectedTotal != null) {
-            localCoordinatorTask.setExpectedTotal(expectedTotal);
-        }
+        Long expectedTotal = computeExpectedTotal(opResult);
+        localCoordinatorTask.setExpectedTotal(expectedTotal);
         localCoordinatorTask.flushPendingModifications(opResult);
     }
 
@@ -192,13 +185,13 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
     }
 
     @Nullable
-    private Long computeExpectedTotalIfApplicable(OperationResult opResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+    private Long computeExpectedTotal(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (!getReportingOptions().isCountObjectsOnStart()) {
             return null;
         } else if (TaskWorkStateUtil.hasLimitations(workBucket)) {
-            // We avoid computing expected total if we are processing a bucket -- actually we could but we should
-            // not display it as 'task expected total'
+            // We avoid computing expected total if we are processing a bucket: actually we could do it,
+            // but we should not display the result as 'task expected total'.
             return null;
         } else {
             Integer expectedTotal = countObjects(opResult);

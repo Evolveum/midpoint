@@ -76,8 +76,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
     private Component getPanel(String componentId, IModel<T> rowModel,
                                int numberOfButtons, boolean isHeaderPanel) {
         List<InlineMenuItem> filteredMenuItems = new ArrayList<>();
-        List<InlineMenuItem> cloneMenuItems = cloneColumnMenuActionIfUse(menuItems, rowModel);
-        for (InlineMenuItem menuItem : cloneMenuItems) {
+        for (InlineMenuItem menuItem : menuItems) {
 
             if (isHeaderPanel && !menuItem.isHeaderMenuItem()){
                 continue;
@@ -131,11 +130,18 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
 
                 return btn;
             }
-        };
-    }
 
-    protected boolean isInlineMenuVisible(IModel<T> rowModel, boolean isHeader) {
-        return true;
+            @Override
+            protected void onBeforeClickMenuItem(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
+                if (action instanceof ColumnMenuAction) {
+                    if (!isHeaderPanel) {
+                        ((ColumnMenuAction) action).setRowModel(rowModel);
+                    } else {
+                        ((ColumnMenuAction) action).setRowModel(null);
+                    }
+                }
+            }
+        };
     }
 
     protected boolean isButtonMenuItemEnabled(IModel<T> rowModel){
@@ -190,24 +196,6 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         return DoubleButtonColumn.ButtonSizeClass.EXTRA_SMALL.toString();
     }
 
-    private String getButtonCssClass() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(DoubleButtonColumn.BUTTON_BASE_CLASS).append(" ");
-        // Do not add color. It attracts too much attention
-//        sb.append(getButtonColorCssClass(id, menuItems)).append(" ");
-        sb.append("btn-default ");
-        sb.append(getButtonSizeCssClass()).append(" ");
-
-        return sb.toString();
-    }
-
-    private boolean isButtonEnabled(int id, List<ButtonInlineMenuItem> buttonMenuItems) {
-        if (id >= buttonMenuItems.size()){
-            return false;
-        }
-        return buttonMenuItems.get(id).getEnabled().getObject().booleanValue();
-    }
-
     private CompositedIconBuilder getIconCompositedBuilder(int id, List<ButtonInlineMenuItem> buttonMenuItems) {
         if (id >= buttonMenuItems.size()){
             return null;
@@ -247,216 +235,5 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
 
         }
         return false;
-    }
-
-    private List<InlineMenuItem> cloneColumnMenuActionIfUse(List<InlineMenuItem> menuItems, IModel<T> rowModel) {
-        List<InlineMenuItem> clonedMenuItems = new ArrayList<InlineMenuItem>(menuItems.size());
-        for (InlineMenuItem item : menuItems) {
-            if (item.getAction() instanceof ColumnMenuAction) {
-                ((ColumnMenuAction)item.getAction()).setRowModel(rowModel);
-                InlineMenuItem clonedItem;
-                ColumnMenuAction clonedAction = new ColumnMenuAction() {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        ((ColumnMenuAction)item.getAction()).setRowModel(getRowModel());
-                        item.getAction().onClick(target);
-                    }
-
-                    @Override
-                    public void onSubmit(AjaxRequestTarget target) {
-                        ((ColumnMenuAction)item.getAction()).setRowModel(getRowModel());
-                        item.getAction().onSubmit(target);
-                    }
-
-                    @Override
-                    public void onError(AjaxRequestTarget target) {
-                        ((ColumnMenuAction)item.getAction()).setRowModel(getRowModel());
-                        item.getAction().onError(target);
-                    }
-
-                };
-                clonedAction.setRowModel(rowModel);
-                if (item instanceof ButtonInlineMenuItem) {
-                    clonedItem = new ButtonInlineMenuItem(item.getLabel(), item.isSubmit()) {
-
-                        @Override
-                        public InlineMenuItemAction initAction() {
-                            return clonedAction;
-                        }
-
-                        @Override
-                        public CompositedIconBuilder getIconCompositedBuilder() {
-                            return ((ButtonInlineMenuItem) item).getIconCompositedBuilder();
-                        }
-
-                        public IModel<String> getConfirmationMessageModel() {
-                            return item.getConfirmationMessageModel();
-                        }
-
-                        @Override
-                        public IModel<Boolean> getEnabled() {
-                            return item.getEnabled();
-                        }
-
-                        @Override
-                        public void setEnabled(IModel<Boolean> enabled) {
-                            item.setEnabled(enabled);
-                        }
-
-                        @Override
-                        public IModel<String> getLabel() {
-                            return item.getLabel();
-                        }
-
-                        @Override
-                        public boolean isSubmit() {
-                            return item.isSubmit();
-                        }
-
-                        @Override
-                        public IModel<Boolean> getVisible() {
-                            return item.getVisible();
-                        }
-
-                        @Override
-                        public void setVisible(IModel<Boolean> visible) {
-                            item.setVisible(visible);
-                        }
-
-                        @Override
-                        public boolean isDivider() {
-                            return item.isDivider();
-                        }
-
-                        @Override
-                        public boolean isHeaderMenuItem() {
-                            return item.isHeaderMenuItem();
-                        }
-
-                        @Override
-                        public boolean isMenuHeader() {
-                            return item.isMenuHeader();
-                        }
-
-                        @Override
-                        public int getId() {
-                            return item.getId();
-                        }
-
-                        @Override
-                        public void setId(int id) {
-                            item.setId(id);
-                        }
-
-                        @Override
-                        public boolean showConfirmationDialog() {
-                            return item.showConfirmationDialog();
-                        }
-
-                        @Override
-                        public VisibilityChecker getVisibilityChecker() {
-                            return item.getVisibilityChecker();
-                        }
-
-                        @Override
-                        public void setVisibilityChecker(VisibilityChecker visibilityChecker) {
-                            item.setVisibilityChecker(visibilityChecker);
-                        }
-                    };
-                } else {
-                    clonedItem = new InlineMenuItem(item.getLabel(), item.isSubmit()) {
-
-                        @Override
-                        public InlineMenuItemAction initAction() {
-                            return clonedAction;
-                        }
-
-                        public IModel<String> getConfirmationMessageModel() {
-                            return item.getConfirmationMessageModel();
-                        }
-
-                        @Override
-                        public IModel<Boolean> getEnabled() {
-                            return item.getEnabled();
-                        }
-
-                        @Override
-                        public void setEnabled(IModel<Boolean> enabled) {
-                            item.setEnabled(enabled);
-                        }
-
-                        @Override
-                        public IModel<String> getLabel() {
-                            return item.getLabel();
-                        }
-
-                        @Override
-                        public boolean isSubmit() {
-                            return item.isSubmit();
-                        }
-
-                        @Override
-                        public IModel<Boolean> getVisible() {
-                            return item.getVisible();
-                        }
-
-                        @Override
-                        public void setVisible(IModel<Boolean> visible) {
-                            item.setVisible(visible);
-                        }
-
-                        @Override
-                        public boolean isDivider() {
-                            return item.isDivider();
-                        }
-
-                        @Override
-                        public boolean isHeaderMenuItem() {
-                            return item.isHeaderMenuItem();
-                        }
-
-                        @Override
-                        public boolean isMenuHeader() {
-                            return item.isMenuHeader();
-                        }
-
-                        @Override
-                        public int getId() {
-                            return item.getId();
-                        }
-
-                        @Override
-                        public void setId(int id) {
-                            item.setId(id);
-                        }
-
-                        @Override
-                        public boolean showConfirmationDialog() {
-                            return item.showConfirmationDialog();
-                        }
-
-                        @Override
-                        public VisibilityChecker getVisibilityChecker() {
-                            return item.getVisibilityChecker();
-                        }
-
-                        @Override
-                        public void setVisibilityChecker(VisibilityChecker visibilityChecker) {
-                            item.setVisibilityChecker(visibilityChecker);
-                        }
-
-                    };
-                }
-                clonedItem.setId(item.getId());
-                clonedItem.setVisibilityChecker(item.getVisibilityChecker());
-                clonedItem.setVisible(item.getVisible());
-                clonedItem.setEnabled(item.getEnabled());
-                clonedMenuItems.add(clonedItem);
-                continue;
-            }
-            clonedMenuItems.add(item);
-        }
-        return clonedMenuItems;
     }
 }

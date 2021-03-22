@@ -120,7 +120,7 @@ public class TaskCleaner {
                 throw t;
             }
             // structured progress is incremented with iterative operation reporting
-            executionTask.incrementProgressAndStoreStatsIfNeeded();
+            executionTask.incrementProgressAndStoreStatisticsIfTimePassed(result);
         }
 
         LOGGER.info("Task cleanup procedure " + (interrupted ? "was interrupted" : "finished")

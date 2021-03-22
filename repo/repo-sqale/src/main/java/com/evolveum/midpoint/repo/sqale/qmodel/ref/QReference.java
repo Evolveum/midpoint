@@ -13,7 +13,7 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.PrimaryKey;
 
-import com.evolveum.midpoint.repo.sqale.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 

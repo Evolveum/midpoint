@@ -10,8 +10,13 @@ package com.evolveum.midpoint.repo.common.task;
 import static com.evolveum.midpoint.repo.common.task.AnnotationSupportUtil.createFromAnnotation;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.util.task.TaskPartPerformanceInformation;
+import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.StructuredTaskProgressType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -27,6 +32,9 @@ import com.evolveum.midpoint.task.api.TaskException;
 import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
+
+import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Represents an execution of a generic iterative part of a task.
@@ -97,8 +105,9 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
     /**
      * Maintains selected statistical information related to processing items in during task part execution.
+     * (I.e. current bucket.)
      */
-    @NotNull protected final ItemProcessingStatistics statistics;
+    @NotNull protected final CurrentBucketStatistics bucketStatistics;
 
     /**
      * Things like "Import", "Reconciliation (on resource)", and so on. Used e.g. in log messages like:
@@ -134,13 +143,13 @@ public abstract class AbstractIterativeTaskPartExecution<I,
      * Relative number of the part within this physical task. Starting at 1.
      */
     @Experimental
-    int partNumber;
+    private int partNumber;
 
     /**
      * Expected number of parts.
      */
     @Experimental
-    int expectedParts;
+    private int expectedParts;
 
     protected AbstractIterativeTaskPartExecution(@NotNull TE taskExecution) {
         this.taskHandler = taskExecution.taskHandler;
@@ -148,7 +157,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         this.localCoordinatorTask = taskExecution.localCoordinatorTask;
         this.logger = taskHandler.getLogger();
         this.runResult = taskExecution.getCurrentRunResult();
-        this.statistics = new ItemProcessingStatistics(localCoordinatorTask.getProgress());
+        this.bucketStatistics = new CurrentBucketStatistics();
         this.processShortNameCapitalized = taskHandler.getTaskTypeName();
         this.contextDescription = "";
         this.errorHandlingStrategyExecutor = new ErrorHandlingStrategyExecutor(
@@ -166,18 +175,18 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
         checkTaskPersistence();
 
-        setStructuredProgressPartInformation();
+        updateStatisticsOnStart();
 
         initialize(opResult);
 
         prepareItemSource(opResult);
-        setProgressAndExpectedItems(opResult);
+        setExpectedTotal(opResult);
 
         itemProcessor = setupItemProcessor(opResult);
         coordinator = setupCoordinator();
 
         try {
-            coordinator.createWorkerTasks();
+            coordinator.createWorkerTasks(getReportingOptions());
             processItems(opResult);
         } finally {
             // This is redundant in the case of live sync event handling (because the handler gets a notification when all
@@ -187,10 +196,9 @@ public abstract class AbstractIterativeTaskPartExecution<I,
             coordinator.finishProcessing(opResult);
         }
 
-        setOperationResult(opResult);
+        setOperationResultStatus(opResult);
 
-        runResult.setProgress(getTotalProgress());
-
+        updateStatisticsOnFinish();
         if (getReportingOptions().isLogFinishInfo()) {
             logFinishInfo(opResult);
         }
@@ -202,16 +210,12 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         return runResult;
     }
 
-    private void setStructuredProgressPartInformation() {
-        taskExecution.localCoordinatorTask.setStructuredProgressPartInformation(partUri, partNumber, expectedParts);
-    }
-
     // TODO finish this method
-    private void setOperationResult(OperationResult opResult) {
+    private void setOperationResultStatus(OperationResult opResult) {
         if (taskExecution.getErrorState().isPermanentErrorEncountered()) {
             // We assume the error occurred within this part (otherwise that part would not even start).
             opResult.setStatus(FATAL_ERROR);
-        } else if (statistics.getErrors() > 0) {
+        } else if (bucketStatistics.getErrors() > 0) {
             opResult.setStatus(PARTIAL_ERROR);
         } else {
             opResult.setStatus(SUCCESS);
@@ -237,7 +241,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
      * Computes expected total and sets the value in the task. E.g. for search-iterative tasks we count the objects here.
      * TODO reconsider
      */
-    protected void setProgressAndExpectedItems(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
+    protected void setExpectedTotal(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
             ObjectAlreadyExistsException {
     }
@@ -310,7 +314,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
     }
 
     public long getStartTimeMillis() {
-        return statistics.startTimeMillis;
+        return bucketStatistics.startTimeMillis;
     }
 
     public boolean isMultithreaded() {
@@ -319,28 +323,107 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
     public Long heartbeat() {
         // If we exist then we run. So just return the progress count.
-        return getTotalProgress();
+        return localCoordinatorTask.getProgress();
     }
 
-    private void logFinishInfo(OperationResult opResult) {
-        String finishMessage = "Finished " + getProcessShortName() + " (" + localCoordinatorTask + "). ";
-        String statMsg =
-                "Processed " + statistics.getItemsProcessed() + " objects in " + statistics.getWallTime() / 1000
-                        + " seconds, got " + statistics.getErrors() + " errors.";
-        if (statistics.getItemsProcessed() > 0) {
-            statMsg += " Average time for one object: " + statistics.getAverageTime() + " milliseconds" +
-                    " (wall clock time average: " + statistics.getWallAverageTime() + " ms).";
-        }
-        if (!localCoordinatorTask.canRun()) {
-            statMsg += " Task was interrupted during processing.";
-        }
-        statMsg += " Resulting status: " + opResult.getStatus();
+    private void updateStatisticsOnStart() {
+        setStructuredProgressPartInformation();
+        bucketStatistics.recordStart();
+    }
 
-        opResult.createSubresult(getTaskOperationPrefix() + ".statistics")
-                .recordStatus(OperationResultStatus.SUCCESS, statMsg);
-        TaskHandlerUtil.appendLastFailuresInformation(getTaskOperationPrefix(), localCoordinatorTask, opResult);
+    private void setStructuredProgressPartInformation() {
+        taskExecution.localCoordinatorTask.setStructuredProgressPartInformation(partUri, partNumber, expectedParts);
 
-        logger.info("{}", finishMessage + statMsg);
+        // The task progress can be out of sync with the actual progress e.g. because of open items (that have been zeroed above).
+        StructuredTaskProgressType structuredProgress = localCoordinatorTask.getStructuredProgressOrClone();
+        localCoordinatorTask.setProgress((long) TaskProgressUtil.getTotalProgressForCurrentPart(structuredProgress));
+    }
+
+    private void updateStatisticsOnFinish() {
+        bucketStatistics.recordEnd();
+        localCoordinatorTask.recordPartExecutionEnd(partUri, getPartStartTimestamp(), bucketStatistics.getEndTimeMillis());
+        localCoordinatorTask.updateStatisticsInTaskPrism(true);
+    }
+
+    // TODO deduplicate with statistics output in ItemProcessingGatekeeper
+    // TODO decide on the final form of these messages
+    // TODO turn on/off via reporting options
+    private void logFinishInfo(OperationResult result) {
+
+        long endTime = Objects.requireNonNull(bucketStatistics.endTimeMillis, "No end timestamp?");
+        // Note: part statistics should be consistent with this end time.
+
+        OperationStatsType operationStats = localCoordinatorTask.getStoredOperationStatsOrClone();
+        StructuredTaskProgressType structuredProgress = localCoordinatorTask.getStructuredProgressOrClone();
+        TaskPartPerformanceInformation partStatistics =
+                TaskPartPerformanceInformation.forCurrentPart(operationStats, structuredProgress);
+
+        String currentPartUri = TaskProgressUtil.getCurrentPartUri(structuredProgress);
+
+        String shortMessage =
+                String.format("Finished %s (%s). Resulting status: %s.%s",
+                        getProcessShortName(), localCoordinatorTask, result.getStatus(),
+                        localCoordinatorTask.canRun() ? "" : " Task was interrupted during processing.");
+
+        String bucketStatMsg = String.format(Locale.US, "Current bucket: processed %,d objects in %.1f seconds, got %,d errors.",
+                bucketStatistics.getItemsProcessed(), bucketStatistics.getWallClockTime(endTime) / 1000.0,
+                bucketStatistics.getErrors());
+        if (bucketStatistics.getItemsProcessed() > 0) {
+            bucketStatMsg += String.format(Locale.US, " Average processing time for one object: %,.1f milliseconds. "
+                            + "Wall clock average: %,.1f milliseconds, throughput: %,.1f items per minute.",
+                    bucketStatistics.getAverageTime(), bucketStatistics.getAverageWallClockTime(endTime),
+                    bucketStatistics.getThroughput(endTime));
+        }
+
+        String partStatMsg = String.format(Locale.US, "The whole part: processed %,d objects in %.1f seconds, got %,d errors. Real progress: %,d.",
+                partStatistics.getItemsProcessed(), partStatistics.getWallClockTime() / 1000.0,
+                partStatistics.getErrors(), partStatistics.getProgress());
+        if (partStatistics.getItemsProcessed() > 0) {
+            partStatMsg += String.format(Locale.US, " Average processing time for one object: %,.1f milliseconds. "
+                            + "Wall clock average: %,.1f milliseconds, throughput: %,.1f items per minute.",
+                    partStatistics.getAverageTime(), partStatistics.getAverageWallClockTime(),
+                    partStatistics.getThroughput());
+        }
+
+        result.createSubresult(getTaskOperationPrefix() + ".statistics")
+                .recordStatus(OperationResultStatus.SUCCESS, bucketStatMsg);
+        result.createSubresult(getTaskOperationPrefix() + ".statistics")
+                .recordStatus(OperationResultStatus.SUCCESS, partStatMsg);
+
+        // TODO eventually remove
+        TaskHandlerUtil.appendLastFailuresInformation(getTaskOperationPrefix(), localCoordinatorTask, result);
+
+        if (logger.isDebugEnabled()) {
+            String message = String.format(Locale.US,
+                    "%s of a bucket done. Current part URI: %s\n\n"
+                            + "Items processed: %,d in current bucket and %,d in current part.\n"
+                            + "Errors: %,d in current bucket and %,d in current part.\n"
+                            + "Real progress is %,d.\n\n"
+                            + "Average duration is %,.1f ms (in current bucket) and %,.1f ms (in current part).\n"
+                            + "Wall clock average is %,.1f ms (in current bucket) and %,.1f ms (in current part).\n"
+                            + "Average throughput is %,.1f items per minute (in current bucket) and %,.1f items per minute (in current part).\n\n"
+                            + "Processing time is %,.1f ms (for current bucket) and %,.1f ms (for current part)\n"
+                            + "Wall-clock time is %,d ms (for current bucket) and %,d ms (for current part)\n"
+                            + "Start time was:\n"
+                            + " - for current bucket: %s\n"
+                            + " - for current part:   %s\n",
+                    getProcessShortNameCapitalized(), currentPartUri,
+                    bucketStatistics.getItemsProcessed(), partStatistics.getItemsProcessed(),
+                    bucketStatistics.getErrors(), partStatistics.getErrors(),
+                    partStatistics.getProgress(),
+                    bucketStatistics.getAverageTime(), partStatistics.getAverageTime(),
+                    bucketStatistics.getAverageWallClockTime(endTime), partStatistics.getAverageWallClockTime(),
+                    bucketStatistics.getThroughput(endTime), partStatistics.getThroughput(),
+                    bucketStatistics.getProcessingTime(), partStatistics.getProcessingTime(),
+                    bucketStatistics.getWallClockTime(endTime), partStatistics.getWallClockTime(),
+                    XmlTypeConverter.createXMLGregorianCalendar(bucketStatistics.getStartTimeMillis()),
+                    partStatistics.getEarliestStartTime());
+
+            logger.debug("{}", message);
+        } else {
+            // TODO debug or configurable?
+            logger.info("{}\n{}\n{}", shortMessage, bucketStatMsg, partStatMsg);
+        }
     }
 
     private String getTaskOperationPrefix() {
@@ -378,10 +461,6 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
     public void setContextDescription(String value) {
         this.contextDescription = ObjectUtils.defaultIfNull(value, "");
-    }
-
-    public long getTotalProgress() {
-        return statistics.getTotalProgress();
     }
 
     ErrorHandlingStrategyExecutor.Action determineErrorAction(@NotNull OperationResultStatus status,
@@ -429,5 +508,35 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
     public void setExpectedParts(int expectedParts) {
         this.expectedParts = expectedParts;
+    }
+
+    void markStructuredProgressComplete(OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException,
+            SchemaException {
+        localCoordinatorTask.markStructuredProgressAsComplete();
+        localCoordinatorTask.flushPendingModifications(result);
+    }
+
+    /**
+     * When did current part start?
+     *
+     * We need this for execution record creation that is needed for wall clock average and throughput computation.
+     *
+     * However, answering this question is a bit tricky because of bucketed runs. By recording part start when the bucket
+     * starts is precise, but
+     *
+     * 1. does not take bucket management overhead into account,
+     * 2. generates a lot of execution records - more than we can reasonably handle.
+     *
+     * So, for all except multi-part runs (that are never bucketed by definition) we use regular task start information.
+     *
+     * All of this will change when bucketing will be (eventually) rewritten.
+     */
+    public long getPartStartTimestamp() {
+        if (taskExecution.isInternallyMultipart()) {
+            return bucketStatistics.getStartTimeMillis();
+        } else {
+            return Objects.requireNonNull(localCoordinatorTask.getLastRunStartTimestamp(),
+                    () -> "No last run start timestamp in " + localCoordinatorTask);
+        }
     }
 }

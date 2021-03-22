@@ -6,12 +6,16 @@
  */
 package com.evolveum.midpoint.gui.api.component.button;
 
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
@@ -123,10 +127,25 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
     }
 
     private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
-        MenuLinkPanel menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, menuItem.getModel());
+        MenuLinkPanel menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, menuItem.getModel()){
+            @Override
+            protected void onClick(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
+                onBeforeClickMenuItem(target, action, item);
+                super.onClick(target, action, item);
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
+                onBeforeClickMenuItem(target, action, item);
+                super.onSubmit(target, action, item);
+            }
+        };
         menuItemBody.setRenderBodyOnly(true);
         menuItem.add(menuItemBody);
         menuItem.add(new VisibleBehaviour(() -> menuItem.getModelObject().getVisible().getObject()));
+    }
+
+    protected void onBeforeClickMenuItem(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
     }
 
     protected String getSpecialButtonClass() {

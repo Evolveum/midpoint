@@ -205,7 +205,7 @@ public class MailTransport implements Transport {
                 }
             }
 
-            task.recordState("Sending notification mail via " + host);
+            task.recordStateMessage("Sending notification mail via " + host);
 
             Session session = Session.getInstance(properties);
 
@@ -313,7 +313,7 @@ public class MailTransport implements Transport {
                     resultForServer.recordSuccess();
                     result.recordSuccess();
                     long duration = System.currentTimeMillis() - start;
-                    task.recordState("Notification mail sent successfully via " + host + ", in " + duration + " ms overall.");
+                    task.recordStateMessage("Notification mail sent successfully via " + host + ", in " + duration + " ms overall.");
                     task.recordNotificationOperation(NAME, true, duration);
                 }
                 return;
@@ -321,7 +321,7 @@ public class MailTransport implements Transport {
                 String msg = "Couldn't send mail message to " + mailMessage.getTo() + " via " + host + ", trying another mail server, if there is any";
                 LoggingUtils.logException(LOGGER, msg, e);
                 resultForServer.recordFatalError(msg, e);
-                task.recordState("Error sending notification mail via " + host);
+                task.recordStateMessage("Error sending notification mail via " + host);
             }
         }
         LOGGER.warn("No more mail servers to try, mail notification to " + mailMessage.getTo() + " will not be sent.");

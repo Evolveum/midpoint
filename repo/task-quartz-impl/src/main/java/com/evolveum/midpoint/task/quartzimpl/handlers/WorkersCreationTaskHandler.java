@@ -49,7 +49,6 @@ public class WorkersCreationTaskHandler implements TaskHandler {
     public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
         OperationResult opResult = new OperationResult(WorkersCreationTaskHandler.class.getName()+".run");
         TaskRunResult runResult = new TaskRunResult();
-        runResult.setProgress(task.getProgress());
         runResult.setOperationResult(opResult);
 
         try {
@@ -97,7 +96,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
-        runResult.setProgress(runResult.getProgress() + 1);
+        runResult.setProgress(null); // We intentionally do not set the progress to avoid counting it in the progress of task tree
         opResult.computeStatusIfUnknown();
         runResult.setRunResultStatus(TaskRunResultStatus.IS_WAITING);
         return runResult;

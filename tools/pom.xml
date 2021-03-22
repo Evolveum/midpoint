@@ -26,6 +26,5 @@
         <module>xjc-plugin</module>
         <module>schema-dist-maven-plugin</module>
         <module>ninja</module>
-        <module>schrodinger</module>
     </modules>
 </project>

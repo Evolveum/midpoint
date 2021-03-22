@@ -69,4 +69,9 @@ public class TaskProgressInformationAsserter<RA> extends AbstractAsserter<RA> {
         IntegrationTestTools.display(desc(), DebugUtil.debugDump(information));
         return this;
     }
+
+    public TaskProgressInformationAsserter<RA> checkConsistence() {
+        information.checkConsistence();
+        return this;
+    }
 }

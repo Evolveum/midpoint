@@ -751,6 +751,9 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         given();
 
         assertTask(xferTask.oid, "before")
+                .structuredProgress()
+                    .display()
+                    .end()
                 .iterativeTaskInformation()
                     .display()
                     .end()
@@ -776,6 +779,9 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
 
         stabilize();
         assertTask(xferTask.oid, "after")
+                .structuredProgress()
+                    .display()
+                    .end()
                 .iterativeTaskInformation()
                     .display()
                     .end()

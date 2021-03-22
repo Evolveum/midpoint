@@ -23,7 +23,7 @@ public class StructuredTaskProgressPrinter extends AbstractStatisticsPrinter<Str
     private static final String STATE_CLOSED = "Closed";
     private static final String STATE_OPEN = "Open";
 
-    public StructuredTaskProgressPrinter(StructuredTaskProgressType information, Options options) {
+    StructuredTaskProgressPrinter(StructuredTaskProgressType information, Options options) {
         super(information, options, null, null);
     }
 
@@ -55,6 +55,7 @@ public class StructuredTaskProgressPrinter extends AbstractStatisticsPrinter<Str
         for (OutcomeKeyedCounterType counter : counters) {
             Data.Record record = data.createRecord();
             record.add(partProgress.getPartUri());
+            record.add(partProgress.isComplete());
             record.add(state);
             record.add(OutcomeKeyedCounterTypeUtil.getOutcome(counter));
             record.add(OutcomeKeyedCounterTypeUtil.getOutcomeQualifierUri(counter));
@@ -65,6 +66,7 @@ public class StructuredTaskProgressPrinter extends AbstractStatisticsPrinter<Str
     private void createFormatting() {
         initFormatting();
         addColumn("Part", LEFT, formatString());
+        addColumn("Complete", LEFT, formatString());
         addColumn("State", LEFT, formatString());
         addColumn("Outcome", LEFT, formatString());
         addColumn("Qualifier", LEFT, formatString());

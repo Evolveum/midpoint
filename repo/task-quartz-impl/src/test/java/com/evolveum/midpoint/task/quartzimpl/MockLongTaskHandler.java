@@ -40,7 +40,7 @@ public class MockLongTaskHandler implements TaskHandler {
         TaskRunResult runResult = new TaskRunResult();
 
         while (task.canRun()) {
-            task.incrementProgressAndStoreStatsIfNeeded();
+            task.incrementProgressAndStoreStatisticsIfTimePassed(opResult);
             try {
                 //noinspection BusyWait
                 Thread.sleep(100);

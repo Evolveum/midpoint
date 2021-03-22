@@ -183,12 +183,12 @@ public class TaskIterativeProgressType implements Serializable {
             return 0L;
         }
 
-        Long duration = item.getDuration();
+        Double duration = item.getDuration();
         if (duration == null) {
             return 0L;
         }
 
-        return duration;
+        return duration.longValue(); // FIXME
     }
 
     private void createChartConfiguration() {

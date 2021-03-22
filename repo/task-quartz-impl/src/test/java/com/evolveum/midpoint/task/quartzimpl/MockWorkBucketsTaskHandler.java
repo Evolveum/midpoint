@@ -68,7 +68,7 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
     @NotNull
     @Override
     public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-        return new StatisticsCollectionStrategy(true, true, false, false);
+        return new StatisticsCollectionStrategy(true, false, false, true);
     }
 
     @Override
@@ -108,7 +108,7 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
             if (processor != null) {
                 processor.process(task, workBucket, 0);
             }
-            task.incrementProgressAndStoreStatsIfNeeded();
+            task.incrementProgressAndStoreStatisticsIfTimePassed(opResult);
         } else {
             int from = content.getFrom().intValue();
             int to = content.getTo().intValue(); // beware of nullability
@@ -128,7 +128,7 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
                         .outcome(ItemProcessingOutcomeType.SUCCESS)
                         .qualifierUri("some-qualifier");
                 task.incrementStructuredProgress(PART_URI, outcome);
-                task.incrementProgressAndStoreStatsIfNeeded();
+                task.incrementProgressAndStoreStatisticsIfTimePassed(opResult);
             }
         }
 
@@ -141,7 +141,7 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
         runningTask = null;
 
         LOGGER.info("Run stopping; task = {}", task);
-        task.storeOperationStatsAndProgress();
+        task.updateAndStoreStatisticsIntoRepository(true, opResult);
 
         LOGGER.info("Task structured progress:\n{}", StructuredTaskProgress.format(task.getStructuredProgressOrClone()));
         LOGGER.info("Task iterative information:\n{}", IterativeTaskInformation.format(task.getStoredOperationStatsOrClone().getIterativeTaskInformation()));

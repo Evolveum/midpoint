@@ -57,8 +57,6 @@
     Running unit+IT tests of a selected module (-pl) with output to stdout:
     mvn clean install -DredirectTestOutputToFile=false -pl model/model-intest
 
-    Running GUI tests from Schrodinger module only with custom location of ChromeDriver (Chrome must be installed too):
-    mvn clean install -P -dist -DskipTests -DskipSchrodingerTests=false -DwebdriverLocation=/c/work/tools/bin/chromedriver.exe
     -->
 
     <parent>
@@ -1533,46 +1531,6 @@
                 <version>1.0-alpha-2</version>
             </dependency>
 
-            <!-- Schrodinger -->
-            <dependency>
-                <groupId>com.codeborne</groupId>
-                <artifactId>selenide</artifactId>
-                <version>5.3.1</version>
-                <exclusions>
-                    <!-- Excluding to exclude commons-logging lower -->
-                    <exclusion>
-                        <groupId>io.netty</groupId>
-                        <artifactId>netty-all</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.seleniumhq.selenium</groupId>
-                <artifactId>selenium-java</artifactId>
-                <version>${selenium.version}</version>
-                <exclusions>
-                    <!-- replaced by org.slf4j:jcl-over-slf4j -->
-                    <exclusion>
-                        <groupId>commons-logging</groupId>
-                        <artifactId>commons-logging</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.seleniumhq.selenium</groupId>
-                <artifactId>selenium-api</artifactId>
-                <version>${selenium.version}</version>
-            </dependency>
-            <dependency>
-                <!-- Resolves dependency conflict in selenium -->
-                <groupId>com.squareup.okio</groupId>
-                <artifactId>okio</artifactId>
-                <version>1.14.1</version>
-            </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>

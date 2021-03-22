@@ -60,7 +60,7 @@ class ReconciliationTaskFirstPartExecution
     @Override
     protected void finish(OperationResult opResult) throws SchemaException {
         super.finish(opResult);
-        taskExecution.reconResult.setUnOpsCount(statistics.getItemsProcessed());
+        taskExecution.reconResult.setUnOpsCount(bucketStatistics.getItemsProcessed());
     }
 
     protected static class ItemProcessor

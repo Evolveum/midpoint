@@ -519,23 +519,37 @@ public class MiscUtil {
     private static final int HEX_PREVIEW_LEN = 8;
 
     /**
-     * Prints couple of bytes from provided byte array as hexadecimal and adds length information.
+     * Returns first {@value #HEX_PREVIEW_LEN} bytes from provided byte array as hexadecimal
+     * and adds length information.
      * Returns null if null array is provided.
      */
     public static @Nullable String binaryToHexPreview(@Nullable byte[] bytes) {
+        return binaryToHexPreview(bytes, HEX_PREVIEW_LEN);
+    }
+
+    /**
+     * Returns couple of bytes from provided byte array as hexadecimal and adds length information.
+     * Returns null if null array is provided.
+     *
+     * @param previewLen max number of bytes in the hexadecimal preview
+     */
+    public static @Nullable String binaryToHexPreview(@Nullable byte[] bytes, int previewLen) {
         if (bytes == null) {
             return null;
         }
 
-        int previewLen = Math.min(bytes.length, HEX_PREVIEW_LEN);
+        previewLen = Math.min(bytes.length, previewLen);
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < previewLen; i++) {
+            if (i > 0) {
+                sb.append(' ');
+            }
             sb.append(String.format("%02x", bytes[i]));
         }
         if (bytes.length > HEX_PREVIEW_LEN) {
             sb.append("...");
         }
-        return sb.append(" (").append(bytes.length).append(" B)").toString();
+        return sb.append("(").append(bytes.length).append(" B)").toString();
     }
 
     public static String hexToUtf8String(String hex) {
@@ -1032,6 +1046,10 @@ public class MiscUtil {
 
     public static long or0(Long value) {
         return Objects.requireNonNullElse(value, 0L);
+    }
+
+    public static double or0(Double value) {
+        return Objects.requireNonNullElse(value, 0.0);
     }
 
     public static Integer min(Integer a, Integer b) {

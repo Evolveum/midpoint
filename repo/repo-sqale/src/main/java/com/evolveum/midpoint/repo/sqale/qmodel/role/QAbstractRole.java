@@ -34,15 +34,15 @@ public class QAbstractRole<T extends MAbstractRole> extends QFocus<T> {
     public static final ColumnMetadata AUTO_ASSIGN_ENABLED =
             ColumnMetadata.named("autoAssignEnabled").ofType(Types.BOOLEAN);
     public static final ColumnMetadata DISPLAY_NAME_ORIG =
-            ColumnMetadata.named("displayName_orig").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("displayName_orig").ofType(Types.VARCHAR);
     public static final ColumnMetadata DISPLAY_NAME_NORM =
-            ColumnMetadata.named("displayName_norm").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("displayName_norm").ofType(Types.VARCHAR);
     public static final ColumnMetadata IDENTIFIER =
-            ColumnMetadata.named("identifier").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("identifier").ofType(Types.VARCHAR);
     public static final ColumnMetadata REQUESTABLE =
             ColumnMetadata.named("requestable").ofType(Types.BOOLEAN);
     public static final ColumnMetadata RISK_LEVEL =
-            ColumnMetadata.named("riskLevel").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("riskLevel").ofType(Types.VARCHAR);
 
     public final BooleanPath autoAssignEnabled =
             createBoolean("autoAssignEnabled", AUTO_ASSIGN_ENABLED);

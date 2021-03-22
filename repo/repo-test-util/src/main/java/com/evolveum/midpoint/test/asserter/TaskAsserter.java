@@ -12,11 +12,14 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
 public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
@@ -27,6 +30,10 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
 
     private TaskAsserter(PrismObject<TaskType> object, String details) {
         super(object, details);
+    }
+
+    private TaskAsserter(PrismObject<TaskType> object, RA returnAsserter, String details) {
+        super(object, returnAsserter, details);
     }
 
     @SuppressWarnings("unused")
@@ -245,5 +252,17 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         ObjectReferenceAsserter<UserType, RA> ownerAsserter = new ObjectReferenceAsserter<>(getTaskBean().getOwnerRef().asReferenceValue(), UserType.class);
         copySetupTo(ownerAsserter);
         return ownerAsserter;
+    }
+
+    public TaskAsserter<TaskAsserter<RA>> subtaskForPart(int number) {
+        TaskType subtask = TaskTreeUtil.getAllTasksStream(getObjectable())
+                .filter(t -> Integer.valueOf(number).equals(TaskWorkStateUtil.getPartitionSequentialNumber(t)))
+                .findAny().orElse(null);
+        assertThat(subtask).withFailMessage(() -> "No subtask for part " + number + " found").isNotNull();
+
+        TaskAsserter<TaskAsserter<RA>> asserter = new TaskAsserter<>(subtask.asPrismObject(), this, "subtask for part " +
+                number + " in " + getDetails());
+        copySetupTo(asserter);
+        return asserter;
     }
 }

@@ -69,7 +69,7 @@ public class NodeCleaner {
                     op.failed(t);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete dead node {}", t, node);
                 }
-                task.incrementProgressAndStoreStatsIfNeeded();
+                task.incrementProgressAndStoreStatisticsIfTimePassed(result);
             }
         }
     }

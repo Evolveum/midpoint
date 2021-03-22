@@ -60,4 +60,12 @@ public class ObjectProcessingRequest<O extends ObjectType> extends ItemProcessin
         O object = item.asObjectable();
         return object instanceof ShadowType ? ((ShadowType) object).getSynchronizationSituation() : null;
     }
+
+    @Override
+    public String toString() {
+        return "ObjectProcessingRequest{" +
+                "item=" + item +
+                ", identifier='" + identifier + '\'' +
+                '}';
+    }
 }

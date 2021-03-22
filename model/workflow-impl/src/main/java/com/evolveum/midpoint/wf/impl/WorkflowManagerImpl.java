@@ -15,7 +15,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
 
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
 
@@ -28,7 +27,6 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -183,7 +181,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
                     op.failed(t);
                     LoggingUtils.logException(LOGGER, "Couldn't delete children cases for {}", t, parentCasePrism);
                 }
-                executionTask.incrementProgressAndStoreStatsIfNeeded();
+                executionTask.incrementProgressAndStoreStatisticsIfTimePassed(result);
             }
 
             LOGGER.info("Case cleanup procedure " + (interrupted ? "was interrupted" : "finished")

@@ -24,7 +24,7 @@ public class QNode extends QObject<MNode> {
     public static final String TABLE_NAME = "m_node";
 
     public static final ColumnMetadata NODE_IDENTIFIER =
-            ColumnMetadata.named("nodeIdentifier").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("nodeIdentifier").ofType(Types.VARCHAR);
 
     // columns and relations
 

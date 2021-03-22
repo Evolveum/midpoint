@@ -19,10 +19,10 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
 import com.evolveum.midpoint.repo.sqale.UriCache;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceOwner;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
@@ -151,6 +151,19 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
     /** Returns ID for URI creating new cache row in DB as needed. */
     protected Integer processCacheableUri(String uri, JdbcSession jdbcSession) {
         return transformerSupport.processCachedUri(uri, jdbcSession);
+    }
+
+    /**
+     * Returns IDs as Integer array for URI strings creating new cache row in DB as needed.
+     * Returns null for null or empty list on input.
+     */
+    protected Integer[] processCacheableUris(List<String> uris, JdbcSession jdbcSession) {
+        if (uris == null || uris.isEmpty()) {
+            return null;
+        }
+        return uris.stream()
+                .map(uri -> processCacheableUri(uri, jdbcSession))
+                .toArray(Integer[]::new);
     }
 
     protected @Nullable UUID oidToUUid(@Nullable String oid) {

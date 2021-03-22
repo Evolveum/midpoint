@@ -9,25 +9,24 @@ package com.evolveum.midpoint.repo.sqale.qmodel.task;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonType;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Querydsl "row bean" type related to {@link QTask}.
  */
 public class MTask extends MObject {
 
-    public Integer binding;
+    public String taskIdentifier;
+    public TaskBindingType binding;
     public String category;
     public Instant completionTimestamp;
     public TaskExecutionStateType executionStatus;
     public byte[] fullResult;
     public Integer handlerUriId;
-    public Instant lastRunFinishTimestamp;
     public Instant lastRunStartTimestamp;
+    public Instant lastRunFinishTimestamp;
     public String node;
     public UUID objectRefTargetOid;
     public MObjectType objectRefTargetType;
@@ -36,9 +35,9 @@ public class MTask extends MObject {
     public MObjectType ownerRefTargetType;
     public Integer ownerRefRelationId;
     public String parent;
-    public Integer recurrence;
+    public TaskRecurrenceType recurrence;
     public OperationResultStatusType resultStatus;
-    public String taskIdentifier;
-    public Integer threadStopAction;
+    public ThreadStopActionType threadStopAction;
     public TaskWaitingReasonType waitingReason;
+    public String[] dependentTaskIdentifiers;
 }

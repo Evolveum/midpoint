@@ -7,25 +7,33 @@
 package com.evolveum.midpoint.repo.sqlbase.querydsl;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.querydsl.sql.SQLBaseListener;
 import com.querydsl.sql.SQLBindings;
 import com.querydsl.sql.SQLListenerContext;
+import com.querydsl.sql.types.Null;
+import org.apache.commons.lang3.ArrayUtils;
 
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * Logger for Querydsl executed queries, set to DEBUG to log queries
- * or to TRACE to log parameter values as well.
+ * Logger for Querydsl executed queries, set to DEBUG to log queries or to TRACE
+ * to log parameter values as well (this causes additional formatting overhead).
  */
 public class SqlLogger extends SQLBaseListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlLogger.class);
 
+    /**
+     * End is the right phase common to both selects and insert/updates.
+     * It's called after exceptions too.
+     */
     @Override
-    public void rendered(SQLListenerContext context) {
+    public void end(SQLListenerContext context) {
         if (LOGGER.isDebugEnabled()) {
             try {
                 logContext(context);
@@ -49,10 +57,30 @@ public class SqlLogger extends SQLBaseListener {
         if (LOGGER.isTraceEnabled()) {
             List<Object> paramValues = sqlBindings.getNullFriendlyBindings();
             if (paramValues != null && !paramValues.isEmpty()) {
-                LOGGER.trace(paramValues.toString());
+                LOGGER.trace(paramValues.stream()
+                        .map(this::valueToString)
+                        .collect(Collectors.joining(", ", "(", ")")));
             }
             // context.getMetadata().getWhere(); this is also interesting alternative
             // limit is not part of where, it's in metadata.modifiers
+        }
+    }
+
+    public static final int BYTE_ARRAY_PREVIEW_LEN = 20;
+
+    private String valueToString(Object o) {
+        if (o == null) {
+            return null; // unlikely
+        } else if (o instanceof String) {
+            return '"' + (String) o + '"';
+        } else if (o instanceof Null) {
+            return "NULL";
+        } else if (o.getClass() == byte[].class) {
+            return MiscUtil.binaryToHexPreview((byte[]) o, BYTE_ARRAY_PREVIEW_LEN);
+        } else if (o.getClass().isArray()) {
+            return ArrayUtils.toString(o);
+        } else {
+            return o.toString();
         }
     }
 }

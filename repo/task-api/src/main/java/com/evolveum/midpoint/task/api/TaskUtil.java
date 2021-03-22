@@ -50,10 +50,10 @@ public class TaskUtil {
         if (value != null) {
             return value;
         }
-        if (task instanceof RunningTask) {
-            RunningTask runningTask = (RunningTask) task;
-            if (runningTask.isLightweightAsynchronousTask() && runningTask.getParentForLightweightAsynchronousTask() != null) {
-                return findExtensionItemValue(runningTask.getParentForLightweightAsynchronousTask(), path);
+        if (task instanceof RunningLightweightTask) {
+            RunningLightweightTask runningTask = (RunningLightweightTask) task;
+            if (runningTask.getLightweightTaskParent() != null) {
+                return findExtensionItemValue(runningTask.getLightweightTaskParent(), path);
             }
         }
         return null;

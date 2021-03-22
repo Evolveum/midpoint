@@ -14,11 +14,13 @@ import com.querydsl.sql.types.EnumAsObjectType;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslJsonbType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -42,9 +44,15 @@ public class SqaleRepoContext extends SqlRepoContext {
         querydslConfig.register(new EnumAsObjectType<>(MReferenceType.class));
         querydslConfig.register(new EnumAsObjectType<>(OperationResultStatusType.class));
         querydslConfig.register(new EnumAsObjectType<>(ResourceAdministrativeStateType.class));
+        querydslConfig.register(new EnumAsObjectType<>(TaskBindingType.class));
         querydslConfig.register(new EnumAsObjectType<>(TaskExecutionStateType.class));
+        querydslConfig.register(new EnumAsObjectType<>(TaskRecurrenceType.class));
         querydslConfig.register(new EnumAsObjectType<>(TaskWaitingReasonType.class));
+        querydslConfig.register(new EnumAsObjectType<>(ThreadStopActionType.class));
         querydslConfig.register(new EnumAsObjectType<>(TimeIntervalStatusType.class));
+
+        // JSONB type support
+        querydslConfig.register(new QuerydslJsonbType());
 
         uriCache = new UriCache();
     }

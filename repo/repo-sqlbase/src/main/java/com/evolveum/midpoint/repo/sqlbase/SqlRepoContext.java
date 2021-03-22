@@ -90,6 +90,9 @@ public class SqlRepoContext {
      * Creates {@link JdbcSession} that typically represents transactional work on JDBC connection.
      * All other lifecycle methods are to be called on the returned object.
      * Object is {@link AutoCloseable} and can be used in try-with-resource blocks.
+     * This call be followed by {@link JdbcSession#startTransaction()} (or one of its variants).
+     * If the transaction is not started the connection will likely be in auto-commit mode.
+     * *We want to start transaction for any work in production code* but for tests it's ok not to.
      */
     public JdbcSession newJdbcSession() {
         try {

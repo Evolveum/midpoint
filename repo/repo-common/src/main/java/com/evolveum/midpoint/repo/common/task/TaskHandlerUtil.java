@@ -15,11 +15,11 @@ import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 
 /**
- * @author Pavol Mederly
+ * TODO eventually remove
  */
-public class TaskHandlerUtil {
+class TaskHandlerUtil {
 
-    public static void appendLastFailuresInformation(String operationNamePrefix, RunningTask task, OperationResult result) {
+    static void appendLastFailuresInformation(String operationNamePrefix, RunningTask task, OperationResult result) {
         appendLastFailuresInformation(operationNamePrefix, task, false, result);
         for (Task subtask : task.getLightweightAsynchronousSubtasks()) {
             appendLastFailuresInformation(operationNamePrefix, subtask, true, result);

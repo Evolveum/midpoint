@@ -10,19 +10,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Predicate;
 import com.querydsl.sql.SQLQuery;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
@@ -36,6 +42,13 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     @Autowired protected SqaleRepositoryService repositoryService;
     @Autowired protected SqaleRepoContext sqlRepoContext;
     @Autowired protected PrismContext prismContext;
+
+    @BeforeClass
+    public void init() {
+        // TODO remove later, just for initial debugging
+        ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(SqlLogger.class))
+                .setLevel(ch.qos.logback.classic.Level.TRACE);
+    }
 
     @BeforeClass
     public void cleanDatabase() {
@@ -121,6 +134,17 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         }
     }
 
+    protected <R extends MObject, Q extends QObject<R>> R selectObjectByOid(
+            Class<Q> queryType, String oid) {
+        return selectObjectByOid(queryType, UUID.fromString(oid));
+    }
+
+    protected <R extends MObject, Q extends QObject<R>> R selectObjectByOid(
+            Class<Q> queryType, UUID oid) {
+        Q path = aliasFor(queryType);
+        return selectOne(path, path.oid.eq(oid));
+    }
+
     protected String cachedUriById(Integer uriId) {
         QUri qUri = QUri.DEFAULT;
         return selectOne(qUri, qUri.id.eq(uriId)).uri;
@@ -132,5 +156,18 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     protected void assertCachedUri(Integer uriId, String uri) {
         assertThat(cachedUriById(uriId)).isEqualTo(uri);
+    }
+
+    /** Resolves multiple URI IDs to the URI strings. */
+    protected String[] resolveCachedUriIds(Integer[] uriIds) {
+        return Stream.of(uriIds)
+                .map(id -> cachedUriById(id))
+                .toArray(String[]::new);
+    }
+
+    /** Sets original and normalized name for provided {@link MObject}. */
+    protected void setName(MObject object, String origName) {
+        object.nameOrig = origName;
+        object.nameNorm = prismContext.getDefaultPolyStringNormalizer().normalize(origName);
     }
 }

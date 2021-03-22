@@ -45,7 +45,7 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
      * Most probably it will be replaced by something different.
      */
     @Experimental // maybe will be removed
-    @NotNull private final String identifier;
+    @NotNull protected final String identifier;
 
     public ItemProcessingRequest(@NotNull I item, @NotNull AbstractIterativeItemProcessor<I, ?, ?, ?, ?> itemProcessor) {
         this.item = item;
@@ -55,13 +55,6 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
 
     public @NotNull I getItem() {
         return item;
-    }
-
-    /**
-     * @return The value against which we match other requests to be aligned with this one.
-     */
-    public Object getCorrelationValue() {
-        return null;
     }
 
     /**
