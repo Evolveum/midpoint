@@ -34,6 +34,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableRowMappin
 import com.evolveum.midpoint.repo.sqale.qmodel.node.QNodeMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QOperationExecutionMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QTriggerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.other.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
@@ -131,6 +132,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(ObjectType.COMPLEX_TYPE, QObjectMapping.INSTANCE)
                 .register(ObjectTemplateType.COMPLEX_TYPE, QObjectTemplateMapping.INSTANCE)
                 .register(ObjectCollectionType.COMPLEX_TYPE, QObjectCollectionMapping.INSTANCE)
+                .register(OperationExecutionType.COMPLEX_TYPE, QOperationExecutionMapping.INSTANCE)
                 .register(ReportType.COMPLEX_TYPE, QReportMapping.INSTANCE)
                 .register(ReportDataType.COMPLEX_TYPE, QReportDataMapping.INSTANCE)
                 .register(ResourceType.COMPLEX_TYPE, QResourceMapping.INSTANCE)

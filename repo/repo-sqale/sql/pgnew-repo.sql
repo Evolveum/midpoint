@@ -28,6 +28,7 @@ CREATE TYPE ContainerType AS ENUM (
     'ACCESS_CERTIFICATION_WORK_ITEM',
     'ASSIGNMENT',
     'INDUCEMENT',
+    'OPERATION_EXECUTION',
     'TRIGGER');
 
 CREATE TYPE ObjectType AS ENUM (
@@ -1311,7 +1312,7 @@ CREATE INDEX m_inducement_resourceRef_targetOid_idx ON m_inducement (resourceRef
 -- endregion
 
 -- region Other object containers
--- stores ObjectType/trigger
+-- stores ObjectType/trigger (TriggerType)
 CREATE TABLE m_trigger (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     containerType ContainerType GENERATED ALWAYS AS ('TRIGGER') STORED,
@@ -1323,6 +1324,31 @@ CREATE TABLE m_trigger (
     INHERITS(m_container);
 
 CREATE INDEX m_trigger_timestampValue_idx ON m_trigger (timestampValue);
+
+-- stores ObjectType/operationExecution (OperationExecutionType)
+CREATE TABLE m_operation_execution (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    containerType ContainerType GENERATED ALWAYS AS ('OPERATION_EXECUTION') STORED,
+    status OperationResultStatusType,
+    initiatorRef_targetOid UUID,
+    initiatorRef_targetType ObjectType,
+    initiatorRef_relation_id INTEGER, -- soft-references m_uri
+    taskRef_targetOid UUID,
+    taskRef_targetType ObjectType,
+    taskRef_relation_id INTEGER, -- soft-references m_uri
+    timestampValue TIMESTAMPTZ,
+
+    PRIMARY KEY (owner_oid, cid)
+)
+    INHERITS(m_container);
+
+CREATE INDEX m_operation_execution_initiatorRef_targetOid_idx
+    ON m_operation_execution (initiatorRef_targetOid);
+CREATE INDEX m_operation_execution_taskRef_targetOid_idx
+    ON m_operation_execution (taskRef_targetOid);
+CREATE INDEX m_operation_execution_timestampValue_idx ON m_operation_execution (timestampValue);
+-- TODO: index for owner_oid is part of PK
+--  index for status is questionable, don't we want WHERE status = ... to another index instead?
 -- endregion
 
 -- region Extension support
@@ -1591,19 +1617,6 @@ CREATE TABLE m_object_ext_string (
   stringValue TEXT/*VARCHAR(255)*/ NOT NULL,
   PRIMARY KEY (owner_oid, ownerType, item_id, stringValue)
 );
-CREATE TABLE m_operation_execution (
-  id                        INTEGER        NOT NULL,
-  owner_oid                 UUID NOT NULL,
-  initiatorRef_relation     VARCHAR(157),
-  initiatorRef_targetOid    UUID,
-  initiatorRef_targetType   INTEGER,
-  status                    INTEGER,
-  taskRef_relation          VARCHAR(157),
-  taskRef_targetOid         UUID,
-  taskRef_targetType        INTEGER,
-  timestampValue            TIMESTAMPTZ,
-  PRIMARY KEY (owner_oid, id)
-);
 CREATE TABLE m_org_closure (
   ancestor_oid   UUID NOT NULL,
   descendant_oid UUID NOT NULL,
@@ -1676,16 +1689,6 @@ CREATE INDEX iExtensionReference
   ON m_object_ext_reference (targetoid);
 CREATE INDEX iExtensionString
   ON m_object_ext_string (stringValue);
-CREATE INDEX iOpExecTaskOid
-  ON m_operation_execution (taskRef_targetOid);
-CREATE INDEX iOpExecInitiatorOid
-  ON m_operation_execution (initiatorRef_targetOid);
-CREATE INDEX iOpExecStatus
-  ON m_operation_execution (status);
-CREATE INDEX iOpExecOwnerOid
-  ON m_operation_execution (owner_oid);
-CREATE INDEX iOpExecTimestampValue
-  ON m_operation_execution (timestampValue);
 CREATE INDEX iAncestor
   ON m_org_closure (ancestor_oid);
 CREATE INDEX iDescendant
@@ -1795,8 +1798,6 @@ ALTER TABLE m_object_ext_string
 
 ALTER TABLE m_object_text_info
   ADD CONSTRAINT fk_object_text_info_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
-ALTER TABLE m_operation_execution
-  ADD CONSTRAINT fk_op_exec_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
 ALTER TABLE m_org_closure
   ADD CONSTRAINT fk_ancestor FOREIGN KEY (ancestor_oid) REFERENCES m_object;
 ALTER TABLE m_org_closure
