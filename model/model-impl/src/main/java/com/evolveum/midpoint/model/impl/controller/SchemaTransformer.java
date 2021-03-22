@@ -98,7 +98,10 @@ public class SchemaTransformer {
         assert !objects.isImmutable();
         for (int i = 0; i < objects.size(); i++) {
             PrismObject<T> object = objects.get(i);
-            assert !object.isImmutable();
+            if (object.isImmutable()) {
+                object = object.clone();
+                objects.set(i, object);
+            }
             applySchemaAndSecurityToObject(object, rootOptions, options, phase, task, result);
         }
     }
