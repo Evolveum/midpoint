@@ -169,29 +169,25 @@ class OperationExecutionRecorderForClockwork {
             Context<?> ctx) {
         assert !executedDeltas.isEmpty();
 
-        OperationExecutionType operation = new OperationExecutionType(prismContext);
-        operation.setRecordType(OperationExecutionRecordTypeType.SIMPLE);
+        OperationExecutionType record = new OperationExecutionType(prismContext);
+        record.setRecordType(OperationExecutionRecordTypeType.SIMPLE);
         OperationResult summaryResult = new OperationResult("recordOperationExecution");
         for (LensObjectDeltaOperation<?> deltaOperation : executedDeltas) {
-            operation.getOperation().add(createObjectDeltaOperation(deltaOperation));
+            record.getOperation().add(createObjectDeltaOperation(deltaOperation));
             if (deltaOperation.getExecutionResult() != null) {
                 // todo eliminate the following clone (but beware of modifying the subresult)
                 summaryResult.addSubresult(deltaOperation.getExecutionResult().clone());
             }
         }
-        createTaskRef(operation, ctx);
+        createTaskRef(record, ctx);
         summaryResult.computeStatus();
-        OperationResultStatusType overallStatus = summaryResult.getStatus().createStatusType();
-        setOperationContext(operation, overallStatus, ctx);
-        return operation;
-    }
-
-    private void setOperationContext(OperationExecutionType operation, OperationResultStatusType overallStatus, Context<?> ctx) {
-        operation.setStatus(overallStatus);
+        record.setStatus(summaryResult.getStatus().createStatusType());
+        record.setMessage(summaryResult.getMessage());
         // TODO what if the real initiator is different? (e.g. when executing approved changes)
-        operation.setInitiatorRef(ObjectTypeUtil.createObjectRefCopy(ctx.task.getOwnerRef()));
-        operation.setChannel(ctx.lensContext.getChannel());
-        operation.setTimestamp(ctx.now);
+        record.setInitiatorRef(ObjectTypeUtil.createObjectRefCopy(ctx.task.getOwnerRef()));
+        record.setChannel(ctx.lensContext.getChannel());
+        record.setTimestamp(ctx.now);
+        return record;
     }
 
     private void createTaskRef(OperationExecutionType operation, Context<?> ctx) {

@@ -102,16 +102,12 @@ public class OperationExecutionRecorderForTasks {
         operation.setTaskRef(ObjectTypeUtil.createObjectRef(task.getRootTaskOid(), ObjectTypes.TASK));
         operation.setTaskPartUri(partUri);
         operation.setStatus(result.getStatus().createStatusType());
+        operation.setMessage(result.getMessage());
         // TODO what if the real initiator is different? (e.g. when executing approved changes)
         operation.setInitiatorRef(ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()));
         operation.setChannel(task.getChannel());
         operation.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar());
         return operation;
-    }
-
-    private XMLGregorianCalendar getTaskStartTime(RunningTask task) {
-        // FIXME this should be root task start time!
-        return XmlTypeConverter.createXMLGregorianCalendar(task.getLastRunStartTimestamp());
     }
 
     /**
