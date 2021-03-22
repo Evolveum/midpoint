@@ -22,10 +22,10 @@ public class NodeSqlTransformer
     }
 
     @Override
-    public @NotNull MNode toRowObjectWithoutFullObject(NodeType schemaObject, JdbcSession jdbcSession) {
-        MNode node = super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
+    public @NotNull MNode toRowObjectWithoutFullObject(NodeType node, JdbcSession jdbcSession) {
+        MNode row = super.toRowObjectWithoutFullObject(node, jdbcSession);
 
-        node.nodeIdentifier = schemaObject.getNodeIdentifier();
-        return node;
+        row.nodeIdentifier = node.getNodeIdentifier();
+        return row;
     }
 }

@@ -680,36 +680,36 @@ public final class WebComponentUtil {
 
     public static boolean canRunNowTask(TaskType task, PageBase pageBase) {
         return pageBase.isAuthorized(ModelAuthorizationAction.RUN_TASK_IMMEDIATELY, task.asPrismObject())
-                && !isRunningTask(task) && (isRunnableTask(task) || (isClosedTask(task) && !isRecurringTask(task)));
+                && !isRunningTask(task)
+                && (isRunnableTask(task) || (isClosedTask(task) && !isRecurringTask(task)));
     }
 
     /** Checks user-visible state, not the technical (scheduling) state. So RUNNABLE means the task is not actually running. */
     public static boolean isRunnableTask(TaskType task) {
-        return task != null && TaskExecutionStateType.RUNNABLE == task.getExecutionStatus();
+        return task != null && task.getExecutionStatus() == TaskExecutionStateType.RUNNABLE;
     }
 
-    // Or we can test execution state for RUNNING value.
     public static boolean isRunningTask(TaskType task) {
-        return task != null && task.getNodeAsObserved() != null;
+        return task != null && task.getExecutionStatus() == TaskExecutionStateType.RUNNING;
     }
 
     /** Checks user-visible state, not the technical (scheduling) state. */
     public static boolean isWaitingTask(TaskType task) {
-        return task != null && TaskExecutionStateType.WAITING == task.getExecutionStatus();
+        return task != null && task.getExecutionStatus() == TaskExecutionStateType.WAITING;
     }
 
     /** Checks user-visible state, not the technical (scheduling) state. */
     public static boolean isSuspendedTask(TaskType task) {
-        return task != null && TaskExecutionStateType.SUSPENDED == task.getExecutionStatus();
+        return task != null && task.getExecutionStatus() == TaskExecutionStateType.SUSPENDED;
     }
 
     /** Checks user-visible state, not the technical (scheduling) state. But for closed tasks, these are equivalent. */
     public static boolean isClosedTask(TaskType task) {
-        return task != null && TaskExecutionStateType.CLOSED == task.getExecutionStatus();
+        return task != null && task.getExecutionStatus() == TaskExecutionStateType.CLOSED;
     }
 
     public static boolean isRecurringTask(TaskType task) {
-        return task != null && TaskRecurrenceType.RECURRING == task.getRecurrence();
+        return task != null && task.getRecurrence() == TaskRecurrenceType.RECURRING;
     }
 
     // We no longer need to treat workflow-related tasks in a different way.

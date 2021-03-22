@@ -366,6 +366,12 @@ public class Statistics implements WorkBucketStatisticsCollector {
         }
     }
 
+    public void markAllStructuredProgressClosed() {
+        if (structuredProgress != null) {
+            structuredProgress.markAsClosed();
+        }
+    }
+
     public void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid,
             ChangeType changeType, String channel, Throwable exception) {
         if (actionsExecutedInformation != null) {

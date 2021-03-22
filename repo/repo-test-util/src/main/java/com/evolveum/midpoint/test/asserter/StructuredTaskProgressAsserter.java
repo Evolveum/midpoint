@@ -17,6 +17,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcom
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StructuredTaskProgressType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartProgressType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  *  Asserter that checks structured task progress.
  */
@@ -96,11 +98,23 @@ public class StructuredTaskProgressAsserter<RA> extends AbstractAsserter<RA> {
         return getSuccessCount(open) + getSkipCount(open);
     }
 
+    public TaskPartProgressAsserter<StructuredTaskProgressAsserter<RA>> part(String partUri) {
+        return part(
+                TaskProgressUtil.getForPart(information, partUri),
+                "part with URI " + partUri);
+    }
+
     public TaskPartProgressAsserter<StructuredTaskProgressAsserter<RA>> currentPart() {
-        TaskPartProgressType currentPart = TaskProgressUtil.getForCurrentPart(information);
-        assertThat(currentPart).as("current part").isNotNull();
+        return part(
+                TaskProgressUtil.getForCurrentPart(information),
+                "current part");
+    }
+
+    @NotNull
+    private TaskPartProgressAsserter<StructuredTaskProgressAsserter<RA>> part(TaskPartProgressType part, String description) {
+        assertThat(part).as(description).isNotNull();
         TaskPartProgressAsserter<StructuredTaskProgressAsserter<RA>> asserter =
-                new TaskPartProgressAsserter<>(currentPart, this, getDetails());
+                new TaskPartProgressAsserter<>(part, this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }

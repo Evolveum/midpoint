@@ -84,18 +84,26 @@ public class ObjectClassSearchItem extends PropertySearchItem<QName> {
     @Override
     public DisplayableValue<QName> getValue() {
         for (PropertySearchItem property : getSearch().getPropertyItems()) {
-            if (ShadowType.F_RESOURCE_REF.equivalent(property.getPath())
-                    && property.getValue() != null && property.getValue().getValue() != null) {
-                Referencable ref = (Referencable) property.getValue().getValue();
-                if (StringUtils.isNotBlank(ref.getOid())
-                        && ref.getOid().equals(lastResourceOid)) {
-                    return super.getValue();
-                }
-                break;
+            if (existResourceValue(property)) {
+                return super.getValue();
             }
-
+        }
+        for (SearchItem item : getSearch().getSpecialItems()) {
+            if (item instanceof PropertySearchItem && existResourceValue((PropertySearchItem) item)) {
+                return super.getValue();
+            }
         }
         return new SearchValue<>();
+    }
+
+    private boolean existResourceValue(PropertySearchItem property) {
+        if (ShadowType.F_RESOURCE_REF.equivalent(property.getPath())
+                && property.getValue() != null && property.getValue().getValue() != null) {
+            Referencable ref = (Referencable) property.getValue().getValue();
+            return StringUtils.isNotBlank(ref.getOid())
+                    && ref.getOid().equals(lastResourceOid);
+        }
+        return false;
     }
 
     @Override

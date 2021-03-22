@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
 import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -262,6 +263,16 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
 
         TaskAsserter<TaskAsserter<RA>> asserter = new TaskAsserter<>(subtask.asPrismObject(), this, "subtask for part " +
                 number + " in " + getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    public TaskAsserter<TaskAsserter<RA>> subtask(int index) {
+        TaskType subtask = (TaskType) ObjectTypeUtil.getObjectFromReference(getObjectable().getSubtaskRef().get(index));
+        assertThat(subtask).withFailMessage(() -> "No subtask #" + index + " found").isNotNull();
+
+        TaskAsserter<TaskAsserter<RA>> asserter = new TaskAsserter<>(subtask.asPrismObject(), this,
+                "subtask #" + index + " in " + getDetails());
         copySetupTo(asserter);
         return asserter;
     }

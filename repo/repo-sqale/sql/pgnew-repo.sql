@@ -28,6 +28,7 @@ CREATE TYPE ContainerType AS ENUM (
     'ACCESS_CERTIFICATION_WORK_ITEM',
     'ASSIGNMENT',
     'INDUCEMENT',
+    'OPERATION_EXECUTION',
     'TRIGGER');
 
 CREATE TYPE ObjectType AS ENUM (
@@ -82,12 +83,15 @@ CREATE TYPE ActivationStatusType AS ENUM ('ENABLED', 'DISABLED', 'ARCHIVED');
 
 CREATE TYPE AvailabilityStatusType AS ENUM ('DOWN', 'UP', 'BROKEN');
 
-CREATE TYPE TimeIntervalStatusType AS ENUM ('BEFORE', 'IN', 'AFTER');
-
 CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ERROR',
     'FATAL_ERROR', 'HANDLED_ERROR', 'NOT_APPLICABLE', 'IN_PROGRESS', 'UNKNOWN');
 
 CREATE TYPE ResourceAdministrativeStateType AS ENUM ('ENABLED', 'DISABLED');
+
+CREATE TYPE ShadowKindType AS ENUM ('ACCOUNT', 'ENTITLEMENT', 'GENERIC', 'UNKNOWN');
+
+CREATE TYPE SynchronizationSituationType AS ENUM (
+    'DELETED', 'DISPUTED', 'LINKED', 'UNLINKED', 'UNMATCHED');
 
 CREATE TYPE TaskBindingType AS ENUM ('LOOSE', 'TIGHT');
 
@@ -98,6 +102,8 @@ CREATE TYPE TaskRecurrenceType AS ENUM ('SINGLE', 'RECURRING');
 CREATE TYPE TaskWaitingReasonType AS ENUM ('OTHER_TASKS', 'OTHER');
 
 CREATE TYPE ThreadStopActionType AS ENUM ('RESTART', 'RESCHEDULE', 'SUSPEND', 'CLOSE');
+
+CREATE TYPE TimeIntervalStatusType AS ENUM ('BEFORE', 'IN', 'AFTER');
 -- endregion
 
 -- region OID-pool table
@@ -177,9 +183,9 @@ CREATE TABLE m_uri (
     uri TEXT/*VARCHAR(255)*/ NOT NULL UNIQUE
 );
 
+-- there can be more constants pre-filled, but that adds overhead, let the first-start do it
 INSERT INTO m_uri (id, uri)
     VALUES (0, 'http://midpoint.evolveum.com/xml/ns/public/common/org-3#default');
--- TODO pre-fill with various PrismConstants?
 -- endregion
 
 -- region for abstract tables m_object/container/reference
@@ -205,7 +211,7 @@ CREATE TABLE m_object (
     fullObject BYTEA,
     tenantRef_targetOid UUID,
     tenantRef_targetType ObjectType,
-    tenantRef_relation_id INTEGER, -- soft-references m_uri,
+    tenantRef_relation_id INTEGER REFERENCES m_uri(id),
     lifecycleState TEXT/*VARCHAR(255)*/, -- TODO what is this? how many distinct values?
     cid_seq BIGINT NOT NULL DEFAULT 1, -- sequence for container id, next free cid
     version INTEGER NOT NULL DEFAULT 1,
@@ -218,13 +224,13 @@ CREATE TABLE m_object (
     -- metadata
     creatorRef_targetOid UUID,
     creatorRef_targetType ObjectType,
-    creatorRef_relation_id INTEGER, -- soft-references m_uri,
-    createChannel_id INTEGER, -- soft-references m_uri
+    creatorRef_relation_id INTEGER REFERENCES m_uri(id),
+    createChannel_id INTEGER REFERENCES m_uri(id),
     createTimestamp TIMESTAMPTZ,
     modifierRef_targetOid UUID,
     modifierRef_targetType ObjectType,
-    modifierRef_relation_id INTEGER, -- soft-references m_uri
-    modifyChannel_id INTEGER, -- soft-references m_uri,
+    modifierRef_relation_id INTEGER REFERENCES m_uri(id),
+    modifyChannel_id INTEGER REFERENCES m_uri(id),
     modifyTimestamp TIMESTAMPTZ,
 
     -- these are purely DB-managed metadata, not mapped to in midPoint
@@ -262,7 +268,7 @@ CREATE TABLE m_reference (
     referenceType ReferenceType NOT NULL,
     targetOid UUID NOT NULL, -- soft-references m_object
     targetType ObjectType NOT NULL,
-    relation_id INTEGER NOT NULL, -- soft-references m_uri
+    relation_id INTEGER NOT NULL REFERENCES m_uri(id),
 
     -- prevents inserts to this table, but not to inherited ones; this makes it "abstract" table
     CHECK (FALSE) NO INHERIT
@@ -407,7 +413,7 @@ CREATE INDEX m_ref_projection_targetOid_relation_id_idx
 CREATE TABLE m_generic_object (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('GENERIC_OBJECT') STORED,
-    genericObjectType_id INTEGER NOT NULL -- GenericObjectType#objectType, soft-references m_uri
+    genericObjectType_id INTEGER NOT NULL REFERENCES m_uri(id) -- GenericObjectType#objectType
 )
     INHERITS (m_focus);
 
@@ -554,12 +560,12 @@ ALTER TABLE m_archetype ADD CONSTRAINT m_archetype_name_norm_key UNIQUE (name_no
 CREATE TABLE m_access_cert_definition (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_DEFINITION') STORED,
-    handlerUri_id INTEGER, -- soft-references m_uri
+    handlerUri_id INTEGER REFERENCES m_uri(id),
     lastCampaignStartedTimestamp TIMESTAMPTZ,
     lastCampaignClosedTimestamp TIMESTAMPTZ,
     ownerRef_targetOid UUID,
     ownerRef_targetType ObjectType,
-    ownerRef_relation_id INTEGER -- soft-references m_uri
+    ownerRef_relation_id INTEGER REFERENCES m_uri(id)
 )
     INHERITS (m_object);
 
@@ -581,13 +587,13 @@ CREATE TABLE m_access_cert_campaign (
     objectType ObjectType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CAMPAIGN') STORED,
     definitionRef_targetOid UUID,
     definitionRef_targetType ObjectType,
-    definitionRef_relation_id INTEGER, -- soft-references m_uri
+    definitionRef_relation_id INTEGER REFERENCES m_uri(id),
     endTimestamp TIMESTAMPTZ,
-    handlerUri_id INTEGER, -- soft-references m_uri
+    handlerUri_id INTEGER REFERENCES m_uri(id),
     iteration INTEGER NOT NULL,
     ownerRef_targetOid UUID,
     ownerRef_targetType ObjectType,
-    ownerRef_relation_id INTEGER, -- soft-references m_uri
+    ownerRef_relation_id INTEGER REFERENCES m_uri(id),
     stageNumber INTEGER,
     startTimestamp TIMESTAMPTZ,
     state INTEGER
@@ -624,10 +630,10 @@ CREATE TABLE m_access_cert_case (
     iteration INTEGER NOT NULL,
     objectRef_targetOid UUID,
     objectRef_targetType ObjectType,
-    objectRef_relation_id INTEGER, -- soft-references m_uri
+    objectRef_relation_id INTEGER REFERENCES m_uri(id),
     orgRef_targetOid UUID,
     orgRef_targetType ObjectType,
-    orgRef_relation_id INTEGER, -- soft-references m_uri
+    orgRef_relation_id INTEGER REFERENCES m_uri(id),
     outcome TEXT/*VARCHAR(255)*/,
     remediedTimestamp TIMESTAMPTZ,
     reviewDeadline TIMESTAMPTZ,
@@ -635,10 +641,10 @@ CREATE TABLE m_access_cert_case (
     stageNumber INTEGER,
     targetRef_targetOid UUID,
     targetRef_targetType ObjectType,
-    targetRef_relation_id INTEGER, -- soft-references m_uri
+    targetRef_relation_id INTEGER REFERENCES m_uri(id),
     tenantRef_targetOid UUID,
     tenantRef_targetType ObjectType,
-    tenantRef_relation_id INTEGER, -- soft-references m_uri
+    tenantRef_relation_id INTEGER REFERENCES m_uri(id),
 
     PRIMARY KEY (owner_oid, cid)
 )
@@ -654,7 +660,7 @@ CREATE TABLE m_access_cert_wi (
     outputChangeTimestamp TIMESTAMPTZ,
     performerRef_targetOid UUID,
     performerRef_targetType ObjectType,
-    performerRef_relation_id INTEGER, -- soft-references m_uri
+    performerRef_relation_id INTEGER REFERENCES m_uri(id),
     stageNumber INTEGER,
 
     PRIMARY KEY (owner_oid, acc_cert_case_cid, cid)
@@ -672,7 +678,7 @@ CREATE TABLE m_access_cert_wi_reference (
     acc_cert_wi_cid INTEGER NOT NULL, -- PK+FK
     targetOid UUID NOT NULL, -- more PK columns...
     targetType ObjectType,
-    relation_id INTEGER NOT NULL, -- soft-references m_uri
+    relation_id INTEGER NOT NULL REFERENCES m_uri(id),
 
     -- TODO is the order of last two components optimal for index/query?
     PRIMARY KEY (owner_oid, acc_cert_case_cid, acc_cert_wi_cid, relation_id, targetOid)
@@ -705,7 +711,7 @@ CREATE TABLE m_resource (
     operationalState_lastAvailabilityStatus AvailabilityStatusType,
     connectorRef_targetOid UUID,
     connectorRef_targetType ObjectType,
-    connectorRef_relation_id INTEGER -- soft-references m_uri
+    connectorRef_relation_id INTEGER REFERENCES m_uri(id)
 )
     INHERITS (m_object);
 
@@ -732,28 +738,30 @@ CREATE TABLE m_ref_resource_business_configuration_approver (
 CREATE INDEX m_ref_resource_biz_config_approver_targetOid_relation_id_idx
     ON m_ref_resource_business_configuration_approver (targetOid, relation_id);
 
--- TODO not mapped yet
+-- Represents ShadowType, see https://wiki.evolveum.com/display/midPoint/Shadow+Objects
+-- and also https://docs.evolveum.com/midpoint/reference/schema/focus-and-projections/
 CREATE TABLE m_shadow (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('SHADOW') STORED,
-    objectClass TEXT/*VARCHAR(157)*/ NOT NULL,
+    objectClass_id INTEGER REFERENCES m_uri(id),
     resourceRef_targetOid UUID,
     resourceRef_targetType ObjectType,
-    resourceRef_relation_id INTEGER, -- soft-references m_uri
+    resourceRef_relation_id INTEGER REFERENCES m_uri(id),
     intent TEXT/*VARCHAR(255)*/,
-    kind INTEGER,
+    kind ShadowKindType,
     attemptNumber INTEGER,
     dead BOOLEAN,
     exist BOOLEAN,
-    failedOperationType INTEGER,
     fullSynchronizationTimestamp TIMESTAMPTZ,
     pendingOperationCount INTEGER,
     primaryIdentifierValue TEXT/*VARCHAR(255)*/,
-    status INTEGER,
-    synchronizationSituation INTEGER,
+--     status INTEGER, TODO how is this mapped?
+    synchronizationSituation SynchronizationSituationType,
     synchronizationTimestamp TIMESTAMPTZ
 )
     INHERITS (m_object);
+
+-- TODO not partitioned yet, discriminator columns probably can't be NULL
 
 CREATE TRIGGER m_shadow_oid_insert_tr BEFORE INSERT ON m_shadow
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -777,9 +785,9 @@ CREATE INDEX iShadowObjectClass ON m_shadow (objectClass);
 CREATE INDEX iShadowFailedOperationType ON m_shadow (failedOperationType);
 CREATE INDEX iShadowSyncSituation ON m_shadow (synchronizationSituation);
 CREATE INDEX iShadowPendingOperationCount ON m_shadow (pendingOperationCount);
-ALTER TABLE m_shadow
-    ADD CONSTRAINT iPrimaryIdentifierValueWithOC UNIQUE (primaryIdentifierValue, objectClass, resourceRef_targetOid);
- */
+ALTER TABLE m_shadow ADD CONSTRAINT iPrimaryIdentifierValueWithOC
+  UNIQUE (primaryIdentifierValue, objectClass, resourceRef_targetOid);
+*/
 
 -- Represents NodeType, see https://wiki.evolveum.com/display/midPoint/Managing+cluster+nodes
 CREATE TABLE m_node (
@@ -911,7 +919,7 @@ CREATE TABLE m_report_data (
     objectType ObjectType GENERATED ALWAYS AS ('REPORT_DATA') STORED,
     reportRef_targetOid UUID,
     reportRef_targetType ObjectType,
-    reportRef_relation_id INTEGER -- soft-references m_uri
+    reportRef_relation_id INTEGER REFERENCES m_uri(id)
 )
     INHERITS (m_object);
 
@@ -955,14 +963,14 @@ ALTER TABLE m_lookup_table_row
 CREATE TABLE m_connector (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('CONNECTOR') STORED,
-    connectorBundle TEXT/*VARCHAR(255)*/,
-    connectorType TEXT/*VARCHAR(255)*/,
+    connectorBundle TEXT/*VARCHAR(255)*/, -- typically a package name
+    connectorType TEXT/*VARCHAR(255)*/, -- typically a class name
     connectorVersion TEXT/*VARCHAR(255)*/,
-    framework TEXT/*VARCHAR(255)*/,
+    framework_id INTEGER REFERENCES m_uri(id),
     connectorHostRef_targetOid UUID,
     connectorHostRef_targetType ObjectType,
-    connectorHostRef_relation_id INTEGER -- soft-references m_uri
-
+    connectorHostRef_relation_id INTEGER REFERENCES m_uri(id),
+    targetSystemTypes TEXT[] -- TODO any strings? cached URIs?
 )
     INHERITS (m_object);
 
@@ -1013,16 +1021,16 @@ CREATE TABLE m_task (
     completionTimestamp TIMESTAMPTZ,
     executionStatus TaskExecutionStatusType,
     fullResult BYTEA,
-    handlerUri_id INTEGER, -- soft-references m_uri
+    handlerUri_id INTEGER REFERENCES m_uri(id),
     lastRunStartTimestamp TIMESTAMPTZ,
     lastRunFinishTimestamp TIMESTAMPTZ,
     node TEXT/*VARCHAR(255)*/, -- node_id only for information purposes
     objectRef_targetOid UUID,
     objectRef_targetType ObjectType,
-    objectRef_relation_id INTEGER, -- soft-references m_uri
+    objectRef_relation_id INTEGER REFERENCES m_uri(id),
     ownerRef_targetOid UUID,
     ownerRef_targetType ObjectType,
-    ownerRef_relation_id INTEGER, -- soft-references m_uri
+    ownerRef_relation_id INTEGER REFERENCES m_uri(id),
     parent TEXT/*VARCHAR(255)*/, -- value of taskIdentifier
     recurrence TaskRecurrenceType,
     resultStatus OperationResultStatusType,
@@ -1054,16 +1062,16 @@ CREATE TABLE m_case (
     closeTimestamp TIMESTAMPTZ,
     objectRef_targetOid UUID,
     objectRef_targetType ObjectType,
-    objectRef_relation_id INTEGER, -- soft-references m_uri
+    objectRef_relation_id INTEGER REFERENCES m_uri(id),
     parentRef_targetOid UUID,
     parentRef_targetType ObjectType,
-    parentRef_relation_id INTEGER, -- soft-references m_uri
+    parentRef_relation_id INTEGER REFERENCES m_uri(id),
     requestorRef_targetOid UUID,
     requestorRef_targetType ObjectType,
-    requestorRef_relation_id INTEGER, -- soft-references m_uri
+    requestorRef_relation_id INTEGER REFERENCES m_uri(id),
     targetRef_targetOid UUID,
     targetRef_targetType ObjectType,
-    targetRef_relation_id INTEGER -- soft-references m_uri
+    targetRef_relation_id INTEGER REFERENCES m_uri(id)
 )
     INHERITS (m_object);
 
@@ -1192,13 +1200,13 @@ CREATE TABLE m_assignment_type (
     orderValue INTEGER,
     orgRef_targetOid UUID,
     orgRef_targetType ObjectType,
-    orgRef_relation_id INTEGER, -- soft-references m_uri
+    orgRef_relation_id INTEGER REFERENCES m_uri(id),
     targetRef_targetOid UUID,
     targetRef_targetType ObjectType,
-    targetRef_relation_id INTEGER, -- soft-references m_uri
+    targetRef_relation_id INTEGER REFERENCES m_uri(id),
     tenantRef_targetOid UUID,
     tenantRef_targetType ObjectType,
-    tenantRef_relation_id INTEGER, -- soft-references m_uri
+    tenantRef_relation_id INTEGER REFERENCES m_uri(id),
     -- TODO what is this? see RAssignment.getExtension (both extId/Oid)
     extId INTEGER,
     extOid TEXT/*VARCHAR(36)*/, -- is this UUID too?
@@ -1207,7 +1215,7 @@ CREATE TABLE m_assignment_type (
     -- construction
     resourceRef_targetOid UUID,
     resourceRef_targetType ObjectType,
-    resourceRef_relation_id INTEGER, -- soft-references m_uri
+    resourceRef_relation_id INTEGER REFERENCES m_uri(id),
     -- activation
     administrativeStatus ActivationStatusType,
     effectiveStatus ActivationStatusType,
@@ -1222,12 +1230,12 @@ CREATE TABLE m_assignment_type (
     -- metadata
     creatorRef_targetOid UUID,
     creatorRef_targetType ObjectType,
-    creatorRef_relation_id INTEGER, -- soft-references m_uri
+    creatorRef_relation_id INTEGER REFERENCES m_uri(id),
     createChannel_id INTEGER,
     createTimestamp TIMESTAMPTZ,
     modifierRef_targetOid UUID,
     modifierRef_targetType ObjectType,
-    modifierRef_relation_id INTEGER, -- soft-references m_uri
+    modifierRef_relation_id INTEGER REFERENCES m_uri(id),
     modifyChannel_id INTEGER,
     modifyTimestamp TIMESTAMPTZ,
 
@@ -1311,11 +1319,11 @@ CREATE INDEX m_inducement_resourceRef_targetOid_idx ON m_inducement (resourceRef
 -- endregion
 
 -- region Other object containers
--- stores ObjectType/trigger
+-- stores ObjectType/trigger (TriggerType)
 CREATE TABLE m_trigger (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     containerType ContainerType GENERATED ALWAYS AS ('TRIGGER') STORED,
-    handlerUri_id INTEGER, -- soft-references m_uri
+    handlerUri_id INTEGER REFERENCES m_uri(id),
     timestampValue TIMESTAMPTZ,
 
     PRIMARY KEY (owner_oid, cid)
@@ -1323,6 +1331,31 @@ CREATE TABLE m_trigger (
     INHERITS(m_container);
 
 CREATE INDEX m_trigger_timestampValue_idx ON m_trigger (timestampValue);
+
+-- stores ObjectType/operationExecution (OperationExecutionType)
+CREATE TABLE m_operation_execution (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    containerType ContainerType GENERATED ALWAYS AS ('OPERATION_EXECUTION') STORED,
+    status OperationResultStatusType,
+    initiatorRef_targetOid UUID,
+    initiatorRef_targetType ObjectType,
+    initiatorRef_relation_id INTEGER REFERENCES m_uri(id),
+    taskRef_targetOid UUID,
+    taskRef_targetType ObjectType,
+    taskRef_relation_id INTEGER REFERENCES m_uri(id),
+    timestampValue TIMESTAMPTZ,
+
+    PRIMARY KEY (owner_oid, cid)
+)
+    INHERITS(m_container);
+
+CREATE INDEX m_operation_execution_initiatorRef_targetOid_idx
+    ON m_operation_execution (initiatorRef_targetOid);
+CREATE INDEX m_operation_execution_taskRef_targetOid_idx
+    ON m_operation_execution (taskRef_targetOid);
+CREATE INDEX m_operation_execution_timestampValue_idx ON m_operation_execution (timestampValue);
+-- TODO: index for owner_oid is part of PK
+--  index for status is questionable, don't we want WHERE status = ... to another index instead?
 -- endregion
 
 -- region Extension support
@@ -1591,19 +1624,6 @@ CREATE TABLE m_object_ext_string (
   stringValue TEXT/*VARCHAR(255)*/ NOT NULL,
   PRIMARY KEY (owner_oid, ownerType, item_id, stringValue)
 );
-CREATE TABLE m_operation_execution (
-  id                        INTEGER        NOT NULL,
-  owner_oid                 UUID NOT NULL,
-  initiatorRef_relation     VARCHAR(157),
-  initiatorRef_targetOid    UUID,
-  initiatorRef_targetType   INTEGER,
-  status                    INTEGER,
-  taskRef_relation          VARCHAR(157),
-  taskRef_targetOid         UUID,
-  taskRef_targetType        INTEGER,
-  timestampValue            TIMESTAMPTZ,
-  PRIMARY KEY (owner_oid, id)
-);
 CREATE TABLE m_org_closure (
   ancestor_oid   UUID NOT NULL,
   descendant_oid UUID NOT NULL,
@@ -1676,16 +1696,6 @@ CREATE INDEX iExtensionReference
   ON m_object_ext_reference (targetoid);
 CREATE INDEX iExtensionString
   ON m_object_ext_string (stringValue);
-CREATE INDEX iOpExecTaskOid
-  ON m_operation_execution (taskRef_targetOid);
-CREATE INDEX iOpExecInitiatorOid
-  ON m_operation_execution (initiatorRef_targetOid);
-CREATE INDEX iOpExecStatus
-  ON m_operation_execution (status);
-CREATE INDEX iOpExecOwnerOid
-  ON m_operation_execution (owner_oid);
-CREATE INDEX iOpExecTimestampValue
-  ON m_operation_execution (timestampValue);
 CREATE INDEX iAncestor
   ON m_org_closure (ancestor_oid);
 CREATE INDEX iDescendant
@@ -1795,8 +1805,6 @@ ALTER TABLE m_object_ext_string
 
 ALTER TABLE m_object_text_info
   ADD CONSTRAINT fk_object_text_info_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
-ALTER TABLE m_operation_execution
-  ADD CONSTRAINT fk_op_exec_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
 ALTER TABLE m_org_closure
   ADD CONSTRAINT fk_ancestor FOREIGN KEY (ancestor_oid) REFERENCES m_object;
 ALTER TABLE m_org_closure

@@ -18,6 +18,7 @@ import com.evolveum.midpoint.test.DummyTestResource;
 
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -83,6 +84,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
     private static final TestResource<TaskType> TASK_IMPORT_RETRY_BY_FILTERING = new TestResource<>(TEST_DIR, "task-import-retry-by-filtering.xml", "e06f3f5c-4acc-4c6a-baa3-5c7a954ce4e9");
     private static final TestResource<TaskType> TASK_IMPORT_RETRY_BY_FETCHING = new TestResource<>(TEST_DIR, "task-import-retry-by-fetching.xml", "e06f3f5c-4acc-4c6a-baa3-5c7a954ce4e9");
     private static final TestResource<TaskType> TASK_RECONCILIATION = new TestResource<>(TEST_DIR, "task-reconciliation.xml", "566c822c-5db4-4879-a159-3749fef11c7a");
+    private static final TestResource<TaskType> TASK_RECONCILIATION_PARTITIONED_MULTINODE = new TestResource<>(TEST_DIR, "task-reconciliation-partitioned-multinode.xml", "0e818ebb-1fd8-4d89-a4f4-aa42ce8ac475");
 
     private static final int USERS = 10;
 
@@ -106,7 +108,8 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         }
     }
 
-    private void createAccount(int i) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException, InterruptedException {
+    private void createAccount(int i) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException,
+            FileNotFoundException, ConflictException, InterruptedException {
         String name = formatAccountName(i);
         DummyAccount account = RESOURCE_DUMMY_SOURCE.controller.addAccount(name);
         account.addAttributeValue(ATTR_NUMBER, i);
@@ -389,5 +392,46 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 .display();
         assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.getResource())
                 .display();
+    }
+
+    @Test
+    public void test210PartitionedMultinodeReconciliationWithAllFailuresEnabled() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // 3rd account is already broken
+
+        when();
+        var taskBefore = addTask(TASK_RECONCILIATION_PARTITIONED_MULTINODE, result);
+        waitForTaskTreeNextFinishedRun(taskBefore.asObjectable(), 20000, result);
+
+        then();
+        assertTaskTree(TASK_RECONCILIATION_PARTITIONED_MULTINODE.oid, "reconciliation task after")
+                .display()
+                .subtaskForPart(1)
+                    .display()
+                    .end()
+                .subtaskForPart(2)
+                    .display()
+                    .subtask(0)
+                        .display()
+                        .end()
+                    .subtask(1)
+                        .display()
+                        .end()
+                    .end()
+                .subtaskForPart(3)
+                    .display();
+
+        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
+                .display()
+                .assertHasComplexOperationExecution(TASK_RECONCILIATION_PARTITIONED_MULTINODE.oid, OperationResultStatusType.SUCCESS);
+        assertShadow(formatAccountName(IDX_MALFORMED_SHADOW), RESOURCE_DUMMY_SOURCE.getResource())
+                .display()
+                .assertHasComplexOperationExecution(TASK_RECONCILIATION_PARTITIONED_MULTINODE.oid, OperationResultStatusType.FATAL_ERROR);
+        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.getResource())
+                .display()
+                .assertHasComplexOperationExecution(TASK_RECONCILIATION_PARTITIONED_MULTINODE.oid, OperationResultStatusType.FATAL_ERROR);
     }
 }

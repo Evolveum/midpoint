@@ -7,8 +7,13 @@
 package com.evolveum.midpoint.model.intest.sync;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.util.Collection;
 
+import com.evolveum.icf.dummy.resource.ConflictException;
+import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -94,19 +99,6 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         return false; // We need custom logging.
     }
 
-    /**
-     * Reconciliation suspend + resume - check for progress reporting issues.
-     */
-    @Test
-    public void test100Reconcile_0T_NB_NP() throws Exception {
-        executePlainReconciliation(TASK_RECONCILE_DUMMY_0T_NB_NP, "a");
-    }
-
-    @Test
-    public void test110Reconcile_2T_NB_NP() throws Exception {
-        executePlainReconciliation(TASK_RECONCILE_DUMMY_2T_NB_NP, "b");
-    }
-
     private void createShadowWithPendingOperation() throws CommonException {
         Task task = createTask();
         OperationResult result = task.getResult(); // Must be separate from initResult because of IN_PROGRESS status
@@ -127,16 +119,69 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         modifyResourceMaintenance(resourceOid, AdministrativeAvailabilityStatusType.OPERATIONAL, task, result);
     }
 
+    @Test
+    public void test100PlainCompleteReconciliation() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        int users = 10;
+        createAccounts("a", users);
+
+        addObject(TASK_RECONCILE_DUMMY_0T_NB_NP.file, task, result);
+
+        when();
+
+        waitForTaskFinish(TASK_RECONCILE_DUMMY_0T_NB_NP.oid, false);
+
+        then();
+
+        assertTask(TASK_RECONCILE_DUMMY_0T_NB_NP.oid, "after")
+                .display()
+                .assertClosed()
+                .structuredProgress()
+                    .display()
+                    .part(ModelPublicConstants.RECONCILIATION_OPERATION_COMPLETION_PART_URI)
+                        .assertSuccessCount(0, 1)
+                        .end()
+                    .part(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_PART_URI)
+                        .assertSuccessCount(0, 10)
+                        .end()
+                    .part(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_PART_URI)
+                        .assertSuccessCount(0, 1)
+                        .end()
+                    .end()
+                .iterativeTaskInformation()
+                    .display()
+                    .end();
+
+        deleteObject(TaskType.class, TASK_RECONCILE_DUMMY_0T_NB_NP.oid);
+    }
+
+    /**
+     * Reconciliation suspend + resume - check for progress reporting issues.
+     */
+    @Test
+    public void test110Reconcile_0T_NB_NP() throws Exception {
+        executePlainReconciliation(TASK_RECONCILE_DUMMY_0T_NB_NP, "b");
+    }
+
+    @Test
+    public void test120Reconcile_2T_NB_NP() throws Exception {
+        executePlainReconciliation(TASK_RECONCILE_DUMMY_2T_NB_NP, "c");
+    }
+
     /**
      * TODO
      */
     @Test
-    public void test120ReconciliationSuspensionPartitioned() throws Exception {
+    public void test130ReconciliationSuspensionPartitioned() throws Exception {
         executePartitionedBucketedReconciliation(TASK_RECONCILE_DUMMY_PARTITIONED, "v", 1);
     }
 
     @Test
-    public void test130ReconciliationSuspensionPartitionedMultiNode() throws Exception {
+    public void test140ReconciliationSuspensionPartitionedMultiNode() throws Exception {
         executePartitionedBucketedReconciliation(TASK_RECONCILE_DUMMY_PARTITIONED_MULTINODE, "w", 2);
     }
 
@@ -147,9 +192,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         given();
-        for (int i = 0; i < USERS; i++) {
-            interruptedSyncResource.getController().addAccount(String.format("%s%03d", accountPrefix, i));
-        }
+        createAccounts(accountPrefix, USERS);
 
         addObject(reconciliationTask.file, task, result);
 
@@ -241,15 +284,20 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         displayDumpable("perf after 2nd run", perf2);
     }
 
+    private void createAccounts(String accountPrefix, int users) throws ObjectAlreadyExistsException, SchemaViolationException,
+            ConnectException, FileNotFoundException, ConflictException, InterruptedException {
+        for (int i = 0; i < users; i++) {
+            interruptedSyncResource.getController().addAccount(String.format("%s%03d", accountPrefix, i));
+        }
+    }
+
     private void executePartitionedBucketedReconciliation(TestResource<TaskType> reconciliationTask, String accountPrefix,
             int workers) throws Exception {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
         given();
-        for (int i = 0; i < USERS; i++) {
-            interruptedSyncResource.getController().addAccount(String.format("%s%03d", accountPrefix, i));
-        }
+        createAccounts(accountPrefix, USERS);
 
         addObject(reconciliationTask.file, task, result);
 

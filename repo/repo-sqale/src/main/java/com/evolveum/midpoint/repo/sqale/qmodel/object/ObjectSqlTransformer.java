@@ -98,8 +98,9 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
 
         // complex DB fields
         row.policySituations = processCacheableUris(schemaObject.getPolicySituation(), jdbcSession);
-        row.subtypes = schemaObject.getSubtype().toArray(String[]::new);
+        row.subtypes = arrayFor(schemaObject.getSubtype());
         // TODO textInfo (fulltext support)
+        //  repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, repositoryContext));
         // TODO extensions stored inline (JSON) - that is ext column
 
         // This is duplicate code with AssignmentSqlTransformer.toRowObject, but making interface
@@ -153,18 +154,15 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
             triggers.forEach(t -> transformer.insert(t, row, jdbcSession));
         }
 
-        // schemaObject.getParentOrgRef() TODO
-        // TODO subtype? it's obsolete already
-        // TODO policySituation container
-        // TODO textInfo? or inline array? JSON?
-        //  repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, repositoryContext));
-        /*
-        for (OperationExecutionType opExec : jaxb.getOperationExecution()) {
-            ROperationExecution rOpExec = new ROperationExecution(repo);
-            ROperationExecution.fromJaxb(opExec, rOpExec, jaxb, repositoryContext, generatorResult);
-            repo.getOperationExecutions().add(rOpExec);
+        List<OperationExecutionType> operationExecutions = schemaObject.getOperationExecution();
+        if (!operationExecutions.isEmpty()) {
+            OperationExecutionSqlTransformer transformer =
+                    QOperationExecutionMapping.INSTANCE.createTransformer(transformerSupport);
+            operationExecutions.forEach(oe -> transformer.insert(oe, row, jdbcSession));
         }
-        */
+
+        // schemaObject.getParentOrgRef() TODO
+
         if (schemaObject instanceof AssignmentHolderType) {
             storeAssignmentHolderEntities(row, (AssignmentHolderType) schemaObject, jdbcSession);
         }
