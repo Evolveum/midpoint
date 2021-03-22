@@ -25,6 +25,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDe
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
+import com.evolveum.midpoint.repo.sqale.qmodel.connector.MConnector;
+import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnector;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MGenericObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObject;
@@ -37,6 +39,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResource;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QSystemConfiguration;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -65,12 +68,13 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         List<MUser> users = select(u, u.nameOrig.eq(userName));
         assertThat(users).hasSize(1);
 
-        MUser mUser = users.get(0);
-        assertThat(mUser.oid).isNotNull();
-        assertThat(mUser.nameNorm).isNotNull(); // normalized name is stored
-        assertThat(mUser.version).isEqualTo(1); // initial version is set
+        MUser row = users.get(0);
+        assertThat(row.oid).isNotNull();
+        assertThat(row.nameNorm).isNotNull(); // normalized name is stored
+        assertThat(row.version).isEqualTo(1); // initial version is set
         // read-only column with value generated/stored in the database
-        assertThat(mUser.objectType).isEqualTo(MObjectType.USER);
+        assertThat(row.objectType).isEqualTo(MObjectType.USER);
+        assertThat(row.subtypes).isNull(); // we don't store empty lists as empty arrays
     }
 
     @Test
@@ -380,7 +384,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
     // TODO test for object's related entities?
 
     @Test
-    public void test902Resource() throws Exception {
+    public void test902ResourceAndItsBusinessApproverReferences() throws Exception {
         OperationResult result = createOperationResult();
 
         given("resource");
@@ -428,6 +432,42 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
                 .isEqualTo(MReferenceType.RESOURCE_BUSINESS_CONFIGURATION_APPROVER);
         assertThat(refRow.targetType).isEqualTo(MObjectType.SERVICE);
         assertCachedUri(refRow.relationId, approver2Relation);
+    }
+
+    @Test
+    public void test903Connector() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("connector");
+        String objectName = "conn" + getTestNumber();
+        UUID connectorHostOid = UUID.randomUUID();
+        QName connectorHostRelation = QName.valueOf("{https://random.org/ns}conn-host-rel");
+        ConnectorType connector = new ConnectorType(prismContext)
+                .name(objectName)
+                .connectorBundle("com.connector.package")
+                .connectorType("ConnectorTypeClass")
+                .connectorVersion("1.2.3")
+                .framework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN)
+                .connectorHostRef(connectorHostOid.toString(),
+                        ConnectorHostType.COMPLEX_TYPE, connectorHostRelation)
+                .targetSystemType("type1")
+                .targetSystemType("type2");
+
+        when("adding it to the repository");
+        repositoryService.addObject(connector.asPrismObject(), null, result);
+
+        then("it is stored and relevant attributes are in columns");
+        assertResult(result);
+
+        MConnector row = selectObjectByOid(QConnector.class, connector.getOid());
+        assertThat(row.connectorBundle).isEqualTo("com.connector.package");
+        assertThat(row.connectorType).isEqualTo("ConnectorTypeClass");
+        assertThat(row.connectorVersion).isEqualTo("1.2.3");
+        assertCachedUri(row.frameworkId, SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN);
+        assertThat(row.connectorHostRefTargetOid).isEqualTo(connectorHostOid);
+        assertThat(row.connectorHostRefTargetType).isEqualTo(MObjectType.CONNECTOR_HOST);
+        assertCachedUri(row.connectorHostRefRelationId, connectorHostRelation);
+        assertThat(row.targetSystemTypes).containsExactlyInAnyOrder("type1", "type2");
     }
 
     // this covers mapping of attributes in FocusSqlTransformer + GenericObject

@@ -29,12 +29,14 @@ public class ConnectorSqlTransformer
         row.connectorBundle = schemaObject.getConnectorBundle();
         row.connectorType = schemaObject.getConnectorType();
         row.connectorVersion = schemaObject.getConnectorVersion();
-        row.framework = schemaObject.getFramework();
+        row.frameworkId = processCacheableUri(schemaObject.getFramework(), jdbcSession);
 
         setReference(schemaObject.getConnectorHostRef(), jdbcSession,
                 o -> row.connectorHostRefTargetOid = o,
                 t -> row.connectorHostRefTargetType = t,
                 r -> row.connectorHostRefRelationId = r);
+
+        row.targetSystemTypes = arrayFor(schemaObject.getTargetSystemType());
 
         return row;
     }

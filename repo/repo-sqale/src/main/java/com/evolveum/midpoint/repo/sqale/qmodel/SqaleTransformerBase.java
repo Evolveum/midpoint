@@ -204,6 +204,13 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
         }
     }
 
+    protected String[] arrayFor(List<String> strings) {
+        if (strings == null || strings.isEmpty()) {
+            return null;
+        }
+        return strings.toArray(String[]::new);
+    }
+
     /** Convenient insert shortcut when the row is fully populated. */
     protected void insert(R row, JdbcSession jdbcSession) {
         jdbcSession.newInsert(mapping.defaultAlias())

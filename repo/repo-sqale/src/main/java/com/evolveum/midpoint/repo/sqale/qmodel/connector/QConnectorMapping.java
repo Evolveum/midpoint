@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterPr
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType.*;
 
 import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
@@ -30,7 +31,7 @@ public class QConnectorMapping
         addItemMapping(F_CONNECTOR_BUNDLE, stringMapper(path(q -> q.connectorBundle)));
         addItemMapping(F_CONNECTOR_TYPE, stringMapper(path(q -> q.connectorType)));
         addItemMapping(F_CONNECTOR_VERSION, stringMapper(path(q -> q.connectorVersion)));
-        addItemMapping(F_FRAMEWORK, stringMapper(path(q -> q.framework)));
+        addItemMapping(F_FRAMEWORK, UriItemFilterProcessor.mapper(path(q -> q.frameworkId)));
         addItemMapping(F_CONNECTOR_HOST_REF, RefItemFilterProcessor.mapper(
                 path(q -> q.connectorHostRefTargetOid),
                 path(q -> q.connectorHostRefTargetType),

@@ -177,9 +177,9 @@ CREATE TABLE m_uri (
     uri TEXT/*VARCHAR(255)*/ NOT NULL UNIQUE
 );
 
+-- there can be more constants pre-filled, but that adds overhead, let the first-start do it
 INSERT INTO m_uri (id, uri)
     VALUES (0, 'http://midpoint.evolveum.com/xml/ns/public/common/org-3#default');
--- TODO pre-fill with various PrismConstants?
 -- endregion
 
 -- region for abstract tables m_object/container/reference
@@ -955,14 +955,14 @@ ALTER TABLE m_lookup_table_row
 CREATE TABLE m_connector (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('CONNECTOR') STORED,
-    connectorBundle TEXT/*VARCHAR(255)*/,
-    connectorType TEXT/*VARCHAR(255)*/,
+    connectorBundle TEXT/*VARCHAR(255)*/, -- typically a package name
+    connectorType TEXT/*VARCHAR(255)*/, -- typically a class name
     connectorVersion TEXT/*VARCHAR(255)*/,
-    framework TEXT/*VARCHAR(255)*/,
+    framework_id INTEGER, -- soft-references m_uri
     connectorHostRef_targetOid UUID,
     connectorHostRef_targetType ObjectType,
-    connectorHostRef_relation_id INTEGER -- soft-references m_uri
-
+    connectorHostRef_relation_id INTEGER, -- soft-references m_uri
+    targetSystemTypes TEXT[] -- TODO any strings? cached URIs?
 )
     INHERITS (m_object);
 

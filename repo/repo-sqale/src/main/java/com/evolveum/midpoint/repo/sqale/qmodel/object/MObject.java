@@ -59,4 +59,15 @@ public class MObject implements MReferenceOwner<MReference> {
         ref.ownerOid = oid;
         return ref;
     }
+
+    @Override
+    public String toString() {
+        return "MObject{" +
+                "oid=" + oid +
+                ", objectType=" + objectType +
+                ", nameOrig='" + nameOrig + '\'' +
+                ", containerIdSeq=" + containerIdSeq +
+                ", version=" + version +
+                '}';
+    }
 }
