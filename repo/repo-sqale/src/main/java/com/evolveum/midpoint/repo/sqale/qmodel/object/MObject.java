@@ -35,6 +35,7 @@ public class MObject implements MReferenceOwner<MReference> {
     // complex DB fields
     public Integer[] policySituations;
     public String[] subtypes;
+    public String[] textInfo; // TODO see todo on SQL column
     public Jsonb ext;
     // metadata
     public UUID creatorRefTargetOid;
@@ -57,5 +58,16 @@ public class MObject implements MReferenceOwner<MReference> {
         MReference ref = new MReference();
         ref.ownerOid = oid;
         return ref;
+    }
+
+    @Override
+    public String toString() {
+        return "MObject{" +
+                "oid=" + oid +
+                ", objectType=" + objectType +
+                ", nameOrig='" + nameOrig + '\'' +
+                ", containerIdSeq=" + containerIdSeq +
+                ", version=" + version +
+                '}';
     }
 }

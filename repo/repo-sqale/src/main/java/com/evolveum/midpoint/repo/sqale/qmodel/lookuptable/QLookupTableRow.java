@@ -33,13 +33,13 @@ public class QLookupTableRow extends FlexibleRelationalPathBase<MLookupTableRow>
     public static final ColumnMetadata ROW_ID =
             ColumnMetadata.named("cid").ofType(Types.INTEGER);
     public static final ColumnMetadata ROW_KEY =
-            ColumnMetadata.named("row_key").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("row_key").ofType(Types.VARCHAR);
     public static final ColumnMetadata LABEL_NORM =
-            ColumnMetadata.named("label_norm").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("label_norm").ofType(Types.VARCHAR);
     public static final ColumnMetadata LABEL_ORIG =
-            ColumnMetadata.named("label_orig").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("label_orig").ofType(Types.VARCHAR);
     public static final ColumnMetadata ROW_VALUE =
-            ColumnMetadata.named("row_value").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("row_value").ofType(Types.VARCHAR);
     public static final ColumnMetadata LAST_CHANGE_TIMESTAMP =
             ColumnMetadata.named("lastChangeTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
 

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.connector;
 
 import java.sql.Types;
 
+import com.querydsl.core.types.dsl.ArrayPath;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
@@ -28,24 +29,26 @@ public class QConnector extends QObject<MConnector> {
     public static final String TABLE_NAME = "m_connector";
 
     public static final ColumnMetadata CONNECTOR_BUNDLE =
-            ColumnMetadata.named("connectorBundle").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("connectorBundle").ofType(Types.VARCHAR);
     public static final ColumnMetadata CONNECTOR_TYPE =
-            ColumnMetadata.named("connectorType").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("connectorType").ofType(Types.VARCHAR);
     public static final ColumnMetadata CONNECTOR_VERSION =
-            ColumnMetadata.named("connectorVersion").ofType(Types.VARCHAR).withSize(255);
-    public static final ColumnMetadata FRAMEWORK =
-            ColumnMetadata.named("framework").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("connectorVersion").ofType(Types.VARCHAR);
+    public static final ColumnMetadata FRAMEWORK_ID =
+            ColumnMetadata.named("framework_id").ofType(Types.INTEGER);
     public static final ColumnMetadata CONNECTOR_HOST_REF_TARGET_OID =
             ColumnMetadata.named("connectorHostRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata CONNECTOR_HOST_REF_TARGET_TYPE =
             ColumnMetadata.named("connectorHostRef_targetType").ofType(Types.OTHER);
     public static final ColumnMetadata CONNECTOR_HOST_REF_RELATION_ID =
             ColumnMetadata.named("connectorHostRef_relation_id").ofType(Types.INTEGER);
+    public static final ColumnMetadata TARGET_SYSTEM_TYPES =
+            ColumnMetadata.named("targetSystemTypes").ofType(Types.ARRAY);
 
     public final StringPath connectorBundle = createString("connectorBundle", CONNECTOR_BUNDLE);
     public final StringPath connectorType = createString("connectorType", CONNECTOR_TYPE);
     public final StringPath connectorVersion = createString("connectorVersion", CONNECTOR_VERSION);
-    public final StringPath framework = createString("framework", FRAMEWORK);
+    public final NumberPath<Integer> frameworkId = createInteger("frameworkId", FRAMEWORK_ID);
     public final UuidPath connectorHostRefTargetOid =
             createUuid("connectorHostRefTargetOid", CONNECTOR_HOST_REF_TARGET_OID);
     public final EnumPath<MObjectType> connectorHostRefTargetType =
@@ -53,6 +56,8 @@ public class QConnector extends QObject<MConnector> {
                     MObjectType.class, CONNECTOR_HOST_REF_TARGET_TYPE);
     public final NumberPath<Integer> connectorHostRefRelationId =
             createInteger("connectorHostRefRelationId", CONNECTOR_HOST_REF_RELATION_ID);
+    public final ArrayPath<String[], String> targetSystemTypes =
+            createArray("targetSystemTypes", String[].class, TARGET_SYSTEM_TYPES);
 
     public QConnector(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

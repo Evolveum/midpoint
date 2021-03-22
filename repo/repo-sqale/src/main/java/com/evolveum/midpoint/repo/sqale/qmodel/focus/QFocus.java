@@ -34,26 +34,26 @@ public class QFocus<T extends MFocus> extends QObject<T> {
     public static final String TABLE_NAME = "m_focus";
 
     public static final ColumnMetadata ROLE_TYPE =
-            ColumnMetadata.named("roleType").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("roleType").ofType(Types.VARCHAR);
 
     public static final ColumnMetadata COST_CENTER =
-            ColumnMetadata.named("costCenter").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("costCenter").ofType(Types.VARCHAR);
     public static final ColumnMetadata EMAIL_ADDRESS =
-            ColumnMetadata.named("emailAddress").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("emailAddress").ofType(Types.VARCHAR);
     public static final ColumnMetadata PHOTO =
             ColumnMetadata.named("photo").ofType(Types.BINARY);
     public static final ColumnMetadata LOCALE =
-            ColumnMetadata.named("locale").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("locale").ofType(Types.VARCHAR);
     public static final ColumnMetadata LOCALITY_ORIG =
-            ColumnMetadata.named("locality_orig").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("locality_orig").ofType(Types.VARCHAR);
     public static final ColumnMetadata LOCALITY_NORM =
-            ColumnMetadata.named("locality_norm").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("locality_norm").ofType(Types.VARCHAR);
     public static final ColumnMetadata PREFERRED_LANGUAGE =
-            ColumnMetadata.named("preferredLanguage").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("preferredLanguage").ofType(Types.VARCHAR);
     public static final ColumnMetadata TELEPHONE_NUMBER =
-            ColumnMetadata.named("telephoneNumber").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("telephoneNumber").ofType(Types.VARCHAR);
     public static final ColumnMetadata TIMEZONE =
-            ColumnMetadata.named("timezone").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("timezone").ofType(Types.VARCHAR);
     // credential/password/metadata columns
     public static final ColumnMetadata PASSWORD_CREATE_TIMESTAMP =
             ColumnMetadata.named("passwordCreateTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
@@ -69,7 +69,7 @@ public class QFocus<T extends MFocus> extends QObject<T> {
     public static final ColumnMetadata DISABLE_TIMESTAMP =
             ColumnMetadata.named("disableTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     public static final ColumnMetadata DISABLE_REASON =
-            ColumnMetadata.named("disableReason").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("disableReason").ofType(Types.VARCHAR);
     public static final ColumnMetadata VALIDITY_STATUS =
             ColumnMetadata.named("validityStatus").ofType(Types.OTHER);
     public static final ColumnMetadata VALID_FROM =

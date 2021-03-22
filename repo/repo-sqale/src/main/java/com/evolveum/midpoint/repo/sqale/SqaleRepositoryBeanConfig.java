@@ -19,8 +19,6 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
-import com.evolveum.midpoint.repo.sqale.qmodel.QDashboardMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.QObjectCollectionMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObjectTemplateMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDefinitionMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
@@ -37,6 +35,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.node.QNodeMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QTriggerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.other.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportDataMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportMapping;
@@ -121,6 +120,8 @@ public class SqaleRepositoryBeanConfig {
                 .register(CaseType.COMPLEX_TYPE, QCaseMapping.INSTANCE)
                 .register(DashboardType.COMPLEX_TYPE, QDashboardMapping.INSTANCE)
                 .register(FocusType.COMPLEX_TYPE, QFocusMapping.INSTANCE)
+                .register(FormType.COMPLEX_TYPE, QFormMapping.INSTANCE)
+                .register(FunctionLibraryType.COMPLEX_TYPE, QFunctionLibraryMapping.INSTANCE)
                 .register(ConnectorType.COMPLEX_TYPE, QConnectorMapping.INSTANCE)
                 .register(ConnectorHostType.COMPLEX_TYPE, QConnectorHostMapping.INSTANCE)
                 .register(GenericObjectType.COMPLEX_TYPE, QGenericObjectMapping.INSTANCE)
@@ -135,6 +136,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(ResourceType.COMPLEX_TYPE, QResourceMapping.INSTANCE)
                 .register(RoleType.COMPLEX_TYPE, QRoleMapping.INSTANCE)
                 .register(SecurityPolicyType.COMPLEX_TYPE, QSecurityPolicyMapping.INSTANCE)
+                .register(SequenceType.COMPLEX_TYPE, QSequenceMapping.INSTANCE)
                 .register(ServiceType.COMPLEX_TYPE, QServiceMapping.INSTANCE)
                 .register(SystemConfigurationType.COMPLEX_TYPE,
                         QSystemConfigurationMapping.INSTANCE)

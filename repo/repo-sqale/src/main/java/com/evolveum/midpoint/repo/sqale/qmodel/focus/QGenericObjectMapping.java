@@ -13,7 +13,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
  * Mapping between {@link QGenericObject} and {@link GenericObjectType}.
  */
 public class QGenericObjectMapping
-        extends QFocusMapping<GenericObjectType, QGenericObject, MFocus> {
+        extends QFocusMapping<GenericObjectType, QGenericObject, MGenericObject> {
 
     public static final String DEFAULT_ALIAS_NAME = "go";
 
@@ -30,13 +30,13 @@ public class QGenericObjectMapping
     }
 
     @Override
-    public FocusSqlTransformer<GenericObjectType, QGenericObject, MFocus> createTransformer(
+    public GenericObjectSqlTransformer createTransformer(
             SqlTransformerSupport transformerSupport) {
-        return new FocusSqlTransformer<>(transformerSupport, this);
+        return new GenericObjectSqlTransformer(transformerSupport, this);
     }
 
     @Override
-    public MFocus newRowObject() {
-        return new MFocus();
+    public MGenericObject newRowObject() {
+        return new MGenericObject();
     }
 }

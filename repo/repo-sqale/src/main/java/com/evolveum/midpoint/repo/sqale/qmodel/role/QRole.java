@@ -22,7 +22,7 @@ public class QRole extends QAbstractRole<MRole> {
     public static final String TABLE_NAME = "m_role";
 
     public static final ColumnMetadata ROLE_TYPE =
-            ColumnMetadata.named("roleType").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("roleType").ofType(Types.VARCHAR);
 
     // columns and relations
 

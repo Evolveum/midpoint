@@ -40,9 +40,9 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     public static final ColumnMetadata OBJECT_TYPE =
             ColumnMetadata.named("objectType").ofType(Types.OTHER).notNull();
     public static final ColumnMetadata NAME_ORIG =
-            ColumnMetadata.named("name_orig").ofType(Types.VARCHAR).withSize(255).notNull();
+            ColumnMetadata.named("name_orig").ofType(Types.VARCHAR).notNull();
     public static final ColumnMetadata NAME_NORM =
-            ColumnMetadata.named("name_norm").ofType(Types.VARCHAR).withSize(255).notNull();
+            ColumnMetadata.named("name_norm").ofType(Types.VARCHAR).notNull();
     public static final ColumnMetadata FULL_OBJECT =
             ColumnMetadata.named("fullObject").ofType(Types.BINARY);
     public static final ColumnMetadata TENANT_REF_TARGET_OID =
@@ -52,7 +52,7 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     public static final ColumnMetadata TENANT_REF_RELATION_ID =
             ColumnMetadata.named("tenantRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata LIFECYCLE_STATE =
-            ColumnMetadata.named("lifecycleState").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("lifecycleState").ofType(Types.VARCHAR);
     public static final ColumnMetadata CID_SEQ =
             ColumnMetadata.named("cid_seq").ofType(Types.BIGINT).notNull();
     public static final ColumnMetadata VERSION =

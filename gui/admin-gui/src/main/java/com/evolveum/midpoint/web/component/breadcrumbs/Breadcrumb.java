@@ -95,7 +95,7 @@ public class Breadcrumb implements Serializable, DebugDumpable {
 
             @Override
             public void detach() {
-                Breadcrumb.this.label = label.getObject();
+                label.detach();
                 Breadcrumb.this.labelModel = null;
             }
 
