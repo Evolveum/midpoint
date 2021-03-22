@@ -10,6 +10,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.util.task.TaskPartPerformanceInformation;
+import com.evolveum.midpoint.schema.util.task.TaskPartProgressInformation;
+import com.evolveum.midpoint.schema.util.task.TaskPerformanceInformation;
+
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -34,8 +38,10 @@ public class TaskIterativeProgressType implements Serializable {
     private List<ProcessedItemDto> currentItems = new ArrayList<>();
 
     private PieChartConfiguration progress;
-    private String title = "";
-    private String wallClockThroughput;
+//    private String title = "";
+//    private String wallClockThroughput;
+
+    TaskPartPerformanceInformation performanceInformation;
 
     public TaskIterativeProgressType(IterativeTaskPartItemsProcessingInformationType processingInfoType, TaskType taskType) {
         for (ProcessedItemSetType processedItem : processingInfoType.getProcessed()) {
@@ -50,7 +56,7 @@ public class TaskIterativeProgressType implements Serializable {
         }
 
         createChartConfiguration();
-        createTitle(processingInfoType.getPartUri(), taskType);
+        performanceInformation = createPerformanceInformation(taskType, processingInfoType.getPartUri());
     }
 
     private void parseItemForOutcome(ItemProcessingOutcomeType outcome, ProcessedItemSetType processedItem) {
@@ -92,18 +98,6 @@ public class TaskIterativeProgressType implements Serializable {
         return getString("TaskIterativeProgress.box.title." + result, getFormattedDate(processedItemSetType));
     }
 
-    //TODO use also this in chart?
-    private int getProgress(ProcessedItemSetType processedItemSetType) {
-        int count = getCount(processedItemSetType);
-
-        int totalCount = getTotalCount();
-        if (totalCount == 0) {
-            return 0;
-        }
-
-        return Math.round(((float) count / totalCount) * 100);
-    }
-
     private TaskInfoBoxType createInfoBoxType(String title, ProcessedItemType processedItem, String background, String icon) {
         TaskInfoBoxType infoBoxType = new TaskInfoBoxType(background, icon, title);
         infoBoxType.setNumber(processedItem.getName());
@@ -126,26 +120,30 @@ public class TaskIterativeProgressType implements Serializable {
         return WebComponentUtil.formatDate(end == 0 ? processedItem.getStartTimestamp() : processedItem.getEndTimestamp());
     }
 
-    private void createTitle(String partUri, TaskType taskType) {
-        int success = getCount(successProcessedItemSetType);
-        int failure = getCount(failureProcessedItemSetType);
-        int skipped = getCount(skippedProcessedItemSetType);
-
-        int objectsTotal = success + failure + skipped;
-        Long wallClock = computeWallClock(objectsTotal, taskType);
-        long throughput = computeThroughput(wallClock);
-        if (partUri != null) {
-            title = getString("TaskIterativeProgress.part." + partUri, objectsTotal);
-        } else {
-            title = getString("TaskOperationStatisticsPanel.processingInfo", objectsTotal);
-        }
-
-        wallClockThroughput = getString("TaskIterativeProgress.wallClock.throughput", wallClock, throughput);
-//        title += getString("TaskStatePanel.message.objectsTotal",
-//                objectsTotal, wallClock, throughput);
+    private TaskPartPerformanceInformation createPerformanceInformation(TaskType taskType, String partUri) {
+        TaskPerformanceInformation taskPerformanceInformation = TaskPerformanceInformation.fromTaskTree(taskType);
+        return taskPerformanceInformation.getParts().get(partUri);
     }
 
-    private int getTotalCount() {
+    public String getTitle() {
+        if (performanceInformation.getPartUri() != null) {
+            return getString("TaskIterativeProgress.part." + performanceInformation.getPartUri(), performanceInformation.getItemsProcessed());
+        }
+        return getString("TaskOperationStatisticsPanel.processingInfo", performanceInformation.getItemsProcessed());
+    }
+
+    public String getWallClockThroughput() {
+        if (containsPerfInfo()) {
+            return getString("TaskIterativeProgress.wallClock.throughput", performanceInformation.getAverageWallClockTime(), performanceInformation.getThroughput());
+        }
+        return null;
+    }
+
+    private boolean containsPerfInfo() {
+        return performanceInformation.getAverageWallClockTime() != null && performanceInformation.getThroughput() != null;
+    }
+
+    public int getTotalCount() {
         int success = getCount(successProcessedItemSetType);
         int failure = getCount(failureProcessedItemSetType);
         int skipped = getCount(skippedProcessedItemSetType);
@@ -164,31 +162,6 @@ public class TaskIterativeProgressType implements Serializable {
         }
 
         return count;
-    }
-
-    private Long computeWallClock(int totalCount, TaskType taskType) {
-        if (totalCount == 0) {
-            return 0L;
-        }
-        Long executionTime = TaskDisplayUtil.getExecutionTime(taskType);
-        return executionTime != null ? executionTime/totalCount : 0;
-    }
-
-    private long computeThroughput(Long avg) {
-        return avg != 0 ? 60000 / avg : 0;
-    }
-
-    private Long getDuration(ProcessedItemSetType item) {
-        if (item == null) {
-            return 0L;
-        }
-
-        Double duration = item.getDuration();
-        if (duration == null) {
-            return 0L;
-        }
-
-        return duration.longValue(); // FIXME
     }
 
     private void createChartConfiguration() {

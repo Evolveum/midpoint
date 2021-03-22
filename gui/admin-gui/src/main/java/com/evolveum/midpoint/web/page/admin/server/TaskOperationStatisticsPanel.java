@@ -95,7 +95,7 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
             protected IModel<TaskIterativeProgressType> createProgressModel(ListItem<IterativeTaskPartItemsProcessingInformationType> item) {
                 return new ReadOnlyModel<>(() -> {
                     IterativeTaskPartItemsProcessingInformationType taskInfo = item.getModelObject();
-                    return new TaskIterativeProgressType(taskInfo, TaskOperationStatisticsPanel.this.getModelObject().getObject().asObjectable());
+                    return new TaskIterativeProgressType(taskInfo, getTaskType());
                 });
             }
         };
@@ -220,6 +220,14 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
         components.add(get(ID_RESULTING_ENTRY));
         components.add(get(ID_SYNCHRONIZATION_STATISTICS));
         return components;
+    }
+
+    private TaskType getTaskType() {
+        PrismObjectWrapper<TaskType> taskWrapper = getModelObject();
+        if (taskWrapper == null) {
+            return null;
+        }
+        return taskWrapper.getObject().asObjectable();
     }
 
 }

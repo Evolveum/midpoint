@@ -5009,11 +5009,15 @@ public final class WebComponentUtil {
         String partProgressHumanReadable = partProgress.toHumanReadableString(longForm);
 
         if (longForm) {
-            partProgressHumanReadable = StringUtils.replaceOnce(partProgressHumanReadable, "of", "TaskSymmaryPanel.progress.of");
-            partProgressHumanReadable = StringUtils.replaceOnce(partProgressHumanReadable, "buckets", "TaskSummaryPanel.progress.buckets");
+            partProgressHumanReadable = StringUtils.replaceOnce(partProgressHumanReadable, "of", pageBase.getString("TaskSummaryPanel.progress.of"));
+            partProgressHumanReadable = StringUtils.replaceOnce(partProgressHumanReadable, "buckets", pageBase.getString("TaskSummaryPanel.progress.buckets"));
         }
 
-        String rv = pageBase.getString("TaskSummaryPanel.progress.info." + (longForm ? "long" : "short"), partProgressHumanReadable, progress.getCurrentPartNumber(), progress.getAllPartsCount());
-        return rv;
+        if (progress.getAllPartsCount() > 1) {
+            String rv = pageBase.getString("TaskSummaryPanel.progress.info." + (longForm ? "long" : "short"), partProgressHumanReadable, progress.getCurrentPartNumber(), progress.getAllPartsCount());
+            return rv;
+        }
+
+        return partProgressHumanReadable;
     }
 }
