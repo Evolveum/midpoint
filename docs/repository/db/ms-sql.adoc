@@ -1,0 +1,97 @@
+= Microsoft SQL Server
+:page-nav-title: MS SQL
+:page-wiki-name: MS SQL Server 2008, 2014 and 2016
+:page-upkeep-status: orange
+
+// TODO: disclaimer that MySQL is deprecated
+
+[NOTE]
+====
+Tested SQL Server Collations:
+
+* SQL\_Latin1\_General\_CP1\_CS\_AS
+
+* SQL\_Czech\_CP1250\_CS\_AS
+
+*Be aware* that using *CS* (case-sensitive) collation causes *column names in queries to be case-sensitive too!*
+====
+
+
+== Database create
+
+[source,sql]
+----
+CREATE DATABASE [midpoint]
+COLLATE SQL_Latin1_General_CP1_CS_AS
+
+ALTER DATABASE "midpoint" SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+ALTER DATABASE "midpoint" SET ALLOW_SNAPSHOT_ISOLATION ON;
+ALTER DATABASE "midpoint" SET MULTI_USER;
+
+CREATE LOGIN midpoint WITH PASSWORD = 'password'
+USE [midpoint]
+CREATE USER [midpoint] FOR LOGIN [midpoint] WITH DEFAULT_SCHEMA=[dbo]
+ALTER ROLE [db_owner] ADD MEMBER [midpoint]
+----
+
+
+== Configuration sample
+
+[source,xml]
+----
+<configuration>
+  <midpoint>
+    <repository>
+      <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
+      <database>sqlserver</database>
+      <jdbcUsername>midpoint</jdbcUsername>
+      <jdbcPassword>password</jdbcPassword>
+      <jdbcUrl>jdbc:sqlserver://localhost:1433;database=midpoint</jdbcUrl>
+    </repository>
+  </midpoint>
+</configuration>
+
+----
+
+
+== Troubleshooting
+
+
+=== Current version cannot be determined. The metadata table (m_global_metadata) is missing or inaccessible.
+
+Log snippet:
+
+\******************************************************************************* +
+\*** \*** +
+\*** Couldn't start midPoint because of a database schema issue.
+\*** +
+\*** \*** +
+\*******************************************************************************
+
+Database schema is not compatible with the executing code.
+
+Current version cannot be determined.
+The metadata table (m\_global\_metadata) is missing or inaccessible.
+This indicates the version is below 3.9. +
+Required version is: 4.0
+
+Reason:
+
+Since version 3.9, midPoint checks for presence of table m\_global\_metadata and will not start if table is not found.
+
+Resolution:
+
+However, If you have DB wrongly set - missing the ALLOW\_SNAPSHOT\_ISOLATION option, you will not get usual "SQLServerException: Snapshot isolation transaction failed" but rather confusing error that m\_global\_metadata table is missing.
+So you just run "ALTER DATABASE "midpoint" SET ALLOW\_SNAPSHOT\_ISOLATION ON;" to fix it.
+
+Jira:
+
+bug:MID-5880[]
+
+
+== Driver
+
+link:http://www.microsoft.com/en-us/download/details.aspx?displaylang=en&id=11774[Download MS SQL JDBC Driver]
+
+When installing the driver, please use sqljdbc4.jar when your application must run on JRE 6.0 or 7.0, even if your application does not use JDBC 4.0 API features. (Quote from link:http://msdn.microsoft.com/en-us/library/ms378422.aspx[(MS) System requirements for the JDBC Driver].)
+

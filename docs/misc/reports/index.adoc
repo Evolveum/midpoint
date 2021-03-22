@@ -1,0 +1,11 @@
+= Reports Configuration
+:page-nav-title: Reports
+:page-upkeep-status: orange
+
+Following pages describe configuration of midPoint reports.
+
+// Describe status of Jasper
+
+++++
+{% children %}
+++++

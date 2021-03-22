@@ -1,0 +1,120 @@
+= Configuration and Use of Constants
+:page-nav-title: Constants
+:page-wiki-name: Configuration and Use of Constants
+:page-since: "3.6"
+
+== Introduction
+
+See wiki:Constants[Constants] page for motivation and general introduction to the concept of constants.
+
+
+== Configuration
+
+The constants are defined in the midPoint configuration file (config.xml) in wiki:MidPoint+Home+Directory[midPoint home directory]:
+
+[source,xml]
+----
+<configuration>
+    <midpoint>
+        <repository>
+            ...
+        </repository>
+        ...
+        <constants>
+            <orgName>Example, Inc.</orgName>
+            <ldapHost>ldap.example.com</ldapHost>
+            <ldapPort>3389</ldapPort>
+            <ldapBaseContext>dc=example,dc=com</ldapBaseContext>
+        </constants>
+    </midpoint>
+</configuration>
+----
+
+
+== Use of Constants
+
+Constants are usually used in wiki:Expression[expressions]. There is a special `const` expression evaluator for easy use of the constants.
+For example a constant defined above may be easily used in the outbound mapping:
+
+[source,xml]
+----
+    <outbound>
+        <expression>
+            <const>orgName</const>
+        </expression>
+    </outbound>
+----
+
+In that case every time the expression is evaluated it will produce a value defined in the config.xml file.
+In this case the value will be "Example, Inc." and that is what will be stored in the resource attribute.
+The same constant may be used at many places in the system.
+Which makes changing the value quite easy.
+
+Constants are especially useful in resource configuration.
+However, prior to midPoint 3.6 it was not possible to use expressions in resource configuration.
+Since midPoint 3.6 this is perfectly possible.
+Therefore the constants can be easily used in resource configuration:
+
+[source,xml]
+----
+<resource>
+    ...
+    <connectorConfiguration>
+        <configurationProperties>
+			<ldap:host>
+                <expression>
+                    <const>ldapHost</const>
+                </expression>
+            </ldap:host>
+            <ldap:port>
+                <expression>
+                    <const>ldapPort</const>
+                </expression>
+            </ldap:port>
+            ...
+        </configurationProperties>
+    </connectorConfiguration>
+    ...
+</resource>
+----
+
+The constants are often used to compute a value, where the constant is just a part of the resulting value.
+In that case the `const` expression evaluator cannot be used.
+Therefore there is a `getConst()` library function that can be used in scripting expressions:
+
+[source,xml]
+----
+    <attribute>
+        <ref>ri:dn</ref>
+        <outbound>
+            ...
+            <expression>
+                <script>
+                    <code>'uid=' + name + ',' + midpoint.getConst('ldapBaseContext')</code>
+                </script>
+            </expression>
+        </outbound>
+    </attribute>
+----
+
+
+== Limitations and Future Extensions
+
+There are few known limitations to this functionality in midPoint 3.6:
+
+* Constants are loaded only once at system startup.
+Currently there is no way how to refresh the values when the constants change except for system restart.
+
+* There is no support for these features in resource wizard.
+Resource wizard does not support expressions in resource configuration properties and it does not support `const` expression evaluator.
+
+Future midPoint versions will probably introduce several alternative methods to specify constant values.
+One such method may be specification of constant values in wiki:System+Configuration+Object[system configuration object]. If you are interested in this extension or you are affected by the current limitations then please consider a wiki:Subscriptions+and+Sponsoring[subscription].
+
+
+== See Also
+
+* wiki:Constants[Constants]
+
+* wiki:Expression[Expression]
+

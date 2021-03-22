@@ -1,0 +1,13 @@
+= MidPoint Repository
+:page-nav-title: Repository
+:page-display-order: 850
+:page-upkeep-status: green
+:page-liquid:
+
+Following pages describe midPoint repository (database) configuration.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

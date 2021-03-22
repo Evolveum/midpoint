@@ -1,0 +1,13 @@
+= Miscellaneous MidPoint Configuration
+:page-nav-title: Misc
+:page-display-order: 950
+:page-upkeep-status: green
+:page-liquid:
+
+Following pages describe miscellaneous midPoint configuration concepts.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

@@ -1,0 +1,165 @@
+= Example of new report: Comparing attributes of shadow and attributes of user in midPoint
+:page-nav-title: Comparing attributes of shadow and attributes of user in midPoint
+:page-wiki-name: Example of new report: Comparing attributes of shadow and attributes of user in mP
+:page-upkeep-status: yellow
+
+Please see wiki:Report+Configuration#ReportConfiguration-Newreport[Report configuration] for basic information about configuration variables.
+
+
+== Usecase
+
+We need report users with mismatched attributes, so we have to compare attributes of shadow (account of user) and attributes of user in Midpoint.
+We create example which compare email prefix of user in Midpoint with firstname and lastname attributes connected by with '.' from account.
+
+
+== Configuration
+
+We need import object collection and report.
+
+
+.Object collection XML
+[source,xml]
+----
+<objectCollection oid="72b1f98e-f587-4b9f-b92b-72e251dbb244">
+    <name>Account shadow R1</name>
+    <type>ShadowType</type>
+    <filter>
+        <and>
+            <ref>
+                <path>resourceRef</path>
+                <value oid="----OID_OF_YOUR_RESOURCE----"/>
+            </ref>
+            <equal>
+                <path>kind</path>
+                <value>account</value>
+            </equal>
+        </and>
+    </filter>
+</objectCollection>
+----
+
+Please replace '----OID_OF_YOUR_RESOURCE----' with oid of your resource.
+
+.Report XML
+[source,xml]
+----
+<report>
+    <name>Comparing attributes</name>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000171" relation="default" type="ArchetypeType">
+            <!-- Collection report -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000171" relation="default" type="ArchetypeType">
+        <!-- Collection report -->
+    </archetypeRef>
+    <roleMembershipRef oid="00000000-0000-0000-0000-000000000171" relation="default" type="ArchetypeType">
+        <!-- Collection report -->
+    </roleMembershipRef>
+    <objectCollection>
+        <collection>
+            <collectionRef oid="72b1f98e-f587-4b9f-b92b-72e251dbb244" relation="default" type="ObjectCollectionType">
+                <!-- Account shadow R1 -->
+            </collectionRef>
+        </collection>
+        <view>
+            <identifier>default-shadow</identifier>
+            <column>
+                <name>nameColumn</name>
+                <path>attributes/login</path>
+                <display>
+                    <label>Login</label>
+                </display>
+            </column>
+            <column>
+                <name>firstNameColumn</name>
+                <path>attributes/firstname</path>
+                <display>
+                    <label>First name</label>
+                </display>
+                <previousColumn>nameColumn</previousColumn>
+            </column>
+            <column>
+                <name>lastNameColumn</name>
+                <path>attributes/lastname</path>
+                <display>
+                    <label>Last name</label>
+                </display>
+                <previousColumn>firstNameColumn</previousColumn>
+            </column>
+            <column>
+                <name>emailInMpColumn</name>
+                <display>
+                    <label>Email in mP</label>
+                </display>
+                <previousColumn>lastNameColumn</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                           import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+                           import com.evolveum.midpoint.prism.path.ItemPath;
+                           import org.apache.commons.lang3.StringUtils;
+
+                           user = midpoint.searchShadowOwner(object.getOid());
+                           return user.asObjectable().getEmailAddress();
+                        </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <type>ShadowType</type>
+        </view>
+        <condition>
+            <script>
+                <code>
+                   import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+                   import com.evolveum.midpoint.prism.path.ItemPath;
+                   import org.apache.commons.lang3.StringUtils;
+
+                  shadowAttributes = object.getAttributes().asPrismContainerValue()
+                  login = shadowAttributes.findProperty(ItemPath.create("login")).getRealValue();
+                  user = midpoint.searchShadowOwner(object.getOid());
+                  System.out.println("LOGIN: " + login)
+                  System.out.println("USER: " + user)
+                  if (user != null && user.asObjectable() != null) {
+                     email = user.asObjectable().getEmailAddress();
+                     if (StringUtils.isEmpty(email)) {
+                        return true;
+                     }
+                     firstName = shadowAttributes.findProperty(ItemPath.create("firstname"));
+                     lastName = shadowAttributes.findProperty(ItemPath.create("lastname"));
+                     if (firstName == null && lastName == null) {
+                        return false;
+                     }
+
+                     prefix = "";
+                     if (firstName != null && firstName.getRealValue() != null) {
+                        prefix = firstName.getRealValue().toLowerCase().replace(" ", ".");
+                     }
+
+                     if (lastName != null && lastName.getRealValue() != null) {
+                        if (StringUtils.isNotEmpty(prefix)) {
+                           prefix = prefix + "."
+                        }
+                        prefix = prefix + lastName.getRealValue().toLowerCase().replace(" ", ".");
+                     }
+
+                     if (StringUtils.isEmpty(prefix)) {
+                        return true;
+                     }
+
+                     if (!prefix.equals(email.substring(0,email.indexOf("@")))) {
+                        return true;
+                     }
+
+                  }
+                  return false;
+              </code>
+            </script>
+        </condition>
+        <useOnlyReportView>true</useOnlyReportView>
+    </objectCollection>
+</report>
+----
+

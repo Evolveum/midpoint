@@ -1,0 +1,6 @@
+= SQL Schema Scripts
+:page-wiki-name: SQL Schema Scripts
+:page-upkeep-status: orange
+
+Schema scripts are under *config/sql* in the Midpoint repository - that is link:https://github.com/Evolveum/midpoint/tree/master/config/sql[here].
+

@@ -1,0 +1,27 @@
+= Removing obsolete information
+:page-wiki-name: Removing obsolete information
+:page-keywords: [ 'cleanup' ]
+
+During midPoint operation, some data items gradually gather in the repository.
+Typical examples are the following: tasks and audit records.
+
+Therefore, midPoint provides a feature that automatically cleans-up the repository with respect to these items.
+A system task named *Cleanup* runs (by default) every 24 hours and removes tasks and audit records older than predefined time value.
+Its default configuration is the following:
+
+[source,xml]
+----
+<c:cleanupPolicy xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+	<c:auditRecords>
+		<c:maxAge>P3M</c:maxAge>
+	</c:auditRecords>
+	<c:closedTasks>
+		<c:maxAge>P1M</c:maxAge>
+	</c:closedTasks>
+</c:cleanupPolicy>
+----
+
+This configuration causes the cleanup task to remove all audit records older than three months (see link:http://en.wikipedia.org/wiki/ISO_8601[the ISO 8601 specification]) and all closed tasks that are more than one month after their completion.
+
+Note: More precisely, when removing the tasks, only root tasks are considered.
+When a root task is removed, all of its subtasks (that should be completed before the root) are removed as well.

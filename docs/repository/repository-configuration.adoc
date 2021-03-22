@@ -1,0 +1,367 @@
+= Repository Configuration
+:page-wiki-name: Repository Configuration
+:page-toc: top
+
+
+By default, the repository configuration is stored in the `$HOME/midpoint` directory of the user the application server runs as.
+This directory is further referenced to as `midpoint.home`.
+
+This directory will be created upon the very first start of midPoint.
+The configuration file *config.xml* will be generated if it does not exist and it will be pre-configured to use the embedded H2 repository.
+You can first start midPoint with embedded H2 repository and then reconfigure the created `config.xml` to use another database, or you can prepare `config.xml` before the midPoint starts for the very first time using the sample configurations (see the child pages below).
+
+
+== Configuration options
+
+Default values are used only if repository is in embedded mode, otherwise configuration validation fails.
+
+[%autowidth]
+|===
+| Option | Description | Default
+
+| database
+| Simplified option for repository setup.
+Possible values are *h2*, *mysql*, *oracle*, *sqlserver*, *postgresql*. This option will set defaults for other options, for example *embedded*, *hibernateHbm2ddl, hibernateDialect* and *driverClassName* based on selected database.
+These defaults can be overridden by specifying custom values in configuration.
+| h2
+
+
+| dropIfExists
+| Drops database files if they exist during start.
+Useful for tests.
+| false
+
+
+| baseDir
+| Directory where H2 files will be saved if we're running in embedded mode.`<baseDir>${midpoint.home}</baseDir>` can be used if we want to store H2 db files in midpoint.home directory
+| current folder "."
+
+
+| fileName
+| Database filename.
+Name for H2 files if we're running in embedded mode.
+| midpoint
+
+
+| embedded
+| Embedded H2 mode.
+| true
+
+
+| asServer
+| This option can be used if we're running in H2 embedded mode.
+If the server mode is turned on, H2 runs with TCP server.
+Other applications/services can connect to H2 server.
+If false, H2 runs in file mode.
+| false
+
+
+| tcpSSL
+| Embedded H2 server mode SSL.
+| false
+
+
+| port
+| Embedded H2 server mode port.
+| 5437
+
+
+| hibernateHbm2ddl
+| Automatically validates or exports schema DDL to the database when the SessionFactory is created.
+E.g. `validate` | `update` | `create` | `create-drop` | `none`.With `create-drop`, the database schema will be dropped when the SessionFactory is closed explicitly.For production environments, `validate` should be used (before midPoint 3.9) or `none` (3.9 and later).
+Please see *Schema creation and updating* section later.
+| for H2: `update`otherwise: `validate` (before 3.9), `none` (3.9 and later)
+
+
+| hibernateDialect
+| SQL dialect based on choosen DB link:http://docs.jboss.org/hibernate/orm/4.1/manual/en-US/html_single/#sql-dialects[Supported hibernate dialects].
+| org.hibernate.dialect.H2Dialect
+
+
+| dataSource
+| Uses JNDI DataSource loading, when this option is defined in configuration, then *jdbcUsername*, *jdbcPassword*, *jdbcUrl* and *driverClassName* don't need to be present.
+E.g. <dataSource>link:http://javacomp[java:comp/env/jdbc/midpoint]</dataSource>
+|  +
+
+
+
+| jdbcUsername
+| Username for JDBC connection.
+| sa (if embedded=true), _null_ (otherwise)
+
+
+| jdbcPassword
+| Password for JDBC connection.
+| empty string (if embedded=true), _null_ (otherwise)
+
+
+| jdbcUrl
+| URL for JDBC connection.
+| if embedded=true url is computed from previous parameters
+
+
+| driverClassName
+| Driver class name for JDBC connection.
+| org.h2.Driver (if embedded=true)
+
+
+| useZip
+| Property provides optional compression for column storing serialized object representation (*m_object.fullObject*).
+| false
+
+
+| useZipAudit
+| (Since 4.0.3, 4.1.1, 4.2.1, 4.3.) Property controlling whether serialized delta and its operation result in audit is compressed (*m_audit_delta.delta*/*fullResult*). +
+*Important:* Because this was on by default since 3.8 and the option was introduced much later, its default (*true*) reflects the situation in 3.8 and later. +
+If wiki:Audit+configuration#Auditconfiguration-Audittoseparaterepository[separate audit repository] is used, this option must be used there.
+If single repository is used (by default), it must be used in main repository configuration.
+| true
+
+
+| minPoolSize
+| Minimal # of connections in connection pool, if connection pool is not provided through dataSource.
+| 8
+
+
+| maxPoolSize
+| Maximum # of connections in connection pool, if connection pool is not provided through dataSource.
+| 20
+
+
+| cacheMaxTTL
+| Option which can enable caching of selected object types (ConnectorType, ObjectTemplateType, SecurityPolicyType, SystemConfigurationType and ValuePolicyType).
+Objects are cached and reloaded only if object version doesn't match.
+Version check happens only after time to live (TTL) period has passed.
+Value in seconds.
+| 0
+
+
+| initializationFailTimeout
+| Hikari pool initialization failure timeout, in milliseconds.
+It is there to allow midPoint to wait until the repository is up and running and therefore to avoid failing prematurely.
+Introduced in midPoint 3.9.
+| 1 ms (effectively keeping the behavior as it was before midPoint 3.9)
+
+
+|===
+
+
+=== Using empty username and password
+
+++++
+{% include since.html since="4.2" %}
+++++
+
+It is possible to connect to the database without specifying password or username or both.
+Examples are PostgreSQL trust authentication (though definitely not recommended for serious deployments) or Microsoft SQL Server with integrated security.
+
+Simply skip configuration elements *jdbcUsername* and *jdbcPassword*. If everything is configured as expected, connection will be successful, otherwise JDBC driver will throw an exception and midPoint will not start.
+
+See bug:MID-5342[].
+
+
+== schemaValidationSchema creation and updating
+
+++++
+{% include since.html since="3.9" %}
+++++
+
+In midPoint 3.9 we have implemented a more flexible and powerful approach to schema validation and maintenance.
+It replaces the standard Hibernate ORM approach.
+It is enabled by setting `hibernateHbm2ddl` parameter to `none`, which is now the default for non-H2 databases.
+
+What it does:
+
+. First, it determines the state of the database schema by:
+
+.. running standard Hibernate schema validation procedure (just like `validate` option for `hibernateHbm2ddl` would do),
+
+.. examining explicit schema version by looking at parameter `databaseSchemaVersion` in `m_global_metadata` table.
+This is a new table introduced in midPoint 3.9.
+
+
+
+. Then it acts upon these data, either by
+
+.. continuing with the midPoint startup process,
+
+.. stopping the midPoint startup process with an appropriate error message,
+
+.. or trying to remediate the situation e.g. by running a schema creation or schema upgrade SQL script.
+
+
+
+Schema validation and maintenance is the driven by these configuration options:
+
+[%autowidth]
+|===
+| Option | Description | Default
+
+| skipExplicitSchemaValidation
+| Whether to skip this process of explicit schema validation.
+|
+
+** `true` (i.e. "skip") if `hibernateHbm2ddl` is `validate`, `update`, `create`, or `create-drop`;
+
+** `false` (i.e. "do not skip") otherwise (e.g. if it is `none` which is the default for non-H2 databases)
+
+
+
+
+| missingSchemaAction
+| What to do if the database schema is not present:
+
+** `stop`: midPoint startup process is stopped with an appropriate explanation message;
+
+** `warn`: midPoint startup process continues (with a warning message); very probably to be crashed soon because of a repository access failure.
+This option is therefore not recommended;
+
+** `create`: midPoint tries to create the schema using appropriate SQL script.
+Then it checks the schema for validity again and stops if it's (still) invalid.
+
+
+| `stop`
+
+
+| upgradeableSchemaAction
+| What to do if the database schema is present but it is outdated and it seems to be upgradeable:
+
+** `stop`: midPoint startup process is stopped with an appropriate explanation message;
+
+** `warn`: midPoint startup process continues (with a warning message); very probably to be crashed sooner or later because of a repository access failure.
+This option is therefore not recommended;
+
+** `upgrade`:
+
+
+*** if possible, midPoint tries to upgrade the schema by running appropriate SQL script.
+Then it checks the schema for validity again and stops if it's (still) invalid;
+
+*** if not possible, midPoint acts as in `stop` case: outputs a message and stops.
+
+
+
+Note that currently (as of 3.9) the only supported automated upgrade is from 3.8 to 3.9.Please consider carefully whether you want to run this automatic upgrade also for the production environment.
+It is perhaps better to still run the upgrade manually in such situation.
+| `stop`
+
+
+| incompatibleSchemaAction
+| What to do if the database schema is present, is not compatible and not upgradeable.
+A typical example is when the schema is newer than the current version of midPoint.
+
+** `stop`: midPoint startup process is stopped with an appropriate explanation message;
+
+** `warn`: midPoint startup process continues (with a warning message); very probably to be crashed sooner or later because of a repository access failure.
+This option is therefore not recommended;
+
+
+| `stop`
+
+
+| schemaVersionIfMissing
+| If the schema version cannot be determined from `m_global_metadata` table e.g. because the table does not exist, it is possible to specify it using this parameter.
+It applies only if the version is missing in the database.
+| (none)
+
+
+| schemaVersionOverride
+| Overrides any schema version information in the `m_global_metadata` table.
+| (none)
+
+
+| schemaVariant
+| Used to specify what schema variant is to be used for automated creation or upgrade of the database schema.
+Currently the only known variant is `utf8mb4` for MySQL/MariaDB.*Beware:* it is the administrator's responsibility to choose the correct variant! Currently midPoint does not try to determine the variant present in the database.
+So be sure to avoid applying e.g. `mysql-upgrade-3.8-3.9-utf8mb4.sql` if the database is not in `utf8mb4` character set, or vice versa.
+| (none)
+
+
+| createMissingCustomColumns
+| (Since 4.2) If true, midPoint tries to alter tables with custom columns (currently wiki:Auditing[only in audit]) if the column is missing.
+Intended for test, not for production usage.
+| `false` (no columns are created)
+
+
+|===
+
+
+=== Schema creation and updating (before 3.9)
+
+In earlier versions of midPoint the schema creation and update is driven solely by the `hibernateHbm2ddl` parameter.
+For production environments it is strongly recommended to set it to `validate` that is the default value for non-H2 databases.
+Then you have to maintain it manually using SQL scripts which are located in the distribution package
+
+SQL schema scripts for all supported databases are located in midPoint distribution package which is downloadable from link:https://evolveum.com/download/[download page] for current release.
+
+For current unreleased MidPoint SQL scripts are located in our link:https://github.com/Evolveum/midpoint/tree/master/config/sql/_all[git].
+
+
+== Data source configuration
+
+Instead of putting JDBC configuration to *config.xml*, you can use data source of the application server.
+
+[WARNING]
+.Obsolete
+====
+This is obsolete functionality.
+It is no longer supported or maintained.
+
+It is relevant only for WAR deployments which are not recommended deployment model since midPoint 4.0.
+====
+
+There are two steps for configuring data sources.
+Data source configuration is common for all supported databases.
+
+. First step is DB resource configuration in application server.
+Here is example for Tomcat 7. This XML part is located in `<tomcat-location>/conf/server.xml`, resource will be available for all applications in container.[source,xml]
+----
+<GlobalNamingResources>
+    <Resource name="jdbc/mysql" auth="Container" type="javax.sql.DataSource"
+        username="MYSQL_USER" password="MYSQL_USER_PASSWORD"
+        url="jdbc:mysql://localhost:3306/midpoint-big"
+        driverClassName="com.mysql.jdbc.Driver"
+        accessToUnderlyingConnectionAllowed="true"
+        initialSize="5" maxWait="5000"
+        maxActive="30" maxIdle="5"
+        validationQuery="select 1"
+        poolPreparedStatements="true"/>
+</GlobalNamingResources>
+----
+
+Also configure `<tomcat-location>/conf/context.xml` file:[source,xml]
+----
+<?xml version='1.0' encoding='utf-8'?>
+<Context>
+    <WatchedResource>WEB-INF/web.xml</WatchedResource>
+    <ResourceLink name="jdbc/mysql"
+                  global="jdbc/mysql"
+                  type="javax.sql.DataSource"/>
+</Context>
+----
+
+. Next step is configuration in file `config.xml` located in *midpoint.home* folder.
+`hibernateDialect` depends on your DB choice, `dataSource` is based on resource name.[source,xml]
+----
+<configuration>
+    <midpoint>
+        <repository>
+            <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
+            <embedded>false</embedded>
+            <hibernateDialect>com.evolveum.midpoint.repo.sql.util.MidPointMySQLDialect</hibernateDialect>
+            <hibernateHbm2ddl>validate</hibernateHbm2ddl>
+            <dataSource>java:comp/env/jdbc/mysql</dataSource>
+        </repository>
+    </midpoint>
+</configuration>
+----
+
+
+== External links
+
+* What is link:https://evolveum.com/midpoint/[midPoint Open Source Identity & Access Management]
+
+* link:https://evolveum.com/[Evolveum] - Team of IAM professionals who developed midPoint
+
+
+
