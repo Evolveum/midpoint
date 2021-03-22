@@ -29398,6 +29398,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="taskPartUri" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        URI of the task part. Necessary to distinguish between results of various task parts.
+                        Currently supported only for complex operations.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="channel" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.test;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -3519,20 +3521,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected OperationResult waitForTaskTreeNextFinishedRun(String rootTaskOid, int timeout) throws Exception {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskTreeNextFinishedRun");
         Task origRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
-        return waitForTaskTreeNextFinishedRun(origRootTask, timeout, waitResult);
+        return waitForTaskTreeNextFinishedRun(origRootTask.getUpdatedOrClonedTaskObject().asObjectable(), timeout, waitResult);
     }
 
     protected OperationResult runTaskTreeAndWaitForFinish(String rootTaskOid, int timeout) throws Exception {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".runTaskTreeAndWaitForFinish");
         Task origRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
         restartTask(rootTaskOid, waitResult);
-        return waitForTaskTreeNextFinishedRun(origRootTask, timeout, waitResult);
+        return waitForTaskTreeNextFinishedRun(origRootTask.getUpdatedOrClonedTaskObject().asObjectable(), timeout, waitResult);
     }
 
     // a bit experimental
-    protected OperationResult waitForTaskTreeNextFinishedRun(Task origRootTask, int timeout, OperationResult waitResult) throws Exception {
-        Long origLastRunStartTimestamp = origRootTask.getLastRunStartTimestamp();
-        Long origLastRunFinishTimestamp = origRootTask.getLastRunFinishTimestamp();
+    protected OperationResult waitForTaskTreeNextFinishedRun(TaskType origRootTask, int timeout, OperationResult waitResult) throws Exception {
+        long origLastRunStartTimestamp = XmlTypeConverter.toMillis(origRootTask.getLastRunStartTimestamp());
+        long origLastRunFinishTimestamp = XmlTypeConverter.toMillis(origRootTask.getLastRunFinishTimestamp());
         long start = System.currentTimeMillis();
         AtomicBoolean triggered = new AtomicBoolean(false);
         OperationResult aggregateResult = new OperationResult("aggregate");
@@ -3547,13 +3549,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                             freshRootTask.getResultStatus() + ", p:" + freshRootTask.getProgress() + ", n:" +
                             freshRootTask.getNode() + "] (waiting for: " + waiting + ")";
             // was the whole task tree refreshed at least once after we were called?
-            Long lastRunStartTimestamp = freshRootTask.getLastRunStartTimestamp();
-            Long lastRunFinishTimestamp = freshRootTask.getLastRunFinishTimestamp();
+            long lastRunStartTimestamp = or0(freshRootTask.getLastRunStartTimestamp());
+            long lastRunFinishTimestamp = or0(freshRootTask.getLastRunFinishTimestamp());
             if (!triggered.get() &&
-                    (lastRunStartTimestamp == null
-                            || lastRunStartTimestamp.equals(origLastRunStartTimestamp)
-                            || lastRunFinishTimestamp == null
-                            || lastRunFinishTimestamp.equals(origLastRunFinishTimestamp)
+                    (lastRunStartTimestamp == origLastRunStartTimestamp
+                            || lastRunFinishTimestamp == origLastRunFinishTimestamp
                             || lastRunStartTimestamp >= lastRunFinishTimestamp)) {
                 display("Current root task run has not been completed yet: " + description
                         + "\n  lastRunStartTimestamp=" + lastRunStartTimestamp
@@ -3616,6 +3616,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         Task freshTask = taskManager.getTaskWithResult(origRootTask.getOid(), waitResult);
         logger.debug("Final root task:\n{}", freshTask.debugDump());
         aggregateResult.computeStatusIfUnknown();
+        stabilize(); // TODO needed?
         return aggregateResult;
     }
 
@@ -4065,6 +4066,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     // not going through model to avoid conflicts (because the task starts execution during the clockwork operation)
     protected void addTask(File file) throws SchemaException, IOException, ObjectAlreadyExistsException {
         taskManager.addTask(prismContext.parseObject(file), new OperationResult("addTask"));
+    }
+
+    // Returns the object as originally parsed, to avoid race conditions regarding last start timestamp.
+    protected PrismObject<TaskType> addTask(TestResource<TaskType> resource, OperationResult result)
+            throws ObjectAlreadyExistsException, SchemaException, IOException {
+        PrismObject<TaskType> taskBefore = parseObject(resource.file);
+        taskManager.addTask(taskBefore, result);
+        return taskBefore;
     }
 
     protected <O extends ObjectType> String addObject(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
@@ -6008,6 +6017,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected TaskAsserter<Void> assertTask(String taskOid, String message) throws SchemaException, ObjectNotFoundException {
         Task task = taskManager.getTaskWithResult(taskOid, getTestOperationResult());
         return assertTask(task, message);
+    }
+
+    protected TaskAsserter<Void> assertTaskTree(String taskOid, String message) throws SchemaException, ObjectNotFoundException {
+        var options = schemaService.getOperationOptionsBuilder()
+                .item(TaskType.F_RESULT).retrieve()
+                .item(TaskType.F_SUBTASK_REF).retrieve()
+                .build();
+        PrismObject<TaskType> task = taskManager.getObject(TaskType.class, taskOid, options, getTestOperationResult());
+        return assertTask(task.asObjectable(), message);
     }
 
     protected TaskAsserter<Void> assertTask(Task task, String message) {

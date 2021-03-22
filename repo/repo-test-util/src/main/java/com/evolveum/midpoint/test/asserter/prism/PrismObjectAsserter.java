@@ -527,4 +527,23 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         }
         return this;
     }
+
+    /**
+     * Preliminary test method (until full operation execution asserter is created).
+     */
+    public PrismObjectAsserter<O, RA> assertHasComplexOperationExecution(String taskOid, OperationResultStatusType status) {
+        for (OperationExecutionType record : getObjectable().getOperationExecution()) {
+            if (matches(record, OperationExecutionRecordTypeType.COMPLEX, taskOid, status)) {
+                return this;
+            }
+        }
+        throw new AssertionError("No complex operation execution record for task OID " + taskOid + " and status " + status);
+    }
+
+    private boolean matches(OperationExecutionType record, OperationExecutionRecordTypeType type, String taskOid, OperationResultStatusType status) {
+        String realTaskOid = record.getTaskRef() != null ? record.getTaskRef().getOid() : null;
+        return record.getRecordType() == type
+                && java.util.Objects.equals(realTaskOid, taskOid)
+                && record.getStatus() == status;
+    }
 }

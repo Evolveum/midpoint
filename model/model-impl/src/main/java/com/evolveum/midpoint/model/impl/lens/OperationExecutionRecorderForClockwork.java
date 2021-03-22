@@ -10,8 +10,6 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionWriter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
@@ -63,7 +61,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  * </ol>
  */
 @Component
-public class OperationExecutionRecorderForClockwork {
+class OperationExecutionRecorderForClockwork {
 
     private static final Trace LOGGER = TraceManager.getTrace(OperationExecutionRecorderForClockwork.class);
 
@@ -119,7 +117,7 @@ public class OperationExecutionRecorderForClockwork {
             OperationExecutionType recordToAdd = createExecutionRecord(deltas, ctx);
             OperationExecutionWriter.Request<ShadowType> request =
                     new OperationExecutionWriter.Request<>(ShadowType.class, shadowOid, recordToAdd,
-                            ctx.getExistingExecutions(shadowOid), ctx.isDeletedOk(shadowOid), ctx.getTaskStartTime());
+                            ctx.getExistingExecutions(shadowOid), ctx.isDeletedOk(shadowOid));
             try {
                 writer.write(request, result);
             } catch (ObjectNotFoundException e) {
@@ -150,7 +148,7 @@ public class OperationExecutionRecorderForClockwork {
         OperationExecutionType recordToAdd = createExecutionRecord(ctx.focusDeltas, ctx);
         Class<F> focusType = ctx.getFocusContext().getObjectTypeClass();
         OperationExecutionWriter.Request<F> request = new OperationExecutionWriter.Request<>(focusType, focusOid,
-                recordToAdd, ctx.getExistingExecutions(focusOid), ctx.isDeletedOk(focusOid), ctx.getTaskStartTime());
+                recordToAdd, ctx.getExistingExecutions(focusOid), ctx.isDeletedOk(focusOid));
         try {
             writer.write(request, result);
         } catch (Throwable t) {
@@ -333,15 +331,6 @@ public class OperationExecutionRecorderForClockwork {
 
         private boolean isDeletedOk(String oid) {
             return deletedObjects.contains(oid);
-        }
-
-        public XMLGregorianCalendar getTaskStartTime() {
-            if (task instanceof RunningTask) {
-                // FIXME this should be the start time of the root task!
-                return XmlTypeConverter.createXMLGregorianCalendar(task.getLastRunStartTimestamp());
-            } else {
-                return null;
-            }
         }
     }
 
