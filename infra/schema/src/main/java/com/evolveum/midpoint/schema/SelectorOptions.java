@@ -94,7 +94,7 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
     //region Methods for accessing content (findRoot, hasToLoadPath, ...)
     @Nullable
     private UniformItemPath getItemPathOrNull() {
-        return selector != null && selector.getPath() != null ? selector.getPath() : null;
+        return selector != null ? selector.getPath() : null;
     }
 
     @NotNull

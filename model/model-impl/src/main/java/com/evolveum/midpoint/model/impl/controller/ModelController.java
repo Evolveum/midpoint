@@ -847,6 +847,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                     }
                 }
             }
+            // TODO Clone objects and the list lazily. Now we do the cloning just to fix MID-6825.
+            if (list.isImmutable()) {
+                list = list.deepClone();
+            }
             // better to use cache here (MID-4059)
             schemaTransformer.applySchemasAndSecurityToObjects(list, rootOptions, options, null, task, result);
 

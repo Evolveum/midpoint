@@ -91,14 +91,14 @@ public class SchemaTransformer {
         }
     }
 
-    <T extends ObjectType> void applySchemasAndSecurityToObjects(List<PrismObject<T>> objects,
+    <T extends ObjectType> void applySchemasAndSecurityToObjects(SearchResultList<PrismObject<T>> objects,
             GetOperationOptions rootOptions, Collection<SelectorOptions<GetOperationOptions>> options,
             AuthorizationPhaseType phase, Task task, OperationResult result)
                     throws SecurityViolationException {
+        assert !objects.isImmutable();
         for (int i = 0; i < objects.size(); i++) {
             PrismObject<T> object = objects.get(i);
-            object = object.cloneIfImmutable();
-            objects.set(i, object);
+            assert !object.isImmutable();
             applySchemaAndSecurityToObject(object, rootOptions, options, phase, task, result);
         }
     }

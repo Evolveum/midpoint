@@ -6131,6 +6131,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> PrismObject<O> assertGetAllow(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        assertGetAllow(type, oid, createReadOnly());
         return assertGetAllow(type, oid, null);
     }
 
@@ -6150,7 +6151,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> SearchResultList<PrismObject<O>> assertSearch(Class<O> type, ObjectQuery query, int expectedResults) throws Exception {
-        return assertSearch(type, query, null, expectedResults);
+        assertSearch(type, query, null, expectedResults);
+        return assertSearch(type, query, createReadOnly(), expectedResults);
+    }
+
+    @NotNull
+    private Collection<SelectorOptions<GetOperationOptions>> createReadOnly() {
+        return schemaHelper.getOperationOptionsBuilder()
+                    .readOnly()
+                    .build();
     }
 
     protected <O extends ObjectType> void assertSearchRaw(Class<O> type, ObjectQuery query, int expectedResults) throws Exception {

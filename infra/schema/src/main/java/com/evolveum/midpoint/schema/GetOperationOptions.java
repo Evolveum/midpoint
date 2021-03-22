@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -1052,7 +1054,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         Collection<SelectorOptions<GetOperationOptions>> merged = new ArrayList<>();
         for (Collection<SelectorOptions<GetOperationOptions>> part : parts) {
             for (SelectorOptions<GetOperationOptions> increment : CollectionUtils.emptyIfNull(part)) {
-                if (increment != null) {        // should always be so
+                if (increment != null) { // should always be so
                     Collection<GetOperationOptions> existing = SelectorOptions.findOptionsForPath(
                             merged, increment.getItemPath(emptyPath));
                     if (existing.isEmpty()) {
@@ -1124,5 +1126,27 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         if (increment.executionPhase != null) {
             this.executionPhase = increment.executionPhase;
         }
+    }
+
+    /**
+     * Disables readOnly option (while not modifying the original object).
+     */
+    @Experimental
+    public static Collection<SelectorOptions<GetOperationOptions>> disableReadOnly(
+            Collection<SelectorOptions<GetOperationOptions>> options) {
+        if (!GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options))) {
+            return options;
+        }
+        List<SelectorOptions<GetOperationOptions>> updatedOptionsList = new ArrayList<>(options.size());
+        for (SelectorOptions<GetOperationOptions> option : options) {
+            if (option.isRoot()) {
+                GetOperationOptions updatedOptions = CloneUtil.clone(option.getOptions());
+                updatedOptions.setReadOnly(false);
+                updatedOptionsList.add(new SelectorOptions<>(updatedOptions));
+            } else {
+                updatedOptionsList.add(option);
+            }
+        }
+        return updatedOptionsList;
     }
 }

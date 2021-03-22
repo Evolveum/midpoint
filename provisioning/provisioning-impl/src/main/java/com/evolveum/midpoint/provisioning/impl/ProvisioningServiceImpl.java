@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.disableReadOnly;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -193,7 +195,12 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
                 }
 
             } else {
-                // Not resource
+                // Not a resource
+
+                if (ShadowType.class.equals(type)) {
+                    // Temporary action to avoid immutability issues. Maybe we should extend it also to other kinds of objects.
+                    options = disableReadOnly(options);
+                }
 
                 PrismObject<T> repositoryObject = getRepoObject(type, oid, options, result);
                 LOGGER.trace("Retrieved repository object:\n{}", repositoryObject.debugDumpLazily());
