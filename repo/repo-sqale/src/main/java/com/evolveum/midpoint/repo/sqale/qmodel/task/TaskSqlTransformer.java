@@ -22,33 +22,33 @@ public class TaskSqlTransformer extends ObjectSqlTransformer<TaskType, QTask, MT
 
     @Override
     public @NotNull MTask toRowObjectWithoutFullObject(
-            TaskType schemaObject, JdbcSession jdbcSession) {
-        MTask row = super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
+            TaskType task, JdbcSession jdbcSession) {
+        MTask row = super.toRowObjectWithoutFullObject(task, jdbcSession);
 
-        row.taskIdentifier = schemaObject.getTaskIdentifier();
-        row.binding = schemaObject.getBinding();
-        row.category = schemaObject.getCategory();
-        row.completionTimestamp = MiscUtil.asInstant(schemaObject.getCompletionTimestamp());
-        row.executionStatus = schemaObject.getExecutionStatus();
+        row.taskIdentifier = task.getTaskIdentifier();
+        row.binding = task.getBinding();
+        row.category = task.getCategory();
+        row.completionTimestamp = MiscUtil.asInstant(task.getCompletionTimestamp());
+        row.executionStatus = task.getExecutionStatus();
 //        row.fullResult = TODO
-        row.handlerUriId = processCacheableUri(schemaObject.getHandlerUri(), jdbcSession);
-        row.lastRunStartTimestamp = MiscUtil.asInstant(schemaObject.getLastRunStartTimestamp());
-        row.lastRunFinishTimestamp = MiscUtil.asInstant(schemaObject.getLastRunFinishTimestamp());
-        row.node = schemaObject.getNode();
-        setReference(schemaObject.getObjectRef(), jdbcSession,
+        row.handlerUriId = processCacheableUri(task.getHandlerUri(), jdbcSession);
+        row.lastRunStartTimestamp = MiscUtil.asInstant(task.getLastRunStartTimestamp());
+        row.lastRunFinishTimestamp = MiscUtil.asInstant(task.getLastRunFinishTimestamp());
+        row.node = task.getNode();
+        setReference(task.getObjectRef(), jdbcSession,
                 o -> row.objectRefTargetOid = o,
                 t -> row.objectRefTargetType = t,
                 r -> row.objectRefRelationId = r);
-        setReference(schemaObject.getOwnerRef(), jdbcSession,
+        setReference(task.getOwnerRef(), jdbcSession,
                 o -> row.ownerRefTargetOid = o,
                 t -> row.ownerRefTargetType = t,
                 r -> row.ownerRefRelationId = r);
-        row.parent = schemaObject.getParent();
-        row.recurrence = schemaObject.getRecurrence();
-        row.resultStatus = schemaObject.getResultStatus();
-        row.threadStopAction = schemaObject.getThreadStopAction();
-        row.waitingReason = schemaObject.getWaitingReason();
-        row.dependentTaskIdentifiers = schemaObject.getDependent().toArray(String[]::new);
+        row.parent = task.getParent();
+        row.recurrence = task.getRecurrence();
+        row.resultStatus = task.getResultStatus();
+        row.threadStopAction = task.getThreadStopAction();
+        row.waitingReason = task.getWaitingReason();
+        row.dependentTaskIdentifiers = task.getDependent().toArray(String[]::new);
 
         return row;
     }

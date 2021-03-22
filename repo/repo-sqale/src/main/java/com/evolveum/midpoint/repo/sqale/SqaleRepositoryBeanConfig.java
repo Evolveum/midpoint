@@ -45,6 +45,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.role.QAbstractRoleMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetypeMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QRoleMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QServiceMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadowMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QSecurityPolicyMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QSystemConfigurationMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QValuePolicyMapping;
@@ -140,6 +141,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(SecurityPolicyType.COMPLEX_TYPE, QSecurityPolicyMapping.INSTANCE)
                 .register(SequenceType.COMPLEX_TYPE, QSequenceMapping.INSTANCE)
                 .register(ServiceType.COMPLEX_TYPE, QServiceMapping.INSTANCE)
+                .register(ShadowType.COMPLEX_TYPE, QShadowMapping.INSTANCE)
                 .register(SystemConfigurationType.COMPLEX_TYPE,
                         QSystemConfigurationMapping.INSTANCE)
                 .register(TaskType.COMPLEX_TYPE, QTaskMapping.INSTANCE)
