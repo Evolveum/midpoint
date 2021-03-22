@@ -187,13 +187,18 @@ The following properties within  SearchBoxConfigurationType can be configured:
 | XML tag name | Possible values | Description | Depracated
 
 | defaultMode
-| basicadvancedfulltextoidqueryDsl
-| Basic search mode.
-Ability to select the items and specify values for them.Advanced search mode.
-Ability to create complex query using a query language.Fulltext search mode.
-Single input field used to search over several fields.Oid search mode.
-Single input field used to search by oid over whole database.Query DSL search mode.
-Ability to create complex query using a query DSL.
+| basic +
+advanced +
+fulltext +
+oid +
+queryDsl
+| Basic search mode. Ability to select the items and specify values for them. +
+Advanced search mode.Ability to create complex query using a query language. +
+Fulltext search mode. Single input field used to search over several fields. +
+Oid search mode. Single input field used to search by oid over whole database. +
+Query DSL search mode. Ability to create complex query using a query DSL. +
+As default mode is used 'fullText' ,when fullText is  configured, or 'basic'.
+Value of 'defaultMode' have to be in 'allowedMode', otherwise value will be ignored.
 |
 
 
