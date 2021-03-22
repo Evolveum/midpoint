@@ -28,13 +28,13 @@ public class QConnector extends QObject<MConnector> {
     public static final String TABLE_NAME = "m_connector";
 
     public static final ColumnMetadata CONNECTOR_BUNDLE =
-            ColumnMetadata.named("connectorBundle").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("connectorBundle").ofType(Types.VARCHAR);
     public static final ColumnMetadata CONNECTOR_TYPE =
-            ColumnMetadata.named("connectorType").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("connectorType").ofType(Types.VARCHAR);
     public static final ColumnMetadata CONNECTOR_VERSION =
-            ColumnMetadata.named("connectorVersion").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("connectorVersion").ofType(Types.VARCHAR);
     public static final ColumnMetadata FRAMEWORK =
-            ColumnMetadata.named("framework").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("framework").ofType(Types.VARCHAR);
     public static final ColumnMetadata CONNECTOR_HOST_REF_TARGET_OID =
             ColumnMetadata.named("connectorHostRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata CONNECTOR_HOST_REF_TARGET_TYPE =

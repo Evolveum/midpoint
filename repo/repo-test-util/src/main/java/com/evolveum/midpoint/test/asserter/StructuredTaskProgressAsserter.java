@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.test.asserter;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
 import com.evolveum.midpoint.schema.statistics.StructuredTaskProgress;
@@ -14,6 +15,7 @@ import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StructuredTaskProgressType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartProgressType;
 
 /**
  *  Asserter that checks structured task progress.
@@ -92,5 +94,14 @@ public class StructuredTaskProgressAsserter<RA> extends AbstractAsserter<RA> {
 
     private int getNonFailureCount(boolean open) {
         return getSuccessCount(open) + getSkipCount(open);
+    }
+
+    public TaskPartProgressAsserter<StructuredTaskProgressAsserter<RA>> currentPart() {
+        TaskPartProgressType currentPart = TaskProgressUtil.getForCurrentPart(information);
+        assertThat(currentPart).as("current part").isNotNull();
+        TaskPartProgressAsserter<StructuredTaskProgressAsserter<RA>> asserter =
+                new TaskPartProgressAsserter<>(currentPart, this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
     }
 }

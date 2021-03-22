@@ -134,7 +134,7 @@ public class TaskPersister {
     private String addTaskToRepositoryAndQuartz(TaskQuartzImpl task, RepoAddOptions options,
             OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
 
-        if (task instanceof RunningTask && ((RunningTask) task).isLightweightAsynchronousTask()) {
+        if (task instanceof RunningLightweightTask) {
             throw new IllegalStateException("A task with lightweight task handler cannot be made persistent; task = " + task);
             // otherwise, there would be complications on task restart: the task handler is not stored in the repository,
             // so it is just not possible to restart such a task

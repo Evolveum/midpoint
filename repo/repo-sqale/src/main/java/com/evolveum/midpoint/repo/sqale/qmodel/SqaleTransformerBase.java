@@ -153,6 +153,19 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
         return transformerSupport.processCachedUri(uri, jdbcSession);
     }
 
+    /**
+     * Returns IDs as Integer array for URI strings creating new cache row in DB as needed.
+     * Returns null for null or empty list on input.
+     */
+    protected Integer[] processCacheableUris(List<String> uris, JdbcSession jdbcSession) {
+        if (uris == null || uris.isEmpty()) {
+            return null;
+        }
+        return uris.stream()
+                .map(uri -> processCacheableUri(uri, jdbcSession))
+                .toArray(Integer[]::new);
+    }
+
     protected @Nullable UUID oidToUUid(@Nullable String oid) {
         return oid != null ? UUID.fromString(oid) : null;
     }

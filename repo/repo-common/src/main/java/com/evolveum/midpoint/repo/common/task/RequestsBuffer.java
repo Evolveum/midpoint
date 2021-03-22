@@ -127,9 +127,13 @@ class RequestsBuffer<I> {
      *         false if it was reassigned (so this task has to fetch another request).
      */
     private boolean bind(ItemProcessingRequest<I> request, String taskIdentifier) {
-        Object correlationValue = request.getCorrelationValue();
+        if (!(request instanceof CorrelatableProcessingRequest)) {
+            return true;
+        }
+
+        Object correlationValue = ((CorrelatableProcessingRequest) request).getCorrelationValue();
         if (correlationValue == null) {
-            LOGGER.warn("Null correlationValue in request {}", request.getCorrelationValue());
+            LOGGER.warn("Null correlationValue in request {}", request);
             return true;
         }
 
@@ -180,7 +184,11 @@ class RequestsBuffer<I> {
     }
 
     private void unbind(ItemProcessingRequest<I> request, String taskIdentifier) {
-        Object correlationValue = request.getCorrelationValue();
+        if (!(request instanceof CorrelatableProcessingRequest)) {
+            return;
+        }
+
+        Object correlationValue = ((CorrelatableProcessingRequest) request).getCorrelationValue();
         LOGGER.trace("Trying to unbind {} from {}", correlationValue, taskIdentifier);
         if (correlationValue == null) {
             LOGGER.trace("correlationValue is null (warning has been already issued): {}", request);
@@ -201,7 +209,8 @@ class RequestsBuffer<I> {
         Queue<ItemProcessingRequest<I>> reservedRequests = reservedRequestsQueueMap.get(taskIdentifier);
         if (reservedRequests != null) {
             for (ItemProcessingRequest<I> request : reservedRequests) {
-                if (primaryIdentifier.equals(request.getCorrelationValue())) {
+                if (request instanceof CorrelatableProcessingRequest &&
+                        primaryIdentifier.equals(((CorrelatableProcessingRequest) request).getCorrelationValue())) {
                     return true;
                 }
             }

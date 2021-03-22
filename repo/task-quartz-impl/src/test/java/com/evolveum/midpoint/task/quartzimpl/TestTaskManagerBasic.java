@@ -25,6 +25,8 @@ import javax.annotation.PostConstruct;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 
 import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
+import com.evolveum.midpoint.task.api.RunningLightweightTask;
+
 import org.jetbrains.annotations.NotNull;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
@@ -774,9 +776,9 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         Task task = getTaskWithResult(TASK_WITH_THREADS.oid, result);
         displayDumpable("Task after", task);
 
-        Collection<? extends RunningTask> subtasks = parallelTaskHandler.getLastTaskExecuted().getLightweightAsynchronousSubtasks();
+        Collection<? extends RunningLightweightTask> subtasks = parallelTaskHandler.getLastTaskExecuted().getLightweightAsynchronousSubtasks();
         assertEquals("Wrong number of subtasks", MockParallelTaskHandler.NUM_SUBTASKS, subtasks.size());
-        for (RunningTask subtask : subtasks) {
+        for (RunningLightweightTask subtask : subtasks) {
             assertEquals("Wrong subtask state", TaskExecutionStateType.CLOSED, subtask.getExecutionState());
             MockParallelTaskHandler.MyLightweightTaskHandler handler = (MockParallelTaskHandler.MyLightweightTaskHandler) subtask.getLightweightTaskHandler();
             assertTrue("Handler has not run", handler.hasRun());
@@ -838,9 +840,9 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
 
         assertSuspended(task);
 
-        Collection<? extends RunningTask> subtasks = parallelTaskHandler.getLastTaskExecuted().getLightweightAsynchronousSubtasks();
+        Collection<? extends RunningLightweightTask> subtasks = parallelTaskHandler.getLastTaskExecuted().getLightweightAsynchronousSubtasks();
         assertEquals("Wrong number of subtasks", MockParallelTaskHandler.NUM_SUBTASKS, subtasks.size());
-        for (RunningTask subtask : subtasks) {
+        for (RunningLightweightTask subtask : subtasks) {
             assertEquals("Wrong subtask state", TaskExecutionStateType.CLOSED, subtask.getExecutionState());
             MockParallelTaskHandler.MyLightweightTaskHandler handler = (MockParallelTaskHandler.MyLightweightTaskHandler) subtask.getLightweightTaskHandler();
             assertTrue("Handler has not run", handler.hasRun());

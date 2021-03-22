@@ -13,6 +13,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
 
 import java.io.Serializable;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 /**
  * Task progress counted in buckets.
  */
@@ -72,5 +74,10 @@ public class BucketsProgressInformation implements DebugDumpable, Serializable {
         } else {
             return Float.NaN;
         }
+    }
+
+    public void checkConsistence() {
+        stateCheck(expectedBuckets == null || completedBuckets <= expectedBuckets,
+                "There are more completed buckets (%d) than expected buckets (%d)", completedBuckets, expectedBuckets);
     }
 }

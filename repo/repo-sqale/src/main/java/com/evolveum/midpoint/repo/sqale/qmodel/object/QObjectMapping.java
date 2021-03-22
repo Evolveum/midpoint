@@ -57,6 +57,16 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         addItemMapping(F_NAME,
                 PolyStringItemFilterProcessor.mapper(
                         path(q -> q.nameOrig), path(q -> q.nameNorm)));
+        addItemMapping(F_TENANT_REF, RefItemFilterProcessor.mapper(
+                path(q -> q.tenantRefTargetOid),
+                path(q -> q.tenantRefTargetType),
+                path(q -> q.tenantRefRelationId)));
+        addItemMapping(F_LIFECYCLE_STATE, stringMapper(path(q -> q.lifecycleState)));
+        // version/cid_seq is not mapped for queries or deltas, it's managed by repo explicitly
+
+        // TODO mapper for policySituations and subtypes
+        // TODO ext mapping can't be done statically
+
         nestedMapping(F_METADATA, MetadataType.class)
                 .addItemMapping(MetadataType.F_CREATOR_REF, RefItemFilterProcessor.mapper(
                         path(q -> q.creatorRefTargetOid),
@@ -79,19 +89,10 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                 .addRefMapping(MetadataType.F_MODIFY_APPROVER_REF,
                         QObjectReferenceMapping.INSTANCE_OBJECT_MODIFY_APPROVER);
 
-        addItemMapping(F_TENANT_REF, RefItemFilterProcessor.mapper(
-                path(q -> q.tenantRefTargetOid),
-                path(q -> q.tenantRefTargetType),
-                path(q -> q.tenantRefRelationId)));
-        addItemMapping(F_LIFECYCLE_STATE, stringMapper(path(q -> q.lifecycleState)));
-
         // AssignmentHolderType
         addRefMapping(F_ARCHETYPE_REF, QObjectReferenceMapping.INSTANCE_ARCHETYPE);
         addRefMapping(F_PARENT_ORG_REF, QObjectReferenceMapping.INSTANCE_OBJECT_PARENT_ORG);
         addRefMapping(F_ROLE_MEMBERSHIP_REF, QObjectReferenceMapping.INSTANCE_ROLE_MEMBERSHIP);
-
-        // version/cid_seq is not mapped for queries or deltas, it's managed by repo explicitly
-        // TODO ext mapping can't be done statically
 
         addRelationResolver(AssignmentHolderType.F_ASSIGNMENT,
                 new TableRelationResolver<>(QAssignment.class,

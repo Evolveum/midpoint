@@ -8,60 +8,58 @@
 package com.evolveum.midpoint.task.api;
 
 /**
- * @author mederly
+ * Describes how task statistics (including progress and structured progress) are to be collected.
  */
 public class StatisticsCollectionStrategy {
 
+    /**
+     * If true, all statistics are reset when the task starts from scratch.
+     * By starting from scratch we mean e.g. when all the work is done, and the task is started.
+     *
+     * The usual value here is true. Notable exceptions are live sync or async update tasks.
+     */
     private boolean startFromZero;
-    private boolean maintainIterationStatistics;
+
+    /**
+     * Whether the task should maintain synchronization statistics.
+     */
     private boolean maintainSynchronizationStatistics;
+
+    /**
+     * Whether the task should maintain "actions executed" statistics.
+     */
     private boolean maintainActionsExecutedStatistics;
+
+    /**
+     * Whether the task should maintain structured progress;
+     */
+    private boolean maintainStructuredProgress;
 
     public StatisticsCollectionStrategy() {
     }
 
-    public StatisticsCollectionStrategy(boolean startFromZero) {
+    public StatisticsCollectionStrategy(boolean startFromZero, boolean maintainSynchronizationStatistics,
+            boolean maintainActionsExecutedStatistics, boolean maintainStructuredProgress) {
         this.startFromZero = startFromZero;
-    }
-
-    public StatisticsCollectionStrategy(boolean startFromZero, boolean maintainIterationStatistics,
-            boolean maintainSynchronizationStatistics, boolean maintainActionsExecutedStatistics) {
-        this.startFromZero = startFromZero;
-        this.maintainIterationStatistics = maintainIterationStatistics;
         this.maintainSynchronizationStatistics = maintainSynchronizationStatistics;
         this.maintainActionsExecutedStatistics = maintainActionsExecutedStatistics;
+        this.maintainStructuredProgress = maintainStructuredProgress;
     }
 
     public boolean isStartFromZero() {
         return startFromZero;
     }
 
-    public void setStartFromZero(boolean startFromZero) {
-        this.startFromZero = startFromZero;
-    }
-
-    public boolean isMaintainIterationStatistics() {
-        return maintainIterationStatistics;
-    }
-
-    public void setMaintainIterationStatistics(boolean maintainIterationStatistics) {
-        this.maintainIterationStatistics = maintainIterationStatistics;
-    }
-
     public boolean isMaintainSynchronizationStatistics() {
         return maintainSynchronizationStatistics;
-    }
-
-    public void setMaintainSynchronizationStatistics(boolean maintainSynchronizationStatistics) {
-        this.maintainSynchronizationStatistics = maintainSynchronizationStatistics;
     }
 
     public boolean isMaintainActionsExecutedStatistics() {
         return maintainActionsExecutedStatistics;
     }
 
-    public void setMaintainActionsExecutedStatistics(boolean maintainActionsExecutedStatistics) {
-        this.maintainActionsExecutedStatistics = maintainActionsExecutedStatistics;
+    public boolean isMaintainStructuredProgress() {
+        return maintainStructuredProgress;
     }
 
     public StatisticsCollectionStrategy fromZero() {
@@ -71,11 +69,6 @@ public class StatisticsCollectionStrategy {
 
     public StatisticsCollectionStrategy fromStoredValues() {
         this.startFromZero = false;
-        return this;
-    }
-
-    public StatisticsCollectionStrategy maintainIterationStatistics() {
-        this.maintainIterationStatistics = true;
         return this;
     }
 

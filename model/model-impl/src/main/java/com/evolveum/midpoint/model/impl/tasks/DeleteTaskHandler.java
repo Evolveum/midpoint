@@ -76,7 +76,6 @@ public class DeleteTaskHandler implements TaskHandler {
     public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
         return new StatisticsCollectionStrategy()
                 .fromZero()
-                .maintainIterationStatistics()
                 .maintainActionsExecutedStatistics();
     }
 
@@ -210,7 +209,7 @@ public class DeleteTaskHandler implements TaskHandler {
                         op.failed(t);
                         throw t; // TODO we don't want to continue processing if an error occurs?
                     }
-                    task.incrementProgressAndStoreStatsIfNeeded();
+                    task.incrementProgressAndStoreStatisticsIfTimePassed(opResult);
                 }
 
                 opResult.summarize();

@@ -22,9 +22,8 @@ import java.io.Serializable;
 public class TaskReportingOptions implements Cloneable, Serializable {
 
     private boolean logFinishInfo = true;
-    private boolean countObjectsOnStart = true;         // todo make configurable per task instance (if necessary)
+    private boolean countObjectsOnStart = true; // todo make configurable per task instance (if necessary)
     private boolean preserveStatistics = true;
-    private boolean enableIterationStatistics = true;   // beware, this controls whether task stores these statistics; see also recordIterationStatistics in AbstractSearchIterativeResultHandler
     private boolean enableSynchronizationStatistics = false;
     private boolean enableActionsExecutedStatistics = true;
     private boolean logErrors = true;
@@ -63,14 +62,6 @@ public class TaskReportingOptions implements Cloneable, Serializable {
         this.preserveStatistics = preserveStatistics;
     }
 
-    public boolean isEnableIterationStatistics() {
-        return enableIterationStatistics;
-    }
-
-    public void setEnableIterationStatistics(boolean enableIterationStatistics) {
-        this.enableIterationStatistics = enableIterationStatistics;
-    }
-
     public boolean isEnableSynchronizationStatistics() {
         return enableSynchronizationStatistics;
     }
@@ -103,9 +94,10 @@ public class TaskReportingOptions implements Cloneable, Serializable {
         this.skipWritingOperationExecutionRecords = skipWritingOperationExecutionRecords;
     }
 
-    public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-        return new StatisticsCollectionStrategy(!isPreserveStatistics(), isEnableIterationStatistics(),
-                isEnableSynchronizationStatistics(), isEnableActionsExecutedStatistics());
+    StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+        // Note: All of these "new" tasks use structured progress.
+        return new StatisticsCollectionStrategy(!isPreserveStatistics(),
+                isEnableSynchronizationStatistics(), isEnableActionsExecutedStatistics(), true);
     }
 
     public TaskReportingOptions clone() {

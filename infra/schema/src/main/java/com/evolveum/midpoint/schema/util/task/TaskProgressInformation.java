@@ -236,4 +236,8 @@ public class TaskProgressInformation implements DebugDumpable, Serializable {
         DebugUtil.debugDumpWithLabel(sb, "Parts", parts, indent + 1);
         return sb.toString();
     }
+
+    public void checkConsistence() {
+        parts.values().forEach(TaskPartProgressInformation::checkConsistence);
+    }
 }

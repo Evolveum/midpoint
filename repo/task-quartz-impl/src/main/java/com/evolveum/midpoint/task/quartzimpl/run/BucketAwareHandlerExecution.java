@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.task.quartzimpl.run.HandlerExecutor.*;
@@ -57,7 +58,7 @@ class BucketAwareHandlerExecution {
      */
     private boolean initialExecution = true;
 
-    public BucketAwareHandlerExecution(@NotNull RunningTaskQuartzImpl task, @NotNull WorkBucketAwareTaskHandler handler,
+    BucketAwareHandlerExecution(@NotNull RunningTaskQuartzImpl task, @NotNull WorkBucketAwareTaskHandler handler,
             @Nullable TaskPartitionDefinitionType partition, @NotNull TaskBeans beans) {
         this.task = task;
         this.partition = partition;
@@ -67,21 +68,17 @@ class BucketAwareHandlerExecution {
 
     @NotNull public TaskRunResult execute(OperationResult result) throws ExitExecutionException {
 
-        deleteWorkStateIfWorkComplete(result);
-
-        startCollectingOperationStatsForInitialExecution(task, handler);
+        resetWorkStateAndStatisticsIfWorkComplete(result);
+        startCollectingStatistics(task, handler);
 
         for (; task.canRun(); initialExecution = false) {
 
             WorkBucketType bucket = getWorkBucket(result);
             if (bucket == null) {
                 LOGGER.trace("No (next) work bucket within {}, exiting", task);
-                runResult = handler.onNoMoreBuckets(task, runResult);
+                task.markStructuredProgressAsComplete();
+                runResult = handler.onNoMoreBuckets(task, runResult, result);
                 break;
-            }
-
-            if (!initialExecution) {
-                startCollectingOperationStatsForFurtherExecutions(task, handler);
             }
 
             executeHandlerForBucket(bucket, result);
@@ -94,6 +91,9 @@ class BucketAwareHandlerExecution {
                 break;
             }
         }
+
+        task.updateAndStoreStatisticsIntoRepository(true, result);
+
         //noinspection ReplaceNullCheck
         if (runResult != null) {
             return runResult;
@@ -111,8 +111,8 @@ class BucketAwareHandlerExecution {
         try {
             beans.workStateManager.completeWorkBucket(task.getOid(), bucket.getSequentialNumber(),
                     task.getWorkBucketStatisticsCollector(), result);
-            task.updateStructuredProgressOnWorkBucketCompletion();
-            storeOperationStatsPersistently(task, result);
+            task.changeStructuredProgressOnWorkBucketCompletion();
+            updateAndStoreStatisticsIntoRepository(task, result);
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't complete work bucket for task {}", e, task);
             throw new ExitExecutionException(task, "Couldn't complete work bucket: " + e.getMessage(), e);
@@ -125,7 +125,7 @@ class BucketAwareHandlerExecution {
             runResult = handler.run(task, bucket, partition, runResult);
             LOGGER.trace("runResult is {} for {}", runResult, task);
 
-            storeOperationStatsPersistently(task, result);
+            updateAndStoreStatisticsIntoRepository(task, result);
 
             checkNullRunResult(task, runResult);
 
@@ -154,17 +154,33 @@ class BucketAwareHandlerExecution {
         return bucket;
     }
 
-    private void deleteWorkStateIfWorkComplete(OperationResult executionResult) {
-        if (task.getWorkState() != null && Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete())) {
+    private void resetWorkStateAndStatisticsIfWorkComplete(OperationResult result) throws ExitExecutionException {
+        if (isAllWorkComplete()) {
             LOGGER.debug("Work is marked as complete; restarting it in task {}", task);
             try {
-                List<ItemDelta<?, ?>> itemDeltas = beans.prismContext.deltaFor(TaskType.class)
+                List<ItemDelta<?, ?>> itemDeltas = new ArrayList<>();
+                itemDeltas.add(beans.prismContext.deltaFor(TaskType.class)
                         .item(TaskType.F_WORK_STATE).replace()
-                        .asItemDeltas();
-                task.applyDeltasImmediate(itemDeltas, executionResult);
-            } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | RuntimeException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove work state from (completed) task {}, continuing", e, task);
+                        .asItemDelta());
+
+                if (handler.getStatisticsCollectionStrategy().isStartFromZero()) {
+                    LOGGER.debug("Resetting all statistics in task {} on start", task);
+                    itemDeltas.addAll(
+                            beans.prismContext.deltaFor(TaskType.class)
+                                    .item(TaskType.F_PROGRESS).replace()
+                                    .item(TaskType.F_STRUCTURED_PROGRESS).replace()
+                                    .item(TaskType.F_OPERATION_STATS).replace()
+                                    .asItemDeltas());
+                }
+                task.modify(itemDeltas);
+                task.flushPendingModifications(result);
+            } catch (Throwable t) {
+                throw new ExitExecutionException(task, "Couldn't reset work state and/or statistics at start", t);
             }
         }
+    }
+
+    private boolean isAllWorkComplete() {
+        return task.getWorkState() != null && Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete());
     }
 }

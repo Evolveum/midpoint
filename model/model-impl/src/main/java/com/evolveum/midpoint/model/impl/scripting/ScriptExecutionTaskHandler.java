@@ -50,7 +50,6 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
     public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
         return new StatisticsCollectionStrategy()
                 .fromZero()
-                .maintainIterationStatistics()
                 .maintainActionsExecutedStatistics();
     }
 

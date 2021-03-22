@@ -65,8 +65,7 @@ public class CleanUpTaskHandler implements TaskHandler {
     @Override
     public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
         return new StatisticsCollectionStrategy()
-                .fromZero()
-                .maintainIterationStatistics();
+                .fromZero();
     }
 
     @Override
@@ -136,6 +135,7 @@ public class CleanUpTaskHandler implements TaskHandler {
         } else {
             LOGGER.trace(part.label + ": No clean up policy for this kind of items present.");
         }
+        task.markStructuredProgressAsComplete();
     }
 
     private void cleanupReports(CleanupPolicyType p, OperationResult result) {

@@ -29,6 +29,7 @@ public class FocusSqlTransformer<S extends FocusType, Q extends QFocus<R>, R ext
         R row = super.toRowObjectWithoutFullObject(focus, jdbcSession);
 
         row.costCenter = focus.getCostCenter();
+        row.emailAddress = focus.getEmailAddress();
         row.photo = focus.getJpegPhoto();
         row.locale = focus.getLocale();
         setPolyString(focus.getLocality(), o -> row.localityOrig = o, n -> row.localityNorm = n);

@@ -17,6 +17,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.hasBuckets;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Task progress counted in items.
@@ -91,5 +92,10 @@ public class ItemsProgressInformation implements DebugDumpable, Serializable {
         } else {
             return Float.NaN;
         }
+    }
+
+    public void checkConsistence() {
+        stateCheck(expectedTotal == null || progress <= expectedTotal,
+                "There are more completed items (%s) than expected total (%s)", progress, expectedTotal);
     }
 }

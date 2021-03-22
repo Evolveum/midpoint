@@ -76,9 +76,9 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
                 Throwable exception = null;
                 try {
                     newConnectors = modelService.discoverConnectors(connectorHostTypePrismObject.asObjectable(), context.getTask(), result);
-                    operationsHelper.recordEnd(context, op, null);
+                    operationsHelper.recordEnd(context, op, null, result);
                 } catch (CommunicationException | SecurityViolationException | SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException e) {
-                    operationsHelper.recordEnd(context, op, e);
+                    operationsHelper.recordEnd(context, op, e, result);
                     exception = processActionException(e, NAME, value, context);
                     newConnectors = Collections.emptySet();
                 }

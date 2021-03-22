@@ -98,11 +98,11 @@ public class MappingEvaluator {
 
         long start = System.currentTimeMillis();
         try {
-            task.recordState("Started evaluation of mapping " + mapping.getMappingContextDescription() + ".");
+            task.recordStateMessage("Started evaluation of mapping " + mapping.getMappingContextDescription() + ".");
             mapping.evaluate(task, parentResult);
-            task.recordState("Successfully finished evaluation of mapping " + mapping.getMappingContextDescription() + " in " + (System.currentTimeMillis() - start) + " ms.");
+            task.recordStateMessage("Successfully finished evaluation of mapping " + mapping.getMappingContextDescription() + " in " + (System.currentTimeMillis() - start) + " ms.");
         } catch (IllegalArgumentException e) {
-            task.recordState("Evaluation of mapping " + mapping.getMappingContextDescription() + " finished with error in " + (System.currentTimeMillis() - start) + " ms.");
+            task.recordStateMessage("Evaluation of mapping " + mapping.getMappingContextDescription() + " finished with error in " + (System.currentTimeMillis() - start) + " ms.");
             throw new IllegalArgumentException(e.getMessage() + " in " + mapping.getContextDescription(), e);
         } finally {
             task.recordMappingOperation(objectOid, objectName, objectTypeName, mappingName, System.currentTimeMillis() - start);

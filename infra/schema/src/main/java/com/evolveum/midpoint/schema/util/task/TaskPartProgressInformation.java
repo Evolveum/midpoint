@@ -161,4 +161,13 @@ public class TaskPartProgressInformation implements DebugDumpable, Serializable 
             return String.format("%.1f%%", percentage * 100);
         }
     }
+
+    public void checkConsistence() {
+        if (bucketsProgress != null) {
+            bucketsProgress.checkConsistence();
+        }
+        if (itemsProgress != null) {
+            itemsProgress.checkConsistence();
+        }
+    }
 }

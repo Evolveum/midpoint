@@ -49,6 +49,8 @@ public class AssignmentSqlTransformer
         // TODO no idea how to do this yet, somehow related to RAssignment.extension
 //        row.extId = assignment.getExtension()...id?;
 //        row.extOid =;
+        row.policySituations = processCacheableUris(assignment.getPolicySituation(), jdbcSession);
+        // TODO extensions stored inline (JSON)
 
         ConstructionType construction = assignment.getConstruction();
         if (construction != null) {
@@ -88,8 +90,6 @@ public class AssignmentSqlTransformer
             row.modifyChannelId = processCacheableUri(metadata.getModifyChannel(), jdbcSession);
             row.modifyTimestamp = MiscUtil.asInstant(metadata.getModifyTimestamp());
         }
-
-        // TODO extensions stored inline (JSON)
 
         // insert before treating sub-entities
         insert(row, jdbcSession);

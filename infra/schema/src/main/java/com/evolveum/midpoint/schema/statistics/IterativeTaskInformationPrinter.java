@@ -64,6 +64,8 @@ public class IterativeTaskInformationPrinter extends AbstractStatisticsPrinter<I
                 record.add(null);
             }
         }
+
+        // TODO current
     }
 
     private Long getDuration(ProcessedItemType item) {
@@ -89,7 +91,7 @@ public class IterativeTaskInformationPrinter extends AbstractStatisticsPrinter<I
         addColumn("Outcome", LEFT, formatString());
         addColumn("Qualifier", LEFT, formatString());
         addColumn("Count", RIGHT, formatInt());
-        addColumn("Total time (ms)", RIGHT, formatInt());
+        addColumn("Total time (ms)", RIGHT, formatFloat1());
         addColumn("Per object", RIGHT, formatFloat1());
         addColumn("Current/last object", LEFT, formatString());
         addColumn("Started on", LEFT, formatString());

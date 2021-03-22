@@ -35,6 +35,7 @@ public class MObject implements MReferenceOwner<MReference> {
     // complex DB fields
     public Integer[] policySituations;
     public String[] subtypes;
+    public String[] textInfo; // TODO see todo on SQL column
     public Jsonb ext;
     // metadata
     public UUID creatorRefTargetOid;

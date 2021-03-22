@@ -25860,6 +25860,42 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="execution" type="tns:TaskPartExecutionRecordType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Information about individual task part executions. Needed e.g. to compute real throughput.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="TaskPartExecutionRecordType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about individual task part execution. Needed e.g. to compute real throughput.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.3</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="startTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When the execution started.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When the execution ended (or current time, in order to avoid information loss).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -25878,10 +25914,10 @@
             <xsd:extension base="tns:OutcomeKeyedCounterType">
                 <xsd:sequence>
                     <!-- outcome and count are inherited -->
-                    <xsd:element name="duration" type="xsd:long" minOccurs="0">
+                    <xsd:element name="duration" type="xsd:double" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Total time spent while processing items in this set.
+                                Total time spent while processing items in this set (in milliseconds).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

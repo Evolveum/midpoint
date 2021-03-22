@@ -24,6 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Collections.singletonList;
@@ -71,6 +72,11 @@ public abstract class AbstractTaskExecution
      */
     @NotNull private final ErrorState errorState = new ErrorState();
 
+    /**
+     * Part executions. Initialized in the {@link #run()} method.
+     */
+    private List<? extends AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> partExecutions;
+
     private final AtomicReference<AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> currentTaskPartExecution
             = new AtomicReference<>();
 
@@ -90,11 +96,8 @@ public abstract class AbstractTaskExecution
     @NotNull
     private TaskWorkBucketProcessingResult createRunResult() {
         TaskWorkBucketProcessingResult runResult = new TaskWorkBucketProcessingResult();
-        if (previousRunResult != null) {
-            runResult.setProgress(previousRunResult.getProgress());
-        } else {
-            runResult.setProgress(0L);
-        }
+        // Intentionally not setting the progress in runResult.
+        // These task handlers do not use this feature. We manage task result ourselves.
         runResult.setOperationResult(taskOperationResult);
         return runResult;
     }
@@ -121,12 +124,14 @@ public abstract class AbstractTaskExecution
 
             initialize(taskOperationResult);
 
-            List<? extends AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> partExecutions = createPartExecutions();
+            partExecutions = createPartExecutions();
             for (int i = 0; i < partExecutions.size(); i++) {
                 AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?> partExecution = partExecutions.get(i);
                 partExecution.setPartNumber(i + 1);
                 partExecution.setExpectedParts(partExecutions.size());
                 currentTaskPartExecution.set(partExecution);
+
+                markPreviousPartComplete(partExecutions, i);
 
                 OperationResult opResult = taskOperationResult.createSubresult(taskHandler.taskOperationPrefix + ".part" + (i+1)); // TODO
                 try {
@@ -155,6 +160,18 @@ public abstract class AbstractTaskExecution
             throw t;
         } finally {
             taskHandler.unregisterExecution(localCoordinatorTask);
+        }
+    }
+
+    /**
+     * We intentionally do not do this on part completion because we can be in a bucket.
+     * The last part is marked as complete directly by task execution object, when the task manager
+     * tells it that there are no more buckets.
+     */
+    private void markPreviousPartComplete(List<? extends AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> partExecutions,
+            int currentPartIndex) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        if (currentPartIndex > 0) {
+            partExecutions.get(currentPartIndex - 1).markStructuredProgressComplete(taskOperationResult);
         }
     }
 
@@ -228,5 +245,10 @@ public abstract class AbstractTaskExecution
 
     public @NotNull String getRootTaskOid() {
         return localCoordinatorTask.getRootTaskOid();
+    }
+
+    public boolean isInternallyMultipart() {
+        return Objects.requireNonNull(partExecutions, "Part executions were not initialized yet")
+                .size() > 1;
     }
 }

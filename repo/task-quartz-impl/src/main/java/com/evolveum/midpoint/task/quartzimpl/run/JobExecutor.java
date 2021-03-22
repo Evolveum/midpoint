@@ -461,14 +461,11 @@ public class JobExecutor implements InterruptableJob {
         if (task != null) {
             LOGGER.trace("Trying to shut down the task {}, executing in thread {}", task, task.getExecutingThread());
             task.unsetCanRun();
-            for (RunningTaskQuartzImpl subtask : task.getRunnableOrRunningLightweightAsynchronousSubtasks()) {
+            for (RunningLightweightTaskImpl subtask : task.getRunnableOrRunningLightweightAsynchronousSubtasks()) {
                 subtask.unsetCanRun();
                 // if we want to cancel the Future using interrupts, we have to do it now
                 // because after calling cancel(false) subsequent calls to cancel(true) have no effect whatsoever
-                Future<?> future = subtask.getLightweightHandlerFuture();
-                if (future != null) {
-                    future.cancel(interruptsMaybe);
-                }
+                subtask.cancel(interruptsMaybe);
             }
             if (interruptsAlways) {
                 sendThreadInterrupt(false); // subtasks were interrupted by their futures
@@ -489,9 +486,8 @@ public class JobExecutor implements InterruptableJob {
             LOGGER.trace("Thread.interrupt was called on thread {}.", thread);
         }
         if (alsoSubtasks) {
-            for (RunningTaskQuartzImpl subtask : task.getRunningLightweightAsynchronousSubtasks()) {
-                //LOGGER.trace("Calling Future.cancel(mayInterruptIfRunning:=true) on a future for LAT subtask {}", subtask);
-                subtask.getLightweightHandlerFuture().cancel(true);
+            for (RunningLightweightTaskImpl subtask : task.getRunningLightweightAsynchronousSubtasks()) {
+                subtask.cancel(true);
             }
         }
     }

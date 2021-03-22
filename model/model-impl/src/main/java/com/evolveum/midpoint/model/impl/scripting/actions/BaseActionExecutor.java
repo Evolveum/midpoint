@@ -134,10 +134,10 @@ public abstract class BaseActionExecutor implements ActionExecutor {
             }
             try {
                 itemProcessor.process(value, item, result);
-                operationsHelper.recordEnd(context, op, null);
+                operationsHelper.recordEnd(context, op, null, result);
             } catch (Throwable ex) {
                 result.recordFatalError(ex);
-                operationsHelper.recordEnd(context, op, ex);
+                operationsHelper.recordEnd(context, op, ex, result);
                 Throwable exception = processActionException(ex, getActionName(), value, context);
                 writer.write(value, exception);
             }

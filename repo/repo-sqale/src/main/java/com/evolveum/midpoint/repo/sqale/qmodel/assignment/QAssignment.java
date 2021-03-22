@@ -35,7 +35,7 @@ public class QAssignment extends QContainer<MAssignment> {
     public static final ColumnMetadata OWNER_TYPE =
             ColumnMetadata.named("owner_type").ofType(Types.OTHER);
     public static final ColumnMetadata LIFECYCLE_STATE =
-            ColumnMetadata.named("lifecycleState").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("lifecycleState").ofType(Types.VARCHAR);
     public static final ColumnMetadata ORDER_VALUE =
             ColumnMetadata.named("orderValue").ofType(Types.INTEGER);
     public static final ColumnMetadata ORG_REF_TARGET_OID =
@@ -60,7 +60,7 @@ public class QAssignment extends QContainer<MAssignment> {
             ColumnMetadata.named("extId").ofType(Types.INTEGER);
     // TODO UUID or not? our control or outside?
     public static final ColumnMetadata EXT_OID =
-            ColumnMetadata.named("extOid").ofType(Types.VARCHAR).withSize(36);
+            ColumnMetadata.named("extOid").ofType(Types.VARCHAR);
     public static final ColumnMetadata POLICY_SITUATIONS =
             ColumnMetadata.named("policySituations").ofType(Types.ARRAY);
     public static final ColumnMetadata EXT = ColumnMetadata.named("ext").ofType(JSONB_TYPE);
@@ -81,7 +81,7 @@ public class QAssignment extends QContainer<MAssignment> {
     public static final ColumnMetadata DISABLE_TIMESTAMP =
             ColumnMetadata.named("disableTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     public static final ColumnMetadata DISABLE_REASON =
-            ColumnMetadata.named("disableReason").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("disableReason").ofType(Types.VARCHAR);
     public static final ColumnMetadata VALIDITY_STATUS =
             ColumnMetadata.named("validityStatus").ofType(Types.OTHER);
     public static final ColumnMetadata VALID_FROM =

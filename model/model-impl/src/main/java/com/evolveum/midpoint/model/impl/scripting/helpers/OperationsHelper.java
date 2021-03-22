@@ -18,7 +18,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -172,7 +171,7 @@ public class OperationsHelper {
         return null;
     }
 
-    public void recordEnd(ExecutionContext context, Operation op, Throwable ex) {
+    public void recordEnd(ExecutionContext context, Operation op, Throwable ex, OperationResult result) {
         Task task = context.getTask();
         if (task == null || !context.isRecordProgressAndIterationStatistics()) {
             return;
@@ -186,7 +185,7 @@ public class OperationsHelper {
             }
         }
         if (task instanceof RunningTask) {
-            ((RunningTask) task).incrementProgressAndStoreStatsIfNeeded();
+            ((RunningTask) task).incrementProgressAndStoreStatisticsIfTimePassed(result);
         } else {
             task.setProgress(task.getProgress() + 1);
         }

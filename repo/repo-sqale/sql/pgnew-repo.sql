@@ -11,6 +11,8 @@
 -- TR is suffix for triggers.
 -- Names are generally lowercase (despite prefix/suffixes above in uppercase ;-)).
 
+-- noinspection SqlResolveForFile @ operator-class/"gin__int_ops"
+
 -- just in case PUBLIC schema was dropped (fastest way to remove all midpoint objects)
 -- drop schema public cascade;
 CREATE SCHEMA IF NOT EXISTS public;
@@ -87,9 +89,15 @@ CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ER
 
 CREATE TYPE ResourceAdministrativeStateType AS ENUM ('ENABLED', 'DISABLED');
 
+CREATE TYPE TaskBindingType AS ENUM ('LOOSE', 'TIGHT');
+
 CREATE TYPE TaskExecutionStatusType AS ENUM ('RUNNABLE', 'WAITING', 'SUSPENDED', 'CLOSED');
 
+CREATE TYPE TaskRecurrenceType AS ENUM ('SINGLE', 'RECURRING');
+
 CREATE TYPE TaskWaitingReasonType AS ENUM ('OTHER_TASKS', 'OTHER');
+
+CREATE TYPE ThreadStopActionType AS ENUM ('RESTART', 'RESCHEDULE', 'SUSPEND', 'CLOSE');
 -- endregion
 
 -- region OID-pool table
@@ -205,7 +213,7 @@ CREATE TABLE m_object (
     -- TODO compare with [] in JSONB, check performance, indexing, etc. first
     policySituations INTEGER[], -- soft-references m_uri, add index per table as/if needed
     subtypes TEXT[],
-    textInfo TEXT[], -- TODO not mapped yet
+    textInfo TEXT[], -- TODO not mapped yet, see RObjectTextInfo#createItemsSet
     ext JSONB,
     -- metadata
     creatorRef_targetOid UUID,
@@ -394,6 +402,26 @@ CREATE TABLE m_ref_projection (
 
 CREATE INDEX m_ref_projection_targetOid_relation_id_idx
     ON m_ref_projection (targetOid, relation_id);
+
+-- Represents GenericObjectType, see https://wiki.evolveum.com/display/midPoint/Generic+Objects
+CREATE TABLE m_generic_object (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('GENERIC_OBJECT') STORED,
+    genericObjectType_id INTEGER NOT NULL -- GenericObjectType#objectType, soft-references m_uri
+)
+    INHERITS (m_focus);
+
+CREATE TRIGGER m_generic_object_oid_insert_tr BEFORE INSERT ON m_generic_object
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_generic_object_update_tr BEFORE UPDATE ON m_generic_object
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_generic_object_oid_delete_tr AFTER DELETE ON m_generic_object
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+-- TODO unique per genericObjectType_id?
+--  No indexes for GenericObjectType#objectType were in old repo, what queries are expected?
+CREATE INDEX m_generic_object_name_orig_idx ON m_generic_object (name_orig);
+ALTER TABLE m_generic_object ADD CONSTRAINT m_generic_object_name_norm_key UNIQUE (name_norm);
 -- endregion
 
 -- region USER related tables
@@ -436,6 +464,19 @@ CREATE INDEX m_user_fullName_orig_idx ON m_user (fullName_orig);
 CREATE INDEX m_user_familyName_orig_idx ON m_user (familyName_orig);
 CREATE INDEX m_user_givenName_orig_idx ON m_user (givenName_orig);
 CREATE INDEX m_user_employeeNumber_idx ON m_user (employeeNumber);
+
+/* TODO JSON of polystrings?
+CREATE TABLE m_user_organization (
+  user_oid UUID NOT NULL,
+  norm     TEXT/*VARCHAR(255)*/,
+  orig     TEXT/*VARCHAR(255)*/
+);
+CREATE TABLE m_user_organizational_unit (
+  user_oid UUID NOT NULL,
+  norm     TEXT/*VARCHAR(255)*/,
+  orig     TEXT/*VARCHAR(255)*/
+);
+ */
 -- endregion
 
 -- region ROLE related tables
@@ -561,7 +602,8 @@ CREATE TRIGGER m_access_cert_campaign_oid_delete_tr AFTER DELETE ON m_access_cer
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_access_cert_campaign_name_orig_idx ON m_access_cert_campaign (name_orig);
-ALTER TABLE m_access_cert_campaign ADD CONSTRAINT m_access_cert_campaign_name_norm_key UNIQUE (name_norm);
+ALTER TABLE m_access_cert_campaign
+    ADD CONSTRAINT m_access_cert_campaign_name_norm_key UNIQUE (name_norm);
 CREATE INDEX m_access_cert_campaign_ext_idx ON m_access_cert_campaign USING gin (ext);
 
 CREATE TABLE m_access_cert_case (
@@ -965,14 +1007,15 @@ ALTER TABLE m_connector_host ADD CONSTRAINT m_connector_host_name_norm_key UNIQU
 CREATE TABLE m_task (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('TASK') STORED,
-    binding INTEGER,
+    taskIdentifier TEXT/*VARCHAR(255)*/,
+    binding TaskBindingType,
     category TEXT/*VARCHAR(255)*/,
     completionTimestamp TIMESTAMPTZ,
     executionStatus TaskExecutionStatusType,
     fullResult BYTEA,
     handlerUri_id INTEGER, -- soft-references m_uri
-    lastRunFinishTimestamp TIMESTAMPTZ,
     lastRunStartTimestamp TIMESTAMPTZ,
+    lastRunFinishTimestamp TIMESTAMPTZ,
     node TEXT/*VARCHAR(255)*/, -- node_id only for information purposes
     objectRef_targetOid UUID,
     objectRef_targetType ObjectType,
@@ -981,11 +1024,11 @@ CREATE TABLE m_task (
     ownerRef_targetType ObjectType,
     ownerRef_relation_id INTEGER, -- soft-references m_uri
     parent TEXT/*VARCHAR(255)*/, -- value of taskIdentifier
-    recurrence INTEGER,
+    recurrence TaskRecurrenceType,
     resultStatus OperationResultStatusType,
-    taskIdentifier TEXT/*VARCHAR(255)*/,
-    threadStopAction INTEGER,
-    waitingReason TaskWaitingReasonType
+    threadStopAction ThreadStopActionType,
+    waitingReason TaskWaitingReasonType,
+    dependentTaskIdentifiers TEXT[] -- contains values of taskIdentifier
 )
     INHERITS (m_object);
 
@@ -1001,16 +1044,7 @@ ALTER TABLE m_task ADD CONSTRAINT m_task_name_norm_key UNIQUE (name_norm);
 CREATE INDEX m_task_parent_idx ON m_task (parent);
 CREATE INDEX m_task_objectRef_targetOid_idx ON m_task(objectRef_targetOid);
 ALTER TABLE m_task ADD CONSTRAINT m_task_taskIdentifier_key UNIQUE (taskIdentifier);
-
-/* TODO inline as array or json to m_task
-CREATE TABLE m_task_dependent (
-    task_oid UUID NOT NULL,
-    dependent TEXT/*VARCHAR(255)*/
-);
-ALTER TABLE m_task_dependent
-    ADD CONSTRAINT fk_task_dependent FOREIGN KEY (task_oid) REFERENCES m_task;
-CREATE INDEX iTaskDependentOid ON M_TASK_DEPENDENT(TASK_OID);
-*/
+CREATE INDEX m_task_dependentTaskIdentifiers_idx ON m_task USING GIN(dependentTaskIdentifiers);
 
 -- Represents CaseType, see https://wiki.evolveum.com/display/midPoint/Case+Management
 CREATE TABLE m_case (
@@ -1084,6 +1118,59 @@ CREATE TABLE m_ref_include (
 
 CREATE INDEX m_ref_include_targetOid_relation_id_idx
     ON m_ref_include (targetOid, relation_id);
+-- endregion
+
+-- region FunctionLibrary/Sequence/Form tables
+-- Represents FunctionLibraryType, see https://wiki.evolveum.com/display/midPoint/Function+Libraries
+CREATE TABLE m_function_library (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('FUNCTION_LIBRARY') STORED
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_function_library_oid_insert_tr BEFORE INSERT ON m_function_library
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_function_library_update_tr BEFORE UPDATE ON m_function_library
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_function_library_oid_delete_tr AFTER DELETE ON m_function_library
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_function_library_name_orig_idx ON m_function_library (name_orig);
+ALTER TABLE m_function_library ADD CONSTRAINT m_function_library_name_norm_key UNIQUE (name_norm);
+
+-- Represents SequenceType, see https://wiki.evolveum.com/display/midPoint/Sequences
+CREATE TABLE m_sequence (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('SEQUENCE') STORED
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_sequence_oid_insert_tr BEFORE INSERT ON m_sequence
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_sequence_update_tr BEFORE UPDATE ON m_sequence
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_sequence_oid_delete_tr AFTER DELETE ON m_sequence
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_sequence_name_orig_idx ON m_sequence (name_orig);
+ALTER TABLE m_sequence ADD CONSTRAINT m_sequence_name_norm_key UNIQUE (name_norm);
+
+-- Represents FormType, see https://wiki.evolveum.com/display/midPoint/Custom+forms
+CREATE TABLE m_form (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('SEQUENCE') STORED
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_form_oid_insert_tr BEFORE INSERT ON m_form
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_form_update_tr BEFORE UPDATE ON m_form
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_form_oid_delete_tr AFTER DELETE ON m_form
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_form_name_orig_idx ON m_form (name_orig);
+ALTER TABLE m_form ADD CONSTRAINT m_form_name_norm_key UNIQUE (name_norm);
 -- endregion
 
 -- region Assignment/Inducement tables
@@ -1523,35 +1610,6 @@ CREATE TABLE m_org_closure (
   val            INTEGER,
   PRIMARY KEY (ancestor_oid, descendant_oid)
 );
-CREATE TABLE m_user_organization (
-  user_oid UUID NOT NULL,
-  norm     TEXT/*VARCHAR(255)*/,
-  orig     TEXT/*VARCHAR(255)*/
-);
-CREATE TABLE m_user_organizational_unit (
-  user_oid UUID NOT NULL,
-  norm     TEXT/*VARCHAR(255)*/,
-  orig     TEXT/*VARCHAR(255)*/
-);
-CREATE TABLE m_form (
-  name_norm TEXT/*VARCHAR(255)*/,
-  name_orig TEXT/*VARCHAR(255)*/,
-  oid       UUID NOT NULL,
-  PRIMARY KEY (oid)
-);
-CREATE TABLE m_function_library (
-  name_norm TEXT/*VARCHAR(255)*/,
-  name_orig TEXT/*VARCHAR(255)*/,
-  oid       UUID NOT NULL,
-  PRIMARY KEY (oid)
-);
-CREATE TABLE m_generic_object (
-  name_norm  TEXT/*VARCHAR(255)*/,
-  name_orig  TEXT/*VARCHAR(255)*/,
-  objectType TEXT/*VARCHAR(255)*/,
-  oid        UUID NOT NULL,
-  PRIMARY KEY (oid)
-);
 
 CREATE TABLE m_org (
   displayOrder INTEGER,
@@ -1559,12 +1617,6 @@ CREATE TABLE m_org (
   name_orig    TEXT/*VARCHAR(255)*/,
   tenant       BOOLEAN,
   oid          UUID NOT NULL,
-  PRIMARY KEY (oid)
-);
-CREATE TABLE m_sequence (
-  name_norm TEXT/*VARCHAR(255)*/,
-  name_orig TEXT/*VARCHAR(255)*/,
-  oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
 CREATE INDEX iAExtensionBoolean
@@ -1657,22 +1709,10 @@ CREATE INDEX iFocusValidFrom
   ON m_focus (validFrom);
 CREATE INDEX iFocusValidTo
   ON m_focus (validTo);
-CREATE INDEX iFormNameOrig
-  ON m_form (name_orig);
-ALTER TABLE m_form
-  ADD CONSTRAINT uc_form_name UNIQUE (name_norm);
 CREATE INDEX iFunctionLibraryNameOrig
   ON m_function_library (name_orig);
 ALTER TABLE m_function_library
   ADD CONSTRAINT uc_function_library_name UNIQUE (name_norm);
-CREATE INDEX iGenericObjectNameOrig
-  ON m_generic_object (name_orig);
-ALTER TABLE m_generic_object
-  ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm);
-CREATE INDEX iNodeNameOrig
-  ON m_node (name_orig);
-ALTER TABLE m_node
-  ADD CONSTRAINT uc_node_name UNIQUE (name_norm);
 CREATE INDEX iObjectTemplateNameOrig
   ON m_object_template (name_orig);
 ALTER TABLE m_object_template
@@ -1683,10 +1723,6 @@ CREATE INDEX iOrgNameOrig
   ON m_org (name_orig);
 ALTER TABLE m_org
   ADD CONSTRAINT uc_org_name UNIQUE (name_norm);
-CREATE INDEX iSequenceNameOrig
-  ON m_sequence (name_orig);
-ALTER TABLE m_sequence
-  ADD CONSTRAINT uc_sequence_name UNIQUE (name_norm);
 CREATE INDEX iSystemConfigurationNameOrig
   ON m_system_configuration (name_orig);
 ALTER TABLE m_system_configuration
@@ -1775,18 +1811,8 @@ ALTER TABLE m_user_organizational_unit
   ADD CONSTRAINT fk_user_org_unit FOREIGN KEY (user_oid) REFERENCES m_user;
 ALTER TABLE m_function_library
   ADD CONSTRAINT fk_function_library FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE m_generic_object
-  ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_focus;
-ALTER TABLE m_node
-  ADD CONSTRAINT fk_node FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE m_object_template
-  ADD CONSTRAINT fk_object_template FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_org
   ADD CONSTRAINT fk_org FOREIGN KEY (oid) REFERENCES m_abstract_role;
-ALTER TABLE m_sequence
-  ADD CONSTRAINT fk_sequence FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE m_system_configuration
-  ADD CONSTRAINT fk_system_configuration FOREIGN KEY (oid) REFERENCES m_object;
 
 -- Indices for foreign keys; maintained manually
 CREATE INDEX iUserEmployeeTypeOid ON M_USER_EMPLOYEE_TYPE(USER_OID);
