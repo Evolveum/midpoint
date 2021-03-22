@@ -98,7 +98,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
 
         // complex DB fields
         row.policySituations = processCacheableUris(schemaObject.getPolicySituation(), jdbcSession);
-        row.subtypes = schemaObject.getSubtype().toArray(String[]::new);
+        row.subtypes = arrayFor(schemaObject.getSubtype());
         // TODO textInfo (fulltext support)
         // TODO extensions stored inline (JSON) - that is ext column
 

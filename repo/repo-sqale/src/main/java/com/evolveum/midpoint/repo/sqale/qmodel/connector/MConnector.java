@@ -19,8 +19,9 @@ public class MConnector extends MObject {
     public String connectorBundle;
     public String connectorType;
     public String connectorVersion;
-    public String framework;
+    public Integer frameworkId;
     public UUID connectorHostRefTargetOid;
     public MObjectType connectorHostRefTargetType;
     public Integer connectorHostRefRelationId;
+    public String[] targetSystemTypes;
 }
