@@ -36,8 +36,14 @@ public class TaskPartProgressAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
+    public TaskPartProgressAsserter<RA> assertSuccessCount(int open, int closed) {
+        assertSuccessCount(open, true);
+        assertSuccessCount(closed, false);
+        return this;
+    }
+
     public TaskPartProgressAsserter<RA> assertSuccessCount(int success, boolean open) {
-        assertEquals("Wrong value of total success counter", success, getSuccessCount(open));
+        assertEquals("Wrong value of total success counter (open=" + open + ")", success, getSuccessCount(open));
         return this;
     }
 
