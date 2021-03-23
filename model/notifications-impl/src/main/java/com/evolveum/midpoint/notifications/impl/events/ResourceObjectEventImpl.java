@@ -229,8 +229,9 @@ public class ResourceObjectEventImpl extends BaseEventImpl implements ResourceOb
                             operationDescription.getCurrentShadow(), null);
         } else {
             // TODO implement extraction from pending operations
+            // TODO why did we originally always show auxiliary items?
             return getTextFormatter()
-                    .formatObjectModificationDelta(shadowDelta, showSynchronizationItems, true,
+                    .formatObjectModificationDelta(shadowDelta, showSynchronizationItems, showAuxiliaryAttributes,
                             operationDescription.getCurrentShadow(), null);
         }
     }
