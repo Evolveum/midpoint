@@ -405,6 +405,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
             @Override
             public IModel<Boolean> getVisible() {
+
                 IModel<SelectableBean<TaskType>> rowModel = ((ColumnMenuAction) getAction()).getRowModel();
                 if (rowModel == null) {
                     return Model.of(Boolean.TRUE);
@@ -420,13 +421,16 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     private InlineMenuItem createDeleteTaskMenuAction() {
         return createTaskInlineMenuItem("pageTasks.button.deleteTask",
                 this::deleteTaskConfirmedPerformed,
-                "pageTasks.message.deleteAction", true);
+                "pageTasks.message.deleteAction",
+                (task) -> true,
+                true);
     }
 
     private InlineMenuItem createReconcileWorkersMenuAction() {
         InlineMenuItem reconcileWorkers = createTaskInlineMenuItem("pageTasks.button.reconcileWorkers",
                 this::reconcileWorkersConfirmedPerformed,
                 "pageTasks.message.reconcileWorkersAction",
+                (task) -> true,
                 false);
         reconcileWorkers.setVisibilityChecker(TaskTablePanel::isCoordinator);
         return reconcileWorkers;
@@ -436,6 +440,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         InlineMenuItem suspendRootOnly = createTaskInlineMenuItem("pageTasks.button.suspendRootOnly",
                 this::suspendRootOnly,
                 "pageTasks.message.suspendAction",
+                (task) -> true,
                 false);
         suspendRootOnly.setVisibilityChecker(TaskTablePanel::isManageableTreeRoot);
         return suspendRootOnly;
@@ -445,6 +450,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         InlineMenuItem resumeRootOnly = createTaskInlineMenuItem("pageTasks.button.resumeRootOnly",
                 this::resumeRootOnly,
                 "pageTasks.message.resumeAction",
+                (task) -> true,
                 false);
         resumeRootOnly.setVisibilityChecker(TaskTablePanel::isManageableTreeRoot);
         return resumeRootOnly;
@@ -454,81 +460,32 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         InlineMenuItem deleteWorkStateAndWorkers = createTaskInlineMenuItem("pageTasks.button.deleteWorkersAndWorkState",
                 this::deleteWorkersAndWorkState,
                 "pageTasks.message.deleteWorkersAndWorkState",
+                (task) -> true,
                 false);
         deleteWorkStateAndWorkers.setVisibilityChecker(TaskTablePanel::isManageableTreeRoot);
         return deleteWorkStateAndWorkers;
     }
 
     private InlineMenuItem createDeleteWorkStateMenuAction() {
-        return new InlineMenuItem(createStringResource("pageTasks.button.deleteWorkState")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<TaskType>>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        deleteWorkStatePerformed(target, getRowModel());
-                    }
-                };
-            }
-
-            @Override
-            public IModel<String> getConfirmationMessageModel() {
-                String actionName = createStringResource("pageTasks.message.deleteWorkState").getString();
-                return TaskTablePanel.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
-            }
-
-            @Override
-            public IModel<Boolean> getVisible() {
-                IModel<SelectableBean<TaskType>> rowModel = ((ColumnMenuAction) getAction()).getRowModel();
-                if (rowModel == null) {
-                    return Model.of(Boolean.TRUE);
-                }
-                SelectableBean<TaskType> rowModelObj = rowModel.getObject();
-                return Model.of(WebComponentUtil.canSuspendTask(rowModelObj.getValue(), TaskTablePanel.this.getPageBase()));
-            }
-
-        };
+        return createTaskInlineMenuItem("pageTasks.button.deleteWorkState",
+                this::deleteWorkStatePerformed,
+                "pageTasks.message.deleteWorkState",
+                (task) -> WebComponentUtil.canSuspendTask(task, TaskTablePanel.this.getPageBase()),
+                true);
     }
 
     private InlineMenuItem createDeleteAllClosedTasksMenuAction() {
-        return new InlineMenuItem(createStringResource("pageTasks.button.deleteAllClosedTasks")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<TaskType>>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        deleteAllClosedTasksConfirmedPerformed(target);
-                    }
-                };
-            }
-
-            @Override
-            public IModel<String> getConfirmationMessageModel() {
-                return createStringResource("pageTasks.message.deleteAllClosedTasksConfirm");
-            }
-
-            @Override
-            public IModel<Boolean> getVisible() {
-                IModel<SelectableBean<TaskType>> rowModel = ((ColumnMenuAction) getAction()).getRowModel();
-                if (rowModel == null) {
-                    return Model.of(Boolean.TRUE);
-                }
-                return Model.of(Boolean.FALSE);
-            }
-        };
+        return createTaskInlineMenuItem("pageTasks.button.deleteAllClosedTasks",
+                (target, task) -> deleteAllClosedTasksConfirmedPerformed(target),
+                "pageTasks.message.deleteAllClosedTasksConfirm",
+                (task) -> false,
+                true);
     }
 
     private InlineMenuItem createTaskInlineMenuItem(String menuNameKey,
             SerializableBiConsumer<AjaxRequestTarget, IModel<SelectableBean<TaskType>>> action,
             String confirmationMessageKey,
+            SerializableFunction<TaskType, Boolean> visibilityHandler,
             boolean header) {
         return new InlineMenuItem(createStringResource(menuNameKey)) {
             private static final long serialVersionUID = 1L;
@@ -554,6 +511,15 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
             @Override
             public boolean isHeaderMenuItem() {
                 return header;
+            }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                IModel<SelectableBean<TaskType>> rowModel = ((ColumnMenuAction) getAction()).getRowModel();
+                if (rowModel == null) {
+                    return Model.of(Boolean.TRUE);
+                }
+                return Model.of(visibilityHandler.apply(rowModel.getObject().getValue()));
             }
         };
     }

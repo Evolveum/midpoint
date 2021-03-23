@@ -5006,6 +5006,9 @@ public final class WebComponentUtil {
     public static String getTaskProgressInformation(TaskType taskType, boolean longForm, PageBase pageBase) {
         TaskProgressInformation progress = TaskProgressInformation.fromTaskTree(taskType);
         TaskPartProgressInformation partProgress = progress.getCurrentPartInformation();
+        if (partProgress == null) {
+            return null;
+        }
         String partProgressHumanReadable = partProgress.toHumanReadableString(longForm);
 
         if (longForm) {
