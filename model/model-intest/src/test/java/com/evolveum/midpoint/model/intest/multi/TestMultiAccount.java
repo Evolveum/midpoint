@@ -73,6 +73,10 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     protected static final String RESOURCE_DUMMY_MULTI_OUTBOUND_NAME = "multi-outbound";
     protected static final String RESOURCE_DUMMY_MULTI_OUTBOUND_NAMESPACE = MidPointConstants.NS_RI;
 
+    private static final File RESOURCE_DUMMY_MULTI_OUTBOUND_SIMPLE_FILE = new File(TEST_DIR, "resource-dummy-multi-outbound-simple.xml");
+    private static final String RESOURCE_DUMMY_MULTI_OUTBOUND_SIMPLE_OID = "e08cb619-fe83-487a-83cc-10a50d19c947";
+    private static final String RESOURCE_DUMMY_MULTI_OUTBOUND_SIMPLE_NAME = "multi-outbound-simple";
+
     private static final String USER_IDAHO_GIVEN_NAME = "Duncan";
     private static final String USER_IDAHO_FAMILY_NAME = "Idaho";
     private static final String USER_IDAHO_NAME = "idaho";
@@ -147,6 +151,8 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
 
         initDummyResourcePirate(RESOURCE_DUMMY_MULTI_OUTBOUND_NAME,
                 RESOURCE_DUMMY_MULTI_OUTBOUND_FILE, RESOURCE_DUMMY_MULTI_OUTBOUND_OID, initTask, initResult);
+        initDummyResourcePirate(RESOURCE_DUMMY_MULTI_OUTBOUND_SIMPLE_NAME,
+                RESOURCE_DUMMY_MULTI_OUTBOUND_SIMPLE_FILE, RESOURCE_DUMMY_MULTI_OUTBOUND_SIMPLE_OID, initTask, initResult);
     }
 
     /**
@@ -837,7 +843,37 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         assertUsers(getNumberOfUsers() + 3);
     }
 
-    private void assertEnvoyAccounts(String userOid, String username, String... planets) throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, SecurityViolationException, ExpressionEvaluationException, InterruptedException, FileNotFoundException, ConnectException, SchemaViolationException, ConflictException {
+    /**
+     * MID-6899
+     */
+    @Test
+    public void test500MultiSimple() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        UserType user = new UserType(prismContext)
+                .name("test500")
+                .organization("org1");
+        addObject(user.asPrismObject(), task, result);
+
+        when();
+
+        assignAccountToUser(user.getOid(), RESOURCE_DUMMY_MULTI_OUTBOUND_SIMPLE_OID, SchemaConstants.INTENT_DEFAULT, task, result);
+
+        then();
+
+        assertUserAfter(user.getOid())
+                .links()
+                    .single()
+                        .resolveTarget()
+                            .display()
+                            .assertName("test500-org1");
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private void assertEnvoyAccounts(String userOid, String username, String... planets) throws Exception {
         UserAsserter<Void> asserter = assertUserAfter(userOid)
             .displayWithProjections()
             .links()

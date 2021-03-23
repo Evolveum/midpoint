@@ -156,6 +156,7 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
         ShadowDiscriminatorType bean = new ShadowDiscriminatorType();
         bean.setIntent(intent);
         bean.setKind(kind);
+        bean.setTag(tag);
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.setOid(resourceOid);
         resourceRef.setType(ResourceType.COMPLEX_TYPE);
