@@ -252,15 +252,23 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     public ObjectDeltaObject<ShadowType> getObjectDeltaObject() throws SchemaException {
-        PrismObject<ShadowType> base = objectCurrent;
         ObjectDelta<ShadowType> currentDelta = getCurrentDelta();
-        if (base == null && (ObjectDelta.isModify(currentDelta) || decisionIsAdd())) {
+        PrismObject<ShadowType> base;
+        if (shouldCreateObjectNew(currentDelta)) {
             RefinedObjectClassDefinition rOCD = getCompositeObjectClassDefinition();
             if (rOCD != null) {
                 base = rOCD.createBlankShadow(resourceShadowDiscriminator.getTag());
+            } else {
+                base = null;
             }
+        } else {
+            base = objectCurrent;
         }
         return new ObjectDeltaObject<>(base, currentDelta, objectNew, getObjectDefinition());
+    }
+
+    private boolean shouldCreateObjectNew(ObjectDelta<ShadowType> currentDelta) {
+        return objectCurrent == null && (ObjectDelta.isModify(currentDelta) || currentDelta == null && decisionIsAdd());
     }
 
     @Override
@@ -821,7 +829,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         PrismObject<ShadowType> base;
         if (objectCurrent == null && ObjectDelta.isAdd(syncDelta)) {
             base = syncDelta.getObjectToAdd();
-        } else if (objectCurrent == null && (ObjectDelta.isModify(currentDelta) || decisionIsAdd())) {
+        } else if (shouldCreateObjectNew(currentDelta)) {
             RefinedObjectClassDefinition rOCD = getCompositeObjectClassDefinition();
             if (rOCD != null) {
                 base = rOCD.createBlankShadow(resourceShadowDiscriminator.getTag());
