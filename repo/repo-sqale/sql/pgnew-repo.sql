@@ -618,7 +618,7 @@ ALTER TABLE m_access_cert_campaign
 CREATE INDEX m_access_cert_campaign_ext_idx ON m_access_cert_campaign USING gin (ext);
 
 CREATE TABLE m_access_cert_case (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CASE') STORED,
     administrativeStatus INTEGER,
     archiveTimestamp TIMESTAMPTZ,
@@ -677,6 +677,7 @@ ALTER TABLE m_access_cert_wi
         REFERENCES m_access_cert_case (owner_oid, cid)
             ON DELETE CASCADE;
 
+-- TODO rework to inherit from reference tables
 CREATE TABLE m_access_cert_wi_reference (
     owner_oid UUID NOT NULL, -- PK+FK
     acc_cert_case_cid INTEGER NOT NULL, -- PK+FK
