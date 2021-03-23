@@ -1,0 +1,12 @@
+= MidPoint Troubleshooting Guides
+:page-nav-title: Troubleshooting Guides
+:page-display-order: 800
+:page-alias: { "parent" : "/midpoint/guides/" }
+:page-tag: guide
+:page-upkeep-status: green
+
+Following guides provide step-by-step information and recommendations on troubleshooting specific issues in midPoint configuration.
+
+++++
+{% children %}
+++++

@@ -1,0 +1,35 @@
+= Logging
+:page-wiki-name: Logging
+:page-upkeep-status: red
+:page-upkeep-note: This is pathetic excuse for a logging page ...
+
+== Logging in ICF Connectors
+
+Most of the logging of ICF connectors is integrated with midPoint logging.
+Therefore setting a correct logger in midPoint will result in changed logging setup of the connector.
+The appropriate class name is usually state in the connector documentation.
+
+However, there is one issue.
+If the connector or any of its libraries use obsolete java.util.logging (also known as JUL) then the midPoint logging setting will not not work.
+The JUL is not designed to work well with classloaders and dynamic logging configuration.
+ICF is using classloaders and midPoint is usign dynamic logging configuration therefore the JUL fails miserably in this case.
+Yet there is a workaround.
+The logging can still be configured by using the ancient `logging.properties` cofiguration file:
+
+. Create `logging.properties` configuration file in application of web container class path.
+E.g. if you are using Tomcat then a good place is `<tomcat-root>/lib/logging.properties}`.
+The file may look like this:.logging.properties
+
+[source]
+----
+org.dinosaur.lost.in.past.level = FINER
+expect4j.Expect4j.level = ALL
+----
+
+. Restart web container
+
+
+== See Also
+
+* wiki:Useful+Loggers[Useful Loggers]
+
