@@ -1,5 +1,6 @@
 = XPath2 Tutorial
 :page-wiki-name: XPath2 Tutorial
+:page-obsolete: true
 
 This page provides a tutorial-like introduction to using XPath version 2 expressions in midPoint, especially for the purpose of implementing parts of synchronization logic.
 
