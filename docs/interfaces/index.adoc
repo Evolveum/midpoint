@@ -1,0 +1,12 @@
+= MidPoint Interfaces and Integration
+:page-nav-title: Interfaces and Integration
+:page-display-order: 320
+:page-upkeep-status: green
+
+Following pages describe mechanisms that can be used to interface with midPoint and integrate custom code with midPoint.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

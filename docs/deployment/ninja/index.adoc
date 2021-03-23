@@ -1,0 +1,303 @@
+= Ninja
+:page-wiki-name: Ninja
+:page-upkeep-status: red
+:page-upkeep-note: Need to update, also for midScale and DB migration
+:page-alias: { "parent" : "/midpoint/tools/" }
+
+Ninja is new command line tool bundled with midPoint.
+Implemented features are based on "repo-ninja", but code was rewritten from the ground up.
+This tool comes in handy when one needs to export or import objects from/to midPoint.
+Operations can be done on top of repository (DB) layer or through REST API.
+Access through DB layer can be very powerful, especially in cases when UI fails.
+For example when midPoint fails to start because of configuration issue or objects data corruption.
+Another great example is "administrator" user lockout.
+
+Users of this tool need to be aware that using repository layer, access is not validated using authorisations, model component is not used during processing and changes are not audited.
+It allows you to obtain or modify data in an otherwise unusable midPoint.
+Ninja also plan to support some other operations like listing keys from keystore, enforcing objects reencryption with new key, DB schema validation, password reset or user unlock.
+
+Ninja comes with also with shell and bat scripts located in midPoint installation directory, eg.
+<`midpoint>/bin/ninja.sh`. These scripts will preset `midpoint.home` to default midPoint home folder, eg.
+`<midpoint>/var`.
+
+
+== Connecting to midPoint
+
+Connection options:
+
+* using midpoint.home
+
+* using REST service (not yet implemented)
+
+
+=== midpoint.home connection
+
+This type of connection initialises repository layer of midpoint and operates on top of DB as new midPoint node.
+Mostly only one option is needed and that's specification of `midpoint.home` directory using `-m` option.
+This is not sufficient if `config.xml` uses datasource definition.
+Ninja then doesn't know how to connect to DB.
+For this case one have to use options to specify url ( `-U` ), username ( `-u` ) and password ( `-p` or `-P` ). These options can also be used to override JDBC url, username and password specified in `config.xml`.
+
+
+=== REST connection
+
+[NOTE]
+====
+Not yet implemented.
+====
+
+// TODO: mention python CLI
+
+=== Supported operations
+
+Currently supports three operations:
+
+* import
+
+* export
+
+* verify (midPoint 3.9 or later)
+
+* keys
+
+* count
+
+* delete
+
+Ninja can be started using standart `java -jar` or via bundles shell/bat script.
+Bundled scripts will automatically fill in path to for midPoint home option `-m`. There's also a difference between usage when pointing ninja to correct JDBC drivers.
+Example use with `java -jar` option:
+
+[source]
+----
+java -Dloader.path=<jdbc_driver_jar_path> -jar ninja.jar [general options] [command] [command options]
+----
+
+Example use with bundled shell script:
+
+[source]
+----
+<MIDPOINT_INSTALLATION_PATH>/bin/ninja.sh -j <JDBC_DRIVER_JAR> [general options] [command] [command options]
+----
+
+
+=== Import
+
+Import command allow users to import objects from `SYSOUT` or file (either plain XML or compressed ZIP, which may contain multiple files).
+One can define `oid`, multiple types or filter to filter imported objects.
+Example of import from XML file using 4 threads with raw and overwrite option using explicit midpoint.home folder path:
+
+.Example
+[source,bash]
+----
+java -jar ninja.jar -m ~/Desktop/midpoint/var import -O -i midpoint/samples/objects/user-ceresnickova.xml -l 4 -r
+----
+
+
+=== Export
+
+Export command allows users to export objects to SYSOUT or file (either plain XML or compressed ZIP). One can define oid, multiple types or filter to filter exported objects. Export objects to compressed zip file using 4 threads:
+
+.Example
+[source,bash]
+----
+java -jar ninja.jar -m ~/Desktop/midpoint/var export -O export.zip -z -l 4
+----
+
+Use -ow switch if you wish the overwrite an existing output file.
+
+
+=== Verify
+
+[TIP]
+.MidPoint 3.9 and later
+====
+This feature is available only in midPoint 3.9 and later.
+
+====
+
+Command that verifies objects in midPoint repository. It displays warnings about objects to SYSOUT or file. Similarly to export, one can define oid, multiple types or filter to filter verified objects. Simple usage to verify all objects in the repository for all warnings:
+
+.Example: verify all objects in repository for all warnings
+[source,bash]
+----
+ninja.sh verify
+----
+
+There is a -w switch that can be used to select specific warnings to display. Currently it only supports values deprecated and plannedRemoval. Following command will show warnings about planned removal of items used by all objects in the repository:
+
+
+
+.Example: verify all objects in repository for planned removal of items
+[source,bash]
+----
+ninja.sh verify -w plannedRemoval
+----
+
+
+
+
+=== Keys
+
+List keys in with aliases from keystore located in `midpoint.home`.
+
+.Example
+[source,bash]
+----
+java -jar ninja.jar -m /opt/midpoint-home keys -K
+----
+
+
+== Full help
+
+.Full help
+[source]
+----
+$ java -jar target/ninja.jar -h
+Usage: java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar [options] [command] [command options]
+  Options:
+    -c, --charset
+      Charset used for input/output
+      Default: utf-8
+    -h, --help
+      Print this help
+    -m, --midpoint-home
+      Path to MidPoint home folder. If relative path is specified, it will be translated to absolute path.
+    -p, --password
+      Password for rest/jdbc connection
+    -P, --password-ask
+      Please write rest/jdbc connection password
+    -s, --silent
+      No output at all
+      Default: false
+    -U, --url
+      Url to MidPoint model webservice endpoint or JDBC url to database. If '-m' option is used url will be used to connect to JDBC database. If '-m'
+      is not specified then this parameter is used as MidPoint REST url endpoint.
+    -u, --username
+      Username for rest/jdbc connection
+    -v, --verbose
+      Verbose output
+      Default: false
+    -V, --version
+      Version and build description
+      Default: false
+  Commands:
+    import      Imports objects into MidPoint
+      Usage: import [options]
+        Options:
+          -e, --allowUnencryptedValues
+            Allow unencrypted values
+            Default: false
+          -f, --filter
+            Value of object filter used to search objects. If you start the filter with the letter @, the rest should be a filename.
+          -i, --input
+
+          -l, --multi-thread
+            How many threads to use for operation.
+            Default: 1
+          -o, --oid
+            Object oid
+          -O, --overwrite
+            Use overwrite option
+            Default: false
+          -r, --raw
+            Use raw option
+            Default: false
+          -t, --type
+            Object type, case insensitive value. Rest type name can be used as well.
+            Default: []
+          -z, --zip
+            Use zip/unzip compression
+            Default: false
+
+    export      Exports objects from midPoint
+      Usage: export [options]
+        Options:
+          -f, --filter
+            Value of object filter used to search objects. If you start the filter with the letter @, the rest should be a filename.
+          -l, --multi-thread
+            How many threads to use for operation.
+            Default: 1
+          -o, --oid
+            Object oid
+          -O, --output
+
+          -ow, --overwrite
+
+            Default: false
+          -r, --raw
+            Use raw option
+            Default: false
+          -t, --type
+            Object type, case insensitive value. Rest type name can be used as well.
+            Default: []
+          -z, --zip
+            Use zip/unzip compression
+            Default: false
+
+    delete      delete
+      Usage: delete [options]
+        Options:
+          -a, --ask
+
+            Default: false
+          -f, --filter
+
+          -F, --force
+            Force option
+            Default: false
+          -o, --oid
+            Object oid
+          -r, --raw
+            Raw option
+            Default: false
+          -t, --type
+
+            Possible Values: [CONNECTOR, CONNECTOR_HOST, GENERIC_OBJECT, RESOURCE, USER, OBJECT_TEMPLATE, SYSTEM_CONFIGURATION, TASK, SHADOW, ROLE, PASSWORD_POLICY, NODE, FORM, ORG, ABSTRACT_ROLE, FOCUS_TYPE, ASSIGNMENT_HOLDER_TYPE, REPORT, REPORT_OUTPUT, SECURITY_POLICY, LOOKUP_TABLE, ACCESS_CERTIFICATION_DEFINITION, ACCESS_CERTIFICATION_CAMPAIGN, SEQUENCE, SERVICE, CASE, FUNCTION_LIBRARY, OBJECT_COLLECTION, ARCHETYPE, DASHBOARD, OBJECT]
+
+    count
+      Usage: count [options]
+        Options:
+          -f, --filter
+
+          -t, --type
+
+            Default: []
+
+    verify      Verify objects in midPoint repository
+      Usage: verify [options]
+        Options:
+          -f, --filter
+            Value of object filter used to search objects. If you start the filter with the letter @, the rest should be a filename.
+          -l, --multi-thread
+            How many threads to use for operation.
+            Default: 1
+          -o, --oid
+            Object oid
+          -O, --output
+
+          -ow, --overwrite
+
+            Default: false
+          -r, --raw
+            Use raw option
+            Default: false
+          -t, --type
+            Object type, case insensitive value. Rest type name can be used as well.
+            Default: []
+          -w, --warn
+            List of displayed varning categories, e.g. deprecated,plannedRemoval
+          -z, --zip
+            Use zip/unzip compression
+            Default: false
+
+    keys      List keys from keystore
+      Usage: keys [options]
+        Options:
+          -k, --key-password
+            Key password
+          -K
+            Please write key password
+
+----
+

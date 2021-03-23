@@ -1,0 +1,56 @@
+= Post-Initial Import
+:page-wiki-name: Post-initial import
+:page-since: "3.9"
+:page-upkeep-status: orange
+
+Post-initial import works in a similar manner to initial data import.
+Post-initial import imports files and executes bulk action scrips from MP\_HOME/post-initial-objects directory.
+If the directory does not exist after starting of Midpoint, it will be created.
+
+The suffix`_._done` is appended to the name of each file after importing/executing.
+Files with the suffix `_._done` will not be imported/executed during the next start of Midpoint.
+We can have several subdirectories within `MP_HOME/post-initial-objects`, in which we have various xml files with objects to import or bulk action scripts to execute.
+The name of each file begins with a three-digit number (that determines its order of processing) and its own name - for example `010-end-user.xml`. The order is global for all files in all directories.
+If an object already exists then it will be overwritten.
+
+
+== Example
+
+
+=== Directories:
+
+->post-initial-objects
+
+->roles
+
+010-role-1.xml
+
+030-role-2.xml
+
+->scripts
+
+040-script-1.xml
+
+060-script-2.xml
+
+->resources
+
+020-resource-1.xml
+
+050-resource-2.xml
+
+
+=== Order during procesing:
+
+010-role-1.xml
+
+020-resource-1.xml
+
+030-role-2.xml
+
+040-script-1.xml
+
+050-resource-2.xml
+
+060-script-2.xml
+

@@ -1,0 +1,51 @@
+= Initial Logging Setup
+:page-wiki-name: Initial Logging Setup HOWTO
+:page-upkeep-status: yellow
+
+MidPoint logging is usually configured using the administration GUI.
+But sometimes there is a need to log events that happen before logging can be configured.
+Also the logging configuration is stored in midPoint repository (database).
+Therefore it can only be applied if basic system infrastructure and wiki:Repository+Subsystem[repository subsystem] is initialized.
+This page describes a method how to log events that happen before that.
+E.g. how to diagnose issues with low-level system initialization, database initialization, etc.
+
+The trick is to put `logback.xml` file in wiki:MidPoint+Home+Directory[MidPoint Home Directory]. This file will be applied during very early phases of system initialization.
+The default initial logging configuration will be *replaced* with the content of this file.
+
+.logback.xml
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <logger name="PROFILING" level="TRACE"/>
+    <logger name="com.evolveum.midpoint" level="TRACE" />
+</configuration>
+----
+
+Alternatively a `logback-extra.xml` file can be used.
+This file has the same format, but instead of replacing the default configuration it will be appended to it.
+Any statements present in this file will be applied after the default (compiled-in) logging configuration is applied.
+
+This should help to diagnose most of the problems.
+But there are still some tricky problems that need one more trick.
+The problem is that once the system goes to the point when the repository is initialized it will read the sytem configuration from the repository and apply it.
+Logging configuration is part of the system config.
+Therefore this logging configuration replaces the initial logging configuration from `logback.xml`. This may be a problem if you do not have access to the GUI and cannot change the logging configuration in the repository.
+Therefore there is a config.xml setting that forces midPoint to skip the application of logging configuration from the repository:
+
+.config.xml
+[source,xml]
+----
+<configuration>
+    ...
+    <system>
+        <skipRepositoryLoggingSettings>true</skipRepositoryLoggingSettings>
+    </system>
+</configuration>
+----
+
+
+== See Also
+
+* wiki:MidPoint+Home+Directory[MidPoint Home Directory]
+

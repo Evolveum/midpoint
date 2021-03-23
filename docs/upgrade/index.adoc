@@ -1,0 +1,12 @@
+= MidPoint Upgrade And Migration
+:page-nav-title: Upgrade And Migration
+:page-display-order: 600
+:page-upkeep-status: green
+
+Following pages describe procedures and mechanism for MidPoint upgrades and data migrations.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

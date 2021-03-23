@@ -1,0 +1,12 @@
+= MidPoint Synchronization
+:page-nav-title: Synchronization
+:page-display-order: 520
+:page-upkeep-status: green
+
+Following pages describe midPoint identity synchronization mechanisms.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

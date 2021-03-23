@@ -1,5 +1,6 @@
 = MidPoint Task Management Configuration
 :page-nav-title: Task Management
+:page-display-order: 300
 :page-upkeep-status: green
 :page-liquid:
 

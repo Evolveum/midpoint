@@ -1,0 +1,132 @@
+= Live sync error handling strategy HOWTO
+:page-wiki-name: Live sync error handling strategy HOWTO
+:page-experimantal: true
+:page-since: "4.3"
+
+
+Until now, the live synchronization task supported only two ways of handling an error:
+
+. stop processing, until the error is not fixed;
+
+. ignore the error and continue processing.
+
+The former option is safe but can result in unnecessary delays in processing, mainly if errors occurs relatively often.
+The latter eliminates delays, but results in missing updates and therefore resource  midPoint state inconsistency.
+
+In 4.3 we _experimentally_ implemented a third option: delayed processing of erroneous objects.
+
+It works like this:
+
+. An error is encountered during live sync task.
+
+. If appropriate configuration is set, the task does not stop processing nor ignores the error.
+Instead, a _trigger_ is created on the respective resource object shadow, reminding midPoint that the shadow should be re-processed.
+The time interval for the trigger is configurable and can be e.g. a few hours.
+
+. After specified time arrives, the shadow is re-processed.
+
+. If the repeated processing is successful, the process ends here.
+If not, another trigger (with an interval that may be the same or different) is set up, and the process repeats.
+
+. If the process is not successful even after specified number of repetitions, the process ends.
+
+An example of configuration:
+
+[source,xml]
+----
+<task oid="0bdfdb9c-ccae-4202-a060-f9aab35bd211"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:ext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <name>Live Sync</name>
+
+    <extension>
+        <ext:objectclass>ri:AccountObjectClass</ext:objectclass>
+        <ext:liveSyncErrorHandlingStrategy>
+            <entry>
+                <reaction>
+                    <retryLater>
+                        <initialInterval>PT30M</initialInterval>
+                        <nextInterval>PT1H</nextInterval>
+                    </retryLater>
+                    <stopAfter>4</stopAfter>
+                </reaction>
+            </entry>
+        </ext:liveSyncErrorHandlingStrategy>
+    </extension>
+    ...
+</task>
+----
+
+After an error is encountered, the retry is attempted after 30 minutes.
+The next retries are done after 1 hour.
+The process stops after 4 attempts.
+
+The configuration is driven by `LiveSyncErrorHandlingStrategyType`, that consists of one or more entries (`LiveSyncErrorHandlingStrategyEntryType`). Each entry contains:
+
+* a _situation_ describing when the entry applies,
+
+* a _reaction_ that should be applied.
+
+The situation is currently described simply by set of operation statuses: `PARTIAL_ERROR`, `FATAL_ERROR`, or both (this is the default).
+
+The reaction is either:
+
+[%autowidth]
+|===
+| Reaction | Meaning | Action | Note
+
+| `ignore`
+| Error is ignored.
+| The synchronization token is advanced to the next change, effectively ignoring the failed record.
+|  +
+
+
+
+| `stop`
+| The processing is stopped.
+| The synchronization token is unchanged, or set to the current record.
+(Depending on resource setup.)
+| This is the default strategy.
+
+
+| `retryLater`
+| The processing is retried later.
+| A trigger is created, as described above.
+|  +
+
+
+
+|===
+
+Besides these options, you can specify also `stopAfter` property (applicable to `ignore` and `retryLater` reactions) that cause the task to be stopped after seeing specified number of error situations.
+(This option is even more fragile than the other ones.
+It will be most probably replaced by the thresholds mechanism.)
+
+The `retryLater` reaction has the following properties:
+
+[%autowidth]
+|===
+| Property | Meaning | The default
+
+| `initialInterval`
+| Initial retry interval.
+| 30 minutes
+
+
+| `nextInterval`
+| Next retry interval, after initial attempt.
+| 6 hours
+
+
+| `retryLimit`
+| Maximal number of retries to attempt.
+| unlimited
+
+|===
+
+[NOTE]
+====
+To conclude, this mechanism is *experimental*. Most probably it will be replaced by something more general, applicable e.g. to other kinds of synchronization tasks, like import or reconciliation.
+====
