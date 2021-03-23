@@ -49,7 +49,7 @@ public interface IterativeOperationCollector {
     /**
      * Resets iterative task information collection, starting from a given value.
      */
-    void resetIterativeTaskInformation(IterativeTaskInformationType value);
+    void resetIterativeTaskInformation(IterativeTaskInformationType value, boolean collectExecutions);
 
     /**
      * Returns last N failures. Deprecated.

@@ -81,4 +81,8 @@ public class StatisticsCollectionStrategy {
         this.maintainActionsExecutedStatistics = true;
         return this;
     }
+
+    public boolean isCollectExecutions() {
+        return startFromZero; // temporary implementation
+    }
 }

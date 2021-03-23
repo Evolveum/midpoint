@@ -63,12 +63,22 @@ public class IterativeTaskInformation {
     @NotNull
     private final PrismContext prismContext;
 
+    /**
+     * For tasks that aggregate operation statistics over significant periods of time (i.e. those that
+     * do not start from zero) we would like to avoid execution records to grow indefinitely.
+     * As the easiest solution (for 4.3) is to simply stop collecting this information for such tasks.
+     */
+    private final boolean collectExecutions;
+
     public IterativeTaskInformation(@NotNull PrismContext prismContext) {
         this.prismContext = prismContext;
+        this.collectExecutions = false;
     }
 
-    public IterativeTaskInformation(IterativeTaskInformationType value, @NotNull PrismContext prismContext) {
+    public IterativeTaskInformation(IterativeTaskInformationType value, boolean collectExecutions,
+            @NotNull PrismContext prismContext) {
         this.prismContext = prismContext;
+        this.collectExecutions = collectExecutions;
         if (value != null) {
             addTo(this.value, value);
         }
@@ -112,6 +122,9 @@ public class IterativeTaskInformation {
 
     private void updatePartExecutions(IterativeTaskPartItemsProcessingInformationType part, Long partStartTimestamp,
             long currentTimeMillis) {
+        if (!collectExecutions) {
+            return;
+        }
         if (partStartTimestamp == null) {
             return;
         }
@@ -311,6 +324,10 @@ public class IterativeTaskInformation {
     public static String format(IterativeTaskInformationType source, AbstractStatisticsPrinter.Options options) {
         IterativeTaskInformationType information = source != null ? source : new IterativeTaskInformationType();
         return new IterativeTaskInformationPrinter(information, options).print();
+    }
+
+    public boolean isCollectExecutions() {
+        return collectExecutions;
     }
 
     /**
