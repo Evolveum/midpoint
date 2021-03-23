@@ -54,7 +54,8 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     public void cleanDatabase() {
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             // object delete cascades to sub-rows of the "object aggregate"
-            jdbcSession.newDelete(QObjectMapping.INSTANCE.defaultAlias()).execute();
+            long count = jdbcSession.newDelete(QObjectMapping.INSTANCE.defaultAlias()).execute();
+            display("Deleted " + count + " objects from DB");
         }
     }
 

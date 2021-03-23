@@ -35,6 +35,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.MResource;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResource;
+import com.evolveum.midpoint.repo.sqale.qmodel.shadow.MShadow;
+import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QSystemConfiguration;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
@@ -563,6 +565,54 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         assertThat(row.connectorHostRefTargetType).isEqualTo(MObjectType.CONNECTOR_HOST);
         assertCachedUri(row.connectorHostRefRelationId, connectorHostRelation);
         assertThat(row.targetSystemTypes).containsExactlyInAnyOrder("type1", "type2");
+    }
+
+    @Test
+    public void test918Shadow() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("shadow");
+        String objectName = "shadow" + getTestNumber();
+        QName objectClass = QName.valueOf("{https://random.org/ns}shadow-object-class");
+        UUID resourceRefOid = UUID.randomUUID();
+        QName resourceRefRelation = QName.valueOf("{https://random.org/ns}resource-ref-rel");
+        ShadowType shadow = new ShadowType(prismContext)
+                .name(objectName)
+                .objectClass(objectClass)
+                .resourceRef(resourceRefOid.toString(),
+                        ResourceType.COMPLEX_TYPE, resourceRefRelation)
+                .intent("intent")
+                .kind(ShadowKindType.ACCOUNT)
+                // TODO attemptNumber used at all?
+                .dead(false)
+                .exists(true)
+                .fullSynchronizationTimestamp(MiscUtil.asXMLGregorianCalendar(1L))
+                .pendingOperation(new PendingOperationType().attemptNumber(1))
+                .pendingOperation(new PendingOperationType().attemptNumber(2))
+                .primaryIdentifierValue("PID")
+                .synchronizationSituation(SynchronizationSituationType.DISPUTED)
+                .synchronizationTimestamp(MiscUtil.asXMLGregorianCalendar(2L));
+
+        when("adding it to the repository");
+        repositoryService.addObject(shadow.asPrismObject(), null, result);
+
+        then("it is stored and relevant attributes are in columns");
+        assertResult(result);
+
+        MShadow row = selectObjectByOid(QShadow.class, shadow.getOid());
+        assertCachedUri(row.objectClassId, objectClass);
+        assertThat(row.resourceRefTargetOid).isEqualTo(resourceRefOid);
+        assertThat(row.resourceRefTargetType).isEqualTo(MObjectType.RESOURCE);
+        assertCachedUri(row.resourceRefRelationId, resourceRefRelation);
+        assertThat(row.intent).isEqualTo("intent");
+        assertThat(row.kind).isEqualTo(ShadowKindType.ACCOUNT);
+        assertThat(row.dead).isEqualTo(false);
+        assertThat(row.exist).isEqualTo(true);
+        assertThat(row.fullSynchronizationTimestamp).isEqualTo(Instant.ofEpochMilli(1));
+        assertThat(row.pendingOperationCount).isEqualTo(2);
+        assertThat(row.primaryIdentifierValue).isEqualTo("PID");
+        assertThat(row.synchronizationSituation).isEqualTo(SynchronizationSituationType.DISPUTED);
+        assertThat(row.synchronizationTimestamp).isEqualTo(Instant.ofEpochMilli(2));
     }
 
     // this covers mapping of attributes in FocusSqlTransformer + GenericObject

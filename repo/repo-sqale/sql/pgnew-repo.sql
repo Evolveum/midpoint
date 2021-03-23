@@ -749,13 +749,13 @@ CREATE TABLE m_shadow (
     resourceRef_relation_id INTEGER REFERENCES m_uri(id),
     intent TEXT/*VARCHAR(255)*/,
     kind ShadowKindType,
-    attemptNumber INTEGER,
+    attemptNumber INTEGER, -- TODO how is this mapped?
     dead BOOLEAN,
     exist BOOLEAN,
     fullSynchronizationTimestamp TIMESTAMPTZ,
     pendingOperationCount INTEGER,
     primaryIdentifierValue TEXT/*VARCHAR(255)*/,
---     status INTEGER, TODO how is this mapped?
+--     status INTEGER, TODO how is this mapped? See RUtil.copyResultFromJAXB called from RTask and OperationResultMapper
     synchronizationSituation SynchronizationSituationType,
     synchronizationTimestamp TIMESTAMPTZ
 )
