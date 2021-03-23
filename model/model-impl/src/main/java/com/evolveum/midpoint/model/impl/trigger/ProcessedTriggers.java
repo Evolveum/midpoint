@@ -12,10 +12,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
-
 /**
  * Keeps track of the triggers that have been processed within particular trigger task execution.
  */
@@ -25,8 +21,8 @@ class ProcessedTriggers {
     // we use plain map with explicit synchronization
     private final Map<String, Set<String>> processedTriggersMap = new HashMap<>();
 
-    synchronized boolean triggerAlreadySeen(String handlerUri, PrismObject<? extends ObjectType> object, TriggerType trigger) {
-        String oidPlusTriggerId = object.getOid() + ":" + trigger.getId();
+    synchronized boolean triggerAlreadySeen(String handlerUri, String objectOid, Long triggerId) {
+        String oidPlusTriggerId = objectOid + ":" + triggerId;
         Set<String> processedTriggers = processedTriggersMap.get(handlerUri);
         if (processedTriggers != null) {
             return !processedTriggers.add(oidPlusTriggerId);

@@ -38,9 +38,6 @@ public class FocusValidityScannerTaskExecution
     /** Do we have notification actions to invoke when validity constraint is met? */
     private final boolean notificationActionsPresent;
 
-    /** TODO move to the gatekeeper */
-    private final Set<String> processedOids = ConcurrentHashMap.newKeySet();
-
     public FocusValidityScannerTaskExecution(FocusValidityScannerTaskHandler taskHandler,
             RunningTask localCoordinatorTask,
             WorkBucketType workBucket,
@@ -119,10 +116,6 @@ public class FocusValidityScannerTaskExecution
      */
     boolean doCustomValidityCheck() {
         return validityConstraint != null && notificationActionsPresent;
-    }
-
-    boolean oidAlreadySeen(String objectOid) {
-        return !processedOids.add(objectOid);
     }
 
     public enum QueryScope {

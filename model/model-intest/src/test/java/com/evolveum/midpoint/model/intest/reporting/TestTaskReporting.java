@@ -302,14 +302,15 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 .assertProgress(10) // From the resource we get all 10 accounts.
                 .iterativeTaskInformation()
                     .display()
-                    //.assertSuccessCount(0) // later 7 skipped
+                    .assertSkipCount(8)
                     .assertFailureCount(2)
                     .end()
                 .synchronizationInformation()
-                    .display();
-//                    .assertTransition(LINKED, LINKED, LINKED, null, 0, 1, 0) // That record was already linked and remain so.
-//                    .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
-//                    .assertTransitions(2);
+                    .display()
+                    .assertTransition(LINKED, LINKED, LINKED, null, 0, 1, 0) // That record was already linked and remain so.
+                    .assertTransition(LINKED, null, null, null, 0, 1, 7) // Malformed account has a LINKED shadow
+                    .assertTransition(null, null, null, null, 0, 0, 1) // No shadow here
+                    .assertTransitions(3);
 
         assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
                 .display();

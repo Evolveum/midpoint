@@ -25,7 +25,7 @@ public class MockMultipleTriggersHandler implements MultipleTriggersHandler {
 
     private PrismObject<?> lastObject;
     private Collection<TriggerType> lastTriggers;
-    private AtomicInteger invocationCount = new AtomicInteger(0);
+    private final AtomicInteger invocationCount = new AtomicInteger(0);
     private long delay;
     private boolean failOnNextInvocation;
 
