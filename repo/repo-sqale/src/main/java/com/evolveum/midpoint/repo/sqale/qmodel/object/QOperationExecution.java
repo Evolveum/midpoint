@@ -16,6 +16,7 @@ import com.querydsl.sql.ColumnMetadata;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionRecordTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 /**
@@ -30,6 +31,8 @@ public class QOperationExecution extends QContainer<MOperationExecution> {
 
     public static final ColumnMetadata STATUS =
             ColumnMetadata.named("status").ofType(Types.OTHER);
+    public static final ColumnMetadata RECORD_TYPE =
+            ColumnMetadata.named("recordType").ofType(Types.OTHER);
     public static final ColumnMetadata INITIATOR_REF_TARGET_OID =
             ColumnMetadata.named("initiatorRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata INITIATOR_REF_TARGET_TYPE =
@@ -49,6 +52,8 @@ public class QOperationExecution extends QContainer<MOperationExecution> {
 
     public final EnumPath<OperationResultStatusType> status =
             createEnum("status", OperationResultStatusType.class, STATUS);
+    public final EnumPath<OperationExecutionRecordTypeType> recordType =
+            createEnum("recordType", OperationExecutionRecordTypeType.class, RECORD_TYPE);
     public final UuidPath initiatorRefTargetOid =
             createUuid("initiatorRefTargetOid", INITIATOR_REF_TARGET_OID);
     public final EnumPath<MObjectType> initiatorRefTargetType =

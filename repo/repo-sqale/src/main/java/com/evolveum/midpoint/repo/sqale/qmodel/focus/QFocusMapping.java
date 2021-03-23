@@ -81,7 +81,9 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
                 .addItemMapping(ActivationType.F_VALIDITY_CHANGE_TIMESTAMP,
                         TimestampItemFilterProcessor.mapper(path(q -> q.validityChangeTimestamp)))
                 .addItemMapping(ActivationType.F_ARCHIVE_TIMESTAMP,
-                        TimestampItemFilterProcessor.mapper(path(q -> q.archiveTimestamp)));
+                        TimestampItemFilterProcessor.mapper(path(q -> q.archiveTimestamp)))
+                .addItemMapping(ActivationType.F_LOCKOUT_STATUS,
+                        EnumItemFilterProcessor.mapper(path(q -> q.lockoutStatus)));
 
         addRefMapping(F_DELEGATED_REF, QObjectReferenceMapping.INSTANCE_DELEGATED);
         addRefMapping(F_PERSONA_REF, QObjectReferenceMapping.INSTANCE_PERSONA);

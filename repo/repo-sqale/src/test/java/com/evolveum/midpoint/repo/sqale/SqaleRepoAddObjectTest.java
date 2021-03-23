@@ -437,6 +437,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
                 .name(objectName)
                 .operationExecution(new OperationExecutionType()
                         .status(OperationResultStatusType.FATAL_ERROR)
+                        .recordType(OperationExecutionRecordTypeType.SIMPLE)
                         .initiatorRef(initiatorRefOid.toString(),
                                 UserType.COMPLEX_TYPE, initiatorRelation)
                         .taskRef(taskRefOid.toString(), TaskType.COMPLEX_TYPE, taskRelation)
@@ -460,6 +461,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         MOperationExecution containerRow = containers.get(0);
         assertThat(containerRow.cid).isEqualTo(1);
         assertThat(containerRow.status).isEqualTo(OperationResultStatusType.FATAL_ERROR);
+        assertThat(containerRow.recordType).isEqualTo(OperationExecutionRecordTypeType.SIMPLE);
         assertThat(containerRow.initiatorRefTargetOid).isEqualTo(initiatorRefOid);
         assertThat(containerRow.initiatorRefTargetType).isEqualTo(MObjectType.USER);
         assertCachedUri(containerRow.initiatorRefRelationId, initiatorRelation);
@@ -647,7 +649,8 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
                         .validFrom(MiscUtil.asXMLGregorianCalendar(5L))
                         .validTo(MiscUtil.asXMLGregorianCalendar(6L))
                         .validityChangeTimestamp(MiscUtil.asXMLGregorianCalendar(7L))
-                        .archiveTimestamp(MiscUtil.asXMLGregorianCalendar(8L)))
+                        .archiveTimestamp(MiscUtil.asXMLGregorianCalendar(8L))
+                        .lockoutStatus(LockoutStatusType.NORMAL))
                 // this is the only additional persisted field for GenericObject
                 .objectType("some-custom-object-type-uri");
 
@@ -682,6 +685,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         assertThat(row.validTo).isEqualTo(Instant.ofEpochMilli(6));
         assertThat(row.validityChangeTimestamp).isEqualTo(Instant.ofEpochMilli(7));
         assertThat(row.archiveTimestamp).isEqualTo(Instant.ofEpochMilli(8));
+        assertThat(row.lockoutStatus).isEqualTo(LockoutStatusType.NORMAL);
 
         // field specific to GenericObjectType
         assertCachedUri(row.genericObjectTypeId, "some-custom-object-type-uri");

@@ -83,6 +83,10 @@ CREATE TYPE ActivationStatusType AS ENUM ('ENABLED', 'DISABLED', 'ARCHIVED');
 
 CREATE TYPE AvailabilityStatusType AS ENUM ('DOWN', 'UP', 'BROKEN');
 
+CREATE TYPE LockoutStatusType AS ENUM ('NORMAL', 'LOCKED');
+
+CREATE TYPE OperationExecutionRecordTypeType AS ENUM ('SIMPLE', 'COMPLEX');
+
 CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ERROR',
     'FATAL_ERROR', 'HANDLED_ERROR', 'NOT_APPLICABLE', 'IN_PROGRESS', 'UNKNOWN');
 
@@ -380,6 +384,7 @@ CREATE TABLE m_focus (
     validTo TIMESTAMPTZ,
     validityChangeTimestamp TIMESTAMPTZ,
     archiveTimestamp TIMESTAMPTZ,
+    lockoutStatus LockoutStatusType,
 
     CHECK (FALSE) NO INHERIT
 )
@@ -1337,6 +1342,7 @@ CREATE TABLE m_operation_execution (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     containerType ContainerType GENERATED ALWAYS AS ('OPERATION_EXECUTION') STORED,
     status OperationResultStatusType,
+    recordType OperationExecutionRecordTypeType,
     initiatorRef_targetOid UUID,
     initiatorRef_targetType ObjectType,
     initiatorRef_relation_id INTEGER REFERENCES m_uri(id),

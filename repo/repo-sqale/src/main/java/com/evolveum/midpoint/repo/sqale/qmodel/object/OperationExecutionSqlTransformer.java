@@ -23,6 +23,7 @@ public class OperationExecutionSqlTransformer
         MOperationExecution row = initRowObject(schemaObject, ownerRow.oid);
 
         row.status = schemaObject.getStatus();
+        row.recordType = schemaObject.getRecordType();
         setReference(schemaObject.getInitiatorRef(), jdbcSession,
                 o -> row.initiatorRefTargetOid = o,
                 t -> row.initiatorRefTargetType = t,

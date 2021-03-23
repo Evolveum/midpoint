@@ -30,6 +30,7 @@ public class QOperationExecutionMapping
                 OperationExecutionType.class, QOperationExecution.class);
 
         addItemMapping(F_STATUS, EnumItemFilterProcessor.mapper(path(q -> q.status)));
+        addItemMapping(F_RECORD_TYPE, EnumItemFilterProcessor.mapper(path(q -> q.recordType)));
         addItemMapping(F_INITIATOR_REF, RefItemFilterProcessor.mapper(
                 path(q -> q.initiatorRefTargetOid),
                 path(q -> q.initiatorRefTargetType),
