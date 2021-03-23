@@ -1,0 +1,109 @@
+= Security Advisories
+:page-wiki-name: Security Advisories
+:page-upkeep-status: green
+
+[%autowidth]
+|===
+| # | Title | Date | Severity | Description
+
+| 1
+| wiki:Security+Advisory:+MidPoint+user+interface+clickjacking[MidPoint user interface clickjacking]
+| 21 Mar 2019
+| Medium
+| MidPoint user interface vulnerable to clickjacking due to missing X-Frame-Options header.
+
+
+| 2
+| wiki:Security+Advisory:+Abuse+of+expressions+in+midPoint+reports[Abuse of expressions in midPoint reports]
+| 8 Apr 2019
+| Medium
+| MidPoint expressions embedded in midPoint reports can be used to gain unauthorized access to the system.
+
+
+| 3
+| wiki:Security+Advisory:+XXE+Vulnerabilities[XXE Vulnerabilities]
+| 17 Apr 2019
+| Medium
+| The way how MidPoint handles XML documents is vulnerable to attacks based on XML External Entities (XXE)
+
+
+| 4
+| wiki:Security+Advisory:+AD+and+LDAP+connectors+do+not+check+certificate+validity[AD and LDAP connectors do not check certificate validity]
+| 17 Apr 2019
+| High
+| LDAP and Active Directory connectors are not properly checking TLS/SSL certificate validity.
+
+
+| 5
+| wiki:Security+Advisory:+Workitem+identifier+weakness[Workitem identifier weakness]
+| 18 Apr 2019
+| Medium
+| Any approver can display any workitem by guessing its short identifier.
+
+
+| 6
+| wiki:Security+Advisory:+Plain+text+password+in+temporary+files[Plain text password in temporary files]
+| 13 May 2019
+| Low
+| Plaintext password is sometimes left stored in temporary files on a file system.
+
+
+| 7
+| wiki:Security+Advisory:+Plain+text+password+in+task+objects+in+repository[Plain text password in task objects in repository]
+| 23 May 2019
+| Low
+| Plaintext passwords are sometimes stored in task objects in the repository (database).
+
+
+| 8
+| wiki:Security+Advisory:+XSS+Vulnerability+In+displayName[XSS Vulnerability In displayName]
+| 14 Jun 2019
+| Low
+| Cross-site scripting (XSS) vulnerability exists in some parts of midPoint user interface, namely in organization displayName.
+
+
+| 9
+| wiki:Security+Advisory:+SOAP+Web+Service+Vulnerable+To+Brute+Force+Attack[SOAP Web Service Vulnerable To Brute Force Attack]
+| 9 Jul 2019
+| Medium
+| SOAP-based web service interface of midPoint does not limit authentication attempts.
+
+
+| 10
+| wiki:Security+Advisory:+Authorizations+not+applied+properly+to+preview+changes[Authorizations not applied properly to preview changes]
+| 30 Jul 2019
+| Medium
+| Authorizations not applied properly to the results of "preview changes" functionality.
+
+
+| 11
+| wiki:Security+Advisory:+Stored+XSS+vulnerability+via+'name'+property[Stored XSS vulnerability via 'name' property]
+| 30 Aug 2019
+| Medium
+| Stored cross-site scripting (XSS) vulnerability exists in midPoint user interface that can be exploited by manipulation of object 'name' property.
+
+
+| 12
+| wiki:Security+Advisory:+User+changes+and+user+session+updates[User changes and user session updates]
+| 9 Sep 2019
+| Low
+| Sessions of users logged-in to midPoint user interface are unaffected by the change of user profiles - until users log in again.
+
+
+| 13
+| wiki:Security+Advisory:+HTTP+error+codes+used+for+SecQ+REST+authentication+reveal+user+existence[HTTP error codes used for SecQ REST authentication reveal user existence]
+| 11 Oct 2019
+| Low
+| HTTP error codes used for REST authentication based on security questions (a.k.a. SecQ) reveal user existence.
+
+
+| 14
+| wiki:Security+Advisory:+Ghostcat+Vulnerability+of+Apache+Tomcat[Ghostcat Vulnerability of Apache Tomcat]
+| 2 Mar 2020
+| Informational
+| Apache JServ Protocol (AJP) of Apache Tomcat may be vulnerable to several types of attack.
+
+
+|===
+
+

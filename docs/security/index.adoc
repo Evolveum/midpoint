@@ -1,5 +1,6 @@
 = MidPoint Security Configuration
 :page-nav-title: Security
+:page-wiki-name: Security
 :page-display-order: 700
 :page-upkeep-status: green
 :page-liquid:

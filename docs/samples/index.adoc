@@ -1,0 +1,21 @@
+= MidPoint Configuration Samples
+:page-nav-title: Configuration Samples
+:page-wiki-name: Configuration Samples
+:page-display-order: 590
+:page-upkeep-status: orange
+
+Following pages provide configuration samples, snippets and ideas, or refer to locations of more configuration samples.
+
+== Important Configuration Samples
+
+* xref:distribution-samples/[Distribution samples], maintained in https://github.com/Evolveum/midpoint-samples[`midpoint-samples` project].
+
+* MidPoint tests, especially xref:story-tests/[story tests].
+
+== All Configuration Samples
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]
