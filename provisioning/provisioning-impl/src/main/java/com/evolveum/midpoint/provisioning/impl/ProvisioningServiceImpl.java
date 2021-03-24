@@ -276,8 +276,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
                     result.recordSuccess();
                 }
                 result.cleanupResult(ex);
-                throw new ObjectAlreadyExistsException("Couldn't add object. Object already exists: " + ex.getMessage(),
-                        ex);
+                throw new ObjectAlreadyExistsException("Couldn't add object. Object already exists: " + ex.getMessage(), ex);
             } catch (EncryptionException e) {
                 ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
                 throw new SystemException(e.getMessage(), e);
@@ -1198,7 +1197,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             //noinspection unchecked
             comparisonResult = shadowsFacade.compare((PrismObject<ShadowType>) (repositoryObject), path, expectedValue, task, result);
 
-        } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | EncryptionException | RuntimeException | Error e) {
+        } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException |
+                SecurityViolationException | ExpressionEvaluationException | EncryptionException | RuntimeException | Error e) {
             ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
             throw e;
         }
