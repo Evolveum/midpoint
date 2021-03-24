@@ -19970,6 +19970,19 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="approvals" type="tns:AdminGuiApprovalsConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Configuration related to approvals GUI.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                        <a:displayName>AdminGuiConfigurationType.approvals</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="displayFormats" type="tns:AdminGuiConfigurationDisplayFormatsType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -20014,6 +20027,36 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="AdminGuiApprovalsConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration related to approvals GUI.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="expandRolesOnPreview" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Whether to expand (resolve) abstract role members on approval case preview.
+                            Default is false.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                        <a:displayName>AdminGuiApprovalsConfigurationType.expandRolesOnPreview</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="adminGuiApprovalsConfiguration" type="tns:AdminGuiApprovalsConfigurationType" />
 
     <xsd:complexType name="AdminGuiConfigurationDisplayFormatsType">
         <xsd:annotation>

@@ -21,6 +21,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -127,7 +134,8 @@ public class StageComputeHelper {
 
     // TODO method name
     public ComputationResult computeStageApprovers(ApprovalStageDefinitionType stageDef, CaseType theCase,
-            VariablesProvider variablesProvider, Task opTask, OperationResult opResult) {
+            VariablesProvider variablesProvider, @NotNull ComputationMode computationMode,
+            Task opTask, OperationResult opResult) {
         ComputationResult rv = new ComputationResult();
         VariablesMap variablesMap = null;
         VariablesProvider enhancedVariablesProvider = () -> {
@@ -170,8 +178,12 @@ public class StageComputeHelper {
 
             LOGGER.trace("Approvers at the stage {} (before potential group expansion) are: {}", stageDef, rv.approverRefs);
             if (stageDef.getGroupExpansion() == GroupExpansionType.ON_WORK_ITEM_CREATION) {
-                rv.approverRefs = expandGroups(rv.approverRefs);       // see MID-4105
-                LOGGER.trace("Approvers at the stage {} (after group expansion) are: {}", stageDef, rv.approverRefs);
+                if (shouldExpandGroup(computationMode)) {
+                    rv.approverRefs = expandGroups(rv.approverRefs); // see MID-4105
+                    LOGGER.trace("Approvers at the stage {} (after group expansion) are: {}", stageDef, rv.approverRefs);
+                } else {
+                    LOGGER.trace("Groups will not be expanded; computation mode = {}", computationMode);
+                }
             }
 
             if (rv.approverRefs.isEmpty()) {
@@ -181,6 +193,23 @@ public class StageComputeHelper {
             }
         }
         return rv;
+    }
+
+    private boolean shouldExpandGroup(ComputationMode computationMode) {
+        if (computationMode != ComputationMode.PREVIEW) {
+            return true;
+        }
+        MidPointPrincipal principal;
+        try {
+            principal = SecurityUtil.getPrincipal();
+        } catch (SecurityViolationException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't get midPoint principal", e);
+            principal = null;
+        }
+        if (!(principal instanceof GuiProfiledPrincipal)) {
+            return false;
+        }
+        return ((GuiProfiledPrincipal) principal).getCompiledGuiProfile().isExpandRolesOnApprovalPreview();
     }
 
     public String evaluateAutoCompleteExpression(ApprovalStageDefinitionType stageDef, VariablesMap variables,
@@ -250,5 +279,11 @@ public class StageComputeHelper {
         }
     }
 
+    /**
+     * Do we do our computation during preview or during actual execution?
+     */
+    public enum ComputationMode {
+        PREVIEW, EXECUTION
+    }
 }
 

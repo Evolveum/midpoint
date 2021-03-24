@@ -55,6 +55,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     private GuiObjectDetailsSetType objectDetails;
     private FeedbackMessagesHookType feedbackMessagesHook;
     private AdminGuiConfigurationRoleManagementType roleManagement;
+    private AdminGuiApprovalsConfigurationType approvals;
     private List<UserInterfaceFeatureType> features = new ArrayList<>();
     private AdminGuiConfigurationDisplayFormatsType displayFormats;
     private byte[] jpegPhoto;
@@ -284,6 +285,18 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         this.roleManagement = roleManagement;
     }
 
+    public AdminGuiApprovalsConfigurationType getApprovals() {
+        return approvals;
+    }
+
+    public void setApprovals(AdminGuiApprovalsConfigurationType approvals) {
+        this.approvals = approvals;
+    }
+
+    public boolean isExpandRolesOnApprovalPreview() {
+        return approvals != null && Boolean.TRUE.equals(approvals.isExpandRolesOnPreview());
+    }
+
     public List<UserInterfaceFeatureType> getFeatures() {
         return features;
     }
@@ -381,6 +394,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         DebugUtil.debugDumpWithLabelToStringLn(sb, "objectDetails", objectDetails, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "feedbackMessagesHook", feedbackMessagesHook, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "roleManagement", roleManagement, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "approvals", approvals, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "features", features, indent + 1);
         return sb.toString();
     }

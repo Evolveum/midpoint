@@ -129,14 +129,14 @@ public class ApprovalSchemaExecutionInformationHelper {
             StageComputeHelper.ComputationResult computationResult = computeHelper
                     .computeStageApprovers(stageDef, aCase,
                             () -> computeHelper.getDefaultVariables(aCase, aCase.getApprovalContext(), requestChannel, result),
-                            opTask, result);
+                            StageComputeHelper.ComputationMode.PREVIEW, opTask, result);
             rv.getExpectedApproverRef().addAll(computationResult.getApproverRefs());
             rv.setExpectedAutomatedOutcome(computationResult.getPredeterminedOutcome());
             rv.setExpectedAutomatedCompletionReason(computationResult.getAutomatedCompletionReason());
         } catch (Throwable t) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't compute stage execution preview", t);
             rv.setErrorMessage(MiscUtil.formatExceptionMessageWithCause(t));
-            rv.getExpectedApproverRef().addAll(CloneUtil.cloneCollectionMembers(stageDef.getApproverRef()));      // at least something here
+            rv.getExpectedApproverRef().addAll(CloneUtil.cloneCollectionMembers(stageDef.getApproverRef())); // at least something here
         }
         return rv;
     }

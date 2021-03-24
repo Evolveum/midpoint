@@ -75,7 +75,7 @@ class OpenStageAction extends InternalAction {
                                 () -> engine.stageComputeHelper
                                         .getDefaultVariables(ctx.getCurrentCase(), ctx.getWfContext(), ctx.getTask().getChannel(),
                                                 result),
-                                ctx.getTask(), result);
+                                StageComputeHelper.ComputationMode.EXECUTION, ctx.getTask(), result);
 
                 ApprovalLevelOutcomeType predeterminedOutcome = preStageComputationResult.getPredeterminedOutcome();
                 Set<ObjectReferenceType> approverRefs = preStageComputationResult.getApproverRefs();
