@@ -291,6 +291,9 @@ class OperationExecutionRecorderForClockwork {
             } else {
                 focusDeltas.add(delta);
             }
+            if (delta.getObjectDelta().isDelete() && oid != null) {
+                deletedObjects.add(oid);
+            }
         }
 
         private void addRottenProjectionDeltas() {

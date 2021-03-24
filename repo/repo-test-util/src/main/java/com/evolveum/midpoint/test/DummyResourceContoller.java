@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.test;
 
+import static java.util.Objects.requireNonNull;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -19,9 +20,13 @@ import java.time.ZonedDateTime;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.commons.lang.StringUtils;
 import org.testng.AssertJUnit;
@@ -497,5 +502,21 @@ public class DummyResourceContoller extends AbstractResourceController {
 
     public void setSyncStyle(DummySyncStyle syncStyle) {
         dummyResource.setSyncStyle(syncStyle);
+    }
+
+    public <T> ResourceAttribute<T> createAccountAttribute(ItemName attrName) throws SchemaException {
+        RefinedObjectClassDefinition accountDef = getRefinedAccountDefinition();
+        //noinspection unchecked
+        return (ResourceAttribute<T>) requireNonNull(accountDef.findAttributeDefinition(attrName),
+                () -> "No attribute " + attrName + " found in " + accountDef)
+                .instantiate();
+    }
+
+    public RefinedObjectClassDefinition getRefinedAccountDefinition() throws SchemaException {
+        return getRefinedSchema().getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+    }
+
+    public RefinedResourceSchema getRefinedSchema() throws SchemaException {
+        return RefinedResourceSchemaImpl.getRefinedSchema(getResourceType());
     }
 }
