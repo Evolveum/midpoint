@@ -53,12 +53,12 @@ public class QAssignmentMapping
                 path(q -> q.tenantRefRelationId)));
         // TODO no idea how extId/Oid works, see RAssignment.getExtension
         // TODO ext mapping can't be done statically
-        nestedMapping(F_CONSTRUCTION, ConstructionType.class)
+        addNestedMapping(F_CONSTRUCTION, ConstructionType.class)
                 .addItemMapping(ConstructionType.F_RESOURCE_REF, RefItemFilterProcessor.mapper(
                         path(q -> q.resourceRefTargetOid),
                         path(q -> q.resourceRefTargetType),
                         path(q -> q.resourceRefRelationId)));
-        nestedMapping(F_ACTIVATION, ActivationType.class)
+        addNestedMapping(F_ACTIVATION, ActivationType.class)
                 .addItemMapping(ActivationType.F_ADMINISTRATIVE_STATUS,
                         EnumItemFilterProcessor.mapper(path(q -> q.administrativeStatus)))
                 .addItemMapping(ActivationType.F_EFFECTIVE_STATUS,
@@ -79,7 +79,7 @@ public class QAssignmentMapping
                         TimestampItemFilterProcessor.mapper(path(q -> q.validityChangeTimestamp)))
                 .addItemMapping(ActivationType.F_ARCHIVE_TIMESTAMP,
                         TimestampItemFilterProcessor.mapper(path(q -> q.archiveTimestamp)));
-        nestedMapping(F_METADATA, MetadataType.class)
+        addNestedMapping(F_METADATA, MetadataType.class)
                 .addItemMapping(MetadataType.F_CREATOR_REF, RefItemFilterProcessor.mapper(
                         path(q -> q.creatorRefTargetOid),
                         path(q -> q.creatorRefTargetType),

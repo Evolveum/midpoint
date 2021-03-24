@@ -39,7 +39,7 @@ public class QAbstractRoleMapping<
             @NotNull Class<Q> queryType) {
         super(tableName, defaultAliasName, schemaType, queryType);
 
-        nestedMapping(F_AUTOASSIGN, AutoassignSpecificationType.class)
+        addNestedMapping(F_AUTOASSIGN, AutoassignSpecificationType.class)
                 .addItemMapping(AutoassignSpecificationType.F_ENABLED,
                         booleanMapper(path(q -> q.autoAssignEnabled)));
         addItemMapping(F_DISPLAY_NAME, PolyStringItemFilterProcessor.mapper(
