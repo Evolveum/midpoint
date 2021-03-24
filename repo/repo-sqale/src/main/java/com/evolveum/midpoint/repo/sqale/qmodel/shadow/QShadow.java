@@ -76,9 +76,11 @@ public class QShadow extends QObject<MShadow> {
             createInstant("fullSynchronizationTimestamp", FULL_SYNCHRONIZATION_TIMESTAMP);
     public final NumberPath<Integer> pendingOperationCount =
             createInteger("pendingOperationCount", PENDING_OPERATION_COUNT);
-    public final StringPath primaryIdentifierValue = createString("primaryIdentifierValue", INTENT);
+    public final StringPath primaryIdentifierValue =
+            createString("primaryIdentifierValue", PRIMARY_IDENTIFIER_VALUE);
     public final EnumPath<SynchronizationSituationType> synchronizationSituation =
-            createEnum("synchronizationSituation", SynchronizationSituationType.class, KIND);
+            createEnum("synchronizationSituation",
+                    SynchronizationSituationType.class, SYNCHRONIZATION_SITUATION);
     public final DateTimePath<Instant> synchronizationTimestamp =
             createInstant("synchronizationTimestamp", SYNCHRONIZATION_TIMESTAMP);
 

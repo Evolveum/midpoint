@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionRecordTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 /**
@@ -18,6 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 public class MOperationExecution extends MContainer {
 
     public OperationResultStatusType status;
+    public OperationExecutionRecordTypeType recordType;
     public UUID initiatorRefTargetOid;
     public MObjectType initiatorRefTargetType;
     public Integer initiatorRefRelationId;

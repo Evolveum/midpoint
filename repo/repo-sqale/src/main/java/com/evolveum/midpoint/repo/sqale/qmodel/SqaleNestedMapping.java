@@ -49,7 +49,7 @@ public class SqaleNestedMapping<S, Q extends FlexibleRelationalPathBase<R>, R>
 
     /** Nested mapping adaptation for repo-sqale. */
     @Override
-    public <N> SqaleNestedMapping<N, Q, R> nestedMapping(
+    public <N> SqaleNestedMapping<N, Q, R> addNestedMapping(
             @NotNull ItemName itemName, @NotNull Class<N> nestedSchemaType) {
         SqaleNestedMapping<N, Q, R> nestedMapping =
                 new SqaleNestedMapping<>(nestedSchemaType, queryType());

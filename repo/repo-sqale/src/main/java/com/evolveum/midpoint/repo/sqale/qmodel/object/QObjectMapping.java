@@ -67,7 +67,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         // TODO mapper for policySituations and subtypes
         // TODO ext mapping can't be done statically
 
-        nestedMapping(F_METADATA, MetadataType.class)
+        addNestedMapping(F_METADATA, MetadataType.class)
                 .addItemMapping(MetadataType.F_CREATOR_REF, RefItemFilterProcessor.mapper(
                         path(q -> q.creatorRefTargetOid),
                         path(q -> q.creatorRefTargetType),

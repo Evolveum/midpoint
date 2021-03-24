@@ -30,12 +30,12 @@ public class QResourceMapping
     private QResourceMapping() {
         super(QResource.TABLE_NAME, DEFAULT_ALIAS_NAME, ResourceType.class, QResource.class);
 
-        nestedMapping(F_BUSINESS, ResourceBusinessConfigurationType.class)
+        addNestedMapping(F_BUSINESS, ResourceBusinessConfigurationType.class)
                 .addItemMapping(ResourceBusinessConfigurationType.F_ADMINISTRATIVE_STATE,
                         EnumItemFilterProcessor.mapper(path(q -> q.businessAdministrativeState)))
                 .addRefMapping(ResourceBusinessConfigurationType.F_APPROVER_REF,
                         QObjectReferenceMapping.INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER);
-        nestedMapping(F_OPERATIONAL_STATE, OperationalStateType.class)
+        addNestedMapping(F_OPERATIONAL_STATE, OperationalStateType.class)
                 .addItemMapping(OperationalStateType.F_LAST_AVAILABILITY_STATUS,
                         EnumItemFilterProcessor.mapper(
                                 path(q -> q.operationalStateLastAvailabilityStatus)));
