@@ -20045,7 +20045,7 @@
                     <xsd:documentation>
                         <p>
                             Whether to expand (resolve) abstract role members on approval case preview.
-                            Default is false.
+                            Default is false, unless overridden by workflowConfiguration/defaultExpandRolesOnPreview.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>

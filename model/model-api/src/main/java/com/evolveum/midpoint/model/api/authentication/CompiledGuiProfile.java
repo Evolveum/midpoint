@@ -293,8 +293,8 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         this.approvals = approvals;
     }
 
-    public boolean isExpandRolesOnApprovalPreview() {
-        return approvals != null && Boolean.TRUE.equals(approvals.isExpandRolesOnPreview());
+    public Boolean isExpandRolesOnApprovalPreview() {
+        return approvals != null ? approvals.isExpandRolesOnPreview() : null;
     }
 
     public List<UserInterfaceFeatureType> getFeatures() {

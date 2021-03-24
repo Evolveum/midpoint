@@ -50,7 +50,7 @@ class OpenStageAction extends InternalAction {
     }
 
     @Override
-    public Action execute(OperationResult parentResult) {
+    public Action execute(OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.subresult(OP_EXECUTE)
                 .setMinor()
                 .build();
