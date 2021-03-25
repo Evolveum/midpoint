@@ -15,6 +15,9 @@ import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPane
 
 import com.evolveum.midpoint.web.session.PageStorage;
 
+import com.evolveum.midpoint.web.session.SessionStorage;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -142,8 +145,12 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
             }
 
             @Override
-            protected AuditLogStorage getAuditLogViewerStorage(){
-                return getPageBase().getSessionStorage().getObjectHistoryAuditLog(getObjectWrapper().getTypeName());
+            protected String getAuditStorageKey(String collectionNameValue) {
+                if (StringUtils.isNotEmpty(collectionNameValue)) {
+                    return SessionStorage.KEY_OBJECT_HISTORY_AUDIT_LOG + "." + collectionNameValue
+                            + "." + getObjectWrapper().getTypeName().getLocalPart();
+                }
+                return SessionStorage.KEY_OBJECT_HISTORY_AUDIT_LOG + "." + getObjectWrapper().getTypeName().getLocalPart();
             }
 
             @Override

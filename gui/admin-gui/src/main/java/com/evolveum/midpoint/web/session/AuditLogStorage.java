@@ -17,7 +17,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
  * Created by honchar.
  */
 public class AuditLogStorage implements PageStorage {
-    private AuditEventRecordType auditRecord;
     private ObjectPaging auditLogPaging;
 
     private Search search;
@@ -53,11 +52,4 @@ public class AuditLogStorage implements PageStorage {
         return "";
     }
 
-    public AuditEventRecordType getAuditRecord() {
-        return auditRecord;
-    }
-
-    public void setAuditRecord(AuditEventRecordType auditRecord) {
-        this.auditRecord = auditRecord;
-    }
 }

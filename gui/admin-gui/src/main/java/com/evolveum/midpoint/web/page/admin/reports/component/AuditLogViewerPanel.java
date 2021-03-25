@@ -13,6 +13,10 @@ import java.time.ZoneId;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -27,6 +31,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
@@ -137,13 +142,12 @@ public class AuditLogViewerPanel extends BasePanel {
 
                     @Override
                     protected String getStorageKey() {
+                        String collectionNameValue = null;
                         if (isCollectionViewPanelForCompiledView()) {
                             StringValue collectionName = getCollectionNameParameterValue();
-                            String collectionNameValue = collectionName != null ? collectionName.toString() : "";
-                            return WebComponentUtil.getObjectListPageStorageKey(collectionNameValue);
+                            collectionNameValue = collectionName != null ? collectionName.toString() : "";
                         }
-
-                        return SessionStorage.KEY_AUDIT_LOG;
+                        return getAuditStorageKey(collectionNameValue);
                     }
 
                     @Override
@@ -245,6 +249,13 @@ public class AuditLogViewerPanel extends BasePanel {
                 };
         auditLogViewerTable.setOutputMarkupId(true);
         add(auditLogViewerTable);
+    }
+
+    protected String getAuditStorageKey(String collectionNameValue) {
+        if (StringUtils.isNotEmpty(collectionNameValue)) {
+            return SessionStorage.KEY_AUDIT_LOG + "." + collectionNameValue;
+        }
+        return SessionStorage.KEY_AUDIT_LOG;
     }
 
     protected ObjectQuery getCustomizeContentQuery() {
@@ -429,13 +440,9 @@ public class AuditLogViewerPanel extends BasePanel {
             @Override
             public void onClick(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                 AuditEventRecordType record = unwrapModel(rowModel);
-                try {
-                    AuditEventRecord.adopt(record, getPageBase().getPrismContext());
-                } catch (SchemaException e) {
-                    throw new SystemException("Couldn't adopt event record: " + e, e);
-                }
-                getAuditLogViewerStorage().setAuditRecord(record);
-                getPageBase().navigateToNext(new PageAuditLogDetails(record));
+                PageParameters parameters = new PageParameters();
+                parameters.add(OnePageParameterEncoder.PARAMETER, record.getEventIdentifier());
+                getPageBase().navigateToNext(new PageAuditLogDetails(parameters));
             }
         };
     }
@@ -450,9 +457,4 @@ public class AuditLogViewerPanel extends BasePanel {
     protected boolean isObjectHistoryPanel() {
         return false;
     }
-
-    protected AuditLogStorage getAuditLogViewerStorage() {
-        return getPageBase().getSessionStorage().getAuditLog();
-    }
-
 }
