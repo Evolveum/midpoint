@@ -30,7 +30,7 @@ public class MockTriggerHandler implements SingleTriggerHandler {
     protected static final Trace LOGGER = TraceManager.getTrace(MockTriggerHandler.class);
 
     private PrismObject<?> lastObject;
-    private AtomicInteger invocationCount = new AtomicInteger(0);
+    private final AtomicInteger invocationCount = new AtomicInteger(0);
     private long delay;
     private boolean failOnNextInvocation;
     private boolean idempotent;
@@ -59,9 +59,6 @@ public class MockTriggerHandler implements SingleTriggerHandler {
         this.failOnNextInvocation = failOnNextInvocation;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.model.trigger.TriggerHandler#handle(com.evolveum.midpoint.prism.PrismObject)
-     */
     @Override
     public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, RunningTask task, OperationResult result) {
         IntegrationTestTools.display("Mock trigger handler called with " + object);
@@ -70,6 +67,7 @@ public class MockTriggerHandler implements SingleTriggerHandler {
         long start = System.currentTimeMillis();
         while (System.currentTimeMillis() - start < delay && task.canRun()) {
             try {
+                //noinspection BusyWait
                 Thread.sleep(500);
             } catch (InterruptedException e) {
                 // just ignore

@@ -27,6 +27,8 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.util.task.TaskPartProgressInformation;
+import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -678,36 +680,36 @@ public final class WebComponentUtil {
 
     public static boolean canRunNowTask(TaskType task, PageBase pageBase) {
         return pageBase.isAuthorized(ModelAuthorizationAction.RUN_TASK_IMMEDIATELY, task.asPrismObject())
-                && !isRunningTask(task) && (isRunnableTask(task) || (isClosedTask(task) && !isRecurringTask(task)));
+                && !isRunningTask(task)
+                && (isRunnableTask(task) || (isClosedTask(task) && !isRecurringTask(task)));
     }
 
     /** Checks user-visible state, not the technical (scheduling) state. So RUNNABLE means the task is not actually running. */
     public static boolean isRunnableTask(TaskType task) {
-        return task != null && TaskExecutionStateType.RUNNABLE == task.getExecutionStatus();
+        return task != null && task.getExecutionStatus() == TaskExecutionStateType.RUNNABLE;
     }
 
-    // Or we can test execution state for RUNNING value.
     public static boolean isRunningTask(TaskType task) {
-        return task != null && task.getNodeAsObserved() != null;
+        return task != null && task.getExecutionStatus() == TaskExecutionStateType.RUNNING;
     }
 
     /** Checks user-visible state, not the technical (scheduling) state. */
     public static boolean isWaitingTask(TaskType task) {
-        return task != null && TaskExecutionStateType.WAITING == task.getExecutionStatus();
+        return task != null && task.getExecutionStatus() == TaskExecutionStateType.WAITING;
     }
 
     /** Checks user-visible state, not the technical (scheduling) state. */
     public static boolean isSuspendedTask(TaskType task) {
-        return task != null && TaskExecutionStateType.SUSPENDED == task.getExecutionStatus();
+        return task != null && task.getExecutionStatus() == TaskExecutionStateType.SUSPENDED;
     }
 
     /** Checks user-visible state, not the technical (scheduling) state. But for closed tasks, these are equivalent. */
     public static boolean isClosedTask(TaskType task) {
-        return task != null && TaskExecutionStateType.CLOSED == task.getExecutionStatus();
+        return task != null && task.getExecutionStatus() == TaskExecutionStateType.CLOSED;
     }
 
     public static boolean isRecurringTask(TaskType task) {
-        return task != null && TaskRecurrenceType.RECURRING == task.getRecurrence();
+        return task != null && task.getRecurrence() == TaskRecurrenceType.RECURRING;
     }
 
     // We no longer need to treat workflow-related tasks in a different way.
@@ -4999,5 +5001,26 @@ public final class WebComponentUtil {
             return null;
         }
         return calAsLong;
+    }
+
+    public static String getTaskProgressInformation(TaskType taskType, boolean longForm, PageBase pageBase) {
+        TaskProgressInformation progress = TaskProgressInformation.fromTaskTree(taskType);
+        TaskPartProgressInformation partProgress = progress.getCurrentPartInformation();
+        if (partProgress == null) {
+            return null;
+        }
+        String partProgressHumanReadable = partProgress.toHumanReadableString(longForm);
+
+        if (longForm) {
+            partProgressHumanReadable = StringUtils.replaceOnce(partProgressHumanReadable, "of", pageBase.getString("TaskSummaryPanel.progress.of"));
+            partProgressHumanReadable = StringUtils.replaceOnce(partProgressHumanReadable, "buckets", pageBase.getString("TaskSummaryPanel.progress.buckets"));
+        }
+
+        if (progress.getAllPartsCount() > 1) {
+            String rv = pageBase.getString("TaskSummaryPanel.progress.info." + (longForm ? "long" : "short"), partProgressHumanReadable, progress.getCurrentPartNumber(), progress.getAllPartsCount());
+            return rv;
+        }
+
+        return partProgressHumanReadable;
     }
 }

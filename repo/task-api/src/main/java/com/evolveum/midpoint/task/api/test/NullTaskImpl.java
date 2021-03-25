@@ -585,7 +585,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void resetIterativeTaskInformation(IterativeTaskInformationType value) {
+    public void resetIterativeTaskInformation(IterativeTaskInformationType value, boolean collectExecutions) {
     }
 
     @Override

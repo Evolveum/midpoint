@@ -29,7 +29,7 @@ class StopJobException extends Exception {
         this.severity = severity;
     }
 
-    public StopJobException() {
+    StopJobException() {
         super();
         this.severity = Severity.NONE;
     }

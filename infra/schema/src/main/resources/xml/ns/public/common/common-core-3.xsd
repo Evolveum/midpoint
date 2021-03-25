@@ -19970,6 +19970,19 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="approvals" type="tns:AdminGuiApprovalsConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Configuration related to approvals GUI.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                        <a:displayName>AdminGuiConfigurationType.approvals</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="displayFormats" type="tns:AdminGuiConfigurationDisplayFormatsType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -20014,6 +20027,36 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="AdminGuiApprovalsConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration related to approvals GUI.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="expandRolesOnPreview" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Whether to expand (resolve) abstract role members on approval case preview.
+                            Default is false, unless overridden by workflowConfiguration/defaultExpandRolesOnPreview.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                        <a:displayName>AdminGuiApprovalsConfigurationType.expandRolesOnPreview</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="adminGuiApprovalsConfiguration" type="tns:AdminGuiApprovalsConfigurationType" />
 
     <xsd:complexType name="AdminGuiConfigurationDisplayFormatsType">
         <xsd:annotation>
@@ -29377,6 +29420,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="message" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Message connected to the reported result status.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="initiatorRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -29395,6 +29445,17 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="taskPartUri" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        URI of the task part. Necessary to distinguish between results of various task parts.
+                        Currently supported only for complex operations.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

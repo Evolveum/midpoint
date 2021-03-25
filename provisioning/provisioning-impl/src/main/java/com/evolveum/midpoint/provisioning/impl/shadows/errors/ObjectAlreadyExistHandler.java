@@ -121,7 +121,7 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
 
             ObjectQuery query = createQueryBySecondaryIdentifier(newShadow.asObjectable(), prismContext);
 
-            final List<PrismObject<ShadowType>> conflictingRepoShadows = findConflictingShadowsInRepo(query, task, result);
+            final List<PrismObject<ShadowType>> conflictingRepoShadows = findConflictingShadowsInRepo(query, result);
             PrismObject<ShadowType> oldShadow = selectLiveShadow(conflictingRepoShadows);
             if (oldShadow != null) {
                 shadowCaretaker.applyAttributesDefinition(ctx, oldShadow);
@@ -188,7 +188,7 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
     /**
      * Note: this may return dead shadow.
      */
-    private List<PrismObject<ShadowType>> findConflictingShadowsInRepo(ObjectQuery query, Task task, OperationResult parentResult)
+    private List<PrismObject<ShadowType>> findConflictingShadowsInRepo(ObjectQuery query, OperationResult parentResult)
             throws SchemaException {
         return repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
     }

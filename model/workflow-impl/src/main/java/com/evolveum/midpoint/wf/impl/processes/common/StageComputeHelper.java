@@ -21,6 +21,16 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -62,6 +72,7 @@ public class StageComputeHelper {
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
+    @Autowired private SystemObjectCache systemObjectCache;
 
     public VariablesMap getDefaultVariables(CaseType aCase, ApprovalContextType wfContext, String requestChannel,
             OperationResult result) throws SchemaException {
@@ -127,7 +138,8 @@ public class StageComputeHelper {
 
     // TODO method name
     public ComputationResult computeStageApprovers(ApprovalStageDefinitionType stageDef, CaseType theCase,
-            VariablesProvider variablesProvider, Task opTask, OperationResult opResult) {
+            VariablesProvider variablesProvider, @NotNull ComputationMode computationMode,
+            Task opTask, OperationResult opResult) throws SchemaException {
         ComputationResult rv = new ComputationResult();
         VariablesMap variablesMap = null;
         VariablesProvider enhancedVariablesProvider = () -> {
@@ -170,8 +182,12 @@ public class StageComputeHelper {
 
             LOGGER.trace("Approvers at the stage {} (before potential group expansion) are: {}", stageDef, rv.approverRefs);
             if (stageDef.getGroupExpansion() == GroupExpansionType.ON_WORK_ITEM_CREATION) {
-                rv.approverRefs = expandGroups(rv.approverRefs);       // see MID-4105
-                LOGGER.trace("Approvers at the stage {} (after group expansion) are: {}", stageDef, rv.approverRefs);
+                if (shouldExpandGroup(computationMode, opResult)) {
+                    rv.approverRefs = expandGroups(rv.approverRefs); // see MID-4105
+                    LOGGER.trace("Approvers at the stage {} (after group expansion) are: {}", stageDef, rv.approverRefs);
+                } else {
+                    LOGGER.trace("Groups will not be expanded; computation mode = {}", computationMode);
+                }
             }
 
             if (rv.approverRefs.isEmpty()) {
@@ -181,6 +197,40 @@ public class StageComputeHelper {
             }
         }
         return rv;
+    }
+
+    private boolean shouldExpandGroup(ComputationMode computationMode, OperationResult result) throws SchemaException {
+        if (computationMode != ComputationMode.PREVIEW) {
+            return true;
+        }
+        Boolean valueFromGuiConfig = getExpandRolesFromGuiConfig();
+        if (valueFromGuiConfig != null) {
+            return valueFromGuiConfig;
+        } else {
+            return getExpandRolesDefaultValue(result);
+        }
+    }
+
+    @Nullable
+    private Boolean getExpandRolesFromGuiConfig() {
+        MidPointPrincipal principal;
+        try {
+            principal = SecurityUtil.getPrincipal();
+        } catch (SecurityViolationException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't get midPoint principal", e);
+            return null;
+        }
+        if (principal instanceof GuiProfiledPrincipal) {
+            return ((GuiProfiledPrincipal) principal).getCompiledGuiProfile().isExpandRolesOnApprovalPreview();
+        } else {
+            return null;
+        }
+    }
+
+    private boolean getExpandRolesDefaultValue(OperationResult result) throws SchemaException {
+        PrismObject<SystemConfigurationType> config = systemObjectCache.getSystemConfiguration(result);
+        return config != null && config.asObjectable().getWorkflowConfiguration() != null &&
+                Boolean.TRUE.equals(config.asObjectable().getWorkflowConfiguration().isDefaultExpandRolesOnPreview());
     }
 
     public String evaluateAutoCompleteExpression(ApprovalStageDefinitionType stageDef, VariablesMap variables,
@@ -250,5 +300,11 @@ public class StageComputeHelper {
         }
     }
 
+    /**
+     * Do we do our computation during preview or during actual execution?
+     */
+    public enum ComputationMode {
+        PREVIEW, EXECUTION
+    }
 }
 

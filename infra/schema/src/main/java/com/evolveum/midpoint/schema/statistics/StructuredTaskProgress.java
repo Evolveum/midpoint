@@ -99,14 +99,18 @@ public class StructuredTaskProgress {
         Optional<TaskPartProgressType> partOptional = findMatchingPart(value.getPart(), value.getCurrentPartUri());
         if (partOptional.isPresent()) {
             TaskPartProgressType part = partOptional.get();
-            OutcomeKeyedCounterTypeUtil.addCounters(part.getClosed(), part.getOpen());
-//            System.out.printf("Updating progress on work bucket completion. Moving %d items from open to closed.\n",
-//                    TaskProgressUtil.getTotalProgressOpen(part));
-            part.getOpen().clear();
+            openToClosed(part);
         } else {
             LOGGER.warn("Didn't update structured progress for part {} as there are no records present for that part",
                     value.getCurrentPartUri());
         }
+    }
+
+    private void openToClosed(TaskPartProgressType part) {
+//        System.out.printf("Updating progress on work bucket completion. Moving %d items from open to closed.\n",
+//                    TaskProgressUtil.getTotalProgressOpen(part));
+        OutcomeKeyedCounterTypeUtil.addCounters(part.getClosed(), part.getOpen());
+        part.getOpen().clear();
     }
 
     public synchronized void markAsComplete() {
@@ -120,6 +124,13 @@ public class StructuredTaskProgress {
             LOGGER.warn("Didn't mark structured progress for part {} as complete because there are no records"
                             + " present for that part", value.getCurrentPartUri());
         }
+    }
+
+    /** TEMPORARY. */
+    public synchronized void markAsClosed() {
+        value.getPart().forEach(
+                this::openToClosed
+        );
     }
 
     /** Updates specified summary with given delta. */

@@ -76,7 +76,7 @@ class BucketAwareHandlerExecution {
             WorkBucketType bucket = getWorkBucket(result);
             if (bucket == null) {
                 LOGGER.trace("No (next) work bucket within {}, exiting", task);
-                task.markStructuredProgressAsComplete();
+                updateStructuredProgressOnNoMoreBuckets();
                 runResult = handler.onNoMoreBuckets(task, runResult, result);
                 break;
             }
@@ -101,6 +101,18 @@ class BucketAwareHandlerExecution {
             // Maybe we were stopped before the first execution. Or there are no buckets.
             return createSuccessTaskRunResult(task);
         }
+    }
+
+    private void updateStructuredProgressOnNoMoreBuckets() {
+        // This is for the last part of the internally-partitioned-single-bucket task;
+        // or for the (single) part of multi-bucket task.
+        task.markStructuredProgressAsComplete();
+
+        // TEMPORARY: For internally-partitioned-single-bucket tasks we have to move 'open' to 'closed' progress counters
+        // here. We couldn't do that earlier, because they are made really closed - i.e. not to be reprocessed - only after
+        // all the work is done (for such tasks). This is a temporary measure, until bucketing and partitioning are swapped
+        // in later versions of midPoint.
+        task.markAllStructuredProgressClosed();
     }
 
     /**

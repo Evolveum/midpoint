@@ -13,5 +13,7 @@ public enum MContainerType {
     ACCESS_CERTIFICATION_CASE,
     ACCESS_CERTIFICATION_WORK_ITEM,
     ASSIGNMENT,
-    INDUCEMENT // also represented by AssignmentType
+    INDUCEMENT, // also represented by AssignmentType
+    OPERATION_EXECUTION,
+    TRIGGER
 }

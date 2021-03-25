@@ -31,11 +31,12 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.MGenericObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.MResource;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResource;
+import com.evolveum.midpoint.repo.sqale.qmodel.shadow.MShadow;
+import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QSystemConfiguration;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
@@ -381,10 +382,108 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         assertThat(row.modifyTimestamp).isEqualTo(Instant.ofEpochMilli(2));
     }
 
-    // TODO test for object's related entities?
+    @Test
+    public void test901ContainerTrigger() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("object with few triggers");
+        String objectName = "object" + getTestNumber();
+        SystemConfigurationType object = new SystemConfigurationType(prismContext)
+                .name(objectName)
+                .trigger(new TriggerType()
+                        .id(3L) // one pre-filled CID, with non-first ID
+                        .handlerUri("trigger-1-handler-uri")
+                        .timestamp(MiscUtil.asXMLGregorianCalendar(1L)))
+                .trigger(new TriggerType() // second one without CID
+                        .handlerUri("trigger-2-handler-uri")
+                        .timestamp(MiscUtil.asXMLGregorianCalendar(2L)));
+
+        when("adding it to the repository");
+        repositoryService.addObject(object.asPrismObject(), null, result);
+
+        then("it is stored with its persisted trigger containers");
+        assertResult(result);
+
+        QTrigger t = aliasFor(QTrigger.class);
+        List<MTrigger> containers = select(t, t.ownerOid.eq(UUID.fromString(object.getOid())));
+        assertThat(containers).hasSize(2);
+
+        containers.sort(comparing(tr -> tr.cid));
+        MTrigger containerRow = containers.get(0);
+        assertThat(containerRow.cid).isEqualTo(3); // assigned in advance
+        assertCachedUri(containerRow.handlerUriId, "trigger-1-handler-uri");
+        assertThat(containerRow.timestampValue).isEqualTo(Instant.ofEpochMilli(1));
+
+        containerRow = containers.get(1);
+        assertThat(containerRow.cid).isEqualTo(4); // next CID assigned by repo
+        assertCachedUri(containerRow.handlerUriId, "trigger-2-handler-uri");
+        assertThat(containerRow.timestampValue).isEqualTo(Instant.ofEpochMilli(2));
+
+        MObject objectRow = selectObjectByOid(QSystemConfiguration.class, object.getOid());
+        assertThat(objectRow.containerIdSeq).isEqualTo(5); // next free CID
+    }
 
     @Test
-    public void test902ResourceAndItsBusinessApproverReferences() throws Exception {
+    public void test902ContainerOperationExecution() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("object with few operation executions");
+        String objectName = "object" + getTestNumber();
+        UUID initiatorRefOid = UUID.randomUUID();
+        UUID taskRefOid = UUID.randomUUID();
+        QName initiatorRelation = QName.valueOf("{https://random.org/ns}rel-initiator");
+        QName taskRelation = QName.valueOf("{https://random.org/ns}rel-task");
+        SystemConfigurationType object = new SystemConfigurationType(prismContext)
+                .name(objectName)
+                .operationExecution(new OperationExecutionType()
+                        .status(OperationResultStatusType.FATAL_ERROR)
+                        .recordType(OperationExecutionRecordTypeType.SIMPLE)
+                        .initiatorRef(initiatorRefOid.toString(),
+                                UserType.COMPLEX_TYPE, initiatorRelation)
+                        .taskRef(taskRefOid.toString(), TaskType.COMPLEX_TYPE, taskRelation)
+                        .timestamp(MiscUtil.asXMLGregorianCalendar(1L)))
+                .operationExecution(new OperationExecutionType()
+                        .status(OperationResultStatusType.UNKNOWN)
+                        .timestamp(MiscUtil.asXMLGregorianCalendar(2L)));
+
+        when("adding it to the repository");
+        repositoryService.addObject(object.asPrismObject(), null, result);
+
+        then("it is stored with its persisted trigger containers");
+        assertResult(result);
+
+        QOperationExecution oe = aliasFor(QOperationExecution.class);
+        List<MOperationExecution> containers =
+                select(oe, oe.ownerOid.eq(UUID.fromString(object.getOid())));
+        assertThat(containers).hasSize(2);
+
+        containers.sort(comparing(tr -> tr.cid));
+        MOperationExecution containerRow = containers.get(0);
+        assertThat(containerRow.cid).isEqualTo(1);
+        assertThat(containerRow.status).isEqualTo(OperationResultStatusType.FATAL_ERROR);
+        assertThat(containerRow.recordType).isEqualTo(OperationExecutionRecordTypeType.SIMPLE);
+        assertThat(containerRow.initiatorRefTargetOid).isEqualTo(initiatorRefOid);
+        assertThat(containerRow.initiatorRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(containerRow.initiatorRefRelationId, initiatorRelation);
+        assertThat(containerRow.taskRefTargetOid).isEqualTo(taskRefOid);
+        assertThat(containerRow.taskRefTargetType).isEqualTo(MObjectType.TASK);
+        assertCachedUri(containerRow.taskRefRelationId, taskRelation);
+        assertThat(containerRow.timestampValue).isEqualTo(Instant.ofEpochMilli(1));
+
+        containerRow = containers.get(1);
+        assertThat(containerRow.cid).isEqualTo(2);
+        assertThat(containerRow.status).isEqualTo(OperationResultStatusType.UNKNOWN);
+        assertThat(containerRow.timestampValue).isEqualTo(Instant.ofEpochMilli(2));
+
+        // this time we didn't test assigned CID or CID SEQ value on owner (see test901)
+    }
+
+    // TODO test for object's related entities?
+    // - trigger
+    // - operation execution
+
+    @Test
+    public void test910ResourceAndItsBusinessApproverReferences() throws Exception {
         OperationResult result = createOperationResult();
 
         given("resource");
@@ -435,7 +534,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test903Connector() throws Exception {
+    public void test911Connector() throws Exception {
         OperationResult result = createOperationResult();
 
         given("connector");
@@ -470,9 +569,57 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         assertThat(row.targetSystemTypes).containsExactlyInAnyOrder("type1", "type2");
     }
 
+    @Test
+    public void test918Shadow() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("shadow");
+        String objectName = "shadow" + getTestNumber();
+        QName objectClass = QName.valueOf("{https://random.org/ns}shadow-object-class");
+        UUID resourceRefOid = UUID.randomUUID();
+        QName resourceRefRelation = QName.valueOf("{https://random.org/ns}resource-ref-rel");
+        ShadowType shadow = new ShadowType(prismContext)
+                .name(objectName)
+                .objectClass(objectClass)
+                .resourceRef(resourceRefOid.toString(),
+                        ResourceType.COMPLEX_TYPE, resourceRefRelation)
+                .intent("intent")
+                .kind(ShadowKindType.ACCOUNT)
+                // TODO attemptNumber used at all?
+                .dead(false)
+                .exists(true)
+                .fullSynchronizationTimestamp(MiscUtil.asXMLGregorianCalendar(1L))
+                .pendingOperation(new PendingOperationType().attemptNumber(1))
+                .pendingOperation(new PendingOperationType().attemptNumber(2))
+                .primaryIdentifierValue("PID")
+                .synchronizationSituation(SynchronizationSituationType.DISPUTED)
+                .synchronizationTimestamp(MiscUtil.asXMLGregorianCalendar(2L));
+
+        when("adding it to the repository");
+        repositoryService.addObject(shadow.asPrismObject(), null, result);
+
+        then("it is stored and relevant attributes are in columns");
+        assertResult(result);
+
+        MShadow row = selectObjectByOid(QShadow.class, shadow.getOid());
+        assertCachedUri(row.objectClassId, objectClass);
+        assertThat(row.resourceRefTargetOid).isEqualTo(resourceRefOid);
+        assertThat(row.resourceRefTargetType).isEqualTo(MObjectType.RESOURCE);
+        assertCachedUri(row.resourceRefRelationId, resourceRefRelation);
+        assertThat(row.intent).isEqualTo("intent");
+        assertThat(row.kind).isEqualTo(ShadowKindType.ACCOUNT);
+        assertThat(row.dead).isEqualTo(false);
+        assertThat(row.exist).isEqualTo(true);
+        assertThat(row.fullSynchronizationTimestamp).isEqualTo(Instant.ofEpochMilli(1));
+        assertThat(row.pendingOperationCount).isEqualTo(2);
+        assertThat(row.primaryIdentifierValue).isEqualTo("PID");
+        assertThat(row.synchronizationSituation).isEqualTo(SynchronizationSituationType.DISPUTED);
+        assertThat(row.synchronizationTimestamp).isEqualTo(Instant.ofEpochMilli(2));
+    }
+
     // this covers mapping of attributes in FocusSqlTransformer + GenericObject
     @Test
-    public void test910GenericObject() throws Exception {
+    public void test920GenericObject() throws Exception {
         OperationResult result = createOperationResult();
 
         given("generic object");
@@ -502,7 +649,8 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
                         .validFrom(MiscUtil.asXMLGregorianCalendar(5L))
                         .validTo(MiscUtil.asXMLGregorianCalendar(6L))
                         .validityChangeTimestamp(MiscUtil.asXMLGregorianCalendar(7L))
-                        .archiveTimestamp(MiscUtil.asXMLGregorianCalendar(8L)))
+                        .archiveTimestamp(MiscUtil.asXMLGregorianCalendar(8L))
+                        .lockoutStatus(LockoutStatusType.NORMAL))
                 // this is the only additional persisted field for GenericObject
                 .objectType("some-custom-object-type-uri");
 
@@ -537,45 +685,13 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         assertThat(row.validTo).isEqualTo(Instant.ofEpochMilli(6));
         assertThat(row.validityChangeTimestamp).isEqualTo(Instant.ofEpochMilli(7));
         assertThat(row.archiveTimestamp).isEqualTo(Instant.ofEpochMilli(8));
+        assertThat(row.lockoutStatus).isEqualTo(LockoutStatusType.NORMAL);
 
         // field specific to GenericObjectType
         assertCachedUri(row.genericObjectTypeId, "some-custom-object-type-uri");
     }
 
     // TODO test for focus' related entities?
-
-    @Test
-    public void test920AccessCertificationDefinition() throws Exception {
-        OperationResult result = createOperationResult();
-
-        given("access certification definition");
-        String objectName = "acd" + getTestNumber();
-        UUID ownerRefOid = UUID.randomUUID();
-        Instant lastCampaignStarted = Instant.ofEpochMilli(1); // 0 means null in MiscUtil
-        Instant lastCampaignClosed = Instant.ofEpochMilli(System.currentTimeMillis());
-        QName relationUri = QName.valueOf("{https://some.uri}specialRelation");
-        var accessCertificationDefinition = new AccessCertificationDefinitionType(prismContext)
-                .name(objectName)
-                .handlerUri("handler-uri")
-                .lastCampaignStartedTimestamp(MiscUtil.asXMLGregorianCalendar(lastCampaignStarted))
-                .lastCampaignClosedTimestamp(MiscUtil.asXMLGregorianCalendar(lastCampaignClosed))
-                .ownerRef(ownerRefOid.toString(), UserType.COMPLEX_TYPE, relationUri);
-
-        when("adding it to the repository");
-        repositoryService.addObject(accessCertificationDefinition.asPrismObject(), null, result);
-
-        then("it is stored and relevant attributes are in columns");
-        assertResult(result);
-
-        MAccessCertificationDefinition row = selectObjectByOid(
-                QAccessCertificationDefinition.class, accessCertificationDefinition.getOid());
-        assertCachedUri(row.handlerUriId, "handler-uri");
-        assertThat(row.lastCampaignStartedTimestamp).isEqualTo(lastCampaignStarted);
-        assertThat(row.lastCampaignClosedTimestamp).isEqualTo(lastCampaignClosed);
-        assertThat(row.ownerRefTargetOid).isEqualTo(ownerRefOid);
-        assertThat(row.ownerRefTargetType).isEqualTo(MObjectType.USER);
-        assertCachedUri(row.ownerRefRelationId, relationUri);
-    }
 
     @Test
     public void test930Task() throws Exception {
@@ -637,6 +753,39 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         assertThat(row.waitingReason).isEqualTo(TaskWaitingReasonType.OTHER_TASKS);
         assertThat(row.dependentTaskIdentifiers)
                 .containsExactlyInAnyOrder("dep-task-1", "dep-task-2");
+    }
+
+    @Test
+    public void test940AccessCertificationDefinition() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("access certification definition");
+        String objectName = "acd" + getTestNumber();
+        UUID ownerRefOid = UUID.randomUUID();
+        Instant lastCampaignStarted = Instant.ofEpochMilli(1); // 0 means null in MiscUtil
+        Instant lastCampaignClosed = Instant.ofEpochMilli(System.currentTimeMillis());
+        QName relationUri = QName.valueOf("{https://some.uri}specialRelation");
+        var accessCertificationDefinition = new AccessCertificationDefinitionType(prismContext)
+                .name(objectName)
+                .handlerUri("handler-uri")
+                .lastCampaignStartedTimestamp(MiscUtil.asXMLGregorianCalendar(lastCampaignStarted))
+                .lastCampaignClosedTimestamp(MiscUtil.asXMLGregorianCalendar(lastCampaignClosed))
+                .ownerRef(ownerRefOid.toString(), UserType.COMPLEX_TYPE, relationUri);
+
+        when("adding it to the repository");
+        repositoryService.addObject(accessCertificationDefinition.asPrismObject(), null, result);
+
+        then("it is stored and relevant attributes are in columns");
+        assertResult(result);
+
+        MAccessCertificationDefinition row = selectObjectByOid(
+                QAccessCertificationDefinition.class, accessCertificationDefinition.getOid());
+        assertCachedUri(row.handlerUriId, "handler-uri");
+        assertThat(row.lastCampaignStartedTimestamp).isEqualTo(lastCampaignStarted);
+        assertThat(row.lastCampaignClosedTimestamp).isEqualTo(lastCampaignClosed);
+        assertThat(row.ownerRefTargetOid).isEqualTo(ownerRefOid);
+        assertThat(row.ownerRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(row.ownerRefRelationId, relationUri);
     }
     // endregion
 }

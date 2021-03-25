@@ -366,6 +366,12 @@ public class Statistics implements WorkBucketStatisticsCollector {
         }
     }
 
+    public void markAllStructuredProgressClosed() {
+        if (structuredProgress != null) {
+            structuredProgress.markAsClosed();
+        }
+    }
+
     public void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid,
             ChangeType changeType, String channel, Throwable exception) {
         if (actionsExecutedInformation != null) {
@@ -429,8 +435,8 @@ public class Statistics implements WorkBucketStatisticsCollector {
         synchronizationInformation = new SynchronizationInformation(value, prismContext);
     }
 
-    public void resetIterativeTaskInformation(IterativeTaskInformationType value) {
-        iterativeTaskInformation = new IterativeTaskInformation(value, prismContext);
+    public void resetIterativeTaskInformation(IterativeTaskInformationType value, boolean collectExecutions) {
+        iterativeTaskInformation = new IterativeTaskInformation(value, collectExecutions, prismContext);
     }
 
     public void resetActionsExecutedInformation(ActionsExecutedInformationType value) {
@@ -447,7 +453,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
             @NotNull StatisticsCollectionStrategy strategy, SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
         OperationStatsType initialOperationStats = getOrCreateInitialOperationStats(task);
         startOrRestartCollectingRegularOperationStats(initialOperationStats, strategy.isMaintainSynchronizationStatistics(),
-                strategy.isMaintainActionsExecutedStatistics());
+                strategy.isMaintainActionsExecutedStatistics(), strategy.isCollectExecutions());
         startOrRestartCollectingThreadLocalStatistics(initialOperationStats, sqlPerformanceMonitors);
         startCollectingStructuredProgress(task, strategy);
     }
@@ -456,7 +462,8 @@ public class Statistics implements WorkBucketStatisticsCollector {
         OperationStatsType newInitialValues = getOrCreateInitialOperationStats(task);
         startOrRestartCollectingRegularOperationStats(newInitialValues,
                 synchronizationInformation != null,
-                actionsExecutedInformation != null);
+                actionsExecutedInformation != null,
+                iterativeTaskInformation.isCollectExecutions());
         startOrRestartCollectingThreadLocalStatistics(newInitialValues, sqlPerformanceMonitors);
         // Structured progress restart is not needed, as it is not maintained in LATs.
     }
@@ -468,9 +475,9 @@ public class Statistics implements WorkBucketStatisticsCollector {
     }
 
     private void startOrRestartCollectingRegularOperationStats(OperationStatsType initialOperationStats,
-            boolean maintainSynchronizationStatistics, boolean maintainActionsExecutedStatistics) {
+            boolean maintainSynchronizationStatistics, boolean maintainActionsExecutedStatistics, boolean collectExecutions) {
         resetEnvironmentalPerformanceInformation(initialOperationStats.getEnvironmentalPerformanceInformation());
-        resetIterativeTaskInformation(initialOperationStats.getIterativeTaskInformation());
+        resetIterativeTaskInformation(initialOperationStats.getIterativeTaskInformation(), collectExecutions);
         if (maintainSynchronizationStatistics) {
             resetSynchronizationInformation(initialOperationStats.getSynchronizationInformation());
         } else {

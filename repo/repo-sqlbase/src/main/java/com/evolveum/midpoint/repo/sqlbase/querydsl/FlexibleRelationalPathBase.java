@@ -55,7 +55,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
  *
  * @param <T> entity type - typically a pure DTO bean for the table mapped by Q-type
  */
-public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T> {
+public class FlexibleRelationalPathBase<T> extends RelationalPathBase<T> {
 
     public static final String DEFAULT_SCHEMA_NAME = "PUBLIC";
 

@@ -283,6 +283,11 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
         statistics.changeStructuredProgressOnWorkBucketCompletion();
     }
 
+    @Override
+    public void markAllStructuredProgressClosed() {
+        statistics.markAllStructuredProgressClosed();
+    }
+
     /**
      * Returns true if the task runs asynchronously.
      */

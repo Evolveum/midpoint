@@ -70,6 +70,15 @@
             </simpleResourceObjectNotifier>
         </handler>
         <handler>
+            <status>inProgress</status>
+            <simpleResourceObjectNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleAccountNotifier-IN-PROGRESS</transport>
+            </simpleResourceObjectNotifier>
+        </handler>
+        <handler>
             <operation>add</operation>
             <status>success</status>
             <simpleResourceObjectNotifier>

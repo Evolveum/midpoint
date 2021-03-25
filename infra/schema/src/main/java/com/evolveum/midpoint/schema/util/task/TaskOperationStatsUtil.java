@@ -417,4 +417,8 @@ public class TaskOperationStatsUtil {
         return new WallClockTimeComputer(info.getExecution())
                 .getSummaryTime();
     }
+
+    public static Double toSeconds(Long time) {
+        return time != null ? time / 1000.0 : null;
+    }
 }

@@ -41,4 +41,9 @@ public interface StructuredProgressCollector {
      * Adapts structured progress when a bucket is complete. This moves all 'open' items to 'closed'.
      */
     void changeStructuredProgressOnWorkBucketCompletion();
+
+    /**
+     * Temporary method: all "open" counters are switched to "closed" state.
+     */
+    void markAllStructuredProgressClosed();
 }

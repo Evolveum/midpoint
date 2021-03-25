@@ -175,6 +175,15 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
         }, timeoutInterval, sleepInterval);
     }
 
+    void waitForTaskSuspend(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval)
+            throws CommonException {
+        waitFor("Waiting for task to close", () -> {
+            Task task = taskManager.getTaskWithResult(taskOid, result);
+            IntegrationTestTools.display("Task while waiting for it to close", task);
+            return task.getSchedulingState() == TaskSchedulingStateType.SUSPENDED;
+        }, timeoutInterval, sleepInterval);
+    }
+
     @SuppressWarnings("SameParameterValue")
     void waitForTaskCloseOrDelete(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval)
             throws CommonException {

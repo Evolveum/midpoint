@@ -99,6 +99,7 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
 
                 ChartJsPanel<PieChartConfiguration> chartPanel = new ChartJsPanel<>(ID_CHART, new PropertyModel<>(progressModel, TaskIterativeProgressType.F_PROGRESS));
                 item.add(chartPanel);
+                chartPanel.add(new VisibleBehaviour(() -> progressModel.getObject().getTotalCount() > 0));
 
                 PropertyModel<List<ProcessedItemDto>> currentItemsModel = new PropertyModel<>(progressModel, TaskIterativeProgressType.F_CURRENT_ITEMS);
                 BoxedTablePanel<ProcessedItemDto> currentItems = new BoxedTablePanel<>(ID_CURRENT_ITEMS, new ListDataProvider<>(TaskIterativeInformationPanel.this, currentItemsModel), createColumns()) {

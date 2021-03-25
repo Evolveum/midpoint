@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Objects;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorHandlingType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
@@ -1199,5 +1200,27 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         if (increment.errorHandling != null) {
             this.errorHandling = increment.errorHandling.clone();
         }
+    }
+
+    /**
+     * Disables readOnly option (while not modifying the original object).
+     */
+    @Experimental
+    public static Collection<SelectorOptions<GetOperationOptions>> disableReadOnly(
+            Collection<SelectorOptions<GetOperationOptions>> options) {
+        if (!GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options))) {
+            return options;
+        }
+        List<SelectorOptions<GetOperationOptions>> updatedOptionsList = new ArrayList<>(options.size());
+        for (SelectorOptions<GetOperationOptions> option : options) {
+            if (option.isRoot()) {
+                GetOperationOptions updatedOptions = CloneUtil.clone(option.getOptions());
+                updatedOptions.setReadOnly(false);
+                updatedOptionsList.add(new SelectorOptions<>(updatedOptions));
+            } else {
+                updatedOptionsList.add(option);
+            }
+        }
+        return updatedOptionsList;
     }
 }

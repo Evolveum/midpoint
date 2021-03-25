@@ -150,7 +150,16 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
 
     /** Returns ID for URI creating new cache row in DB as needed. */
     protected Integer processCacheableUri(String uri, JdbcSession jdbcSession) {
-        return transformerSupport.processCachedUri(uri, jdbcSession);
+        return uri != null
+                ? transformerSupport.processCachedUri(uri, jdbcSession)
+                : null;
+    }
+
+    /** Returns ID for URI creating new cache row in DB as needed. */
+    protected Integer processCacheableUri(QName qName, JdbcSession jdbcSession) {
+        return qName != null
+                ? transformerSupport.processCachedUri(QNameUtil.qNameToUri(qName), jdbcSession)
+                : null;
     }
 
     /**
