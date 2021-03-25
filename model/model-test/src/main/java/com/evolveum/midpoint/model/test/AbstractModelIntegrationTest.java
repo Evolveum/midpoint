@@ -3547,7 +3547,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             String description =
                     freshRootTask.getName().getOrig() + " [es:" + freshRootTask.getExecutionState() + ", rs:" +
                             freshRootTask.getResultStatus() + ", p:" + freshRootTask.getProgress() + ", n:" +
-                            freshRootTask.getNode() + "] (waiting for: " + waiting + ")";
+                            freshRootTask.getNode() + "] (waiting for: " + waiting + " seconds)";
             // was the whole task tree refreshed at least once after we were called?
             long lastRunStartTimestamp = or0(freshRootTask.getLastRunStartTimestamp());
             long lastRunFinishTimestamp = or0(freshRootTask.getLastRunFinishTimestamp());
