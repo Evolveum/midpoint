@@ -83,6 +83,10 @@ CREATE TYPE ActivationStatusType AS ENUM ('ENABLED', 'DISABLED', 'ARCHIVED');
 
 CREATE TYPE AvailabilityStatusType AS ENUM ('DOWN', 'UP', 'BROKEN');
 
+CREATE TYPE LockoutStatusType AS ENUM ('NORMAL', 'LOCKED');
+
+CREATE TYPE OperationExecutionRecordTypeType AS ENUM ('SIMPLE', 'COMPLEX');
+
 CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ERROR',
     'FATAL_ERROR', 'HANDLED_ERROR', 'NOT_APPLICABLE', 'IN_PROGRESS', 'UNKNOWN');
 
@@ -380,6 +384,7 @@ CREATE TABLE m_focus (
     validTo TIMESTAMPTZ,
     validityChangeTimestamp TIMESTAMPTZ,
     archiveTimestamp TIMESTAMPTZ,
+    lockoutStatus LockoutStatusType,
 
     CHECK (FALSE) NO INHERIT
 )
@@ -613,7 +618,7 @@ ALTER TABLE m_access_cert_campaign
 CREATE INDEX m_access_cert_campaign_ext_idx ON m_access_cert_campaign USING gin (ext);
 
 CREATE TABLE m_access_cert_case (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CASE') STORED,
     administrativeStatus INTEGER,
     archiveTimestamp TIMESTAMPTZ,
@@ -672,6 +677,7 @@ ALTER TABLE m_access_cert_wi
         REFERENCES m_access_cert_case (owner_oid, cid)
             ON DELETE CASCADE;
 
+-- TODO rework to inherit from reference tables
 CREATE TABLE m_access_cert_wi_reference (
     owner_oid UUID NOT NULL, -- PK+FK
     acc_cert_case_cid INTEGER NOT NULL, -- PK+FK
@@ -749,13 +755,13 @@ CREATE TABLE m_shadow (
     resourceRef_relation_id INTEGER REFERENCES m_uri(id),
     intent TEXT/*VARCHAR(255)*/,
     kind ShadowKindType,
-    attemptNumber INTEGER,
+    attemptNumber INTEGER, -- TODO how is this mapped?
     dead BOOLEAN,
     exist BOOLEAN,
     fullSynchronizationTimestamp TIMESTAMPTZ,
     pendingOperationCount INTEGER,
     primaryIdentifierValue TEXT/*VARCHAR(255)*/,
---     status INTEGER, TODO how is this mapped?
+--     status INTEGER, TODO how is this mapped? See RUtil.copyResultFromJAXB called from RTask and OperationResultMapper
     synchronizationSituation SynchronizationSituationType,
     synchronizationTimestamp TIMESTAMPTZ
 )
@@ -1337,6 +1343,7 @@ CREATE TABLE m_operation_execution (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     containerType ContainerType GENERATED ALWAYS AS ('OPERATION_EXECUTION') STORED,
     status OperationResultStatusType,
+    recordType OperationExecutionRecordTypeType,
     initiatorRef_targetOid UUID,
     initiatorRef_targetType ObjectType,
     initiatorRef_relation_id INTEGER REFERENCES m_uri(id),

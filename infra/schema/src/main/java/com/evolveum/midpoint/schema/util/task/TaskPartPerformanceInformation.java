@@ -57,6 +57,8 @@ public class TaskPartPerformanceInformation implements DebugDumpable, Serializab
     /**
      * Wall-clock time spent in processing this task part. Relevant for performance determination and ETA computation.
      * Includes time from all known executions of this tasks.
+     *
+     * TODO make this null (instead of 0) for tasks where we do not keep the wall-clock time information
      */
     private final Long wallClockTime;
 
@@ -138,7 +140,7 @@ public class TaskPartPerformanceInformation implements DebugDumpable, Serializab
     }
 
     public Double getAverageWallClockTime() {
-        if (wallClockTime != null && itemsProcessed > 0) {
+        if (wallClockTime != null && wallClockTime > 0 && itemsProcessed > 0) {
             return (double) wallClockTime / itemsProcessed;
         } else {
             return null;
@@ -147,7 +149,7 @@ public class TaskPartPerformanceInformation implements DebugDumpable, Serializab
 
     public Double getThroughput() {
         Double averageWallClockTime = getAverageWallClockTime();
-        if (averageWallClockTime != null) {
+        if (averageWallClockTime != null && averageWallClockTime > 0) {
             return 60000 / averageWallClockTime;
         } else {
             return null;

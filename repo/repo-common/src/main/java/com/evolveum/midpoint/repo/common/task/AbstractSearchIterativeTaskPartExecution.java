@@ -16,6 +16,8 @@ import static com.evolveum.midpoint.util.MiscUtil.*;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Collection;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
@@ -91,7 +93,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
      *
      * See {@link AbstractSearchIterativeItemProcessor#process(ItemProcessingRequest, RunningTask, OperationResult)}.
      */
-    protected ObjectFilter additionalFilter;
+    ObjectFilter additionalFilter;
 
     /**
      * Pre-processes object received before it is passed to the task handler specific processing.
@@ -99,7 +101,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
      *
      * See {@link AbstractSearchIterativeItemProcessor#process(ItemProcessingRequest, RunningTask, OperationResult)}.
      */
-    protected ObjectPreprocessor<O> preprocessor;
+    ObjectPreprocessor<O> preprocessor;
 
     /**
      * Options to be used during counting and searching. Set up in {@link #prepareItemSource(OperationResult)}.
@@ -124,6 +126,11 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
      * or objectclass/kind) we need to use repository directly for some specific tasks or task parts.
      */
     private boolean requiresDirectRepositoryAccess;
+
+    /**
+     * OIDs of objects submitted to processing in current part execution (i.e. in the current bucket).
+     */
+    private final Set<String> oidsSeen = ConcurrentHashMap.newKeySet();
 
     public AbstractSearchIterativeTaskPartExecution(TE taskExecution) {
         super(taskExecution);
@@ -553,5 +560,9 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
 
     public Collection<SelectorOptions<GetOperationOptions>> getSearchOptions() {
         return searchOptions;
+    }
+
+    boolean checkAndRegisterOid(String oid) {
+        return oidsSeen.add(oid);
     }
 }

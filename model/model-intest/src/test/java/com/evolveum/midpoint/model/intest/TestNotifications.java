@@ -9,11 +9,13 @@ package com.evolveum.midpoint.model.intest;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.impl.events.CustomEventImpl;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -197,6 +199,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-IN-PROGRESS", 0);
         checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 1);
         checkDummyTransportMessages("simpleUserNotifier", 0);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
@@ -888,6 +891,61 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
         assertSteadyResources();
+    }
+
+    /**
+     * Modifying an account while resource is in maintenance mode.
+     *
+     * It should not display operational items: MID-6859
+     */
+    @Test
+    public void test510ModifyUserAssignAccountInMaintenance() throws Exception {
+        given();
+
+        Task task = createPlainTask();
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+
+        UserType user = new UserType(prismContext)
+                .name("test510")
+                .beginAssignment()
+                    .beginConstruction()
+                        .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
+                    .<AssignmentType>end()
+                .end();
+
+        addObject(user.asPrismObject(), task, result);
+
+        modifyResourceMaintenance(RESOURCE_DUMMY_OID, AdministrativeAvailabilityStatusType.MAINTENANCE, task, result);
+
+        dummyTransport.clearMessages();
+
+        when();
+
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_FULL_NAME).replace(PolyString.fromOrig("TEST510"))
+                .asObjectDelta(user.getOid());
+
+        executeChanges(delta, null, task, result);
+
+        then();
+
+        assertInProgress(result);
+
+        assertUserAfter(user.getOid())
+                .assertLinks(1, 0);
+
+        notificationManager.setDisabled(true);
+        displayDumpable("dummy", dummyTransport);
+        checkDummyTransportMessages("simpleAccountNotifier-IN-PROGRESS", 1);
+
+        String expected = "The account has been ATTEMPTED to be modified on the resource. Modified attributes are:\n"
+                + " - attributes/Full Name:\n"
+                + "   - REPLACE: TEST510\n"
+                + "\n"
+                + "The operation will be retried.\n";
+        String actual = dummyTransport.getMessages("dummy:simpleAccountNotifier-IN-PROGRESS").get(0).getBody();
+        assertTrue("Wrong message body:\n" + actual, actual.contains(expected));
     }
 
     @SuppressWarnings("Duplicates")

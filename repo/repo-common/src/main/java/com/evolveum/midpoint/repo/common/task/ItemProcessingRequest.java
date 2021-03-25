@@ -76,8 +76,8 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
     public abstract @NotNull IterationItemInformation getIterationItemInformation();
 
     public boolean process(RunningTask workerTask, OperationResult result) {
-        ItemProcessingGatekeeper<I> administrator = new ItemProcessingGatekeeper<>(this, itemProcessor, workerTask);
-        return administrator.process(result);
+        ItemProcessingGatekeeper<I> gatekeeper = new ItemProcessingGatekeeper<>(this, itemProcessor, workerTask);
+        return gatekeeper.process(result);
     }
 
     protected PrismContext getPrismContext() {

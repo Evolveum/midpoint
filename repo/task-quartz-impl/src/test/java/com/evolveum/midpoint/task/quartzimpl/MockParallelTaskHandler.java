@@ -122,7 +122,7 @@ public class MockParallelTaskHandler implements TaskHandler {
         for (int i = 0; i < NUM_SUBTASKS; i++) {
             MyLightweightTaskHandler handler = new MyLightweightTaskHandler(duration);
             RunningLightweightTaskImpl subtask = (RunningLightweightTaskImpl) task.createSubtask(handler);
-            subtask.resetIterativeTaskInformation(null);
+            subtask.resetIterativeTaskInformation(null, true);
             assertTrue("Subtask is not transient", subtask.isTransient());
             assertTrue("Subtask is not asynchronous", subtask.isAsynchronous());
             assertEquals("Subtask has a wrong lightweight handler", handler, subtask.getLightweightTaskHandler());

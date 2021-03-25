@@ -45,11 +45,7 @@ public class FocusValidityScannerItemProcessor
             ItemProcessingRequest<PrismObject<FocusType>> request,
             RunningTask workerTask, OperationResult result)
             throws CommonException, PreconditionViolationException {
-        if (taskExecution.oidAlreadySeen(object.getOid())) { // TODO implement by the gatekeeper
-            logger.trace("Recomputation already executed for {}", ObjectTypeUtil.toShortString(object));
-        } else {
-            recomputeFocus(object, workerTask, result);
-        }
+        recomputeFocus(object, workerTask, result);
         return true;
     }
 

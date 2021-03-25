@@ -107,4 +107,12 @@ public class TaskReportingOptions implements Cloneable, Serializable {
             throw new IllegalStateException(e);
         }
     }
+
+    /**
+     * Temporary implementation.
+     * See also {@link StatisticsCollectionStrategy#isCollectExecutions()}.
+     */
+    public boolean isCollectExecutions() {
+        return !preserveStatistics;
+    }
 }

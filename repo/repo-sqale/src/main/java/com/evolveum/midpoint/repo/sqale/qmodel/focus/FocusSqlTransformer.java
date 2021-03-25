@@ -65,6 +65,7 @@ public class FocusSqlTransformer<S extends FocusType, Q extends QFocus<R>, R ext
             row.validTo = MiscUtil.asInstant(activation.getValidTo());
             row.validityChangeTimestamp = MiscUtil.asInstant(activation.getValidityChangeTimestamp());
             row.archiveTimestamp = MiscUtil.asInstant(activation.getArchiveTimestamp());
+            row.lockoutStatus = activation.getLockoutStatus();
         }
 
         return row;

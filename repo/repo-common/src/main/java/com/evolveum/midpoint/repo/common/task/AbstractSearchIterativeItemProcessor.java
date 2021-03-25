@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.common.task;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -17,6 +16,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.NOT_APPLICABLE;
 
 /**
  * Processes individual objects found by the iterative search.
@@ -44,13 +45,24 @@ public abstract class AbstractSearchIterativeItemProcessor<
     public boolean process(ItemProcessingRequest<PrismObject<O>> request, RunningTask workerTask,
             OperationResult result) throws CommonException, PreconditionViolationException {
 
+        PrismObject<O> object = request.getItem();
+        String oid = object.getOid();
+        if (oid != null) {
+            if (!partExecution.checkAndRegisterOid(oid)) {
+                logger.trace("Skipping OID that has been already seen: {}", oid);
+                result.recordStatus(NOT_APPLICABLE, "Object has been already seen");
+                return true; // continue working
+            }
+        } else {
+            logger.trace("OID is null; can be in case of malformed objects");
+        }
+
         if (filteredOutByAdditionalFilter(request)) {
             logger.trace("Request {} filtered out by additional filter", request);
-            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Filtered out by additional filter");
+            result.recordStatus(NOT_APPLICABLE, "Filtered out by additional filter");
             return true; // continue working
         }
 
-        PrismObject<O> object = request.getItem();
         OperationResultType originalFetchResult = object.asObjectable().getFetchResult();
         if (originalFetchResult == null) {
             return processWithPreprocessing(request, workerTask, result);

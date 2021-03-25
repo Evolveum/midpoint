@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.repo.common.task.AnnotationSupportUtil.creat
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.schema.util.task.TaskPartPerformanceInformation;
 import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -376,7 +377,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         }
 
         String partStatMsg = String.format(Locale.US, "The whole part: processed %,d objects in %.1f seconds, got %,d errors. Real progress: %,d.",
-                partStatistics.getItemsProcessed(), partStatistics.getWallClockTime() / 1000.0,
+                partStatistics.getItemsProcessed(), TaskOperationStatsUtil.toSeconds(partStatistics.getWallClockTime()),
                 partStatistics.getErrors(), partStatistics.getProgress());
         if (partStatistics.getItemsProcessed() > 0) {
             partStatMsg += String.format(Locale.US, " Average processing time for one object: %,.1f milliseconds. "

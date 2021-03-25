@@ -109,6 +109,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
     private static final TestResource<TaskType> TASK_SUSPENDED_TREE_CHILD_1_1 = new TestResource<>(TEST_DIR, "task-suspended-tree-child-1-1.xml", "11000000-76e0-59e2-86d6-556655660200");
     private static final TestResource<TaskType> TASK_SUSPENDED_TREE_CHILD_2 = new TestResource<>(TEST_DIR, "task-suspended-tree-child-2.xml", "20000000-76e0-59e2-86d6-556655660200");
     private static final TestResource<TaskType> TASK_DUMMY = new TestResource<>(TEST_DIR, "task-dummy.xml", "89bf08ec-c5b8-4641-95ca-37559c1f3896");
+    private static final TestResource<TaskType> TASK_NON_EXISTING_OWNER = new TestResource<>(TEST_DIR, "task-non-existing-owner.xml", "d1320df4-e5b7-43ec-af53-f74ee0b62345");
 
     private static final ItemName SHIP_STATE_ITEM_NAME = new ItemName("http://myself.me/schemas/whatever", "shipState");
 
@@ -1084,6 +1085,30 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         then();
 
         assertEquals("Wrong result status", OperationResultStatusType.SUCCESS, dummy.asObjectable().getResultStatus());
+    }
+
+    /**
+     * Non-existing owner should be treated gracefully: MID-6918.
+     */
+    @Test
+    public void test420NonExistingOwner() throws Exception {
+        given();
+
+        OperationResult result = createOperationResult();
+        add(TASK_NON_EXISTING_OWNER, result);
+
+        when();
+
+        waitForTaskSuspend(TASK_NON_EXISTING_OWNER.oid, result, 10000, 200);
+
+        Task task = taskManager.getTaskWithResult(TASK_NON_EXISTING_OWNER.oid, result);
+
+        then();
+
+        displayDumpable("task", task);
+        assertThat(task.getResult().getMessage())
+                .as("operation result message")
+                .isEqualTo("Task owner couldn't be resolved: 8e6943e0-848d-4bf0-8c9e-4ba6bdf6c518");
     }
 
     private void assertTaskTree(TaskType rootWithChildren, String child1Oid, String child2Oid, String child11Oid) {

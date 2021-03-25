@@ -12,18 +12,18 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 
 import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.LINKED;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.UNMATCHED;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -88,6 +90,10 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
 
     private static final int USERS = 10;
 
+    private static final DummyTestResource RESOURCE_DUMMY_HACKED = new DummyTestResource(TEST_DIR, "resource-hacked.xml", "8aad610b-0e35-4604-9139-2f864ac4eac2", "hacked");
+
+    private static final TestResource<TaskType> TASK_RECONCILIATION_HACKED = new TestResource<>(TEST_DIR, "task-reconciliation-hacked.xml", "9e2887cd-3f45-46e7-82ee-20454ba25d94");
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -106,6 +112,9 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 // That one will be added later
             }
         }
+
+        initDummyResource(RESOURCE_DUMMY_HACKED, initTask, initResult);
+        assertSuccess(modelService.testResource(RESOURCE_DUMMY_HACKED.oid, initTask));
     }
 
     private void createAccount(int i) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException,
@@ -302,14 +311,15 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 .assertProgress(10) // From the resource we get all 10 accounts.
                 .iterativeTaskInformation()
                     .display()
-                    //.assertSuccessCount(0) // later 7 skipped
+                    .assertSkipCount(8)
                     .assertFailureCount(2)
                     .end()
                 .synchronizationInformation()
-                    .display();
-//                    .assertTransition(LINKED, LINKED, LINKED, null, 0, 1, 0) // That record was already linked and remain so.
-//                    .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
-//                    .assertTransitions(2);
+                    .display()
+                    .assertTransition(LINKED, LINKED, LINKED, null, 0, 1, 0) // That record was already linked and remain so.
+                    .assertTransition(LINKED, null, null, null, 0, 1, 7) // Malformed account has a LINKED shadow
+                    .assertTransition(null, null, null, null, 0, 0, 1) // No shadow here
+                    .assertTransitions(3);
 
         assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
                 .display();
@@ -433,5 +443,59 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.getResource())
                 .display()
                 .assertHasComplexOperationExecution(TASK_RECONCILIATION_PARTITIONED_MULTINODE.oid, OperationResultStatusType.FATAL_ERROR);
+    }
+
+    /**
+     * Checks if deletion of unmatched shadow (by reconciliation) is correctly reported. See MID-6877.
+     */
+    @Test
+    public void test300DeleteUnmatchedShadowByReconciliation() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        PrismObject<ShadowType> hacker = createHackerShadow();
+        provisioningService.addObject(hacker, null, null, task, result);
+        assertShadow("hacker", RESOURCE_DUMMY_HACKED.getResource())
+                .display();
+
+        when();
+
+        addTask(TASK_RECONCILIATION_HACKED, result);
+        waitForTaskFinish(TASK_RECONCILIATION_HACKED.oid, false);
+
+        then();
+
+        assertTask(TASK_RECONCILIATION_HACKED.oid, "after")
+                .display()
+                .iterativeTaskInformation()
+                    .display()
+                    .assertSuccessCount(1)
+                    .end()
+                .structuredProgress()
+                    .display()
+                    .assertSuccessCount(1, false)
+                    .end()
+                .synchronizationInformation()
+                    .display()
+                    .assertTransition(null, UNMATCHED, UNMATCHED, null, 1, 0, 0)
+                    .assertTransitions(1)
+                    .end()
+                .assertClosed()
+                .assertSuccess();
+    }
+
+    @NotNull
+    private PrismObject<ShadowType> createHackerShadow() throws com.evolveum.midpoint.util.exception.SchemaException {
+        var hacker = new ShadowType(prismContext)
+                .resourceRef(RESOURCE_DUMMY_HACKED.oid, ResourceType.COMPLEX_TYPE)
+                .objectClass(RESOURCE_DUMMY_HACKED.controller.getAccountObjectClass())
+                .beginAttributes()
+                .<ShadowType>end()
+                .asPrismObject();
+        ResourceAttribute<String> nameAttr = RESOURCE_DUMMY_HACKED.controller.createAccountAttribute(SchemaConstants.ICFS_NAME);
+        nameAttr.setRealValue("hacker");
+        hacker.findContainer(ShadowType.F_ATTRIBUTES).getValue().add(nameAttr);
+        return hacker;
     }
 }

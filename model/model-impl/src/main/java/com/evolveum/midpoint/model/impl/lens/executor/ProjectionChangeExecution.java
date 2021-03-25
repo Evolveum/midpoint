@@ -274,6 +274,7 @@ public class ProjectionChangeExecution<O extends ObjectType> {
         int deltas = projCtx.getExecutedDeltas().size();
         LOGGER.trace("isRepeatedAlreadyExistsException starting; number of executed deltas = {}", deltas);
         if (deltas < 2) {
+            LOGGER.trace(" -> too few deltas, so isRepeatedAlreadyExistsException returns false");
             return false;
         }
         LensObjectDeltaOperation<ShadowType> lastDeltaOp = projCtx.getExecutedDeltas().get(deltas - 1);

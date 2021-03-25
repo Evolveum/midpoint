@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import static com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase.DEFAULT_SCHEMA_NAME;
+
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
@@ -15,7 +17,9 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -38,10 +42,15 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         // DB should be empty
         assertCount(QObject.CLASS, 0);
         assertCount(QContainer.CLASS, 0);
+        // we just want the table and count, we don't care about "bean" type here
+        FlexibleRelationalPathBase<?> oidTable = new FlexibleRelationalPathBase<>(
+                void.class, "oid", DEFAULT_SCHEMA_NAME, "m_object_oid");
+        assertCount(oidTable, 0);
 
         // selects check also mapping to M-classes
         assertThat(select(aliasFor(QObject.CLASS))).isEmpty();
         assertThat(select(aliasFor(QContainer.CLASS))).isEmpty();
+        assertThat(select(aliasFor(QReference.CLASS))).isEmpty();
     }
 
     @Test

@@ -37,11 +37,10 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * @author Radovan Semancik
- *
  * In theory, the assertions counting # of invocations could fail even if trigger task handler works well
  * - if the scanner task would run more than once. If that occurs in reality, we'll deal with it.
  *
+ * @author Radovan Semancik
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -72,86 +71,118 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         triggerHandlerRegistry.register(MockMultipleTriggersHandler.HANDLER_URI, testMultipleTriggersHandler);
     }
 
+    /**
+     * Creates an old trigger and imports the trigger task. The trigger should get processed.
+     */
     @Test
     public void test100ImportScannerTask() throws Exception {
-        // GIVEN
+        given();
+
         // Make sure there is an object with a trigger set to a long time ago.
         // That trigger should be invoked on first run.
         addTrigger(USER_JACK_OID, LONG_LONG_TIME_AGO, MockTriggerHandler.HANDLER_URI);
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
-        /// WHEN
         when();
+
         importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
 
         waitForTaskStart(TASK_TRIGGER_SCANNER_OID, false);
-        waitForTaskFinish(TASK_TRIGGER_SCANNER_OID, false);
+        Task taskAfter = waitForTaskFinish(TASK_TRIGGER_SCANNER_OID, false);
 
-        // THEN
         then();
+
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
-        assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
 
         assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
         assertEquals("Trigger was called incorrect number of times", 1, testTriggerHandler.getInvocationCount());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
-        assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+        assertTask(taskAfter, "after")
+                .assertLastScanTimestamp(startCal, endCal)
+                .iterativeTaskInformation()
+                    .display()
+                    .assertSuccessCount(1);
     }
 
+    /**
+     * Waits for the task next run. No triggers should be processed.
+     */
     @Test
     public void test105NoTrigger() throws Exception {
-        // GIVEN
+        given();
+
         testTriggerHandler.reset();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
-        /// WHEN
         when();
+
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
-        // THEN
         then();
 
-        // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
         assertNull("Trigger was called while not expecting it", testTriggerHandler.getLastObject());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
-        assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+        assertTask(TASK_TRIGGER_SCANNER_OID, "after")
+                .assertLastScanTimestamp(startCal, endCal)
+                .iterativeTaskInformation()
+                    .display()
+                    .assertSuccessCount(1); // From previous test
     }
 
+    /**
+     * Creates a trigger and waits for task next run. The trigger should get processed.
+     */
     @Test
     public void test110TriggerCalledAgain() throws Exception {
-        // GIVEN
+        given();
         testTriggerHandler.reset();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
         addTrigger(USER_JACK_OID, startCal, MockTriggerHandler.HANDLER_URI);
 
-        /// WHEN
         when();
+
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
-        // THEN
         then();
 
-        // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
         assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
         assertEquals("Trigger was called incorrect number of times", 1, testTriggerHandler.getInvocationCount());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
-        assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+        assertTask(TASK_TRIGGER_SCANNER_OID, "after")
+                .assertLastScanTimestamp(startCal, endCal)
+                .iterativeTaskInformation()
+                    .display()
+                    .assertSuccessCount(2); // One from test100, one newly added.
     }
 
+    /**
+     * Creates two triggers in fast succession. Both should be processed, because the handler is not declared as idempotent.
+     *
+     * Note regarding the iterative task information: The increments should be:
+     *
+     * - 1 success
+     * - 1 skip
+     *
+     * Even if there were two triggers processed.
+     *
+     * It is because we count _objects_ processed by _task handler_, not _triggers_ processed by _trigger handler_.
+     * In this light, jack was processed only once, although with two triggers.
+     */
     @Test
     public void test120TwoTriggers() throws Exception {
-        // GIVEN
+        given();
+
         testTriggerHandler.reset();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
@@ -159,53 +190,67 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         startCalPlus5ms.add(XmlTypeConverter.createDuration(5L));
         addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCalPlus5ms), MockTriggerHandler.HANDLER_URI, false);
 
-        /// WHEN
         when();
+
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
-        // THEN
         then();
 
-        // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
         assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
-        // Originally here was only one execution expected. But why? There are two triggers
-        // with different triggering times! So the handler should be really called two times.
         assertEquals("Trigger was called wrong number of times", 2, testTriggerHandler.getInvocationCount());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
-        assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+        assertTask(TASK_TRIGGER_SCANNER_OID, "after")
+                .assertLastScanTimestamp(startCal, endCal)
+                .iterativeTaskInformation()
+                    .display()
+                    .assertSuccessCount(3)
+                    .assertSkipCount(1);
     }
 
+    /**
+     * Creates two (distinct) triggers with the same timestamp. Both should be processed, because the handler
+     * is not declared as idempotent.
+     */
     @Test
     public void test130TwoTriggersSame() throws Exception {
-        // GIVEN
+        given();
+
         testTriggerHandler.reset();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
         addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCal), MockTriggerHandler.HANDLER_URI, true);
 
-        /// WHEN
         when();
+
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
-        // THEN
         then();
 
-        // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
         assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
         assertEquals("Trigger was called wrong number of times", 2, testTriggerHandler.getInvocationCount());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
-        assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+        assertTask(TASK_TRIGGER_SCANNER_OID, "after")
+                .assertLastScanTimestamp(startCal, endCal)
+                .iterativeTaskInformation()
+                    .display()
+                    .assertSuccessCount(4) // +1 real execution
+                    .assertSkipCount(2); // +1 skipped occurrence
     }
 
+    /**
+     * Creates two (distinct) triggers with the same timestamp PLUS one trigger a little bit later.
+     * All three should be processed, because the handler is not declared as idempotent.
+     */
     @Test
     public void test135TwoTriggersSamePlusOne() throws Exception {
-        // GIVEN
+        given();
+
         testTriggerHandler.reset();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
@@ -213,39 +258,45 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         startCalPlus5ms.add(XmlTypeConverter.createDuration(5L));
         addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCal, startCalPlus5ms), MockTriggerHandler.HANDLER_URI, true);
 
-        /// WHEN
         when();
+
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
-        // THEN
         then();
 
-        // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
         assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
         assertEquals("Trigger was called wrong number of times", 3, testTriggerHandler.getInvocationCount());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
-        assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+        assertTask(TASK_TRIGGER_SCANNER_OID, "after")
+                .assertLastScanTimestamp(startCal, endCal)
+                .iterativeTaskInformation()
+                    .display()
+                    .assertSuccessCount(5) // +1 real execution
+                    .assertSkipCount(4); // +2 skipped occurrences
     }
 
+    /**
+     * Creates two distinct triggers with the same timestamp. But the handler should be executed only once (with 2 triggers),
+     * because now we use {@link MockMultipleTriggersHandler} that accepts multiple triggers with the same timestamp.
+     */
     @Test
-    public void test140TwoTriggersSameAggregable() throws Exception {
-        // GIVEN
+    public void test140TwoTriggersSameUsingMultiHandler() throws Exception {
+        given();
+
         testTriggerHandler.reset();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
         addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCal), MockMultipleTriggersHandler.HANDLER_URI, true);
 
-        /// WHEN
         when();
+
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
-        // THEN
         then();
 
-        // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
         assertNotNull("Trigger was not called", testMultipleTriggersHandler.getLastObject());
@@ -253,12 +304,25 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong # of triggers last executed", 2, testMultipleTriggersHandler.getLastTriggers().size());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
-        assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+        assertTask(TASK_TRIGGER_SCANNER_OID, "after")
+                .assertLastScanTimestamp(startCal, endCal)
+                .iterativeTaskInformation()
+                    .display()
+                    .assertSuccessCount(6) // +1 real execution
+                    .assertSkipCount(5); // +1 skipped occurrence
     }
 
+    /**
+     * Creates two (distinct) triggers with the same timestamp PLUS one trigger a little bit later.
+     * The handler should be executed only twice:
+     *  (1) first with two triggers having the same timestamp,
+     *  (2) second with the third trigger that fires a bit later,
+     *  because we use {@link MockMultipleTriggersHandler} that accepts multiple triggers with the same timestamp.
+     */
     @Test
-    public void test145TwoTriggersSamePlusOneAggregable() throws Exception {
-        // GIVEN
+    public void test145TwoTriggersSamePlusOneUsingMultiHandler() throws Exception {
+        given();
+
         testMultipleTriggersHandler.reset();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
@@ -267,14 +331,12 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCal, startCalPlus5ms),
                 MockMultipleTriggersHandler.HANDLER_URI, true);
 
-        /// WHEN
         when();
+
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
-        // THEN
         then();
 
-        // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
         assertNotNull("Trigger was not called", testMultipleTriggersHandler.getLastObject());
@@ -282,11 +344,21 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong # of triggers last executed", 1, testMultipleTriggersHandler.getLastTriggers().size());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
-        assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+        assertTask(TASK_TRIGGER_SCANNER_OID, "after")
+                .assertLastScanTimestamp(startCal, endCal)
+                .iterativeTaskInformation()
+                    .display()
+                    .assertSuccessCount(7) // +1 real execution
+                    .assertSkipCount(7); // +2 skipped occurrences
     }
 
+    /**
+     * Creates two triggers in fast succession. The (now idempotent) handler should get called only once.
+     */
     @Test
     public void test147TwoTriggersIdempotent() throws Exception {
+        given();
+
         testTriggerHandler.reset();
         testTriggerHandler.setIdempotent(true);
 
@@ -296,52 +368,72 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
             startCalPlus5ms.add(XmlTypeConverter.createDuration(5L));
             addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCalPlus5ms), MockTriggerHandler.HANDLER_URI, false);
 
-            /// WHEN
             when();
+
             waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
-            // THEN
             then();
 
-            // THEN
             XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
             assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
             assertEquals("Trigger was called wrong number of times", 1, testTriggerHandler.getInvocationCount());
             assertNoTrigger(UserType.class, USER_JACK_OID);
 
-            assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+            assertTask(TASK_TRIGGER_SCANNER_OID, "after")
+                    .assertLastScanTimestamp(startCal, endCal)
+                    .iterativeTaskInformation()
+                        .display()
+                        .assertSuccessCount(8) // +1 real execution
+                        .assertSkipCount(8); // +1 skipped occurrence
         } finally {
             testTriggerHandler.setIdempotent(false);
         }
     }
 
+    /**
+     * Just a no-op run. No triggers present -> no triggers processed.
+     */
     @Test
     public void test150NoTriggerAgain() throws Exception {
+        given();
+
         testTriggerHandler.reset();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
-        /// WHEN
         when();
+
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
-        // THEN
         then();
 
-        // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
         assertNull("Trigger was called while not expecting it", testTriggerHandler.getLastObject());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
-        assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+        assertTask(TASK_TRIGGER_SCANNER_OID, "after")
+                .assertLastScanTimestamp(startCal, endCal)
+                .iterativeTaskInformation()
+                    .display()
+                    .assertSuccessCount(8) // no change
+                    .assertSkipCount(8); // no change
     }
 
-    // MID-4610
+    /**
+     * Creates two triggers in fast succession. However, the first one fails during processing.
+     *
+     * The handler should try to execute both. Only the second should get deleted.
+     *
+     * During second run the failed trigger should be re-processed.
+     *
+     * MID-4610
+     */
     @Test
     public void test160TwoTriggersFirstFails() throws Exception {
         given();
+
         Task task = getTestTask();
         OperationResult result = task.getResult();
         testTriggerHandler.reset();
@@ -353,10 +445,12 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         testTriggerHandler.setFailOnNextInvocation(true);
 
-        when();
+        when("first run (first trigger fails)");
+
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, false, 10000);
 
-        then();
+        then("first run (first trigger fails)");
+
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
         assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
@@ -365,9 +459,15 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong # of triggers found", 1, userAfter.asObjectable().getTrigger().size());
         assertTrigger(userAfter, MockTriggerHandler.HANDLER_URI, startCal, 1);
 
-        assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+        assertTask(TASK_TRIGGER_SCANNER_OID, "after 1st run")
+                .assertLastScanTimestamp(startCal, endCal)
+                .iterativeTaskInformation()
+                    .display()
+                    .assertFailureCount(1) // +1 failed run (2 triggers: one success, one failure)
+                    .assertSuccessCount(8) // no new successful runs
+                    .assertSkipCount(9); // +1 skipped occurrence
 
-        // -------------------- re-run the handler
+        when("second run (retries failed trigger)");
 
         // remove all traces of failures in order to "waitForTaskNextRunAssertSuccess" be happy
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(TaskType.class)
@@ -379,20 +479,30 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         testTriggerHandler.reset();
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
-        // THEN
-        then();
+        then("second run (retries failed trigger)");
 
         endCal = clock.currentTimeXMLGregorianCalendar();
 
         assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
         assertEquals("Trigger was called wrong number of times", 1, testTriggerHandler.getInvocationCount());
         assertNoTrigger(UserType.class, USER_JACK_OID);
-        assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+
+        assertTask(TASK_TRIGGER_SCANNER_OID, "after 2nd run")
+                .assertLastScanTimestamp(startCal, endCal)
+                .iterativeTaskInformation()
+                    .display()
+                    .assertFailureCount(1) // no new failures
+                    .assertSuccessCount(9) // +1 success
+                    .assertSkipCount(9); // no new skips
     }
 
+    /**
+     * Creates two distant triggers (second is in 5 days). Only the first one should get executed.
+     */
     @Test
     public void test200TwoDistantTriggers() throws Exception {
-        // GIVEN
+        given();
+
         testTriggerHandler.reset();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
@@ -400,27 +510,44 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         startCalPlus5days.add(XmlTypeConverter.createDuration("P5D"));
         addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCalPlus5days), MockTriggerHandler.HANDLER_URI, false);
 
-        /// WHEN
         when();
+
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
-        // THEN
         then();
 
-        // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
         assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
         assertEquals("Trigger was called wrong number of times", 1, testTriggerHandler.getInvocationCount());
         assertTrigger(getUser(USER_JACK_OID), MockTriggerHandler.HANDLER_URI, startCalPlus5days, 100L);
 
-        assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+        assertTask(TASK_TRIGGER_SCANNER_OID, "after")
+                .assertLastScanTimestamp(startCal, endCal)
+                .iterativeTaskInformation()
+                    .display()
+                    .assertFailureCount(1) // no new failures
+                    .assertSuccessCount(10) // +1 success
+                    .assertSkipCount(9); // no new skips
     }
 
-    // MID-4474
+    /**
+     * Checks that no trigger gets lost if the task is interrupted (MID-4474).
+     *
+     * Creates two distant triggers (second is in 5 days).
+     * Makes the handler run for very long.
+     *
+     * When the handler starts, suspends the task. Ensures that the last scan timestamp was not updated.
+     *
+     * TODO Why we do remove the trigger that was not completely executed? This looks like it's wrong.
+     *  However, for normal operations (involving clockwork) the interruption usually means that the object
+     *  in question is processed. In this way it makes sense. Also it makes sense that such objects
+     *  are counted as "successfully processed".
+     */
     @Test
     public void test210InterruptedScanner() throws Exception {
-        // GIVEN
+        given();
+
         Task task = getTestTask();
         OperationResult result = task.getResult();
         testTriggerHandler.reset();
@@ -442,16 +569,14 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         taskManager.resumeTasks(singleton(TASK_TRIGGER_SCANNER_OID), result);
 
-        /// WHEN
         when();
+
         IntegrationTestTools.waitFor("Waiting for trigger handler invocation", () -> testTriggerHandler.getInvocationCount() > 0, 60000);
         suspended = taskManager.suspendTasks(singleton(TASK_TRIGGER_SCANNER_OID), 20000L, result);
         assertTrue("trigger scanner task was not suspended (after operation)", suspended);
 
-        // THEN
         then();
 
-        // THEN
         assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
         assertEquals("Trigger was called wrong number of times", 1, testTriggerHandler.getInvocationCount());
         PrismObject<UserType> jackAfter = getUser(USER_JACK_OID);
@@ -463,6 +588,13 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         // this assert may fail occasionally if the trigger scanner would start in between (we'll see how often)
         assertEquals("Last scan timestamp was changed", lastScanTimestampBefore, lastScanTimestampAfter);
+
+        assertTask(TASK_TRIGGER_SCANNER_OID, "after")
+                .iterativeTaskInformation()
+                .display()
+                    .assertFailureCount(1) // no new failures
+                    .assertSuccessCount(11) // +1 success (see the note in method javadoc)
+                    .assertSkipCount(9); // no new skips
     }
 
     // trigger scanner task is suspended here; and handler is set to a delay of one day (reset will clear that)

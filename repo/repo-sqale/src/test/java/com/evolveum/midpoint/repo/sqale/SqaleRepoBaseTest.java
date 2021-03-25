@@ -54,7 +54,17 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     public void cleanDatabase() {
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             // object delete cascades to sub-rows of the "object aggregate"
-            jdbcSession.newDelete(QObjectMapping.INSTANCE.defaultAlias()).execute();
+
+            jdbcSession.executeStatement("TRUNCATE m_object CASCADE;");
+            // truncate does not run ON DELETE trigger, many refs/container tables are not cleaned
+            jdbcSession.executeStatement("TRUNCATE m_object_oid CASCADE;");
+            // but after truncating m_object_oid it cleans all the tables
+
+            /*
+            Truncates are much faster than this delete probably because it works row by row:
+            long count = jdbcSession.newDelete(QObjectMapping.INSTANCE.defaultAlias()).execute();
+            display("Deleted " + count + " objects from DB");
+            */
         }
     }
 

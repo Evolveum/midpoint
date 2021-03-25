@@ -62,6 +62,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -346,7 +347,10 @@ public class ProvisioningUtil {
 
     public static void recordFatalError(Trace logger, OperationResult opResult, String explicitMessage, Throwable ex) {
         String message = explicitMessage != null ? explicitMessage : ex.getMessage();
-        logger.error(message, ex);
+        // Should we log the exception? Actually, there's no reason to do it if the exception is rethrown.
+        // (What is the case here: each place that calls this method rethrows the exception.)
+        // Therefore we'll log the exception only on debug level here.
+        LoggingUtils.logExceptionOnDebugLevel(logger, message, ex);
         opResult.recordFatalError(message, ex);
         opResult.cleanupResult(ex);
     }

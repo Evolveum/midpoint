@@ -17,6 +17,7 @@ import com.querydsl.sql.ColumnMetadata;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 
 /**
@@ -80,6 +81,8 @@ public class QFocus<T extends MFocus> extends QObject<T> {
             ColumnMetadata.named("validityChangeTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     public static final ColumnMetadata ARCHIVE_TIMESTAMP =
             ColumnMetadata.named("archiveTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata LOCKOUT_STATUS =
+            ColumnMetadata.named("lockoutStatus").ofType(Types.OTHER);
 
     public final StringPath costCenter = createString("costCenter", COST_CENTER);
     public final StringPath emailAddress = createString("emailAddress", EMAIL_ADDRESS);
@@ -114,6 +117,8 @@ public class QFocus<T extends MFocus> extends QObject<T> {
             createInstant("validityChangeTimestamp", VALIDITY_CHANGE_TIMESTAMP);
     public final DateTimePath<Instant> archiveTimestamp =
             createInstant("archiveTimestamp", ARCHIVE_TIMESTAMP);
+    public final EnumPath<LockoutStatusType> lockoutStatus =
+            createEnum("lockoutStatus", LockoutStatusType.class, LOCKOUT_STATUS);
 
     public QFocus(Class<T> type, String variable) {
         this(type, variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

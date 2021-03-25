@@ -2192,8 +2192,8 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void resetIterativeTaskInformation(IterativeTaskInformationType value) {
-        statistics.resetIterativeTaskInformation(value);
+    public void resetIterativeTaskInformation(IterativeTaskInformationType value, boolean collectExecutions) {
+        statistics.resetIterativeTaskInformation(value, collectExecutions);
     }
 
     @Override

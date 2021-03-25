@@ -140,7 +140,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
      * Creates relation resolver for nested mapping and returns the mapping so the nested items
      * can be mapped in a fluent matter.
      */
-    public <N> QueryModelMapping<N, Q, R> nestedMapping(
+    public <N> QueryModelMapping<N, Q, R> addNestedMapping(
             @NotNull ItemName itemName,
             @NotNull Class<N> nestedSchemaType) {
         QueryModelMapping<N, Q, R> nestedMapping =

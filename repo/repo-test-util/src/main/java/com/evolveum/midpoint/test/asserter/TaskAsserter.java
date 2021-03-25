@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -18,6 +19,8 @@ import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.getExtensionItemRealValue;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -275,5 +278,12 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
                 "subtask #" + index + " in " + getDetails());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    public TaskAsserter<RA> assertLastScanTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
+        XMLGregorianCalendar lastScanTime =
+                getExtensionItemRealValue(getObject(), SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME);
+        TestUtil.assertBetween("last scan timestamp in " + desc(), start, end, lastScanTime);
+        return this;
     }
 }
