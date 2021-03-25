@@ -377,7 +377,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
             String icon, String confirmationMessageKey,
             SerializableFunction<TaskType, Boolean> visibilityHandler) {
 
-        return new ButtonInlineMenuItem(createStringResource(buttonNameKey)) {
+        ButtonInlineMenuItem buttonInlineMenuItem =  new ButtonInlineMenuItem(createStringResource(buttonNameKey)) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -403,19 +403,26 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 return TaskTablePanel.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
 
-            @Override
-            public IModel<Boolean> getVisible() {
-
-                IModel<SelectableBean<TaskType>> rowModel = ((ColumnMenuAction) getAction()).getRowModel();
-                if (rowModel == null) {
-                    return Model.of(Boolean.TRUE);
-                }
-                SelectableBean<TaskType> rowModelObj = rowModel.getObject();
-                boolean visible = visibilityHandler.apply(rowModelObj.getValue());
-                return Model.of(visible);
-            }
-
         };
+        buttonInlineMenuItem.setVisibilityChecker((rowModel, header) -> checkVisibility(rowModel, header, visibilityHandler));
+        return buttonInlineMenuItem;
+    }
+
+    private boolean checkVisibility(IModel<?> rowModel, boolean header, SerializableFunction<TaskType, Boolean> visibilityHandler) {
+        if (header) {
+            return true;
+        }
+        TaskType taskType = null;
+        if (isTaskModel(rowModel)) {
+            SelectableBean<TaskType> modelObject = (SelectableBean<TaskType>) rowModel.getObject();
+            if (modelObject == null) {
+                return true;
+            }
+            taskType = modelObject.getValue();
+        }
+
+        boolean visible = visibilityHandler.apply(taskType);
+        return visible;
     }
 
     private InlineMenuItem createDeleteTaskMenuAction() {
@@ -487,7 +494,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
             String confirmationMessageKey,
             SerializableFunction<TaskType, Boolean> visibilityHandler,
             boolean header) {
-        return new InlineMenuItem(createStringResource(menuNameKey)) {
+        InlineMenuItem menuItem = new InlineMenuItem(createStringResource(menuNameKey)) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -513,15 +520,28 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 return header;
             }
 
-            @Override
-            public IModel<Boolean> getVisible() {
-                IModel<SelectableBean<TaskType>> rowModel = ((ColumnMenuAction) getAction()).getRowModel();
-                if (rowModel == null) {
-                    return Model.of(Boolean.TRUE);
-                }
-                return Model.of(visibilityHandler.apply(rowModel.getObject().getValue()));
-            }
+
         };
+
+        menuItem.setVisibilityChecker((rowModel, menuHeader) -> isMenuVisible(rowModel, menuHeader, visibilityHandler));
+        return menuItem;
+    }
+
+    private boolean isMenuVisible(IModel<?> rowModel, boolean header, SerializableFunction<TaskType, Boolean> visibilityHandler) {
+        if (header) {
+            return true;
+        }
+
+        if (!isTaskModel(rowModel)) {
+            return true;
+        }
+
+        TaskType modelObject = getTask((IModel<SelectableBean<TaskType>>) rowModel, header);
+        if (modelObject == null) {
+            return true;
+        }
+        return visibilityHandler.apply(modelObject);
+
     }
 
     //region Task-level actions
