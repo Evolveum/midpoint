@@ -1,17 +1,14 @@
 /*
- * Copyright (c) 2016-2019 Evolveum and contributors
+ * Copyright (C) 2016-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.testing.story.ldap;
 
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ImportOptionsType;
 
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -30,6 +27,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -126,14 +124,10 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
 
     @Test
     public void test080ImportSyncTask() throws Exception {
-        // WHEN
         when();
-
         importObjectFromFile(TASK_LIVE_SYNC_FILE);
 
-        // THEN
         then();
-
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID, true);
 
         PrismObject<TaskType> syncTask = getTask(TASK_LIVE_SYNC_OID);
@@ -157,14 +151,10 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         Entry entry = openDJController.addEntryFromLdifFile(ACCOUNT_WILL_LDIF_FILE);
         display("Entry from LDIF", entry);
 
-        // WHEN
         when();
-
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID, true);
 
-        // THEN
         then();
-
         assertSyncTokenIncrement(1);
 
         assertLdapConnectorInstances(1);
@@ -193,18 +183,13 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
      */
     @Test
     public void test112SyncAddGoods() throws Exception {
-        // WHEN
         when();
-
         for (int i = 0; i < SYNC_ADD_ATTEMPTS; i++) {
             syncAddAttemptGood("good", i);
         }
 
-        // THEN
         then();
-
         dumpLdap();
-
     }
 
     /**
@@ -218,9 +203,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
      */
     @Test
     public void test150AddGoblins() throws Exception {
-        // WHEN
         when();
-
         for (int i = 0; i < NUMBER_OF_GOBLINS; i++) {
             String username = goblinUsername(i);
             PrismObject<UserType> goblin = createUser(username, "Goblin", Integer.toString(i), true);
@@ -231,9 +214,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
             addObject(goblin);
         }
 
-        // THEN
         then();
-
         dumpLdap();
         assertLdapConnectorInstances(1, INSTANCES_MAX);
 
@@ -288,12 +269,9 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         Entry entry = openDJController.addEntryFromLdifFile(ACCOUNT_KRAKEN_LDIF_FILE);
         display("Entry from LDIF", entry);
 
-        // WHEN
         when();
-
         OperationResult taskResult = waitForTaskNextRun(TASK_LIVE_SYNC_OID);
 
-        // THEN
         then();
         assertFailure(taskResult);
 
@@ -321,18 +299,13 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
      */
     @Test
     public void test212SyncAddBads() throws Exception {
-        // WHEN
         when();
-
         for (int i = 0; i < SYNC_ADD_ATTEMPTS; i++) {
             syncAddAttemptBad("bad", i);
         }
 
-        // THEN
         then();
-
         dumpLdap();
-
     }
 
     /**
@@ -341,18 +314,13 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
      */
     @Test
     public void test219StopSyncTask() throws Exception {
-        // WHEN
         when();
-
         suspendTask(TASK_LIVE_SYNC_OID);
 
-        // THEN
         then();
-
         assertSyncTokenIncrement(0);
         assertLdapConnectorInstances(1, INSTANCES_MAX);
         assertThreadCount();
-
     }
 
     // this runs for ~20+ minutes
@@ -363,16 +331,12 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
 
         SearchResultList<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
 
-        // WHEN
         when();
-
         for (PrismObject<UserType> user : users) {
             reconcile(user);
         }
 
-        // THEN
         then();
-
         assertLdapConnectorInstances(1, INSTANCES_MAX);
         assertThreadCount();
     }
@@ -384,9 +348,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
 
         SearchResultList<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
 
-        // WHEN
         when();
-
         int segmentSize = users.size() / NUMBER_OF_TEST_THREADS;
         ParallelTestThread[] threads = multithread(
                 (threadIndex) -> {
@@ -397,7 +359,6 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
 
                 }, NUMBER_OF_TEST_THREADS, TEST_THREADS_RANDOM_START_RANGE);
 
-        // THEN
         then();
         waitForThreads(threads, PARALLEL_TEST_TIMEOUT);
 
