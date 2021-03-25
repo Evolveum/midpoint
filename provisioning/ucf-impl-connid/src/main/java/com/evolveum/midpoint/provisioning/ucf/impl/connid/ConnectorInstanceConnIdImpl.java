@@ -7,6 +7,10 @@
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
+
+import static java.util.Collections.emptySet;
+import static org.apache.commons.collections4.SetUtils.emptyIfNull;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -14,7 +18,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.util.DebugUtil;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
@@ -921,8 +924,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         }
 
         if (uid == null) {
-            result.recordFatalError("Cannot detemine UID from identification: " + identification);
-            throw new IllegalArgumentException("Cannot detemine UID from identification: " + identification);
+            result.recordFatalError("Cannot determine UID from identification: " + identification);
+            throw new IllegalArgumentException("Cannot determine UID from identification: " + identification);
         }
 
         if (supportsDeltaUpdateOp()) {
@@ -948,7 +951,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                                 GenericFrameworkException, SchemaException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException {
 
         ObjectClassComplexTypeDefinition objectClassDef = identification.getObjectClassDefinition();
-        Set<AttributeDelta> sideEffect = new HashSet<>();
 
         DeltaModificationConverter converter = new DeltaModificationConverter();
         converter.setChanges(changes);
@@ -974,6 +976,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
         OperationResult connIdResult;
 
+        @NotNull Set<AttributeDelta> knownExecutedChanges; // May or may not cover all executed changes
         Set<AttributeDelta> attributesDelta = converter.getAttributesDelta();
         if (!attributesDelta.isEmpty()) {
             OperationOptions connIdOptions = createConnIdOptions(options, changes);
@@ -984,10 +987,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             connIdResult.addArbitraryObjectAsParam("options", connIdOptions);
             connIdResult.addContext("connector", connIdConnectorFacade.getClass());
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Invoking ICF update(), objectclass={}, uid={}, attributes delta: {}",
-                        objClass, uid, dumpAttributesDelta(attributesDelta));
-            }
+            LOGGER.trace("Invoking ICF update(), objectclass={}, uid={}, attributes delta: {}",
+                    objClass, uid, lazy(() -> dumpAttributesDelta(attributesDelta)));
 
             try {
                 InternalMonitor.recordConnectorOperation("update");
@@ -995,7 +996,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                 recordIcfOperationStart(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, uid);
 
                 // Call ConnId
-                sideEffect = connIdConnectorFacade.updateDelta(objClass, uid, attributesDelta, connIdOptions);
+                knownExecutedChanges =
+                        emptyIfNull(connIdConnectorFacade.updateDelta(objClass, uid, attributesDelta, connIdOptions));
 
                 recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, null, uid);
                 connIdResult.recordSuccess();
@@ -1031,60 +1033,61 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                     throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
                 }
             }
+        } else {
+            knownExecutedChanges = emptySet();
         }
         result.computeStatus();
 
-        Collection<PropertyModificationOperation> sideEffectChanges = new ArrayList<>();
-        if(sideEffect == null || sideEffect.isEmpty()) {
-            return AsynchronousOperationReturnValue.wrap(sideEffectChanges, result);
-        } else {
-            for (AttributeDelta attrDeltaSideEffect : sideEffect){
-                String name = attrDeltaSideEffect.getName();
-                if(name.equals(Uid.NAME)){
-                    Uid newUid = new Uid((String)attrDeltaSideEffect.getValuesToReplace().get(0));
-                    PropertyDelta<String> uidDelta = createUidDelta(newUid, getUidDefinition(identification));
-                    PropertyModificationOperation uidMod = new PropertyModificationOperation(uidDelta);
-                    sideEffectChanges.add(uidMod);
+        Collection<PropertyModificationOperation> knownExecutedOperations =
+                convertToExecutedOperations(knownExecutedChanges, identification, objectClassDef);
+        return AsynchronousOperationReturnValue.wrap(knownExecutedOperations, result);
+    }
 
-                    replaceUidValue(identification, newUid);
-                } else if(name.equals(Name.NAME)){
-                        Name newName = new Name((String)attrDeltaSideEffect.getValuesToReplace().get(0));
-                        PropertyDelta<String> nameDelta = createNameDelta(newName, getNameDefinition(identification));
-                        PropertyModificationOperation nameMod = new PropertyModificationOperation(nameDelta);
-                        sideEffectChanges.add(nameMod);
+    private Collection<PropertyModificationOperation> convertToExecutedOperations(Set<AttributeDelta> knownExecutedChanges,
+            ResourceObjectIdentification identification, ObjectClassComplexTypeDefinition objectClassDef) throws SchemaException {
+        Collection<PropertyModificationOperation> knownExecutedOperations = new ArrayList<>();
+        for (AttributeDelta executedDelta : knownExecutedChanges) {
+            String name = executedDelta.getName();
+            if (name.equals(Uid.NAME)) {
+                Uid newUid = new Uid((String)executedDelta.getValuesToReplace().get(0));
+                PropertyDelta<String> uidDelta = createUidDelta(newUid, getUidDefinition(identification));
+                PropertyModificationOperation uidMod = new PropertyModificationOperation(uidDelta);
+                knownExecutedOperations.add(uidMod);
 
-                        replaceNameValue(identification, new Name((String)attrDeltaSideEffect.getValuesToReplace().get(0)));
-                } else {
-                    ResourceAttributeDefinition definition = objectClassDef.findAttributeDefinition(name);
+                replaceUidValue(identification, newUid); // TODO why we are doing this? Do we do that for the caller?
+            } else if (name.equals(Name.NAME)) {
+                Name newName = new Name((String)executedDelta.getValuesToReplace().get(0));
+                PropertyDelta<String> nameDelta = createNameDelta(newName, getNameDefinition(identification));
+                PropertyModificationOperation nameMod = new PropertyModificationOperation(nameDelta);
+                knownExecutedOperations.add(nameMod);
 
-                    if(definition == null){
-                        throw new ObjectNotFoundException("Returned delta attribute with name: "+ name +" for which, has not been found ResourceAttributeDefinition.");
-                    }
-                    PropertyDelta<Object> delta = prismContext.deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES,
-                            definition.getItemName()), definition);
-                    if(attrDeltaSideEffect.getValuesToReplace() != null){
-                        delta.setRealValuesToReplace(attrDeltaSideEffect.getValuesToReplace().get(0));
-                    } else {
-                        if(attrDeltaSideEffect.getValuesToAdd() != null){
-                            for(Object value : attrDeltaSideEffect.getValuesToAdd()){
-                                delta.addRealValuesToAdd(value);
-                            }
+                replaceNameValue(identification, new Name((String)executedDelta.getValuesToReplace().get(0)));  // TODO why?
+            } else {
+                ResourceAttributeDefinition definition = objectClassDef.findAttributeDefinition(name);
 
-                        }
-                        if(attrDeltaSideEffect.getValuesToRemove() != null){
-                            for(Object value : attrDeltaSideEffect.getValuesToRemove()){
-                                delta.addRealValuesToDelete(value);
-                            }
-                        }
-                    }
-                    PropertyModificationOperation modification = new PropertyModificationOperation(delta);
-                    sideEffectChanges.add(modification);
-
+                if (definition == null) {
+                    throw new SchemaException("Returned delta references attribute '" + name + "' that has no definition.");
                 }
+                PropertyDelta<Object> delta = prismContext.deltaFactory().property()
+                        .create(ItemPath.create(ShadowType.F_ATTRIBUTES, definition.getItemName()), definition);
+                if (executedDelta.getValuesToReplace() != null) {
+                    delta.setRealValuesToReplace(executedDelta.getValuesToReplace().get(0));
+                } else {
+                    if (executedDelta.getValuesToAdd() != null) {
+                        for (Object value : executedDelta.getValuesToAdd()) {
+                            delta.addRealValuesToAdd(value);
+                        }
+                    }
+                    if (executedDelta.getValuesToRemove() != null) {
+                        for (Object value : executedDelta.getValuesToRemove()) {
+                            delta.addRealValuesToDelete(value);
+                        }
+                    }
+                }
+                knownExecutedOperations.add(new PropertyModificationOperation(delta));
             }
         }
-
-        return AsynchronousOperationReturnValue.wrap(sideEffectChanges, result);
+        return knownExecutedOperations;
     }
 
     /**
@@ -1125,9 +1128,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             throw e;
         }
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("converted attributes:\n{}", converter.debugDump(1));
-        }
+        LOGGER.trace("converted attributes:\n{}", converter.debugDumpLazily(1));
 
         // Needs three complete try-catch blocks because we need to create
         // icfResult for each operation
@@ -1145,11 +1146,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             connIdResult.addArbitraryObjectAsParam("options", connIdOptions);
             connIdResult.addContext("connector", connIdConnectorFacade.getClass());
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(
-                        "Invoking ConnId addAttributeValues(), objectclass={}, uid={}, attributes: {}",
-                        objClass, uid, dumpAttributes(attributesToAdd));
-            }
+            LOGGER.trace(
+                    "Invoking ConnId addAttributeValues(), objectclass={}, uid={}, attributes: {}",
+                    objClass, uid, lazy(() -> dumpAttributes(attributesToAdd)));
 
             InternalMonitor.recordConnectorOperation("addAttributeValues");
             InternalMonitor.recordConnectorModification("addAttributeValues");
@@ -1206,10 +1205,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             connIdResult.addArbitraryObjectAsParam("options", connIdOptions);
             connIdResult.addContext("connector", connIdConnectorFacade.getClass());
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Invoking ConnId update(), objectclass={}, uid={}, attributes: {}",
-                        objClass, uid, dumpAttributes(attributesToUpdate));
-            }
+            LOGGER.trace("Invoking ConnId update(), objectclass={}, uid={}, attributes: {}",
+                    objClass, uid, lazy(() -> dumpAttributes(attributesToUpdate)));
 
             try {
 
@@ -1266,11 +1263,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             connIdResult.addArbitraryObjectAsParam("options", connIdOptions);
             connIdResult.addContext("connector", connIdConnectorFacade.getClass());
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(
-                        "Invoking ConnId removeAttributeValues(), objectclass={}, uid={}, attributes: {}",
-                        objClass, uid, dumpAttributes(attributesToRemove));
-            }
+            LOGGER.trace(
+                    "Invoking ConnId removeAttributeValues(), objectclass={}, uid={}, attributes: {}",
+                    objClass, uid, lazy(() -> dumpAttributes(attributesToRemove)));
 
             InternalMonitor.recordConnectorOperation("removeAttributeValues");
             InternalMonitor.recordConnectorModification("removeAttributeValues");
@@ -1319,8 +1314,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
         Collection<PropertyModificationOperation> sideEffectChanges = new ArrayList<>();
         if (!originalUid.equals(uid.getUidValue())) {
-            // UID was changed during the operation, this is most likely a
-            // rename
+            // UID was changed during the operation, this is most likely a rename
             PropertyDelta<String> uidDelta = createUidDelta(uid, getUidDefinition(identification));
             PropertyModificationOperation uidMod = new PropertyModificationOperation(uidDelta);
             // TODO what about matchingRuleQName ?
@@ -1330,7 +1324,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         }
         return AsynchronousOperationReturnValue.wrap(sideEffectChanges, result);
     }
-
 
     private void replaceNameValue(ResourceObjectIdentification identification, Name newName) throws SchemaException {
         ResourceAttribute<String> secondaryIdentifier = identification.getSecondaryIdentifier();
@@ -1905,7 +1898,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             LOGGER.trace("Start to convert filter: {}", prismFilter.debugDumpLazily());
             FilterInterpreter interpreter = new FilterInterpreter(objectClassDefinition);
             Filter connIdFilter = interpreter.interpret(prismFilter, connIdNameMapper);
-            LOGGER.trace("ConnId filter: {}", DebugUtil.lazy(() -> ConnIdUtil.dump(connIdFilter)));
+            LOGGER.trace("ConnId filter: {}", lazy(() -> ConnIdUtil.dump(connIdFilter)));
             return connIdFilter;
         } else {
             return null;

@@ -59,10 +59,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
 
+import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
- *
  * Responsibilities:
  *
  * 1. protected objects
@@ -470,6 +470,10 @@ public class ResourceObjectConverter {
         }
     }
 
+    /**
+     * Returns known executed deltas as reported by {@link ConnectorInstance#modifyObject(ResourceObjectIdentification,
+     * PrismObject, Collection, ConnectorOperationOptions, StateReporter, OperationResult)}.
+     */
     public AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> modifyResourceObject(
             ProvisioningContext ctx,
             PrismObject<ShadowType> repoShadow,
@@ -551,9 +555,6 @@ public class ResourceObjectConverter {
             collectAttributeAndEntitlementChanges(ctx, itemDeltas, operations, repoShadow, result);
 
             PrismObject<ShadowType> preReadShadow = null;
-            Collection<PropertyModificationOperation> sideEffectOperations = null;
-            AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyAsyncRet = null;
-
             if (hasVolatilityTriggerModification || ResourceTypeUtil.isAvoidDuplicateValues(ctx.getResource()) || isRename(ctx, operations)) {
                 // We need to filter out the deltas that add duplicate values or remove values that are not there
                 LOGGER.trace("Pre-reading resource shadow");
@@ -569,27 +570,25 @@ public class ResourceObjectConverter {
                 LOGGER.trace("Pre-read object (applied pending operations):\n{}", DebugUtil.debugDumpLazily(preReadShadow, 1));
             }
 
+            AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyAsyncRet;
             if (!operations.isEmpty()) {
-
-                if (InternalsConfig.isSanityChecks()) {
-                    // MID-3964
-                    if (MiscUtil.hasDuplicates(operations)) {
-                        throw new SchemaException("Duplicated changes: "+operations);
-                    }
-                }
-
+                assertNoDuplicates(operations);
                 // Execute primary ICF operation on this shadow
                 modifyAsyncRet = executeModify(ctx, (preReadShadow == null ? repoShadow.clone() : preReadShadow), identifiers, operations, scripts, result, connOptions);
-                if (modifyAsyncRet != null) {
-                    sideEffectOperations = modifyAsyncRet.getReturnValue();
-                }
-
             } else {
                 // We have to check BEFORE we add script operations, otherwise the check would be pointless
                 LOGGER.trace("No modifications for connector object specified. Skipping processing of subject executeModify.");
+                modifyAsyncRet = null;
             }
 
-            Collection<PropertyDelta<PrismPropertyValue>> sideEffectDeltas = convertToPropertyDelta(sideEffectOperations);
+            // Should contain side-effects. May contain explicitly requested and executed operations.
+            Collection<PropertyDelta<PrismPropertyValue>> knownExecutedDeltas;
+            if (modifyAsyncRet != null) {
+                Collection<PropertyModificationOperation> knownExecutedOperations = modifyAsyncRet.getReturnValue();
+                knownExecutedDeltas = convertToPropertyDeltas(knownExecutedOperations);
+            } else {
+                knownExecutedDeltas = emptyList();
+            }
 
             /*
              *  State of the shadow after execution of the deltas - e.g. with new DN (if it was part of the delta), because this one should be recorded
@@ -609,17 +608,17 @@ public class ResourceObjectConverter {
                 ObjectDelta<ShadowType> resourceShadowDelta = preReadShadow.diff(postReadShadow);
                 LOGGER.trace("Determined side-effect changes by old-new diff:\n{}", resourceShadowDelta.debugDumpLazily());
                 for (ItemDelta modification: resourceShadowDelta.getModifications()) {
-                    if (modification.getParentPath().startsWithName(ShadowType.F_ATTRIBUTES) && !ItemDeltaCollectionsUtil
-                            .hasEquivalent(itemDeltas, modification)) {
-                        ItemDeltaCollectionsUtil.merge(sideEffectDeltas, modification);
+                    if (modification.getParentPath().startsWithName(ShadowType.F_ATTRIBUTES) &&
+                            !ItemDeltaCollectionsUtil.hasEquivalent(itemDeltas, modification)) {
+                        ItemDeltaCollectionsUtil.merge(knownExecutedDeltas, modification);
                     }
                 }
-                LOGGER.trace("Side-effect changes after merging with old-new diff:\n{}", DebugUtil.debugDumpLazily(sideEffectDeltas));
+                LOGGER.trace("Side-effect changes after merging with old-new diff:\n{}",
+                        DebugUtil.debugDumpLazily(knownExecutedDeltas));
             }
 
-            Collection<? extends ItemDelta> allDeltas = new ArrayList<>();
-            ((Collection)allDeltas).addAll(itemDeltas);
-            ((Collection)allDeltas).addAll(sideEffectDeltas);
+            Collection<? extends ItemDelta> allDeltas = new ArrayList<>(itemDeltas);
+            ItemDeltaCollectionsUtil.addNotEquivalent(allDeltas, knownExecutedDeltas); // MID-6892
 
             // Execute entitlement modification on other objects (if needed)
             executeEntitlementChangesModify(ctx,
@@ -627,20 +626,21 @@ public class ResourceObjectConverter {
                     postReadShadow == null ? shadowAfter : postReadShadow,
                     scripts, connOptions, allDeltas, result);
 
-            if (!sideEffectDeltas.isEmpty()) {
+            if (!knownExecutedDeltas.isEmpty()) {
                 if (preReadShadow != null) {
-                    PrismUtil.setDeltaOldValue(preReadShadow, sideEffectDeltas);
+                    PrismUtil.setDeltaOldValue(preReadShadow, knownExecutedDeltas);
                 } else {
-                    PrismUtil.setDeltaOldValue(repoShadow, sideEffectDeltas);
+                    PrismUtil.setDeltaOldValue(repoShadow, knownExecutedDeltas);
                 }
             }
 
-            LOGGER.trace("Modification side-effect changes:\n{}", DebugUtil.debugDumpLazily(sideEffectDeltas));
+            LOGGER.trace("Modification side-effect changes:\n{}", DebugUtil.debugDumpLazily(knownExecutedDeltas));
             LOGGER.trace("Modified resource object {}", repoShadow);
 
             computeResultStatus(result);
 
-            AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> aResult = AsynchronousOperationReturnValue.wrap(sideEffectDeltas, result);
+            AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>
+                    aResult = AsynchronousOperationReturnValue.wrap(knownExecutedDeltas, result);
             if (modifyAsyncRet != null) {
                 aResult.setOperationType(modifyAsyncRet.getOperationType());
             }
@@ -653,27 +653,34 @@ public class ResourceObjectConverter {
         }
     }
 
-    private Collection<PropertyDelta<PrismPropertyValue>> convertToPropertyDelta(
-            Collection<PropertyModificationOperation> sideEffectOperations) {
-        Collection<PropertyDelta<PrismPropertyValue>> sideEffectDeltas = new ArrayList<>();
-        if (sideEffectOperations != null) {
-            for (PropertyModificationOperation mod : sideEffectOperations){
-                sideEffectDeltas.add(mod.getPropertyDelta());
+    private void assertNoDuplicates(Collection<Operation> operations) throws SchemaException {
+        if (InternalsConfig.isSanityChecks()) {
+            // MID-3964
+            if (MiscUtil.hasDuplicates(operations)) {
+                throw new SchemaException("Duplicated changes: "+ operations);
             }
         }
+    }
 
-        return sideEffectDeltas;
+    private Collection<PropertyDelta<PrismPropertyValue>> convertToPropertyDeltas(
+            @NotNull Collection<PropertyModificationOperation> operations) {
+        Collection<PropertyDelta<PrismPropertyValue>> deltas = new ArrayList<>();
+        for (PropertyModificationOperation mod : operations) {
+            deltas.add(mod.getPropertyDelta());
+        }
+        return deltas;
     }
 
     @SuppressWarnings("rawtypes")
     private AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> executeModify(ProvisioningContext ctx,
             PrismObject<ShadowType> currentShadow, Collection<? extends ResourceAttribute<?>> identifiers,
-            Collection<Operation> operations, OperationProvisioningScriptsType scripts, OperationResult result,
+            @NotNull Collection<Operation> operations, OperationProvisioningScriptsType scripts, OperationResult result,
             ConnectorOperationOptions connOptions)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
             PolicyViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
-        Collection<PropertyModificationOperation> sideEffectChanges = new HashSet<>();
+        // Should include known side effects. May include also executed requested changes. See ConnectorInstance.modifyObject.
+        Collection<PropertyModificationOperation> knownExecutedChanges = new HashSet<>();
 
         RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
         if (operations.isEmpty()) {
@@ -686,7 +693,9 @@ public class ResourceObjectConverter {
         checkForCapability(ctx, UpdateCapabilityType.class, result);
 
         if (!ShadowUtil.hasPrimaryIdentifier(identifiers, objectClassDefinition)) {
-            Collection<? extends ResourceAttribute<?>> primaryIdentifiers = resourceObjectReferenceResolver.resolvePrimaryIdentifier(ctx, identifiers, "modification of resource object "+identifiers, result);
+            Collection<? extends ResourceAttribute<?>> primaryIdentifiers =
+                    resourceObjectReferenceResolver.resolvePrimaryIdentifier(ctx, identifiers,
+                            "modification of resource object "+identifiers, result);
             if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
                 throw new ObjectNotFoundException("Cannot find repository shadow for identifiers "+identifiers);
             }
@@ -755,7 +764,7 @@ public class ResourceObjectConverter {
             }
 
             if (!ResourceTypeUtil.isUpdateCapabilityEnabled(ctx.getResource())) {
-                if (operations == null || operations.isEmpty()){
+                if (operations.isEmpty()) {
                     LOGGER.debug("No modifications for connector object specified (after filtering). Skipping processing.");
                     result.recordSuccess();
                     return null;
@@ -776,9 +785,9 @@ public class ResourceObjectConverter {
                 if (!operationsWave.isEmpty()) {
                     ResourceObjectIdentification identification = ResourceObjectIdentification.create(objectClassDefinition, identifiersWorkingCopy);
                     connectorAsyncOpRet = connector.modifyObject(identification, currentShadow, operationsWave, connOptions, ctx, result);
-                    Collection<PropertyModificationOperation> sideEffects = connectorAsyncOpRet.getReturnValue();
-                    if (sideEffects != null) {
-                        sideEffectChanges.addAll(sideEffects);
+                    Collection<PropertyModificationOperation> currentKnownExecutedChanges = connectorAsyncOpRet.getReturnValue();
+                    if (currentKnownExecutedChanges != null) {
+                        knownExecutedChanges.addAll(currentKnownExecutedChanges);
                         // we accept that one attribute can be changed multiple times in sideEffectChanges; TODO: normalize
                     }
                     if (connectorAsyncOpRet.isInProgress()) {
@@ -788,7 +797,8 @@ public class ResourceObjectConverter {
                 }
             }
 
-            LOGGER.debug("PROVISIONING MODIFY successful, inProgress={}, side-effect changes {}", inProgress, DebugUtil.debugDumpLazily(sideEffectChanges));
+            LOGGER.debug("PROVISIONING MODIFY successful, inProgress={}, known executed changes (potentially including "
+                    + "side-effects):\n{}", inProgress, DebugUtil.debugDumpLazily(knownExecutedChanges));
 
             if (inProgress) {
                 result.recordInProgress();
@@ -818,7 +828,8 @@ public class ResourceObjectConverter {
 
         executeProvisioningScripts(ctx, ProvisioningOperationTypeType.MODIFY, BeforeAfterType.AFTER, scripts, result);
 
-        AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> asyncOpRet = AsynchronousOperationReturnValue.wrap(sideEffectChanges, result);
+        AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> asyncOpRet =
+                AsynchronousOperationReturnValue.wrap(knownExecutedChanges, result);
         if (connectorAsyncOpRet != null) {
             asyncOpRet.setOperationType(connectorAsyncOpRet.getOperationType());
         }

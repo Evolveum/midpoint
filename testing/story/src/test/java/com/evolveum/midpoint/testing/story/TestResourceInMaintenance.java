@@ -74,6 +74,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
     private static final QName CSV_ATTRIBUTE_USERNAME = new QName(NS_RI, "username");
 
     private static final TestResource<TaskType> TASK_RECONCILE_CSV = new TestResource<>(TEST_DIR, "task-reconcile-csv.xml", "9b17f4f6-3085-4210-b160-883c0e842780");
+    private static final TestResource<TaskType> TASK_REFRESH = new TestResource<>(TEST_DIR, "task-refresh.xml", "f996d5c4-0cc8-4544-9410-8154a89080fd");
 
     private static final String NS_RESOURCE_CSV = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector";
 
@@ -104,12 +105,27 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         super.initSystem(initTask, initResult);
 
         importObjectFromFile(RESOURCE_CSV_FILE);
+
+        prepareCsvResource(initTask, initResult);
     }
 
     @Test
     public void test000Sanity() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
+
+        SystemConfigurationType systemConfiguration = getSystemConfiguration();
+        assertNotNull("No system configuration", systemConfiguration);
+        display("System config", systemConfiguration);
+
+        importObjectFromFile(SHADOW_FILE);
+        importObjectFromFile(USERS_FILE);
+        importObjectFromFile(ROLE1_FILE);
+
+        turnMaintenanceModeOn(task, result);
+    }
+
+    private void prepareCsvResource(Task task, OperationResult result) throws com.evolveum.midpoint.util.exception.SchemaException, com.evolveum.midpoint.util.exception.ObjectNotFoundException, com.evolveum.midpoint.util.exception.CommunicationException, com.evolveum.midpoint.util.exception.ConfigurationException, com.evolveum.midpoint.util.exception.ExpressionEvaluationException, com.evolveum.midpoint.util.exception.SecurityViolationException, com.evolveum.midpoint.util.exception.PolicyViolationException, com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException {
         Object[] newRealValue = { sourceFilePath };
 
         ObjectDelta<ResourceType> objectDelta = prismContext.deltaFactory().object()
@@ -121,16 +137,6 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         OperationResult csvTestResult = modelService.testResource(RESOURCE_OID, task);
         TestUtil.assertSuccess("CSV resource test result", csvTestResult);
-
-        SystemConfigurationType systemConfiguration = getSystemConfiguration();
-        assertNotNull("No system configuration", systemConfiguration);
-        display("System config", systemConfiguration);
-
-        importObjectFromFile(SHADOW_FILE);
-        importObjectFromFile(USERS_FILE);
-        importObjectFromFile(ROLE1_FILE);
-
-        turnMaintenanceModeOn(task, result);
     }
 
     @Test
@@ -746,6 +752,51 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         assertUserAfter(userAfterCreation.getOid())
                 .links()
                     .assertNoLiveLinks();
+    }
+
+    /**
+     * Tests MID-6892: Shadow refresh after updates were made during maintenance mode.
+     */
+    @Test
+    public void test120UpdateAndRefresh() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        turnMaintenanceModeOff(task, result);
+
+        UserType user = new UserType(prismContext)
+                .name("test120")
+                .fullName("Jim Test120")
+                .beginAssignment()
+                    .beginConstruction()
+                        .resourceRef(RESOURCE_OID, ResourceType.COMPLEX_TYPE)
+                    .<AssignmentType>end()
+                .end();
+
+        String userOid = addObject(user.asPrismObject(), task, result);
+
+        when();
+
+        turnMaintenanceModeOn(task, result);
+
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_NAME).replace(PolyString.fromOrig("test120-changed"))
+                .asObjectDelta(userOid);
+
+        executeChanges(delta, null, task, result);
+
+        turnMaintenanceModeOff(task, result);
+
+        clockForward("PT1H");
+
+        addTask(TASK_REFRESH, result);
+        Task taskAfter = waitForTaskFinish(TASK_REFRESH.oid, false);
+
+        then();
+
+        assertTask(taskAfter, "after")
+                .display();
     }
 
     private void turnMaintenanceModeOn(Task task, OperationResult result) throws Exception {

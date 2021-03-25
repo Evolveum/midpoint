@@ -16,6 +16,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author semancik
  *
@@ -24,7 +26,7 @@ public class ResourceObjectOperations {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectOperations.class);
 
-    private Collection<Operation> operations = new ArrayList<>();
+    private final Collection<Operation> operations = new ArrayList<>();
     private PrismObject<ShadowType> currentShadow = null;
     private ProvisioningContext resourceObjectContext = null;
     private Collection<? extends ResourceAttribute<?>> allIdentifiers;
@@ -45,7 +47,7 @@ public class ResourceObjectOperations {
         this.resourceObjectContext = resourceObjectContext;
     }
 
-    public Collection<Operation> getOperations() {
+    @NotNull public Collection<Operation> getOperations() {
         return operations;
     }
 

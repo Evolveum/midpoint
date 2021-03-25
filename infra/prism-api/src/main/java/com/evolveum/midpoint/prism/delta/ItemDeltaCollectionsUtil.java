@@ -188,6 +188,18 @@ public class ItemDeltaCollectionsUtil {
         }
     }
 
+    public static void addNotEquivalent(Collection<? extends ItemDelta> modifications,
+            Collection<? extends ItemDelta> deltasToAdd) {
+        if (deltasToAdd == null) {
+            return;
+        }
+        for (ItemDelta deltaToAdd: deltasToAdd) {
+            if (!hasEquivalent(modifications, deltaToAdd)) {
+                ((Collection)modifications).add(deltaToAdd);
+            }
+        }
+    }
+
     public static void merge(Collection<? extends ItemDelta> modifications, ItemDelta delta) {
         for (ItemDelta modification: modifications) {
             if (modification.getPath().equals(delta.getPath())) {
