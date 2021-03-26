@@ -71,16 +71,16 @@ public class QAuditEventRecordMapping
                         path(QAuditResource.class, ai -> ai.resourceOid))));
 
         /*
-         * No need to map initiatorName, initiatorType, attorneyName for query, OID should suffice.
-         * There is also no F_ATTORNEY_NAME and similar paths - unless these are "extension" columns?
+         * There is also no F_ATTORNEY_TYPE and similar paths - unless these are "extension" columns?
          */
         addItemMapping(F_INITIATOR_REF, AuditRefItemFilterProcessor.mapper(
-                path(q -> q.initiatorOid), path(q -> q.initiatorType)));
-        addItemMapping(F_ATTORNEY_REF, AuditRefItemFilterProcessor.mapper(path(q -> q.attorneyOid)));
+                path(q -> q.initiatorOid), path(q -> q.initiatorName), path(q -> q.initiatorType)));
+        addItemMapping(F_ATTORNEY_REF, AuditRefItemFilterProcessor.mapper(path(q -> q.attorneyOid),
+                path(q -> q.attorneyName), null));
         addItemMapping(F_TARGET_REF, AuditRefItemFilterProcessor.mapper(
-                path(q -> q.targetOid), path(q -> q.targetType)));
+                path(q -> q.targetOid), path(q -> q.targetName), path(q -> q.targetType)));
         addItemMapping(F_TARGET_OWNER_REF, AuditRefItemFilterProcessor.mapper(
-                path(q -> q.targetOwnerOid), path(q -> q.targetOwnerType)));
+                path(q -> q.targetOwnerOid), path(q -> q.targetOwnerName), path(q -> q.targetOwnerType)));
 
         addItemMapping(F_CUSTOM_COLUMN_PROPERTY, AuditCustomColumnItemFilterProcessor.mapper());
 

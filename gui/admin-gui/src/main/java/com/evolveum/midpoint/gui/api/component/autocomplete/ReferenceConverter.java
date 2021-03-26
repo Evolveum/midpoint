@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.api.component.autocomplete;
 import java.util.List;
 import java.util.Locale;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.util.convert.ConversionException;
@@ -58,7 +60,20 @@ public class ReferenceConverter implements IConverter<ObjectReferenceType> {
             return ObjectTypeUtil.createObjectRefWithFullObject(
                     objectsList.get(0), pageBase.getPrismContext());
         }
-        return null;
+        ObjectReferenceType ref = null;
+        if (isAllowedNotFoundObjectRef()) {
+            ref = new ObjectReferenceType();
+            ref.setTargetName(new PolyStringType(value));
+            if (baseComponent != null && baseComponent.getModelObject() instanceof ObjectReferenceType) {
+                if (((ObjectReferenceType) baseComponent.getModelObject()).getRelation() == null) {
+                    ref.setRelation(pageBase.getPrismContext().getDefaultRelation());
+                } else {
+                    ref.setRelation(((ObjectReferenceType) baseComponent.getModelObject()).getRelation());
+                }
+                ref.setType(((ObjectReferenceType) baseComponent.getModelObject()).getType());
+            }
+        }
+        return ref;
 
     }
 
@@ -69,5 +84,9 @@ public class ReferenceConverter implements IConverter<ObjectReferenceType> {
 
     protected <O extends ObjectType> Class<O> getReferenceTargetObjectType() {
         return (Class<O>) AbstractRoleType.class;
+    }
+
+    protected boolean isAllowedNotFoundObjectRef() {
+        return false;
     }
 }

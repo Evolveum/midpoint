@@ -3439,6 +3439,8 @@ public final class WebComponentUtil {
         StringBuilder sb = new StringBuilder();
         if (ref.getObject() != null) {
             sb.append(WebComponentUtil.getTranslatedPolyString(ref.getObject().getName()));
+        } else if (ref.getTargetName() != null && StringUtils.isNotEmpty(ref.getTargetName().getOrig())) {
+            sb.append(WebComponentUtil.getTranslatedPolyString(ref.getTargetName()));
         }
         if (StringUtils.isNotEmpty(ref.getOid())) {
             if (sb.length() > 0) {

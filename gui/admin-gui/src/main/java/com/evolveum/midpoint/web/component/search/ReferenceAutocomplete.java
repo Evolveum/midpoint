@@ -73,6 +73,11 @@ public abstract class ReferenceAutocomplete extends AutoCompleteTextPanel<Object
             protected <O extends ObjectType> Class<O> getReferenceTargetObjectType() {
                 return ReferenceAutocomplete.this.getReferenceTargetObjectType();
             }
+
+            @Override
+            protected boolean isAllowedNotFoundObjectRef() {
+                return ReferenceAutocomplete.this.isAllowedNotFoundObjectRef();
+            }
         };
     }
 
@@ -82,5 +87,9 @@ public abstract class ReferenceAutocomplete extends AutoCompleteTextPanel<Object
 
     protected int getMaxRowsCount() {
         return 20;
+    }
+
+    protected boolean isAllowedNotFoundObjectRef(){
+        return false;
     }
 }

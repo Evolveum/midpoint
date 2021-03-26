@@ -59,6 +59,11 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
                     protected Boolean isItemPanelEnabled() {
                         return ReferenceValueSearchPanel.this.isItemPanelEnabled();
                     }
+
+                    @Override
+                    protected boolean isAllowedNotFoundObjectRef() {
+                        return ReferenceValueSearchPanel.this.isAllowedNotFoundObjectRef();
+                    }
                 };
         value.setRenderBodyOnly(true);
         return value;
@@ -79,5 +84,9 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
 
     protected List<QName> getAllowedRelations() {
         return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getPageBase());
+    }
+
+    protected boolean isAllowedNotFoundObjectRef(){
+        return false;
     }
 }
