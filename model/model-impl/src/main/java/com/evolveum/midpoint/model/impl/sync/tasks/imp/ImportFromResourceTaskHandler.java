@@ -73,8 +73,8 @@ public class ImportFromResourceTaskHandler
 
     public ImportFromResourceTaskHandler() {
         super(LOGGER, "Import", OperationConstants.IMPORT_ACCOUNTS_FROM_RESOURCE);
-        reportingOptions.setPreserveStatistics(false);
-        reportingOptions.setEnableSynchronizationStatistics(true);
+        globalReportingOptions.setPreserveStatistics(false);
+        globalReportingOptions.setEnableSynchronizationStatistics(true);
     }
 
     @PostConstruct

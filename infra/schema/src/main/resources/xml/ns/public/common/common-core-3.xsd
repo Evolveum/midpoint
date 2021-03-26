@@ -30392,4 +30392,104 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="qualifiedItemProcessingOutcome" type="tns:QualifiedItemProcessingOutcomeType" />
+
+    <xsd:complexType name="TaskReportingOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How should the task report its various aspects?
+
+                EXPERIMENTAL. Will most probably change in the future.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimentaL>true</a:experimentaL>
+                <a:container>true</a:container>
+                <a:since>4.3</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="logging" type="tns:TaskLoggingOptionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How should individual actions be logged?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="taskReportingOptions" type="tns:TaskReportingOptionsType" />
+
+    <xsd:complexType name="TaskLoggingOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configures task logging aspects.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimentaL>true</a:experimentaL>
+                <a:container>true</a:container>
+                <a:since>4.3</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="itemCompletion" type="tns:TaskLoggingOptionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How should item completion be logged?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="bucketCompletion" type="tns:TaskLoggingOptionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How should bucket completion be logged?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="taskLoggingOptions" type="tns:TaskLoggingOptionsType" />
+
+    <xsd:simpleType name="TaskLoggingOptionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Option about logging a particular task-related event.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Event should not be logged.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="brief">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Event should be logged briefly, typically by writing a single log line.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="BRIEF"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="full">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Event should be logged full. A couple of lines containing e.g. statistical information can be written.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FULL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 </xsd:schema>

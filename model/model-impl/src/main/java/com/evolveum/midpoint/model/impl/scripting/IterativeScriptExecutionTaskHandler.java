@@ -50,7 +50,7 @@ public class IterativeScriptExecutionTaskHandler
 
     public IterativeScriptExecutionTaskHandler() {
         super(LOGGER, "Execute script", OperationConstants.EXECUTE_SCRIPT);
-        reportingOptions.setPreserveStatistics(false);
+        globalReportingOptions.setPreserveStatistics(false);
     }
 
     @PostConstruct

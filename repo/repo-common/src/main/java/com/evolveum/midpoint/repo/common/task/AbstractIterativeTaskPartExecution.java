@@ -15,10 +15,7 @@ import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.schema.util.task.TaskPartPerformanceInformation;
 import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StructuredTaskProgressType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -164,7 +161,8 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         this.errorHandlingStrategyExecutor = new ErrorHandlingStrategyExecutor(
                 taskExecution.localCoordinatorTask, taskHandler.prismContext, taskHandler.repositoryService,
                 getDefaultErrorAction());
-        this.reportingOptions = taskHandler.getReportingOptions().clone();
+        this.reportingOptions = taskHandler.getGlobalReportingOptions()
+                .cloneWithConfiguration(taskExecution.getTaskContainerRealValue(SchemaConstants.MODEL_EXTENSION_REPORTING_OPTIONS));
     }
 
     public @NotNull TaskWorkBucketProcessingResult run(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
@@ -199,10 +197,8 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
         setOperationResultStatus(opResult);
 
-        updateStatisticsOnFinish();
-        if (getReportingOptions().isLogFinishInfo()) {
-            logFinishInfo(opResult);
-        }
+        updateStatisticsOnFinish(opResult);
+        logFinishInfo(opResult);
 
         finish(opResult);
 
@@ -340,15 +336,17 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         localCoordinatorTask.setProgress((long) TaskProgressUtil.getTotalProgressForCurrentPart(structuredProgress));
     }
 
-    private void updateStatisticsOnFinish() {
+    private void updateStatisticsOnFinish(OperationResult result) {
         bucketStatistics.recordEnd();
         localCoordinatorTask.recordPartExecutionEnd(partUri, getPartStartTimestamp(), bucketStatistics.getEndTimeMillis());
         localCoordinatorTask.updateStatisticsInTaskPrism(true);
+
+        // TODO eventually remove
+        TaskHandlerUtil.appendLastFailuresInformation(getTaskOperationPrefix(), localCoordinatorTask, result);
     }
 
     // TODO deduplicate with statistics output in ItemProcessingGatekeeper
     // TODO decide on the final form of these messages
-    // TODO turn on/off via reporting options
     private void logFinishInfo(OperationResult result) {
 
         long endTime = Objects.requireNonNull(bucketStatistics.endTimeMillis, "No end timestamp?");
@@ -362,7 +360,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         String currentPartUri = TaskProgressUtil.getCurrentPartUri(structuredProgress);
 
         String shortMessage =
-                String.format("Finished %s (%s). Resulting status: %s.%s",
+                String.format("Finished bucket for %s (%s). Resulting status: %s.%s",
                         getProcessShortName(), localCoordinatorTask, result.getStatus(),
                         localCoordinatorTask.canRun() ? "" : " Task was interrupted during processing.");
 
@@ -386,44 +384,44 @@ public abstract class AbstractIterativeTaskPartExecution<I,
                     partStatistics.getThroughput());
         }
 
+        String fullStatMessage = String.format(Locale.US,
+                "%s of a bucket done. Current part URI: %s\n\n"
+                        + "Items processed: %,d in current bucket and %,d in current part.\n"
+                        + "Errors: %,d in current bucket and %,d in current part.\n"
+                        + "Real progress is %,d.\n\n"
+                        + "Average duration is %,.1f ms (in current bucket) and %,.1f ms (in current part).\n"
+                        + "Wall clock average is %,.1f ms (in current bucket) and %,.1f ms (in current part).\n"
+                        + "Average throughput is %,.1f items per minute (in current bucket) and %,.1f items per minute (in current part).\n\n"
+                        + "Processing time is %,.1f ms (for current bucket) and %,.1f ms (for current part)\n"
+                        + "Wall-clock time is %,d ms (for current bucket) and %,d ms (for current part)\n"
+                        + "Start time was:\n"
+                        + " - for current bucket: %s\n"
+                        + " - for current part:   %s\n",
+                getProcessShortNameCapitalized(), currentPartUri,
+                bucketStatistics.getItemsProcessed(), partStatistics.getItemsProcessed(),
+                bucketStatistics.getErrors(), partStatistics.getErrors(),
+                partStatistics.getProgress(),
+                bucketStatistics.getAverageTime(), partStatistics.getAverageTime(),
+                bucketStatistics.getAverageWallClockTime(endTime), partStatistics.getAverageWallClockTime(),
+                bucketStatistics.getThroughput(endTime), partStatistics.getThroughput(),
+                bucketStatistics.getProcessingTime(), partStatistics.getProcessingTime(),
+                bucketStatistics.getWallClockTime(endTime), partStatistics.getWallClockTime(),
+                XmlTypeConverter.createXMLGregorianCalendar(bucketStatistics.getStartTimeMillis()),
+                partStatistics.getEarliestStartTime());
+
         result.createSubresult(getTaskOperationPrefix() + ".statistics")
                 .recordStatus(OperationResultStatus.SUCCESS, bucketStatMsg);
         result.createSubresult(getTaskOperationPrefix() + ".statistics")
                 .recordStatus(OperationResultStatus.SUCCESS, partStatMsg);
 
-        // TODO eventually remove
-        TaskHandlerUtil.appendLastFailuresInformation(getTaskOperationPrefix(), localCoordinatorTask, result);
-
-        if (logger.isDebugEnabled()) {
-            String message = String.format(Locale.US,
-                    "%s of a bucket done. Current part URI: %s\n\n"
-                            + "Items processed: %,d in current bucket and %,d in current part.\n"
-                            + "Errors: %,d in current bucket and %,d in current part.\n"
-                            + "Real progress is %,d.\n\n"
-                            + "Average duration is %,.1f ms (in current bucket) and %,.1f ms (in current part).\n"
-                            + "Wall clock average is %,.1f ms (in current bucket) and %,.1f ms (in current part).\n"
-                            + "Average throughput is %,.1f items per minute (in current bucket) and %,.1f items per minute (in current part).\n\n"
-                            + "Processing time is %,.1f ms (for current bucket) and %,.1f ms (for current part)\n"
-                            + "Wall-clock time is %,d ms (for current bucket) and %,d ms (for current part)\n"
-                            + "Start time was:\n"
-                            + " - for current bucket: %s\n"
-                            + " - for current part:   %s\n",
-                    getProcessShortNameCapitalized(), currentPartUri,
-                    bucketStatistics.getItemsProcessed(), partStatistics.getItemsProcessed(),
-                    bucketStatistics.getErrors(), partStatistics.getErrors(),
-                    partStatistics.getProgress(),
-                    bucketStatistics.getAverageTime(), partStatistics.getAverageTime(),
-                    bucketStatistics.getAverageWallClockTime(endTime), partStatistics.getAverageWallClockTime(),
-                    bucketStatistics.getThroughput(endTime), partStatistics.getThroughput(),
-                    bucketStatistics.getProcessingTime(), partStatistics.getProcessingTime(),
-                    bucketStatistics.getWallClockTime(endTime), partStatistics.getWallClockTime(),
-                    XmlTypeConverter.createXMLGregorianCalendar(bucketStatistics.getStartTimeMillis()),
-                    partStatistics.getEarliestStartTime());
-
-            logger.debug("{}", message);
-        } else {
-            // TODO debug or configurable?
+        TaskLoggingOptionType logging = reportingOptions.getBucketCompletionLogging();
+        if (logging == TaskLoggingOptionType.FULL) {
+            logger.info("{}", fullStatMessage);
+        } else if (logging == TaskLoggingOptionType.BRIEF) {
             logger.info("{}\n{}\n{}", shortMessage, bucketStatMsg, partStatMsg);
+            logger.debug("{}", fullStatMessage);
+        } else {
+            logger.debug("{}", fullStatMessage);
         }
     }
 

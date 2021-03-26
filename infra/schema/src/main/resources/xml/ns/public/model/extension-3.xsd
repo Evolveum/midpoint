@@ -90,6 +90,7 @@
             <xsd:element ref="tns:tracingProfile" minOccurs="0"/>
             <xsd:element ref="tns:tracingRoot" minOccurs="0"/>
             <xsd:element ref="tns:tracing" minOccurs="0"/>
+            <xsd:element ref="tns:reporting" minOccurs="0"/>
             <xsd:element ref="tns:notUpdatedShadowsDuration" minOccurs="0"/>
             <xsd:element ref="s:executeScript" minOccurs="0"/>
         </xsd:sequence>
@@ -668,6 +669,19 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="reporting" type="c:TaskReportingOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How should the task report its various aspects?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>TaskExtension.reportingOptions</a:displayName>
+                <a:displayOrder>855</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:indexed>false</a:indexed>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 </xsd:schema>
-
-
