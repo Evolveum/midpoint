@@ -257,7 +257,7 @@ public class ObjectImporter {
         // TODO do reporting more seriously e.g. using localized messages
         try {
             importObjectToRepository(object, options, task, objectResult);
-            LOGGER.info("Imported object {}", object);
+            LOGGER.info("Imported object {}", object); // TODO change to debug?
         } catch (SchemaException e) {
             recordError(objectResult, object, "Schema violation", e);
         } catch (ObjectAlreadyExistsException e) {

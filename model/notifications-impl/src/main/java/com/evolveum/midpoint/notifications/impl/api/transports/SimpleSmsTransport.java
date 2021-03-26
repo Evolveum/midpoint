@@ -262,7 +262,7 @@ public class SimpleSmsTransport implements Transport {
                     if (response.getStatusCode().series() != HttpStatus.Series.SUCCESSFUL) {
                         throw new SystemException("SMS gateway communication failed: " + response.getStatusCode() + ": " + response.getStatusText());
                     }
-                    LOGGER.info("Message sent successfully to {} via gateway {}.", message.getTo(), smsGatewayConfigurationType.getName());
+                    LOGGER.debug("Message sent successfully to {} via gateway {}.", message.getTo(), smsGatewayConfigurationType.getName());
                     resultForGateway.recordSuccess();
                     result.recordSuccess();
                     return;

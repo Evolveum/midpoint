@@ -204,7 +204,7 @@ class PathExpressionResolver {
                 LOGGER.warn("Unable to resolve incomplete item {} in {} because the root is not a prism object", value, rootContainer);
             } else {
                 PrismObject<?> rootObject = (PrismObject<?>) rootContainer;
-                LOGGER.info("Fetching {} because of incomplete item {}", rootObject, value);
+                LOGGER.debug("Fetching {} because of incomplete item {}", rootObject, value);
                 //noinspection unchecked
                 Class<? extends ObjectType> type = (Class<? extends ObjectType>) rootObject.asObjectable().getClass();
                 // Let's retrieve everything (at least for now). In the future we could ask just for the single item.

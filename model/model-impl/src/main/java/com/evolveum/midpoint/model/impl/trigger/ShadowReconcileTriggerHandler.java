@@ -172,7 +172,7 @@ public class ShadowReconcileTriggerHandler implements SingleTriggerHandler {
         ObjectTypeUtil.setExtensionContainerRealValues(prismContext, nextTrigger.asPrismContainerValue(),
                 SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT, nextAttemptInfo);
 
-        LOGGER.info("Scheduling new attempt for the synchronization of {} (will be #{} of {}, at {})",
+        LOGGER.debug("Scheduling new attempt for the synchronization of {} (will be #{} of {}, at {})",
                 shadow, nextAttemptInfo.getNumber(), nextAttemptInfo.getLimit(), nextTrigger.getTimestamp());
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(ShadowType.class)

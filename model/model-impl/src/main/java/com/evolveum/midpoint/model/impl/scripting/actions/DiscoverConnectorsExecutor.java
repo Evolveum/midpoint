@@ -126,7 +126,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
                 String newOid = rebindMap.get(connectorOid);
                 if (newOid != null) {
                     String msg = "resource " + resource + " from connector " + connectorOid + " to new one: " + newOid;
-                    LOGGER.info("Rebinding " + msg);
+                    LOGGER.info("Rebinding {}", msg);
                     ReferenceDelta refDelta = prismContext.deltaFactory().reference()
                             .createModificationReplace(ResourceType.F_CONNECTOR_REF, resource.getDefinition(), newOid);
                     ObjectDelta<ResourceType> objDelta = prismContext.deltaFactory().object()

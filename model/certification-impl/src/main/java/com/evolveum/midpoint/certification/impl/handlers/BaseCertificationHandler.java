@@ -83,7 +83,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
         @SuppressWarnings({ "unchecked", "raw" })
         ObjectDelta<? extends ObjectType> objectDelta = (ObjectDelta<? extends ObjectType>) prismContext.deltaFactory().object().createModifyDelta(objectOid,
                 Collections.singletonList(assignmentDelta), clazz);
-        LOGGER.info("Going to execute delta: {}", objectDelta.debugDump());
+        LOGGER.debug("Going to execute delta: {}", objectDelta.debugDump());
         modelService.executeChanges(Collections.singletonList(objectDelta), null, task, caseResult);
         LOGGER.info("Case {} in {} ({} {} of {}) was successfully revoked",
                 assignmentCase.asPrismContainerValue().getId(), ObjectTypeUtil.toShortString(campaign),

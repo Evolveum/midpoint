@@ -115,7 +115,7 @@ class IndividualEventsAcknowledgeGate<E extends AcknowledgementSink> {
 
     private void nackEvents(Collection<E> events, OperationResult result) {
         for (E event : events) {
-            LOGGER.info("Acknowledging an event (negatively): {}", event);
+            LOGGER.debug("Acknowledging an event (negatively): {}", event);
             try {
                 event.acknowledge(false, result);
             } catch (Exception e) {

@@ -309,7 +309,7 @@ public class MailTransport implements Transport {
                         t.connect();
                     }
                     t.sendMessage(mimeMessage, mimeMessage.getAllRecipients());
-                    LOGGER.info("Message sent successfully to " + mailMessage.getTo() + " via server " + host + ".");
+                    LOGGER.debug("Message sent successfully to " + mailMessage.getTo() + " via server " + host + ".");
                     resultForServer.recordSuccess();
                     result.recordSuccess();
                     long duration = System.currentTimeMillis() - start;

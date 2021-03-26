@@ -320,7 +320,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
                     String message = "getWorkBucketMultiNode: conflict; continuing as retry #{}; waiting {} ms in {}, worker {}";
                     Object[] objects = { retry, delay, ctx.coordinatorTask, ctx.workerTask, e };
                     CONTENTION_LOGGER.debug(message, objects);
-                    LOGGER.info(message, objects);      // todo change to trace
+                    LOGGER.info(message, objects); // todo change to trace
                     dynamicSleep(delay, ctx);
                     ctx.reloadCoordinatorTask(result);
                     ctx.reloadWorkerTask(result);
@@ -769,8 +769,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
     private void executeInitialDelayForMultiNode(Context ctx) throws InterruptedException {
         long delay = (long) (Math.random() * getInitialDelay(ctx.coordinatorTask.getWorkManagement()));
         if (delay != 0) {
-            // temporary info level logging
-            LOGGER.info("executeInitialDelayForMultiNode: waiting {} ms in {}", delay, ctx.workerTask);
+            LOGGER.debug("executeInitialDelayForMultiNode: waiting {} ms in {}", delay, ctx.workerTask);
             dynamicSleep(delay, ctx.canRunSupplier);
         }
     }

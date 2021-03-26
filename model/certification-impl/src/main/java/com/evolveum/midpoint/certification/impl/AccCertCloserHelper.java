@@ -229,7 +229,7 @@ public class AccCertCloserHelper {
 
     private void cleanupCampaignsByNumber(int maxRecords, Task task, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(OPERATION_CLEANUP_CAMPAIGNS_BY_NUMBER);
-        LOGGER.info("Starting cleanup for closed certification campaigns, keeping {} ones.", maxRecords);
+        LOGGER.debug("Starting cleanup for closed certification campaigns, keeping {} ones.", maxRecords);
         int deleted = 0;
         Set<String> poisonedCampaigns = new HashSet<>();
         try {
@@ -243,9 +243,12 @@ public class AccCertCloserHelper {
                         .build();
                 int delta = searchAndDeleteCampaigns(query, poisonedCampaigns, result, task);
                 if (delta == 0) {
-                    LOGGER.info("Deleted {} campaigns.", deleted);
+                    if (deleted > 0) {
+                        LOGGER.info("Cleaned up {} closed certification campaigns.", deleted);
+                    }
                     return;
                 }
+                deleted += delta;
             }
         } finally {
             result.computeStatusIfUnknown();
@@ -259,7 +262,7 @@ public class AccCertCloserHelper {
         Date deleteCampaignsFinishedUpTo = new Date();
         maxAge.addTo(deleteCampaignsFinishedUpTo);
 
-        LOGGER.info("Starting cleanup for closed certification campaigns deleting up to {} (max age '{}').", deleteCampaignsFinishedUpTo, maxAge);
+        LOGGER.debug("Starting cleanup for closed certification campaigns deleting up to {} (max age '{}').", deleteCampaignsFinishedUpTo, maxAge);
 
         OperationResult result = parentResult.createSubresult(OPERATION_CLEANUP_CAMPAIGNS_BY_AGE);
         XMLGregorianCalendar timeXml = createXMLGregorianCalendar(deleteCampaignsFinishedUpTo);
@@ -275,9 +278,12 @@ public class AccCertCloserHelper {
                         .build();
                 int delta = searchAndDeleteCampaigns(query, poisonedCampaigns, result, task);
                 if (delta == 0) {
-                    LOGGER.info("Deleted {} campaigns.", deleted);
+                    if (deleted > 0) {
+                        LOGGER.info("Cleaned up {} closed certification campaigns.", deleted);
+                    }
                     return;
                 }
+                deleted += delta;
             }
         } finally {
             result.computeStatusIfUnknown();
