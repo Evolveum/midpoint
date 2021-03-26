@@ -227,4 +227,11 @@ public class PipelineData implements DebugDumpable {
         }
         return rv;
     }
+
+    @Override
+    public String toString() {
+        return "PipelineData{" +
+                "data=" + data +
+                '}';
+    }
 }
