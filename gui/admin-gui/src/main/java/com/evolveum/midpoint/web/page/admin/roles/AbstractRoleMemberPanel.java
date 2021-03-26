@@ -1233,6 +1233,22 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 return WebComponentUtil.classToQName(AbstractRoleMemberPanel.this.getPrismContext(),
                         AbstractRoleMemberPanel.this.getDefaultObjectType());
             }
+
+            @Override
+            protected IModel<String> getWarningMessageModel() {
+                if (SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope())) {
+                    return getPageBase().createStringResource("abstractRoleMemberPanel.unassign.warning.subtree");
+                }
+                return null;
+            }
+
+            @Override
+            public int getHeight() {
+                if (SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope())) {
+                    return 325;
+                }
+                return 230;
+            }
         };
 
         getPageBase().showMainPopup(chooseTypePopupContent, target);
