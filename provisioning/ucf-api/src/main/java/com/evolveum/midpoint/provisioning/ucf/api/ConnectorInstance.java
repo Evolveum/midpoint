@@ -249,9 +249,16 @@ public interface ConnectorInstance {
      * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not
      *  and what results are we not sure about.
      *
-     * Returns a set of attributes that were changed as a result of the operation. This may include attributes
-     * that were changed as a side effect of the operations, e.g. attributes that were not originally specified
-     * in the "changes" parameter.
+     * Returns modifications that the connector reports as executed as part of the operation.
+     * These reported modifications MAY include the following:
+     *
+     * 1. Modifications that were requested and executed.
+     * 2. Any other modifications that resulted from the operation, i.e. side effects. An example is UID change
+     *    stemming from object rename. Or DN change stemming from CN change.
+     *
+     * The exact content of the returned set depends on the actual connector used. Some connectors return requested
+     * and executed operations, some do not. Also some connectors return side effects, some only part of them,
+     * and some none of them.
      *
      * The exception should be thrown only if the connector is sure that nothing was done on the resource.
      * E.g. in case of connect timeout or connection refused. Timeout during operation should not cause the

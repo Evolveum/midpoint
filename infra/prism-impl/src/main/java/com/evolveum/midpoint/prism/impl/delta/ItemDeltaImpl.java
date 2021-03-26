@@ -1823,7 +1823,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue, D extends ItemDefiniti
     public boolean equivalent(ItemDelta other) {
         if (elementName == null) {
             if (other.getElementName() != null) { return false; }
-        } else if (!QNameUtil.match(elementName, elementName)) {
+        } else if (!QNameUtil.match(elementName, other.getElementName())) {
             return false;
         }
         if (parentPath == null) {

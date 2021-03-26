@@ -198,9 +198,9 @@ class ModifyHelper {
                                     .modifyResourceObject(ctx, repoShadow, scripts, connOptions, modifications, now, parentResult);
                     opState.processAsyncResult(asyncReturnValue);
 
-                    Collection<PropertyDelta<PrismPropertyValue>> sideEffectChanges = asyncReturnValue.getReturnValue();
-                    if (sideEffectChanges != null) {
-                        ItemDeltaCollectionsUtil.addAll(modifications, sideEffectChanges);
+                    Collection<PropertyDelta<PrismPropertyValue>> knownExecutedDeltas = asyncReturnValue.getReturnValue();
+                    if (knownExecutedDeltas != null) {
+                        ItemDeltaCollectionsUtil.addNotEquivalent(modifications, knownExecutedDeltas);
                     }
 
                 } catch (Exception ex) {
@@ -301,18 +301,16 @@ class ModifyHelper {
 
         try {
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Applying change: {}", DebugUtil.debugDump(modifications));
-            }
+            LOGGER.trace("Applying change: {}", DebugUtil.debugDumpLazily(modifications));
 
             AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncReturnValue =
                     resourceObjectConverter
                             .modifyResourceObject(ctx, repoShadow, scripts, connOptions, modifications, now, parentResult);
             opState.processAsyncResult(asyncReturnValue);
 
-            Collection<PropertyDelta<PrismPropertyValue>> sideEffectChanges = asyncReturnValue.getReturnValue();
-            if (sideEffectChanges != null) {
-                ItemDeltaCollectionsUtil.addAll(modifications, sideEffectChanges);
+            Collection<PropertyDelta<PrismPropertyValue>> knownExecutedDeltas = asyncReturnValue.getReturnValue();
+            if (knownExecutedDeltas != null) {
+                ItemDeltaCollectionsUtil.addNotEquivalent(modifications, knownExecutedDeltas);
             }
 
         } catch (Exception ex) {
