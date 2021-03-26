@@ -9,11 +9,22 @@ package com.evolveum.midpoint.web.page.admin.reports;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
+import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanel;
+import com.evolveum.midpoint.web.session.SessionStorage;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -22,6 +33,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -138,7 +150,6 @@ public class PageAuditLogDetails extends PageBase {
             getPageParameters().overwriteWith(params);
         }
         initAuditModel();
-
     }
 
     @Override
@@ -191,119 +202,37 @@ public class PageAuditLogDetails extends PageBase {
         WebMarkupContainer eventPanel = new WebMarkupContainer(ID_EVENT_PANEL);
         eventPanel.setOutputMarkupId(true);
         add(eventPanel);
-//        initAuditLogHistoryPanel(eventPanel);
+        initAuditLogHistoryPanel(eventPanel);
         initEventPanel(eventPanel);
         initDeltasPanel(eventPanel);
         initLayoutBackButton();
     }
 
-//    public Map<String, Object> getAuditEventRecordProviderParameters() {
-//        Map<String, Object> parameters = new HashMap<>();
-//        parameters.put(AuditEventRecordProvider.PARAMETER_TASK_IDENTIFIER, recordModel.getObject().getTaskIdentifier());
-//        return parameters;
-//    }
+    private void initAuditLogHistoryPanel(WebMarkupContainer eventPanel) {
 
-//    private void initAuditLogHistoryPanel(WebMarkupContainer eventPanel) {
-//        AuditEventRecordProvider provider = new AuditEventRecordProvider(PageAuditLogDetails.this, null,
-//                this::getAuditEventRecordProviderParameters);
-//
-//        BoxedTablePanel<AuditEventRecordType> table = new BoxedTablePanel<AuditEventRecordType>(
-//                ID_HISTORY_PANEL, provider, initColumns(), UserProfileStorage.TableId.TASK_EVENTS_TABLE) {
-//
-//            @Override
-//            protected Item<AuditEventRecordType> customizeNewRowItem(final Item<AuditEventRecordType> item,
-//                    final IModel<AuditEventRecordType> rowModel) {
-//
-//                if (rowModel.getObject().getTimestamp().equals(recordModel.getObject().getTimestamp())) {
-//                    item.add(new AttributeAppender("style", "background-color: #eee; border-color: #d6d6d6; color: #000"));
-//                }
-//
-//                item.add(new AjaxEventBehavior("click") {
-//                    private static final long serialVersionUID = 1L;
-//
-//                    @Override
-//                    protected void onEvent(AjaxRequestTarget target) {
-//                        PageAuditLogDetails.this.rowItemClickPerformed(target, rowModel);
-//                    }
-//                });
-//                return item;
-//            }
-//        };
-//        table.getFooterMenu().setVisible(false);
-//        table.getFooterCountLabel().setVisible(false);
-//        //TODO hidden temporarily
-//        table.setVisible(false);
-//        table.setOutputMarkupId(true);
-//        table.setAdditionalBoxCssClasses("without-box-header-top-border");
-//        eventPanel.addOrReplace(table);
-//
-//    }
+        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_HISTORY_PANEL) {
+            private static final long serialVersionUID = 1L;
 
-//    private void rowItemClickPerformed(
-//            AjaxRequestTarget target, final IModel<AuditEventRecordType> rowModel) {
-//        recordModel.setObject(rowModel.getObject());
-//        AuditLogStorage storage = getSessionStorage().getAuditLog();
-//        storage.setAuditRecord(rowModel.getObject());
-//        WebMarkupContainer eventPanel = (WebMarkupContainer) PageAuditLogDetails.this.get(ID_EVENT_PANEL);
-//        initAuditLogHistoryPanel(eventPanel);
-//        initEventPanel(eventPanel);
-//        initDeltasPanel(eventPanel);
-//        target.add(eventPanel);
-//
-//    }
+            @Override
+            protected ObjectQuery getCustomizeContentQuery(){
+                return getPageBase().getPrismContext().queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_TASK_IDENTIFIER)
+                        .eq(recordModel.getObject().getTaskIdentifier())
+                        .build();
+            }
 
-//    private List<IColumn<AuditEventRecordType, String>> initColumns() {
-//        List<IColumn<AuditEventRecordType, String>> columns = new ArrayList<>();
-//        PropertyColumn<AuditEventRecordType, String> timeColumn = new PropertyColumn<AuditEventRecordType, String>
-//                (createStringResource("AuditEventRecordType.timestamp"),
-//                        AuditEventRecordType.F_TIMESTAMP.getLocalPart()) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void populateItem(Item<ICellPopulator<AuditEventRecordType>> item, String componentId,
-//                    IModel<AuditEventRecordType> rowModel) {
-//                XMLGregorianCalendar time = rowModel.getObject().getTimestamp();
-//                item.add(new Label(componentId, WebComponentUtil.getShortDateTimeFormattedValue(time, PageAuditLogDetails.this)));
-//            }
-//        };
-//        columns.add(timeColumn);
-//        PropertyColumn<AuditEventRecordType, String> stageColumn = new PropertyColumn<AuditEventRecordType, String>
-//                (createStringResource("PageAuditLogViewer.eventStageShortLabel"),
-//                        AuditEventRecordType.F_EVENT_STAGE.getLocalPart()) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void populateItem(Item<ICellPopulator<AuditEventRecordType>> item, String componentId,
-//                    IModel<AuditEventRecordType> rowModel) {
-//                AuditEventStageType stage = rowModel.getObject().getEventStage();
-//                String shortStage = "";
-//                if (AuditEventStageType.EXECUTION.equals(stage)) {
-//                    shortStage = AuditEventStageType.EXECUTION.value().substring(0, 4);
-//                } else if (AuditEventStageType.REQUEST.equals(stage)) {
-//                    shortStage = AuditEventStageType.REQUEST.value().substring(0, 3);
-//                }
-//                item.add(new Label(componentId, shortStage));
-//            }
-//        };
-//        columns.add(stageColumn);
-//        PropertyColumn<AuditEventRecordType, String> typeColumn = new PropertyColumn<AuditEventRecordType, String>
-//                (createStringResource("PageAuditLogViewer.eventTypeShortLabel"),
-//                        AuditEventRecordType.F_EVENT_TYPE.getLocalPart()) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void populateItem(Item<ICellPopulator<AuditEventRecordType>> item, String componentId,
-//                    IModel<AuditEventRecordType> rowModel) {
-//                //TODO create some proper short values
-//                AuditEventTypeType type = rowModel.getObject().getEventType();
-//                String typeVal = type.value().substring(0, 4);
-//                item.add(new Label(componentId, typeVal));
-//            }
-//        };
-//        columns.add(typeColumn);
-//
-//        return columns;
-//    }
+            @Override
+            protected String getAuditStorageKey(String collectionNameValue) {
+                if (StringUtils.isNotEmpty(collectionNameValue)) {
+                    return SessionStorage.KEY_EVENT_DETAIL_AUDIT_LOG + "." + collectionNameValue;
+                }
+                return SessionStorage.KEY_EVENT_DETAIL_AUDIT_LOG;
+            }
+        };
+        panel.setOutputMarkupId(true);
+        panel.add(new VisibleBehaviour(() -> recordModel.getObject() != null && recordModel.getObject().getTaskIdentifier() != null));
+        eventPanel.addOrReplace(panel);
+    }
 
     private void initEventPanel(WebMarkupContainer eventPanel) {
 

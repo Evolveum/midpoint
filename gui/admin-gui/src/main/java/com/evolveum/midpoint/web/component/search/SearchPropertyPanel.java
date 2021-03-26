@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
@@ -75,6 +76,11 @@ public class SearchPropertyPanel<T extends Serializable> extends AbstractSearchI
                     @Override
                     public Boolean isItemPanelEnabled() {
                         return item.isEnabled();
+                    }
+
+                    @Override
+                    protected boolean isAllowedNotFoundObjectRef() {
+                        return item.getSearch().getTypeClass().equals(AuditEventRecordType.class);
                     }
                 };
                 break;
