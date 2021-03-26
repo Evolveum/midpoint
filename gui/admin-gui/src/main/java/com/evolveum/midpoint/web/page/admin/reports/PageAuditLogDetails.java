@@ -116,7 +116,7 @@ public class PageAuditLogDetails extends PageBase {
     private static final String ID_ADDITIONAL_ITEM_LINE = "additionalItemLine";
     private static final String ID_ITEM_NAME = "itemName";
     private static final String ID_ITEM_VALUE = "itemValue";
-    private static final String ID_HISTORY_PANEL = "historyPanel";
+//    private static final String ID_HISTORY_PANEL = "historyPanel";
 
     private static final String ID_BUTTON_BACK = "back";
     private static final int TASK_EVENTS_TABLE_SIZE = 10;
@@ -202,37 +202,37 @@ public class PageAuditLogDetails extends PageBase {
         WebMarkupContainer eventPanel = new WebMarkupContainer(ID_EVENT_PANEL);
         eventPanel.setOutputMarkupId(true);
         add(eventPanel);
-        initAuditLogHistoryPanel(eventPanel);
+//        initAuditLogHistoryPanel(eventPanel);
         initEventPanel(eventPanel);
         initDeltasPanel(eventPanel);
         initLayoutBackButton();
     }
 
-    private void initAuditLogHistoryPanel(WebMarkupContainer eventPanel) {
-
-        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_HISTORY_PANEL) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected ObjectQuery getCustomizeContentQuery(){
-                return getPageBase().getPrismContext().queryFor(AuditEventRecordType.class)
-                        .item(AuditEventRecordType.F_TASK_IDENTIFIER)
-                        .eq(recordModel.getObject().getTaskIdentifier())
-                        .build();
-            }
-
-            @Override
-            protected String getAuditStorageKey(String collectionNameValue) {
-                if (StringUtils.isNotEmpty(collectionNameValue)) {
-                    return SessionStorage.KEY_EVENT_DETAIL_AUDIT_LOG + "." + collectionNameValue;
-                }
-                return SessionStorage.KEY_EVENT_DETAIL_AUDIT_LOG;
-            }
-        };
-        panel.setOutputMarkupId(true);
-        panel.add(new VisibleBehaviour(() -> recordModel.getObject() != null && recordModel.getObject().getTaskIdentifier() != null));
-        eventPanel.addOrReplace(panel);
-    }
+//    private void initAuditLogHistoryPanel(WebMarkupContainer eventPanel) {
+//
+//        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_HISTORY_PANEL) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected ObjectQuery getCustomizeContentQuery(){
+//                return getPageBase().getPrismContext().queryFor(AuditEventRecordType.class)
+//                        .item(AuditEventRecordType.F_TASK_IDENTIFIER)
+//                        .eq(recordModel.getObject().getTaskIdentifier())
+//                        .build();
+//            }
+//
+//            @Override
+//            protected String getAuditStorageKey(String collectionNameValue) {
+//                if (StringUtils.isNotEmpty(collectionNameValue)) {
+//                    return SessionStorage.KEY_EVENT_DETAIL_AUDIT_LOG + "." + collectionNameValue;
+//                }
+//                return SessionStorage.KEY_EVENT_DETAIL_AUDIT_LOG;
+//            }
+//        };
+//        panel.setOutputMarkupId(true);
+//        panel.add(new VisibleBehaviour(() -> recordModel.getObject() != null && recordModel.getObject().getTaskIdentifier() != null));
+//        eventPanel.addOrReplace(panel);
+//    }
 
     private void initEventPanel(WebMarkupContainer eventPanel) {
 
