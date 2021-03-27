@@ -79,7 +79,7 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
             OperationResult globalResult) throws ScriptExecutionException, SchemaException, ConfigurationException,
             ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
 
-        checkRootAuthorization(context, globalResult, NAME);
+        checkExecuteCustomCodeAuthorization(context, globalResult, NAME);
 
         Parameters parameters = getParameters(action, input, context, globalResult);
         PipelineData output = PipelineData.createEmpty();

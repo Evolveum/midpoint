@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -321,6 +322,16 @@ public abstract class SchemaConstants {
     public static final ItemName MODEL_EXTENSION_TRACING = new ItemName(NS_MODEL_EXTENSION, "tracing");
     public static final ItemName MODEL_EXTENSION_NOT_UPDATED_SHADOW_DURATION = new ItemName(NS_MODEL_EXTENSION, "notUpdatedShadowsDuration");
     public static final ItemName MODEL_EXTENSION_REPORTING_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "reporting");
+
+    @Experimental
+    @Deprecated
+    public static final ItemName MODEL_EXTENSION_TASK_TEMPLATE_EXECUTION_INITIATOR_REF =
+            new ItemName(NS_MODEL_EXTENSION, "taskTemplateExecutionInitiatorRef");
+
+    @Experimental
+    @Deprecated
+    public static final ItemName MODEL_EXTENSION_USE_TASK_TEMPLATE_OWNER =
+            new ItemName(NS_MODEL_EXTENSION, "useTaskTemplateOwner");
 
     public static final String NS_MODEL_DISABLE_REASON = NS_MODEL + "/disableReason";
     public static final String MODEL_DISABLE_REASON_EXPLICIT =

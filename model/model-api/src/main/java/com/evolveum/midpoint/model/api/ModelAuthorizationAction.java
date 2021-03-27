@@ -84,6 +84,13 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
     PARTIAL_EXECUTION("partialExecution", "Partial execution", "PARTIAL_EXECUTION_HELP"),
     GET_EXTENSION_SCHEMA("getExtensionSchema", "Get extension schema", "GET_EXTENSION_SCHEMA_HELP"),
 
+    @Experimental
+    @Deprecated // will be removed soon
+    RUN_AS_TASK_TEMPLATE_OWNER("runAsTaskTemplateOwner", "Run as task template owner", "RUN_AS_TASK_TEMPLATE_OWNER_HELP"),
+
+    @Experimental
+    EXECUTE_CUSTOM_CODE("executeCustomCode", "Execute custom code", "EXECUTE_CUSTOM_CODE_HELP"),
+
     RUN_REPORT("runReport", "Run report", "RUN_REPORT_HELP"),
     IMPORT_REPORT("importReport", "Import report", "IMPORT_REPORT_HELP"),
 

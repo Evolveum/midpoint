@@ -10,9 +10,11 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
         oid="79dacdf7-2bc9-4eef-9c63-08d53d2392c3">
     <name>Change description task template</name>
     <extension>
+        <mext:useTaskTemplateOwner>true</mext:useTaskTemplateOwner> <!-- EXPERIMENTAL, DEPRECATED -->
         <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
             <s:pipeline>
                 <s:search>
@@ -32,6 +34,17 @@
                     <s:script>
                         <code>
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+
+                            principalOid = midpoint?.principal?.oid
+                            if (principalOid != '00000000-0000-0000-0000-000000000002') {
+                                throw new IllegalStateException('Incorrect principal OID: ' + principalOid)
+                            }
+
+                            currentTask = midpoint.getCurrentTask().getClonedTaskObject().asObjectable()
+                            initiatorRef = basic.getExtensionReferenceValue(currentTask, '', 'taskTemplateExecutionInitiatorRef')
+                            if (initiatorRef?.oid != '0f748045-450d-43a5-a720-ea6adc83e43f') {
+                                throw new IllegalStateException('Incorrect or missing initiatorRef: ' + initiatorRef)
+                            }
 
                             log.info('Modifying user {}', input)
                             def deltas = midpoint.deltaFor(UserType.class)

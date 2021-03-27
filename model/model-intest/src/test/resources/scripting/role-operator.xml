@@ -1,0 +1,39 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="8ecc780c-93ad-4f2f-a720-ae3c2c584cbf">
+    <name>operator</name>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#executeScript</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#executeCustomCode</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#runAsTaskTemplateOwner</action>
+    </authorization>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <object>
+            <type>UserType</type>
+        </object>
+        <object>
+            <type>OrgType</type>
+        </object>
+        <object>
+            <type>RoleType</type>
+        </object>
+        <object>
+            <type>ServiceType</type>
+        </object>
+        <object>
+            <type>ResourceType</type>
+        </object>
+        <object>
+            <type>TaskType</type>
+        </object>
+    </authorization>
+</role>

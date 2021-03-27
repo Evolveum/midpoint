@@ -40,6 +40,8 @@ import java.util.*;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
+
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
@@ -980,6 +982,36 @@ public class ObjectTypeUtil {
         OperationResultType resultBean = result.createOperationResultType();
         assert OperationResultUtil.isError(resultBean.getStatus());
         object.asObjectable().setFetchResult(resultBean);
+    }
+
+    @Experimental
+    public static <T> void setExtensionItemValue(PrismObject<?> object, ItemName extensionItemName, T realValue)
+            throws SchemaException {
+        PrismContainer<?> extension = object.getOrCreateExtension();
+        if (realValue == null) {
+            //noinspection unchecked
+            Item<?, ?> extensionItem = extension.findItem((ItemPath) extensionItemName, Item.class);
+            if (extensionItem != null) {
+                extensionItem.clear();
+            }
+        } else {
+            //noinspection unchecked
+            Item<?, ?> extensionItem = extension.findOrCreateItem(extensionItemName, Item.class);
+            extensionItem.clear();
+            if (extensionItem instanceof PrismContainer) {
+                schemaCheck(realValue instanceof Containerable, "Only containerables can be put into %s", extensionItem);
+                //noinspection unchecked
+                ((PrismContainer<?>) extensionItem).add(((Containerable) realValue).asPrismContainerValue());
+            } else if (extensionItem instanceof PrismReference) {
+                schemaCheck(realValue instanceof Referencable, "Only referencables can be put into %s", extensionItem);
+                ((PrismReference) extensionItem).add(((Referencable) realValue).asReferenceValue());
+            } else if (extensionItem instanceof PrismProperty) {
+                //noinspection unchecked
+                ((PrismProperty<T>) extensionItem).addRealValue(realValue);
+            } else {
+                throw new IllegalStateException("Unknown extension item type: " + extensionItem);
+            }
+        }
     }
 
     @FunctionalInterface

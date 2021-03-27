@@ -9,14 +9,12 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import static com.evolveum.midpoint.model.impl.scripting.VariablesUtil.cloneIfNecessary;
 
+import com.evolveum.midpoint.model.api.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.impl.scripting.*;
 import com.evolveum.midpoint.model.impl.scripting.helpers.ExpressionHelper;
@@ -35,7 +33,6 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -95,13 +92,13 @@ public abstract class BaseActionExecutor implements ActionExecutor {
         }
     }
 
-    void checkRootAuthorization(ExecutionContext context, OperationResult globalResult, String actionName)
+    void checkExecuteCustomCodeAuthorization(ExecutionContext context, OperationResult globalResult, String actionName)
             throws ScriptExecutionException {
         if (context.isPrivileged()) {
             return;
         }
         try {
-            securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, context.getTask(), globalResult);
+            securityEnforcer.authorize(ModelAuthorizationAction.EXECUTE_CUSTOM_CODE.getUrl(), null, AuthorizationParameters.EMPTY, null, context.getTask(), globalResult);
         } catch (SecurityViolationException | SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
             throw new ScriptExecutionException("You are not authorized to execute '" + actionName + "' action.");
         }

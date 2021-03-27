@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 
@@ -18,6 +20,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulin
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.security.enforcer.api.*;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
@@ -90,10 +94,6 @@ import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
-import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
-import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -1660,10 +1660,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             }
             TaskType newTask = modelService.getObject(TaskType.class, templateTaskOid,
                     createCollection(createExecutionPhase()), opTask, result).asObjectable();
+            setOwnerRefForNewTask(newTask, principal, opTask, result);
             newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
             newTask.setOid(null);
             newTask.setTaskIdentifier(null);
-            newTask.setOwnerRef(createObjectRef(principal.getFocus(), prismContext));
             newTask.setExecutionStatus(RUNNABLE);
             newTask.setSchedulingState(READY);
             for (Item<?, ?> extensionItem : extensionItems) {
@@ -1679,6 +1679,47 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         } catch (Throwable t) {
             result.recordFatalError("Couldn't submit task from template: " + t.getMessage(), t);
             throw t;
+        }
+    }
+
+    private void setOwnerRefForNewTask(TaskType newTask, MidPointPrincipal principal, Task opTask, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        ObjectReferenceType principalRef = createObjectRef(principal.getFocus(), prismContext);
+        if (useOwnerFromTemplate(newTask, principal, opTask, result)) {
+            schemaCheck(newTask.getOwnerRef() != null, "Object template " + newTask + " has no owner");
+            ObjectTypeUtil.setExtensionItemValue(newTask.asPrismObject(),
+                    SchemaConstants.MODEL_EXTENSION_TASK_TEMPLATE_EXECUTION_INITIATOR_REF, principalRef.clone());
+        } else {
+            newTask.setOwnerRef(principalRef);
+        }
+    }
+
+    private boolean useOwnerFromTemplate(TaskType newTask, MidPointPrincipal principal, Task opTask, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
+        Boolean useTaskTemplateOwner = ObjectTypeUtil.getExtensionItemRealValue(newTask.asPrismObject(),
+                SchemaConstants.MODEL_EXTENSION_USE_TASK_TEMPLATE_OWNER);
+        if (!Boolean.TRUE.equals(useTaskTemplateOwner)) {
+            return false;
+        }
+
+        PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+        if (systemConfiguration == null || systemConfiguration.asObjectable().getInternals() == null ||
+            !Boolean.TRUE.equals(systemConfiguration.asObjectable().getInternals().isEnableRunAsTaskTemplateOwnerAuthorization())) {
+            LOGGER.warn("Use of task template owner was requested but this (experimental) feature is not enabled"
+                    + " in the system configuration. Task: {}", newTask);
+            return false;
+        }
+
+        boolean authorized = securityEnforcer.isAuthorized(ModelAuthorizationAction.RUN_AS_TASK_TEMPLATE_OWNER.getUrl(),
+                null, AuthorizationParameters.EMPTY, null, opTask, result);
+        if (authorized) {
+            return true;
+        } else {
+            LOGGER.warn("Use of task template owner was requested but the currently logged-in user does not have appropriate "
+                    + "authorization. Task will be run under its own identity. Task: {}, User: {}", newTask, principal);
+            return false;
         }
     }
 

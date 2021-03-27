@@ -18833,6 +18833,21 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="enableRunAsTaskTemplateOwnerAuthorization" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether to enable task template owner authorization.
+                        EXPERIMENTAL. DEPRECATED. This feature is temporary and will be removed soon.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.3</a:deprecatedSince>
+                        <a:experimental>true</a:experimental>
+                        <a:displayName>InternalsConfigurationType.enableRunAsTaskTemplateOwnerAuthorization</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="internalsConfiguration" type="tns:InternalsConfigurationType"/>

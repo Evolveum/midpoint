@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -136,6 +137,9 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
     private static final File TASK_TO_RESUME_FILE = new File(TEST_DIR, "task-to-resume.xml");
     private static final File TASK_TO_KEEP_SUSPENDED_FILE = new File(TEST_DIR, "task-to-keep-suspended.xml");
     private static final String RESUME_SUSPENDED_TASKS = "resume-suspended-tasks";
+
+    private static final TestResource<UserType> ROLE_OPERATOR = new TestResource<>(TEST_DIR, "role-operator.xml", "8ecc780c-93ad-4f2f-a720-ae3c2c584cbf");
+    private static final TestResource<UserType> USER_OPERATOR = new TestResource<>(TEST_DIR, "user-operator.xml", "0f748045-450d-43a5-a720-ea6adc83e43f");
 
     // Tests 6xx
     private static final String MODIFY_JACK_PASSWORD = "modify-jack-password";
@@ -1177,11 +1181,22 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
+        repoAddObject(ROLE_OPERATOR, result);
+        repoAddObject(USER_OPERATOR, result);
+
         repoAddObjectFromFile(SCRIPTING_USERS_IN_BACKGROUND_TASK_FILE, result);
         ExecuteScriptType exec = parseExecuteScript(START_TASKS_FROM_TEMPLATE);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(exec, VariablesMap.emptyMap(), false, task, result);
+        ExecutionContext output;
+        try {
+            setEnableRunAsTaskTemplateOwnerAuthorization(true, result);
+            login(getUser(USER_OPERATOR.oid));
+            output = evaluator.evaluateExpression(exec, VariablesMap.emptyMap(), false, task, result);
+        } finally {
+            login(userAdministrator);
+            setEnableRunAsTaskTemplateOwnerAuthorization(false, result);
+        }
 
         then();
         dumpOutput(output, result);
@@ -1453,4 +1468,13 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         return parseExecuteScript(getFile(name));
     }
 
+    private void setEnableRunAsTaskTemplateOwnerAuthorization(boolean value, OperationResult result)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        List<ItemDelta<?, ?>> itemDeltas = deltaFor(SystemConfigurationType.class)
+                .item(SystemConfigurationType.F_INTERNALS, InternalsConfigurationType.F_ENABLE_RUN_AS_TASK_TEMPLATE_OWNER_AUTHORIZATION)
+                .replace(value)
+                .asItemDeltas();
+        repositoryService.modifyObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), itemDeltas,
+                result);
+    }
 }

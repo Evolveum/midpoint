@@ -684,4 +684,46 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
+
+    <xsd:element name="useTaskTemplateOwner" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                If true, this tasks derived from this template use the template owner,
+                instead of currently logged-in user. Requires runAsTaskTemplateOwner authorization
+                held by the currently logged-in user as well as this feature being explicitly enabled
+                in the system configuration.
+                EXPERIMENTAL. DEPRECATED. This feature is temporary and will be removed soon.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>TaskExtension.useTaskTemplateOwner</a:displayName>
+                <a:displayOrder>999</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:indexed>false</a:indexed>
+                <a:experimental>true</a:experimental>
+                <a:deprecated>true</a:deprecated>
+                <a:deprecatedSince>4.3</a:deprecatedSince>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="taskTemplateExecutionInitiatorRef" type="c:ObjectReferenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                What was the original principal that initiates a task template execution
+                (that uses template ownerRef as the identity under which it runs)?
+                EXPERIMENTAL. DEPRECATED. This feature is temporary and will be removed soon.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>TaskExtension.taskTemplateExecutionInitiatorRef</a:displayName>
+                <a:displayOrder>999</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:indexed>false</a:indexed>
+                <a:experimental>true</a:experimental>
+                <a:deprecated>true</a:deprecated>
+                <a:deprecatedSince>4.3</a:deprecatedSince>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 </xsd:schema>

@@ -70,7 +70,7 @@ public class NotifyExecutor extends BaseActionExecutor {
                 NotifyActionExpressionType.F_FOR_WHOLE_INPUT, PARAM_FOR_WHOLE_INPUT, input, context, false, PARAM_FOR_WHOLE_INPUT, globalResult);
 
         if (handler != null) {
-            checkRootAuthorization(context, globalResult, NAME); // TODO explain that the reason is that handler is not null
+            checkExecuteCustomCodeAuthorization(context, globalResult, NAME); // TODO explain that the reason is that handler is not null
         }
 
         requireNonNull(notificationManager, "Notification manager is unavailable");
