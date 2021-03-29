@@ -62,7 +62,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         sanityUserOid = repositoryService.addObject(userType.asPrismObject(), null, result);
 
         assertThat(sanityUserOid).isNotNull();
-        assertResult(result);
+        assertThatOperationResult(result).isSuccess();
     }
 
     @Test(enabled = false) // TODO deleteObject not implemented yet
@@ -73,7 +73,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
                 repositoryService.deleteObject(UserType.class, sanityUserOid, result);
 
         assertThat(deleteResult).isNotNull();
-        assertResult(result);
+        assertThatOperationResult(result).isSuccess();
     }
 
     // region low-level tests
