@@ -42,7 +42,7 @@ public class SqlTransformerSupport {
     }
 
     @NotNull
-    public PrismSerializer<String> serializer() {
+    public PrismSerializer<String> createStringSerializer() {
         return schemaService.createStringSerializer(
                 sqlRepoContext.getJdbcRepositoryConfiguration().getFullObjectFormat());
     }

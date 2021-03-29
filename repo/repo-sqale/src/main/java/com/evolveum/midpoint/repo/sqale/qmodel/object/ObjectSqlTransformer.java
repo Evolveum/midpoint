@@ -50,11 +50,13 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         PrismObject<S> prismObject;
         String serializedForm = new String(row.get(entityPath.fullObject), StandardCharsets.UTF_8);
         try {
-            SqlTransformerSupport.ParseResult<S> result = transformerSupport.parsePrismObject(serializedForm);
+            SqlTransformerSupport.ParseResult<S> result =
+                    transformerSupport.parsePrismObject(serializedForm);
             prismObject = result.prismObject;
             if (result.parsingContext.hasWarnings()) {
                 logger.warn("Object {} parsed with {} warnings",
-                        ObjectTypeUtil.toShortString(prismObject), result.parsingContext.getWarnings().size());
+                        ObjectTypeUtil.toShortString(prismObject),
+                        result.parsingContext.getWarnings().size());
             }
         } catch (SchemaException | RuntimeException | Error e) {
             // This is a serious thing. We have corrupted XML in the repo. This may happen even
@@ -205,7 +207,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
                     "Serialized object must have assigned OID and version: " + schemaObject);
         }
 
-        return transformerSupport.serializer()
+        return transformerSupport.createStringSerializer()
                 .itemsToSkip(fullObjectItemsToSkip())
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()
