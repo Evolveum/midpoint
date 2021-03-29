@@ -81,7 +81,7 @@ public class ClusterwideUserSessionManagerImpl implements ClusterwideUserSession
         clusterExecutionHelper.execute((client, node, result1) -> {
             client.path(ClusterServiceConsts.EVENT_LIST_USER_SESSION);
             Response response = client.get();
-            LOGGER.info("Remote-node retrieval of user sessions finished on {} with status {}, {}", node.getNodeIdentifier(),
+            LOGGER.debug("Remote-node retrieval of user sessions finished on {} with status {}, {}", node.getNodeIdentifier(),
                     response.getStatusInfo().getStatusCode(), response.getStatusInfo().getReasonPhrase());
 
             if (response.hasEntity()) {

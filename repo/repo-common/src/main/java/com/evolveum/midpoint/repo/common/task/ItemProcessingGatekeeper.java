@@ -249,12 +249,7 @@ class ItemProcessingGatekeeper<I> {
 
     // TODO deduplicate with statistics output in AbstractIterativeTaskPartExecution
     // TODO decide on the final form of these messages
-    // TODO turn on/off via reporting options
     private void logResultAndExecutionStatistics(OperationResult result) {
-        if (!logger.isDebugEnabled()) {
-            return;
-        }
-
         CurrentBucketStatistics bucketStatistics = getCurrentBucketStatistics();
 
         long now = operation.getEndTimeMillis();
@@ -264,9 +259,20 @@ class ItemProcessingGatekeeper<I> {
         TaskPartPerformanceInformation partStatistics =
                 TaskPartPerformanceInformation.forCurrentPart(operationStats, structuredProgress);
 
-        String message = String.format(Locale.US,
-                "%s of %s %s done with status %s.\n\n"
-                        + "Items processed: %,d in current bucket and %,d in current part.\n"
+        String mainMessage = String.format(Locale.US, "%s of %s %s done with status %s.",
+                getProcessShortNameCapitalized(), iterationItemInformation, getContextDesc(), result.getStatus());
+
+        String briefStats = String.format(Locale.US, "Items processed: %,d (%,d in part), errors: %,d (%,d in part).",
+                bucketStatistics.getItemsProcessed(), partStatistics.getItemsProcessed(),
+                bucketStatistics.getErrors(), partStatistics.getErrors());
+
+        Double partThroughput = partStatistics.getThroughput();
+        if (partThroughput != null) {
+            briefStats += String.format(Locale.US, " Overall throughput: %,.1f items per minute.", partThroughput);
+        }
+
+        String fullStats = String.format(Locale.US,
+                        "Items processed: %,d in current bucket and %,d in current part.\n"
                         + "Errors: %,d in current bucket and %,d in current part.\n"
                         + "Real progress is %,d.\n\n"
                         + "Duration for this item was %,.1f ms. Average duration is %,.1f ms (in current bucket) and %,.1f ms (in current part).\n"
@@ -277,19 +283,27 @@ class ItemProcessingGatekeeper<I> {
                         + "Start time was:\n"
                         + " - for current bucket: %s\n"
                         + " - for current part:   %s\n",
-                getProcessShortNameCapitalized(), iterationItemInformation, getContextDesc(), result.getStatus(),
+
                 bucketStatistics.getItemsProcessed(), partStatistics.getItemsProcessed(),
                 bucketStatistics.getErrors(), partStatistics.getErrors(),
                 partStatistics.getProgress(),
                 operation.getDurationRounded(), bucketStatistics.getAverageTime(), partStatistics.getAverageTime(),
                 bucketStatistics.getAverageWallClockTime(now), partStatistics.getAverageWallClockTime(),
-                bucketStatistics.getThroughput(now), partStatistics.getThroughput(),
+                bucketStatistics.getThroughput(now), partThroughput,
                 bucketStatistics.getProcessingTime(), partStatistics.getProcessingTime(),
                 bucketStatistics.getWallClockTime(now), partStatistics.getWallClockTime(),
                 XmlTypeConverter.createXMLGregorianCalendar(bucketStatistics.getStartTimeMillis()),
                 partStatistics.getEarliestStartTime());
 
-        logger.debug("{}", message);
+        TaskLoggingOptionType logging = getReportingOptions().getItemCompletionLogging();
+        if (logging == TaskLoggingOptionType.FULL) {
+            LOGGER.info("{}\n\n{}", mainMessage, fullStats);
+        } else if (logging == TaskLoggingOptionType.BRIEF) {
+            LOGGER.info("{} {}", mainMessage, briefStats);
+            LOGGER.debug("{}", fullStats);
+        } else {
+            LOGGER.debug("{}\n\n{}", mainMessage, fullStats);
+        }
     }
 
     /**

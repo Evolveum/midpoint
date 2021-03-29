@@ -48,7 +48,7 @@ public class AsyncUpdateTaskHandler
 
     protected AsyncUpdateTaskHandler() {
         super(LOGGER, CONTEXT, OperationConstants.ASYNC_UPDATE);
-        reportingOptions.setEnableSynchronizationStatistics(true);
+        globalReportingOptions.setEnableSynchronizationStatistics(true);
     }
 
     @PostConstruct

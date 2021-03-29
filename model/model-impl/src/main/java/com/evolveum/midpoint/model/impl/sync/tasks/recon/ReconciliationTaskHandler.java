@@ -13,16 +13,13 @@ import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.tasks.AbstractModelTaskHandler;
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.provisioning.api.EventDispatcher;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
 import com.evolveum.midpoint.schema.SchemaService;
@@ -77,8 +74,8 @@ public class ReconciliationTaskHandler
 
     protected ReconciliationTaskHandler() {
         super(LOGGER, "Reconciliation", OperationConstants.RECONCILIATION);
-        reportingOptions.setPreserveStatistics(false);
-        reportingOptions.setEnableSynchronizationStatistics(true);
+        globalReportingOptions.setPreserveStatistics(false);
+        globalReportingOptions.setEnableSynchronizationStatistics(true);
     }
 
     public ReconciliationTaskResultListener getReconciliationTaskResultListener() {
@@ -96,67 +93,6 @@ public class ReconciliationTaskHandler
         taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_2, this);
         taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_3, this);
     }
-
-//    public TaskWorkBucketProcessingResult run000(RunningTask localCoordinatorTask, WorkBucketType workBucket,
-//            TaskPartitionDefinitionType partitionDefinition, TaskWorkBucketProcessingResult previousRunResult) {
-//
-//
-//        if (previousRunResult != null) {
-//            runResult.setProgress(previousRunResult.getProgress());
-//            AbstractSearchIterativeTaskPartExecution.logPreviousResultIfNeeded(localCoordinatorTask, previousRunResult, LOGGER);  // temporary
-//        }
-//        runResult.setShouldContinue(false); // overridden later
-//        runResult.setBucketComplete(false); // overridden later
-//
-//        SynchronizationObjectsFilter objectsFilter = ModelImplUtils.determineSynchronizationObjectsFilter(objectclassDef,
-//                localCoordinatorTask);
-//
-//        reconResult.setResource(resource);
-//        reconResult.setObjectclassDefinition(objectclassDef);
-//
-//        LOGGER.info("Start executing reconciliation of resource {}, reconciling object class {}, stage: {}, work bucket: {}",
-//                resource, objectclassDef, stage, workBucket);
-//        long reconStartTimestamp = clock.currentTimeMillis();
-//
-//
-//        long beforeResourceReconTimestamp = clock.currentTimeMillis();
-//        long afterResourceReconTimestamp;
-//        long afterShadowReconTimestamp;
-//
-//
-//        opResult.computeStatus();
-//        // This "run" is finished. But the task goes on ...
-//        runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-//        runResult.setShouldContinue(true);
-//        runResult.setBucketComplete(true);
-//        LOGGER.trace("Reconciliation.run stopping, result: {}", opResult.getStatus());
-//
-//        long reconEndTimestamp = clock.currentTimeMillis();
-//
-//        long etime = reconEndTimestamp - reconStartTimestamp;
-//        long unOpsTime = beforeResourceReconTimestamp - reconStartTimestamp;
-//        long resourceReconTime = afterResourceReconTimestamp - beforeResourceReconTimestamp;
-//        long shadowReconTime = afterShadowReconTimestamp - afterResourceReconTimestamp;
-//        LOGGER.info("Done executing reconciliation of resource {}, object class {}, Etime: {} ms (un-ops: {}, resource: {}, shadow: {})",
-//                resource, objectclassDef, etime, unOpsTime, resourceReconTime, shadowReconTime);
-//
-//        reconResult.setRunResult(runResult);
-//        if (reconciliationTaskResultListener != null) {
-//            reconciliationTaskResultListener.process(reconResult);
-//        }
-//
-//        TaskHandlerUtil.appendLastFailuresInformation(OperationConstants.RECONCILIATION, localCoordinatorTask, opResult);
-//        return runResult;
-//    }
-
-//    private void setExpectedTotalToNull(Task coordinatorTask, OperationResult opResult) {
-//        coordinatorTask.setExpectedTotal(null);
-//        try {
-//            coordinatorTask.flushPendingModifications(opResult);
-//        } catch (Throwable t) {
-//            throw new SystemException("Couldn't update the task: " + t.getMessage(), t);
-//        }
-//    }
 
     /**
      * Launch an import. Calling this method will start import in a new

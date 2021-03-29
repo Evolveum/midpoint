@@ -39,7 +39,7 @@ public class DictionaryExpander {
         if (tracingOutput != null && tracingOutput.getResult() != null) {
             expandDictionary(tracingOutput.getResult(), new ExpandingVisitor(tracingOutput.getDictionary()));
         }
-        LOGGER.info("Dictionary expanded in {} milliseconds", System.currentTimeMillis() - start);
+        LOGGER.debug("Dictionary expanded in {} milliseconds", System.currentTimeMillis() - start);
     }
 
     @SuppressWarnings("rawtypes")

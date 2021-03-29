@@ -71,7 +71,7 @@ public class LiveSyncTaskHandler
 
     protected LiveSyncTaskHandler() {
         super(LOGGER, "Live sync", OperationConstants.LIVE_SYNC);
-        reportingOptions.setEnableSynchronizationStatistics(true);
+        globalReportingOptions.setEnableSynchronizationStatistics(true);
     }
 
     @PostConstruct

@@ -54,8 +54,8 @@ public class PropagationTaskHandler extends AbstractTaskHandler
 
     public PropagationTaskHandler() {
         super(LOGGER, "Provisioning propagation", OperationConstants.PROVISIONING_PROPAGATION);
-        reportingOptions.setPreserveStatistics(false);
-        reportingOptions.setEnableSynchronizationStatistics(false);
+        globalReportingOptions.setPreserveStatistics(false);
+        globalReportingOptions.setEnableSynchronizationStatistics(false);
     }
 
     @PostConstruct

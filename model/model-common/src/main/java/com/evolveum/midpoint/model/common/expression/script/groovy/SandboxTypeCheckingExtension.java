@@ -50,12 +50,6 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
     @Override
     public void onMethodSelection(final Expression expression, final MethodNode target) {
         ClassNode targetDeclaringClass = target.getDeclaringClass();
-//        LOGGER.info("GROOVY:onMethodSelection: target={}", target);
-//        LOGGER.info("GROOVY:onMethodSelection: target.name={}", target.getName());
-//        LOGGER.info("GROOVY:onMethodSelection: target.declaringClass={}", targetDeclaringClass);
-//        LOGGER.info("GROOVY:onMethodSelection: target.DeclaringClass.name={}", targetDeclaringClass.getName());
-//        LOGGER.info("GROOVY:onMethodSelection: target.DeclaringClass.typeClass={}", targetDeclaringClass.getTypeClass());
-
         AccessDecision decision = decideClass(targetDeclaringClass.getName(), target.getName());
 
         if (decision != AccessDecision.ALLOW) {
@@ -93,7 +87,6 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
     @Override
     public boolean handleUnresolvedVariableExpression(VariableExpression vexp) {
         String variableName = vexp.getName();
-//        LOGGER.info("GROOVY:handleUnresolvedVariableExpression: variableName={}", variableName);
         ScriptExpressionEvaluationContext context = getContext();
         String contextDescription = context.getContextDescription();
 

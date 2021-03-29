@@ -149,7 +149,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
             TimeBoundary timeBoundary = TimeBoundary.compute(policy.getMaxAge());
             XMLGregorianCalendar deleteCasesClosedUpTo = timeBoundary.boundary;
 
-            LOGGER.info("Starting cleanup for closed cases deleting up to {} (duration '{}').", deleteCasesClosedUpTo,
+            LOGGER.debug("Starting cleanup for closed cases deleting up to {} (duration '{}').", deleteCasesClosedUpTo,
                     timeBoundary.positiveDuration);
 
             ObjectQuery obsoleteCasesQuery = prismContext.queryFor(CaseType.class)

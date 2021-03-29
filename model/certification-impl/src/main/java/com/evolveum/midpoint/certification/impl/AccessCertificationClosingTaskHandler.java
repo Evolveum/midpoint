@@ -81,7 +81,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 
     @Override
     public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
-        LOGGER.info("Task run starting");
+        LOGGER.debug("Task run starting");
 
         OperationResult opResult = new OperationResult(CLASS_DOT+"run");
         opResult.setSummarizeSuccesses(true);
@@ -122,7 +122,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 
         opResult.computeStatus();
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-        LOGGER.info("Task run stopping (campaign {})", toShortString(campaign));
+        LOGGER.debug("Task run stopping (campaign {})", toShortString(campaign));
         return runResult;
     }
 

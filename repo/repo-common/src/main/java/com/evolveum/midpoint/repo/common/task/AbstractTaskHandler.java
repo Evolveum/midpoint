@@ -106,7 +106,7 @@ public abstract class AbstractTaskHandler<
      * Options that govern how various aspects of task execution (progress, errors, statistics, and so on)
      * are reported - into the log or by other means.
      */
-    @NotNull protected final TaskReportingOptions reportingOptions;
+    @NotNull protected final TaskReportingOptions globalReportingOptions;
 
     /**
      * Executions (instances) of the current task handler. Used to delegate {@link #heartbeat(Task)} method calls.
@@ -130,7 +130,7 @@ public abstract class AbstractTaskHandler<
         this.logger = logger;
         this.taskTypeName = taskTypeName;
         this.taskOperationPrefix = taskOperationPrefix;
-        this.reportingOptions = new TaskReportingOptions();
+        this.globalReportingOptions = new TaskReportingOptions();
     }
 
     public @NotNull String getTaskTypeName() {
@@ -155,7 +155,7 @@ public abstract class AbstractTaskHandler<
 
     @Override
     public @NotNull StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-        return reportingOptions.getStatisticsCollectionStrategy();
+        return globalReportingOptions.getStatisticsCollectionStrategy();
     }
 
     /**
@@ -224,8 +224,8 @@ public abstract class AbstractTaskHandler<
         // Local task. No refresh needed. The Task instance has always fresh data.
     }
 
-    public @NotNull TaskReportingOptions getReportingOptions() {
-        return reportingOptions;
+    public @NotNull TaskReportingOptions getGlobalReportingOptions() {
+        return globalReportingOptions;
     }
 
     /** TODO decide what to do with this method. */

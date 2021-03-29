@@ -211,12 +211,12 @@ public class LiveSynchronizer {
             LOGGER.warn("No current token provided by resource: {}. Live sync will not proceed: {}",
                     ctx.context.getShadowCoordinates(), ctx.task);
         } else if (!ctx.simulate) {
-            LOGGER.info("Setting initial live sync token ({}) in task: {}.", currentToken, ctx.task);
+            LOGGER.debug("Setting initial live sync token ({}) in task: {}.", currentToken, ctx.task);
             ctx.task.setExtensionProperty(currentToken);
             ctx.task.flushPendingModifications(result);
             ctx.syncResult.setTaskTokenUpdatedTo(currentToken);
         } else {
-            LOGGER.info("We would set initial live sync token ({}) in task: {}; but not doing so because in simulation mode",
+            LOGGER.debug("We would set initial live sync token ({}) in task: {}; but not doing so because in simulation mode",
                     currentToken, ctx.task);
         }
     }
