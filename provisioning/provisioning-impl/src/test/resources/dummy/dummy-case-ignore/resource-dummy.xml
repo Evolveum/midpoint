@@ -94,7 +94,11 @@
                 <filter>
                     <q:equal>
                         <q:path>attributes/name</q:path>
-                        <q:value>daemon</q:value>
+                        <!-- Wild case changes, but no explicit matching rule here.
+                             The code should be smart enough to find correct matching rule from resource schema. -->
+                        <q:value>DaEmoN</q:value>
+                        <!-- This DOES NOT WORK yet. Explicit matching rule needs to be specified in the query. See MID-6935 -->
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
                     </q:equal>
                 </filter>
             </protected>
