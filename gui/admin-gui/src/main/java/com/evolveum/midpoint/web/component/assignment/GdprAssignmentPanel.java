@@ -89,7 +89,7 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
         return SchemaConstants.ORG_CONSENT;
     }
 
-    protected ObjectQuery createObjectQuery() {
+    protected ObjectQuery getCustomizeQuery() {
         return getParentPage().getPrismContext().queryFor(AssignmentType.class)
                 .block()
                 .item(AssignmentType.F_TARGET_REF)

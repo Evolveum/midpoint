@@ -86,7 +86,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     protected void initCustomPaging() {
     }
 
-    protected ObjectQuery createObjectQuery() {
+    protected ObjectQuery getCustomizeQuery() {
         Collection<QName> delegationRelations = getParentPage().getRelationRegistry()
                 .getAllRelationsFor(RelationKindType.DELEGATION);
         ObjectFilter deputyFilter = getParentPage().getPrismContext().queryFor(AssignmentType.class)

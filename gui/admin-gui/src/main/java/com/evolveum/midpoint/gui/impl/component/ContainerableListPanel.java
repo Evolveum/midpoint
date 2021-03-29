@@ -355,7 +355,14 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     public Class<C> getType() {
-        return getSearchModel().isLoaded() ? getSearchModel().getObject().getTypeClass() : getDefaultType();
+        if (getSearchModel().isLoaded()) {
+            return getSearchModel().getObject().getTypeClass();
+        }
+        PageStorage storage = getPageStorage();
+        if (storage != null && storage.getSearch() != null){
+            return storage.getSearch().getTypeClass();
+        }
+        return getDefaultType();
     }
 
     protected Class<C> getDefaultType() {

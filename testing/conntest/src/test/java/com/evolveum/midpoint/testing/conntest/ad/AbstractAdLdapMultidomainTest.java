@@ -2273,8 +2273,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         // THEN
         then();
 
-        assertUsers(13);
-        // TODO
+        assertUsers(11);
+
+        // TODO: better asserts
 
 //        assertLdapConnectorInstances(2);
     }
