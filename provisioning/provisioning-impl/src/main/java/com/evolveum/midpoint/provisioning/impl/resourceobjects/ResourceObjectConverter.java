@@ -1313,9 +1313,10 @@ public class ResourceObjectConverter {
             FetchErrorReportingMethodType errorReportingMethod, OperationResult parentResult) throws SchemaException,
             CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-        LOGGER.trace("Searching resource objects, query: {}", query);
-
         RefinedObjectClassDefinition objectClassDef = ctx.getObjectClassDefinition();
+
+        LOGGER.trace("Searching resource objects, query: {}, OC: {}", query, objectClassDef);
+
         AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(ctx);
         SearchHierarchyConstraints searchHierarchyConstraints = entitlementConverter.determineSearchHierarchyConstraints(ctx, parentResult);
 
