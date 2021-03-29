@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2016-2020 Evolveum and contributors
+  ~ Copyright (c) 2016-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -303,7 +303,29 @@
                 <filter>
                     <q:equal>
                         <q:path>attributes/dn</q:path>
+                        <q:value>CN=Administrator,CN=Users,DC=ad2012,DC=lab,DC=evolveum,DC=com</q:value>
+                        <!-- Explicit matching rule needs to be specified in the query. See MID-6935 -->
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
+                    </q:equal>
+                </filter>
+            </protected>
+            <protected>
+                <filter>
+                    <q:equal>
+                        <q:path>attributes/dn</q:path>
                         <q:value>cn=midpoint,cn=users,dc=ad2012,dc=lab,dc=evolveum,dc=com</q:value>
+                        <!-- Explicit matching rule needs to be specified in the query. See MID-6935 -->
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
+                    </q:equal>
+                </filter>
+            </protected>
+            <protected>
+                <filter>
+                    <q:equal>
+                        <q:path>attributes/dn</q:path>
+                        <q:value>CN=krbtgt,CN=Users,DC=ad2012,DC=lab,DC=evolveum,DC=com</q:value>
+                        <!-- Explicit matching rule needs to be specified in the query. See MID-6935 -->
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
                     </q:equal>
                 </filter>
             </protected>
@@ -312,6 +334,8 @@
                     <q:equal>
                         <q:path>attributes/dn</q:path>
                         <q:value>CN=SUB$,CN=Users,DC=ad2012,DC=lab,DC=evolveum,DC=com</q:value>
+                        <!-- Explicit matching rule needs to be specified in the query. See MID-6935 -->
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
                     </q:equal>
                 </filter>
             </protected>
@@ -321,6 +345,8 @@
                         <q:path>attributes/dn</q:path>
                         <q:value>CN=DiscoverySearchMailbox</q:value>
                         <q:anchorStart>true</q:anchorStart>
+                        <!-- Explicit matching rule needs to be specified in the query. See MID-6935 -->
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
                     </q:substring>
                 </filter>
             </protected>
@@ -330,6 +356,8 @@
                         <q:path>attributes/dn</q:path>
                         <q:value>CN=SystemMailbox</q:value>
                         <q:anchorStart>true</q:anchorStart>
+                        <!-- Explicit matching rule needs to be specified in the query. See MID-6935 -->
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
                     </q:substring>
                 </filter>
             </protected>
