@@ -63,7 +63,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         repositoryService.addObject(userType.asPrismObject(), null, result);
 
         then("operation is successful and user row for it is created");
-        assertResult(result);
+        assertThatOperationResult(result).isSuccess();
 
         QUser u = aliasFor(QUser.class);
         List<MUser> users = select(u, u.nameOrig.eq(userName));
@@ -110,7 +110,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         repositoryService.addObject(userType.asPrismObject(), createOverwrite(), result);
 
         then("operation is successful and user row for it is created, overwrite is meaningless");
-        assertResult(result);
+        assertThatOperationResult(result).isSuccess();
 
         QUser u = aliasFor(QUser.class);
         List<MUser> users = select(u, u.nameOrig.eq(userName));
@@ -134,7 +134,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         repositoryService.addObject(userType.asPrismObject(), null, result);
 
         then("operation is successful and user row with provided OID is created");
-        assertResult(result);
+        assertThatOperationResult(result).isSuccess();
 
         QUser u = aliasFor(QUser.class);
         List<MUser> users = select(u, u.nameOrig.eq(userName));
@@ -191,7 +191,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         repositoryService.addObject(user.asPrismObject(), null, result);
 
         then("object and its container rows are created and container IDs are assigned");
-        assertResult(result);
+        assertThatOperationResult(result).isSuccess();
 
         QUser u = aliasFor(QUser.class);
         List<MUser> users = select(u, u.nameOrig.eq(userName));
@@ -231,7 +231,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         repositoryService.addObject(user.asPrismObject(), null, result);
 
         then("object and its container rows are created and container IDs are assigned");
-        assertResult(result);
+        assertThatOperationResult(result).isSuccess();
 
         QUser u = aliasFor(QUser.class);
         List<MUser> users = select(u, u.nameOrig.eq(userName));
@@ -267,7 +267,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         repositoryService.addObject(user.asPrismObject(), null, result);
 
         then("object and its container rows are created and container IDs are assigned");
-        assertResult(result);
+        assertThatOperationResult(result).isSuccess();
 
         QUser u = aliasFor(QUser.class);
         List<MUser> users = select(u, u.nameOrig.eq(userName));
@@ -354,7 +354,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         repositoryService.addObject(systemConfiguration.asPrismObject(), null, result);
 
         then("it is stored and relevant attributes are in columns");
-        assertResult(result);
+        assertThatOperationResult(result).isSuccess();
 
         MObject row = selectObjectByOid(QSystemConfiguration.class, systemConfiguration.getOid());
         display("FULL OBJECT: " + new String(row.fullObject, StandardCharsets.UTF_8));
@@ -402,7 +402,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         repositoryService.addObject(object.asPrismObject(), null, result);
 
         then("it is stored with its persisted trigger containers");
-        assertResult(result);
+        assertThatOperationResult(result).isSuccess();
 
         QTrigger t = aliasFor(QTrigger.class);
         List<MTrigger> containers = select(t, t.ownerOid.eq(UUID.fromString(object.getOid())));
@@ -450,7 +450,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         repositoryService.addObject(object.asPrismObject(), null, result);
 
         then("it is stored with its persisted trigger containers");
-        assertResult(result);
+        assertThatOperationResult(result).isSuccess();
 
         QOperationExecution oe = aliasFor(QOperationExecution.class);
         List<MOperationExecution> containers =
@@ -509,7 +509,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         repositoryService.addObject(resource.asPrismObject(), null, result);
 
         then("it is stored and relevant attributes are in columns");
-        assertResult(result);
+        assertThatOperationResult(result).isSuccess();
 
         MResource row = selectObjectByOid(QResource.class, resource.getOid());
         assertThat(row.businessAdministrativeState)
@@ -556,7 +556,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         repositoryService.addObject(connector.asPrismObject(), null, result);
 
         then("it is stored and relevant attributes are in columns");
-        assertResult(result);
+        assertThatOperationResult(result).isSuccess();
 
         MConnector row = selectObjectByOid(QConnector.class, connector.getOid());
         assertThat(row.connectorBundle).isEqualTo("com.connector.package");
@@ -599,7 +599,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         repositoryService.addObject(shadow.asPrismObject(), null, result);
 
         then("it is stored and relevant attributes are in columns");
-        assertResult(result);
+        assertThatOperationResult(result).isSuccess();
 
         MShadow row = selectObjectByOid(QShadow.class, shadow.getOid());
         assertCachedUri(row.objectClassId, objectClass);
@@ -658,7 +658,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         repositoryService.addObject(genericObject.asPrismObject(), null, result);
 
         then("it is stored and relevant attributes are in columns");
-        assertResult(result);
+        assertThatOperationResult(result).isSuccess();
 
         MGenericObject row = selectObjectByOid(
                 QGenericObject.class, UUID.fromString(genericObject.getOid()));
@@ -728,7 +728,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         repositoryService.addObject(task.asPrismObject(), null, result);
 
         then("it is stored and relevant attributes are in columns");
-        assertResult(result);
+        assertThatOperationResult(result).isSuccess();
 
         MTask row = selectObjectByOid(QTask.class, task.getOid());
         assertThat(row.taskIdentifier).isEqualTo("task-id");
@@ -776,7 +776,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         repositoryService.addObject(accessCertificationDefinition.asPrismObject(), null, result);
 
         then("it is stored and relevant attributes are in columns");
-        assertResult(result);
+        assertThatOperationResult(result).isSuccess();
 
         MAccessCertificationDefinition row = selectObjectByOid(
                 QAccessCertificationDefinition.class, accessCertificationDefinition.getOid());

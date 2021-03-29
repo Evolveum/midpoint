@@ -1198,8 +1198,7 @@ ALTER TABLE m_form ADD CONSTRAINT m_form_name_norm_key UNIQUE (name_norm);
 --0	48756229
 -- abstract common structure for m_assignment and m_inducement
 CREATE TABLE m_assignment_type (
-    owner_oid UUID NOT NULL, -- see sub-tables for PK definition
-    containerType ContainerType NOT NULL,
+    -- owner_oid + containerType from m_container, final specification in sub-tables
     -- new column may avoid join to object for some queries
     owner_type ObjectType NOT NULL,
     lifecycleState TEXT/*VARCHAR(255)*/,

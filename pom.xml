@@ -893,7 +893,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-databasetable</artifactId>
-                <version>1.4.4.0</version>
+                <version>1.4.6.0</version>
             </dependency>
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>

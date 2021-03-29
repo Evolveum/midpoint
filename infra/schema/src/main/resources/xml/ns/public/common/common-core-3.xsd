@@ -7619,8 +7619,20 @@
             <xsd:element name="reshreshOnRead" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
+                        WARNING: There is a this property. Use the correct form "refreshOnRead" instead.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.9</a:since>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.3</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="refreshOnRead" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
                         If set to true then midPoint will always refresh shadow when it is retrieved.
-                        Refreshing a shadow means that the status of asynchronous (e.g. manual) opearions
+                        Refreshing a shadow means that the status of asynchronous (e.g. manual) operations
                         is checked, unfinished operations may be retried and so on. In this case shadow
                         will always be as fresh as it can be. But read may be slower and there may be
                         strange errors (e.g. reading a shadow may cause "already exists" error because
@@ -7630,7 +7642,7 @@
                         (e.g. during reconciliation).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>3.9</a:since>
+                        <a:since>4.3</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

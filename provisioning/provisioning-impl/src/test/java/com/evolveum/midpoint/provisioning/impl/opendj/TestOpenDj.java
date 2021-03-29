@@ -134,6 +134,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
     private static final QName QNAME_DN = new QName(RESOURCE_NS, "dn");
     private static final ItemPath PATH_DN = ItemPath.create(ShadowType.F_ATTRIBUTES, QNAME_DN);
 
+    private static final QName QNAME_CN = new QName(RESOURCE_NS, "cn");
+    private static final ItemPath PATH_CN = ItemPath.create(ShadowType.F_ATTRIBUTES, QNAME_CN);
+
     private String groupSailorOid;
 
     @Autowired
@@ -1748,6 +1751,34 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         assertConnectorOperationIncrement(1, 3);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
+    }
+
+    /**
+     * Searches for given CN with kind=entitlement, intent=unlimitedGroup (leading to OC of groupOfUniqueNames).
+     * The problem is that this CN exists for a user. The connector should sort this out.
+     *
+     * MID-6898
+     */
+    @Test(enabled = false)
+    public void test210SearchObjectsFromAnotherObjectClass() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ObjectQuery query = queryFor(ShadowType.class)
+                .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_OPENDJ_OID)
+                .and().item(ShadowType.F_KIND).eq(ShadowKindType.ENTITLEMENT)
+                .and().item(ShadowType.F_INTENT).eq("unlimitedGroup")
+                .and().item(PATH_CN, getAccountAttributeDefinition(QNAME_CN)).eq("Will Turner")
+                .build();
+
+        when();
+        List<PrismObject<ShadowType>> shadows =
+                provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+
+        then();
+        assertSuccess(result);
+
+        assertEquals("Unexpected number of objects found", 0, shadows.size());
     }
 
     @Test

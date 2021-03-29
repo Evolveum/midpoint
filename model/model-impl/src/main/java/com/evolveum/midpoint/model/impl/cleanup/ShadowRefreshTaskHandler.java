@@ -55,6 +55,10 @@ public class ShadowRefreshTaskHandler
 
     public ShadowRefreshTaskHandler() {
         super(LOGGER, "Shadow refresh", OperationConstants.SHADOW_REFRESH);
+
+        // A temporary solution for MID-6934.
+        // We should decide whether we want to have aggregate statistics for this kind of tasks.
+        globalReportingOptions.setPreserveStatistics(false);
     }
 
     @PostConstruct
