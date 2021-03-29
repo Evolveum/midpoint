@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -470,151 +470,17 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             throws ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
 
-        AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.EXECUTE_CHANGES_RAW, AuditEventStage.REQUEST);
         String requestIdentifier = ModelImplUtils.generateRequestIdentifier();
-        auditRecord.setRequestIdentifier(requestIdentifier);
-        auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(deltas));
-        auditRecord.setTargetRef(ModelImplUtils.determineAuditTarget(deltas, prismContext));
+        PrismReferenceValue targetRef = ModelImplUtils.determineAuditTarget(deltas, prismContext);
+        AuditEventRecord auditRecordRequest = createAuditEventRecordRaw(AuditEventStage.REQUEST, requestIdentifier,
+                targetRef, ObjectDeltaOperation.cloneDeltaCollection(deltas));
         // we don't know auxiliary information (resource, objectName) at this moment -- so we do nothing
-        auditHelper.audit(auditRecord, null, task, result);
+        auditHelper.audit(auditRecordRequest, null, task, result);
 
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ArrayList<>();
         try {
             for (ObjectDelta<? extends ObjectType> delta : deltas) {
-                OperationResult result1 = result.createSubresult(EXECUTE_CHANGE);
-                PrismObject objectToDetermineDetailsForAudit = null;
-                try {
-
-                    // MID-2486
-                    if (delta.getObjectTypeClass() == ShadowType.class || delta.getObjectTypeClass() == ResourceType.class) {
-                        try {
-                            provisioning.applyDefinition(delta, task, result1);
-                        } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | RuntimeException e) {
-                            // we can tolerate this - if there's a real problem with definition, repo call below will fail
-                            LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't apply definition on shadow/resource raw-mode delta {} -- continuing the operation.", e, delta);
-                            result1.muteLastSubresultError();
-                        }
-                    }
-
-                    final boolean preAuthorized = ModelExecuteOptions.isPreAuthorized(options);
-                    if (delta.isAdd()) {
-                        RepoAddOptions repoOptions = new RepoAddOptions();
-                        if (ModelExecuteOptions.isNoCrypt(options)) {
-                            repoOptions.setAllowUnencryptedValues(true);
-                        }
-                        if (ModelExecuteOptions.isOverwrite(options)) {
-                            repoOptions.setOverwrite(true);
-                        }
-                        PrismObject<? extends ObjectType> objectToAdd = delta.getObjectToAdd();
-                        if (!preAuthorized) {
-                            securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd), null, task, result1);
-                            securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), null, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd), null, task, result1);
-                        }
-                        String oid;
-                        try {
-                            if (objectToAdd.canRepresent(TaskType.class)) {
-                                //noinspection unchecked
-                                oid = taskManager.addTask((PrismObject<TaskType>) objectToAdd, result1);
-                            } else {
-                                oid = cacheRepositoryService.addObject(objectToAdd, repoOptions, result1);
-                            }
-                            task.recordObjectActionExecuted(objectToAdd, null, oid, ChangeType.ADD, task.getChannel(), null);
-                        } catch (Throwable t) {
-                            task.recordObjectActionExecuted(objectToAdd, null, null, ChangeType.ADD, task.getChannel(), t);
-                            throw t;
-                        }
-                        delta.setOid(oid);
-                        objectToDetermineDetailsForAudit = objectToAdd;
-                    } else if (delta.isDelete()) {
-                        QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
-                        try {
-                            PrismObject<? extends ObjectType> existingObject;
-                            try {
-                                existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
-                                objectToDetermineDetailsForAudit = existingObject;
-                            } catch (Throwable t) {
-                                if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result1)) {
-                                    throw t;
-                                } else {
-                                    existingObject = prismContext.createObject(delta.getObjectTypeClass());
-                                    existingObject.setOid(delta.getOid());
-                                    existingObject.asObjectable().setName(PolyStringType.fromOrig("Unreadable object"));
-                                    // in case of administrator's request we continue - in order to allow deleting malformed (unreadable) objects
-                                    // creating "shadow" existing object for auditing needs.
-                                }
-                            }
-                            checkIndestructible(existingObject, task, result1);
-                            if (!preAuthorized) {
-                                securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.Builder.buildObjectDelete(existingObject), null, task, result1);
-                                securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, AuthorizationParameters.Builder.buildObjectDelete(existingObject), null, task, result1);
-                            }
-                            try {
-                                if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
-                                    ModelImplUtils.clearRequestee(task);
-                                    provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
-                                            ProvisioningOperationOptions.createRaw(), null, task, result1);
-                                } else if (TaskType.class.isAssignableFrom(delta.getObjectTypeClass())) {
-                                    // Maybe we should check if the task is not running. However, this is raw processing.
-                                    // (But, actually, this is better than simply deleting the task from repository.)
-                                    taskManager.deleteTask(delta.getOid(), result1);
-                                } else {
-                                    cacheRepositoryService.deleteObject(delta.getObjectTypeClass(), delta.getOid(), result1);
-                                }
-                                task.recordObjectActionExecuted(objectToDetermineDetailsForAudit, delta.getObjectTypeClass(), delta.getOid(), ChangeType.DELETE, task.getChannel(), null);
-                            } catch (Throwable t) {
-                                task.recordObjectActionExecuted(objectToDetermineDetailsForAudit, delta.getObjectTypeClass(), delta.getOid(), ChangeType.DELETE, task.getChannel(), t);
-                                throw t;
-                            }
-                        } finally {
-                            QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
-                        }
-                    } else if (delta.isModify()) {
-                        QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
-                        try {
-                            PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
-                            objectToDetermineDetailsForAudit = existingObject;
-                            if (!preAuthorized) {
-                                AuthorizationParameters autzParams = AuthorizationParameters.Builder.buildObjectDelta(existingObject, delta);
-                                securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, autzParams, null, task, result1);
-                                securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, autzParams, null, task, result1);
-                            }
-                            try {
-                                if (TaskType.class.isAssignableFrom(delta.getObjectTypeClass())) {
-                                    taskManager.modifyTask(delta.getOid(), delta.getModifications(), result1);
-                                } else {
-                                    cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(),
-                                            delta.getModifications(), result1);
-                                }
-                                task.recordObjectActionExecuted(existingObject, ChangeType.MODIFY, null);
-                            } catch (Throwable t) {
-                                task.recordObjectActionExecuted(existingObject, ChangeType.MODIFY, t);
-                                throw t;
-                            }
-                        } finally {
-                            QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
-                        }
-                        if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {    // treat filters that already exist in the object (case #2 above)
-                            reevaluateSearchFilters(delta.getObjectTypeClass(), delta.getOid(), task, result1);
-                        }
-                    } else {
-                        throw new IllegalArgumentException("Wrong delta type " + delta.getChangeType() + " in " + delta);
-                    }
-                } catch (Throwable t) {
-                    ModelImplUtils.recordFatalError(result1, t);
-                    throw t;
-                } finally { // to have a record with the failed delta as well
-                    result1.computeStatusIfUnknown();
-                    ObjectDeltaOperation<? extends ObjectType> odoToAudit = new ObjectDeltaOperation<>(delta, result1);
-                    if (objectToDetermineDetailsForAudit != null) {
-                        odoToAudit.setObjectName(objectToDetermineDetailsForAudit.getName());
-                        if (objectToDetermineDetailsForAudit.asObjectable() instanceof ShadowType) {
-                            ShadowType shadow = (ShadowType) objectToDetermineDetailsForAudit.asObjectable();
-                            odoToAudit.setResourceOid(ShadowUtil.getResourceOid(shadow));
-                            odoToAudit.setResourceName(ShadowUtil.getResourceName(shadow));
-                        }
-                    }
-                    executedDeltas.add(odoToAudit);
-                }
+                executeChangeRaw(executedDeltas, delta, options, task, result);
             }
             return executedDeltas;
         } catch (Throwable t) {
@@ -622,15 +488,190 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             throw t;
         } finally {
             cleanupOperationResult(result);
-            auditRecord.setTimestamp(System.currentTimeMillis());
-            auditRecord.setOutcome(result.getStatus());
-            auditRecord.setEventStage(AuditEventStage.EXECUTION);
-            auditRecord.clearDeltas();
-            auditRecord.addDeltas(executedDeltas);
-            auditHelper.audit(auditRecord, null, task, result);
+            AuditEventRecord auditRecordExecution = createAuditEventRecordRaw(AuditEventStage.EXECUTION, requestIdentifier, targetRef, executedDeltas);
+            auditRecordExecution.setTimestamp(System.currentTimeMillis());
+            auditRecordExecution.setOutcome(result.getStatus());
+            auditHelper.audit(auditRecordExecution, null, task, result);
 
             task.markObjectActionExecutedBoundary();
         }
+    }
+
+    private AuditEventRecord createAuditEventRecordRaw(AuditEventStage stage, String requestIdentifier,
+            PrismReferenceValue targetRef, Collection<ObjectDeltaOperation<? extends ObjectType>> deltas) {
+        AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.EXECUTE_CHANGES_RAW, stage);
+        auditRecord.setRequestIdentifier(requestIdentifier);
+        auditRecord.setTargetRef(targetRef);
+        auditRecord.addDeltas(deltas);
+        return auditRecord;
+    }
+
+    private void executeChangeRaw(Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, ObjectDelta<? extends ObjectType> delta, ModelExecuteOptions options, Task task, OperationResult parentResult) throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        OperationResult result = parentResult.createSubresult(EXECUTE_CHANGE);
+        PrismObject<? extends ObjectType> objectToDetermineDetailsForAudit = null;
+        try {
+
+            applyDefinitionsIfNeeded(delta, task, result);
+
+            objectToDetermineDetailsForAudit = executeChangeRawInternal(delta, options, task, result);
+        } catch (Throwable t) {
+            ModelImplUtils.recordFatalError(result, t);
+            throw t;
+        } finally { // to have a record with the failed delta as well
+            result.computeStatusIfUnknown();
+            ObjectDeltaOperation<? extends ObjectType> odoToAudit = prepareObjectDeltaOperation(delta, objectToDetermineDetailsForAudit, result);
+            executedDeltas.add(odoToAudit);
+        }
+    }
+
+    private void applyDefinitionsIfNeeded(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result1) throws ExpressionEvaluationException {
+        // MID-2486
+        if (delta.getObjectTypeClass() == ShadowType.class || delta.getObjectTypeClass() == ResourceType.class) {
+            try {
+                provisioning.applyDefinition(delta, task, result1);
+            } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | RuntimeException e) {
+                // we can tolerate this - if there's a real problem with definition, repo call below will fail
+                LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't apply definition on shadow/resource raw-mode delta {} -- continuing the operation.", e, delta);
+                result1.muteLastSubresultError();
+            }
+        }
+    }
+
+    private ObjectDeltaOperation<? extends ObjectType> prepareObjectDeltaOperation(ObjectDelta<? extends ObjectType> delta, PrismObject<? extends ObjectType> objectToDetermineDetailsForAudit, OperationResult result) {
+        ObjectDeltaOperation<? extends ObjectType> odoToAudit = new ObjectDeltaOperation<>(delta, result);
+        if (objectToDetermineDetailsForAudit != null) {
+            odoToAudit.setObjectName(objectToDetermineDetailsForAudit.getName());
+            if (objectToDetermineDetailsForAudit.asObjectable() instanceof ShadowType) {
+                ShadowType shadow = (ShadowType) objectToDetermineDetailsForAudit.asObjectable();
+                odoToAudit.setResourceOid(ShadowUtil.getResourceOid(shadow));
+                odoToAudit.setResourceName(ShadowUtil.getResourceName(shadow));
+            }
+        }
+        return odoToAudit;
+    }
+
+    private PrismObject<? extends ObjectType> executeChangeRawInternal(ObjectDelta<? extends ObjectType> delta, ModelExecuteOptions options, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException {
+        final boolean preAuthorized = ModelExecuteOptions.isPreAuthorized(options);
+        PrismObject<? extends ObjectType> objectToDetermineDetailsForAudit;
+        if (delta.isAdd()) {
+            objectToDetermineDetailsForAudit = executeAddDeltaRaw(delta, preAuthorized, options, task, result);
+        } else if (delta.isDelete()) {
+            objectToDetermineDetailsForAudit = executeDeleteDeltaRaw(delta, preAuthorized, task, result);
+        } else if (delta.isModify()) {
+            objectToDetermineDetailsForAudit = executeModifyDeltaRaw(delta, preAuthorized, options, task, result);
+        } else {
+            throw new IllegalArgumentException("Wrong delta type " + delta.getChangeType() + " in " + delta);
+        }
+        return objectToDetermineDetailsForAudit;
+    }
+
+    private PrismObject<? extends ObjectType> executeAddDeltaRaw(ObjectDelta<? extends ObjectType> delta, boolean preAuthorized, ModelExecuteOptions options, Task task, OperationResult result1) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
+        RepoAddOptions repoOptions = new RepoAddOptions();
+        if (ModelExecuteOptions.isNoCrypt(options)) {
+            repoOptions.setAllowUnencryptedValues(true);
+        }
+        if (ModelExecuteOptions.isOverwrite(options)) {
+            repoOptions.setOverwrite(true);
+        }
+        PrismObject<? extends ObjectType> objectToAdd = delta.getObjectToAdd();
+        if (!preAuthorized) {
+            securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd), null, task, result1);
+            securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), null, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd), null, task, result1);
+        }
+        String oid;
+        try {
+            if (objectToAdd.canRepresent(TaskType.class)) {
+                //noinspection unchecked
+                oid = taskManager.addTask((PrismObject<TaskType>) objectToAdd, result1);
+            } else {
+                oid = cacheRepositoryService.addObject(objectToAdd, repoOptions, result1);
+            }
+            task.recordObjectActionExecuted(objectToAdd, null, oid, ChangeType.ADD, task.getChannel(), null);
+        } catch (Throwable t) {
+            task.recordObjectActionExecuted(objectToAdd, null, null, ChangeType.ADD, task.getChannel(), t);
+            throw t;
+        }
+        delta.setOid(oid);
+        return objectToAdd;
+    }
+
+    private PrismObject<? extends ObjectType> executeDeleteDeltaRaw(ObjectDelta<? extends ObjectType> delta, boolean preAuthorized, Task task, OperationResult result1) throws PolicyViolationException, CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
+        PrismObject objectToDetermineDetailsForAudit = null;
+        try {
+            PrismObject<? extends ObjectType> existingObject;
+            try {
+                existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
+                objectToDetermineDetailsForAudit = existingObject;
+            } catch (Throwable t) {
+                if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result1)) {
+                    throw t;
+                } else {
+                    existingObject = prismContext.createObject(delta.getObjectTypeClass());
+                    existingObject.setOid(delta.getOid());
+                    existingObject.asObjectable().setName(PolyStringType.fromOrig("Unreadable object"));
+                    // in case of administrator's request we continue - in order to allow deleting malformed (unreadable) objects
+                    // creating "shadow" existing object for auditing needs.
+                }
+            }
+            checkIndestructible(existingObject, task, result1);
+            if (!preAuthorized) {
+                securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.Builder.buildObjectDelete(existingObject), null, task, result1);
+                securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, AuthorizationParameters.Builder.buildObjectDelete(existingObject), null, task, result1);
+            }
+            try {
+                if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
+                    ModelImplUtils.clearRequestee(task);
+                    provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
+                            ProvisioningOperationOptions.createRaw(), null, task, result1);
+                } else if (TaskType.class.isAssignableFrom(delta.getObjectTypeClass())) {
+                    // Maybe we should check if the task is not running. However, this is raw processing.
+                    // (But, actually, this is better than simply deleting the task from repository.)
+                    taskManager.deleteTask(delta.getOid(), result1);
+                } else {
+                    cacheRepositoryService.deleteObject(delta.getObjectTypeClass(), delta.getOid(), result1);
+                }
+                task.recordObjectActionExecuted(objectToDetermineDetailsForAudit, delta.getObjectTypeClass(), delta.getOid(), ChangeType.DELETE, task.getChannel(), null);
+            } catch (Throwable t) {
+                task.recordObjectActionExecuted(objectToDetermineDetailsForAudit, delta.getObjectTypeClass(), delta.getOid(), ChangeType.DELETE, task.getChannel(), t);
+                throw t;
+            }
+        } finally {
+            QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
+        }
+        return objectToDetermineDetailsForAudit;
+    }
+
+    private PrismObject<? extends ObjectType> executeModifyDeltaRaw(ObjectDelta<? extends ObjectType> delta, boolean preAuthorized, ModelExecuteOptions options, Task task, OperationResult result1) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ConfigurationException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+        QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
+        PrismObject<? extends ObjectType> objectToDetermineDetailsForAudit;
+        try {
+            PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
+            objectToDetermineDetailsForAudit = existingObject;
+            if (!preAuthorized) {
+                AuthorizationParameters autzParams = AuthorizationParameters.Builder.buildObjectDelta(existingObject, delta);
+                securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, autzParams, null, task, result1);
+                securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, autzParams, null, task, result1);
+            }
+            try {
+                if (TaskType.class.isAssignableFrom(delta.getObjectTypeClass())) {
+                    taskManager.modifyTask(delta.getOid(), delta.getModifications(), result1);
+                } else {
+                    cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(),
+                            delta.getModifications(), result1);
+                }
+                task.recordObjectActionExecuted(existingObject, ChangeType.MODIFY, null);
+            } catch (Throwable t) {
+                task.recordObjectActionExecuted(existingObject, ChangeType.MODIFY, t);
+                throw t;
+            }
+        } finally {
+            QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
+        }
+        if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {    // treat filters that already exist in the object (case #2 above)
+            reevaluateSearchFilters(delta.getObjectTypeClass(), delta.getOid(), task, result1);
+        }
+        return objectToDetermineDetailsForAudit;
     }
 
     private <O extends ObjectType> void checkIndestructible(PrismObject<O> existingObject, Task task, OperationResult result) throws IndestructibilityViolationException {

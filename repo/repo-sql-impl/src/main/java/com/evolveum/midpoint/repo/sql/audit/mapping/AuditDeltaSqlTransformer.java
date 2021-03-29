@@ -16,6 +16,8 @@ import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditDelta;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -27,6 +29,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class AuditDeltaSqlTransformer
         extends AuditSqlTransformerBase<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(AuditDeltaSqlTransformer.class);
+
     public AuditDeltaSqlTransformer(
             SqlTransformerSupport transformerSupport, QAuditDeltaMapping mapping) {
         super(transformerSupport, mapping);
@@ -36,14 +40,7 @@ public class AuditDeltaSqlTransformer
         ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
         SQLTemplates querydslTemplates = transformerSupport.sqlRepoContext().getQuerydslTemplates();
         boolean usingSqlServer = querydslTemplates instanceof SQLServerTemplates;
-        if (row.delta != null) {
-            String serializedDelta =
-                    RUtil.getSerializedFormFromBytes(row.delta, usingSqlServer);
-
-            ObjectDeltaType delta = transformerSupport.parseRealValue(
-                    serializedDelta, ObjectDeltaType.class);
-            odo.setObjectDelta(delta);
-        }
+        odo.setObjectDelta(parseDelta(row.delta, usingSqlServer));
         if (row.fullResult != null) {
             String serializedResult =
                     RUtil.getSerializedFormFromBytes(row.fullResult, usingSqlServer);
@@ -63,5 +60,21 @@ public class AuditDeltaSqlTransformer
         }
 
         return odo;
+    }
+
+    private ObjectDeltaType parseDelta(byte[] rowDelta, boolean usingSqlServer) {
+        if (rowDelta == null) {
+            return null;
+        }
+        String serializedDelta = RUtil.getSerializedFormFromBytes(rowDelta, usingSqlServer);
+
+        try {
+            return transformerSupport.parseRealValue(
+                    serializedDelta, ObjectDeltaType.class);
+        } catch (SchemaException e) {
+            LOGGER.error("Cannot parse delta: {}", e.getMessage(), e);
+        }
+        return null;
+
     }
 }

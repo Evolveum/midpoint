@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (c) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,8 +13,7 @@ import java.time.ZoneId;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -35,9 +34,9 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
@@ -54,7 +53,6 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
@@ -70,6 +68,7 @@ import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
@@ -96,7 +95,7 @@ public class AuditLogViewerPanel extends BasePanel {
 
     private void initLayout() {
         ContainerableListPanel<AuditEventRecordType, SelectableBean<AuditEventRecordType>> auditLogViewerTable =
-                new ContainerableListPanel<AuditEventRecordType, SelectableBean<AuditEventRecordType>>(ID_AUDIT_LOG_VIEWER_TABLE, AuditEventRecordType.class) {
+                new ContainerableListPanel<>(ID_AUDIT_LOG_VIEWER_TABLE, AuditEventRecordType.class) {
 
                     @Override
                     protected List<IColumn<SelectableBean<AuditEventRecordType>, String>> createDefaultColumns() {
@@ -125,7 +124,7 @@ public class AuditLogViewerPanel extends BasePanel {
 
                     @Override
                     protected Search createSearch(Class<AuditEventRecordType> type) {
-                        AuditLogStorage storage = (AuditLogStorage) getPageStorage();
+                        AuditLogStorage storage = (AuditLogStorage) getPageStorage(); //TODO: use storage?
                         Search search = SearchFactory.createContainerSearch(new ContainerTypeSearchItem(new SearchValue(type, "")), AuditEventRecordType.F_TIMESTAMP, getPageBase(), true);
                         DateSearchItem timestampItem = (DateSearchItem) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
                         if (timestampItem != null && timestampItem.getFromDate() == null && timestampItem.getToDate() == null && !isCollectionViewPanelForWidget()) {
@@ -262,21 +261,23 @@ public class AuditLogViewerPanel extends BasePanel {
         return null;
     }
 
-    private ContainerableListPanel getAuditLogViewerTable() {
-        return (ContainerableListPanel) get(ID_AUDIT_LOG_VIEWER_TABLE);
-    }
-
     protected List<IColumn<SelectableBean<AuditEventRecordType>, String>> createColumns() {
         List<IColumn<SelectableBean<AuditEventRecordType>, String>> columns = new ArrayList<>();
         LinkColumn<SelectableBean<AuditEventRecordType>> initiatorRefColumn =
-                new LinkColumn<SelectableBean<AuditEventRecordType>>(createStringResource("AuditEventRecordType.initiatorRef"),
+                new LinkColumn<>(createStringResource("AuditEventRecordType.initiatorRef"),
                         SelectableBeanImpl.F_VALUE + "." + AuditEventRecordType.F_INITIATOR_REF.getLocalPart()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     protected IModel<String> createLinkModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
-                        AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
-                        return Model.of(WebModelServiceUtils.resolveReferenceName(auditEventRecordType.getInitiatorRef(), getPageBase(), true));
+                        return new ReadOnlyModel<>(() -> {
+                            AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
+                            if (auditEventRecordType == null) {
+                                return null;
+                            }
+                            return WebModelServiceUtils.resolveReferenceName(auditEventRecordType.getInitiatorRef(), getPageBase(), true);
+                        });
+
                     }
 
                     @Override
@@ -294,14 +295,18 @@ public class AuditLogViewerPanel extends BasePanel {
 
         if (!isObjectHistoryPanel()) {
             IColumn<SelectableBean<AuditEventRecordType>, String> eventStageColumn =
-                    new PropertyColumn<SelectableBean<AuditEventRecordType>, String>(
+                    new PropertyColumn<>(
                             createStringResource("PageAuditLogViewer.eventStageLabel"), AuditEventRecordType.F_EVENT_STAGE.getLocalPart(),
                             SelectableBeanImpl.F_VALUE + "." + AuditEventRecordType.F_EVENT_STAGE.getLocalPart()) {
                         private static final long serialVersionUID = 1L;
 
                         @Override
                         public IModel<String> getDataModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
-                            return WebComponentUtil.createLocalizedModelForEnum(unwrapModel(rowModel).getEventStage(),
+                            AuditEventRecordType record = unwrapModel(rowModel);
+                            if (record == null) {
+                                return new Model<>();
+                            }
+                            return WebComponentUtil.createLocalizedModelForEnum(record.getEventStage(),
                                     AuditLogViewerPanel.this);
                         }
                     };
@@ -309,33 +314,42 @@ public class AuditLogViewerPanel extends BasePanel {
         }
 
         IColumn<SelectableBean<AuditEventRecordType>, String> eventTypeColumn =
-                new PropertyColumn<SelectableBean<AuditEventRecordType>, String>(createStringResource("PageAuditLogViewer.eventTypeLabel"), AuditEventRecordType.F_EVENT_TYPE.getLocalPart(),
+                new PropertyColumn<>(createStringResource("PageAuditLogViewer.eventTypeLabel"), AuditEventRecordType.F_EVENT_TYPE.getLocalPart(),
                         SelectableBeanImpl.F_VALUE + "." + AuditEventRecordType.F_EVENT_TYPE.getLocalPart()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public IModel<String> getDataModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
-                        return WebComponentUtil.createLocalizedModelForEnum(unwrapModel(rowModel).getEventType(), AuditLogViewerPanel.this);
+                        AuditEventRecordType record = unwrapModel(rowModel);
+                        if (record == null) {
+                            return Model.of();
+                        }
+                        return WebComponentUtil.createLocalizedModelForEnum(record.getEventType(), AuditLogViewerPanel.this);
                     }
                 };
         columns.add(eventTypeColumn);
 
         if (!isObjectHistoryPanel()) {
             LinkColumn<SelectableBean<AuditEventRecordType>> targetRefColumn =
-                    new LinkColumn<SelectableBean<AuditEventRecordType>>(createStringResource("AuditEventRecordType.targetRef"),
+                    new LinkColumn<>(createStringResource("AuditEventRecordType.targetRef"),
                             SelectableBeanImpl.F_VALUE + "." + AuditEventRecordType.F_TARGET_REF.getLocalPart()) {
                         private static final long serialVersionUID = 1L;
 
                         @Override
                         protected IModel<String> createLinkModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
-                            AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
-                            return Model.of(WebModelServiceUtils.resolveReferenceName(auditEventRecordType.getTargetRef(), getPageBase(), true));
+                            return new ReadOnlyModel<>(() -> {
+                                AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
+                                if (auditEventRecordType == null) {
+                                    return null;
+                                }
+                                return WebModelServiceUtils.resolveReferenceName(auditEventRecordType.getTargetRef(), getPageBase(), true);
+                            });
+
                         }
 
                         @Override
                         public boolean isEnabled(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
-                            return !AuditEventTypeType.DELETE_OBJECT.equals(rowModel.getObject().getValue().getEventType()) &&
-                                    unwrapModel(rowModel) != null;
+                            return unwrapModel(rowModel) != null && !AuditEventTypeType.DELETE_OBJECT.equals(unwrapModel(rowModel).getEventType());
                         }
 
                         @Override
@@ -349,14 +363,19 @@ public class AuditLogViewerPanel extends BasePanel {
 
         if (!isObjectHistoryPanel()) {
             LinkColumn<SelectableBean<AuditEventRecordType>> targetOwnerRefColumn =
-                    new LinkColumn<SelectableBean<AuditEventRecordType>>(createStringResource("AuditEventRecordType.targetOwnerRef"),
+                    new LinkColumn<>(createStringResource("AuditEventRecordType.targetOwnerRef"),
                             SelectableBeanImpl.F_VALUE + "." + AuditEventRecordType.F_TARGET_OWNER_REF.getLocalPart()) {
                         private static final long serialVersionUID = 1L;
 
                         @Override
                         protected IModel<String> createLinkModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
-                            AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
-                            return Model.of(WebModelServiceUtils.resolveReferenceName(auditEventRecordType.getTargetOwnerRef(), getPageBase(), true));
+                            return new ReadOnlyModel<>(() -> {
+                                AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
+                                if (auditEventRecordType == null) {
+                                    return null;
+                                }
+                                return WebModelServiceUtils.resolveReferenceName(auditEventRecordType.getTargetOwnerRef(), getPageBase(), true);
+                            });
                         }
 
                         @Override
@@ -373,7 +392,7 @@ public class AuditLogViewerPanel extends BasePanel {
             columns.add(targetOwnerRefColumn);
         }
         IColumn<SelectableBean<AuditEventRecordType>, String> channelColumn =
-                new PropertyColumn<SelectableBean<AuditEventRecordType>, String>(
+                new PropertyColumn<>(
                         createStringResource("AuditEventRecordType.channel"), AuditEventRecordType.F_CHANNEL.getLocalPart(),
                         SelectableBeanImpl.F_VALUE + "." + AuditEventRecordType.F_CHANNEL.getLocalPart()) {
                     private static final long serialVersionUID = 1L;
@@ -381,34 +400,43 @@ public class AuditLogViewerPanel extends BasePanel {
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<AuditEventRecordType>>> item, String componentId,
                             IModel<SelectableBean<AuditEventRecordType>> rowModel) {
-                        AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
-                        String channel = auditEventRecordType.getChannel();
-                        GuiChannel channelValue = null;
-                        for (GuiChannel chan : GuiChannel.values()) {
-                            if (chan.getUri().equals(channel)) {
-                                channelValue = chan;
-                                break;
+                        IModel<String> channelModel = new ReadOnlyModel<String>(() -> {
+                            AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
+                            if (auditEventRecordType == null) {
+                                return ""; //TODO might we return null?
                             }
-                        }
-                        if (channelValue != null) {
-                            item.add(new Label(componentId, WebComponentUtil.createLocalizedModelForEnum(channelValue, AuditLogViewerPanel.this)));
-                        } else {
-                            item.add(new Label(componentId, ""));
-                        }
+                            String channel = auditEventRecordType.getChannel();
+                            for (GuiChannel chan : GuiChannel.values()) {
+                                if (chan.getUri().equals(channel)) {
+                                    return getPageBase().createStringResource(chan).getString(); //WebComponentUtil.createLocalizedModelForEnum(chan, AuditLogViewerPanel.this);
+                                }
+                            }
+                            return "";
+                        });
+//                        if (channelValue != null) {
+//                            item.add(new Label(componentId, WebComponentUtil.createLocalizedModelForEnum(channelValue, AuditLogViewerPanel.this)));
+//                        } else {
+//                            item.add(new Label(componentId, ""));
+//                        }
+                        item.add(new Label(componentId, channelModel));
                         item.add(new AttributeModifier("style", new Model<>("width: 10%;")));
                     }
                 };
         columns.add(channelColumn);
 
         IColumn<SelectableBean<AuditEventRecordType>, String> outcomeColumn =
-                new PropertyColumn<SelectableBean<AuditEventRecordType>, String>(
+                new PropertyColumn<>(
                         createStringResource("PageAuditLogViewer.outcomeLabel"), AuditEventRecordType.F_OUTCOME.getLocalPart(),
                         SelectableBeanImpl.F_VALUE + "." + AuditEventRecordType.F_OUTCOME.getLocalPart()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public IModel<String> getDataModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
-                        return WebComponentUtil.createLocalizedModelForEnum(unwrapModel(rowModel).getOutcome(), AuditLogViewerPanel.this);
+                        AuditEventRecordType record = unwrapModel(rowModel);
+                        if (record == null) {
+                            return null;
+                        }
+                        return WebComponentUtil.createLocalizedModelForEnum(record.getOutcome(), AuditLogViewerPanel.this);
                     }
                 };
         columns.add(outcomeColumn);
@@ -417,14 +445,20 @@ public class AuditLogViewerPanel extends BasePanel {
     }
 
     private IColumn<SelectableBean<AuditEventRecordType>, String> createNameColumn() {
-        return new LinkColumn<SelectableBean<AuditEventRecordType>>(createStringResource("AuditEventRecordType.timestamp"), AuditEventRecordType.F_TIMESTAMP.getLocalPart(),
+        return new LinkColumn<>(createStringResource("AuditEventRecordType.timestamp"), AuditEventRecordType.F_TIMESTAMP.getLocalPart(),
                 SelectableBeanImpl.F_VALUE + "." + AuditEventRecordType.F_TIMESTAMP.getLocalPart()) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected IModel<String> createLinkModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
-                AuditEventRecordType record = unwrapModel(rowModel);
-                return Model.of(WebComponentUtil.formatDate(record.getTimestamp()));
+                return new ReadOnlyModel<>(() -> {
+                    AuditEventRecordType record = unwrapModel(rowModel);
+                    if (record == null) {
+                        return null;
+                    }
+                    return WebComponentUtil.formatDate(record.getTimestamp());
+                });
+
             }
 
             @Override
@@ -442,6 +476,9 @@ public class AuditLogViewerPanel extends BasePanel {
                 AuditEventRecordType record = unwrapModel(rowModel);
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, record.getEventIdentifier());
+                if (AuditEventTypeType.EXECUTE_CHANGES_RAW == record.getEventType()) {
+                    parameters.add(PageAuditLogDetails.PARAMETER_STAGE, record.getEventStage().value());
+                }
                 getPageBase().navigateToNext(new PageAuditLogDetails(parameters));
             }
         };

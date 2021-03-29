@@ -58,7 +58,7 @@ public class SqlTransformerSupport {
     }
 
     public <T> T parseRealValue(String serializedResult, Class<T> clazz) throws SchemaException {
-        return schemaService.parserFor(serializedResult).parseRealValue(clazz);
+        return schemaService.parserFor(serializedResult).compat().parseRealValue(clazz);
     }
 
     /**
