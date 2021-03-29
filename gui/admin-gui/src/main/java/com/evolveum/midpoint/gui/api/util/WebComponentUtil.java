@@ -3799,9 +3799,9 @@ public final class WebComponentUtil {
             IconType icon = new IconType();
             icon.setCssClass("fa fa-times-circle " + GuiStyleConstants.RED_COLOR);
             if (isColumn) {
-                builder.setBasicIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
             } else {
-                builder.setBasicIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
+                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
             }
             builder.setTitle(pageBase.createStringResource("FocusProjectionsTabPanel.deadShadow").getString()
                     + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
@@ -3822,9 +3822,9 @@ public final class WebComponentUtil {
             IconType icon = new IconType();
             icon.setCssClass("fa fa-lock " + GuiStyleConstants.RED_COLOR);
             if (isColumn) {
-                builder.setBasicIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
             } else {
-                builder.setBasicIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
+                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
             }
             builder.setTitle(pageBase.createStringResource("LockoutStatusType.LOCKED").getString()
                     + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
