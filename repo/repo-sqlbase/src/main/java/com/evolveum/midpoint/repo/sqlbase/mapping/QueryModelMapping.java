@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.NestedMappingResolver;

@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.repo.sql.audit.mapping;
 
 import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditEventRecord.TABLE_NAME;
-import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
+import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.*;
 
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
@@ -16,12 +16,12 @@ import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.CanonicalItemPathItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.DetailTableItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumOrdinalItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlDetailFetchMapper;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.CanonicalItemPathItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.DetailTableItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.EnumOrdinalItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 /**

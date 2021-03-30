@@ -6,16 +6,16 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
-import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.integerMapper;
-import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
+import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.integerMapper;
+import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.*;
 
 import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.EnumItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.TimestampItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
