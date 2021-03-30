@@ -1230,6 +1230,9 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             protected QName getDefaultObjectType() {
+                if (QueryScope.SELECTED.equals(scope)) {
+                    return FocusType.COMPLEX_TYPE;
+                }
                 return WebComponentUtil.classToQName(AbstractRoleMemberPanel.this.getPrismContext(),
                         AbstractRoleMemberPanel.this.getDefaultObjectType());
             }
