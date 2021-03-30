@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sqlbase.filtering;
 import com.querydsl.core.types.Predicate;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemFilterProcessor;
 
 /**
@@ -31,5 +31,5 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemFilterProcessor;
  */
 public interface FilterProcessor<O extends ObjectFilter> {
 
-    Predicate process(O filter) throws QueryException;
+    Predicate process(O filter) throws RepositoryException;
 }

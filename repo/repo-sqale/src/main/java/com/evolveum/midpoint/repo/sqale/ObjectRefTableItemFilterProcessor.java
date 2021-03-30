@@ -46,7 +46,7 @@ public class ObjectRefTableItemFilterProcessor
         SqlQueryContext<?, QObjectReference, MReference> refContext =
                 ((SqlQueryContext<?, QObject<?>, ?>) context)
                         .leftJoin(qObjectReferenceMapping, (o, r) -> o.oid.eq(r.ownerOid));
-        QReference ref = refContext.path();
+        QReference<?> ref = refContext.path();
 
         return new RefItemFilterProcessor(context, ref.targetOid, ref.targetType, ref.relationId)
                 .process(filter);

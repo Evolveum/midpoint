@@ -37,6 +37,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.*;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -129,8 +130,7 @@ public class SqaleRepositoryService implements RepositoryService {
 //            object = objectLocal;
 //            invokeConflictWatchers((w) -> w.afterGetObject(objectLocal));
         } catch (RuntimeException e) { // TODO what else to catch?
-            handleGeneralException(e, operationResult);
-            throw new SystemException(e);
+            throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
             operationResult.recordFatalError(t);
             throw t;
@@ -264,27 +264,27 @@ public class SqaleRepositoryService implements RepositoryService {
                 object.checkConsistence(ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
             }
 
-//        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
-//        long opHandle = pm.registerOperationStart(OP_ADD_OBJECT, object.getCompileTimeClass());
-//        int attempt = 1;
-//        int restarts = 0;
-//        boolean noFetchExtensionValueInsertionForbidden = false;
-            // TODO use executeAttempts
-            final String operation = "adding";
-
             if (object.getVersion() == null) {
                 object.setVersion("1");
             }
-            String oid = new AddObjectOperation<>(object, options, operationResult)
-                    .execute(transformerSupport);
-            return oid;
-            /*
+
+            /* old repo code missing in new repo:
+            SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+            long opHandle = pm.registerOperationStart(OP_ADD_OBJECT, object.getCompileTimeClass());
+            int attempt = 1;
+            int restarts = 0;
+            boolean noFetchExtensionValueInsertionForbidden = false;
             String proposedOid = object.getOid();
             while (true) {
                 try {
-                    String createdOid = objectUpdater.addObjectAttempt(object, options, noFetchExtensionValueInsertionForbidden, subResult);
-                    invokeConflictWatchers((w) -> w.afterAddObject(createdOid, object));
-                    return createdOid;
+            */
+            // TODO use executeAttempts
+
+            String oid = new AddObjectOperation<>(object, options, operationResult)
+                    .execute(transformerSupport);
+            invokeConflictWatchers((w) -> w.afterAddObject(oid, object));
+            return oid;
+            /*
                 } catch (RestartOperationRequestedException ex) {
                     // special case: we want to restart but we do not want to count these
                     LOGGER.trace("Restarting because of {}", ex.getMessage());
@@ -293,7 +293,7 @@ public class SqaleRepositoryService implements RepositoryService {
                         throw new IllegalStateException("Too many operation restarts");
                     }
                 } catch (RuntimeException ex) {
-                    attempt = baseHelper.logOperationAttempt(proposedOid, operation, attempt, ex, subResult);
+                    attempt = baseHelper.logOperationAttempt(proposedOid, "adding", attempt, ex, subResult);
 //                    pm.registerOperationNewAttempt(opHandle, attempt);
                 }
                 noFetchExtensionValueInsertionForbidden = true; // todo This is a temporary measure; needs better handling.
@@ -389,7 +389,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 if (precondition != null && !precondition.holds(prismObject)) {
                     throw new PreconditionViolationException("Modification precondition does not hold for " + prismObject);
                 }
-                // invokeConflictWatchers(w -> w.beforeModifyObject(prismObject)); TODO
+                invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
 
                 PrismObject<T> originalObject = prismObject.clone();
 
@@ -416,6 +416,8 @@ public class SqaleRepositoryService implements RepositoryService {
                 //  especially if called potentially multiple times.
                 return new ModifyObjectResult<>(originalObject, prismObject, modifications);
             }
+        } catch (RepositoryException | RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
             operationResult.recordFatalError(t);
             throw t;
@@ -433,7 +435,8 @@ public class SqaleRepositoryService implements RepositoryService {
     void modifyObjectAttempt(
             JdbcSession jdbcSession,
             PrismObject<S> prismObject,
-            Collection<? extends ItemDelta<?, ?>> modifications) throws SchemaException {
+            Collection<? extends ItemDelta<?, ?>> modifications)
+            throws SchemaException, RepositoryException {
 
         Collection<? extends ItemDelta<?, ?>> narrowedModifications =
                 prismObject.narrowModifications(modifications, EquivalenceStrategy.DATA,
@@ -447,13 +450,24 @@ public class SqaleRepositoryService implements RepositoryService {
         SQLUpdateClause update = jdbcSession.newUpdate(root)
                 .where(root.oid.eq(UUID.fromString(prismObject.getOid())));
 
+        // region updatePrismObject: can be extracted as updatePrismObject (not done before CID generation is cleared up
         // TODO taken from "legacy" branch, how is this worse/different from ObjectDeltaUpdater.handleObjectCommonAttributes()?
         ItemDeltaCollectionsUtil.applyTo(modifications, prismObject);
         ObjectTypeUtil.normalizeAllRelations(prismObject, schemaService.relationRegistry());
         // TODO generate missing container IDs? is it needed? doesn't model do it? see old repo PrismIdentifierGenerator
+        //  BWT: it's not enough to do it in prism object, we need it for deltas adding containers too
 
         int newVersion = SqaleUtils.objectVersionAsInt(prismObject) + 1;
         prismObject.setVersion(String.valueOf(newVersion));
+        // endregion
+
+        // TODO APPLY modifications HERE (generate update/set clauses)
+        for (ItemDelta<?, ?> modification : modifications) {
+            System.out.println("modification = " + modification);
+            ItemSqlMapper mapper = rootMapping.itemMapper(modification.getPath().asSingleName());
+            // TODO get modify applicator or what
+        }
+
         ObjectSqlTransformer<S, Q, R> transformer = (ObjectSqlTransformer<S, Q, R>)
                 rootMapping.createTransformer(transformerSupport);
         update.set(root.fullObject, transformer.createFullObject(prismObject.asObjectable()));
@@ -504,9 +518,8 @@ public class SqaleRepositoryService implements RepositoryService {
         try {
             var queryContext = SqaleQueryContext.from(type, transformerSupport, sqlRepoContext);
             return sqlQueryExecutor.count(queryContext, query, options);
-        } catch (QueryException | RuntimeException e) {
-            handleGeneralException(e, operationResult);
-            throw new SystemException(e);
+        } catch (RepositoryException | RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
             operationResult.recordFatalError(t);
             throw t;
@@ -538,9 +551,8 @@ public class SqaleRepositoryService implements RepositoryService {
             //noinspection unchecked
             return result.map(
                     o -> (PrismObject<T>) o.asPrismObject());
-        } catch (QueryException | RuntimeException e) {
-            handleGeneralException(e, operationResult);
-            throw new SystemException(e);
+        } catch (RepositoryException | RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
             operationResult.recordFatalError(t);
             throw t;
@@ -619,8 +631,8 @@ public class SqaleRepositoryService implements RepositoryService {
             SearchResultList<T> result =
                     sqlQueryExecutor.list(queryContext, query, options);
             return result;
-        } catch (QueryException | RuntimeException e) {
-            handleGeneralException(e, operationResult);
+        } catch (RepositoryException | RuntimeException e) {
+            handledGeneralException(e, operationResult);
             throw new SystemException(e);
         } catch (Throwable t) {
             operationResult.recordFatalError(t);
@@ -815,13 +827,14 @@ public class SqaleRepositoryService implements RepositoryService {
 
     /**
      * Handles exception outside of transaction - this does not handle transactional problems.
+     * Returns {@link SystemException}, call with `throw` keyword.
      */
-    private void handleGeneralException(@NotNull Throwable ex, OperationResult result) {
+    private SystemException handledGeneralException(@NotNull Throwable ex, OperationResult result) {
         LOGGER.error("General checked exception occurred.", ex);
         recordException(ex, result,
                 sqlRepoContext.getJdbcRepositoryConfiguration().isFatalException(ex));
 
-        throw ex instanceof SystemException
+        return ex instanceof SystemException
                 ? (SystemException) ex
                 : new SystemException(ex.getMessage(), ex);
     }
