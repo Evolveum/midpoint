@@ -94,7 +94,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     }
 
     @Test
-    public void test100ImportLiveSyncTaskDummyGreen() throws Exception {
+    public void test100ImportSyncTaskDummyGreen() throws Exception {
         when();
         importSyncTask(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
 
@@ -157,6 +157,12 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
             assertThat(provisioningStatistics.getEntry().get(0).getResourceRef().getOid()).isEqualTo(RESOURCE_DUMMY_GREEN_OID);
             assertThat(getOrig(provisioningStatistics.getEntry().get(0).getResourceRef().getTargetName())).isEqualTo("Dummy Resource Green");
             assertThat(provisioningStatistics.getEntry().get(0).getOperation()).isNotEmpty(); // search and sometimes get
+
+            Integer itemsProcessed = TaskOperationStatsUtil.getItemsProcessed(stats);
+
+            // MID-6930: We should process exactly 1 item even for partitioned reconciliation:
+            // mancomb must not be processed in the 3rd part!
+            assertThat(itemsProcessed).as("items processed").isEqualTo(1);
         }
 
         // notifications
@@ -168,7 +174,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     protected abstract String getExpectedChannel();
 
     @Test
-    public void test200ImportLiveSyncTaskDummyBlue() throws Exception {
+    public void test200ImportSyncTaskDummyBlue() throws Exception {
         when();
         importSyncTask(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
 
@@ -325,7 +331,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
      * the default dummy account directly. Just make sure that it does not do anything bad.
      */
     @Test
-    public void test350ImportLiveSyncTaskDummyDefault() throws Exception {
+    public void test350ImportSyncTaskDummyDefault() throws Exception {
         when();
         importSyncTask(getDummyResourceObject());
 

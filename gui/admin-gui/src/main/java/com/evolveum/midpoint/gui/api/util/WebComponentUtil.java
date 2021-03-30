@@ -3808,10 +3808,24 @@ public final class WebComponentUtil {
             return builder.build();
         }
 
+        if (shadow.getResourceRef() != null && shadow.getResourceRef().getObject() != null
+                && !ResourceTypeUtil.isActivationCapabilityEnabled((ResourceType)shadow.getResourceRef().getObject().asObjectable(), null)) {
+            IconType icon = new IconType();
+            icon.setCssClass("fa fa-ban " + GuiStyleConstants.RED_COLOR);
+            if (isColumn) {
+                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+            } else {
+                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
+            }
+            builder.setTitle(pageBase.createStringResource("accountIcon.activation.notSupported").getString()
+                    + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+            return builder.build();
+        }
+
         ActivationType activation = shadow.getActivation();
         if (activation == null) {
-            builder.setTitle(pageBase.createStringResource("ActivationStatusType.null").getString()
-                    + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+            builder.setTitle(pageBase.createStringResource("accountIcon.activation.unknown").getString()
+                        + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
             appendUndefinedIcon(builder);
             return builder.build();
         }
@@ -3832,12 +3846,14 @@ public final class WebComponentUtil {
         }
 
         ActivationStatusType value = activation.getAdministrativeStatus();
-        builder.setTitle(pageBase.createStringResource("ActivationStatusType." + value).getString()
-                + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
         if (value == null) {
+            builder.setTitle(pageBase.createStringResource("accountIcon.activation.unknown").getString()
+                    + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
             appendUndefinedIcon(builder);
             return builder.build();
         }
+        builder.setTitle(pageBase.createStringResource("ActivationStatusType." + value).getString()
+                + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
 
         switch (value) {
             case DISABLED:

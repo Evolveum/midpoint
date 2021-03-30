@@ -72,7 +72,7 @@ class ReconciliationTaskThirdPartExecution
             CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException {
         ObjectQuery initialQuery = getPrismContext().queryFor(ShadowType.class)
                 .block()
-                    .item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).le(getReconciliationStartTimestamp())
+                    .item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).le(getReconciliationStartTimestamp(opResult))
                     .or().item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).isNull()
                 .endBlock()
                 .and().item(ShadowType.F_RESOURCE_REF).ref(taskExecution.getResourceOid())
@@ -81,11 +81,19 @@ class ReconciliationTaskThirdPartExecution
         return taskExecution.createShadowQuery(initialQuery, opResult);
     }
 
-    private XMLGregorianCalendar getReconciliationStartTimestamp() {
-        // TODO TODO TODO
-        //  We should provide start timestamp of the start of the second stage.
-        //  It could be present in a separate task (!)
-        return taskExecution.startTimestamp;
+    private XMLGregorianCalendar getReconciliationStartTimestamp(OperationResult result) throws SchemaException {
+        Task rootTask = getRootTask(result);
+        XMLGregorianCalendar lastReconStart = rootTask.getExtensionPropertyRealValue(
+                SchemaConstants.MODEL_EXTENSION_LAST_RECONCILIATION_START_TIMESTAMP_PROPERTY_NAME);
+        if (lastReconStart != null) {
+            logger.trace("Last reconciliation start time: {}, determined from the extension of {}", lastReconStart, rootTask);
+            return lastReconStart;
+        } else {
+            XMLGregorianCalendar implicitLastReconStart = taskExecution.startTimestamp;
+            logger.trace("Last reconciliation start time: {}, determined as start timestamp of the respective part in {}",
+                    implicitLastReconStart, localCoordinatorTask);
+            return implicitLastReconStart;
+        }
     }
 
     @Override
