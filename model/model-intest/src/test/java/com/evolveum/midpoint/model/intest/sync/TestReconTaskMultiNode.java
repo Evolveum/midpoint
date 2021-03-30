@@ -18,7 +18,7 @@ import java.io.FileNotFoundException;
  * The same as TestReconTaskPartitioned but the second partition (resource reconciliation) is executed in a set of worker tasks.
  * (Currently there is only a single bucket, but multiple bucket processing will be implemented shortly.)
  *
- * Cannot be run under H2 because of too much contention.
+ * Shouldn't be run under H2 because of too much contention.
  * Also, it takes a little longer than standard TestReconTask because of the overhead.
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})

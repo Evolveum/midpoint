@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.schema.util.task.TaskPartPerformanceInformation;
 import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -481,8 +482,22 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         return partDefinition != null && partDefinition.getStage() == ExecutionModeType.SIMULATE;
     }
 
-    public String getRootTaskOid() {
+    public @NotNull String getRootTaskOid() {
         return taskExecution.getRootTaskOid();
+    }
+
+    protected @NotNull Task getRootTask(OperationResult result) throws SchemaException {
+        String rootTaskOid = getRootTaskOid();
+        if (localCoordinatorTask.getOid().equals(rootTaskOid)) {
+            return localCoordinatorTask;
+        } else {
+            try {
+                return taskHandler.taskManager.getTaskPlain(rootTaskOid, result);
+            } catch (ObjectNotFoundException e) {
+                // This is quite unexpected so it can be rethrown as SystemException
+                throw new SystemException("The root task was not found", e);
+            }
+        }
     }
 
     public String getPartUri() {
