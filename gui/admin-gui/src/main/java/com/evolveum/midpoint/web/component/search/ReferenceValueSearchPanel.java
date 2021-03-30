@@ -65,7 +65,6 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
                         return ReferenceValueSearchPanel.this.isAllowedNotFoundObjectRef();
                     }
                 };
-        value.setRenderBodyOnly(true);
         return value;
     }
 
