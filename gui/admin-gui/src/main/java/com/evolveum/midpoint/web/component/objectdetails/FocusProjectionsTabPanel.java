@@ -229,6 +229,8 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                         List<SearchItemDefinition> defs = new ArrayList<>();
                         SearchFactory.addSearchRefDef(containerDef, ShadowType.F_RESOURCE_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
                         SearchFactory.addSearchPropertyDef(containerDef, ShadowType.F_NAME, defs);
+                        SearchFactory.addSearchPropertyDef(containerDef, ShadowType.F_INTENT, defs);
+                        SearchFactory.addSearchPropertyDef(containerDef, ShadowType.F_KIND, defs);
                         return defs;
                     }
 
