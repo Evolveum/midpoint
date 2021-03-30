@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -77,7 +77,7 @@ public class DetailTableItemFilterProcessor
     }
 
     @Override
-    public Predicate process(PropertyValueFilter<String> filter) throws QueryException {
+    public Predicate process(PropertyValueFilter<String> filter) throws RepositoryException {
         //noinspection unchecked
         SqlQueryContext<?, DQ, DR> joinContext =
                 ((SqlQueryContext<?, Q, ?>) context).leftJoin(detailQueryType, joinOnPredicate);

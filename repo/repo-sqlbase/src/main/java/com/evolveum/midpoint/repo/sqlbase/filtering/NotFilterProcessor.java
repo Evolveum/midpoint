@@ -10,6 +10,7 @@ import com.querydsl.core.types.Predicate;
 
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 
 public class NotFilterProcessor implements FilterProcessor<NotFilter> {
@@ -21,7 +22,7 @@ public class NotFilterProcessor implements FilterProcessor<NotFilter> {
     }
 
     @Override
-    public Predicate process(NotFilter filter) throws QueryException {
+    public Predicate process(NotFilter filter) throws RepositoryException {
         if (filter.getConditions().size() != 1) {
             throw new QueryException("Invalid condition size inside NOT filter: " + filter);
         }

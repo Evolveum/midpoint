@@ -48,11 +48,11 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.RChangeType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
-import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.TemporaryTableDialect;
 import com.evolveum.midpoint.repo.sqlbase.*;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -1131,7 +1131,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             var queryContext = AuditSqlQueryContext.from(
                     AuditEventRecordType.class, transformerSupport, sqlRepoContext);
             return sqlQueryExecutor.count(queryContext, query, options);
-        } catch (QueryException | RuntimeException e) {
+        } catch (RepositoryException | RuntimeException e) {
             baseHelper.handleGeneralException(e, operationResult);
             throw new SystemException(e);
         } catch (Throwable t) {
@@ -1160,7 +1160,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                     sqlQueryExecutor.list(queryContext, query, options);
 //            addContainerDefinition(AuditEventRecordType.class, result);
             return result;
-        } catch (QueryException | RuntimeException e) {
+        } catch (RepositoryException | RuntimeException e) {
             baseHelper.handleGeneralException(e, operationResult);
             throw new SystemException(e);
         } catch (Throwable t) {

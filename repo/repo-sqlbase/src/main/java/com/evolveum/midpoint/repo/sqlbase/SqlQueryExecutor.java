@@ -38,7 +38,7 @@ public class SqlQueryExecutor {
             @NotNull SqlQueryContext<S, Q, R> context,
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options)
-            throws QueryException {
+            throws RepositoryException {
 
         if (query != null) {
             context.process(query.getFilter());
@@ -55,7 +55,7 @@ public class SqlQueryExecutor {
             @NotNull SqlQueryContext<S, Q, R> context,
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options)
-            throws QueryException, SchemaException {
+            throws RepositoryException, SchemaException {
 
         if (query != null) {
             context.process(query.getFilter());
