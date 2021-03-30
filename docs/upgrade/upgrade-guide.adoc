@@ -99,7 +99,7 @@ However, this approach is recommended only to expert users that exactly know wha
 As a rule of the thumb, all configuration adjustments that are known before the upgrade should be done before the upgrade.
 
 Prepare testing scenarios and test cases for post-upgrade testing.
-Running prepared test scenarios rather than improvising is likely to be much faster, which reduces the downgrade downtime.
+Running prepared test scenarios rather than improvising is likely to be much faster, which reduces the upgrade downtime.
 Test cases from pre-production or acceptance testing may be very handy at this point, at least as an inspiration.
 
 Your _production_ environment should be accompanied by _testing_ and optionally also _development_ environments.
