@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.role;
 
-import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.integerMapper;
+import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.integerMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType.F_DISPLAY_ORDER;
 
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;

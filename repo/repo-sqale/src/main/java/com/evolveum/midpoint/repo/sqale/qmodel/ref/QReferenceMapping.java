@@ -6,12 +6,12 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
-import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.uuidMapper;
+import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.uuidMapper;
 
 import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.EnumItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**

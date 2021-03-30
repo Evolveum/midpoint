@@ -17,6 +17,9 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.mapping.delta.ItemDeltaProcessor;
+import com.evolveum.midpoint.repo.sqlbase.mapping.delta.SqlUpdateContext;
 
 /**
  * Declarative information how an item (from schema/prism world) is to be processed
@@ -39,19 +42,34 @@ public class ItemSqlMapper {
      */
     @Nullable private final Function<EntityPath<?>, Path<?>> primaryItemMapping;
 
-    @NotNull private final Function<SqlQueryContext<?, ?, ?>, ItemFilterProcessor<?>> filterProcessorFactory;
+    @NotNull private final
+    Function<SqlQueryContext<?, ?, ?>, ItemFilterProcessor<?>> filterProcessorFactory;
+
+    //    @NotNull TODO probably in the end we want not null too for items?
+    private final
+    Function<SqlUpdateContext<?, ?, ?>, ItemDeltaProcessor> deltaProcessorFactory;
 
     public <P extends Path<?>> ItemSqlMapper(
             @NotNull Function<SqlQueryContext<?, ?, ?>, ItemFilterProcessor<?>> filterProcessorFactory,
+            @NotNull Function<SqlUpdateContext<?, ?, ?>, ItemDeltaProcessor> deltaProcessorFactory,
             @Nullable Function<EntityPath<?>, P> primaryItemMapping) {
         this.filterProcessorFactory = Objects.requireNonNull(filterProcessorFactory);
+        this.deltaProcessorFactory = deltaProcessorFactory; // TODO Objects.requireNonNull(deltaProcessorFactory);
         //noinspection unchecked
         this.primaryItemMapping = (Function<EntityPath<?>, Path<?>>) primaryItemMapping;
     }
 
+    public <P extends Path<?>> ItemSqlMapper(
+            @NotNull Function<SqlQueryContext<?, ?, ?>, ItemFilterProcessor<?>> filterProcessorFactory,
+            @Nullable Function<EntityPath<?>, P> primaryItemMapping) {
+        // TODO deprecate this version? Will it be useful?
+        this(filterProcessorFactory, null, primaryItemMapping);
+    }
+
     public ItemSqlMapper(
             @NotNull Function<SqlQueryContext<?, ?, ?>, ItemFilterProcessor<?>> filterProcessorFactory) {
-        this(filterProcessorFactory, null);
+        // TODO deprecate this version? Add second not-null parameter? Will it be useful?
+        this(filterProcessorFactory, null, null);
     }
 
     public @Nullable Path<?> itemPrimaryPath(EntityPath<?> root) {
@@ -72,5 +90,7 @@ public class ItemSqlMapper {
         return (ItemFilterProcessor<T>) filterProcessorFactory.apply(sqlQueryContext);
     }
 
-    // TODO createDeltaProcessor?
+    public ItemDeltaProcessor createItemDeltaProcessor(SqlUpdateContext<?, ?, ?> sqlUpdateContext) {
+        return deltaProcessorFactory.apply(sqlUpdateContext);
+    }
 }

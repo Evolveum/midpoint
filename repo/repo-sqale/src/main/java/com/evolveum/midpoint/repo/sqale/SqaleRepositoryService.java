@@ -13,7 +13,6 @@ import javax.annotation.PreDestroy;
 
 import com.google.common.base.Strings;
 import com.querydsl.core.Tuple;
-import com.querydsl.sql.dml.SQLUpdateClause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,10 +33,8 @@ import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.sqale.operations.AddObjectOperation;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.*;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -443,12 +440,9 @@ public class SqaleRepositoryService implements RepositoryService {
                         EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS, true);
         LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(narrowedModifications));
 
-        SqaleTableMapping<S, Q, R> rootMapping =
-                sqlRepoContext.getMappingBySchemaType(prismObject.getCompileTimeClass());
-        Q root = rootMapping.defaultAlias();
-        // TODO update will probably be replaced by some "update context" to be able to update multiple tables (+insert/delete of details)
-        SQLUpdateClause update = jdbcSession.newUpdate(root)
-                .where(root.oid.eq(UUID.fromString(prismObject.getOid())));
+        SqaleUpdateContext<S, Q, R> updateContext = new SqaleUpdateContext<>(
+                sqlRepoContext.getMappingBySchemaType(prismObject.getCompileTimeClass()),
+                jdbcSession, prismObject);
 
         // region updatePrismObject: can be extracted as updatePrismObject (not done before CID generation is cleared up
         // TODO taken from "legacy" branch, how is this worse/different from ObjectDeltaUpdater.handleObjectCommonAttributes()?
@@ -457,22 +451,18 @@ public class SqaleRepositoryService implements RepositoryService {
         // TODO generate missing container IDs? is it needed? doesn't model do it? see old repo PrismIdentifierGenerator
         //  BWT: it's not enough to do it in prism object, we need it for deltas adding containers too
 
-        int newVersion = SqaleUtils.objectVersionAsInt(prismObject) + 1;
-        prismObject.setVersion(String.valueOf(newVersion));
         // endregion
 
         // TODO APPLY modifications HERE (generate update/set clauses)
         for (ItemDelta<?, ?> modification : modifications) {
             System.out.println("modification = " + modification);
-            ItemSqlMapper mapper = rootMapping.itemMapper(modification.getPath().asSingleName());
-            // TODO get modify applicator or what
+//            updateContext.processModification(modification); // TODO expected NPE right now
         }
 
-        ObjectSqlTransformer<S, Q, R> transformer = (ObjectSqlTransformer<S, Q, R>)
-                rootMapping.createTransformer(transformerSupport);
-        update.set(root.fullObject, transformer.createFullObject(prismObject.asObjectable()));
-        update.set(root.version, newVersion);
-        update.execute();
+        updateContext.incrementVersion();
+        updateContext.updateFullObject(transformerSupport);
+
+        updateContext.execute();
     }
 
     private void logTraceModifications(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) {

@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.node;
 
-import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
+import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType.F_NODE_IDENTIFIER;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;

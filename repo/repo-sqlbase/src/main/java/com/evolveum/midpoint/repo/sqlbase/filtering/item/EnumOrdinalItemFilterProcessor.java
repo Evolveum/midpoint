@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqlbase.mapping.item;
+package com.evolveum.midpoint.repo.sqlbase.filtering.item;
 
 import java.util.function.Function;
 
@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 
 /**
  * Filter processor for a an attribute path (Prism item) of enum type that is mapped

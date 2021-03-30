@@ -10,7 +10,7 @@ import com.querydsl.core.types.Predicate;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
 
 /**
  * Filter processor is very abstract thing that takes the filter and returns the SQL predicate.
