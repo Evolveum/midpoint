@@ -617,6 +617,10 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     private String getItemValuesString(Item<?, ?> item, DisplayValueType displayValue, PrismObject<LookupTableType> lookupTable){
         if (DisplayValueType.NUMBER.equals(displayValue)) {
+            //This is really ugly HACK FIXME TODO
+            if (item.getDefinition() != null && UserType.F_LINK_REF.equivalent(item.getDefinition().getItemName())) {
+                return WebComponentUtil.countLinkFroNonDeadShadows((Collection<ObjectReferenceType>) item.getRealValues());
+            }
             return String.valueOf(item.getValues().size());
         }
         return item.getValues().stream()

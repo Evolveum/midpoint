@@ -5025,4 +5025,30 @@ public final class WebComponentUtil {
 
         return partProgressHumanReadable;
     }
+
+    public static String filterNonDeadProjections(List<ShadowWrapper> projectionWrappers) {
+        if (projectionWrappers == null) {
+            return "0";
+        }
+
+        int nonDead = 0;
+        for (ShadowWrapper projectionWrapper : projectionWrappers) {
+            if (projectionWrapper.isDead()) {
+                continue;
+            }
+            nonDead++;
+        }
+        return Integer.toString(nonDead);
+    }
+
+    public static String countLinkFroNonDeadShadows(Collection<ObjectReferenceType> refs) {
+        int count = 0;
+        for (ObjectReferenceType ref : refs) {
+            if (QNameUtil.match(ref.getRelation(), SchemaConstants.ORG_RELATED)) {
+                continue;
+            }
+            count++;
+        }
+        return Integer.toString(count);
+    }
 }

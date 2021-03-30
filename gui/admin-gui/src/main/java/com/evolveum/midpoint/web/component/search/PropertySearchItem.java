@@ -11,7 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -37,7 +39,14 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
 
     private DisplayableValue<T> value;
 
+    @Experimental
+    private boolean visible = true;
+
     public PropertySearchItem(Search search, @NotNull SearchItemDefinition definition) {
+        this(search, definition, null);
+    }
+
+    public PropertySearchItem(Search search, @NotNull SearchItemDefinition definition, DisplayableValue<T> defaultValue) {
         super(search);
         Validate.notNull(definition.getPath(), "Item definition.getPath() must not be null.");
         Validate.notNull(definition.getDef(), "Item definition.getDef() must not be null.");
@@ -48,9 +57,10 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
         }
 
         setDefinition(definition);
+        this.value = defaultValue;
     }
 
-    public DisplayableValue<T> getValue() {
+        public DisplayableValue<T> getValue() {
         return value;
     }
 
@@ -138,6 +148,19 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
     @Override
     public String getHelp(PageBase pageBase) {
         return getDefinition().getHelp();
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    @Experimental
+    public ObjectFilter transformToFilter() {
+        return null;
     }
 
     @Override
