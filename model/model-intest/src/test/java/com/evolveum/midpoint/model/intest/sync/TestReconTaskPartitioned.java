@@ -21,7 +21,7 @@ import java.io.FileNotFoundException;
  * The same as TestReconTask but this one uses partitioned reconciliation task handler.
  * I.e. each reconciliation task is divided into three subtasks (for stage 1, 2, 3).
  *
- * Cannot be run under H2 because of too much contention.
+ * Shouldn't be run under H2 because of too much contention.
  * Also, it takes a little longer than standard TestReconTask because of the overhead.
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})

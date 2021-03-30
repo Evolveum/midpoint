@@ -1759,7 +1759,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
      *
      * MID-6898
      */
-    @Test(enabled = false)
+    @Test
     public void test210SearchObjectsFromAnotherObjectClass() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
