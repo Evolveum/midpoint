@@ -54,6 +54,7 @@ public class TriggerScannerTaskHandler
 
     public TriggerScannerTaskHandler() {
         super(LOGGER, "Trigger scan", OperationConstants.TRIGGER_SCAN);
+        globalReportingOptions.setCountObjectsOnStart(false); // To avoid problems like in MID-6934.
     }
 
     @PostConstruct

@@ -68,6 +68,12 @@ public class DummyAuditService implements AuditService, DebugDumpable {
     @Override
     public synchronized void audit(AuditEventRecord record, Task task, OperationResult result) {
         if (enabled) {
+            for (AuditEventRecord storedRecord : records) {
+                // do not allow to store two records with same eventIdentifier, maybe change to map?
+                if (storedRecord.getEventIdentifier().equals(record.getEventIdentifier())) {
+                    throw new IllegalStateException("Cannot add audit record with same event identifier");
+                }
+            }
             records.add(record.clone());
         }
     }

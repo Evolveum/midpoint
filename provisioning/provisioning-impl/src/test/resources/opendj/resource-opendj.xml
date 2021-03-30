@@ -31,12 +31,12 @@
             <icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
             <icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
             <icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
-             <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
-             <icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
-             <icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
-             <icfcldap:languageTagAttributes>description</icfcldap:languageTagAttributes> <!-- MID-5210 -->
+            <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
+            <icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
+            <icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
+            <icfcldap:languageTagAttributes>description</icfcldap:languageTagAttributes> <!-- MID-5210 -->
             <icfcldap:useTreeDelete>auto</icfcldap:useTreeDelete>
-             <icfcldap:enableExtraTests>false</icfcldap:enableExtraTests> <!-- MID-3477 -->
+            <icfcldap:enableExtraTests>false</icfcldap:enableExtraTests> <!-- MID-3477 -->
         </icfc:configurationProperties>
 
         <icfc:connectorPoolConfiguration>
@@ -186,6 +186,26 @@
                     </q:equal>
                 </filter>
             </baseContext>
+            <attribute>
+                <ref>ri:entryUUID</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+            </attribute>
+            <attribute>
+                <ref>ri:dn</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+            </attribute>
+            <attribute>
+                <ref>ri:uniqueMember</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+                <fetchStrategy>minimal</fetchStrategy>
+            </attribute>
+        </objectType>
+
+        <objectType>
+            <!-- Yet another entitlement. Same objectclass, but no baseContext. Testing MID-6898. -->
+            <kind>entitlement</kind>
+            <intent>unlimitedGroup</intent>
+            <objectClass>ri:groupOfUniqueNames</objectClass>
             <attribute>
                 <ref>ri:entryUUID</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>

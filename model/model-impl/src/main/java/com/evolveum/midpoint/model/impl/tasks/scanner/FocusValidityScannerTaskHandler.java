@@ -39,6 +39,7 @@ public class FocusValidityScannerTaskHandler
 
     public FocusValidityScannerTaskHandler() {
         super(LOGGER, "Focus validity scan", OperationConstants.FOCUS_VALIDITY_SCAN);
+        globalReportingOptions.setCountObjectsOnStart(false); // To avoid problems like in MID-6934.
     }
 
     @PostConstruct

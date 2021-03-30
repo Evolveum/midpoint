@@ -25,14 +25,11 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
@@ -66,15 +63,6 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             display("Deleted " + count + " objects from DB");
             */
         }
-    }
-
-    protected void assertResult(OperationResult opResult) {
-        if (opResult.isEmpty()) {
-            // this is OK. Nothing added to result.
-            return;
-        }
-        opResult.computeStatus();
-        TestUtil.assertSuccess(opResult);
     }
 
     /**

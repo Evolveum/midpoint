@@ -13,14 +13,13 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVA
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.cast;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
+import java.util.*;
 import java.util.Objects;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
@@ -282,6 +281,16 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertAdministrativeStatusEnabled(userJack);
         assertValidity(userJack, null);
         assertEffectiveStatus(userJack, ActivationStatusType.DISABLED);
+
+        // check explicitly, that the eventIdentifier is not shared between request and execution phase
+        AuditEventRecord requestRecord = dummyAuditService.getRequestRecord();
+        String eventId = requestRecord.getEventIdentifier();
+        List<AuditEventRecord> records = dummyAuditService.getExecutionRecords();
+        for (AuditEventRecord execRecord : records) {
+            if (eventId.equals(execRecord.getEventIdentifier())) {
+                AssertJUnit.fail("Event identifier must be unique");
+            }
+        }
 
         recomputeUser(USER_JACK_OID, task, result);
 
