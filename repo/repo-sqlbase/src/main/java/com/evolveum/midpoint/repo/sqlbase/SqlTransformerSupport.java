@@ -57,8 +57,9 @@ public class SqlTransformerSupport {
         return new ParseResult<>(parsingContext, prismObject);
     }
 
-    public <T> T parseRealValue(String serializedResult, Class<T> clazz) throws SchemaException {
-        return schemaService.parserFor(serializedResult).compat().parseRealValue(clazz);
+    @NotNull
+    public PrismParserNoIO createStringParser(String serializedResult) {
+        return schemaService.parserFor(serializedResult);
     }
 
     /**

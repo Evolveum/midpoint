@@ -24,7 +24,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * Simple class with methods for audit event transformation between repo and Prism world.
+ * Transformer between repo and Prism world for audit event.
  */
 public class AuditDeltaSqlTransformer
         extends AuditSqlTransformerBase<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> {
@@ -36,19 +36,14 @@ public class AuditDeltaSqlTransformer
         super(transformerSupport, mapping);
     }
 
-    public ObjectDeltaOperationType toSchemaObject(MAuditDelta row) throws SchemaException {
+    public ObjectDeltaOperationType toSchemaObject(MAuditDelta row) {
         ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
         SQLTemplates querydslTemplates = transformerSupport.sqlRepoContext().getQuerydslTemplates();
-        boolean usingSqlServer = querydslTemplates instanceof SQLServerTemplates;
-        odo.setObjectDelta(parseDelta(row.delta, usingSqlServer));
-        if (row.fullResult != null) {
-            String serializedResult =
-                    RUtil.getSerializedFormFromBytes(row.fullResult, usingSqlServer);
 
-            OperationResultType resultType = transformerSupport.parseRealValue(
-                    serializedResult, OperationResultType.class);
-            odo.setExecutionResult(resultType);
-        }
+        boolean usingSqlServer = querydslTemplates instanceof SQLServerTemplates;
+        odo.setObjectDelta(parseBytes(row.delta, usingSqlServer, ObjectDeltaType.class));
+        odo.setExecutionResult(parseBytes(row.fullResult, usingSqlServer, OperationResultType.class));
+
         if (row.objectNameOrig != null || row.objectNameNorm != null) {
             odo.setObjectName(new PolyStringType(
                     new PolyString(row.objectNameOrig, row.objectNameNorm)));
@@ -62,19 +57,19 @@ public class AuditDeltaSqlTransformer
         return odo;
     }
 
-    private ObjectDeltaType parseDelta(byte[] rowDelta, boolean usingSqlServer) {
-        if (rowDelta == null) {
+    private <T> T parseBytes(byte[] bytes, boolean usingSqlServer, Class<T> clazz) {
+        if (bytes == null) {
             return null;
         }
-        String serializedDelta = RUtil.getSerializedFormFromBytes(rowDelta, usingSqlServer);
 
         try {
-            return transformerSupport.parseRealValue(
-                    serializedDelta, ObjectDeltaType.class);
+            return transformerSupport
+                    .createStringParser(RUtil.getSerializedFormFromBytes(bytes, usingSqlServer))
+                    .compat()
+                    .parseRealValue(clazz);
         } catch (SchemaException e) {
-            LOGGER.error("Cannot parse delta: {}", e.getMessage(), e);
+            LOGGER.error("Cannot parse {}: {}", clazz.getSimpleName(), e.getMessage(), e);
+            return null;
         }
-        return null;
-
     }
 }
