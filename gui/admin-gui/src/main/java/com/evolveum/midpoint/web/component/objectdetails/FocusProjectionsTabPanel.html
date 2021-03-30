@@ -9,6 +9,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
     xmlns:wicket="http://wicket.apache.org">
     <wicket:panel>
+        <wicket:enclosure child="deadShadows">
+            <wicket:message key="FocusProjectionsTabPanel.dead.shadow"></wicket:message>
+            <span wicket:id="deadShadows" />
+        </wicket:enclosure>
         <div wicket:id="shadowTable">
         </div>
 

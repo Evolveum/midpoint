@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
+/** Transformation functionality common for audit. */
 public abstract class AuditSqlTransformerBase<S, Q extends FlexibleRelationalPathBase<R>, R>
         implements SqlTransformer<S, Q, R> {
 
