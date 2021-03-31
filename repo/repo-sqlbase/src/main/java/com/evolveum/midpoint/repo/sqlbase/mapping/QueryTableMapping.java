@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
@@ -131,7 +132,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     public final @Nullable Path<?> primarySqlPath(
             ItemName itemName, SqlQueryContext<?, ?, ?> context)
-            throws QueryException {
+            throws RepositoryException {
         return itemMapper(itemName).itemPrimaryPath(context.path());
     }
 

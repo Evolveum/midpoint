@@ -217,7 +217,11 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
             if (getModelObject() == null) {
                 return null;
             }
-            return OperationResult.createOperationResult(getModelObject().getExecutionResult());
+            OperationResultType executionResult = getModelObject().getExecutionResult();
+            if (executionResult == null) {
+                return null;
+            }
+            return OperationResult.createOperationResult(executionResult);
         });
     }
 }

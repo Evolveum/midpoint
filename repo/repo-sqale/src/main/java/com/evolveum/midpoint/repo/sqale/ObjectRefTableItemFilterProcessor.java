@@ -15,7 +15,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 
 /**
@@ -46,7 +46,7 @@ public class ObjectRefTableItemFilterProcessor
         SqlQueryContext<?, QObjectReference, MReference> refContext =
                 ((SqlQueryContext<?, QObject<?>, ?>) context)
                         .leftJoin(qObjectReferenceMapping, (o, r) -> o.oid.eq(r.ownerOid));
-        QReference ref = refContext.path();
+        QReference<?> ref = refContext.path();
 
         return new RefItemFilterProcessor(context, ref.targetOid, ref.targetType, ref.relationId)
                 .process(filter);

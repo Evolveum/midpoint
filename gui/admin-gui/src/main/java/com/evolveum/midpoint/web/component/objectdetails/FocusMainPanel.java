@@ -10,6 +10,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -192,8 +195,7 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
                     public String getCount() {
                         if (projectionModel.isLoaded()) {
                             List<ShadowWrapper> shadowWrappers = projectionModel.getObject();
-                            return  shadowWrappers == null ? "0" : Integer.toString(shadowWrappers.size());
-
+                            return WebComponentUtil.filterNonDeadProjections(shadowWrappers);
                         }
 
                         PrismObject<F> object = getObject();
@@ -201,7 +203,7 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
                             return "0";
                         }
 
-                        return Integer.toString(object.asObjectable().getLinkRef().size());
+                        return WebComponentUtil.countLinkFroNonDeadShadows(object.asObjectable().getLinkRef());
 
                     }
                 });

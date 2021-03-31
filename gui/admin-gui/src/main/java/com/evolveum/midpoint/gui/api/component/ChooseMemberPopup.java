@@ -235,40 +235,41 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                     }
                 });
 
+        if (archetypeRefList == null || archetypeRefList.isEmpty()) {
+            tabs.add(new CountablePanelTab(createStringResource("TypedAssignablePanel.orgTreeView"),
+                    new VisibleBehaviour(() -> isOrgTreeVisible() && (objectTypes == null || objectTypes.contains(OrgType.COMPLEX_TYPE)))) {
 
-        tabs.add(new CountablePanelTab(createStringResource("TypedAssignablePanel.orgTreeView"),
-                new VisibleBehaviour(() -> isOrgTreeVisible() && (objectTypes == null || objectTypes.contains(OrgType.COMPLEX_TYPE)))) {
+                private static final long serialVersionUID = 1L;
 
-            private static final long serialVersionUID = 1L;
+                @Override
+                public WebMarkupContainer createPanel(String panelId) {
+                    return new OrgTreeMemberPopupTabPanel(panelId, availableRelationList, archetypeRefList) {
+                        private static final long serialVersionUID = 1L;
 
-            @Override
-            public WebMarkupContainer createPanel(String panelId) {
-                return new OrgTreeMemberPopupTabPanel(panelId, availableRelationList, archetypeRefList){
-                    private static final long serialVersionUID = 1L;
+                        @Override
+                        protected T getAbstractRoleTypeObject() {
+                            return ChooseMemberPopup.this.getAssignmentTargetRefObject();
+                        }
 
-                    @Override
-                    protected T getAbstractRoleTypeObject(){
-                        return ChooseMemberPopup.this.getAssignmentTargetRefObject();
-                    }
+                        @Override
+                        protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel) {
+                            selectedOrgsListUpdate(rowModel);
+                            tabLabelPanelUpdate(target);
+                        }
 
-                    @Override
-                    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel){
-                        selectedOrgsListUpdate(rowModel);
-                        tabLabelPanelUpdate(target);
-                    }
+                        @Override
+                        protected List<OrgType> getPreselectedObjects() {
+                            return selectedOrgsList;
+                        }
+                    };
+                }
 
-                    @Override
-                    protected List<OrgType> getPreselectedObjects(){
-                        return selectedOrgsList;
-                    }
-                };
-            }
-
-            @Override
-            public String getCount() {
-                return Integer.toString(selectedOrgsList.size());
-            }
-        });
+                @Override
+                public String getCount() {
+                    return Integer.toString(selectedOrgsList.size());
+                }
+            });
+        }
 
         tabs.add(
                 new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.SERVICE"),

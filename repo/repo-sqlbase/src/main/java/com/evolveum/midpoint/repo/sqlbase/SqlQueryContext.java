@@ -103,7 +103,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     }
 
     @Override
-    public Predicate process(ObjectFilter filter) throws QueryException {
+    public Predicate process(ObjectFilter filter) throws RepositoryException {
         if (filter == null) {
             return null;
         }
@@ -117,7 +117,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     /**
      * This takes care of {@link ObjectPaging} which includes ordering.
      */
-    public void processObjectPaging(ObjectPaging paging) throws QueryException {
+    public void processObjectPaging(ObjectPaging paging) throws RepositoryException {
         if (paging == null) {
             return;
         }
@@ -133,7 +133,8 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         }
     }
 
-    private void processOrdering(List<? extends ObjectOrdering> orderings) throws QueryException {
+    private void processOrdering(List<? extends ObjectOrdering> orderings)
+            throws RepositoryException {
         for (ObjectOrdering ordering : orderings) {
             ItemPath orderByItemPath = ordering.getOrderBy();
             if (!(orderByItemPath.isSingleName())) {

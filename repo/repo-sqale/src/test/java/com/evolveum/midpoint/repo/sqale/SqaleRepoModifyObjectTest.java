@@ -29,9 +29,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     public void initObjects() throws Exception {
         OperationResult result = createOperationResult();
 
-        user1Oid = repositoryService.addObject(new UserType(prismContext)
-                        .name("user-1")
-                        .asPrismObject(),
+        user1Oid = repositoryService.addObject(
+                new UserType(prismContext).name("user-1").asPrismObject(),
                 null, result);
 
         assertThatOperationResult(result).isSuccess();
@@ -41,6 +40,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     public void test100ChangeStringAttribute()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
+        MUser originalUser = selectObjectByOid(QUser.class, user1Oid);
 
         given("delta with a email change for user 1");
         ObjectDelta<UserType> modificationReplaceProperty =
@@ -58,9 +58,11 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
         assertThat(userObject.getEmailAddress()).isEqualTo("new@email.com");
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalUser.version + 1));
 
         and("externalized column is updated too");
         MUser user = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(user.version).isEqualTo(originalUser.version + 1);
         assertThat(user.emailAddress).isEqualTo("new@email.com"); // TODO this fails now, obviously
     }
 

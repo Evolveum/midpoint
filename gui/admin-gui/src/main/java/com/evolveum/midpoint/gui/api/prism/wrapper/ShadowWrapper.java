@@ -22,4 +22,5 @@ public interface ShadowWrapper extends PrismObjectWrapper<ShadowType> {
 
 
     boolean isProtected();
+    boolean isDead();
 }

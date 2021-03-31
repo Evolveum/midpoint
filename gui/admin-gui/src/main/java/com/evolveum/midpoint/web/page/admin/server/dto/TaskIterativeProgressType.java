@@ -82,7 +82,7 @@ public class TaskIterativeProgressType implements Serializable {
     }
 
     public TaskInfoBoxType getSkipBox() {
-        return createInfoBoxType("skip", skippedProcessedItemSetType, "bg-gray", "fa fa-ban");
+        return createInfoBoxType("skip", skippedProcessedItemSetType, "bg-gray", "fe fe-skip-step-object");
     }
 
     private TaskInfoBoxType createInfoBoxType(String title, ProcessedItemSetType processedsetType, String background, String icon) {

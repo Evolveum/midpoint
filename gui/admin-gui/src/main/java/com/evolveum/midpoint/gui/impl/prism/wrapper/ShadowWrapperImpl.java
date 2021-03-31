@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+
 import org.apache.commons.lang3.BooleanUtils;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -58,5 +60,15 @@ public class ShadowWrapperImpl extends PrismObjectWrapperImpl<ShadowType> implem
 
         ShadowType shadowType = getObject().asObjectable();
         return BooleanUtils.isTrue(shadowType.isProtectedObject());
+    }
+
+    @Override
+    public boolean isDead() {
+        PrismObject<ShadowType> shadow = getObject();
+        if (shadow == null) {
+            return false;
+        }
+
+        return ShadowUtil.isDead(shadow);
     }
 }

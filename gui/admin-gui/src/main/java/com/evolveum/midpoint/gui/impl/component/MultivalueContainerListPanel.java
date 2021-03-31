@@ -11,6 +11,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -66,11 +68,19 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     @Override
     protected Search createSearch(Class<C> type) {
         PrismContainerDefinition<C> containerDefinition = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(getType());
-        return SearchFactory.createContainerSearch(new ContainerTypeSearchItem<>(new SearchValue<>(type, containerDefinition == null ? getType().getTypeName() : containerDefinition.getDisplayName())),
-                null, initSearchableItems(containerDefinition), getPageBase(), false);
+        return SearchFactory.createContainerSearch(createTypeSearchItem(type, containerDefinition),
+                getDefaultSearchItem(), initSearchableItems(containerDefinition), getPageBase(), false);
+    }
+
+    private ContainerTypeSearchItem<C> createTypeSearchItem(Class<C> type, PrismContainerDefinition<C> containerDefinition) {
+        return new ContainerTypeSearchItem<>(new SearchValue<>(type, containerDefinition == null ? getType().getTypeName() : containerDefinition.getDisplayName()));
     }
 
     protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<C> containerDef){
+        return null;
+    }
+
+    protected ItemPath getDefaultSearchItem() {
         return null;
     }
 

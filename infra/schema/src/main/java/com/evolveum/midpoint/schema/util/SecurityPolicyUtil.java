@@ -261,4 +261,24 @@ public class SecurityPolicyUtil {
         sequence.module(module);
         return sequence;
     }
+
+    public static SelfRegistrationPolicyType getSelfRegistrationPolicy(SecurityPolicyType securityPolicyType) {
+        RegistrationsPolicyType flowPolicy = securityPolicyType.getFlow();
+        SelfRegistrationPolicyType selfRegistrationPolicy = null;
+        if (flowPolicy != null) {
+            selfRegistrationPolicy = flowPolicy.getSelfRegistration();
+        }
+
+        if (selfRegistrationPolicy != null) {
+            return selfRegistrationPolicy;
+        }
+
+        RegistrationsPolicyType registrationPolicy = securityPolicyType.getRegistration();
+
+        if (registrationPolicy == null) {
+            return null;
+        }
+
+        return registrationPolicy.getSelfRegistration();
+    }
 }

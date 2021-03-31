@@ -7,16 +7,25 @@
 package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.web.component.search.*;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -50,7 +59,6 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.ShadowPanel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -67,8 +75,6 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -83,6 +89,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
     private static final long serialVersionUID = 1L;
 
     private static final String ID_SHADOW_TABLE = "shadowTable";
+    private static final String ID_DEAD_SHADOWS = "deadShadows";
 
     private static final String DOT_CLASS = FocusProjectionsTabPanel.class.getName() + ".";
     private static final String OPERATION_ADD_ACCOUNT = DOT_CLASS + "addShadow";
@@ -109,6 +116,12 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
     }
 
     private void initLayout() {
+
+        IModel<Integer> deadShadows = new ReadOnlyModel<>(() -> countDeadShadows());
+        Label label = new Label(ID_DEAD_SHADOWS, deadShadows);
+        label.add(new VisibleBehaviour(() -> deadShadows.getObject() > 0));
+        add(label);
+
         MultivalueContainerListPanelWithDetailsPanel<ShadowType> multivalueContainerListPanel =
                 new MultivalueContainerListPanelWithDetailsPanel<ShadowType>(ID_SHADOW_TABLE, ShadowType.class) {
 
@@ -200,12 +213,24 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                     }
 
                     @Override
+                    protected Search createSearch(Class<ShadowType> type) {
+                        Search search = super.createSearch(type);
+                        PropertySearchItem<Boolean> defaultDeadItem = search.findPropertySearchItem(ShadowType.F_DEAD);
+                        if (defaultDeadItem != null) {
+                            defaultDeadItem.setVisible(false);
+                        }
+                        addDeadSearchItem(search);
+                        return search;
+                    }
+
+                    @Override
                     protected List<SearchItemDefinition> initSearchableItems(
                             PrismContainerDefinition<ShadowType> containerDef) {
                         List<SearchItemDefinition> defs = new ArrayList<>();
                         SearchFactory.addSearchRefDef(containerDef, ShadowType.F_RESOURCE_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
                         SearchFactory.addSearchPropertyDef(containerDef, ShadowType.F_NAME, defs);
-
+                        SearchFactory.addSearchPropertyDef(containerDef, ShadowType.F_INTENT, defs);
+                        SearchFactory.addSearchPropertyDef(containerDef, ShadowType.F_KIND, defs);
                         return defs;
                     }
 
@@ -217,6 +242,52 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                 };
         add(multivalueContainerListPanel);
         setOutputMarkupId(true);
+    }
+
+    private int countDeadShadows() {
+        if (projectionModel == null) {
+            return 0;
+        }
+        List<ShadowWrapper> projectionWrappers = projectionModel.getObject();
+        if (projectionWrappers == null) {
+                return 0;
+        }
+
+        int dead = 0;
+        for (ShadowWrapper projectionWrapper : projectionWrappers) {
+            if (projectionWrapper.isDead()) {
+                dead++;
+            }
+        }
+        return dead;
+    }
+
+    private void addDeadSearchItem(Search search) {
+        SearchItemDefinition def = new SearchItemDefinition(ShadowType.F_DEAD,
+                getShadowDefinition().findPropertyDefinition(ShadowType.F_DEAD),
+                Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
+        PropertySearchItem<Boolean> deadSearchItem = new PropertySearchItem<>(search, def, new SearchValue<>(false)) {
+
+            @Override
+            public ObjectFilter transformToFilter() {
+                DisplayableValue<Boolean> selectedValue = getValue();
+                if (selectedValue == null) {
+                    return null;
+                }
+                Boolean value = selectedValue.getValue();
+                if (BooleanUtils.isTrue(value)) {
+                    return null; // let the default behavior to take their chance
+                }
+
+                return getPrismContext().queryFor(ShadowType.class)
+                        .not()
+                        .item(ShadowType.F_DEAD)
+                        .eq(true)
+                        .buildFilter();
+            }
+        };
+        deadSearchItem.setFixed(true);
+        search.addSpecialItem(deadSearchItem);
     }
 
     private void loadShadowIfNeeded(IModel<PrismContainerValueWrapper<ShadowType>> rowModel, AjaxRequestTarget target) {
