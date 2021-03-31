@@ -51,7 +51,7 @@ public class ItemSqlMapper {
 
     public <P extends Path<?>> ItemSqlMapper(
             @NotNull Function<SqlQueryContext<?, ?, ?>, ItemFilterProcessor<?>> filterProcessorFactory,
-            @NotNull Function<SqlUpdateContext<?, ?, ?>, ItemDeltaProcessor> deltaProcessorFactory,
+            Function<SqlUpdateContext<?, ?, ?>, ItemDeltaProcessor> deltaProcessorFactory, // TODO not-null later
             @Nullable Function<EntityPath<?>, P> primaryItemMapping) {
         this.filterProcessorFactory = Objects.requireNonNull(filterProcessorFactory);
         this.deltaProcessorFactory = deltaProcessorFactory; // TODO Objects.requireNonNull(deltaProcessorFactory);
