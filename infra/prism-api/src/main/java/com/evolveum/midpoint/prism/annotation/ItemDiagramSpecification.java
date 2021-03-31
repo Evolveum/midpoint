@@ -17,10 +17,14 @@ public class ItemDiagramSpecification implements Serializable {
 
     private final String name;
     private final DiagramElementFormType form;
+    private final DiagramElementInclusionType inclusion;
+    private final DiagramElementInclusionType subitemInclusion;
 
-    public ItemDiagramSpecification(String name, DiagramElementFormType form) {
+    public ItemDiagramSpecification(String name, DiagramElementFormType form, DiagramElementInclusionType inclusion, DiagramElementInclusionType subitemInclusion) {
         this.name = name;
         this.form = form;
+        this.inclusion = inclusion;
+        this.subitemInclusion = subitemInclusion;
     }
 
     public String getName() {
@@ -31,6 +35,10 @@ public class ItemDiagramSpecification implements Serializable {
         return form;
     }
 
+    public DiagramElementInclusionType getInclusion() { return inclusion; }
+
+    public DiagramElementInclusionType getSubitemInclusion() { return subitemInclusion; }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -38,11 +46,11 @@ public class ItemDiagramSpecification implements Serializable {
         if (o == null || getClass() != o.getClass())
             return false;
         ItemDiagramSpecification that = (ItemDiagramSpecification) o;
-        return Objects.equals(name, that.name) && form == that.form;
+        return Objects.equals(name, that.name) && form == that.form && inclusion == that.inclusion && subitemInclusion == that.subitemInclusion;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, form);
+        return Objects.hash(name, form, inclusion, subitemInclusion);
     }
 }

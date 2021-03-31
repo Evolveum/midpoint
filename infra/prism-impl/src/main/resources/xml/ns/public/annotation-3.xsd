@@ -712,6 +712,25 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="inclusion" type="tns:DiagramElementInclusionType" minOccurs="0" default="auto">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies whether the item that holds this annotation should be included/excluded in the diagram.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="subitemInclusion" type="tns:DiagramElementInclusionType" minOccurs="0" default="auto">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies whether the subitems of an item that holds this annotation should be included/excluded in the diagram.
+                            This sets the default value for subitem inclusion.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <!-- TODO: later we may want to add:
                     * includeSupertypeItems
                     * some form of exlusion, e.g. to explicitly exclude an item from the diagram, where it is inlcuded implicitly
@@ -757,6 +776,54 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:simpleType name="DiagramElementInclusionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Inclusion of diagram element.
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="auto">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Automatic inclusion.
+                        The element should be included in the diagram, if there is any setting for that element and a particular diagram.
+                        For example, simply mentioning the diagram name in the annotation means that the item should be included.
+                        Items that do not mention name of that particular diagram are not included.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AUTO"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="include">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Explicit inclusion.
+                        The element should be included in the diagram.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="INCLUDE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="exclude">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Explicit exclusion.
+                        The element should be excluded from the diagram.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXCLUDE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
 </xsd:schema>
 

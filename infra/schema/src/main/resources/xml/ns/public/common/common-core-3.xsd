@@ -5130,6 +5130,8 @@
                 <a:diagram>
                     <a:name>user-shadow-resource</a:name>
                     <a:form>collapsed</a:form>
+                    <a:inclusion>include</a:inclusion>
+                    <a:subitemInclusion>auto</a:subitemInclusion>
                 </a:diagram>
                 <a:diagram>
                     <a:name>user-details</a:name>

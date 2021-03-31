@@ -112,6 +112,8 @@ public class PrismConstants {
     public static final QName A_DIAGRAM = new QName(NS_ANNOTATION, "diagram");
     public static final QName A_DIAGRAM_NAME = new QName(NS_ANNOTATION, "name");
     public static final QName A_DIAGRAM_FORM = new QName(NS_ANNOTATION, "form");
+    public static final QName A_DIAGRAM_INCLUSION = new QName(NS_ANNOTATION, "inclusion");
+    public static final QName A_DIAGRAM_SUBITEM_INCLUSION = new QName(NS_ANNOTATION, "subitemInclusion");
 
     public static final QName SCHEMA_DOCUMENTATION = new QName(W3C_XML_SCHEMA_NS_URI, "documentation");
     public static final QName SCHEMA_ANNOTATION = new QName(W3C_XML_SCHEMA_NS_URI, "annotation");
