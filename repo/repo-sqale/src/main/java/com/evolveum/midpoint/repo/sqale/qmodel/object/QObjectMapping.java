@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
-import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.uuidMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ARCHETYPE_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ROLE_MEMBERSHIP_REF;

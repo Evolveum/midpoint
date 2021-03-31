@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.lookuptable;
 
-import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType.*;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;

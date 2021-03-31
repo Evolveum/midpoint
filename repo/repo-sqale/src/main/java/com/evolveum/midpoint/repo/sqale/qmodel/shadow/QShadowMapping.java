@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 
 import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.booleanMapper;
-import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 
 import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;

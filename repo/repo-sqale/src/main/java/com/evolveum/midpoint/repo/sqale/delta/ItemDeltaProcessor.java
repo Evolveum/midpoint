@@ -4,9 +4,10 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqlbase.mapping.delta;
+package com.evolveum.midpoint.repo.sqale.delta;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 
 /**
@@ -14,9 +15,9 @@ import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
  */
 public abstract class ItemDeltaProcessor {
 
-    protected final SqlUpdateContext<?, ?, ?> context;
+    protected final SqaleUpdateContext<?, ?, ?> context;
 
-    protected ItemDeltaProcessor(SqlUpdateContext<?, ?, ?> context) {
+    protected ItemDeltaProcessor(SqaleUpdateContext<?, ?, ?> context) {
         this.context = context;
     }
 
