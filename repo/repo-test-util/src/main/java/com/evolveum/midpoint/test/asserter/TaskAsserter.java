@@ -225,6 +225,11 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return this;
     }
 
+    public TaskAsserter<RA> assertHandledError() {
+        TestUtil.assertStatus(getTaskBean().getResult(), OperationResultStatusType.HANDLED_ERROR);
+        return this;
+    }
+
     public TaskAsserter<RA> assertPartialError() {
         TestUtil.assertPartialError(getTaskBean().getResult());
         return this;
