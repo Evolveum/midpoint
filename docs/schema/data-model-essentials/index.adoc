@@ -148,15 +148,14 @@ All basic types of objects are defined in file common-2a.xsd that can be downloa
 | Local copy of any object on the provisioning resource that is related to provisioning.
  +
  It may be account, group, role (on the target system), privilege, security label,  +
- organizational unit or anything else that is worth managing in identity management.[NOTE]
+ organizational unit or anything else that is worth managing in identity management.
+
+[NOTE]
 .Attention
 ====
 In 2.1.x versions there was used AccountShadowType to represent user account in the Resource.
 Now Shadow (2.2 version) contains property `kind` that can be set to value _account_
-
 ====
-
-
 
 
 | Resource

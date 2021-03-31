@@ -145,7 +145,9 @@ It's because JNDI data source is not available outside tomcat container so Repo 
 . -Dmidpoint.home=<midpoint configuration folder> has to be before -jar option so that JVM finds it as system property.
 The binary distribution scripts set this property for all invocations.
 
-. Escape semicolon ';' in option jdbc url, for example:[source]
+. Escape semicolon ';' in option jdbc url, for example:
+
+[source]
 ----
 -u jdbc:sqlserver://192.168.1.27:1433\;database=midpoint
 ----

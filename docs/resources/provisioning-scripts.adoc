@@ -189,7 +189,9 @@ MidPoint 3.0 (and later) is designed with wiki:Generic+Synchronization[generic s
 Therefore the provisioning scripts are executed not just for accounts but also for other wiki:Kind,+Intent+and+ObjectClass[kinds of objects]. And there are two major consequences to this:
 
 * Please keep in mind that unless the script is limited to a particular wiki:Kind,+Intent+and+ObjectClass[kind] of objects then it will be executed for all object kinds that midPoint provisions.
-This may have unexpected side-effects therefore it is recommended to constraint the scripts to a particular object kind in midPoint 3.0 and later:[source]
+This may have unexpected side-effects therefore it is recommended to constraint the scripts to a particular object kind in midPoint 3.0 and later:
+
+[source]
 ----
         <script>
             ...
