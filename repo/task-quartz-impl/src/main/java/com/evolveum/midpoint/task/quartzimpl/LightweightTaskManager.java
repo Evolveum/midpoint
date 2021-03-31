@@ -48,7 +48,7 @@ public class LightweightTaskManager {
         if (runningInstance != null) {
             List<TaskQuartzImpl> subtasks = new ArrayList<>();
             for (RunningTaskQuartzImpl subtask : runningInstance.getLightweightAsynchronousSubtasks()) {
-                subtasks.add(subtask.cloneAsStaticTask());
+                subtasks.add(subtask.cloneAsStaticTask()); // Beware, does not update operation result in task prism
             }
             return subtasks;
         } else {

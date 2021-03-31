@@ -319,19 +319,12 @@ public class NullTaskImpl implements Task {
 
     @NotNull
     @Override
-    public PrismObject<TaskType> getUpdatedOrClonedTaskObject() {
-        throw new UnsupportedOperationException();
-    }
-
-    @NotNull
-    @Override
     public PrismObject<TaskType> getUpdatedTaskObject() {
         throw new UnsupportedOperationException();
     }
 
-    @NotNull
     @Override
-    public PrismObject<TaskType> getClonedTaskObject() {
+    public @NotNull PrismObject<TaskType> getRawTaskObjectClone() {
         throw new UnsupportedOperationException();
     }
 
@@ -489,6 +482,11 @@ public class NullTaskImpl implements Task {
 
     @Override
     public List<Task> listPrerequisiteTasks(OperationResult parentResult) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @NotNull PrismObject<TaskType> getRawTaskObjectClonedIfNecessary() {
         throw new UnsupportedOperationException();
     }
 

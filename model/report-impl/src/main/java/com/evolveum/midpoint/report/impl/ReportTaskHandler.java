@@ -265,7 +265,7 @@ public class ReportTaskHandler implements TaskHandler {
 
         VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_OBJECT, parentReport, parentReport.asPrismObject().getDefinition());
-        PrismObject<TaskType> taskObject = task.getUpdatedOrClonedTaskObject();
+        PrismObject<TaskType> taskObject = task.getRawTaskObjectClonedIfNecessary();
         variables.put(ExpressionConstants.VAR_TASK, taskObject.asObjectable(), taskObject.getDefinition());
         variables.put(ExpressionConstants.VAR_FILE, reportService.getCommandLineScriptExecutor().getOsSpecificFilePath(reportOutputFilePath), String.class);
 

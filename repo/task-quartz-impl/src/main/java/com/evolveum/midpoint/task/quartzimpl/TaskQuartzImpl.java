@@ -272,30 +272,32 @@ public class TaskQuartzImpl implements Task {
         return this instanceof RunningTask;
     }
 
-    /**
-     * TODO TODO TODO (think out better name)
-     * Use with care. Never provide to outside world (beyond task manager).
-     */
-    public PrismObject<TaskType> getLiveTaskObjectForNotRunningTasks() {
+    @NotNull
+    @Override
+    public PrismObject<TaskType> getRawTaskObjectClonedIfNecessary() {
         if (isLiveRunningInstance()) {
-            throw new UnsupportedOperationException("It is not possible to get live task prism object from the running task instance: " + this);
+            return getRawTaskObjectClone();
         } else {
             return taskPrism;
         }
     }
 
-    // Use with utmost care! Never provide to outside world (beyond task manager)
-    public PrismObject<TaskType> getLiveTaskObject() {
-        return taskPrism;
-    }
-
     @NotNull
     @Override
-    public PrismObject<TaskType> getUpdatedOrClonedTaskObject() {
+    public PrismObject<TaskType> getRawTaskObjectClone() {
+        synchronized (prismAccess) {
+            return taskPrism.clone();
+        }
+    }
+
+
+    /**
+     * Returns the backing task prism object. Not supported for running task instances.
+     */
+    public PrismObject<TaskType> getRawTaskObject() {
         if (isLiveRunningInstance()) {
-            return getClonedTaskObject();
+            throw new IllegalStateException("Cannot get task object from live running task instance");
         } else {
-            updateTaskPrismResult(taskPrism);
             return taskPrism;
         }
     }
@@ -312,17 +314,7 @@ public class TaskQuartzImpl implements Task {
     }
 
     TaskQuartzImpl cloneAsStaticTask() {
-        return TaskQuartzImpl.createFromPrismObject(taskManager, getClonedTaskObject());
-    }
-
-    @NotNull
-    @Override
-    public PrismObject<TaskType> getClonedTaskObject() {
-        synchronized (prismAccess) {
-            PrismObject<TaskType> rv = taskPrism.clone();
-            updateTaskPrismResult(rv);
-            return rv;
-        }
+        return TaskQuartzImpl.createFromPrismObject(taskManager, getRawTaskObjectClone());
     }
 
     public boolean isRecreateQuartzTrigger() {
