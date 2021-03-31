@@ -722,11 +722,19 @@ public class ResourceTypeUtil {
         if (consistency == null) {
             return false;
         }
-        Boolean reshreshOnRead = consistency.isReshreshOnRead();
-        if (reshreshOnRead == null) {
-            return false;
+
+        Boolean refreshOnRead = consistency.isRefreshOnRead();
+        if (refreshOnRead != null) {
+            return refreshOnRead;
         }
-        return reshreshOnRead;
+
+        // legacy way (misspelled property)
+        Boolean reshreshOnRead = consistency.isReshreshOnRead();
+        if (reshreshOnRead != null) {
+            return reshreshOnRead;
+        }
+
+        return false;
     }
 
     public static ErrorSelectorType getConnectorErrorCriticality(ResourceType resourceType) {

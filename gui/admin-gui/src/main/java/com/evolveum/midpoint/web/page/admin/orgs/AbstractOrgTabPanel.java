@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -176,7 +177,37 @@ public abstract class AbstractOrgTabPanel extends BasePanel<OrgType> {
             }
             list = getPageBase().getModelService().searchObjects(OrgType.class, query, null, task, result);
             // Sort org roots by displayOrder, if not set push the org to the end
-            list.sort(Comparator.comparingInt(o -> (ObjectUtils.defaultIfNull(o.getRealValue().getDisplayOrder(), Integer.MAX_VALUE))));
+            list.sort(new Comparator<PrismObject<OrgType>>() {
+                @Override
+                public int compare(PrismObject<OrgType> o1, PrismObject<OrgType> o2) {
+                    Comparator<PrismObject<OrgType>> intComparator =
+                            Comparator.comparingInt(o -> ((ObjectUtils.defaultIfNull(o.getRealValue().getDisplayOrder(), Integer.MAX_VALUE))));
+                    int compare = intComparator.compare(o1, o2);
+                    if (compare == 0){
+                        String display1 = WebComponentUtil.getDisplayName(o1);
+                        if (StringUtils.isBlank(display1)) {
+                            display1 = WebComponentUtil.getTranslatedPolyString(o1.getName());
+                        }
+                        String display2 = WebComponentUtil.getDisplayName(o2);
+                        if (StringUtils.isBlank(display2)) {
+                            display2 = WebComponentUtil.getTranslatedPolyString(o2.getName());
+                        }
+
+                        if(StringUtils.isEmpty(display1) && StringUtils.isEmpty(display2)) {
+                            return compare;
+                        }
+                        if(StringUtils.isEmpty(display1)) {
+                            return 1;
+                        }
+                        if(StringUtils.isEmpty(display2)) {
+                            return -1;
+                        }
+
+                        return String.CASE_INSENSITIVE_ORDER.compare(display1, display2);
+                    }
+                    return compare;
+                }
+            });
 
             if (list.isEmpty() && isWarnMessageVisible()) {
                 warn(getString("PageOrgTree.message.noOrgStructDefined"));

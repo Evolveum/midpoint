@@ -367,33 +367,6 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
     }
 
-//    private LensContext determineLensContextForRootCase(ModelContext context, ObjectTreeDeltas changesWithoutApproval, ExecutionMode executionMode) throws SchemaException {
-//        LensContext contextForRootTask;
-//        if (executionMode == ALL_AFTERWARDS) {
-//            contextForRootTask = contextCopyWithDeltasReplaced(context, changesWithoutApproval);
-//        } else if (executionMode == MIXED) {
-//            contextForRootTask = contextCopyWithNoDelta(context);
-//        } else {
-//            contextForRootTask = null;
-//        }
-//        return contextForRootTask;
-//    }
-//
-//    private LensContext contextCopyWithDeltasReplaced(ModelContext context, ObjectTreeDeltas changes) throws SchemaException {
-//        Validate.notNull(changes, "changes");
-//        LensContext contextCopy = ((LensContext) context).clone();
-//
-//        contextCopy.replacePrimaryFocusDelta(changes.getFocusChange());
-//        Map<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> changeMap = changes.getProjectionChangeMap();
-//        Collection<ModelProjectionContext> projectionContexts = contextCopy.getProjectionContexts();
-//        for (ModelProjectionContext projectionContext : projectionContexts) {
-//            ObjectDelta<ShadowType> projectionDelta = changeMap.get(projectionContext.getResourceShadowDiscriminator());
-//            projectionContext.setPrimaryDelta(projectionDelta);
-//        }
-//        contextCopy.deleteSecondaryDeltas();
-//        return contextCopy;
-//    }
-
     private LensContext contextCopyWithNoDelta(ModelContext<?> context) {
         LensContext<?> contextCopy = ((LensContext<?>) context).clone();
         contextCopy.getFocusContext().setPrimaryDelta(null);

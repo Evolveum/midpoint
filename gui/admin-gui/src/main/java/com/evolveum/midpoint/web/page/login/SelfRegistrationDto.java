@@ -46,7 +46,7 @@ public class SelfRegistrationDto implements Serializable {
         if (securityPolicy == null) {
             return;
         }
-        SelfRegistrationPolicyType selfRegistration = getSelfRegistrationPolicy(securityPolicy);
+        SelfRegistrationPolicyType selfRegistration = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
         if (selfRegistration == null) {
             return;
         }
@@ -116,26 +116,6 @@ public class SelfRegistrationDto implements Serializable {
         }
 
         return AuthenticationPolicy.NONE;
-    }
-
-    private SelfRegistrationPolicyType getSelfRegistrationPolicy(SecurityPolicyType securityPolicyType) {
-        RegistrationsPolicyType flowPolicy = securityPolicyType.getFlow();
-        SelfRegistrationPolicyType selfRegistrationPolicy = null;
-        if (flowPolicy != null) {
-            selfRegistrationPolicy = flowPolicy.getSelfRegistration();
-        }
-
-        if (selfRegistrationPolicy != null) {
-            return selfRegistrationPolicy;
-        }
-
-        RegistrationsPolicyType registrationPolicy = securityPolicyType.getRegistration();
-
-        if (registrationPolicy == null) {
-            return null;
-        }
-
-        return registrationPolicy.getSelfRegistration();
     }
 
     private SelfRegistrationPolicyType getPostAuthenticationPolicy(SecurityPolicyType securityPolicyType) {

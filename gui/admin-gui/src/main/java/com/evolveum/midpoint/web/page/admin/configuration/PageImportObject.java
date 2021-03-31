@@ -65,7 +65,7 @@ public class PageImportObject extends PageAdminConfiguration {
     private static final Trace LOGGER = TraceManager.getTrace(PageImportObject.class);
     private static final String DOT_CLASS = PageImportObject.class.getName() + ".";
     private static final String OPERATION_IMPORT_FILE = DOT_CLASS + "importFile";
-    private static final String OPERATION_IMPORT_XML = DOT_CLASS + "importXml";
+    private static final String OPERATION_IMPORT = DOT_CLASS + "import";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_BUTTON_BAR = "buttonBar";
@@ -240,7 +240,8 @@ public class PageImportObject extends PageAdminConfiguration {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
-                savePerformed(true, OPERATION_IMPORT_XML, target);
+                String operation = OPERATION_IMPORT + "." + dataLanguage;
+                savePerformed(true, operation, target);
             }
 
             @Override

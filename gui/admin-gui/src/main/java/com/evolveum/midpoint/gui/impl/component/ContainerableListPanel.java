@@ -355,7 +355,14 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     public Class<C> getType() {
-        return getSearchModel().isLoaded() ? getSearchModel().getObject().getTypeClass() : getDefaultType();
+        if (getSearchModel().isLoaded()) {
+            return getSearchModel().getObject().getTypeClass();
+        }
+        PageStorage storage = getPageStorage();
+        if (storage != null && storage.getSearch() != null){
+            return storage.getSearch().getTypeClass();
+        }
+        return getDefaultType();
     }
 
     protected Class<C> getDefaultType() {
@@ -584,7 +591,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             VariablesMap variablesMap = new VariablesMap();
             variablesMap.put(ExpressionConstants.VAR_OBJECT, rowValue, rowValue.getClass());
             if (columnItem != null) {
-                variablesMap.put(ExpressionConstants.VAR_INPUT, columnItem, columnItem.getDefinition().getTypeClass());
+                variablesMap.put(ExpressionConstants.VAR_INPUT, columnItem, columnItem.getDefinition());
             }
             Collection<String> evaluatedValues = ExpressionUtil.evaluateStringExpression(variablesMap, getPageBase().getPrismContext(), expression,
                     MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
@@ -610,6 +617,10 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     private String getItemValuesString(Item<?, ?> item, DisplayValueType displayValue, PrismObject<LookupTableType> lookupTable){
         if (DisplayValueType.NUMBER.equals(displayValue)) {
+            //This is really ugly HACK FIXME TODO
+            if (item.getDefinition() != null && UserType.F_LINK_REF.equivalent(item.getDefinition().getItemName())) {
+                return WebComponentUtil.countLinkFroNonDeadShadows((Collection<ObjectReferenceType>) item.getRealValues());
+            }
             return String.valueOf(item.getValues().size());
         }
         return item.getValues().stream()
@@ -799,6 +810,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             StringValue collectionName = getCollectionNameParameterValue();
             String collectionNameValue = collectionName != null ? collectionName.toString() : "";
             return WebComponentUtil.getObjectListPageStorageKey(collectionNameValue);
+        } else if(isCollectionViewPanelForWidget()) {
+            String widgetName = getWidgetNameOfCollection();
+            return WebComponentUtil.getObjectListPageStorageKey(widgetName);
         }
 
         return WebComponentUtil.getObjectListPageStorageKey(getDefaultType().getSimpleName());
@@ -841,7 +855,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     private CompiledObjectCollectionView getWidgetCollectionView() {
         PageParameters parameters = getPageBase().getPageParameters();
         String dashboardOid = parameters == null ? null : parameters.get(PageBase.PARAMETER_DASHBOARD_TYPE_OID).toString();
-        String dashboardWidgetName = parameters == null ? null : parameters.get(PageBase.PARAMETER_DASHBOARD_WIDGET_NAME).toString();
+        String dashboardWidgetName = getWidgetNameOfCollection();
 
         if (!StringUtils.isEmpty(dashboardOid) && !StringUtils.isEmpty(dashboardWidgetName)) {
             if (dashboardWidgetView != null) {
@@ -894,14 +908,26 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return false;
     }
 
+    private String getWidgetNameOfCollection() {
+        PageParameters parameters = getPageBase().getPageParameters();
+        return parameters == null ? null : parameters.get(PageBase.PARAMETER_DASHBOARD_WIDGET_NAME).toString();
+    }
+
     protected boolean isCollectionViewPanelForCompiledView() {
         return getCollectionNameParameterValue() != null && getCollectionNameParameterValue().toString() != null;
     }
 
     protected boolean isCollectionViewPanel() {
-        return isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget();
+        return isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget() || defaultCollectionExists();
     }
 
+    private boolean defaultCollectionExists() {
+        return getCollectionViewForAllObject() != null;
+    }
+
+    private CompiledObjectCollectionView getCollectionViewForAllObject() {
+        return getPageBase().getCompiledGuiProfile().findObjectCollectionView(WebComponentUtil.containerClassToQName(getPrismContext(), getType()), null);
+    }
 
     protected ISelectableDataProvider getDataProvider() {
         BoxedTablePanel<PO> table = getTable();
@@ -915,6 +941,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     public void refreshTable(AjaxRequestTarget target) {
         BoxedTablePanel<PO> table = getTable();
         if (searchModel.getObject().isTypeChanged()){
+            table.getDataTable().getColumns().clear();
+            //noinspection unchecked
+            table.getDataTable().getColumns().addAll(createColumns());
             ((WebMarkupContainer) table.get("box")).addOrReplace(initSearch("header"));
             resetSearchModel();
             table.setCurrentPage(null);

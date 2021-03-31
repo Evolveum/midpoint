@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
@@ -17,10 +19,14 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
 import com.evolveum.midpoint.repo.sqale.UriCache;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceOwner;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.ReferenceSqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
@@ -32,6 +38,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBase<R>, R>
         implements SqlTransformer<S, Q, R> {
@@ -116,11 +123,12 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
     /**
      * Returns ID for relation QName without going ot database.
      * Relation is normalized before consulting {@link UriCache}.
+     * Never returns null, returns default ID for configured default relation.
      */
-    protected Integer resolveRelationToId(QName qName) {
-        return qName != null
-                ? resolveUriToId(QNameUtil.qNameToUri(transformerSupport.normalizeRelation(qName)))
-                : null;
+    protected @NotNull Integer resolveRelationToId(QName qName) {
+        return resolveUriToId(
+                QNameUtil.qNameToUri(
+                        transformerSupport.normalizeRelation(qName)));
     }
 
     /** Returns ID for cached URI without going ot database. */
@@ -131,16 +139,40 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
     /**
      * Returns ID for relation QName creating new {@link QUri} row in DB as needed.
      * Relation is normalized before consulting the cache.
+     * Never returns null, returns default ID for configured default relation.
      */
     protected Integer processCacheableRelation(QName qName, JdbcSession jdbcSession) {
-        return qName == null ? null : processCacheableUri(
-                QNameUtil.qNameToUri(transformerSupport.normalizeRelation(qName)),
+        return processCacheableUri(
+                QNameUtil.qNameToUri(
+                        transformerSupport.normalizeRelation(qName)),
                 jdbcSession);
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
     protected Integer processCacheableUri(String uri, JdbcSession jdbcSession) {
-        return transformerSupport.processCachedUri(uri, jdbcSession);
+        return uri != null
+                ? transformerSupport.processCachedUri(uri, jdbcSession)
+                : null;
+    }
+
+    /** Returns ID for URI creating new cache row in DB as needed. */
+    protected Integer processCacheableUri(QName qName, JdbcSession jdbcSession) {
+        return qName != null
+                ? transformerSupport.processCachedUri(QNameUtil.qNameToUri(qName), jdbcSession)
+                : null;
+    }
+
+    /**
+     * Returns IDs as Integer array for URI strings creating new cache row in DB as needed.
+     * Returns null for null or empty list on input.
+     */
+    protected Integer[] processCacheableUris(List<String> uris, JdbcSession jdbcSession) {
+        if (uris == null || uris.isEmpty()) {
+            return null;
+        }
+        return uris.stream()
+                .map(uri -> processCacheableUri(uri, jdbcSession))
+                .toArray(Integer[]::new);
     }
 
     protected @Nullable UUID oidToUUid(@Nullable String oid) {
@@ -151,5 +183,47 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
         return schemaType == null ? null :
                 MObjectType.fromSchemaType(
                         transformerSupport.qNameToSchemaClass(schemaType));
+    }
+
+    protected void setPolyString(PolyStringType polyString,
+            Consumer<String> origConsumer, Consumer<String> normConsumer) {
+        if (polyString != null) {
+            origConsumer.accept(polyString.getOrig());
+            normConsumer.accept(polyString.getNorm());
+        }
+    }
+
+    protected void setReference(ObjectReferenceType ref, JdbcSession jdbcSession,
+            Consumer<UUID> targetOidConsumer, Consumer<MObjectType> targetTypeConsumer,
+            Consumer<Integer> relationIdConsumer) {
+        if (ref != null) {
+            targetOidConsumer.accept(oidToUUid(ref.getOid()));
+            targetTypeConsumer.accept(schemaTypeToObjectType(ref.getType()));
+            relationIdConsumer.accept(processCacheableRelation(ref.getRelation(), jdbcSession));
+        }
+    }
+
+    protected <REF extends MReference> void storeRefs(
+            @NotNull MReferenceOwner<REF> ownerRow, @NotNull List<ObjectReferenceType> refs,
+            @NotNull QReferenceMapping<?, REF> mapping, @NotNull JdbcSession jdbcSession) {
+        if (!refs.isEmpty()) {
+            ReferenceSqlTransformer<?, REF> transformer =
+                    mapping.createTransformer(transformerSupport);
+            refs.forEach(ref -> transformer.insert(ref, ownerRow, jdbcSession));
+        }
+    }
+
+    protected String[] arrayFor(List<String> strings) {
+        if (strings == null || strings.isEmpty()) {
+            return null;
+        }
+        return strings.toArray(String[]::new);
+    }
+
+    /** Convenient insert shortcut when the row is fully populated. */
+    protected void insert(R row, JdbcSession jdbcSession) {
+        jdbcSession.newInsert(mapping.defaultAlias())
+                .populate(row)
+                .execute();
     }
 }

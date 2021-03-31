@@ -253,10 +253,26 @@ public class GuiProfileCompiler {
                 composite.getRoleManagement().setAssignmentApprovalRequestLimit(newValue);
             } else {
                 if (composite.getRoleManagement() == null) {
-                    composite.setRoleManagement(new AdminGuiConfigurationRoleManagementType());
+                    composite.setRoleManagement(new AdminGuiConfigurationRoleManagementType(prismContext));
                 }
                 composite.getRoleManagement().setAssignmentApprovalRequestLimit(
                         adminGuiConfiguration.getRoleManagement().getAssignmentApprovalRequestLimit());
+            }
+        }
+
+        if (adminGuiConfiguration.getApprovals() != null &&
+                adminGuiConfiguration.getApprovals().isExpandRolesOnPreview() != null) {
+            if (composite.getApprovals() != null && composite.getApprovals().isExpandRolesOnPreview() != null) {
+                // the most permissive value wins (so it is possible to give an exception to selected users)
+                boolean newValue = adminGuiConfiguration.getApprovals().isExpandRolesOnPreview() ||
+                        composite.getApprovals().isExpandRolesOnPreview();
+                composite.getApprovals().setExpandRolesOnPreview(newValue);
+            } else {
+                if (composite.getApprovals() == null) {
+                    composite.setApprovals(new AdminGuiApprovalsConfigurationType(prismContext));
+                }
+                composite.getApprovals().setExpandRolesOnPreview(
+                        adminGuiConfiguration.getApprovals().isExpandRolesOnPreview());
             }
         }
     }

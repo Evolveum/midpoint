@@ -10,6 +10,7 @@ import java.time.Instant;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 
 /**
@@ -21,11 +22,12 @@ public class MFocus extends MObject {
     public String emailAddress;
     public byte[] photo;
     public String locale;
-    public String localityNorm;
     public String localityOrig;
+    public String localityNorm;
     public String preferredLanguage;
     public String telephoneNumber;
     public String timezone;
+    // credential/password/metadata
     public Instant passwordCreateTimestamp;
     public Instant passwordModifyTimestamp;
     // activation
@@ -39,4 +41,5 @@ public class MFocus extends MObject {
     public Instant validTo;
     public Instant validityChangeTimestamp;
     public Instant archiveTimestamp;
+    public LockoutStatusType lockoutStatus;
 }

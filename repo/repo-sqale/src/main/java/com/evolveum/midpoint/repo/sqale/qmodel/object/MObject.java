@@ -10,18 +10,21 @@ import java.time.Instant;
 import java.util.UUID;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sqale.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceOwner;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 
 /**
  * Querydsl "row bean" type related to {@link QObject}.
+ * It is also used for other mappings/objects types with no additional columns in their tables.
  */
-public class MObject {
+public class MObject implements MReferenceOwner<MReference> {
 
     public UUID oid;
     // objectType is read-only, it must be null before insert/updates of the whole M-bean
     public MObjectType objectType;
-    public String nameNorm;
     public String nameOrig;
+    public String nameNorm;
     public byte[] fullObject;
     public UUID tenantRefTargetOid;
     public MObjectType tenantRefTargetType;
@@ -29,7 +32,11 @@ public class MObject {
     public String lifecycleState;
     public Long containerIdSeq; // next available container ID (for PCV of multi-valued containers)
     public Integer version;
-    public byte[] ext;
+    // complex DB fields
+    public Integer[] policySituations;
+    public String[] subtypes;
+    public String[] textInfo; // TODO see todo on SQL column
+    public Jsonb ext;
     // metadata
     public UUID creatorRefTargetOid;
     public MObjectType creatorRefTargetType;
@@ -44,5 +51,23 @@ public class MObject {
 
     public PolyString getName() {
         return new PolyString(nameOrig, nameNorm);
+    }
+
+    @Override
+    public MReference createReference() {
+        MReference ref = new MReference();
+        ref.ownerOid = oid;
+        return ref;
+    }
+
+    @Override
+    public String toString() {
+        return "MObject{" +
+                "oid=" + oid +
+                ", objectType=" + objectType +
+                ", nameOrig='" + nameOrig + '\'' +
+                ", containerIdSeq=" + containerIdSeq +
+                ", version=" + version +
+                '}';
     }
 }

@@ -17,37 +17,17 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div class="col-md-12">
-        <div class="box box-default box-solid">
-            <div class="box-header with-border">
-                <h3 class="box-title">
-                    <span wicket:id="processingStart"></span>
-                    <wicket:message key="TaskOperationStatisticsPanel.transition.processingStart"></wicket:message>
-                    <i class="fa fa-arrow-right"></i>
-                    <span wicket:id="syncStart"></span>
-                    <wicket:message key="TaskOperationStatisticsPanel.transition.syncStart"></wicket:message>
-                    <i class="fa fa-arrow-right"></i>
-                    <span wicket:id="syncEnd"></span>
-                    <wicket:message key="TaskOperationStatisticsPanel.transition.syncEnd"></wicket:message>
-                    <wicket:enclosure child="exclusionReason">
-                        <wicket:message key="TaskOperationStatisticsPanel.transition.exclusionReason"></wicket:message>
-                        <span wicket:id="exclusionReason"></span>
-                    </wicket:enclosure>
-                    <wicket:message key="TaskOperationStatisticsPanel.transition.count"></wicket:message>
-                    <span wicket:id="totalCount"></span>
-                </h3>
-
-                <div class="box-tools pull-right">
-                    <button type="button" class="btn btn-box-tool" wicket:id="collapseExpand">
-                        <i wicket:id="buttonIcon" class="fa fa-plus"></i>
-                    </button>
-                </div>
-            </div>
-            <div wicket:id="boxBody" class="box-body">
-                <div wicket:id="outcomeTable" />
-            </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div wicket:id="synchronizationSituationTransitions"></div>
         </div>
     </div>
+
+    <wicket:fragment wicket:id="syncSituationTranstitionTitle">
+        <h3 class="box-title">
+            <wicket:message key="SynchronizationSituationTransitionPanel.title"></wicket:message>
+        </h3>
+    </wicket:fragment>
 
 </wicket:panel>
 </body>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,7 +11,7 @@ import static org.testng.Assert.assertNull;
 
 import java.io.File;
 
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -88,7 +88,8 @@ public class TestThresholdsReconFull extends TestThresholds {
 
         //WHEN
         when();
-        OperationResult reconResult = resumeTaskAndWaitForNextFinish(TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, true, 20000);
+        OperationResult reconResult = resumeTaskAndWaitForNextFinish(
+                TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, true, TASK_TIMEOUT);
         assertSuccess(reconResult);
 
         //THEN
@@ -113,7 +114,8 @@ public class TestThresholdsReconFull extends TestThresholds {
 
         //WHEN
         when();
-        OperationResult reconResult = waitForTaskNextRun(TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, true, 20000, false);
+        OperationResult reconResult = waitForTaskNextRun(
+                TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, true, TASK_TIMEOUT, false);
         assertSuccess(reconResult);
 
         //THEN
@@ -122,7 +124,7 @@ public class TestThresholdsReconFull extends TestThresholds {
 
         assertTaskSchedulingState(TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, TaskSchedulingStateType.READY);
 
-        assertEquals(TaskTypeUtil.getItemsProcessedWithFailure(taskAfter.getStoredOperationStatsOrClone()), 0);
+        assertEquals(TaskOperationStatsUtil.getItemsProcessedWithFailure(taskAfter.getStoredOperationStatsOrClone()), 0);
 
         PrismObject<UserType> user10 = findUserByUsername("user10");
         assertNull(user10);

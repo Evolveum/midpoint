@@ -81,7 +81,7 @@ public class JobExecutor implements InterruptableJob {
         }
     }
 
-    public void executeInternal(OperationResult result)
+    private void executeInternal(OperationResult result)
             throws StopJobException, SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
         stateCheck(beans != null, "Task manager beans are not correctly set");
@@ -157,11 +157,20 @@ public class JobExecutor implements InterruptableJob {
 
     private void setupSecurityContext(OperationResult result) throws StopJobException {
         PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
+        if (taskOwner == null) {
+            String oid = task.getOwnerRef() != null ? task.getOwnerRef().getOid() : null;
+            result.recordFatalError("Task owner couldn't be resolved: " + oid);
+            suspendFlawedTaskRecordingResult(result);
+            throw new StopJobException(ERROR, "Task owner couldn't be resolved: %s", null, oid);
+        }
+
         try {
             // just to be sure we won't run the owner-setting login with any garbage security context (see MID-4160)
             beans.securityContextManager.setupPreAuthenticatedSecurityContext((Authentication) null);
             beans.securityContextManager.setupPreAuthenticatedSecurityContext(taskOwner);
         } catch (Throwable t) {
+            result.recordFatalError(t);
+            suspendFlawedTaskRecordingResult(result);
             throw new StopJobException(UNEXPECTED_ERROR, "Couldn't set security context for task %s", t, task);
         }
     }
@@ -442,6 +451,24 @@ public class JobExecutor implements InterruptableJob {
         closeTask(task, result);
     }
 
+    // TODO reconsider when we should close and when we should suspend a flawed task.
+    //  In general we use the latter if the issue can be resolved externally (e.g. missing task owner object).
+    //  We use the former if the task is problematic in itself (e.g. missing handler URI).
+    //  Anyway, maybe suspending is the best option overall.
+    //
+    // Note that the result is most probably == executionResult. But it is no problem.
+    private void suspendFlawedTaskRecordingResult(OperationResult result) {
+        LOGGER.info("Suspending flawed task {}", task);
+        try {
+            task.setResultImmediate(executionResult, result);
+        } catch (ObjectNotFoundException  e) {
+            LoggingUtils.logException(LOGGER, "Couldn't store operation result into the task {}", e, task);
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't store operation result into the task {}", e, task);
+        }
+        beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, result);
+    }
+
     private void closeTask(RunningTaskQuartzImpl task, OperationResult result) {
         try {
             beans.taskStateManager.closeTask(task, result);
@@ -461,14 +488,11 @@ public class JobExecutor implements InterruptableJob {
         if (task != null) {
             LOGGER.trace("Trying to shut down the task {}, executing in thread {}", task, task.getExecutingThread());
             task.unsetCanRun();
-            for (RunningTaskQuartzImpl subtask : task.getRunnableOrRunningLightweightAsynchronousSubtasks()) {
+            for (RunningLightweightTaskImpl subtask : task.getRunnableOrRunningLightweightAsynchronousSubtasks()) {
                 subtask.unsetCanRun();
                 // if we want to cancel the Future using interrupts, we have to do it now
                 // because after calling cancel(false) subsequent calls to cancel(true) have no effect whatsoever
-                Future<?> future = subtask.getLightweightHandlerFuture();
-                if (future != null) {
-                    future.cancel(interruptsMaybe);
-                }
+                subtask.cancel(interruptsMaybe);
             }
             if (interruptsAlways) {
                 sendThreadInterrupt(false); // subtasks were interrupted by their futures
@@ -489,9 +513,8 @@ public class JobExecutor implements InterruptableJob {
             LOGGER.trace("Thread.interrupt was called on thread {}.", thread);
         }
         if (alsoSubtasks) {
-            for (RunningTaskQuartzImpl subtask : task.getRunningLightweightAsynchronousSubtasks()) {
-                //LOGGER.trace("Calling Future.cancel(mayInterruptIfRunning:=true) on a future for LAT subtask {}", subtask);
-                subtask.getLightweightHandlerFuture().cancel(true);
+            for (RunningLightweightTaskImpl subtask : task.getRunningLightweightAsynchronousSubtasks()) {
+                subtask.cancel(true);
             }
         }
     }

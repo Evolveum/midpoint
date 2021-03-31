@@ -8,8 +8,6 @@ package com.evolveum.midpoint.model.impl.util.mock;
 
 import java.util.*;
 
-import com.evolveum.midpoint.util.exception.CommonException;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -353,60 +351,75 @@ public class MockFactory {
         };
     }
 
-    public static ChangeNotificationDispatcher createChangeNotificationDispatcher() {
-        return new ChangeNotificationDispatcher() {
+    public static EventDispatcher createChangeNotificationDispatcher() {
+        return new EventDispatcher() {
             @Override
-            public void registerNotificationListener(ResourceObjectChangeListener listener) {
+            public void notify(ShadowDeathEvent event, Task task, OperationResult result) {
 
             }
 
             @Override
-            public void registerNotificationListener(ResourceOperationListener listener) {
+            public void registerListener(ResourceObjectChangeListener listener) {
 
             }
 
             @Override
-            public void registerNotificationListener(ResourceEventListener listener) {
+            public void registerListener(ResourceOperationListener listener) {
 
             }
 
             @Override
-            public void unregisterNotificationListener(ResourceObjectChangeListener listener) {
+            public void registerListener(ExternalResourceEventListener listener) {
 
             }
 
             @Override
-            public void unregisterNotificationListener(ResourceOperationListener listener) {
+            public void registerListener(ShadowDeathListener listener) {
 
             }
 
             @Override
-            public void unregisterNotificationListener(ResourceEventListener listener) {
+            public void unregisterListener(ResourceObjectChangeListener listener) {
 
             }
 
             @Override
-            public void notifyEvent(ResourceEventDescription eventDescription, Task task, OperationResult parentResult) throws CommonException, GenericConnectorException {
+            public void unregisterListener(ResourceOperationListener listener) {
 
             }
 
             @Override
-            public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
+            public void unregisterListener(ExternalResourceEventListener listener) {
 
             }
 
             @Override
-            public void notifySuccess(ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
+            public void unregisterListener(ShadowDeathListener listener) {
 
             }
 
             @Override
-            public void notifyFailure(ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
+            public void notifyEvent(ExternalResourceEvent event, Task task, OperationResult parentResult) {
 
             }
 
             @Override
-            public void notifyInProgress(ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
+            public void notifyChange(@NotNull ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
+
+            }
+
+            @Override
+            public void notifySuccess(@NotNull ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
+
+            }
+
+            @Override
+            public void notifyFailure(@NotNull ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
+
+            }
+
+            @Override
+            public void notifyInProgress(@NotNull ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
 
             }
 

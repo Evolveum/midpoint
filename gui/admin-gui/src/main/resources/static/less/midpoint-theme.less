@@ -464,6 +464,8 @@ th.cog, td.cog {
 
 .info-box-icon.summary-panel-task {
   #info-box-icon-summary-panel(@object-task-color);
+  line-height: 105px;
+  height: 105px;
 }
 
 // other info box enhancements (e.g. role assignment)
@@ -526,7 +528,7 @@ th.cog, td.cog {
 
 // Datables/lists (BoxedTablePanel)
 .boxed-table {
-	margin-bottom: 0px;
+	//margin-bottom: 0px;  //TODO: is this really neccessary?
 
 	&.without-box-header-top-border {
 		border-top: 0px;
@@ -1898,4 +1900,15 @@ th.composited-icon {
         border: none;
         padding: 5px 5px;
     }
+}
+
+.task-info-box {
+
+  .info-box {
+
+    .info-box-icon {
+      height: 110px;
+      line-height: 110px;
+    }
+  }
 }

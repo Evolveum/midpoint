@@ -83,7 +83,7 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("User mancomb", userMancomb);
         assertNotNull("User mancomb is gone", userMancomb);
-        assertLinks(userMancomb, 1);
+        assertLiveLinks(userMancomb, 1);
         assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
         assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
 
@@ -128,7 +128,7 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
                 .assertValidTo(ACCOUNT_MANCOMB_VALID_TO_DATE)
                 .end()
             .links()
-                .single()
+                .singleDead()
                     .resolveTarget()
                         .display()
                         .assertTombstone();

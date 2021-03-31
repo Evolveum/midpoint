@@ -62,6 +62,10 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     private static final String RESOURCE_DUMMY_MULTI_OUTBOUND_OID = "d4da475e-8539-11ea-8343-dfdb4091c1dc";
     private static final String RESOURCE_DUMMY_MULTI_OUTBOUND_NAME = "multi-outbound";
 
+    private static final File RESOURCE_DUMMY_MULTI_OUTBOUND_SIMPLE_FILE = new File(TEST_DIR, "resource-dummy-multi-outbound-simple.xml");
+    private static final String RESOURCE_DUMMY_MULTI_OUTBOUND_SIMPLE_OID = "e08cb619-fe83-487a-83cc-10a50d19c947";
+    private static final String RESOURCE_DUMMY_MULTI_OUTBOUND_SIMPLE_NAME = "multi-outbound-simple";
+
     private static final String USER_IDAHO_GIVEN_NAME = "Duncan";
     private static final String USER_IDAHO_FAMILY_NAME = "Idaho";
     private static final String USER_IDAHO_NAME = "idaho";
@@ -138,6 +142,8 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
 
         initDummyResourcePirate(RESOURCE_DUMMY_MULTI_OUTBOUND_NAME,
                 RESOURCE_DUMMY_MULTI_OUTBOUND_FILE, RESOURCE_DUMMY_MULTI_OUTBOUND_OID, initTask, initResult);
+        initDummyResourcePirate(RESOURCE_DUMMY_MULTI_OUTBOUND_SIMPLE_NAME,
+                RESOURCE_DUMMY_MULTI_OUTBOUND_SIMPLE_FILE, RESOURCE_DUMMY_MULTI_OUTBOUND_SIMPLE_OID, initTask, initResult);
     }
 
     /**
@@ -239,7 +245,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                 .assertEmployeeNumber(ACCOUNT_PAUL_ATREIDES_ID)
                 .assertOrganizationalUnits(ACCOUNT_PAUL_ATREIDES_FULL_NAME, ACCOUNT_MUAD_DIB_FULL_NAME)
                 .links()
-                    .assertLinks(2)
+                    .assertLiveLinks(2)
                     .link(accountPaulOid)
                         .resolveTarget()
                             .display()
@@ -283,7 +289,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                 // TODO
                 .assertOrganizationalUnits(ACCOUNT_PAUL_ATREIDES_FULL_NAME, ACCOUNT_MUAD_DIB_FULL_NAME)
                 .links()
-                    .assertLinks(2)
+                    .assertLiveLinks(2)
                     .link(accountPaulOid)
                         .resolveTarget()
                             .display()
@@ -340,7 +346,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                 // TODO
 //            .assertOrganizationalUnits(ACCOUNT_PAUL_ATREIDES_FULL_NAME, ACCOUNT_MUAD_DIB_FULL_NAME)
                 .links()
-                    .assertLinks(3)
+                    .assertLiveLinks(3)
                     .link(accountPaulOid)
                         .resolveTarget()
                             .display()
@@ -403,7 +409,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                 // TODO
 //            .assertOrganizationalUnits(ACCOUNT_PAUL_ATREIDES_FULL_NAME, ACCOUNT_MUAD_DIB_FULL_NAME)
                 .links()
-                    .assertLinks(4)
+                    .assertLiveLinks(4)
                     .link(accountPaulOid)
                         .resolveTarget()
                             .display()
@@ -746,7 +752,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                 .assertEmployeeNumber(ACCOUNT_ODRADE_CONTRACT_NUMBER_APPRENTICE)
                 .assertOrganizationalUnits(OU_MOTHER_SCHOOL, OU_SECURITY)
                 .links()
-                    .assertLinks(2)
+                    .assertLiveLinks(2)
                     .by()
                         .tag(ACCOUNT_ODRADE_CONTRACT_NUMBER_APPRENTICE)
                     .find()
@@ -809,7 +815,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                 .assertEmployeeNumber(ACCOUNT_ODRADE_CONTRACT_NUMBER_MOTHER_SUPERIOR)
                 .assertOrganizationalUnits(OU_MOTHER_SUPERIOR_OFFICE, OU_MOTHER_SCHOOL, OU_SECURITY)
                 .links()
-                    .assertLinks(3)
+                    .assertLiveLinks(3)
                     .by()
                         .tag(ACCOUNT_ODRADE_CONTRACT_NUMBER_APPRENTICE)
                     .find()
@@ -838,12 +844,41 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         assertUsers(getNumberOfUsers() + 3);
     }
 
+    /**
+     * MID-6899
+     */
+    @Test
+    public void test500MultiSimple() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        UserType user = new UserType(prismContext)
+                .name("test500")
+                .organization("org1");
+        addObject(user.asPrismObject(), task, result);
+
+        when();
+
+        assignAccountToUser(user.getOid(), RESOURCE_DUMMY_MULTI_OUTBOUND_SIMPLE_OID, SchemaConstants.INTENT_DEFAULT, task, result);
+
+        then();
+
+        assertUserAfter(user.getOid())
+                .links()
+                    .singleLive()
+                        .resolveTarget()
+                            .display()
+                            .assertName("test500-org1");
+    }
+
     @SuppressWarnings("SameParameterValue")
     private void assertEnvoyAccounts(String userOid, String username, String... planets) throws Exception {
         UserAsserter<Void> asserter = assertUserAfter(userOid)
             .displayWithProjections()
             .links()
-                .assertLinks(planets.length + 1)
+                .assertLiveLinks(planets.length + 1)
                 .by()
                     .resourceOid(RESOURCE_DUMMY_MULTI_OUTBOUND_OID)
                     .intent(SchemaConstants.INTENT_DEFAULT)

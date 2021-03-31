@@ -282,7 +282,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
                 ItemPath virtualItemPath = getVirtualItemPath(virtualItem);
                 ItemWrapper itemWrapper = objectWrapper.findItem(virtualItemPath, ItemWrapper.class);
                 if (itemWrapper == null) {
-                    LOGGER.warn("No wrapper found for {}", virtualItemPath);
+                    LOGGER.debug("No wrapper found for {}", virtualItemPath);
                     continue;
                 }
 

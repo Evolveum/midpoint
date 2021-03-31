@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -25,20 +27,20 @@ import java.util.List;
  * Created by honchar.
  */
 public class TaskErrorSelectableBeanImpl<O extends ObjectType> extends SelectableBeanImpl<O> {
-    public static final String F_OBJECT_REF_NAME = "objectRefName";
+    public static final String F_OBJECT_REF_NAME = "objectName";
     public static final String F_STATUS = "status";
     public static final String F_MESSAGE = "message";
     public static final String F_ERROR_TIMESTAMP = "errorTimestamp";
     public static final String F_RECORD_TYPE = "recordType";
-    public static final String F_REAL_OWNER = "realOwner";
+    public static final String F_REAL_OWNER_DESCRIPTION = "realOwnerDescription";
 
-    private String objectRefName;
+    private O realOwner;
     private OperationResultStatusType status;
     private String message;
     private String taskOid;
     private XMLGregorianCalendar errorTimestamp;
     private OperationExecutionRecordTypeType recordType;
-    private String realOwner;
+    private String objectName;
 
     public TaskErrorSelectableBeanImpl() {
     }
@@ -47,7 +49,7 @@ public class TaskErrorSelectableBeanImpl<O extends ObjectType> extends Selectabl
         //TODO: better identification? e.g. if it is shadow, display also resource for the shadow?
         // if it is user, display type? or rather 'midpoint' representing local repo?
         // of would it be better to have sepparate column for it?
-        objectRefName = object.getName().getOrig();
+        this.realOwner = object;
 
         for (OperationExecutionType execution : object.getOperationExecution()) {
             if (execution.getTaskRef() == null || !taskOid.equals(execution.getTaskRef().getOid())) {
@@ -57,7 +59,7 @@ public class TaskErrorSelectableBeanImpl<O extends ObjectType> extends Selectabl
             message = extractMessages(execution);
             errorTimestamp = execution.getTimestamp();
             recordType = execution.getRecordType();
-            realOwner = extractRealOwner(execution);
+            objectName = extractRealOwner(execution, object);
         }
     }
 
@@ -81,10 +83,10 @@ public class TaskErrorSelectableBeanImpl<O extends ObjectType> extends Selectabl
         return errorTimestamp;
     }
 
-    private String extractRealOwner(@NotNull  OperationExecutionType execution) {
+    private String extractRealOwner(@NotNull  OperationExecutionType execution, O object) {
         OperationExecutionRecordRealOwnerType realOwnerType = execution.getRealOwner();
         if (realOwnerType == null) {
-            return null;
+            return WebComponentUtil.getName(object);
         }
 
         String identification = realOwnerType.getIdentification();
@@ -93,7 +95,7 @@ public class TaskErrorSelectableBeanImpl<O extends ObjectType> extends Selectabl
             return type;
         }
 
-        return identification + "(" + type + ")";
+        return identification;
     }
 
     private String getOwnerType(@NotNull  OperationExecutionRecordRealOwnerType realOwnerType) {
@@ -105,4 +107,11 @@ public class TaskErrorSelectableBeanImpl<O extends ObjectType> extends Selectabl
 
     }
 
+    public PrismObject<O> getRealOwner() {
+        return (PrismObject<O>) realOwner.asPrismObject();
+    }
+
+    public String getRealOwnerDescription() {
+        return WebComponentUtil.getName(realOwner) + " (" + realOwner.getClass().getSimpleName() + ")";
+    }
 }

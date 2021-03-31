@@ -64,6 +64,7 @@
             <xsd:element ref="tns:updateLiveSyncTokenInDryRun" minOccurs="0"/>
             <xsd:element ref="tns:finishOperationsOnly" minOccurs="0"/>
             <xsd:element ref="tns:lastScanTimestamp" minOccurs="0"/>
+            <xsd:element ref="tns:lastReconciliationStartTimestamp" minOccurs="0"/>
             <xsd:element ref="tns:objectQuery" minOccurs="0"/>
             <xsd:element ref="tns:searchOptions" minOccurs="0"/>
             <xsd:element ref="tns:useRepositoryDirectly" minOccurs="0"/>
@@ -90,6 +91,7 @@
             <xsd:element ref="tns:tracingProfile" minOccurs="0"/>
             <xsd:element ref="tns:tracingRoot" minOccurs="0"/>
             <xsd:element ref="tns:tracing" minOccurs="0"/>
+            <xsd:element ref="tns:reporting" minOccurs="0"/>
             <xsd:element ref="tns:notUpdatedShadowsDuration" minOccurs="0"/>
             <xsd:element ref="s:executeScript" minOccurs="0"/>
         </xsd:sequence>
@@ -226,6 +228,28 @@
                 <a:displayName>TaskExtension.lastScanTimestamp</a:displayName>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="lastReconciliationStartTimestamp" type="xsd:dateTime">
+        <xsd:annotation>
+            <xsd:documentation>
+                When the resource reconciliation last started? This information is used to determine
+                the threshold to consider when searching for untouched shadows in 3rd part of a reconciliation
+                (shadow reconciliation). Should be set on the root of the task tree.
+
+                The value is set during the first part of the reconciliation.
+
+                EXPERIMENTAL. Probably will be replaced by something more serious during task development for midPoint 4.4.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>TaskExtension.lastReconciliationStartTimestamp</a:displayName>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:since>4.3</a:since>
+                <a:operational>true</a:operational>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -668,6 +692,19 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="reporting" type="c:TaskReportingOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How should the task report its various aspects?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>TaskExtension.reportingOptions</a:displayName>
+                <a:displayOrder>855</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:indexed>false</a:indexed>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 </xsd:schema>
-
-

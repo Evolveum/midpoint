@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!--
+     Configuration to be used for tests derived from AbstractEmptyModelIntegrationTest.
+
+     If we'll find something that must be in really _all_ the tests, we will put it here.
+     But currently it seems we can go with really empty configuration. (No configuration would
+     be OK as well but in any running midPoint there is a system configuration object, so let's
+     keep the situation close to the reality.)
+-->
+
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>SystemConfiguration</name>
+    <logging>
+        <rootLoggerAppender>File Appender</rootLoggerAppender>
+        <rootLoggerLevel>INFO</rootLoggerLevel>
+        <classLogger>
+            <level>WARN</level>
+            <package>com.evolveum.midpoint.model.impl.lens.ClockworkMedic</package>
+        </classLogger>
+        <appender xsi:type="FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+            <fileName>target/test.log</fileName>
+            <append>true</append>
+        </appender>
+    </logging>
+</systemConfiguration>

@@ -12,7 +12,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsStatisticsEn
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
 
+import org.apache.wicket.model.StringResourceModel;
+
 import java.io.Serializable;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,28 +49,28 @@ public class MappingsLineDto implements Serializable {
         return object;
     }
 
-    public int getCount() {
-        return count;
+    public String getCount() {
+        return getString(count);
     }
 
-    public Long getAverageTime() {
+    public String getAverageTime() {
         if (count > 0) {
-            return totalTime / count;
+            return getString(totalTime / count);
         } else {
             return null;
         }
     }
 
-    public Long getMinTime() {
-        return minTime;
+    public String getMinTime() {
+        return getString(minTime);
     }
 
-    public Long getMaxTime() {
-        return maxTime;
+    public String getMaxTime() {
+        return getString(maxTime);
     }
 
-    public long getTotalTime() {
-        return totalTime;
+    public String getTotalTime() {
+        return getString(totalTime);
     }
 
     protected static List<MappingsLineDto> extractFromOperationalInformation(MappingsStatisticsType mappingsStatisticsType) {
@@ -81,4 +84,7 @@ public class MappingsLineDto implements Serializable {
         return retval;
     }
 
+    private String getString(Object numerToFormat) {
+        return new StringResourceModel("StatisticsPanel.provisioningStatistics.averageTime.formatted").setParameters(numerToFormat).getString();
+    }
 }

@@ -24,9 +24,9 @@ public class QConnectorHost extends QObject<MConnectorHost> {
     public static final String TABLE_NAME = "m_connector_host";
 
     public static final ColumnMetadata HOSTNAME =
-            ColumnMetadata.named("hostname").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("hostname").ofType(Types.VARCHAR);
     public static final ColumnMetadata PORT =
-            ColumnMetadata.named("port").ofType(Types.VARCHAR).withSize(32);
+            ColumnMetadata.named("port").ofType(Types.VARCHAR);
 
     public final StringPath hostname = createString("hostname", HOSTNAME);
     public final StringPath port = createString("port", PORT);

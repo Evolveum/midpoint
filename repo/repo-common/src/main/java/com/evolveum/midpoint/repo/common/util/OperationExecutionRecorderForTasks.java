@@ -10,8 +10,6 @@ package com.evolveum.midpoint.repo.common.util;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.util.CloneUtil;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,6 +46,7 @@ public class OperationExecutionRecorderForTasks {
      *
      * @param target Where to write the record to.
      * @param task Related task. It could be any task that has the correct root task OID filled-in.
+     * @param partUri URI of the task part in context of which the processing took place.
      * @param result Combined use: (1) This is the result that we want to write to the object (i.e. it must have
      * already computed status and message. (2) This is the result we use for our own writing operations.
      * We hope these two usages are not in conflict. If so, they will need to be split.
@@ -57,8 +56,8 @@ public class OperationExecutionRecorderForTasks {
      *
      * TODO move redirection to the writer level?
      */
-    public void recordOperationExecution(Target target, RunningTask task, OperationResult result) {
-        OperationExecutionType recordToAdd = createExecutionRecord(task, result);
+    public void recordOperationExecution(Target target, RunningTask task, String partUri, OperationResult result) {
+        OperationExecutionType recordToAdd = createExecutionRecord(task, partUri, result);
         if (target.canWriteToObject()) {
             recordOperationExecutionToOwner(target, recordToAdd, task, result);
         } else {
@@ -72,7 +71,7 @@ public class OperationExecutionRecorderForTasks {
         try {
             OperationExecutionWriter.Request<? extends ObjectType> request =
                     new OperationExecutionWriter.Request<>(owner.getClass(), owner.getOid(), recordToAdd,
-                            owner.getOperationExecution(), true, getTaskStartTime(task));
+                            owner.getOperationExecution(), true);
             writer.write(request, result);
         } catch (Exception e) {
             LOGGER.warn("Couldn't write operation execution for {} in {}, trying backup holder", owner, task, e);
@@ -88,7 +87,7 @@ public class OperationExecutionRecorderForTasks {
         try {
             OperationExecutionWriter.Request<? extends ObjectType> request =
                     new OperationExecutionWriter.Request<>(target.backupHolderClass, target.backupHolderOid, recordToAdd,
-                            null, false, getTaskStartTime(task));
+                            null, false);
             writer.write(request, result);
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER,
@@ -97,21 +96,18 @@ public class OperationExecutionRecorderForTasks {
         }
     }
 
-    private OperationExecutionType createExecutionRecord(RunningTask task, OperationResult result) {
+    private OperationExecutionType createExecutionRecord(RunningTask task, String partUri, OperationResult result) {
         OperationExecutionType operation = new OperationExecutionType(prismContext);
         operation.setRecordType(OperationExecutionRecordTypeType.COMPLEX);
         operation.setTaskRef(ObjectTypeUtil.createObjectRef(task.getRootTaskOid(), ObjectTypes.TASK));
+        operation.setTaskPartUri(partUri);
         operation.setStatus(result.getStatus().createStatusType());
+        operation.setMessage(result.getMessage());
         // TODO what if the real initiator is different? (e.g. when executing approved changes)
         operation.setInitiatorRef(ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()));
         operation.setChannel(task.getChannel());
         operation.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar());
         return operation;
-    }
-
-    private XMLGregorianCalendar getTaskStartTime(RunningTask task) {
-        // FIXME this should be root task start time!
-        return XmlTypeConverter.createXMLGregorianCalendar(task.getLastRunStartTimestamp());
     }
 
     /**

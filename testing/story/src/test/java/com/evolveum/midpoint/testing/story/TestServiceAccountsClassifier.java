@@ -12,6 +12,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -26,9 +28,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -54,6 +53,8 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     private static final String ACCOUNT_DUMMY_JIRA_USERNAME = "jira";
     private static final String ACCOUNT_DUMMY_WIKI_USERNAME = "wiki";
     private static final String ACCOUNT_DUMMY_GITHUB_USERNAME = "github";
+
+    private static final String ACCOUNT_DUMMY_WIKI_TEST_USERNAME = "test_wiki";
 
     private static final File TASK_RECONCILE_DUMMY_CLASSIFIER_FILE = new File(TEST_DIR, "task-dummy-classifier-reconcile.xml");
     private static final String TASK_RECONCILE_DUMMY_CLASSIFIER_OID = "10335c7c-838f-11e8-93a6-4b1dd0ab58e4";
@@ -164,7 +165,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
         assertNotNull("No magazine service", serviceJiraAfter);
         PrismAsserts.assertPropertyValue(serviceJiraAfter,
                 ItemPath.create(ServiceType.F_EXTENSION, F_ACCOUNT_NAME), ACCOUNT_DUMMY_JIRA_USERNAME);
-        assertLinks(serviceJiraAfter, 1);
+        assertLiveLinks(serviceJiraAfter, 1);
 
     }
 
@@ -190,6 +191,31 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 
         DummyAccount dummyAccount = getDummyAccount(getDummyResource().getInstanceName(), ACCOUNT_DUMMY_WIKI_USERNAME);
         assertFalse(dummyAccount.isEnabled(), "Dummy account should be disabled");
+    }
+
+    @Test
+    public void test160AccountWikiTestDisputed() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+        // Preconditions
+        assertServices(1);
+
+        DummyAccount account = new DummyAccount(ACCOUNT_DUMMY_WIKI_TEST_USERNAME);
+
+        // WHEN
+        when();
+
+        getDummyResource().addAccount(account);
+
+        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_CLASSIFIER_OID, true);
+
+        // THEN
+        then();
+
+        assertServices(1);
+
+        PrismObject<ShadowType> shadow = findShadowByName(ShadowKindType.ACCOUNT, "default", ACCOUNT_DUMMY_WIKI_TEST_USERNAME, getDummyResourceObject(), result);
+        assertShadow(shadow, "after ").assertSynchronizationSituation(SynchronizationSituationType.DISPUTED);
     }
 
     @Test
@@ -268,7 +294,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
         assertNotNull("No github service", serviceGithubAfter);
         assertAssignedResource(ServiceType.class, SERVICE_GITHUB_OID, RESOURCE_DUMMY_CLASSIFIER_OID, result);
         PrismAsserts.assertPropertyValue(serviceGithubAfter, ItemPath.create(ServiceType.F_EXTENSION, F_ACCOUNT_NAME), ACCOUNT_DUMMY_GITHUB_USERNAME);
-        assertLinks(serviceGithubAfter, 1);
+        assertLiveLinks(serviceGithubAfter, 1);
 
         //check if the intent was changed
         PrismObject<ShadowType> shadowGithub = getShadowModel(SHADOW_GITHUB_OID);

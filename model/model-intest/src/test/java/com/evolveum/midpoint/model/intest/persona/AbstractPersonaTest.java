@@ -73,7 +73,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         assertUserJack(userAfter);
         assertUserPassword(userAfter, USER_JACK_PASSWORD);
 
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 1);
         PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, "admin");
         display("Persona", persona);
@@ -162,7 +162,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         assertUserJack(userAfter);
         assertUserPassword(userAfter, USER_JACK_PASSWORD);
 
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 1);
         PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, "admin");
         display("Persona", persona);
@@ -192,7 +192,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         assertUser(userAfter, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME_NEW, USER_JACK_FAMILY_NAME);
         assertUserPassword(userAfter, USER_JACK_PASSWORD);
 
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 1);
         PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, "admin");
         display("Persona", persona);
@@ -335,7 +335,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         assertUser(userAfter, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME_NEW, USER_JACK_FAMILY_NAME);
         assertUserPassword(userAfter, USER_PASSWORD_2_CLEAR);
 
-        assertLinks(userAfter, 0);
+        assertLiveLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 0);
 
         assertNoObject(UserType.class, userJackAdminPersonaOid);

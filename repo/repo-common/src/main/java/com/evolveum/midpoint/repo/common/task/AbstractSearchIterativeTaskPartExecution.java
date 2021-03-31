@@ -16,6 +16,8 @@ import static com.evolveum.midpoint.util.MiscUtil.*;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Collection;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
@@ -47,7 +49,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -91,7 +93,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
      *
      * See {@link AbstractSearchIterativeItemProcessor#process(ItemProcessingRequest, RunningTask, OperationResult)}.
      */
-    protected ObjectFilter additionalFilter;
+    ObjectFilter additionalFilter;
 
     /**
      * Pre-processes object received before it is passed to the task handler specific processing.
@@ -99,7 +101,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
      *
      * See {@link AbstractSearchIterativeItemProcessor#process(ItemProcessingRequest, RunningTask, OperationResult)}.
      */
-    protected ObjectPreprocessor<O> preprocessor;
+    ObjectPreprocessor<O> preprocessor;
 
     /**
      * Options to be used during counting and searching. Set up in {@link #prepareItemSource(OperationResult)}.
@@ -125,6 +127,11 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
      */
     private boolean requiresDirectRepositoryAccess;
 
+    /**
+     * OIDs of objects submitted to processing in current part execution (i.e. in the current bucket).
+     */
+    private final Set<String> oidsSeen = ConcurrentHashMap.newKeySet();
+
     public AbstractSearchIterativeTaskPartExecution(TE taskExecution) {
         super(taskExecution);
         this.workBucket = taskExecution.workBucket;
@@ -144,18 +151,11 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
     }
 
     @Override
-    protected void setProgressAndExpectedItems(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
+    protected void setExpectedTotal(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
             ObjectAlreadyExistsException {
-        Long expectedTotal = computeExpectedTotalIfApplicable(opResult);
-        setProgressAndExpectedTotal(expectedTotal, opResult);
-    }
-
-    private void setProgressAndExpectedTotal(Long expectedTotal, OperationResult opResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        localCoordinatorTask.setProgress(runResult.getProgress());
-        if (expectedTotal != null) {
-            localCoordinatorTask.setExpectedTotal(expectedTotal);
-        }
+        Long expectedTotal = computeExpectedTotal(opResult);
+        localCoordinatorTask.setExpectedTotal(expectedTotal);
         localCoordinatorTask.flushPendingModifications(opResult);
     }
 
@@ -192,13 +192,13 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
     }
 
     @Nullable
-    private Long computeExpectedTotalIfApplicable(OperationResult opResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+    private Long computeExpectedTotal(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (!getReportingOptions().isCountObjectsOnStart()) {
             return null;
-        } else if (TaskWorkStateTypeUtil.hasLimitations(workBucket)) {
-            // We avoid computing expected total if we are processing a bucket -- actually we could but we should
-            // not display it as 'task expected total'
+        } else if (TaskWorkStateUtil.hasLimitations(workBucket)) {
+            // We avoid computing expected total if we are processing a bucket: actually we could do it,
+            // but we should not display the result as 'task expected total'.
             return null;
         } else {
             Integer expectedTotal = countObjects(opResult);
@@ -560,5 +560,9 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
 
     public Collection<SelectorOptions<GetOperationOptions>> getSearchOptions() {
         return searchOptions;
+    }
+
+    boolean checkAndRegisterOid(String oid) {
+        return oidsSeen.add(oid);
     }
 }

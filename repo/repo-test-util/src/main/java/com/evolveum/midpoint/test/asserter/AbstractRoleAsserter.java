@@ -135,8 +135,8 @@ public class AbstractRoleAsserter<F extends AbstractRoleType, RA> extends FocusA
     }
 
     @Override
-    public AbstractRoleAsserter<F,RA> assertLinks(int expected) {
-        super.assertLinks(expected);
+    public AbstractRoleAsserter<F,RA> assertLiveLinks(int expected) {
+        super.assertLiveLinks(expected);
         return this;
     }
 

@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.repo.sql.audit.mapping;
 
 import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditEventRecord.TABLE_NAME;
-import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
+import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.*;
 
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
@@ -16,12 +16,12 @@ import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.CanonicalItemPathItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.DetailTableItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumOrdinalItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlDetailFetchMapper;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.CanonicalItemPathItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.DetailTableItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.EnumOrdinalItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 /**
@@ -71,16 +71,16 @@ public class QAuditEventRecordMapping
                         path(QAuditResource.class, ai -> ai.resourceOid))));
 
         /*
-         * No need to map initiatorName, initiatorType, attorneyName for query, OID should suffice.
-         * There is also no F_ATTORNEY_NAME and similar paths - unless these are "extension" columns?
+         * There is also no F_ATTORNEY_TYPE and similar paths - unless these are "extension" columns?
          */
         addItemMapping(F_INITIATOR_REF, AuditRefItemFilterProcessor.mapper(
-                path(q -> q.initiatorOid), path(q -> q.initiatorType)));
-        addItemMapping(F_ATTORNEY_REF, AuditRefItemFilterProcessor.mapper(path(q -> q.attorneyOid)));
+                path(q -> q.initiatorOid), path(q -> q.initiatorName), path(q -> q.initiatorType)));
+        addItemMapping(F_ATTORNEY_REF, AuditRefItemFilterProcessor.mapper(path(q -> q.attorneyOid),
+                path(q -> q.attorneyName), null));
         addItemMapping(F_TARGET_REF, AuditRefItemFilterProcessor.mapper(
-                path(q -> q.targetOid), path(q -> q.targetType)));
+                path(q -> q.targetOid), path(q -> q.targetName), path(q -> q.targetType)));
         addItemMapping(F_TARGET_OWNER_REF, AuditRefItemFilterProcessor.mapper(
-                path(q -> q.targetOwnerOid), path(q -> q.targetOwnerType)));
+                path(q -> q.targetOwnerOid), path(q -> q.targetOwnerName), path(q -> q.targetOwnerType)));
 
         addItemMapping(F_CUSTOM_COLUMN_PROPERTY, AuditCustomColumnItemFilterProcessor.mapper());
 

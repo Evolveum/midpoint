@@ -42,8 +42,8 @@ public class MidScaleRepoTest extends BaseSQLRepoTest
 
     public static final int RESOURCE_COUNT = 10;
     public static final int BASE_USER_COUNT = 1000;
-    public static final int MORE_USER_COUNT = 2000;
-    public static final int PEAK_USER_COUNT = 1000;
+    public static final int MORE_USER_COUNT = 10000;
+    public static final int PEAK_USER_COUNT = 1000; // added both with and without assigned OID
 
     public static final int FIND_COUNT = 1000;
 
@@ -57,6 +57,7 @@ public class MidScaleRepoTest extends BaseSQLRepoTest
 
     @BeforeMethod
     public void reportBeforeTest() {
+        Runtime.getRuntime().gc();
         memInfo.add(String.format("%-40.40s before: %,15d",
                 contextName(), Runtime.getRuntime().totalMemory()));
         queryListener.clear();
@@ -73,9 +74,9 @@ public class MidScaleRepoTest extends BaseSQLRepoTest
         OperationResult operationResult = createOperationResult();
         Stopwatch stopwatch = stopwatch("resource.add", "Repository addObject(resource)");
         for (int resourceIndex = 1; resourceIndex <= RESOURCE_COUNT; resourceIndex++) {
-            ResourceType resourceType = new ResourceType(prismContext);
             String name = String.format("resource-%03d", resourceIndex);
-            resourceType.setName(PolyStringType.fromOrig(name));
+            ResourceType resourceType = new ResourceType(prismContext)
+                    .name(PolyStringType.fromOrig(name));
             if (resourceIndex == RESOURCE_COUNT) {
                 queryListener.start();
             }
@@ -92,9 +93,9 @@ public class MidScaleRepoTest extends BaseSQLRepoTest
         OperationResult operationResult = createOperationResult();
         Stopwatch stopwatch = stopwatch("user.add", "Repository addObject(user) - 1st batch");
         for (int userIndex = 1; userIndex <= BASE_USER_COUNT; userIndex++) {
-            UserType userType = new UserType(prismContext);
             String name = String.format("user-%07d", userIndex);
-            userType.setName(PolyStringType.fromOrig(name));
+            UserType userType = new UserType(prismContext)
+                    .name(PolyStringType.fromOrig(name));
             if (userIndex == BASE_USER_COUNT) {
                 queryListener.start();
             }
@@ -132,11 +133,10 @@ public class MidScaleRepoTest extends BaseSQLRepoTest
 
     @NotNull
     private ShadowType createShadow(String shadowName, String resourceOid) {
-        ShadowType shadowType = new ShadowType(prismContext);
-        shadowType.setName(PolyStringType.fromOrig(shadowName));
-        shadowType.setResourceRef(MiscSchemaUtil.createObjectReference(
-                resourceOid, ResourceType.COMPLEX_TYPE));
-        return shadowType;
+        return new ShadowType(prismContext)
+                .name(PolyStringType.fromOrig(shadowName))
+                .resourceRef(MiscSchemaUtil.createObjectReference(
+                        resourceOid, ResourceType.COMPLEX_TYPE));
     }
 
     @Test
@@ -162,9 +162,9 @@ public class MidScaleRepoTest extends BaseSQLRepoTest
         OperationResult operationResult = createOperationResult();
         Stopwatch stopwatch = stopwatch("user.addMore", "Repository addObject(user) - 2nd batch");
         for (int userIndex = 1; userIndex <= MORE_USER_COUNT; userIndex++) {
-            UserType userType = new UserType(prismContext);
             String name = String.format("user-more-%07d", userIndex);
-            userType.setName(PolyStringType.fromOrig(name));
+            UserType userType = new UserType(prismContext)
+                    .name(PolyStringType.fromOrig(name));
             if (userIndex == MORE_USER_COUNT) {
                 queryListener.start();
             }
@@ -200,22 +200,70 @@ public class MidScaleRepoTest extends BaseSQLRepoTest
     }
 
     @Test
-    public void test610PeakMoreUsers() throws ObjectAlreadyExistsException, SchemaException {
+    public void test610AddPeakUsers() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult operationResult = createOperationResult();
         Stopwatch stopwatch = stopwatch("user.addPeak", "Repository addObject(user) - 3rd batch");
         for (int userIndex = 1; userIndex <= PEAK_USER_COUNT; userIndex++) {
-            UserType userType = new UserType(prismContext);
             String name = String.format("user-peak-%07d", userIndex);
-            userType.setName(PolyStringType.fromOrig(name));
-            if (userIndex == PEAK_USER_COUNT) {
-                queryListener.start();
-            }
+            UserType userType = new UserType(prismContext)
+                    .name(PolyStringType.fromOrig(name));
             try (Split ignored = stopwatch.start()) {
                 repositoryService.addObject(userType.asPrismObject(), null, operationResult);
             }
             users.put(name, userType.getOid());
         }
-        queryListener.dumpAndStop();
+        // no query listener in this test
+    }
+
+    @Test
+    public void test611AddPeakShadows() throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult operationResult = createOperationResult();
+        Stopwatch stopwatch = stopwatch("shadow.addPeak", "Repository addObject(shadow) - 3rd batch");
+        for (int userIndex = 1; userIndex <= PEAK_USER_COUNT; userIndex++) {
+            for (Map.Entry<String, String> resourceEntry : resources.entrySet()) {
+                String name = String.format("shadow-peak-%07d-at-%s", userIndex, resourceEntry.getKey());
+                ShadowType shadowType = createShadow(name, resourceEntry.getValue());
+                try (Split ignored = stopwatch.start()) {
+                    repositoryService.addObject(shadowType.asPrismObject(), null, operationResult);
+                }
+            }
+        }
+        // no query listener in this test
+    }
+
+    @Test
+    public void test615AddPeakUsersWithOid() throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult operationResult = createOperationResult();
+        Stopwatch stopwatch = stopwatch("user.addPeakWithOid", "Repository addObject(user) - 4th batch");
+        for (int userIndex = 1; userIndex <= PEAK_USER_COUNT; userIndex++) {
+            String name = String.format("user-peak-oid-%07d", userIndex);
+            UserType userType = new UserType(prismContext)
+                    // (not) assigning OID makes little/no difference for old repo
+                    .oid(UUID.randomUUID().toString())
+                    .name(PolyStringType.fromOrig(name));
+            try (Split ignored = stopwatch.start()) {
+                repositoryService.addObject(userType.asPrismObject(), null, operationResult);
+            }
+            users.put(name, userType.getOid());
+        }
+        // no query listener in this test
+    }
+
+    @Test
+    public void test616AddPeakShadowsWithOid() throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult operationResult = createOperationResult();
+        Stopwatch stopwatch = stopwatch("shadow.addPeakWithOid", "Repository addObject(shadow) - 4th batch");
+        for (int userIndex = 1; userIndex <= PEAK_USER_COUNT; userIndex++) {
+            for (Map.Entry<String, String> resourceEntry : resources.entrySet()) {
+                String name = String.format("shadow-peak-oid-%07d-at-%s", userIndex, resourceEntry.getKey());
+                ShadowType shadowType = createShadow(name, resourceEntry.getValue())
+                        .oid(UUID.randomUUID().toString());
+                try (Split ignored = stopwatch.start()) {
+                    repositoryService.addObject(shadowType.asPrismObject(), null, operationResult);
+                }
+            }
+        }
+        // no query listener in this test
     }
 
     @Test

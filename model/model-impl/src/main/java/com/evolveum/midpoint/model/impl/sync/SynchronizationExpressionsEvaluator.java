@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -62,6 +63,8 @@ import java.util.Set;
 
 import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
 
+import static java.util.Collections.emptyList;
+
 @Component
 public class SynchronizationExpressionsEvaluator {
 
@@ -73,6 +76,7 @@ public class SynchronizationExpressionsEvaluator {
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
 
+    @NotNull
     public <F extends FocusType> List<PrismObject<F>> findFocusesByCorrelationRule(Class<F> focusType, ShadowType currentShadow,
             List<ConditionalSearchFilterType> conditionalFilters, ResourceType resourceType, SystemConfigurationType configurationType, Task task, OperationResult result)
                     throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -80,54 +84,32 @@ public class SynchronizationExpressionsEvaluator {
         if (conditionalFilters == null || conditionalFilters.isEmpty()) {
             LOGGER.warn("Correlation rule for resource '{}' doesn't contain query, "
                     + "returning empty list of users.", resourceType);
-            return null;
+            return emptyList();
         }
 
         // TODO: determine from the resource
         ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 
-        List<PrismObject<F>> users = null;
+        List<PrismObject<F>> allUsers = new ArrayList<>();
         for (ConditionalSearchFilterType conditionalFilter : conditionalFilters) {
             // TODO: better description
-            if (satisfyCondition(currentShadow, conditionalFilter, expressionProfile, resourceType, configurationType, "Condition expression", task,
-                    result)) {
+            if (satisfyCondition(currentShadow, conditionalFilter, expressionProfile, resourceType, configurationType,
+                    "Condition expression", task, result)) {
                 LOGGER.trace("Condition {} in correlation expression evaluated to true", conditionalFilter.getCondition());
-                List<PrismObject<F>> foundUsers = findFocusesByCorrelationRule(focusType, currentShadow, conditionalFilter,
+                List<PrismObject<F>> usersFound = findFocusesByCorrelationRule(focusType, currentShadow, conditionalFilter,
                         expressionProfile, resourceType, configurationType, task, result);
-                if (foundUsers == null && users == null) {
-                    continue;
-                }
-                if (foundUsers != null && foundUsers.isEmpty() && users == null) {
-                    users = new ArrayList<>();
-                }
-
-                if (users == null && foundUsers != null) {
-                    users = foundUsers;
-                }
-                if (users != null && !users.isEmpty() && foundUsers != null && !foundUsers.isEmpty()) {
-                    for (PrismObject<F> foundUser : foundUsers) {
-                        if (!contains(users, foundUser)) {
-                            users.add(foundUser);
-                        }
+                for (PrismObject<F> userFound : usersFound) {
+                    if (!contains(allUsers, userFound)) {
+                        allUsers.add(userFound);
                     }
                 }
             }
         }
 
-        if (users != null) {
-            LOGGER.debug(
-                    "SYNCHRONIZATION: CORRELATION: expression for {} returned {} users: {}", currentShadow, users.size(),
-                    PrettyPrinter.prettyPrint(users, 3));
-            if (users.size() > 1) {
-                    // remove duplicates
-                Set<PrismObject<F>> usersWithoutDups = new HashSet<>();
-                usersWithoutDups.addAll(users);
-                users.clear();
-                users.addAll(usersWithoutDups);
-                LOGGER.debug("SYNCHRONIZATION: CORRELATION: found {} users without duplicates", users.size());
-            }
-        }
-        return users;
+        LOGGER.debug(
+                "SYNCHRONIZATION: CORRELATION: expression for {} returned {} users: {}", currentShadow, allUsers.size(),
+                PrettyPrinter.prettyPrint(allUsers, 3));
+        return allUsers;
     }
 
     private boolean satisfyCondition(ShadowType currentShadow, ConditionalSearchFilterType conditionalFilter,
@@ -146,35 +128,27 @@ public class SynchronizationExpressionsEvaluator {
 
     private <F extends FocusType> boolean contains(List<PrismObject<F>> users, PrismObject<F> foundUser){
         for (PrismObject<F> user : users){
-            if (user.getOid().equals(foundUser.getOid())){
+            if (user.getOid().equals(foundUser.getOid())) {
                 return true;
             }
         }
         return false;
     }
 
-    private <F extends FocusType> List<PrismObject<F>> findFocusesByCorrelationRule(Class<F> focusType,
+    @NotNull private <F extends FocusType> List<PrismObject<F>> findFocusesByCorrelationRule(Class<F> focusType,
             ShadowType currentShadow, ConditionalSearchFilterType conditionalFilter, ExpressionProfile expressionProfile, ResourceType resourceType, SystemConfigurationType configurationType,
             Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException{
         if (!conditionalFilter.containsFilterClause()) {
             LOGGER.warn("Correlation rule for resource '{}' doesn't contain filter clause, "
                     + "returning empty list of users.", resourceType);
-            return null;
+            return emptyList();
         }
 
         ObjectQuery q;
         try {
             q = prismContext.getQueryConverter().createObjectQuery(focusType, conditionalFilter);
             q = updateFilterWithAccountValues(currentShadow, resourceType, configurationType, q, expressionProfile, "Correlation expression", task, result);
-            if (q == null) {
-                // Null is OK here, it means that the value in the filter
-                // evaluated
-                // to null and the processing should be skipped
-                return null;
-            }
-
-
         } catch (SchemaException ex) {
             LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
                     SchemaDebugUtil.prettyPrint(conditionalFilter));
@@ -201,19 +175,16 @@ public class SynchronizationExpressionsEvaluator {
             throw new SecurityViolationException("Couldn't convert query.", ex);
         }
 
-        List<PrismObject<F>> users;
         try {
             LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for results in filter\n{}", q.debugDumpLazily());
-            users = repositoryService.searchObjects(focusType, q, null, result);
+            return repositoryService.searchObjects(focusType, q, null, result);
         } catch (RuntimeException ex) {
             LoggingUtils.logException(LOGGER,
                     "Couldn't search users in repository, based on filter (simplified)\n{}.", ex, q.debugDump());
             throw new SystemException(
                     "Couldn't search users in repository, based on filter (See logs).", ex);
         }
-        return users;
     }
-
 
     private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusType, PrismObject<ShadowType> currentShadow,
             ExpressionProfile expressionProfile, PrismObject<F> userType, ResourceType resourceType, SystemConfigurationType configurationType,
@@ -268,7 +239,7 @@ public class SynchronizationExpressionsEvaluator {
         if (!syncCtx.hasApplicablePolicy()) {
             LOGGER.warn(
                     "Resource does not support synchronization. Skipping evaluation correlation/confirmation for {} and {}",
-                    focus, syncCtx.getApplicableShadow());
+                    focus, syncCtx.getShadowedResourceObject());
             return false;
         }
 
@@ -277,9 +248,9 @@ public class SynchronizationExpressionsEvaluator {
         try {
             for (ConditionalSearchFilterType conditionalFilter : conditionalFilters) {
                 //TODO: can we expect that systemConfig and resource are always present?
-                if (matchUserCorrelationRule(syncCtx.getFocusClass(), syncCtx.getApplicableShadow(), syncCtx.getExpressionProfile(), focus, syncCtx.getResource().asObjectable(),
+                if (matchUserCorrelationRule(syncCtx.getFocusClass(), syncCtx.getShadowedResourceObject(), syncCtx.getExpressionProfile(), focus, syncCtx.getResource().asObjectable(),
                         syncCtx.getSystemConfiguration().asObjectable(), conditionalFilter, syncCtx.getTask(), result)) {
-                    LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} match user: {}", syncCtx.getApplicableShadow(), focus);
+                    LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} match user: {}", syncCtx.getShadowedResourceObject(), focus);
                     return true;
                 }
             }
@@ -287,11 +258,11 @@ public class SynchronizationExpressionsEvaluator {
             throw new SystemException("Failed to match user using correlation rule. " + ex.getMessage(), ex);
         }
 
-        LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} does not match user: {}", syncCtx.getApplicableShadow(), focus);
+        LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} does not match user: {}", syncCtx.getShadowedResourceObject(), focus);
         return false;
     }
 
-    public <F extends FocusType> List<PrismObject<F>> findUserByConfirmationRule(Class<F> focusType, List<PrismObject<F>> users,
+    <F extends FocusType> List<PrismObject<F>> findUserByConfirmationRule(Class<F> focusType, List<PrismObject<F>> users,
             ShadowType currentShadow, ResourceType resource, SystemConfigurationType configuration, ExpressionType expression, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException
     {

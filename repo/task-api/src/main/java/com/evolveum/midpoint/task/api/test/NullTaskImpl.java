@@ -309,6 +309,10 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public void incrementProgressTransient() {
+    }
+
+    @Override
     public void setProgressImmediate(Long progress, OperationResult parentResult) {
         throw new UnsupportedOperationException();
     }
@@ -540,7 +544,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void recordState(String message) {
+    public void recordStateMessage(String message) {
     }
 
     @Override
@@ -577,15 +581,15 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void resetEnvironmentalPerformanceInformation(EnvironmentalPerformanceInformationType value) {
-    }
-
-    @Override
     public void resetSynchronizationInformation(SynchronizationInformationType value) {
     }
 
     @Override
-    public void resetIterativeTaskInformation(IterativeTaskInformationType value) {
+    public void resetIterativeTaskInformation(IterativeTaskInformationType value, boolean collectExecutions) {
+    }
+
+    @Override
+    public void recordPartExecutionEnd(String partUri, long partStartTimestamp, long partEndTimestamp) {
     }
 
     @Override

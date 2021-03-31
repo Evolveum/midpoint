@@ -76,9 +76,9 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
                 Throwable exception = null;
                 try {
                     newConnectors = modelService.discoverConnectors(connectorHostTypePrismObject.asObjectable(), context.getTask(), result);
-                    operationsHelper.recordEnd(context, op, null);
+                    operationsHelper.recordEnd(context, op, null, result);
                 } catch (CommunicationException | SecurityViolationException | SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException e) {
-                    operationsHelper.recordEnd(context, op, e);
+                    operationsHelper.recordEnd(context, op, e, result);
                     exception = processActionException(e, NAME, value, context);
                     newConnectors = Collections.emptySet();
                 }
@@ -126,7 +126,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
                 String newOid = rebindMap.get(connectorOid);
                 if (newOid != null) {
                     String msg = "resource " + resource + " from connector " + connectorOid + " to new one: " + newOid;
-                    LOGGER.info("Rebinding " + msg);
+                    LOGGER.info("Rebinding {}", msg);
                     ReferenceDelta refDelta = prismContext.deltaFactory().reference()
                             .createModificationReplace(ResourceType.F_CONNECTOR_REF, resource.getDefinition(), newOid);
                     ObjectDelta<ResourceType> objDelta = prismContext.deltaFactory().object()

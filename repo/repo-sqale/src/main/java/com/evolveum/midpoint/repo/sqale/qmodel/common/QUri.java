@@ -18,6 +18,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 /**
  * Querydsl query type for {@value #TABLE_NAME} table that contains repetitive URIs (e.g. channels).
  * This entity is not registered to any schema type so it doesn't have related mapping class.
+ * Use {@link #DEFAULT} for default alias directly.
  */
 public class QUri extends FlexibleRelationalPathBase<MUri> {
 
@@ -30,7 +31,7 @@ public class QUri extends FlexibleRelationalPathBase<MUri> {
     public static final ColumnMetadata ID =
             ColumnMetadata.named("id").ofType(Types.INTEGER).notNull();
     public static final ColumnMetadata URI =
-            ColumnMetadata.named("uri").ofType(Types.VARCHAR).withSize(255).notNull();
+            ColumnMetadata.named("uri").ofType(Types.VARCHAR).notNull();
 
     public final NumberPath<Integer> id = createInteger("id", ID);
     public final StringPath uri = createString("uri", URI);

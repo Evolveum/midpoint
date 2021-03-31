@@ -74,6 +74,7 @@
                 </script>
             </condition>
         </approverCommentsFormatting>
+        <defaultExpandRolesOnPreview>true</defaultExpandRolesOnPreview>
         <primaryChangeProcessor>
         </primaryChangeProcessor>
     </workflowConfiguration>

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.test.asserter.prism;
 
+import static com.evolveum.midpoint.schema.util.OperationResultUtil.isError;
+
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
@@ -526,5 +528,34 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
             }
         }
         return this;
+    }
+
+    /**
+     * Preliminary test method (until full operation execution asserter is created).
+     */
+    public PrismObjectAsserter<O, RA> assertHasComplexOperationExecution(String taskOid, OperationResultStatusType status) {
+        for (OperationExecutionType record : getObjectable().getOperationExecution()) {
+            if (matches(record, OperationExecutionRecordTypeType.COMPLEX, taskOid, status)) {
+                assertRecordSanity(record);
+                return this;
+            }
+        }
+        throw new AssertionError("No complex operation execution record for task OID " + taskOid + " and status " + status);
+    }
+
+    // TEMPORARY! TODO Create OperationExecutionAsserter
+    private void assertRecordSanity(OperationExecutionType record) {
+        if (isError(record.getStatus())) {
+            assertThat(record.getMessage())
+                    .withFailMessage("message is missing for error operation execution record")
+                    .isNotNull();
+        }
+    }
+
+    private boolean matches(OperationExecutionType record, OperationExecutionRecordTypeType type, String taskOid, OperationResultStatusType status) {
+        String realTaskOid = record.getTaskRef() != null ? record.getTaskRef().getOid() : null;
+        return record.getRecordType() == type
+                && java.util.Objects.equals(realTaskOid, taskOid)
+                && record.getStatus() == status;
     }
 }

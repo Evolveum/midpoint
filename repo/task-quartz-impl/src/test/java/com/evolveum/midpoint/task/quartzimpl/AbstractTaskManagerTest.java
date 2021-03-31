@@ -22,7 +22,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
 
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
+import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
 import com.evolveum.midpoint.task.quartzimpl.tasks.TaskStateManager;
 
@@ -174,6 +175,15 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
         }, timeoutInterval, sleepInterval);
     }
 
+    void waitForTaskSuspend(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval)
+            throws CommonException {
+        waitFor("Waiting for task to close", () -> {
+            Task task = taskManager.getTaskWithResult(taskOid, result);
+            IntegrationTestTools.display("Task while waiting for it to close", task);
+            return task.getSchedulingState() == TaskSchedulingStateType.SUSPENDED;
+        }, timeoutInterval, sleepInterval);
+    }
+
     @SuppressWarnings("SameParameterValue")
     void waitForTaskCloseOrDelete(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval)
             throws CommonException {
@@ -247,6 +257,15 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
         }, timeoutInterval, sleepInterval);
     }
 
+    void waitForTaskRunFinish(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval,
+            long laterThan) throws CommonException {
+        waitFor("Waiting for task run finish later than " + laterThan, () -> {
+            Task task = taskManager.getTaskWithResult(taskOid, result);
+            IntegrationTestTools.display("Task while waiting for run finish later than " + laterThan, task);
+            return or0(task.getLastRunFinishTimestamp()) > laterThan;
+        }, timeoutInterval, sleepInterval);
+    }
+
     void suspendAndDeleteTasks(String... oids) {
         taskManager.suspendAndDeleteTasks(Arrays.asList(oids), 20000L, true, new OperationResult("dummy"));
     }
@@ -261,7 +280,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
 
     void assertTotalSuccessCountInIterativeInfo(int expectedCount, Collection<? extends Task> workers) {
         int successCount = workers.stream()
-                .mapToInt(w -> TaskTypeUtil.getItemsProcessedWithSuccess(w.getStoredOperationStatsOrClone()))
+                .mapToInt(w -> TaskOperationStatsUtil.getItemsProcessedWithSuccess(w.getStoredOperationStatsOrClone()))
                 .sum();
         assertThat(successCount).isEqualTo(expectedCount);
     }
@@ -270,14 +289,14 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
         int successClosed = getSuccessClosed(workers);
         assertThat(successClosed).isEqualTo(expectedClosed);
         int successOpen = workers.stream()
-                .mapToInt(w -> TaskTypeUtil.getProgressForOutcome(w.getStructuredProgressOrClone(), SUCCESS, true))
+                .mapToInt(w -> TaskProgressUtil.getProgressForOutcome(w.getStructuredProgressOrClone(), SUCCESS, true))
                 .sum();
         assertThat(successOpen).isEqualTo(expectedOpen);
     }
 
     private int getSuccessClosed(Collection<? extends Task> workers) {
         return workers.stream()
-                    .mapToInt(w -> TaskTypeUtil.getProgressForOutcome(w.getStructuredProgressOrClone(), SUCCESS, false))
+                    .mapToInt(w -> TaskProgressUtil.getProgressForOutcome(w.getStructuredProgressOrClone(), SUCCESS, false))
                     .sum();
     }
 
@@ -341,7 +360,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
             List<? extends Task> tasks = coordinatorTask.listSubtasks(result);
             int total = 0;
             for (Task task : tasks) {
-                int count = or0(TaskTypeUtil.getItemsProcessed(task.getStoredOperationStatsOrClone()));
+                int count = or0(TaskOperationStatsUtil.getItemsProcessed(task.getStoredOperationStatsOrClone()));
                 display("Task " + task + ": " + count + " items processed");
                 total += count;
             }

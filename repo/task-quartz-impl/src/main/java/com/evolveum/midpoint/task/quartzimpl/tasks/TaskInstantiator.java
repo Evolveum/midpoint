@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.task.quartzimpl.tasks;
 
+import com.evolveum.midpoint.task.api.LightweightTaskHandler;
+import com.evolveum.midpoint.task.quartzimpl.RunningLightweightTaskImpl;
 import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
@@ -23,6 +25,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 @Component
 public class TaskInstantiator {
@@ -57,5 +61,16 @@ public class TaskInstantiator {
             PrismObject<TaskType> taskPrismObject = task.getUpdatedTaskObject();
             return new RunningTaskQuartzImpl(taskManager, taskPrismObject, rootTaskOid);
         }
+    }
+
+    /**
+     * If necessary, converts a task into running task instance. Does not change the prism data.
+     */
+    public RunningLightweightTaskImpl toRunningLightweightTaskInstance(@NotNull Task task, @NotNull String rootTaskOid,
+            @NotNull RunningTaskQuartzImpl parent, @NotNull LightweightTaskHandler handler) {
+        argCheck(!(task instanceof RunningTask), "Task is already a running task: %s", task);
+        PrismObject<TaskType> taskPrismObject = task.getUpdatedTaskObject();
+
+        return new RunningLightweightTaskImpl(taskManager, taskPrismObject, rootTaskOid, parent, handler);
     }
 }

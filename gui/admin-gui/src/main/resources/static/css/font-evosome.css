@@ -19,111 +19,112 @@
 }
 
 .fe-assignment:before {
-  content: "\e902";
+    content: "\e902";
 }
 .fe-midpoint-shorter-lines:before {
-  content: "\e903";
+    content: "\e903";
 }
 .fe-midpoint-wheel:before {
-  content: "\e904";
+    content: "\e904";
 }
 .fe-midpoint-with-lines:before {
-  content: "\e905";
+    content: "\e905";
 }
 .fe-role-hat:before {
-  content: "\e906";
+    content: "\e906";
 }
 .fe-role-tie:before {
-  content: "\e907";
+    content: "\e907";
 }
 .fe-role-top-hat:before {
-  content: "\e908";
+    content: "\e908";
+}
+.fe-skip-step-object:before {
+    content: "\e915";
 }
 .fe-assignment-thicker:before {
-  content: "\e909";
+    content: "\e909";
 }
 .fe-lock-object:before {
-  content: "\e90e";
-}
-.fe-action-draft:before {
-  content: "\e90d";
+    content: "\e90e";
 }
 .fe-archetype_smooth:before {
-  content: "\e918";
+    content: "\e918";
 }
 .fe-crown-object:before {
-  content: "\e900";
+    content: "\e900";
 }
 .fe-manager-tie-object:before {
-  content: "\e90b";
+    content: "\e90b";
 }
 .fe-approver-object:before {
-  content: "\e901";
+    content: "\e901";
 }
 .fe-policeman-object:before {
-  content: "\e90c";
+    content: "\e90c";
 }
 .fe-action-assign:before {
-  content: "\e90f";
+    content: "\e90f";
 }
 .fe-assign-horizontal-A:before {
-  content: "\e910";
+    content: "\e910";
 }
 .fe-assign-horizontal-B:before {
-  content: "\e911";
+    content: "\e911";
 }
 .fe-assignment-horizontal-slim:before {
-  content: "\e912";
+    content: "\e912";
 }
 .fe-assignment-horizontal-thick:before {
-  content: "\e90a";
+    content: "\e90a";
 }
 .fe-assignment-45angle-nocircle:before {
-  content: "\e919";
+    content: "\e919";
 }
 .fe-unemployee-object:before {
-  content: "\e913";
+    content: "\e913";
 }
-.fe-employee-object .path1:before {
-  content: "\e914";
-  color: rgb(0, 0, 0);
+.fe-employee-object:before {
+    content: "\e914";
 }
-.fe-employee-object .path2:before {
-  content: "\e915";
-  margin-left: -1em;
-  color: rgb(0, 0, 0);
-}
-.fe-employee-object .path3:before {
-  content: "\e916";
-  margin-left: -1em;
-  color: rgb(0, 0, 0);
-}
-.fe-employee-object .path4:before {
-  content: "\e917";
-  margin-left: -1em;
-  color: rgb(0, 0, 0);
+.fe-case:before {
+    content: "\e91a";
 }
 .fe-case-object:before {
-  content: "\e91a";
+    content: "\e91a";
+}
+.fe-case_thick:before {
+    content: "\e916";
 }
 .fe-delegate:before {
-  content: "\e91b";
+    content: "\e91b";
 }
 .fe-request-arrow:before {
-  content: "\e91c";
+    content: "\e91c";
 }
 .fe-handy:before {
-  content: "\e91d";
+    content: "\e91d";
 }
-.fe-slash:before {
-  content: "\e91e";
+.fe-no-line:before {
+    content: "\e91e";
+}
+.fe-action-draft:before {
+    content: "\e90d";
+}
+.fe-action-draft-neg:before {
+    content: "\e923";
 }
 .fe-file:before {
-  content: "\e91f";
+    content: "\e91f";
 }
 .fe-no-file:before {
-  content: "\e920";
+    content: "\e920";
 }
+
+/*deprecated, use fe-role instead, keeping just because of compatibility*/
 .fe-role_icon:before {
-  content: "\e921";
+    content: "\e922";
+}
+.fe-role:before {
+    content: "\e922";
 }

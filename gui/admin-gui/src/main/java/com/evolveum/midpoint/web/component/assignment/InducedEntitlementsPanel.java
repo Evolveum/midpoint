@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -69,8 +70,6 @@ public class InducedEntitlementsPanel extends InducementsPanel {
 
     public InducedEntitlementsPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> inducementContainerWrapperModel) {
         super(id, inducementContainerWrapperModel);
-
-        createValidator();
     }
 
     private void createValidator() {
@@ -117,7 +116,7 @@ public class InducedEntitlementsPanel extends InducementsPanel {
                         PrismContainer<MappingType> outbound = associationValue.findContainer(ResourceObjectAssociationType.F_OUTBOUND);
                         if (outbound == null || outbound.getValues().isEmpty()) {
                             SimpleValidationError error = new SimpleValidationError();
-                            error.setMessage(getPageBase().createStringResource("InducedEntitlementsPanel.validator.message").getString());
+                            error.setMessage(PageBase.createStringResourceStatic(null, "InducedEntitlementsPanel.validator.message").getString());
                             ItemPathType path = new ItemPathType();
                             path.setItemPath(ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION, ResourceObjectAssociationType.F_OUTBOUND));
                             error.setAttribute(path);
@@ -138,6 +137,10 @@ public class InducedEntitlementsPanel extends InducementsPanel {
     @Override
     protected void onInitialize() {
         super.onInitialize();
+
+        if (validator == null) {
+            createValidator();
+        }
 
         if (getPageBase() instanceof PageAdminObjectDetails) {
             PageAdminObjectDetails page = (PageAdminObjectDetails) getPageBase();
@@ -215,7 +218,7 @@ public class InducedEntitlementsPanel extends InducementsPanel {
     }
 
     @Override
-    protected ObjectQuery createObjectQuery() {
+    protected ObjectQuery getCustomizeQuery() {
         return getParentPage().getPrismContext().queryFor(AssignmentType.class)
                 .exists(AssignmentType.F_CONSTRUCTION)
                 .build();

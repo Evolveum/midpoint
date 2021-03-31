@@ -73,8 +73,8 @@ public class ImportFromResourceTaskHandler
 
     public ImportFromResourceTaskHandler() {
         super(LOGGER, "Import", OperationConstants.IMPORT_ACCOUNTS_FROM_RESOURCE);
-        reportingOptions.setPreserveStatistics(false);
-        reportingOptions.setEnableSynchronizationStatistics(true);
+        globalReportingOptions.setPreserveStatistics(false);
+        globalReportingOptions.setEnableSynchronizationStatistics(true);
     }
 
     @PostConstruct
@@ -100,7 +100,7 @@ public class ImportFromResourceTaskHandler
                     targetInfo.getResource(),
                     targetInfo.getObjectClassDefinition(),
                     new NullSynchronizationObjectFilterImpl(),
-                    changeNotificationDispatcher,
+                    eventDispatcher,
                     SchemaConstants.CHANNEL_IMPORT,
                     null,
                     true);
@@ -179,6 +179,6 @@ public class ImportFromResourceTaskHandler
     }
 
     public ResourceObjectChangeListener getObjectChangeListener() {
-        return changeNotificationDispatcher;
+        return eventDispatcher;
     }
 }

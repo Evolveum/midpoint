@@ -50,8 +50,8 @@ public class ReindexTaskHandler
 
     public ReindexTaskHandler() {
         super(LOGGER, "Reindex", OperationConstants.REINDEX);
-        reportingOptions.setPreserveStatistics(false);
-        reportingOptions.setSkipWritingOperationExecutionRecords(false); // because of performance
+        globalReportingOptions.setPreserveStatistics(false);
+        globalReportingOptions.setSkipWritingOperationExecutionRecords(false); // because of performance
     }
 
     @PostConstruct

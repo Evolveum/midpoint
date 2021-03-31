@@ -16,12 +16,12 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 
 /**
- * Filter processor for URI item paths - represented as strings in schema and by int ID in DB.
- * TODO: if used for order it would require join to QUri, otherwise it just sorts by URI ID.
+ * Filter processor for URI item paths - represented by string/QName in schema and by int ID in DB.
+ * These paths are generally not ordered by, which is a relief, otherwise JOIN would be needed.
  */
 public class UriItemFilterProcessor extends ItemFilterProcessor<PropertyValueFilter<String>> {
 

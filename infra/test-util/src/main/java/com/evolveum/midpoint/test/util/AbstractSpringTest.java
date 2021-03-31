@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.test.util;
 
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
@@ -129,8 +128,7 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
 
     private void nullField(Object obj, Field field) throws Exception {
         logger.info("Setting {} to null on {}.", field.getName(), obj.getClass().getSimpleName());
-        boolean accessible = field.isAccessible();
-        //        boolean accessible = field.canAccess(obj); // TODO: after ditching JDK 8
+        boolean accessible = field.canAccess(obj);
         if (!accessible) {
             field.setAccessible(true);
         }

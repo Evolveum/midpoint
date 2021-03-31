@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.task.quartzimpl.work.segmentation;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkSegmentationStrategy;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -42,7 +42,7 @@ public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy
     public StringWorkSegmentationStrategy(@NotNull TaskWorkManagementType configuration, PrismContext prismContext) {
         super(configuration, prismContext);
         this.bucketsConfiguration = (StringWorkSegmentationType)
-                TaskWorkStateTypeUtil.getWorkSegmentationConfiguration(configuration);
+                TaskWorkStateUtil.getWorkSegmentationConfiguration(configuration);
         this.marking = defaultIfNull(bucketsConfiguration.getComparisonMethod(), INTERVAL);
         this.boundaries = processBoundaries();
     }
@@ -352,7 +352,7 @@ public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy
         private void checkConsistency() {
             for (int i = 0; i < configuredBoundaries.size(); i++) {
                 String configuredBoundary = configuredBoundaries.get(i);
-                argCheck(configuredBoundary != null, "Boundary characters for position %d are not defined: %s",
+                argCheck(configuredBoundary != null, "Boundary characters for position %s are not defined: %s",
                         i, configuredBoundaries);
             }
         }

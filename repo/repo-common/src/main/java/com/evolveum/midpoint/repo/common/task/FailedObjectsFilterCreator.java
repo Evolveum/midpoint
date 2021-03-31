@@ -100,6 +100,8 @@ class FailedObjectsFilterCreator {
         if (selector.getTimeTo() != null) {
             return selector.getTimeTo();
         } else if (selector.getTaskRef().isEmpty()) {
+            // TODO What if the task was suspended and resumed?
+            // TODO What about multinode or partitioned tasks?
             return XmlTypeConverter.createXMLGregorianCalendar(
                     requireNonNull(taskPartExecution.localCoordinatorTask.getLastRunStartTimestamp(),
                             "no start time for the current task"));

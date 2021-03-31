@@ -190,6 +190,26 @@ somehow dumber: no shortcut in associations, expclicit duplicity checks, etc.
         </objectType>
 
         <objectType>
+            <!-- Yet another entitlement. Same objectclass, but no baseContext. Testing MID-6898. -->
+            <kind>entitlement</kind>
+            <intent>unlimitedGroup</intent>
+            <objectClass>ri:groupOfUniqueNames</objectClass>
+            <attribute>
+                <ref>ri:entryUUID</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+            </attribute>
+            <attribute>
+                <ref>ri:dn</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+            </attribute>
+            <attribute>
+                <ref>ri:uniqueMember</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+                <fetchStrategy>minimal</fetchStrategy>
+            </attribute>
+        </objectType>
+
+        <objectType>
             <!-- OrganizationUnit with base context pointing to organizationUnit.
                  Make sure this won't end up in an endless loop. -->
             <kind>generic</kind>

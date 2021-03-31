@@ -77,7 +77,7 @@ public class UriCache {
     }
 
     /** Returns ID for QName, possibly {@link #UNKNOWN_ID} - does not work with underlying database. */
-    public @Nullable Integer searchId(@NotNull QName qName) {
+    public @NotNull Integer searchId(@NotNull QName qName) {
         return searchId(QNameUtil.qNameToUri(qName));
     }
 

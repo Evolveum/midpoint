@@ -10,7 +10,9 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
@@ -19,6 +21,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
@@ -76,6 +79,11 @@ public class SearchPropertyPanel<T extends Serializable> extends AbstractSearchI
                     public Boolean isItemPanelEnabled() {
                         return item.isEnabled();
                     }
+
+                    @Override
+                    protected boolean isAllowedNotFoundObjectRef() {
+                        return item.getSearch().getTypeClass().equals(AuditEventRecordType.class);
+                    }
                 };
                 break;
             case BOOLEAN:
@@ -124,10 +132,21 @@ public class SearchPropertyPanel<T extends Serializable> extends AbstractSearchI
                 searchItemField = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value"));
         }
         if (searchItemField instanceof InputPanel && !(searchItemField instanceof AutoCompleteTextPanel)) {
-            ((InputPanel) searchItemField).getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
-            ((InputPanel) searchItemField).getBaseFormComponent().add(AttributeAppender.append("style", "width: 140px; max-width: 400px !important;"));
-            ((InputPanel) searchItemField).getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-            ((InputPanel) searchItemField).getBaseFormComponent().add(new EnableBehaviour(() -> item.isEnabled()));
+            FormComponent<?> baseFormComponent = ((InputPanel) searchItemField).getBaseFormComponent();
+            baseFormComponent.add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
+            baseFormComponent.add(AttributeAppender.append("style", "width: 140px; max-width: 400px !important;"));
+            baseFormComponent.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+            baseFormComponent.add(new VisibleEnableBehaviour() {
+                @Override
+                public boolean isEnabled() {
+                    return item.isEnabled();
+                }
+
+                @Override
+                public boolean isVisible() {
+                    return item.isVisible();
+                }
+            });
         }
         searchItemField.setOutputMarkupId(true);
         searchItemContainer.add(searchItemField);

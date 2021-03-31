@@ -10,10 +10,11 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -25,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 public class LinksAsserter<F extends FocusType, FA extends FocusAsserter<F, RA>,RA> extends AbstractAsserter<FA> {
 
-    private FA focusAsserter;
+    private final FA focusAsserter;
     private List<PrismReferenceValue> links;
 
     public LinksAsserter(FA focusAsserter) {
@@ -46,7 +47,7 @@ public class LinksAsserter<F extends FocusType, FA extends FocusAsserter<F, RA>,
         return focusAsserter.getCachedObject(ShadowType.class, oid);
     }
 
-    List<PrismReferenceValue> getLinks() {
+    List<PrismReferenceValue> getAllLinks() {
         if (links == null) {
             PrismReference linkRef = getFocus().findReference(FocusType.F_LINK_REF);
             if (linkRef == null) {
@@ -58,13 +59,43 @@ public class LinksAsserter<F extends FocusType, FA extends FocusAsserter<F, RA>,
         return links;
     }
 
-    public LinksAsserter<F, FA, RA> assertLinks(int expected) {
-        assertEquals("Wrong number of links in " + desc(), expected, getLinks().size());
+    private List<PrismReferenceValue> getLiveLinks() {
+        RelationRegistry relationRegistry = SchemaService.get().relationRegistry();
+        return getAllLinks().stream()
+                .filter(ref -> relationRegistry.isMember(ref.getRelation()))
+                .collect(Collectors.toList());
+    }
+
+    private List<PrismReferenceValue> getDeadLinks() {
+        RelationRegistry relationRegistry = SchemaService.get().relationRegistry();
+        return getAllLinks().stream()
+                .filter(ref -> !relationRegistry.isMember(ref.getRelation()))
+                .collect(Collectors.toList());
+    }
+
+    public LinksAsserter<F, FA, RA> assertLiveLinks(int expected) {
+        assertEquals("Wrong number of live links in " + desc(), expected, getLiveLinks().size());
         return this;
     }
 
-    public LinksAsserter<F, FA, RA> assertNone() {
-        assertLinks(0);
+    public LinksAsserter<F, FA, RA> assertDeadLinks(int expected) {
+        assertEquals("Wrong number of related links in " + desc(), expected, getDeadLinks().size());
+        return this;
+    }
+
+    public LinksAsserter<F, FA, RA> assertLinks(int live, int dead) {
+        assertLiveLinks(live);
+        assertDeadLinks(dead);
+        return this;
+    }
+
+    public LinksAsserter<F, FA, RA> assertLinks(int expected) {
+        assertEquals("Wrong number of links in " + desc(), expected, getAllLinks().size());
+        return this;
+    }
+
+    public LinksAsserter<F, FA, RA> assertNoLiveLinks() {
+        assertLiveLinks(0);
         return this;
     }
 
@@ -74,13 +105,23 @@ public class LinksAsserter<F extends FocusType, FA extends FocusAsserter<F, RA>,
         return asserter;
     }
 
-    public ShadowReferenceAsserter<LinksAsserter<F, FA, RA>> single() {
+    public ShadowReferenceAsserter<LinksAsserter<F, FA, RA>> singleAny() {
         assertLinks(1);
-        return forLink(getLinks().get(0), null);
+        return forLink(getAllLinks().get(0), null);
+    }
+
+    public ShadowReferenceAsserter<LinksAsserter<F, FA, RA>> singleLive() {
+        assertLiveLinks(1);
+        return forLink(getLiveLinks().get(0), null);
+    }
+
+    public ShadowReferenceAsserter<LinksAsserter<F, FA, RA>> singleDead() {
+        assertDeadLinks(1);
+        return forLink(getDeadLinks().get(0), null);
     }
 
     public ShadowReferenceAsserter<LinksAsserter<F, FA, RA>> link(String oid) {
-        for ( PrismReferenceValue link : getLinks() ) {
+        for (PrismReferenceValue link : getAllLinks()) {
             if (oid.equals(link.getOid())) {
                 return forLink(link, null);
             }
@@ -121,7 +162,7 @@ public class LinksAsserter<F extends FocusType, FA extends FocusAsserter<F, RA>,
 
     public List<String> getOids() {
         List<String> oids = new ArrayList<>();
-        for (PrismReferenceValue link: getLinks()) {
+        for (PrismReferenceValue link: getAllLinks()) {
             oids.add(link.getOid());
         }
         return oids;

@@ -7,12 +7,13 @@
 
 package com.evolveum.midpoint.task.api;
 
-import com.evolveum.midpoint.schema.statistics.StructuredProgressCollector;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingRootType;
+import java.util.Collection;
+
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingRootType;
 
 /**
  *  A task that is directly used to execute the handler code.
@@ -28,7 +29,7 @@ import java.util.Collection;
  *  Some information related to task execution (e.g. list of lightweight asynchronous tasks, information on task thread, etc)
  *  is relevant only for running tasks. Therefore they are moved here.
  */
-public interface RunningTask extends Task, StructuredProgressCollector {
+public interface RunningTask extends Task, RunningTaskStatisticsCollector {
 
     /**
      * Returns true if the task can run (was not interrupted).
@@ -47,79 +48,21 @@ public interface RunningTask extends Task, StructuredProgressCollector {
      *
      * Owner is inherited from parent task to subtask.
      */
-    RunningTask createSubtask(LightweightTaskHandler handler);
+    @NotNull RunningLightweightTask createSubtask(@NotNull LightweightTaskHandler handler);
+
+    Collection<? extends RunningLightweightTask> getLightweightAsynchronousSubtasks();
+
+    Collection<? extends RunningLightweightTask> getRunningLightweightAsynchronousSubtasks();
+
+    Collection<? extends RunningLightweightTask> getRunnableOrRunningLightweightAsynchronousSubtasks();
 
     /**
-     * Returns the in-memory version of the parent task. Applicable only to lightweight subtasks.
-     * EXPERIMENTAL (use with care)
+     * Precondition: there are no runnable nor running LATs
      */
-    RunningTask getParentForLightweightAsynchronousTask();
-
-    LightweightTaskHandler getLightweightTaskHandler();
-
-    boolean isLightweightAsynchronousTask();
-
-    Collection<? extends RunningTask> getLightweightAsynchronousSubtasks();
-
-    Collection<? extends RunningTask> getRunningLightweightAsynchronousSubtasks();
-
-    Collection<? extends RunningTask> getRunnableOrRunningLightweightAsynchronousSubtasks();
-
-    boolean lightweightHandlerStartRequested();
-
-    /**
-     * Starts execution of a transient task carrying a LightweightTaskHandler.
-     * (just a shortcut to analogous call in TaskManager)
-     */
-    void startLightweightHandler();
-
-    void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy, boolean initialExecution);
-
-    /**
-     * Stores operation stats to prism object and to pending modifications.
-     * Should be accompanied by flushing that modifications.
-     *
-     * TODO better name
-     */
-    void storeOperationStatsDeferred();
-
-    /**
-     * Call from the thread that executes the task ONLY! Otherwise wrong data might be recorded.
-     */
-    void refreshLowLevelStatistics();
-
-    /**
-     * Stores operation stats and progress from current in-memory state to the repository.
-     * This is quite a hack: it accepts the fact that task in memory differs from the task in repository
-     * (in these aspects). The synchronization occurs only from time to time, in order to avoid
-     * wasting of the resources.
-     *
-     * CALL ONLY FROM THE THREAD EXECUTING THE TASK!
-     */
-    void storeOperationStatsAndProgress();
-
-    // CALL ONLY FROM THE THREAD EXECUTING THE TASK!
-    // stores operation statistics if the time has come
-    void storeOperationStatsAndProgressIfNeeded();
-
-    Long getLastOperationStatsUpdateTimestamp();
-
-    void setOperationStatsUpdateInterval(long interval);
-
-    long getOperationStatsUpdateInterval();
-
-    /**
-     * Increments the progress. Stores the stat to repo if the time interval came.
-     *
-     * Beware: ignores structured progress.
-     *
-     * CALL ONLY FROM THE THREAD EXECUTING THE TASK!
-     */
-    void incrementProgressAndStoreStatsIfNeeded();
-
     void deleteLightweightAsynchronousSubtasks();
 
     // EXPERIMENTAL; consider moving to AbstractSearchIterativeResultHandler
+    @Experimental
     int getAndIncrementObjectsSeen();
 
     /**

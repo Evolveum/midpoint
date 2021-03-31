@@ -65,7 +65,7 @@ class Helper {
                 .normalize(value);
     }
 
-    public String determinePrimaryIdentifierValue(ProvisioningContext ctx, PrismObject<ShadowType> shadow) throws SchemaException {
+    String determinePrimaryIdentifierValue(ProvisioningContext ctx, PrismObject<ShadowType> shadow) throws SchemaException {
         if (ShadowUtil.isDead(shadow)) {
             return null;
         }

@@ -156,7 +156,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't close DB connection", t);
                 }
             }
-            task.incrementProgressAndStoreStatsIfNeeded();
+            task.incrementProgressAndStoreStatisticsIfTimePassed(opResult);
             try {
                 //noinspection BusyWait
                 Thread.sleep(1000L * interval);

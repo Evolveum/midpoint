@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,41 +42,6 @@ public class GuiDisplayNameUtil {
 
         String displayName = getDefaultDisplayName(prismContainerValue.getCompileTimeClass());
         return StringEscapeUtils.escapeHtml4(displayName);
-
-//        String displayName = null;
-//
-//        if (prismContainerValue.canRepresent(LifecycleStateType.class)) {
-//            displayName = getDisplayName((LifecycleStateType) containerable);
-//        } else if (prismContainerValue.canRepresent(ItemConstraintType.class)) {
-//            displayName = getDisplayName((ItemConstraintType) containerable);
-//        } else if (prismContainerValue.canRepresent(AssignmentType.class)) {
-//            displayName = getDisplayName((AssignmentType) containerable);
-//        } else if (prismContainerValue.canRepresent(ExclusionPolicyConstraintType.class)) {
-//            displayName = getDisplayName((ExclusionPolicyConstraintType) containerable);
-//        } else if (prismContainerValue.canRepresent(AbstractPolicyConstraintType.class)) {
-//            displayName = getDisplayName((AbstractPolicyConstraintType) containerable);
-//        } else if (prismContainerValue.canRepresent(RichHyperlinkType.class)) {
-//            displayName = getDisplayName((RichHyperlinkType) containerable);
-//        } else if (prismContainerValue.canRepresent(UserInterfaceFeatureType.class)) {
-//            displayName = getDisplayName((UserInterfaceFeatureType) containerable);
-//        } else if (prismContainerValue.canRepresent(GuiObjectColumnType.class)) {
-//            displayName = getDisplayName((GuiObjectColumnType) containerable);
-//        } else if (prismContainerValue.canRepresent(GuiObjectListViewType.class)) {
-//            displayName = getDisplayName((GuiObjectListViewType) containerable);
-//        } else if (prismContainerValue.canRepresent(GenericPcpAspectConfigurationType.class)) {
-//            displayName = getDisplayName((GenericPcpAspectConfigurationType) containerable);
-//        } else if (prismContainerValue.canRepresent(RelationDefinitionType.class)) {
-//            displayName = getDisplayName((RelationDefinitionType) containerable);
-//        } else if (prismContainerValue.canRepresent(ResourceItemDefinitionType.class)) {
-//            displayName = getDisplayName((ResourceItemDefinitionType) containerable);
-//        } else if (prismContainerValue.canRepresent(MappingType.class)) {
-//            displayName = getDisplayName((MappingType) containerable);
-//        } else if (prismContainerValue.canRepresent(ProvenanceAcquisitionType.class)) {
-//            displayName = getDisplayName((ProvenanceAcquisitionType) containerable);
-//        } else {
-
-
-//        }
 
     }
 
@@ -151,7 +118,8 @@ public class GuiDisplayNameUtil {
         String description = richHyperlink.getDescription();
         String targetUrl = richHyperlink.getTargetUrl();
         if (StringUtils.isNotEmpty(label)) {
-            return  label + (StringUtils.isNotEmpty(description) ? (" - " + description) : "");
+            return PageBase.createStringResourceStatic(null, label).getString()
+                    + (StringUtils.isNotEmpty(description) ? (" - " + PageBase.createStringResourceStatic(null, description).getString()) : "");
         } else if (StringUtils.isNotEmpty(targetUrl)) {
             return targetUrl;
         }
@@ -182,10 +150,6 @@ public class GuiDisplayNameUtil {
     public static String getDisplayName(GuiObjectColumnType guiObjectColumn) {
         return guiObjectColumn.getName();
     }
-
-//    public static String getDisplayName(GuiObjectListViewType guiObjectListView) {
-//        return guiObjectListView.getName();
-//    }
 
     public static String getDisplayName(GenericPcpAspectConfigurationType genericPcpAspectConfiguration) {
         return genericPcpAspectConfiguration.getName();
@@ -252,5 +216,32 @@ public class GuiDisplayNameUtil {
 
     public static String getDisplayName(TaskErrorHandlingStrategyEntryType taskErrorHandlingStrategy) {
         return "Strategy (order " + (taskErrorHandlingStrategy.getOrder() == null ? " not defined)" : Integer.toString(taskErrorHandlingStrategy.getOrder()) + ")");
+    }
+
+    //TODO improve
+    public static String getDisplayName(TaskPartitionDefinitionType partitionDefinition) {
+        Integer index = partitionDefinition.getIndex();
+        TaskWorkManagementType workManagementType = partitionDefinition.getWorkManagement();
+
+        String string = "";
+        if (index != null) {
+            string += "Partition " + index;
+        }
+
+        if (workManagementType != null) {
+            TaskKindType taskKindType = workManagementType.getTaskKind();
+            if (taskKindType != null) {
+                string = appendKind(string, taskKindType);
+            }
+        }
+        return string;
+    }
+
+    private static String appendKind(String string, TaskKindType taskKindType) {
+        if (string.isBlank()) {
+            return string += taskKindType;
+        }
+
+        return string += ", " + taskKindType;
     }
 }

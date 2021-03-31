@@ -58,7 +58,7 @@ public class ProvisioningStatistics {
     public synchronized void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName,
             ProvisioningOperation operation, boolean success, int count, long duration) {
 
-        LOGGER.info("Recording provisioning operation {} on {}/{}", operation, resourceName, resourceOid); // todo trace
+        LOGGER.trace("Recording provisioning operation {} on {}/{}", operation, resourceName, resourceOid);
 
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.setOid(resourceOid);

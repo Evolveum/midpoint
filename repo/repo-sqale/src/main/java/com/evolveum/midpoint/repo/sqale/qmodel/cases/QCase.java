@@ -15,7 +15,7 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 
-import com.evolveum.midpoint.repo.sqale.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
@@ -30,7 +30,7 @@ public class QCase extends QObject<MCase> {
     public static final String TABLE_NAME = "m_case";
 
     public static final ColumnMetadata STATE =
-            ColumnMetadata.named("state").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("state").ofType(Types.VARCHAR);
     public static final ColumnMetadata CLOSE_TIMESTAMP =
             ColumnMetadata.named("closeTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     public static final ColumnMetadata OBJECT_REF_TARGET_OID =

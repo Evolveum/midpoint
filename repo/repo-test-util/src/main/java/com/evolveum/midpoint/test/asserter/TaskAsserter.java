@@ -6,17 +6,24 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.getExtensionItemRealValue;
+
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
 public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
@@ -27,6 +34,10 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
 
     private TaskAsserter(PrismObject<TaskType> object, String details) {
         super(object, details);
+    }
+
+    private TaskAsserter(PrismObject<TaskType> object, RA returnAsserter, String details) {
+        super(object, returnAsserter, details);
     }
 
     @SuppressWarnings("unused")
@@ -245,5 +256,34 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         ObjectReferenceAsserter<UserType, RA> ownerAsserter = new ObjectReferenceAsserter<>(getTaskBean().getOwnerRef().asReferenceValue(), UserType.class);
         copySetupTo(ownerAsserter);
         return ownerAsserter;
+    }
+
+    public TaskAsserter<TaskAsserter<RA>> subtaskForPart(int number) {
+        TaskType subtask = TaskTreeUtil.getAllTasksStream(getObjectable())
+                .filter(t -> Integer.valueOf(number).equals(TaskWorkStateUtil.getPartitionSequentialNumber(t)))
+                .findAny().orElse(null);
+        assertThat(subtask).withFailMessage(() -> "No subtask for part " + number + " found").isNotNull();
+
+        TaskAsserter<TaskAsserter<RA>> asserter = new TaskAsserter<>(subtask.asPrismObject(), this, "subtask for part " +
+                number + " in " + getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    public TaskAsserter<TaskAsserter<RA>> subtask(int index) {
+        TaskType subtask = (TaskType) ObjectTypeUtil.getObjectFromReference(getObjectable().getSubtaskRef().get(index));
+        assertThat(subtask).withFailMessage(() -> "No subtask #" + index + " found").isNotNull();
+
+        TaskAsserter<TaskAsserter<RA>> asserter = new TaskAsserter<>(subtask.asPrismObject(), this,
+                "subtask #" + index + " in " + getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    public TaskAsserter<RA> assertLastScanTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
+        XMLGregorianCalendar lastScanTime =
+                getExtensionItemRealValue(getObject(), SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME);
+        TestUtil.assertBetween("last scan timestamp in " + desc(), start, end, lastScanTime);
+        return this;
     }
 }

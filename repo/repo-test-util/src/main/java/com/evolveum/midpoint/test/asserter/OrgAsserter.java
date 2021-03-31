@@ -134,8 +134,8 @@ public class OrgAsserter<RA> extends AbstractRoleAsserter<OrgType,RA> {
     }
 
     @Override
-    public OrgAsserter<RA> assertLinks(int expected) {
-        super.assertLinks(expected);
+    public OrgAsserter<RA> assertLiveLinks(int expected) {
+        super.assertLiveLinks(expected);
         return this;
     }
 

@@ -12,13 +12,24 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
+import org.apache.wicket.model.StringResourceModel;
+
 /**
  * @author lazyman
  */
 public class EnumPropertyColumn<T> extends PropertyColumn<T, String> {
 
+    private String unknownKey;
+    private boolean nullAsUnknown;
+
     public EnumPropertyColumn(IModel<String> displayModel, String propertyExpression) {
+        this(displayModel, propertyExpression, null);
+    }
+
+    public EnumPropertyColumn(IModel<String> displayModel, String propertyExpression, String unknownKey) {
         super(displayModel, propertyExpression);
+        this.unknownKey = unknownKey;
+        this.nullAsUnknown = unknownKey != null;
     }
 
     @Override
@@ -28,7 +39,7 @@ public class EnumPropertyColumn<T> extends PropertyColumn<T, String> {
             @Override
             protected String load() {
                 Enum<?> en = (Enum<?>) EnumPropertyColumn.super.getDataModel(rowModel).getObject();
-                if (en == null) {
+                if (en == null && !nullAsUnknown) {
                     return null;
                 }
 
@@ -38,6 +49,8 @@ public class EnumPropertyColumn<T> extends PropertyColumn<T, String> {
     }
 
     protected String translate(Enum<?> en) {
-        return en.name();
+        String resourceKey = en == null ? unknownKey : en.getDeclaringClass().getSimpleName() + "." + en.name();
+        StringResourceModel resourceModel = new StringResourceModel(resourceKey);
+        return resourceModel.getString();
     }
 }

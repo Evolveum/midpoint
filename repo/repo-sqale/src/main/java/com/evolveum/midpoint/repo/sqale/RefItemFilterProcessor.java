@@ -20,8 +20,9 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
@@ -93,18 +94,13 @@ public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
         } else if (!filter.isOidNullAsAny()) {
             predicate = oidPath.isNull();
         }
-        if (ref.getRelation() == null) {
-            Integer defaultRelationId = ((SqaleRepoContext) context.sqlRepoContext())
-                    .searchCachedUriId(context.prismContext().getDefaultRelation());
-            predicate = ExpressionUtils.and(predicate,
-                    predicateWithNotTreated(relationIdPath, relationIdPath.eq(defaultRelationId)));
-        } else if (ref.getRelation().equals(PrismConstants.Q_ANY)) {
-            // no additional predicate needed
-        } else {
+        if (ref.getRelation() == null || !ref.getRelation().equals(PrismConstants.Q_ANY)) {
             Integer relationId = ((SqaleRepoContext) context.sqlRepoContext())
-                    .searchCachedUriId(ref.getRelation());
+                    .searchCachedUriId(context.normalizeRelation(ref.getRelation()));
             predicate = ExpressionUtils.and(predicate,
                     predicateWithNotTreated(relationIdPath, relationIdPath.eq(relationId)));
+        } else {
+            // relation == Q_ANY, no additional predicate needed
         }
         if (ref.getTargetType() != null) {
             MObjectType objectType = MObjectType.fromTypeQName(ref.getTargetType());

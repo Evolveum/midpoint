@@ -6,18 +6,19 @@
  */
 package com.evolveum.midpoint.web.component.dialog;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.feedback.FeedbackMessages;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -39,7 +40,9 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
     private static final String ID_RELATION = "relation";
     private static final String ID_BUTTON_OK = "ok";
     private static final String ID_CANCEL_OK = "cancel";
-    private static final String ID_WARNING_MESSAGE = "warningMessage";
+    private static final String ID_INFO_MESSAGE = "infoMessage";
+    private static final String ID_WARNING_FEEDBACK = "warningFeedback";
+    private static final String ID_RELATION_REQUIRED = "relationRequired";
 
     private IModel<String> messageModel = null;
 
@@ -59,6 +62,11 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
     }
 
     private void initLayout(){
+        MessagePanel warningMessage = new MessagePanel(ID_WARNING_FEEDBACK, MessagePanel.MessagePanelType.WARN, getWarningMessageModel());
+        warningMessage.setOutputMarkupId(true);
+        warningMessage.add(new VisibleBehaviour(() -> getWarningMessageModel() != null));
+        add(warningMessage);
+
         DropDownFormGroup<QName> type = new DropDownFormGroup<QName>(ID_OBJECT_TYPE, Model.of(getDefaultObjectType()), Model.ofList(getSupportedObjectTypes()),
                 new QNameObjectTypeChoiceRenderer(), createStringResource("chooseFocusTypeAndRelationDialogPanel.type"),
                 "chooseFocusTypeAndRelationDialogPanel.tooltip.type", true, "col-md-4", "col-md-8", true);
@@ -71,13 +79,17 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
             Map<String, String> optionsMap = new HashMap<>();
 //            optionsMap.put("nonSelectedText", createStringResource("LoggingConfigPanel.appenders.Inherit").getString());
             options.setObject(optionsMap);
-        ListMultipleChoicePanel<QName> relation = new ListMultipleChoicePanel<QName>(ID_RELATION, new ListModel<>(),
+        ListMultipleChoicePanel<QName> relation = new ListMultipleChoicePanel<QName>(ID_RELATION, Model.ofList(getDefaultRelations()),
                 new ListModel<QName>(getSupportedRelations()), WebComponentUtil.getRelationChoicesRenderer(getPageBase()), options);
         relation.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         relation.setOutputMarkupId(true);
         add(relation);
 
-        Label label = new Label(ID_WARNING_MESSAGE, messageModel);
+        WebMarkupContainer relationRequired = new WebMarkupContainer(ID_RELATION_REQUIRED);
+        relationRequired.add(new VisibleBehaviour((() -> isRelationRequired())));
+        add(relationRequired);
+
+        Label label = new Label(ID_INFO_MESSAGE, messageModel);
         label.add(new VisibleBehaviour(() -> messageModel != null && messageModel.getObject() != null));
         add(label);
 
@@ -112,6 +124,14 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
 
     }
 
+    protected IModel<String> getWarningMessageModel() {
+        return null;
+    }
+
+    private boolean isRelationRequired() {
+        return true;
+    }
+
     protected void okPerformed(QName type, Collection<QName> relation, AjaxRequestTarget target) {
         // TODO Auto-generated method stub
 
@@ -131,6 +151,10 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
 
     protected List<QName> getSupportedRelations() {
         return WebComponentUtil.getAllRelations(getPageBase());
+    }
+
+    protected List<QName> getDefaultRelations() {
+        return new ArrayList<>();
     }
 
     protected boolean isFocusTypeSelectorVisible() {

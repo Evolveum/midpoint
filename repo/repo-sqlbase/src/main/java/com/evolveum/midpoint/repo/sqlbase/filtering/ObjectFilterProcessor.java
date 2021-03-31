@@ -11,6 +11,7 @@ import com.querydsl.core.types.dsl.Expressions;
 
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 
 public class ObjectFilterProcessor implements FilterProcessor<ObjectFilter> {
@@ -22,7 +23,7 @@ public class ObjectFilterProcessor implements FilterProcessor<ObjectFilter> {
     }
 
     @Override
-    public Predicate process(ObjectFilter filter) throws QueryException {
+    public Predicate process(ObjectFilter filter) throws RepositoryException {
         if (filter instanceof NaryLogicalFilter) {
             return new NaryLogicalFilterProcessor(context)
                     .process((NaryLogicalFilter) filter);
@@ -35,6 +36,9 @@ public class ObjectFilterProcessor implements FilterProcessor<ObjectFilter> {
                     .process((ValueFilter<?, ?>) filter);
 // TODO see QueryInterpreter.findAndCreateRestrictionInternal for uncovered cases
 //  } else if (filter instanceof OrgFilter) {
+        } else if (filter instanceof InOidFilter) {
+            return context.createInOidFilter(context)
+                    .process((InOidFilter) filter);
         } else if (filter instanceof AllFilter) {
             return Expressions.asBoolean(true).isTrue();
         } else if (filter instanceof NoneFilter) {

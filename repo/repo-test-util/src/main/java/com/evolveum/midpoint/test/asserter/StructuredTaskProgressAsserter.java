@@ -7,13 +7,17 @@
 
 package com.evolveum.midpoint.test.asserter;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
 import com.evolveum.midpoint.schema.statistics.StructuredTaskProgress;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StructuredTaskProgressType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartProgressType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  *  Asserter that checks structured task progress.
@@ -79,18 +83,39 @@ public class StructuredTaskProgressAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     private int getSuccessCount(boolean open) {
-        return TaskTypeUtil.getProgressForOutcome(information, ItemProcessingOutcomeType.SUCCESS, open);
+        return TaskProgressUtil.getProgressForOutcome(information, ItemProcessingOutcomeType.SUCCESS, open);
     }
 
     private int getFailureCount(boolean open) {
-        return TaskTypeUtil.getProgressForOutcome(information, ItemProcessingOutcomeType.FAILURE, open);
+        return TaskProgressUtil.getProgressForOutcome(information, ItemProcessingOutcomeType.FAILURE, open);
     }
 
     private int getSkipCount(boolean open) {
-        return TaskTypeUtil.getProgressForOutcome(information, ItemProcessingOutcomeType.SKIP, open);
+        return TaskProgressUtil.getProgressForOutcome(information, ItemProcessingOutcomeType.SKIP, open);
     }
 
     private int getNonFailureCount(boolean open) {
         return getSuccessCount(open) + getSkipCount(open);
+    }
+
+    public TaskPartProgressAsserter<StructuredTaskProgressAsserter<RA>> part(String partUri) {
+        return part(
+                TaskProgressUtil.getForPart(information, partUri),
+                "part with URI " + partUri);
+    }
+
+    public TaskPartProgressAsserter<StructuredTaskProgressAsserter<RA>> currentPart() {
+        return part(
+                TaskProgressUtil.getForCurrentPart(information),
+                "current part");
+    }
+
+    @NotNull
+    private TaskPartProgressAsserter<StructuredTaskProgressAsserter<RA>> part(TaskPartProgressType part, String description) {
+        assertThat(part).as(description).isNotNull();
+        TaskPartProgressAsserter<StructuredTaskProgressAsserter<RA>> asserter =
+                new TaskPartProgressAsserter<>(part, this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
     }
 }

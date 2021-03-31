@@ -91,8 +91,8 @@ class ReconciliationTaskSecondPartExecution
     @Override
     protected void finish(OperationResult opResult) throws SchemaException {
         super.finish(opResult);
-        taskExecution.reconResult.setResourceReconCount(statistics.getItemsProcessed());
-        taskExecution.reconResult.setResourceReconErrors(statistics.getErrors());
+        taskExecution.reconResult.setResourceReconCount(bucketStatistics.getItemsProcessed());
+        taskExecution.reconResult.setResourceReconErrors(bucketStatistics.getErrors());
     }
 
     protected class ItemProcessor

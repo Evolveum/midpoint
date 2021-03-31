@@ -114,9 +114,7 @@ public interface AdTestMixin extends InfraTestMixin {
         return accountObjectClassDefinition;
     }
 
-    // TODO after ditching JDK 8
-    /*private*/
-    default ObjectClassComplexTypeDefinition assertAdSchemaBase(
+    private ObjectClassComplexTypeDefinition assertAdSchemaBase(
             PrismObject<ResourceType> resource, QName accountObjectClass) throws SchemaException {
 
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);

@@ -14,6 +14,7 @@ import javax.annotation.PreDestroy;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.testng.AssertJUnit;
@@ -45,22 +46,19 @@ public class SynchronizationServiceMock
     private ResourceObjectShadowChangeDescription lastChange = null;
     private boolean supportActivation = true;
 
-    @Autowired
-    private ChangeNotificationDispatcher notificationManager;
-
-    @Autowired
-    private RepositoryService repositoryService;
+    @Autowired private EventDispatcher notificationManager;
+    @Autowired private RepositoryService repositoryService;
 
     @PostConstruct
     public void register() {
-        notificationManager.registerNotificationListener((ResourceObjectChangeListener) this);
-        notificationManager.registerNotificationListener((ResourceOperationListener) this);
+        notificationManager.registerListener((ResourceObjectChangeListener) this);
+        notificationManager.registerListener((ResourceOperationListener) this);
     }
 
     @PreDestroy
     public void unregister() {
-        notificationManager.unregisterNotificationListener((ResourceObjectChangeListener) this);
-        notificationManager.unregisterNotificationListener((ResourceOperationListener) this);
+        notificationManager.unregisterListener((ResourceObjectChangeListener) this);
+        notificationManager.unregisterListener((ResourceOperationListener) this);
     }
 
     public boolean isSupportActivation() {
@@ -72,7 +70,7 @@ public class SynchronizationServiceMock
     }
 
     @Override
-    public void notifyChange(ResourceObjectShadowChangeDescription change, Task task,
+    public void notifyChange(@NotNull ResourceObjectShadowChangeDescription change, Task task,
             OperationResult parentResult) {
         LOGGER.debug("Notify change mock called with {}", change);
 
@@ -156,21 +154,21 @@ public class SynchronizationServiceMock
     }
 
     @Override
-    public void notifySuccess(ResourceOperationDescription opDescription,
+    public void notifySuccess(@NotNull ResourceOperationDescription opDescription,
             Task task, OperationResult parentResult) {
         notifyOp("success", opDescription, task, parentResult, false);
         wasSuccess = true;
     }
 
     @Override
-    public void notifyFailure(ResourceOperationDescription opDescription,
+    public void notifyFailure(@NotNull ResourceOperationDescription opDescription,
             Task task, OperationResult parentResult) {
         notifyOp("failure", opDescription, task, parentResult, true);
         wasFailure = true;
     }
 
     @Override
-    public void notifyInProgress(ResourceOperationDescription opDescription,
+    public void notifyInProgress(@NotNull ResourceOperationDescription opDescription,
             Task task, OperationResult parentResult) {
         notifyOp("in-progress", opDescription, task, parentResult, false);
         wasInProgress = true;

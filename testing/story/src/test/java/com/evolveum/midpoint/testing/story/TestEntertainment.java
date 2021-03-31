@@ -108,7 +108,7 @@ public class TestEntertainment extends AbstractStoryTest {
         assertSuccess("Error while getting top games org", result);
 
         OrgType orgGamesType = orgGames.asObjectable();
-        assertLinks(orgGames, 2);
+        assertLiveLinks(orgGames, 2);
 
         List<ObjectReferenceType> linkRefs = orgGamesType.getLinkRef();
 
@@ -144,7 +144,7 @@ public class TestEntertainment extends AbstractStoryTest {
         assertSuccess("Error while getting top games org", result);
 
         OrgType orgGamesType = orgGames.asObjectable();
-        assertLinks(orgGames, 2);
+        assertLiveLinks(orgGames, 2);
 
         List<ObjectReferenceType> linkRefs = orgGamesType.getLinkRef();
 

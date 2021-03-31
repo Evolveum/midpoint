@@ -9,15 +9,19 @@ package com.evolveum.midpoint.web.security.filter;
 import static com.evolveum.midpoint.schema.util.SecurityPolicyUtil.NO_CUSTOM_IGNORED_LOCAL_PATH;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.core.AuthenticationException;
@@ -36,6 +40,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.MidpointAuthenticationManager;
+import com.evolveum.midpoint.web.security.RemoveUnusedSecurityFilterPublisher;
 import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
 import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
 import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
@@ -57,10 +62,13 @@ public class MidpointAuthFilter extends GenericFilterBean {
     @Autowired private MidpointAuthenticationManager authenticationManager;
     @Autowired private PrismContext prismContext;
     @Autowired private TaskManager taskManager;
+    @Autowired private RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher;
 
     private volatile AuthenticationsPolicyType defaultAuthenticationPolicy;
 
     private final PreLogoutFilter preLogoutFilter = new PreLogoutFilter();
+
+    private Map<String, List<AuthModule>> authModulesOfSpecificSequences = new HashMap<>();
 
     public MidpointAuthFilter(Map<Class<?>, Object> sharedObjects) {
         this.sharedObjects = sharedObjects;
@@ -153,47 +161,74 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
         AuthenticationChannel authenticationChannel = SecurityUtils.buildAuthChannel(authChannelRegistry, sequence);
 
-        List<AuthModule> authModules = createAuthenticationModuleBySequence(
-                mpAuthentication, sequence, httpRequest, authenticationsPolicy.getModules(), authenticationChannel, credentialsPolicy);
-
-        //authenticated request
-        if (mpAuthentication != null && mpAuthentication.isAuthenticated() && sequence.equals(mpAuthentication.getSequence())) {
-            processingOfAuthenticatedRequest(mpAuthentication, httpRequest, response, chain);
-            return;
-        }
-
-        //couldn't find authentication modules
-        if (authModules == null || authModules.size() == 0) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(UrlUtils.buildRequestUrl(httpRequest)
-                        + "has no filters");
+        try {
+            List<AuthModule> authModules;
+            if (SecurityUtils.isSpecificSequence(httpRequest)) {
+                if (authModulesOfSpecificSequences.keySet().contains(sequence.getName())) {
+                    authModules = authModulesOfSpecificSequences.get(sequence.getName());
+                    if (authModules != null) {
+                        for (AuthModule authModule : authModules) {
+                            if (authModule != null && authModule.getConfiguration() != null) {
+                                authenticationManager.getProviders().clear();
+                                for (AuthenticationProvider authenticationProvider : authModule.getConfiguration().getAuthenticationProviders()) {
+                                    authenticationManager.getProviders().add(authenticationProvider);
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    authModules = createAuthenticationModuleBySequence(
+                            mpAuthentication, sequence, httpRequest, authenticationsPolicy.getModules(), authenticationChannel, credentialsPolicy);
+                    authModulesOfSpecificSequences.put(sequence.getName(), authModules);
+                }
+            } else {
+                authModules = createAuthenticationModuleBySequence(
+                        mpAuthentication, sequence, httpRequest, authenticationsPolicy.getModules(), authenticationChannel, credentialsPolicy);
             }
-            throw new AuthenticationServiceException("Couldn't find filters for sequence " + sequence.getName());
-        }
 
-        int indexOfProcessingModule;
+            //authenticated request
+            if (mpAuthentication != null && mpAuthentication.isAuthenticated() && sequence.equals(mpAuthentication.getSequence())) {
+                processingOfAuthenticatedRequest(mpAuthentication, httpRequest, response, chain);
+                return;
+            }
 
-        resolveErrorWithMoreModules(mpAuthentication, httpRequest);
+            //couldn't find authentication modules
+            if (authModules == null || authModules.size() == 0) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(UrlUtils.buildRequestUrl(httpRequest)
+                            + "has no filters");
+                }
+                throw new AuthenticationServiceException("Couldn't find filters for sequence " + sequence.getName());
+            }
 
-        if (SecurityUtils.isSpecificSequence(httpRequest)) {
-            indexOfProcessingModule = 0;
-            createMpAuthentication(httpRequest, sequence, authModules);
-            mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        } else {
-            indexOfProcessingModule = getIndexOfActualProcessingModule(mpAuthentication, httpRequest);
-            if (needRestartAuthFlow(indexOfProcessingModule)) {
-                indexOfProcessingModule = restartAuthFlow(httpRequest, sequence, authModules);
+            int indexOfProcessingModule;
+
+            resolveErrorWithMoreModules(mpAuthentication, httpRequest);
+
+            if (SecurityUtils.isSpecificSequence(httpRequest)) {
+                indexOfProcessingModule = 0;
+                createMpAuthentication(httpRequest, sequence, authModules);
                 mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
+            } else {
+                indexOfProcessingModule = getIndexOfActualProcessingModule(mpAuthentication, httpRequest);
+                if (needRestartAuthFlow(indexOfProcessingModule)) {
+                    indexOfProcessingModule = restartAuthFlow(httpRequest, sequence, authModules);
+                    mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
+                }
+            }
+
+            if (mpAuthentication.getAuthenticationChannel() == null) {
+                mpAuthentication.setAuthenticationChannel(authenticationChannel);
+            }
+
+            MidpointAuthFilter.VirtualFilterChain vfc = new MidpointAuthFilter.VirtualFilterChain(
+                    chain, authModules.get(indexOfProcessingModule).getSecurityFilterChain().getFilters());
+            vfc.doFilter(httpRequest, response);
+        } finally {
+            if (!SecurityUtils.isSpecificSequence(httpRequest) && httpRequest.getSession(false) == null && mpAuthentication instanceof MidpointAuthentication) {
+                removeUnusedSecurityFilterPublisher.publishCustomEvent(mpAuthentication);
             }
         }
-
-        if (mpAuthentication.getAuthenticationChannel() == null) {
-            mpAuthentication.setAuthenticationChannel(authenticationChannel);
-        }
-
-        MidpointAuthFilter.VirtualFilterChain vfc = new MidpointAuthFilter.VirtualFilterChain(
-                chain, authModules.get(indexOfProcessingModule).getSecurityFilterChain().getFilters());
-        vfc.doFilter(httpRequest, response);
     }
 
     private boolean needRestartAuthFlow(int indexOfProcessingModule) {
@@ -261,9 +296,10 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
     private AuthenticationSequenceType getAuthenticationSequence(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest, AuthenticationsPolicyType authenticationsPolicy) {
         AuthenticationSequenceType sequence;
-        // permitAll pages (login, select ID for saml ...) during processing of modules
+        // permitAll pages (login, select ID for saml ...) during processing of modules, when is configured auth sequence for request
         if (mpAuthentication != null && SecurityUtils.isLoginPage(httpRequest)) {
-            if (!mpAuthentication.getAuthenticationChannel().getChannelId().equals(SecurityUtils.findChannelByRequest(httpRequest))
+            if (existOldAuthConfigurationForSelfRegistration(httpRequest)) { //TEMPORARY UGLY HACK remove when will be removed old authentication configuration of self registration
+            } else if (!mpAuthentication.getAuthenticationChannel().getChannelId().equals(SecurityUtils.findChannelByRequest(httpRequest))
                     && SecurityUtils.getSequenceByPath(httpRequest, authenticationsPolicy, taskManager.getLocalNodeGroups()) == null) {
                 return null;
             }
@@ -286,6 +322,27 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
         }
         return sequence;
+    }
+
+    private boolean existOldAuthConfigurationForSelfRegistration(HttpServletRequest httpRequest) {
+        if (!SchemaConstants.CHANNEL_SELF_REGISTRATION_URI.equals(SecurityUtils.findChannelByRequest(httpRequest))) {
+            return false;
+        }
+        try {
+            PrismObject<SecurityPolicyType> securityPolicy = getSecurityPolicy();
+            if (securityPolicy != null && securityPolicy.asObjectable() != null) {
+                SelfRegistrationPolicyType selfReg = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy.asObjectable());
+                if (selfReg != null
+                    && StringUtils.isNotBlank(selfReg.getAdditionalAuthenticationName())
+                    && SecurityPolicyUtil.getAuthenticationPolicy(selfReg.getAdditionalAuthenticationName(), securityPolicy.asObjectable()) != null) {
+                    return true;
+                }
+            }
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't load Authentication policy", e);
+            return false;
+        }
+        return false;
     }
 
     private AuthenticationsPolicyType getAuthenticationPolicy(

@@ -751,6 +751,9 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         given();
 
         assertTask(xferTask.oid, "before")
+                .structuredProgress()
+                    .display()
+                    .end()
                 .iterativeTaskInformation()
                     .display()
                     .end()
@@ -776,6 +779,9 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
 
         stabilize();
         assertTask(xferTask.oid, "after")
+                .structuredProgress()
+                    .display()
+                    .end()
                 .iterativeTaskInformation()
                     .display()
                     .end()
@@ -858,12 +864,14 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
                 .actionsExecutedInformation()
                     .display()
                     .resulting()
-                        .assertCount(3*XFER_ACCOUNTS+2*t, t)
                         .assertCount(ADD, UserType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
                         .assertCount(ADD, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
-                        .assertCount(MODIFY, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS+t, 0) // from the first+second runs
-                        .assertCount(MODIFY, UserType.COMPLEX_TYPE, t, 0) // from the second runs
-                        .assertCount(DELETE, ShadowType.COMPLEX_TYPE, 0, t) // from the second run
+                        .assertSuccessCount(MODIFY, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS+1, XFER_ACCOUNTS+t) // from the first+second runs
+                        .assertFailureCount(MODIFY, ShadowType.COMPLEX_TYPE, 0, 0) // from the first+second runs
+                        .assertSuccessCount(MODIFY, UserType.COMPLEX_TYPE, 1, t) // from the second runs
+                        .assertFailureCount(MODIFY, UserType.COMPLEX_TYPE, 0, 0) // from the second runs
+                        .assertSuccessCount(DELETE, ShadowType.COMPLEX_TYPE, 0, 0) // from the second run
+                        .assertFailureCount(DELETE, ShadowType.COMPLEX_TYPE, 1, t) // from the second run
                         .end()
                     .end();
     }

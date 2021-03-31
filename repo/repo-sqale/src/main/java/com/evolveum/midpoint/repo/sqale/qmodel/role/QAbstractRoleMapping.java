@@ -6,15 +6,15 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.role;
 
-import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.booleanMapper;
-import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
+import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.booleanMapper;
+import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType.*;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignSpecificationType;
 
@@ -39,13 +39,12 @@ public class QAbstractRoleMapping<
             @NotNull Class<Q> queryType) {
         super(tableName, defaultAliasName, schemaType, queryType);
 
-        nestedMapping(F_AUTOASSIGN, AutoassignSpecificationType.class)
+        addNestedMapping(F_AUTOASSIGN, AutoassignSpecificationType.class)
                 .addItemMapping(AutoassignSpecificationType.F_ENABLED,
-                        booleanMapper(path(q -> q.autoassignEnabled)));
+                        booleanMapper(path(q -> q.autoAssignEnabled)));
         addItemMapping(F_DISPLAY_NAME, PolyStringItemFilterProcessor.mapper(
                 path(q -> q.displayNameOrig), path(q -> q.displayNameNorm)));
         addItemMapping(F_IDENTIFIER, stringMapper(path(q -> q.identifier)));
-        // TODO how is ownerRef* mapped? Nothing found in RAbstractRole or as F_ constant
         addItemMapping(F_REQUESTABLE, booleanMapper(path(q -> q.requestable)));
         addItemMapping(F_RISK_LEVEL, stringMapper(path(q -> q.riskLevel)));
     }

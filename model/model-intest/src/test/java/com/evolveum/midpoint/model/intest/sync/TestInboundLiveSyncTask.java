@@ -88,7 +88,7 @@ public class TestInboundLiveSyncTask extends AbstractInboundSyncTest {
                 .assertValidTo(ACCOUNT_MANCOMB_VALID_TO_DATE)
                 .end()
             .links()
-                .single()
+                .singleDead()
                     .resolveTarget()
                         .assertTombstone()
                         .assertSynchronizationSituation(SynchronizationSituationType.DELETED);

@@ -37,6 +37,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_AUDIT_LOG = "auditLog";
     public static final String KEY_USER_HISTORY_AUDIT_LOG = "userHistoryAuditLog";
     public static final String KEY_OBJECT_HISTORY_AUDIT_LOG = "objectHistoryAuditLog";
+    public static final String KEY_EVENT_DETAIL_AUDIT_LOG = "eventDetailAuditLog";
     public static final String KEY_RESOURCE_ACCOUNT_CONTENT = "resourceAccountContent";
     public static final String KEY_RESOURCE_ENTITLEMENT_CONTENT = "resourceEntitlementContent";
     public static final String KEY_RESOURCE_GENERIC_CONTENT = "resourceGenericContent";
@@ -235,7 +236,8 @@ public class SessionStorage implements Serializable, DebugDumpable {
                 || KEY_LOGGING_TAB_LOGGER_TABLE.equals(key)
                 || KEY_FOCUS_PROJECTION_TABLE.equals(key)){
             pageStorage = getContainerTabStorage(key);
-        } else if (KEY_AUDIT_LOG.equals(key)) {
+        } else if (KEY_AUDIT_LOG.equals(key)
+                || key.startsWith(KEY_OBJECT_HISTORY_AUDIT_LOG)) {
             pageStorage = new AuditLogStorage();
         }
         if (pageStorage != null) {

@@ -72,7 +72,7 @@ class ReconciliationTaskThirdPartExecution
             CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException {
         ObjectQuery initialQuery = getPrismContext().queryFor(ShadowType.class)
                 .block()
-                    .item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).le(getReconciliationStartTimestamp())
+                    .item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).le(getReconciliationStartTimestamp(opResult))
                     .or().item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).isNull()
                 .endBlock()
                 .and().item(ShadowType.F_RESOURCE_REF).ref(taskExecution.getResourceOid())
@@ -81,11 +81,19 @@ class ReconciliationTaskThirdPartExecution
         return taskExecution.createShadowQuery(initialQuery, opResult);
     }
 
-    private XMLGregorianCalendar getReconciliationStartTimestamp() {
-        // TODO TODO TODO
-        //  We should provide start timestamp of the start of the second stage.
-        //  It could be present in a separate task (!)
-        return taskExecution.startTimestamp;
+    private XMLGregorianCalendar getReconciliationStartTimestamp(OperationResult result) throws SchemaException {
+        Task rootTask = getRootTask(result);
+        XMLGregorianCalendar lastReconStart = rootTask.getExtensionPropertyRealValue(
+                SchemaConstants.MODEL_EXTENSION_LAST_RECONCILIATION_START_TIMESTAMP_PROPERTY_NAME);
+        if (lastReconStart != null) {
+            logger.trace("Last reconciliation start time: {}, determined from the extension of {}", lastReconStart, rootTask);
+            return lastReconStart;
+        } else {
+            XMLGregorianCalendar implicitLastReconStart = taskExecution.startTimestamp;
+            logger.trace("Last reconciliation start time: {}, determined as start timestamp of the respective part in {}",
+                    implicitLastReconStart, localCoordinatorTask);
+            return implicitLastReconStart;
+        }
     }
 
     @Override
@@ -103,7 +111,7 @@ class ReconciliationTaskThirdPartExecution
     @Override
     protected void finish(OperationResult opResult) throws SchemaException {
         super.finish(opResult);
-        taskExecution.reconResult.setShadowReconCount(statistics.getItemsProcessed());
+        taskExecution.reconResult.setShadowReconCount(bucketStatistics.getItemsProcessed());
     }
 
     protected static class ItemProcessor
@@ -145,8 +153,7 @@ class ReconciliationTaskThirdPartExecution
                 // does not exist on the resource, and invokes the discovery that marks the shadow as dead and synchronizes it.
             } catch (ObjectNotFoundException e) {
                 result.muteLastSubresultError();
-                // Account is gone
-                reactShadowGone(shadow, task, result); // actually, for deleted objects here is the recon code called second time
+                reactShadowGone(shadow, task, result);
             }
         }
 
@@ -161,7 +168,7 @@ class ReconciliationTaskThirdPartExecution
             change.setObjectDelta(shadowDelta);
             change.setShadowedResourceObject(shadow);
             ModelImplUtils.clearRequestee(task);
-            taskHandler.changeNotificationDispatcher.notifyChange(change, task, result);
+            taskHandler.eventDispatcher.notifyChange(change, task, result);
         }
     }
 }

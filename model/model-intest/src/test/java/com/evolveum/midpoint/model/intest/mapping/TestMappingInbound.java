@@ -190,7 +190,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         // @formatter:off
         mancombLocker = mancombUserAsserter
                 .links()
-                    .single()
+                    .singleLive()
                         .assertOid(accountMancomb.getOid())
                         .end()
                     .end()
@@ -358,7 +358,7 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME)
                 .links()
-                .single()
+                .singleLive()
                 .assertOid(accountMancomb.getOid())
                 .end()
                 .end()
@@ -403,7 +403,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME)
                 .assertFullName("Mancomb Seepgood")
                 .links()
-                    .single()
+                    .singleDead()
                     .resolveTarget()
                         .display()
                         .assertTombstone()
@@ -462,7 +462,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         userLeelooOid = assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
                 .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
                 .links()
-                .single()
+                .singleLive()
                 .end()
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED)
@@ -501,7 +501,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
                 .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
                 .links()
-                .single()
+                .singleLive()
                 .end()
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
@@ -532,7 +532,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
                 .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
                 .links()
-                .single()
+                .singleLive()
                 .end()
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
@@ -571,7 +571,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
                 .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
                 .links()
-                .single()
+                .singleLive()
                 .end()
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
@@ -607,7 +607,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
                 .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
                 .links()
-                .single()
+                .singleLive()
                 .end()
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
@@ -638,7 +638,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
                 .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
                 .links()
-                .single()
+                .singleLive()
                 .end()
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
@@ -678,7 +678,7 @@ public class TestMappingInbound extends AbstractMappingTest {
                 .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
                 .assertDescription(ACCOUNT_LEELOO_PROOF_STRANGE)
                 .links()
-                .single()
+                .singleLive()
                 .end()
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
@@ -715,7 +715,7 @@ public class TestMappingInbound extends AbstractMappingTest {
                 .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
                 .assertDescription(ACCOUNT_LEELOO_PROOF_STRANGE)
                 .links()
-                .single()
+                .singleLive()
                 .end()
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);

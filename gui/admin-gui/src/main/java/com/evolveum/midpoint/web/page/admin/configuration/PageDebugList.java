@@ -523,9 +523,9 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private PropertySearchItem createObjectClassSearchItem(Search search) {
-        PrismPropertyDefinition resourceRefDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ShadowType.class)
+        PrismPropertyDefinition objectClassDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ShadowType.class)
                 .findPropertyDefinition(ShadowType.F_OBJECT_CLASS);
-        return new ObjectClassSearchItem(search, new SearchItemDefinition(ShadowType.F_OBJECT_CLASS, resourceRefDef, null),
+        return new ObjectClassSearchItem(search, new SearchItemDefinition(ShadowType.F_OBJECT_CLASS, objectClassDef, null),
                 new PropertyModel(searchModel, Search.F_SPECIAL_ITEMS)) {
 
             @Override

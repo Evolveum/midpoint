@@ -11,13 +11,16 @@ import javax.sql.DataSource;
 import javax.xml.namespace.QName;
 
 import com.querydsl.sql.types.EnumAsObjectType;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslJsonbType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -35,13 +38,25 @@ public class SqaleRepoContext extends SqlRepoContext {
 
         // each enum type must be registered if we want to map it as objects (to PG enum types)
         querydslConfig.register(new EnumAsObjectType<>(ActivationStatusType.class));
+        querydslConfig.register(new EnumAsObjectType<>(AvailabilityStatusType.class));
         querydslConfig.register(new EnumAsObjectType<>(MContainerType.class));
         querydslConfig.register(new EnumAsObjectType<>(MObjectType.class));
         querydslConfig.register(new EnumAsObjectType<>(MReferenceType.class));
+        querydslConfig.register(new EnumAsObjectType<>(LockoutStatusType.class));
+        querydslConfig.register(new EnumAsObjectType<>(OperationExecutionRecordTypeType.class));
         querydslConfig.register(new EnumAsObjectType<>(OperationResultStatusType.class));
+        querydslConfig.register(new EnumAsObjectType<>(ResourceAdministrativeStateType.class));
+        querydslConfig.register(new EnumAsObjectType<>(ShadowKindType.class));
+        querydslConfig.register(new EnumAsObjectType<>(SynchronizationSituationType.class));
+        querydslConfig.register(new EnumAsObjectType<>(TaskBindingType.class));
         querydslConfig.register(new EnumAsObjectType<>(TaskExecutionStateType.class));
+        querydslConfig.register(new EnumAsObjectType<>(TaskRecurrenceType.class));
         querydslConfig.register(new EnumAsObjectType<>(TaskWaitingReasonType.class));
+        querydslConfig.register(new EnumAsObjectType<>(ThreadStopActionType.class));
         querydslConfig.register(new EnumAsObjectType<>(TimeIntervalStatusType.class));
+
+        // JSONB type support
+        querydslConfig.register(new QuerydslJsonbType());
 
         uriCache = new UriCache();
     }
@@ -54,6 +69,7 @@ public class SqaleRepoContext extends SqlRepoContext {
     }
 
     /** @see UriCache#searchId(QName) */
+    @NotNull
     public Integer searchCachedUriId(QName qName) {
         return uriCache.searchId(qName);
     }

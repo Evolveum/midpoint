@@ -68,14 +68,16 @@ public class TestPartitioning extends AbstractTaskManagerTest {
         add(TASK_100_MASTER, result);
 
         try {
-            waitForTaskProgress(TASK_100_MASTER.oid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
+            waitForTaskRunFinish(TASK_100_MASTER.oid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 0);
+            TaskQuartzImpl masterTask = taskManager.getTaskPlain(TASK_100_MASTER.oid, result);
+            long lastRunFinish = masterTask.getLastRunFinishTimestamp();
 
             // The task should be in this state for at least 3000 ms. Hopefully we catch it.
             waitForTaskWaiting(TASK_100_MASTER.oid, result, 10000, 100);
 
             then();
 
-            TaskQuartzImpl masterTask = taskManager.getTaskPlain(TASK_100_MASTER.oid, result);
+            masterTask = taskManager.getTaskPlain(TASK_100_MASTER.oid, result);
             List<? extends Task> partitions = masterTask.listSubtasks(result);
 
             displayDumpable("master task", masterTask);
@@ -101,7 +103,7 @@ public class TestPartitioning extends AbstractTaskManagerTest {
 
             then("second run");
 
-            waitForTaskProgress(TASK_100_MASTER.oid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 2);
+            waitForTaskRunFinish(TASK_100_MASTER.oid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, lastRunFinish);
             waitForTaskReady(TASK_100_MASTER.oid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
             masterTask = taskManager.getTaskPlain(TASK_100_MASTER.oid, result);

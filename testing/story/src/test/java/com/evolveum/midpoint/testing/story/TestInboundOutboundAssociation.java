@@ -114,7 +114,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
 
         shadowGroupPiratesOid = rolePiratesAsserter
                 .links()
-                .single()
+                .singleAny()
                 .getOid();
     }
 

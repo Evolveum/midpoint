@@ -11,11 +11,12 @@ import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Enumeration of various types of object reference entities (subtypes of {@link QReference}).
+ * Enumeration of various types of reference entities (subtypes of {@link QReference}).
  * Each value contains information about concrete Q-type (implying the concrete sub-table)
  * and what is mapped to that kind of reference (reference owner + item that stores it).
  *
@@ -24,61 +25,55 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * * Order of values is irrelevant.
  * * Constant names must match the custom enum type ReferenceType in the database schema.
  *
- * These are only types of references owned by object, see also {@link AssignmentReferenceType}.
+ * This class has a bit of bad gravity, as it depends on various schema types.
+ * TODO: this can perhaps be a job of QObjectReferenceMapping and other ref mappings...
  */
 public enum MReferenceType {
 
-    ARCHETYPE(QReferenceMapping.INSTANCE_ARCHETYPE,
-            AssignmentHolderType.class, AssignmentHolderType.F_ARCHETYPE_REF),
+    // OBJECT REFERENCES
 
-    CREATE_APPROVER(QReferenceMapping.INSTANCE_CREATE_APPROVER,
-            ObjectType.class, MetadataType.F_CREATE_APPROVER_REF),
+    ARCHETYPE(AssignmentHolderType.class, AssignmentHolderType.F_ARCHETYPE_REF),
 
-    DELEGATED(QReferenceMapping.INSTANCE_DELEGATED,
-            FocusType.class, FocusType.F_DELEGATED_REF),
+    DELEGATED(AssignmentHolderType.class, AssignmentHolderType.F_DELEGATED_REF),
 
-    // TODO map in QObjectTemplate when it exists
-    INCLUDE(QReferenceMapping.INSTANCE_INCLUDE,
-            ObjectTemplateType.class, ObjectTemplateType.F_INCLUDE_REF),
+    INCLUDE(ObjectTemplateType.class, ObjectTemplateType.F_INCLUDE_REF),
 
-    MODIFY_APPROVER(QReferenceMapping.INSTANCE_MODIFY_APPROVER,
-            ObjectType.class, MetadataType.F_MODIFY_APPROVER_REF),
+    PROJECTION(FocusType.class, FocusType.F_LINK_REF),
 
-    OBJECT_PARENT_ORG(QReferenceMapping.INSTANCE_OBJECT_PARENT_ORG,
-            ObjectType.class, ObjectType.F_PARENT_ORG_REF),
+    OBJECT_CREATE_APPROVER(ObjectType.class, MetadataType.F_CREATE_APPROVER_REF),
 
-    PERSONA(QReferenceMapping.INSTANCE_PERSONA,
-            FocusType.class, FocusType.F_PERSONA_REF),
+    OBJECT_MODIFY_APPROVER(ObjectType.class, MetadataType.F_MODIFY_APPROVER_REF),
 
-    // TODO map in QResource when it exists
+    OBJECT_PARENT_ORG(ObjectType.class, ObjectType.F_PARENT_ORG_REF),
+
+    PERSONA(FocusType.class, FocusType.F_PERSONA_REF),
+
     RESOURCE_BUSINESS_CONFIGURATION_APPROVER(
-            QReferenceMapping.INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER,
             ResourceType.class, ResourceBusinessConfigurationType.F_APPROVER_REF),
 
-    ROLE_MEMBERSHIP(QReferenceMapping.INSTANCE_ROLE_MEMBERSHIP,
-            AssignmentHolderType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF),
+    ROLE_MEMBERSHIP(AssignmentHolderType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF),
 
-    USER_ACCOUNT(QReferenceMapping.INSTANCE_USER_ACCOUNT,
-            FocusType.class, FocusType.F_LINK_REF);
+    // OTHER REFERENCES
 
-    private final QReferenceMapping qReferenceMapping;
-    private final Class<? extends ObjectType> schemaType;
+    ASSIGNMENT_CREATE_APPROVER(AssignmentType.class, MetadataType.F_CREATE_APPROVER_REF),
+
+    ASSIGNMENT_MODIFY_APPROVER(AssignmentType.class, MetadataType.F_MODIFY_APPROVER_REF)
+
+    // TODO acc.cert.wi refs
+    // TODO case.wi refs
+    ;
+
+    private final Class<? extends Containerable> schemaType;
     private final QName itemName;
 
     MReferenceType(
-            @NotNull QReferenceMapping qReferenceMapping,
-            @NotNull Class<? extends ObjectType> schemaType,
+            @NotNull Class<? extends Containerable> schemaType,
             @NotNull QName itemName) {
-        this.qReferenceMapping = qReferenceMapping;
         this.schemaType = schemaType;
         this.itemName = itemName;
     }
 
-    public QReferenceMapping qReferenceMapping() {
-        return qReferenceMapping;
-    }
-
-    public Class<? extends ObjectType> schemaType() {
+    public Class<? extends Containerable> schemaType() {
         return schemaType;
     }
 
@@ -86,8 +81,9 @@ public enum MReferenceType {
         return itemName;
     }
 
+    // TODO: in old repo it's used by ObjectReferenceMapper.map, will we need it or will Q*Mapping definitions take care of it?
     public static MReferenceType getOwnerByQName(
-            Class<? extends ObjectType> typeClass, QName itemName) {
+            Class<? extends Containerable> typeClass, QName itemName) {
         Objects.requireNonNull(typeClass, "Schema type class must not be null");
         Objects.requireNonNull(itemName, "QName must not be null");
 

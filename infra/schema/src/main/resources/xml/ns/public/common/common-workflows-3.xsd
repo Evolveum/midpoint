@@ -694,6 +694,18 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="defaultExpandRolesOnPreview" minOccurs="0" type="xsd:boolean">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default value of expandRolesOnPreview.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                        <a:since>4.3</a:since>
+                        <a:displayName>WfConfigurationType.defaultExpandRolesOnPreview</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="primaryChangeProcessor" minOccurs="0" type="tns:PrimaryChangeProcessorConfigurationType">
                 <xsd:annotation>
                     <xsd:appinfo>

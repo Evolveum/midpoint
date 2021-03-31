@@ -39,9 +39,9 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
+import java.util.Objects;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionRecordTypeType.SIMPLE;
 
@@ -198,6 +198,7 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
 
         OperationExecutionRecordTypeType currentRecordType = toNotNull(request.recordToAdd.getRecordType());
         String taskOid = request.getTaskOid();
+        String taskPartUri = request.getTaskPartUri();
 
         List<OperationExecutionType> recordsToDelete = new ArrayList<>();
         List<OperationExecutionType> recordsToConsider = new ArrayList<>(existingRecords);
@@ -210,7 +211,7 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
         // If the former is preferable, then please move this block of code just above the filtering on record type.
         for (Iterator<OperationExecutionType> iterator = recordsToConsider.iterator(); iterator.hasNext(); ) {
             OperationExecutionType record = iterator.next();
-            if (shouldDeleteBecauseOfTheSameTask(record, taskOid, request.deleteTaskRecordsBefore)) {
+            if (shouldDeleteBecauseOfTheSameTaskAndPart(record, taskOid, taskPartUri)) {
                 recordsToDelete.add(record);
                 iterator.remove();
             }
@@ -245,14 +246,10 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
         return toNotNull(record.getRecordType()) == recordType;
     }
 
-    private boolean shouldDeleteBecauseOfTheSameTask(OperationExecutionType execution, String taskOid,
-            XMLGregorianCalendar deleteTaskRecordsBefore) {
-        if (taskOid == null || !taskOid.equals(getTaskOid(execution))) {
-            return false;
-        }
-        return deleteTaskRecordsBefore == null ||
-                execution.getTimestamp() == null ||
-                execution.getTimestamp().compare(deleteTaskRecordsBefore) == DatatypeConstants.LESSER;
+    private boolean shouldDeleteBecauseOfTheSameTaskAndPart(OperationExecutionType execution, String taskOid,
+            String taskPartUri) {
+        return taskOid != null && taskOid.equals(getTaskOid(execution)) &&
+                Objects.equals(taskPartUri, execution.getTaskPartUri());
     }
 
     @PostConstruct
@@ -386,25 +383,32 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
          */
         private final boolean deletedOk;
 
-        /**
-         * If specified, only the task-related records before this time are deleted. (If null, all are deleted.)
-         * This is used to ensure multi-part tasks keep records from all the parts.
-         */
-        private final XMLGregorianCalendar deleteTaskRecordsBefore;
-
         public Request(@NotNull Class<O> objectType, @NotNull String oid, @NotNull OperationExecutionType recordToAdd,
-                @Nullable Collection<OperationExecutionType> existingRecords, boolean deletedOk,
-                XMLGregorianCalendar deleteTaskRecordsBefore) {
+                @Nullable Collection<OperationExecutionType> existingRecords, boolean deletedOk) {
             this.objectType = objectType;
             this.oid = oid;
             this.recordToAdd = recordToAdd;
             this.existingRecords = existingRecords;
             this.deletedOk = deletedOk;
-            this.deleteTaskRecordsBefore = deleteTaskRecordsBefore;
         }
 
         private String getTaskOid() {
             return OperationExecutionWriter.getTaskOid(recordToAdd);
+        }
+
+        private String getTaskPartUri() {
+            return recordToAdd.getTaskPartUri();
+        }
+
+        @Override
+        public String toString() {
+            return "Request{" +
+                    "objectType=" + objectType +
+                    ", oid='" + oid + '\'' +
+                    ", recordToAdd=" + recordToAdd +
+                    ", existingRecords=" + existingRecords +
+                    ", deletedOk=" + deletedOk +
+                    '}';
         }
     }
 }

@@ -51,8 +51,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
     @Override
     public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
         return new StatisticsCollectionStrategy()
-                .fromStoredValues()
-                .maintainIterationStatistics();
+                .fromStoredValues();
     }
 
     @Override
@@ -76,7 +75,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
 
         AccessCertificationCampaignType campaign;
         try {
-            LOGGER.info("Creating campaign with definition of {}", definitionOid);
+            LOGGER.debug("Creating campaign with definition of {}", definitionOid);
             campaign = certificationManager.createCampaign(definitionOid, task, opResult);
             LOGGER.info("Campaign {} was created.", ObjectTypeUtil.toShortString(campaign));
         } catch (Exception e) {

@@ -9,15 +9,17 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.evolveum.midpoint.repo.sqale.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceOwner;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 
 /**
  * Querydsl "row bean" type related to {@link QAssignment}.
  */
-public class MAssignment extends MContainer {
+public class MAssignment extends MContainer implements MReferenceOwner<MAssignmentReference> {
 
     public MObjectType ownerType;
     public String lifecycleState;
@@ -33,7 +35,8 @@ public class MAssignment extends MContainer {
     public Integer tenantRefRelationId;
     public Integer extId;
     public String extOid;
-    public byte[] ext; // TODO JSONB?
+    public Integer[] policySituations;
+    public Jsonb ext;
     // construction
     public UUID resourceRefTargetOid;
     public MObjectType resourceRefTargetType;
@@ -60,4 +63,12 @@ public class MAssignment extends MContainer {
     public Integer modifierRefRelationId;
     public Integer modifyChannelId;
     public Instant modifyTimestamp;
+
+    @Override
+    public MAssignmentReference createReference() {
+        MAssignmentReference row = new MAssignmentReference();
+        row.ownerOid = ownerOid;
+        row.assignmentCid = cid;
+        return row;
+    }
 }

@@ -13,7 +13,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -61,7 +61,7 @@ public class ShadowReconcileTriggerHandler implements SingleTriggerHandler {
 
     @Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
     @Autowired private ProvisioningService provisioningService;
-    @Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
+    @Autowired private EventDispatcher eventDispatcher;
     @Autowired private PrismContext prismContext;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
@@ -112,7 +112,7 @@ public class ShadowReconcileTriggerHandler implements SingleTriggerHandler {
             change.setResource(resource);
             change.setSourceChannel(SchemaConstants.CHANNEL_RECON_URI); // to be reconsidered later
 
-            changeNotificationDispatcher.notifyChange(change, task, result);
+            eventDispatcher.notifyChange(change, task, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             LoggingUtils.logUnexpectedException(LOGGER, "Failed to synchronize shadow {}", t, shadow);
@@ -172,7 +172,7 @@ public class ShadowReconcileTriggerHandler implements SingleTriggerHandler {
         ObjectTypeUtil.setExtensionContainerRealValues(prismContext, nextTrigger.asPrismContainerValue(),
                 SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT, nextAttemptInfo);
 
-        LOGGER.info("Scheduling new attempt for the synchronization of {} (will be #{} of {}, at {})",
+        LOGGER.debug("Scheduling new attempt for the synchronization of {} (will be #{} of {}, at {})",
                 shadow, nextAttemptInfo.getNumber(), nextAttemptInfo.getLimit(), nextTrigger.getTimestamp());
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(ShadowType.class)

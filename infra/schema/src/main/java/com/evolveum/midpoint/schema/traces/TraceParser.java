@@ -76,7 +76,7 @@ public class TraceParser {
         }
         stream.close();
         long read = System.currentTimeMillis();
-        LOGGER.info("Read the content of {} in {} milliseconds", description, read - start);
+        LOGGER.debug("Read the content of {} in {} milliseconds", description, read - start);
 
         if (object instanceof TracingOutputType) {
             return (TracingOutputType) object;

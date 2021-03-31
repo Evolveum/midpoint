@@ -10,8 +10,6 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionWriter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
@@ -63,7 +61,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  * </ol>
  */
 @Component
-public class OperationExecutionRecorderForClockwork {
+class OperationExecutionRecorderForClockwork {
 
     private static final Trace LOGGER = TraceManager.getTrace(OperationExecutionRecorderForClockwork.class);
 
@@ -119,7 +117,7 @@ public class OperationExecutionRecorderForClockwork {
             OperationExecutionType recordToAdd = createExecutionRecord(deltas, ctx);
             OperationExecutionWriter.Request<ShadowType> request =
                     new OperationExecutionWriter.Request<>(ShadowType.class, shadowOid, recordToAdd,
-                            ctx.getExistingExecutions(shadowOid), ctx.isDeletedOk(shadowOid), ctx.getTaskStartTime());
+                            ctx.getExistingExecutions(shadowOid), ctx.isDeletedOk(shadowOid));
             try {
                 writer.write(request, result);
             } catch (ObjectNotFoundException e) {
@@ -150,7 +148,7 @@ public class OperationExecutionRecorderForClockwork {
         OperationExecutionType recordToAdd = createExecutionRecord(ctx.focusDeltas, ctx);
         Class<F> focusType = ctx.getFocusContext().getObjectTypeClass();
         OperationExecutionWriter.Request<F> request = new OperationExecutionWriter.Request<>(focusType, focusOid,
-                recordToAdd, ctx.getExistingExecutions(focusOid), ctx.isDeletedOk(focusOid), ctx.getTaskStartTime());
+                recordToAdd, ctx.getExistingExecutions(focusOid), ctx.isDeletedOk(focusOid));
         try {
             writer.write(request, result);
         } catch (Throwable t) {
@@ -171,29 +169,25 @@ public class OperationExecutionRecorderForClockwork {
             Context<?> ctx) {
         assert !executedDeltas.isEmpty();
 
-        OperationExecutionType operation = new OperationExecutionType(prismContext);
-        operation.setRecordType(OperationExecutionRecordTypeType.SIMPLE);
+        OperationExecutionType record = new OperationExecutionType(prismContext);
+        record.setRecordType(OperationExecutionRecordTypeType.SIMPLE);
         OperationResult summaryResult = new OperationResult("recordOperationExecution");
         for (LensObjectDeltaOperation<?> deltaOperation : executedDeltas) {
-            operation.getOperation().add(createObjectDeltaOperation(deltaOperation));
+            record.getOperation().add(createObjectDeltaOperation(deltaOperation));
             if (deltaOperation.getExecutionResult() != null) {
                 // todo eliminate the following clone (but beware of modifying the subresult)
                 summaryResult.addSubresult(deltaOperation.getExecutionResult().clone());
             }
         }
-        createTaskRef(operation, ctx);
+        createTaskRef(record, ctx);
         summaryResult.computeStatus();
-        OperationResultStatusType overallStatus = summaryResult.getStatus().createStatusType();
-        setOperationContext(operation, overallStatus, ctx);
-        return operation;
-    }
-
-    private void setOperationContext(OperationExecutionType operation, OperationResultStatusType overallStatus, Context<?> ctx) {
-        operation.setStatus(overallStatus);
+        record.setStatus(summaryResult.getStatus().createStatusType());
+        record.setMessage(summaryResult.getMessage());
         // TODO what if the real initiator is different? (e.g. when executing approved changes)
-        operation.setInitiatorRef(ObjectTypeUtil.createObjectRefCopy(ctx.task.getOwnerRef()));
-        operation.setChannel(ctx.lensContext.getChannel());
-        operation.setTimestamp(ctx.now);
+        record.setInitiatorRef(ObjectTypeUtil.createObjectRefCopy(ctx.task.getOwnerRef()));
+        record.setChannel(ctx.lensContext.getChannel());
+        record.setTimestamp(ctx.now);
+        return record;
     }
 
     private void createTaskRef(OperationExecutionType operation, Context<?> ctx) {
@@ -297,6 +291,9 @@ public class OperationExecutionRecorderForClockwork {
             } else {
                 focusDeltas.add(delta);
             }
+            if (delta.getObjectDelta().isDelete() && oid != null) {
+                deletedObjects.add(oid);
+            }
         }
 
         private void addRottenProjectionDeltas() {
@@ -333,15 +330,6 @@ public class OperationExecutionRecorderForClockwork {
 
         private boolean isDeletedOk(String oid) {
             return deletedObjects.contains(oid);
-        }
-
-        public XMLGregorianCalendar getTaskStartTime() {
-            if (task instanceof RunningTask) {
-                // FIXME this should be the start time of the root task!
-                return XmlTypeConverter.createXMLGregorianCalendar(task.getLastRunStartTimestamp());
-            } else {
-                return null;
-            }
         }
     }
 

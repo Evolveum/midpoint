@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.model.intest.async;
 
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -103,7 +102,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         assertUserAfterByUsername(BANDERSON_USERNAME)
                 .displayWithProjections()
                 .links()
-                    .single()
+                    .singleAny()
                         .resolveTarget()
                             .display()
                             .assertKind(ShadowKindType.ACCOUNT)
@@ -142,7 +141,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         assertOrgByName(ALUMNI_NAME, "after")
                 .displayWithProjections()
                 .links()
-                    .single()
+                    .singleAny()
                     .resolveTarget()
                         .display()
                         .assertKind(ShadowKindType.ENTITLEMENT)
@@ -152,7 +151,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         assertOrgByName(STAFF_NAME, "after")
                 .displayWithProjections()
                 .links()
-                    .single()
+                    .singleAny()
                     .resolveTarget()
                         .display()
                         .assertKind(ShadowKindType.ENTITLEMENT)
@@ -186,7 +185,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         assertUserAfterByUsername(KWHITE_USERNAME)
                 .displayWithProjections()
                 .links()
-                    .single()
+                    .singleAny()
                         .resolveTarget()
                             .display()
                             .assertKind(ShadowKindType.ACCOUNT)
@@ -224,7 +223,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         assertUserAfterByUsername(BANDERSON_USERNAME)
                 .displayWithProjections()
                 .links()
-                    .single()
+                    .singleAny()
                         .resolveTarget()
                             .assertKind(ShadowKindType.ACCOUNT)
 //                            .assertIntent(GROUPER_USER_INTENT)
@@ -262,7 +261,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         assertUserAfterByUsername(BANDERSON_USERNAME)
                 .displayWithProjections()
                 .links()
-                    .single()
+                    .singleAny()
                         .resolveTarget()
                             .display("shadow after")
                             .assertKind(ShadowKindType.ACCOUNT)
@@ -300,7 +299,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         assertUserAfterByUsername(JLEWIS685_USERNAME)
                 .displayWithProjections()
                 .links()
-                    .single()
+                    .singleAny()
                         .resolveTarget()
                             .display("shadow after")
                             .assertKind(ShadowKindType.ACCOUNT)
@@ -338,7 +337,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         assertUserAfterByUsername(JLEWIS685_USERNAME)
                 .displayWithProjections()
                 .links()
-                    .single()
+                    .singleAny()
                         .resolveTarget()
                             .display("shadow after")
                             .assertKind(ShadowKindType.ACCOUNT)
@@ -377,7 +376,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
                 .displayWithProjections()
                 //.assertOrganizationalUnits(ALUMNI_NAME)
                 .links()
-                    .assertNone();
+                    .assertNoLiveLinks();
     }
 
     /**

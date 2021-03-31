@@ -6,16 +6,16 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
-import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.integerMapper;
-import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
+import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.integerMapper;
+import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.*;
 
 import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.EnumItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.TimestampItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
@@ -53,12 +53,12 @@ public class QAssignmentMapping
                 path(q -> q.tenantRefRelationId)));
         // TODO no idea how extId/Oid works, see RAssignment.getExtension
         // TODO ext mapping can't be done statically
-        nestedMapping(F_CONSTRUCTION, ConstructionType.class)
+        addNestedMapping(F_CONSTRUCTION, ConstructionType.class)
                 .addItemMapping(ConstructionType.F_RESOURCE_REF, RefItemFilterProcessor.mapper(
                         path(q -> q.resourceRefTargetOid),
                         path(q -> q.resourceRefTargetType),
                         path(q -> q.resourceRefRelationId)));
-        nestedMapping(F_ACTIVATION, ActivationType.class)
+        addNestedMapping(F_ACTIVATION, ActivationType.class)
                 .addItemMapping(ActivationType.F_ADMINISTRATIVE_STATUS,
                         EnumItemFilterProcessor.mapper(path(q -> q.administrativeStatus)))
                 .addItemMapping(ActivationType.F_EFFECTIVE_STATUS,
@@ -79,7 +79,7 @@ public class QAssignmentMapping
                         TimestampItemFilterProcessor.mapper(path(q -> q.validityChangeTimestamp)))
                 .addItemMapping(ActivationType.F_ARCHIVE_TIMESTAMP,
                         TimestampItemFilterProcessor.mapper(path(q -> q.archiveTimestamp)));
-        nestedMapping(F_METADATA, MetadataType.class)
+        addNestedMapping(F_METADATA, MetadataType.class)
                 .addItemMapping(MetadataType.F_CREATOR_REF, RefItemFilterProcessor.mapper(
                         path(q -> q.creatorRefTargetOid),
                         path(q -> q.creatorRefTargetType),

@@ -152,7 +152,7 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("User mancomb", userMancomb);
         assertNotNull("User mancomb was not created", userMancomb);
-        assertLinks(userMancomb, 1);
+        assertLiveLinks(userMancomb, 1);
         assertAdministrativeStatusEnabled(userMancomb);
 
         assertLinked(userMancomb, accountMancomb);

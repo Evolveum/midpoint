@@ -47,7 +47,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
@@ -91,7 +91,7 @@ public class Clockwork {
     @Autowired private Clock clock;
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ProvisioningService provisioningService;
-    @Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
+    @Autowired private EventDispatcher eventDispatcher;
     @Autowired private PersonaProcessor personaProcessor;
     @Autowired private PrismContext prismContext;
     @Autowired private TaskManager taskManager;
@@ -336,8 +336,8 @@ public class Clockwork {
         if (cache.getClientContextInformation() == null) {
             AssociationSearchExpressionCacheInvalidator invalidator = new AssociationSearchExpressionCacheInvalidator(cache);
             cache.setClientContextInformation(invalidator);
-            changeNotificationDispatcher.registerNotificationListener((ResourceObjectChangeListener) invalidator);
-            changeNotificationDispatcher.registerNotificationListener((ResourceOperationListener) invalidator);
+            eventDispatcher.registerListener((ResourceObjectChangeListener) invalidator);
+            eventDispatcher.registerListener((ResourceOperationListener) invalidator);
         }
     }
 
@@ -354,8 +354,8 @@ public class Clockwork {
                         AssociationSearchExpressionCacheInvalidator.class, invalidator);
                 return;
             }
-            changeNotificationDispatcher.unregisterNotificationListener((ResourceObjectChangeListener) invalidator);
-            changeNotificationDispatcher.unregisterNotificationListener((ResourceOperationListener) invalidator);
+            eventDispatcher.unregisterListener((ResourceObjectChangeListener) invalidator);
+            eventDispatcher.unregisterListener((ResourceOperationListener) invalidator);
         }
     }
 

@@ -675,6 +675,13 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
+    public void incrementProgressTransient() {
+        synchronized (prismAccess) {
+            setProgressTransient(getProgress() + 1);
+        }
+    }
+
+    @Override
     public StructuredTaskProgressType getStructuredProgressOrClone() {
         return getContainerableOrClone(TaskType.F_STRUCTURED_PROGRESS);
     }
@@ -2094,7 +2101,7 @@ public class TaskQuartzImpl implements Task {
     //region Statistics collection
 
     @Override
-    public void recordState(String message) {
+    public void recordStateMessage(String message) {
         statistics.recordState(message);
     }
 
@@ -2118,6 +2125,10 @@ public class TaskQuartzImpl implements Task {
     @Override
     public @NotNull Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
         return statistics.recordIterativeOperationStart(operation);
+    }
+
+    public void recordPartExecutionEnd(String partUri, long partStartTimestamp, long partEndTimestamp) {
+        statistics.recordPartExecutionEnd(partUri, partStartTimestamp, partEndTimestamp);
     }
 
     @Override
@@ -2176,18 +2187,13 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void resetEnvironmentalPerformanceInformation(EnvironmentalPerformanceInformationType value) {
-        statistics.resetEnvironmentalPerformanceInformation(value);
-    }
-
-    @Override
     public void resetSynchronizationInformation(SynchronizationInformationType value) {
         statistics.resetSynchronizationInformation(value);
     }
 
     @Override
-    public void resetIterativeTaskInformation(IterativeTaskInformationType value) {
-        statistics.resetIterativeTaskInformation(value);
+    public void resetIterativeTaskInformation(IterativeTaskInformationType value, boolean collectExecutions) {
+        statistics.resetIterativeTaskInformation(value, collectExecutions);
     }
 
     @Override

@@ -144,7 +144,7 @@
             <label>Role all</label>
             <color>#00a65a</color>
             <icon>
-                <cssClass>fe fe-role_icon</cssClass>
+                <cssClass>fe fe-role</cssClass>
             </icon>
         </display>
         <data>

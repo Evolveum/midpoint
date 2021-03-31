@@ -125,7 +125,7 @@ outer:  for (int o = objectFrom; o <= objectTo; o++) {
                     }
                 }
 
-                task.incrementProgressAndStoreStatsIfNeeded();
+                task.incrementProgressAndStoreStatisticsIfTimePassed(opResult);
 
                 if (!task.canRun()) {
                     LOGGER.info("NoOpTaskHandler: got a shutdown request, finishing task {}", task);

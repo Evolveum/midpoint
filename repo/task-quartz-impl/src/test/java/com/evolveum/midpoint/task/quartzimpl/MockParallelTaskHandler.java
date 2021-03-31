@@ -32,9 +32,9 @@ import java.util.stream.Collectors;
 public class MockParallelTaskHandler implements TaskHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(MockParallelTaskHandler.class);
-    public static final int NUM_SUBTASKS = 500;
-    public static final String NS_EXT = "http://myself.me/schemas/whatever";
-    public static final ItemName DURATION_QNAME = new ItemName(NS_EXT, "duration", "m");
+    static final int NUM_SUBTASKS = 15; // Shouldn't be too high because of concurrent repository access.
+    private static final String NS_EXT = "http://myself.me/schemas/whatever";
+    private static final ItemName DURATION_QNAME = new ItemName(NS_EXT, "duration", "m");
 
     private TaskManagerQuartzImpl taskManager;
 
@@ -56,34 +56,33 @@ public class MockParallelTaskHandler implements TaskHandler {
         private final long duration;
         private static final long STEP = 100;
 
-        public MyLightweightTaskHandler(Integer duration) {
+        MyLightweightTaskHandler(Integer duration) {
             this.duration = duration != null ? duration : 86400L * 1000L * 365000L; // 1000 years
         }
 
         @Override
-        public void run(RunningTask task) {
+        public void run(RunningLightweightTask task) {
             LOGGER.trace("Handler for task {} running", task);
             hasRun = true;
             long end = System.currentTimeMillis() + duration;
-            RunningTask parentTask = task.getParentForLightweightAsynchronousTask();
-            parentTask.setOperationStatsUpdateInterval(1000L);
+            RunningTask parentTask = task.getLightweightTaskParent();
+            parentTask.setStatisticsRepoStoreInterval(1000L);
 
             // temporarily disabled
             //assertTrue("Subtask is not in Running LAT list of parent", isAmongRunningChildren(task, parentTask));
 
             while (System.currentTimeMillis() < end && task.canRun()) {
                 // hoping to get ConcurrentModificationException when setting operation result here (MID-5113)
-                task.getParentForLightweightAsynchronousTask().getUpdatedOrClonedTaskObject();
+                task.getLightweightTaskParent().getUpdatedOrClonedTaskObject();
                 IterationItemInformation info = new IterationItemInformation("o1", null, UserType.COMPLEX_TYPE, "oid1");
                 Operation op = task.recordIterativeOperationStart(info);
                 try {
                     //noinspection BusyWait
                     Thread.sleep(STEP);
                     op.succeeded();
-                    //noinspection SynchronizationOnLocalVariableOrMethodParameter
-                    synchronized (parentTask) {
-                        parentTask.incrementProgressAndStoreStatsIfNeeded();
-                    }
+                    parentTask.incrementProgressTransient();
+                    parentTask.updateStatisticsInTaskPrism(false);
+                    parentTask.storeStatisticsIntoRepositoryIfTimePassed(new OperationResult("store stats"));
                 } catch (InterruptedException e) {
                     LOGGER.trace("Handler for task {} interrupted", task);
                     op.failed(e);
@@ -93,10 +92,10 @@ public class MockParallelTaskHandler implements TaskHandler {
             hasExited = true;
         }
 
-        public boolean hasRun() {
+        boolean hasRun() {
             return hasRun;
         }
-        public boolean hasExited() {
+        boolean hasExited() {
             return hasExited;
         }
     }
@@ -122,11 +121,10 @@ public class MockParallelTaskHandler implements TaskHandler {
         // we create and start some subtasks
         for (int i = 0; i < NUM_SUBTASKS; i++) {
             MyLightweightTaskHandler handler = new MyLightweightTaskHandler(duration);
-            RunningTaskQuartzImpl subtask = (RunningTaskQuartzImpl) task.createSubtask(handler);
-            subtask.resetIterativeTaskInformation(null);
+            RunningLightweightTaskImpl subtask = (RunningLightweightTaskImpl) task.createSubtask(handler);
+            subtask.resetIterativeTaskInformation(null, true);
             assertTrue("Subtask is not transient", subtask.isTransient());
             assertTrue("Subtask is not asynchronous", subtask.isAsynchronous());
-            assertTrue("Subtask is not a LAT", subtask.isLightweightAsynchronousTask());
             assertEquals("Subtask has a wrong lightweight handler", handler, subtask.getLightweightTaskHandler());
             assertTrue("Subtask is not in LAT list of parent", task.getLightweightAsynchronousSubtasks().contains(subtask));
             assertFalse("Subtask is in Running LAT list of parent", isAmongRunningChildren(subtask, task));
@@ -185,14 +183,14 @@ public class MockParallelTaskHandler implements TaskHandler {
         this.taskManager = taskManager;
     }
 
-    public RunningTask getLastTaskExecuted() {
+    RunningTask getLastTaskExecuted() {
         return lastTaskExecuted;
     }
 
     @NotNull
     @Override
     public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-        return new StatisticsCollectionStrategy().maintainIterationStatistics().fromZero();
+        return new StatisticsCollectionStrategy().fromZero();
     }
 
     @Override

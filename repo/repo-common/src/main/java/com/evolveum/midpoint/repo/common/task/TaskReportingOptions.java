@@ -7,24 +7,28 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
+import java.io.Serializable;
+import java.util.concurrent.atomic.AtomicReference;
+
 import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskLoggingOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskReportingOptionsType;
 
-import java.io.Serializable;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Options that drive state, progress, and error reporting of a search-iterative task.
  * Factored out to provide better separation of concerns.
+ *
  *
  * TODO finish
  */
 @Experimental
 public class TaskReportingOptions implements Cloneable, Serializable {
 
-    private boolean logFinishInfo = true;
-    private boolean countObjectsOnStart = true;         // todo make configurable per task instance (if necessary)
+    private boolean countObjectsOnStart = true; // todo make configurable per task instance (if necessary)
     private boolean preserveStatistics = true;
-    private boolean enableIterationStatistics = true;   // beware, this controls whether task stores these statistics; see also recordIterationStatistics in AbstractSearchIterativeResultHandler
     private boolean enableSynchronizationStatistics = false;
     private boolean enableActionsExecutedStatistics = true;
     private boolean logErrors = true;
@@ -39,13 +43,14 @@ public class TaskReportingOptions implements Cloneable, Serializable {
      */
     private boolean skipWritingOperationExecutionRecords;
 
-    public boolean isLogFinishInfo() {
-        return logFinishInfo;
-    }
-
-    public void setLogFinishInfo(boolean logFinishInfo) {
-        this.logFinishInfo = logFinishInfo;
-    }
+    /**
+     * Options related to the specific task instance. Currently there is no overlap between these and the other ones.
+     * Must be immutable because of the thread safety.
+     *
+     * Actually when it is modified, only a single thread is executing. So maybe the use of {@link AtomicReference}
+     * is a bit overkill.
+     */
+    private final AtomicReference<TaskReportingOptionsType> instanceReportingOptions = new AtomicReference<>();
 
     public boolean isCountObjectsOnStart() {
         return countObjectsOnStart;
@@ -61,14 +66,6 @@ public class TaskReportingOptions implements Cloneable, Serializable {
 
     public void setPreserveStatistics(boolean preserveStatistics) {
         this.preserveStatistics = preserveStatistics;
-    }
-
-    public boolean isEnableIterationStatistics() {
-        return enableIterationStatistics;
-    }
-
-    public void setEnableIterationStatistics(boolean enableIterationStatistics) {
-        this.enableIterationStatistics = enableIterationStatistics;
     }
 
     public boolean isEnableSynchronizationStatistics() {
@@ -95,7 +92,7 @@ public class TaskReportingOptions implements Cloneable, Serializable {
         this.logErrors = logErrors;
     }
 
-    public boolean isSkipWritingOperationExecutionRecords() {
+    boolean isSkipWritingOperationExecutionRecords() {
         return skipWritingOperationExecutionRecords;
     }
 
@@ -103,9 +100,10 @@ public class TaskReportingOptions implements Cloneable, Serializable {
         this.skipWritingOperationExecutionRecords = skipWritingOperationExecutionRecords;
     }
 
-    public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-        return new StatisticsCollectionStrategy(!isPreserveStatistics(), isEnableIterationStatistics(),
-                isEnableSynchronizationStatistics(), isEnableActionsExecutedStatistics());
+    StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+        // Note: All of these "new" tasks use structured progress.
+        return new StatisticsCollectionStrategy(!isPreserveStatistics(),
+                isEnableSynchronizationStatistics(), isEnableActionsExecutedStatistics(), true);
     }
 
     public TaskReportingOptions clone() {
@@ -113,6 +111,50 @@ public class TaskReportingOptions implements Cloneable, Serializable {
             return (TaskReportingOptions) super.clone();
         } catch (CloneNotSupportedException e) {
             throw new IllegalStateException(e);
+        }
+    }
+
+    TaskReportingOptions cloneWithConfiguration(TaskReportingOptionsType configuration) {
+        TaskReportingOptions clone = clone();
+        clone.applyConfiguration(configuration);
+        return clone;
+    }
+
+    private void applyConfiguration(TaskReportingOptionsType instanceOptions) {
+        if (instanceOptions != null) {
+            TaskReportingOptionsType instanceOptionsClone = instanceOptions.clone();
+            instanceOptionsClone.asPrismContainerValue().freeze();
+            instanceReportingOptions.set(instanceOptionsClone);
+        } else {
+            instanceReportingOptions.set(null);
+        }
+    }
+
+    /**
+     * Temporary implementation.
+     * See also {@link StatisticsCollectionStrategy#isCollectExecutions()}.
+     */
+    public boolean isCollectExecutions() {
+        return !preserveStatistics;
+    }
+
+    @NotNull
+    public TaskLoggingOptionType getBucketCompletionLogging() {
+        TaskReportingOptionsType options = instanceReportingOptions.get();
+        if (options != null && options.getLogging() != null && options.getLogging().getBucketCompletion() != null) {
+            return options.getLogging().getBucketCompletion();
+        } else {
+            return TaskLoggingOptionType.BRIEF;
+        }
+    }
+
+    @NotNull
+    public TaskLoggingOptionType getItemCompletionLogging() {
+        TaskReportingOptionsType options = instanceReportingOptions.get();
+        if (options != null && options.getLogging() != null && options.getLogging().getItemCompletion() != null) {
+            return options.getLogging().getItemCompletion();
+        } else {
+            return TaskLoggingOptionType.NONE;
         }
     }
 }

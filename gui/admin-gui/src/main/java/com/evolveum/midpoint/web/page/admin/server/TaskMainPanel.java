@@ -377,7 +377,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
             return ItemVisibility.AUTO;
         }
 
-        if (ItemPath.create(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_PARTITIONS).equivalent(path)) {
+        if (ItemPath.create(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_WORKERS).equivalent(path)) {
             if (handler.endsWith("task/workers-creation/handler-3")) {
                 return ItemVisibility.AUTO;
             } else {
@@ -385,7 +385,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
             }
         }
 
-        if (ItemPath.create(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_WORKERS).equivalent(path)) {
+        if (ItemPath.create(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_PARTITIONS).equivalent(path)) {
             if (handler.endsWith("task/lightweight-partitioning/handler-3") || handler.endsWith("model/partitioned-focus-validity-scanner/handler-3")
                     || handler.endsWith("model/synchronization/task/partitioned-reconciliation/handler-3") || handler.endsWith("task/generic-partitioning/handler-3")) {
                 return ItemVisibility.AUTO;

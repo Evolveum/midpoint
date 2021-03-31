@@ -14,6 +14,8 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -184,5 +186,11 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
     default boolean isOfType(@NotNull Class<?> type) {
         Class<O> compileTimeClass = getCompileTimeClass();
         return compileTimeClass != null && type.isAssignableFrom(compileTimeClass);
+    }
+
+    @Experimental
+    static <T extends Objectable> PrismObject<T> cast(PrismObject<?> object, Class<T> type) {
+        //noinspection unchecked
+        return (PrismObject<T>) object;
     }
 }

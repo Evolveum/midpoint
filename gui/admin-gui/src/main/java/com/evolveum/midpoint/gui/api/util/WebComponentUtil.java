@@ -27,6 +27,8 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.util.task.TaskPartProgressInformation;
+import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -65,6 +67,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.format.DateTimeFormat;
@@ -617,7 +620,7 @@ public final class WebComponentUtil {
     }
 
     public static <T extends Containerable> QName containerClassToQName(PrismContext prismContext, Class<T> clazz) {
-        return prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(clazz).getTypeName();
+        return prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(clazz).getTypeName();
     }
 
     public static TaskType createSingleRecurrenceTask(String taskName, QName applicableType, ObjectQuery query,
@@ -677,36 +680,36 @@ public final class WebComponentUtil {
 
     public static boolean canRunNowTask(TaskType task, PageBase pageBase) {
         return pageBase.isAuthorized(ModelAuthorizationAction.RUN_TASK_IMMEDIATELY, task.asPrismObject())
-                && !isRunningTask(task) && (isRunnableTask(task) || (isClosedTask(task) && !isRecurringTask(task)));
+                && !isRunningTask(task)
+                && (isRunnableTask(task) || (isClosedTask(task) && !isRecurringTask(task)));
     }
 
     /** Checks user-visible state, not the technical (scheduling) state. So RUNNABLE means the task is not actually running. */
     public static boolean isRunnableTask(TaskType task) {
-        return task != null && TaskExecutionStateType.RUNNABLE == task.getExecutionStatus();
+        return task != null && task.getExecutionStatus() == TaskExecutionStateType.RUNNABLE;
     }
 
-    // Or we can test execution state for RUNNING value.
     public static boolean isRunningTask(TaskType task) {
-        return task != null && task.getNodeAsObserved() != null;
+        return task != null && task.getExecutionStatus() == TaskExecutionStateType.RUNNING;
     }
 
     /** Checks user-visible state, not the technical (scheduling) state. */
     public static boolean isWaitingTask(TaskType task) {
-        return task != null && TaskExecutionStateType.WAITING == task.getExecutionStatus();
+        return task != null && task.getExecutionStatus() == TaskExecutionStateType.WAITING;
     }
 
     /** Checks user-visible state, not the technical (scheduling) state. */
     public static boolean isSuspendedTask(TaskType task) {
-        return task != null && TaskExecutionStateType.SUSPENDED == task.getExecutionStatus();
+        return task != null && task.getExecutionStatus() == TaskExecutionStateType.SUSPENDED;
     }
 
     /** Checks user-visible state, not the technical (scheduling) state. But for closed tasks, these are equivalent. */
     public static boolean isClosedTask(TaskType task) {
-        return task != null && TaskExecutionStateType.CLOSED == task.getExecutionStatus();
+        return task != null && task.getExecutionStatus() == TaskExecutionStateType.CLOSED;
     }
 
     public static boolean isRecurringTask(TaskType task) {
-        return task != null && TaskRecurrenceType.RECURRING == task.getRecurrence();
+        return task != null && task.getRecurrence() == TaskRecurrenceType.RECURRING;
     }
 
     // We no longer need to treat workflow-related tasks in a different way.
@@ -3436,6 +3439,8 @@ public final class WebComponentUtil {
         StringBuilder sb = new StringBuilder();
         if (ref.getObject() != null) {
             sb.append(WebComponentUtil.getTranslatedPolyString(ref.getObject().getName()));
+        } else if (ref.getTargetName() != null && StringUtils.isNotEmpty(ref.getTargetName().getOrig())) {
+            sb.append(WebComponentUtil.getTranslatedPolyString(ref.getTargetName()));
         }
         if (StringUtils.isNotEmpty(ref.getOid())) {
             if (sb.length() > 0) {
@@ -3463,7 +3468,8 @@ public final class WebComponentUtil {
     public static String formatDurationWordsForLocal(long durationMillis, boolean suppressLeadingZeroElements,
             boolean suppressTrailingZeroElements, PageBase pageBase) {
 
-        String duration = DurationFormatUtils.formatDurationWords(durationMillis, suppressLeadingZeroElements, suppressTrailingZeroElements);
+        String duration = formatDuration(durationMillis, suppressLeadingZeroElements, suppressTrailingZeroElements);
+//        String duration = DurationFormatUtils.formatDurationWords(durationMillis, suppressLeadingZeroElements, suppressTrailingZeroElements);
 
         duration = StringUtils.replaceOnce(duration, "seconds", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.seconds").getString());
         duration = StringUtils.replaceOnce(duration, "minutes", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.minutes").getString());
@@ -3474,6 +3480,69 @@ public final class WebComponentUtil {
         duration = StringUtils.replaceOnce(duration, "hour", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.hour").getString());
         duration = StringUtils.replaceOnce(duration, "day", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.day").getString());
 
+        return duration;
+    }
+
+    private static String formatDuration(long durationMillis, boolean suppressLeadingZeroElements,
+            boolean suppressTrailingZeroElements) {
+        String duration = DurationFormatUtils.formatDuration(durationMillis, "d' days 'H' hours 'm' minutes 's' seconds 'S' miliseconds'");
+        String tmp;
+        if (suppressLeadingZeroElements) {
+            duration = " " + duration;
+            tmp = StringUtils.replaceOnce(duration, " 0 days", "");
+            if (tmp.length() != duration.length()) {
+                duration = tmp;
+                tmp = StringUtils.replaceOnce(tmp, " 0 hours", "");
+                if (tmp.length() != duration.length()) {
+                    duration = tmp;
+                    tmp = StringUtils.replaceOnce(tmp, " 0 minutes", "");
+                    if (tmp.length() != duration.length()) {
+                        tmp = StringUtils.replaceOnce(tmp, " 0 seconds", "");
+                        duration = tmp;
+                        if (tmp.length() != tmp.length()) {
+                            duration = StringUtils.replaceOnce(tmp, " 0 miliseconds", "");
+                        }
+                    }
+
+                }
+            }
+
+            if (!duration.isEmpty()) {
+                duration = duration.substring(1);
+            }
+        }
+
+        if (suppressTrailingZeroElements) {
+            tmp = StringUtils.replaceOnce(duration, " 0 miliseconds", "");
+            if (tmp.length() != duration.length()) {
+                duration = tmp;
+                tmp = StringUtils.replaceOnce(duration, " 0 seconds", "");
+                if (tmp.length() != duration.length()) {
+                    duration = tmp;
+                    tmp = StringUtils.replaceOnce(tmp, " 0 minutes", "");
+                    if (tmp.length() != duration.length()) {
+                        duration = tmp;
+                        tmp = StringUtils.replaceOnce(tmp, " 0 hours", "");
+                        if (tmp.length() != duration.length()) {
+                            duration = StringUtils.replaceOnce(tmp, " 0 days", "");
+                        }
+                    }
+                }
+            }
+        }
+
+        duration = " " + duration;
+        duration = StringUtils.replaceOnce(duration, " 1 miliseconds", " 1 milisecond");
+        duration = StringUtils.replaceOnce(duration, " 1 seconds", " 1 second");
+        duration = StringUtils.replaceOnce(duration, " 1 minutes", " 1 minute");
+        duration = StringUtils.replaceOnce(duration, " 1 hours", " 1 hour");
+        duration = StringUtils.replaceOnce(duration, " 1 days", " 1 day");
+        duration = duration.trim();
+
+        //not a perfect solution, but w.g we don't want to show 012ms but rather 12ms, won't work for 001ms.. this will be still 01ms :)
+        if (duration.startsWith("0")) {
+            duration = duration.substring(1);
+        }
         return duration;
     }
 
@@ -3730,19 +3799,33 @@ public final class WebComponentUtil {
             IconType icon = new IconType();
             icon.setCssClass("fa fa-times-circle " + GuiStyleConstants.RED_COLOR);
             if (isColumn) {
-                builder.setBasicIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
             } else {
-                builder.setBasicIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
+                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
             }
             builder.setTitle(pageBase.createStringResource("FocusProjectionsTabPanel.deadShadow").getString()
                     + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
             return builder.build();
         }
 
+        if (shadow.getResourceRef() != null && shadow.getResourceRef().getObject() != null
+                && !ResourceTypeUtil.isActivationCapabilityEnabled((ResourceType)shadow.getResourceRef().getObject().asObjectable(), null)) {
+            IconType icon = new IconType();
+            icon.setCssClass("fa fa-ban " + GuiStyleConstants.RED_COLOR);
+            if (isColumn) {
+                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+            } else {
+                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
+            }
+            builder.setTitle(pageBase.createStringResource("accountIcon.activation.notSupported").getString()
+                    + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+            return builder.build();
+        }
+
         ActivationType activation = shadow.getActivation();
         if (activation == null) {
-            builder.setTitle(pageBase.createStringResource("ActivationStatusType.null").getString()
-                    + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+            builder.setTitle(pageBase.createStringResource("accountIcon.activation.unknown").getString()
+                        + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
             appendUndefinedIcon(builder);
             return builder.build();
         }
@@ -3753,9 +3836,9 @@ public final class WebComponentUtil {
             IconType icon = new IconType();
             icon.setCssClass("fa fa-lock " + GuiStyleConstants.RED_COLOR);
             if (isColumn) {
-                builder.setBasicIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
             } else {
-                builder.setBasicIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
+                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
             }
             builder.setTitle(pageBase.createStringResource("LockoutStatusType.LOCKED").getString()
                     + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
@@ -3763,12 +3846,14 @@ public final class WebComponentUtil {
         }
 
         ActivationStatusType value = activation.getAdministrativeStatus();
-        builder.setTitle(pageBase.createStringResource("ActivationStatusType." + value).getString()
-                + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
         if (value == null) {
+            builder.setTitle(pageBase.createStringResource("accountIcon.activation.unknown").getString()
+                    + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
             appendUndefinedIcon(builder);
             return builder.build();
         }
+        builder.setTitle(pageBase.createStringResource("ActivationStatusType." + value).getString()
+                + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
 
         switch (value) {
             case DISABLED:
@@ -4922,5 +5007,64 @@ public final class WebComponentUtil {
             task.getResult().computeStatus();
         }
         return credentialsPolicyType;
+    }
+
+    @Contract("_,true->!null")
+    public static Long getTimestampAsLong(XMLGregorianCalendar cal, boolean currentIfNull) {
+        Long calAsLong = MiscUtil.asLong(cal);
+        if (calAsLong == null) {
+            if (currentIfNull) {
+                return System.currentTimeMillis();
+            }
+            return null;
+        }
+        return calAsLong;
+    }
+
+    public static String getTaskProgressInformation(TaskType taskType, boolean longForm, PageBase pageBase) {
+        TaskProgressInformation progress = TaskProgressInformation.fromTaskTree(taskType);
+        TaskPartProgressInformation partProgress = progress.getCurrentPartInformation();
+        if (partProgress == null) {
+            return null;
+        }
+        String partProgressHumanReadable = partProgress.toHumanReadableString(longForm);
+
+        if (longForm) {
+            partProgressHumanReadable = StringUtils.replaceOnce(partProgressHumanReadable, "of", pageBase.getString("TaskSummaryPanel.progress.of"));
+            partProgressHumanReadable = StringUtils.replaceOnce(partProgressHumanReadable, "buckets", pageBase.getString("TaskSummaryPanel.progress.buckets"));
+        }
+
+        if (progress.getAllPartsCount() > 1) {
+            String rv = pageBase.getString("TaskSummaryPanel.progress.info." + (longForm ? "long" : "short"), partProgressHumanReadable, progress.getCurrentPartNumber(), progress.getAllPartsCount());
+            return rv;
+        }
+
+        return partProgressHumanReadable;
+    }
+
+    public static String filterNonDeadProjections(List<ShadowWrapper> projectionWrappers) {
+        if (projectionWrappers == null) {
+            return "0";
+        }
+
+        int nonDead = 0;
+        for (ShadowWrapper projectionWrapper : projectionWrappers) {
+            if (projectionWrapper.isDead()) {
+                continue;
+            }
+            nonDead++;
+        }
+        return Integer.toString(nonDead);
+    }
+
+    public static String countLinkFroNonDeadShadows(Collection<ObjectReferenceType> refs) {
+        int count = 0;
+        for (ObjectReferenceType ref : refs) {
+            if (QNameUtil.match(ref.getRelation(), SchemaConstants.ORG_RELATED)) {
+                continue;
+            }
+            count++;
+        }
+        return Integer.toString(count);
     }
 }

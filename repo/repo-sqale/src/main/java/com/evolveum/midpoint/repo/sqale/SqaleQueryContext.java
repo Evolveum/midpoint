@@ -8,10 +8,12 @@ package com.evolveum.midpoint.repo.sqale;
 
 import com.querydsl.sql.SQLQuery;
 
+import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -44,6 +46,11 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     @Override
     protected SqlTransformer<S, Q, R> createTransformer() {
         return entityPathMapping.createTransformer(transformerSupport);
+    }
+
+    @Override
+    public FilterProcessor<InOidFilter> createInOidFilter(SqlQueryContext<?, ?, ?> context) {
+        return new InOidFilterProcessor(context);
     }
 
     /**

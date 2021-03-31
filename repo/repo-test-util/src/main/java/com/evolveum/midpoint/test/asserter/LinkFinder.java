@@ -8,6 +8,9 @@ package com.evolveum.midpoint.test.asserter;
 
 import static org.testng.AssertJUnit.assertEquals;
 
+import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.testng.AssertJUnit;
 
@@ -18,6 +21,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import javax.xml.namespace.QName;
 
 /**
  *
@@ -31,6 +36,7 @@ public class LinkFinder<F extends FocusType, FA extends FocusAsserter<F, RA>,RA>
     private final LinksAsserter<F,FA,RA> linksAsserter;
     private String resourceOid;
     private Boolean dead;
+    private QName relation;
     private String intent;
     private String tag;
     private String[] notTags;
@@ -46,6 +52,11 @@ public class LinkFinder<F extends FocusType, FA extends FocusAsserter<F, RA>,RA>
 
     public LinkFinder<F,FA,RA> dead(boolean dead) {
         this.dead = dead;
+        return this;
+    }
+
+    public LinkFinder<F,FA,RA> relation(QName relation) {
+        this.relation = relation;
         return this;
     }
 
@@ -67,7 +78,7 @@ public class LinkFinder<F extends FocusType, FA extends FocusAsserter<F, RA>,RA>
     public ShadowReferenceAsserter<LinksAsserter<F, FA, RA>> find() throws ObjectNotFoundException, SchemaException {
         PrismReferenceValue found = null;
         PrismObject<ShadowType> foundTarget = null;
-        for (PrismReferenceValue link: linksAsserter.getLinks()) {
+        for (PrismReferenceValue link: linksAsserter.getAllLinks()) {
             PrismObject<ShadowType> linkTarget = linksAsserter.getLinkTarget(link.getOid());
             if (matches(link, linkTarget)) {
                 if (found == null) {
@@ -86,7 +97,7 @@ public class LinkFinder<F extends FocusType, FA extends FocusAsserter<F, RA>,RA>
 
     public LinksAsserter<F,FA,RA> assertCount(int expectedCount) throws ObjectNotFoundException, SchemaException {
         int foundCount = 0;
-        for (PrismReferenceValue link: linksAsserter.getLinks()) {
+        for (PrismReferenceValue link: linksAsserter.getAllLinks()) {
             PrismObject<ShadowType> linkTarget = linksAsserter.getLinkTarget(link.getOid());
             if (matches(link, linkTarget)) {
                 foundCount++;
@@ -109,6 +120,12 @@ public class LinkFinder<F extends FocusType, FA extends FocusAsserter<F, RA>,RA>
             if (dead && !ShadowUtil.isDead(linkTargetType)) {
                 return false;
             } else if (!dead && ShadowUtil.isDead(linkTargetType)) {
+                return false;
+            }
+        }
+
+        if (relation != null) {
+            if (!SchemaService.get().prismContext().relationMatches(relation, refVal.getRelation())) {
                 return false;
             }
         }

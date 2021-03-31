@@ -22,6 +22,11 @@ import java.util.Collections;
 import java.util.List;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
+
+import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
+import com.evolveum.midpoint.task.api.RunningLightweightTask;
+
 import org.jetbrains.annotations.NotNull;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
@@ -47,7 +52,6 @@ import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskConstants;
@@ -105,6 +109,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
     private static final TestResource<TaskType> TASK_SUSPENDED_TREE_CHILD_1_1 = new TestResource<>(TEST_DIR, "task-suspended-tree-child-1-1.xml", "11000000-76e0-59e2-86d6-556655660200");
     private static final TestResource<TaskType> TASK_SUSPENDED_TREE_CHILD_2 = new TestResource<>(TEST_DIR, "task-suspended-tree-child-2.xml", "20000000-76e0-59e2-86d6-556655660200");
     private static final TestResource<TaskType> TASK_DUMMY = new TestResource<>(TEST_DIR, "task-dummy.xml", "89bf08ec-c5b8-4641-95ca-37559c1f3896");
+    private static final TestResource<TaskType> TASK_NON_EXISTING_OWNER = new TestResource<>(TEST_DIR, "task-non-existing-owner.xml", "d1320df4-e5b7-43ec-af53-f74ee0b62345");
 
     private static final ItemName SHIP_STATE_ITEM_NAME = new ItemName("http://myself.me/schemas/whatever", "shipState");
 
@@ -772,9 +777,9 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         Task task = getTaskWithResult(TASK_WITH_THREADS.oid, result);
         displayDumpable("Task after", task);
 
-        Collection<? extends RunningTask> subtasks = parallelTaskHandler.getLastTaskExecuted().getLightweightAsynchronousSubtasks();
+        Collection<? extends RunningLightweightTask> subtasks = parallelTaskHandler.getLastTaskExecuted().getLightweightAsynchronousSubtasks();
         assertEquals("Wrong number of subtasks", MockParallelTaskHandler.NUM_SUBTASKS, subtasks.size());
-        for (RunningTask subtask : subtasks) {
+        for (RunningLightweightTask subtask : subtasks) {
             assertEquals("Wrong subtask state", TaskExecutionStateType.CLOSED, subtask.getExecutionState());
             MockParallelTaskHandler.MyLightweightTaskHandler handler = (MockParallelTaskHandler.MyLightweightTaskHandler) subtask.getLightweightTaskHandler();
             assertTrue("Handler has not run", handler.hasRun());
@@ -791,7 +796,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
                     .item(TaskType.F_SUBTASK_REF).retrieve()
                     .build();
             TaskType task = taskManager.getObject(TaskType.class, taskOid, options, result).asObjectable();
-            int totalSuccessCount = or0(TaskTypeUtil.getItemsProcessed(task.getOperationStats()));
+            int totalSuccessCount = or0(TaskOperationStatsUtil.getItemsProcessed(task.getOperationStats()));
             System.out.println((System.currentTimeMillis() - start) + ": subtasks: " + task.getSubtaskRef().size() +
                     ", progress = " + task.getProgress() + ", objects = " + totalSuccessCount);
             if (task.getSchedulingState() != TaskSchedulingStateType.READY) {
@@ -836,9 +841,9 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
 
         assertSuspended(task);
 
-        Collection<? extends RunningTask> subtasks = parallelTaskHandler.getLastTaskExecuted().getLightweightAsynchronousSubtasks();
+        Collection<? extends RunningLightweightTask> subtasks = parallelTaskHandler.getLastTaskExecuted().getLightweightAsynchronousSubtasks();
         assertEquals("Wrong number of subtasks", MockParallelTaskHandler.NUM_SUBTASKS, subtasks.size());
-        for (RunningTask subtask : subtasks) {
+        for (RunningLightweightTask subtask : subtasks) {
             assertEquals("Wrong subtask state", TaskExecutionStateType.CLOSED, subtask.getExecutionState());
             MockParallelTaskHandler.MyLightweightTaskHandler handler = (MockParallelTaskHandler.MyLightweightTaskHandler) subtask.getLightweightTaskHandler();
             assertTrue("Handler has not run", handler.hasRun());
@@ -1082,15 +1087,39 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         assertEquals("Wrong result status", OperationResultStatusType.SUCCESS, dummy.asObjectable().getResultStatus());
     }
 
+    /**
+     * Non-existing owner should be treated gracefully: MID-6918.
+     */
+    @Test
+    public void test420NonExistingOwner() throws Exception {
+        given();
+
+        OperationResult result = createOperationResult();
+        add(TASK_NON_EXISTING_OWNER, result);
+
+        when();
+
+        waitForTaskSuspend(TASK_NON_EXISTING_OWNER.oid, result, 10000, 200);
+
+        Task task = taskManager.getTaskWithResult(TASK_NON_EXISTING_OWNER.oid, result);
+
+        then();
+
+        displayDumpable("task", task);
+        assertThat(task.getResult().getMessage())
+                .as("operation result message")
+                .isEqualTo("Task owner couldn't be resolved: 8e6943e0-848d-4bf0-8c9e-4ba6bdf6c518");
+    }
+
     private void assertTaskTree(TaskType rootWithChildren, String child1Oid, String child2Oid, String child11Oid) {
         assertEquals("Wrong # of children of root", 2, rootWithChildren.getSubtaskRef().size());
-        TaskType child1 = TaskTypeUtil.findChild(rootWithChildren, child1Oid);
-        TaskType child2 = TaskTypeUtil.findChild(rootWithChildren, child2Oid);
+        TaskType child1 = TaskTreeUtil.findChild(rootWithChildren, child1Oid);
+        TaskType child2 = TaskTreeUtil.findChild(rootWithChildren, child2Oid);
         assertNotNull(child1);
         assertNotNull(child2);
         assertEquals("Wrong # of children of child1", 1, child1.getSubtaskRef().size());
         assertEquals("Wrong # of children of child2", 0, child2.getSubtaskRef().size());
-        TaskType child11 = TaskTypeUtil.findChild(child1, child11Oid);
+        TaskType child11 = TaskTreeUtil.findChild(child1, child11Oid);
         assertNotNull(child11);
     }
 

@@ -110,18 +110,13 @@ public interface MidpointTestMixin {
     @Nullable MidpointTestContext getTestContext();
 
     @NotNull
-    // TODO switch to private after ditching JDK 8, DON'T USE/DON'T OVERRIDE!
-    /*private*/ default MidpointTestContext testContext() {
+    private MidpointTestContext testContext() {
         return Objects.requireNonNull(getTestContext(),
                 "Current test-method context MUST NOT be null");
     }
 
-    /**
-     * Common print to stdout to add common stuff to text, e.g. time and thread header.
-     */
-    // TODO switch to private after ditching JDK 8, DON'T USE/DON'T OVERRIDE!
-    /*private*/
-    default void println(String string) {
+    /** Common print to stdout to add common stuff to text, e.g. time and thread header. */
+    private void println(String string) {
         System.out.println("\n>>> " + LocalTime.now().toString()
                 + " thread=[" + Thread.currentThread().getName() + "]");
         System.out.println(string);
@@ -248,9 +243,7 @@ public interface MidpointTestMixin {
         testPhaseMessage("AND", description);
     }
 
-    // TODO switch to private after ditching JDK 8, DON'T USE/DON'T OVERRIDE!
-    /*private*/
-    default void testPhaseMessage(String keyword, String description) {
+    private void testPhaseMessage(String keyword, String description) {
         String testName = getTestNameShort();
         if (description == null) {
             description = "";

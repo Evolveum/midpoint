@@ -75,6 +75,15 @@ public class PipelineItem implements DebugDumpable, Serializable {
         return sb.toString();
     }
 
+    @Override
+    public String toString() {
+        return "PipelineItem{" +
+                "value=" + value +
+                ", result status is " + result.getStatus() +
+                ", variables: " + variables.size() +
+                '}';
+    }
+
     public void computeResult() {
         result.computeStatus();
     }

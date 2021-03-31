@@ -348,7 +348,11 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                     }
                 }
                 if (item instanceof PropertySearchItem) {
-                    ObjectFilter filter = createFilterForSearchItem((PropertySearchItem) item, pageBase.getPrismContext());
+                    PropertySearchItem propertyItem = (PropertySearchItem) item;
+                    ObjectFilter filter = propertyItem.transformToFilter();
+                    if (filter == null) {
+                        filter = createFilterForSearchItem(propertyItem, pageBase.getPrismContext());
+                    }
                     if (filter != null) {
                         conditions.add(filter);
                     }

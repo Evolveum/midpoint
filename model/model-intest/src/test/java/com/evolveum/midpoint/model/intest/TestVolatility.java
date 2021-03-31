@@ -134,7 +134,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("User mancomb", userMancomb);
         assertNotNull("User mancomb was not created", userMancomb);
-        assertLinks(userMancomb, 2);
+        assertLiveLinks(userMancomb, 2);
 
         assertLinked(userMancomb, accountMancombHr);
         assertLinked(userMancomb, accountMancombVolatileTarget);
@@ -190,7 +190,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("User mancomb", userMancomb);
         assertNotNull("User mancomb is not there", userMancomb);
-        assertLinks(userMancomb, 2);
+        assertLiveLinks(userMancomb, 2);
         assertEquals("Wrong name in mancomb user", "Sir Mancomb Seepgood",
                 userMancomb.asObjectable().getFullName().getOrig());
 
@@ -233,7 +233,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userGuybrush = findUserByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         display("User guybrush", userGuybrush);
         assertNotNull("User guybrush is not there", userGuybrush);
-        assertLinks(userGuybrush, 1);
+        assertLiveLinks(userGuybrush, 1);
 
         PrismObject<ShadowType> accountGuybrushVolatileTarget = findAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 getDummyResourceObject(RESOURCE_DUMMY_VOLATILE_NAME));
@@ -282,7 +282,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userLargo = findUserByUsername(ACCOUNT_LARGO_DUMMY_USERNAME);
         display("User largo", userLargo);
         assertNotNull("User largo is not there", userLargo);
-        assertLinks(userLargo, 1);
+        assertLiveLinks(userLargo, 1);
 
         PrismObject<ShadowType> accountLargoVolatileTarget = findAccountByUsername(ACCOUNT_LARGO_DUMMY_USERNAME,
                 getDummyResourceObject(RESOURCE_DUMMY_VOLATILE_NAME));
@@ -337,7 +337,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(USER_HERMAN_OID);
         display("User after", userAfter);
         assertNotNull("User not there", userAfter);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_MONSTERIZED_NAME, USER_HERMAN_USERNAME);
         displayDumpable("Dummy account", dummyAccount);
@@ -369,7 +369,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(USER_HERMAN_OID);
         display("User after", userAfter);
         assertNotNull("User not there", userAfter);
-        assertLinks(userAfter, 1);
+        assertLiveLinks(userAfter, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_MONSTERIZED_NAME, USER_HERMAN_USERNAME);
         displayDumpable("Dummy account", dummyAccount);

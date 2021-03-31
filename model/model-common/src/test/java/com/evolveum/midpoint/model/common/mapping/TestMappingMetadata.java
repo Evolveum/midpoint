@@ -1116,8 +1116,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
             }
 
             @Override
-            public Collection<? extends ModelProjectionContext> getProjectionContexts() {
-                return null;
+            public @NotNull Collection<? extends ModelProjectionContext> getProjectionContexts() {
+                return Collections.emptyList();
             }
 
             @Override

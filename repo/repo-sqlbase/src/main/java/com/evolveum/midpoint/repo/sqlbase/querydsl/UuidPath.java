@@ -16,10 +16,14 @@ public class UuidPath extends ComparablePath<UUID> {
 
     private static final long serialVersionUID = -7475296682846579579L;
 
-    /** Alias for {@link Types#OTHER} working in tandem with {@link UuidPath}. */
+    /**
+     * Alias for {@link Types#OTHER} working in tandem with {@link UuidPath}.
+     * This is important especially for setting NULLs explicitly, OTHER works, JAVA_OBJECT not.
+     * Reasons for this are deep in PostgreSQL JDBC driver.
+     */
     public static final int UUID_TYPE = Types.OTHER;
 
-    protected UuidPath(Class<? extends UUID> type, PathMetadata metadata) {
-        super(type, metadata);
+    public UuidPath(PathMetadata metadata) {
+        super(UUID.class, metadata);
     }
 }

@@ -114,7 +114,7 @@ public class ClockworkAuditHelper {
             primaryDelta = context.getFocusContext().getSummaryDelta();
         } else {
             Collection<LensProjectionContext> projectionContexts = context.getProjectionContexts();
-            if (projectionContexts == null || projectionContexts.isEmpty()) {
+            if (projectionContexts.isEmpty()) {
                 throw new IllegalStateException("No focus and no projections in " + context);
             }
             if (projectionContexts.size() > 1) {

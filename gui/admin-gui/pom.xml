@@ -95,11 +95,6 @@
 
         <!-- webjars -->
         <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>swagger-ui</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
             <groupId>com.evolveum.webjars</groupId>
             <artifactId>AdminLTE</artifactId>
             <scope>runtime</scope>
@@ -553,6 +548,11 @@
         <dependency>
             <groupId>org.apache.wicket</groupId>
             <artifactId>wicket-datetime</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.evolveum.chartjs</groupId>
+            <artifactId>wicket-chartjs-core</artifactId>
         </dependency>
 
         <dependency>

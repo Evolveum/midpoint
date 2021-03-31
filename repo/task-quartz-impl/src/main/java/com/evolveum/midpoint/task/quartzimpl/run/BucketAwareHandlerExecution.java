@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.task.quartzimpl.run.HandlerExecutor.*;
@@ -57,7 +58,7 @@ class BucketAwareHandlerExecution {
      */
     private boolean initialExecution = true;
 
-    public BucketAwareHandlerExecution(@NotNull RunningTaskQuartzImpl task, @NotNull WorkBucketAwareTaskHandler handler,
+    BucketAwareHandlerExecution(@NotNull RunningTaskQuartzImpl task, @NotNull WorkBucketAwareTaskHandler handler,
             @Nullable TaskPartitionDefinitionType partition, @NotNull TaskBeans beans) {
         this.task = task;
         this.partition = partition;
@@ -67,21 +68,17 @@ class BucketAwareHandlerExecution {
 
     @NotNull public TaskRunResult execute(OperationResult result) throws ExitExecutionException {
 
-        deleteWorkStateIfWorkComplete(result);
-
-        startCollectingOperationStatsForInitialExecution(task, handler);
+        resetWorkStateAndStatisticsIfWorkComplete(result);
+        startCollectingStatistics(task, handler);
 
         for (; task.canRun(); initialExecution = false) {
 
             WorkBucketType bucket = getWorkBucket(result);
             if (bucket == null) {
                 LOGGER.trace("No (next) work bucket within {}, exiting", task);
-                runResult = handler.onNoMoreBuckets(task, runResult);
+                updateStructuredProgressOnNoMoreBuckets();
+                runResult = handler.onNoMoreBuckets(task, runResult, result);
                 break;
-            }
-
-            if (!initialExecution) {
-                startCollectingOperationStatsForFurtherExecutions(task, handler);
             }
 
             executeHandlerForBucket(bucket, result);
@@ -94,6 +91,9 @@ class BucketAwareHandlerExecution {
                 break;
             }
         }
+
+        task.updateAndStoreStatisticsIntoRepository(true, result);
+
         //noinspection ReplaceNullCheck
         if (runResult != null) {
             return runResult;
@@ -101,6 +101,18 @@ class BucketAwareHandlerExecution {
             // Maybe we were stopped before the first execution. Or there are no buckets.
             return createSuccessTaskRunResult(task);
         }
+    }
+
+    private void updateStructuredProgressOnNoMoreBuckets() {
+        // This is for the last part of the internally-partitioned-single-bucket task;
+        // or for the (single) part of multi-bucket task.
+        task.markStructuredProgressAsComplete();
+
+        // TEMPORARY: For internally-partitioned-single-bucket tasks we have to move 'open' to 'closed' progress counters
+        // here. We couldn't do that earlier, because they are made really closed - i.e. not to be reprocessed - only after
+        // all the work is done (for such tasks). This is a temporary measure, until bucketing and partitioning are swapped
+        // in later versions of midPoint.
+        task.markAllStructuredProgressClosed();
     }
 
     /**
@@ -111,8 +123,8 @@ class BucketAwareHandlerExecution {
         try {
             beans.workStateManager.completeWorkBucket(task.getOid(), bucket.getSequentialNumber(),
                     task.getWorkBucketStatisticsCollector(), result);
-            task.updateStructuredProgressOnWorkBucketCompletion();
-            storeOperationStatsPersistently(task, result);
+            task.changeStructuredProgressOnWorkBucketCompletion();
+            updateAndStoreStatisticsIntoRepository(task, result);
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't complete work bucket for task {}", e, task);
             throw new ExitExecutionException(task, "Couldn't complete work bucket: " + e.getMessage(), e);
@@ -125,7 +137,7 @@ class BucketAwareHandlerExecution {
             runResult = handler.run(task, bucket, partition, runResult);
             LOGGER.trace("runResult is {} for {}", runResult, task);
 
-            storeOperationStatsPersistently(task, result);
+            updateAndStoreStatisticsIntoRepository(task, result);
 
             checkNullRunResult(task, runResult);
 
@@ -137,16 +149,15 @@ class BucketAwareHandlerExecution {
     private WorkBucketType getWorkBucket(OperationResult result) throws ExitExecutionException {
         WorkBucketType bucket;
         try {
-            try {
-                bucket = beans.workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, task::canRun, initialExecution,
-                        task.getWorkBucketStatisticsCollector(), result);
-            } catch (InterruptedException e) {
-                LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
-                if (task.canRun()) {
-                    throw new IllegalStateException("Unexpected InterruptedException: " + e.getMessage(), e);
-                } else {
-                    throw new ExitExecutionException(createInterruptedTaskRunResult(task));
-                }
+            bucket = beans.workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, task::canRun, initialExecution,
+                    task.getWorkBucketStatisticsCollector(), result);
+        } catch (InterruptedException e) {
+            LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
+            if (!task.canRun()) {
+                throw new ExitExecutionException(createInterruptedTaskRunResult(task));
+            } else {
+                LoggingUtils.logUnexpectedException(LOGGER, "Unexpected InterruptedException in {}", e, task);
+                throw new ExitExecutionException(task, "Unexpected InterruptedException: " + e.getMessage(), e);
             }
         } catch (Throwable t) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't allocate a work bucket for task {}", t, task);
@@ -155,17 +166,33 @@ class BucketAwareHandlerExecution {
         return bucket;
     }
 
-    private void deleteWorkStateIfWorkComplete(OperationResult executionResult) {
-        if (task.getWorkState() != null && Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete())) {
+    private void resetWorkStateAndStatisticsIfWorkComplete(OperationResult result) throws ExitExecutionException {
+        if (isAllWorkComplete()) {
             LOGGER.debug("Work is marked as complete; restarting it in task {}", task);
             try {
-                List<ItemDelta<?, ?>> itemDeltas = beans.prismContext.deltaFor(TaskType.class)
+                List<ItemDelta<?, ?>> itemDeltas = new ArrayList<>();
+                itemDeltas.add(beans.prismContext.deltaFor(TaskType.class)
                         .item(TaskType.F_WORK_STATE).replace()
-                        .asItemDeltas();
-                task.applyDeltasImmediate(itemDeltas, executionResult);
-            } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | RuntimeException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove work state from (completed) task {}, continuing", e, task);
+                        .asItemDelta());
+
+                if (handler.getStatisticsCollectionStrategy().isStartFromZero()) {
+                    LOGGER.debug("Resetting all statistics in task {} on start", task);
+                    itemDeltas.addAll(
+                            beans.prismContext.deltaFor(TaskType.class)
+                                    .item(TaskType.F_PROGRESS).replace()
+                                    .item(TaskType.F_STRUCTURED_PROGRESS).replace()
+                                    .item(TaskType.F_OPERATION_STATS).replace()
+                                    .asItemDeltas());
+                }
+                task.modify(itemDeltas);
+                task.flushPendingModifications(result);
+            } catch (Throwable t) {
+                throw new ExitExecutionException(task, "Couldn't reset work state and/or statistics at start", t);
             }
         }
+    }
+
+    private boolean isAllWorkComplete() {
+        return task.getWorkState() != null && Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete());
     }
 }

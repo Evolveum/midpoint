@@ -77,12 +77,11 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
     public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
         return new StatisticsCollectionStrategy()
                 .fromZero();
-        // implement iteration statistics when needed (along with expected total)
     }
 
     @Override
     public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
-        LOGGER.info("Task run starting");
+        LOGGER.debug("Task run starting");
 
         OperationResult opResult = new OperationResult(CLASS_DOT+"run");
         opResult.setSummarizeSuccesses(true);
@@ -123,7 +122,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 
         opResult.computeStatus();
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-        LOGGER.info("Task run stopping (campaign {})", toShortString(campaign));
+        LOGGER.debug("Task run stopping (campaign {})", toShortString(campaign));
         return runResult;
     }
 
@@ -136,7 +135,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
             }
             if (!deltas.isEmpty()) {
                 repositoryService.modifyObject(object.getClass(), object.getOid(), deltas, opResult);
-                runContext.task.incrementProgressAndStoreStatsIfNeeded();
+                runContext.task.incrementProgressAndStoreStatisticsIfTimePassed(opResult);
             }
         } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update certification metadata for {}", e, toShortString(object));
@@ -147,7 +146,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
             RunContext runContext, OperationResult result) {
 
         // we count progress for each certification case and then for each object updated
-        runContext.task.incrementProgressAndStoreStatsIfNeeded();
+        runContext.task.incrementProgressAndStoreStatisticsIfTimePassed(result);
 
         String objectOid = aCase.getObjectRef() != null ? aCase.getObjectRef().getOid() : null;
         if (objectOid == null) {

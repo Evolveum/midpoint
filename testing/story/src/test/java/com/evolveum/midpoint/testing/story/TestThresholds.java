@@ -1,28 +1,15 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.story;
 
-import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 import java.io.File;
 import java.util.List;
-
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
-import com.evolveum.midpoint.test.asserter.TaskAsserter;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -31,9 +18,20 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
+import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.asserter.TaskAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -62,11 +60,10 @@ public abstract class TestThresholds extends AbstractStoryTest {
     private static final File TASK_IMPORT_BASE_USERS_FILE = new File(TEST_DIR, "task-opendj-import-base-users.xml");
     private static final String TASK_IMPORT_BASE_USERS_OID = "fa25e6dc-a858-11e7-8ebc-eb2b71ecce1d";
 
-    private static final int TASK_IMPORT_TIMEOUT = 60000;
+    protected static final int TASK_TIMEOUT = 60000;
 
     public static final int RULE_CREATE_WATERMARK = 5;
     public static final int RULE_ACTIVATION_WATERMARK = 3;
-
 
     int getDefaultUsers() {
         return 6;
@@ -117,7 +114,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
         openDJController.addEntriesFromLdifFile(LDIF_CREATE_BASE_USERS_FILE);
 
-        waitForTaskFinish(TASK_IMPORT_BASE_USERS_OID, true, 30000);
+        waitForTaskFinish(TASK_IMPORT_BASE_USERS_OID, true, TASK_TIMEOUT);
 
         Task taskAfter = taskManager.getTaskWithResult(TASK_IMPORT_BASE_USERS_OID, result);
         display("Task after test001testImportBaseUsers:", taskAfter);
@@ -180,7 +177,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
         assertUsers(getNumberOfUsers());
 
         when();
-        OperationResult reconResult = resumeTaskAndWaitForNextFinish(getTaskOid(), false, TASK_IMPORT_TIMEOUT);
+        OperationResult reconResult = resumeTaskAndWaitForNextFinish(getTaskOid(), false, TASK_TIMEOUT);
         assertFailure(reconResult);
 
         then();
@@ -205,7 +202,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
         clearTaskOperationalStats(result);
 
         when();
-        OperationResult reconResult = resumeTaskAndWaitForNextFinish(getTaskOid(), false, TASK_IMPORT_TIMEOUT);
+        OperationResult reconResult = resumeTaskAndWaitForNextFinish(getTaskOid(), false, TASK_TIMEOUT);
         assertFailure(reconResult);
 
         then();
@@ -256,7 +253,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
         clearTaskOperationalStats(result);
 
         when();
-        OperationResult reconResult = resumeTaskAndWaitForNextFinish(getTaskOid(), false, 20000);
+        OperationResult reconResult = resumeTaskAndWaitForNextFinish(getTaskOid(), false, TASK_TIMEOUT);
         assertFailure(reconResult);
 
         then();
@@ -280,7 +277,6 @@ public abstract class TestThresholds extends AbstractStoryTest {
                 .item(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS))
                 .add(getWorkerThreads()).asObjectDelta(getTaskOid());
 
-
         executeChanges(delta, null, task, result);
 
         PrismObject<TaskType> taskAfter = getTask(getTaskOid());
@@ -294,6 +290,6 @@ public abstract class TestThresholds extends AbstractStoryTest {
         // TODO separate the statistics dump
         OperationStatsType stats = taskAfter.getStoredOperationStatsOrClone();
         displayValue("Iterative statistics", IterativeTaskInformation.format(stats.getIterativeTaskInformation()));
-        return TaskTypeUtil.getItemsProcessedWithFailure(stats);
+        return TaskOperationStatsUtil.getItemsProcessedWithFailure(stats);
     }
 }

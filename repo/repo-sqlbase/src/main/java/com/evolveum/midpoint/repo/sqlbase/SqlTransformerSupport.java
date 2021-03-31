@@ -37,12 +37,12 @@ public class SqlTransformerSupport {
         return schemaService.schemaClassToTypeQName(schemaClass);
     }
 
-    public QName normalizeRelation(QName qName) {
+    public @NotNull QName normalizeRelation(QName qName) {
         return schemaService.normalizeRelation(qName);
     }
 
     @NotNull
-    public PrismSerializer<String> serializer() {
+    public PrismSerializer<String> createStringSerializer() {
         return schemaService.createStringSerializer(
                 sqlRepoContext.getJdbcRepositoryConfiguration().getFullObjectFormat());
     }
@@ -57,8 +57,9 @@ public class SqlTransformerSupport {
         return new ParseResult<>(parsingContext, prismObject);
     }
 
-    public <T> T parseRealValue(String serializedResult, Class<T> clazz) throws SchemaException {
-        return schemaService.parserFor(serializedResult).parseRealValue(clazz);
+    @NotNull
+    public PrismParserNoIO createStringParser(String serializedResult) {
+        return schemaService.parserFor(serializedResult);
     }
 
     /**

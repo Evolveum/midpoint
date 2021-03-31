@@ -10,6 +10,9 @@ package com.evolveum.midpoint.web.component.data;
 import java.io.Serializable;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
@@ -54,6 +57,10 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
                 return "btn-xs btn-default";
             }
 
+            @Override
+            protected void onBeforeClickMenuItem(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
+                MenuMultiButtonPanel.this.onBeforeClickMenuItem(target, action, item);
+            }
         };
         add(inlineMenu);
 
@@ -68,5 +75,9 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
             return false;
         }));
     }
+
+    protected void onBeforeClickMenuItem(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
+    }
+
 
 }

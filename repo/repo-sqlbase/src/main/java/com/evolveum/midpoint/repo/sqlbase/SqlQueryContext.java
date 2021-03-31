@@ -24,10 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectOrdering;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ObjectFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
@@ -106,7 +103,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     }
 
     @Override
-    public Predicate process(ObjectFilter filter) throws QueryException {
+    public Predicate process(ObjectFilter filter) throws RepositoryException {
         if (filter == null) {
             return null;
         }
@@ -120,7 +117,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     /**
      * This takes care of {@link ObjectPaging} which includes ordering.
      */
-    public void processObjectPaging(ObjectPaging paging) throws QueryException {
+    public void processObjectPaging(ObjectPaging paging) throws RepositoryException {
         if (paging == null) {
             return;
         }
@@ -136,7 +133,8 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         }
     }
 
-    private void processOrdering(List<? extends ObjectOrdering> orderings) throws QueryException {
+    private void processOrdering(List<? extends ObjectOrdering> orderings)
+            throws RepositoryException {
         for (ObjectOrdering ordering : orderings) {
             ItemPath orderByItemPath = ordering.getOrderBy();
             if (!(orderByItemPath.isSingleName())) {
@@ -167,7 +165,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
             query.limit(NO_PAGINATION_LIMIT);
         }
 
-        // SQL logging is on DEBUG level of: com.querydsl.sql
+        // see com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger for logging details
         Q entity = root();
         List<Tuple> data = query
                 .select(buildSelectExpressions(entity, query))
@@ -354,5 +352,15 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
 
     public CanonicalItemPath createCanonicalItemPath(@NotNull ItemPath itemPath) {
         return transformerSupport.prismContext().createCanonicalItemPath(itemPath);
+    }
+
+    @NotNull
+    public QName normalizeRelation(QName qName) {
+        return transformerSupport.normalizeRelation(qName);
+    }
+
+    public FilterProcessor<InOidFilter> createInOidFilter(SqlQueryContext<?, ?, ?> context) {
+        // not supported for audit, overridden in repo-sqale
+        throw new UnsupportedOperationException();
     }
 }

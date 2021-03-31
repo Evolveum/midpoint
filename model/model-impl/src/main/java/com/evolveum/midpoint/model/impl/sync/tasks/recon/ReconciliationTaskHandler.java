@@ -13,16 +13,13 @@ import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.tasks.AbstractModelTaskHandler;
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
-import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
-import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
 import com.evolveum.midpoint.schema.SchemaService;
@@ -65,15 +62,10 @@ public class ReconciliationTaskHandler
      */
     private ReconciliationTaskResultListener reconciliationTaskResultListener;
 
-    @Autowired ChangeNotificationDispatcher changeNotificationDispatcher;
+    @Autowired EventDispatcher eventDispatcher;
     @Autowired AuditHelper auditHelper;
-    @Autowired private Clock clock;
     @Autowired protected ExpressionFactory expressionFactory;
-    @Autowired
-    SchemaService schemaService;
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
+    @Autowired SchemaService schemaService;
     @Autowired SyncTaskHelper syncTaskHelper;
 
     @Autowired CacheConfigurationManager cacheConfigurationManager;
@@ -82,8 +74,8 @@ public class ReconciliationTaskHandler
 
     protected ReconciliationTaskHandler() {
         super(LOGGER, "Reconciliation", OperationConstants.RECONCILIATION);
-        reportingOptions.setPreserveStatistics(false);
-        reportingOptions.setEnableSynchronizationStatistics(true);
+        globalReportingOptions.setPreserveStatistics(false);
+        globalReportingOptions.setEnableSynchronizationStatistics(true);
     }
 
     public ReconciliationTaskResultListener getReconciliationTaskResultListener() {
@@ -101,67 +93,6 @@ public class ReconciliationTaskHandler
         taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_2, this);
         taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_3, this);
     }
-
-//    public TaskWorkBucketProcessingResult run000(RunningTask localCoordinatorTask, WorkBucketType workBucket,
-//            TaskPartitionDefinitionType partitionDefinition, TaskWorkBucketProcessingResult previousRunResult) {
-//
-//
-//        if (previousRunResult != null) {
-//            runResult.setProgress(previousRunResult.getProgress());
-//            AbstractSearchIterativeTaskPartExecution.logPreviousResultIfNeeded(localCoordinatorTask, previousRunResult, LOGGER);  // temporary
-//        }
-//        runResult.setShouldContinue(false); // overridden later
-//        runResult.setBucketComplete(false); // overridden later
-//
-//        SynchronizationObjectsFilter objectsFilter = ModelImplUtils.determineSynchronizationObjectsFilter(objectclassDef,
-//                localCoordinatorTask);
-//
-//        reconResult.setResource(resource);
-//        reconResult.setObjectclassDefinition(objectclassDef);
-//
-//        LOGGER.info("Start executing reconciliation of resource {}, reconciling object class {}, stage: {}, work bucket: {}",
-//                resource, objectclassDef, stage, workBucket);
-//        long reconStartTimestamp = clock.currentTimeMillis();
-//
-//
-//        long beforeResourceReconTimestamp = clock.currentTimeMillis();
-//        long afterResourceReconTimestamp;
-//        long afterShadowReconTimestamp;
-//
-//
-//        opResult.computeStatus();
-//        // This "run" is finished. But the task goes on ...
-//        runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-//        runResult.setShouldContinue(true);
-//        runResult.setBucketComplete(true);
-//        LOGGER.trace("Reconciliation.run stopping, result: {}", opResult.getStatus());
-//
-//        long reconEndTimestamp = clock.currentTimeMillis();
-//
-//        long etime = reconEndTimestamp - reconStartTimestamp;
-//        long unOpsTime = beforeResourceReconTimestamp - reconStartTimestamp;
-//        long resourceReconTime = afterResourceReconTimestamp - beforeResourceReconTimestamp;
-//        long shadowReconTime = afterShadowReconTimestamp - afterResourceReconTimestamp;
-//        LOGGER.info("Done executing reconciliation of resource {}, object class {}, Etime: {} ms (un-ops: {}, resource: {}, shadow: {})",
-//                resource, objectclassDef, etime, unOpsTime, resourceReconTime, shadowReconTime);
-//
-//        reconResult.setRunResult(runResult);
-//        if (reconciliationTaskResultListener != null) {
-//            reconciliationTaskResultListener.process(reconResult);
-//        }
-//
-//        TaskHandlerUtil.appendLastFailuresInformation(OperationConstants.RECONCILIATION, localCoordinatorTask, opResult);
-//        return runResult;
-//    }
-
-//    private void setExpectedTotalToNull(Task coordinatorTask, OperationResult opResult) {
-//        coordinatorTask.setExpectedTotal(null);
-//        try {
-//            coordinatorTask.flushPendingModifications(opResult);
-//        } catch (Throwable t) {
-//            throw new SystemException("Couldn't update the task: " + t.getMessage(), t);
-//        }
-//    }
 
     /**
      * Launch an import. Calling this method will start import in a new
@@ -215,175 +146,6 @@ public class ReconciliationTaskHandler
         LOGGER.trace("Reconciliation for resource {} switched to background, control thread returning with task {}", ObjectTypeUtil.toShortString(resource), task);
     }
 
-//    private void processInterruption(TaskRunResult runResult, PrismObject<ResourceType> resource, RunningTask task, OperationResult opResult) {
-//        opResult.recordWarning("Interrupted");
-//        if (LOGGER.isWarnEnabled()) {
-//            LOGGER.warn("Reconciliation on {} interrupted", resource);
-//        }
-//        runResult.setRunResultStatus(TaskRunResultStatus.INTERRUPTED);          // not strictly necessary, because using task.canRun() == false the task manager knows we were interrupted
-//        TaskHandlerUtil.appendLastFailuresInformation(OperationConstants.RECONCILIATION, task, opResult);    // TODO implement more seriously
-//    }
-//
-//    private void processErrorFinal(TaskRunResult runResult, String errorDesc, Exception ex,
-//            TaskRunResultStatus runResultStatus, PrismObject<ResourceType> resource, RunningTask task, OperationResult opResult) {
-//        AuditEventRecord executionRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.EXECUTION);
-//        executionRecord.setTarget(resource, prismContext);
-//        executionRecord.setOutcome(OperationResultStatus.FATAL_ERROR);
-//        executionRecord.setMessage(ex.getMessage());
-//        auditHelper.audit(executionRecord, null, task, opResult);
-//
-//        String message = errorDesc+": "+ex.getMessage();
-//        LOGGER.error("Reconciliation: {}-{}", message, ex);
-//        opResult.recordFatalError(message, ex);
-//        TaskHandlerUtil.appendLastFailuresInformation(OperationConstants.RECONCILIATION, task, opResult); // TODO implement more seriously
-//        runResult.setRunResultStatus(runResultStatus);
-//    }
-//
-//    private void processErrorPartial(TaskRunResult runResult, String errorDesc, Exception ex,
-//            TaskRunResultStatus runResultStatus, OperationResult opResult) {
-//        String message;
-//        if (ex == null) {
-//            message = errorDesc;
-//        } else {
-//            message = errorDesc+": "+ex.getMessage();
-//        }
-//        LOGGER.error("Reconciliation: {}-{}", message, ex);
-//        opResult.recordFatalError(message, ex);
-//        runResult.setRunResultStatus(runResultStatus);
-//    }
-//
-//    // returns false in case of execution interruption
-//    private boolean performResourceReconciliation(PrismObject<ResourceType> resource,
-//            ObjectClassComplexTypeDefinition objectclassDef,
-//            SynchronizationObjectsFilter objectsFilter, ReconciliationTaskResult reconResult, RunningTask localCoordinatorTask,
-//            TaskPartitionDefinitionType partitionDefinition, WorkBucketType workBucket, OperationResult parentResult)
-//            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-//            SecurityViolationException, ExpressionEvaluationException, PreconditionViolationException, PolicyViolationException, ObjectAlreadyExistsException {
-//
-//        boolean interrupted;
-//
-//        OperationResult result = parentResult.createSubresult(OperationConstants.RECONCILIATION+".resourceReconciliation");
-//
-//        // Instantiate result handler. This will be called with every search
-//        // result in the following iterative search
-//        SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource.asObjectable(), objectclassDef,
-//                objectsFilter, "reconciliation", localCoordinatorTask, changeNotificationDispatcher,
-//                partitionDefinition, taskManager);
-//        handler.setSourceChannel(SchemaConstants.CHANNEL_RECON);
-//        handler.setStopOnError(false);
-//        handler.setEnableSynchronizationStatistics(true);
-//        handler.setEnableActionsExecutedStatistics(true);
-//
-//        localCoordinatorTask.setExpectedTotal(null);
-//
-//        try {
-//
-//
-//            OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative");
-//
-//            handler.createWorkerThreads(localCoordinatorTask);
-//            // note that progress is incremented within the handler, as it extends AbstractSearchIterativeResultHandler
-//            try {
-//                provisioningService.searchObjectsIterative(ShadowType.class, bucketNarrowedQuery, options, handler,
-//                        localCoordinatorTask, searchResult);
-//            } finally {
-//                handler.completeProcessing(localCoordinatorTask, searchResult);
-//            }
-//
-//            interrupted = !localCoordinatorTask.canRun();
-//
-//            result.computeStatus();
-//
-//            String message = "Processed " + handler.getProgress() + " account(s), got " + handler.getErrors() + " error(s)";
-//            if (interrupted) {
-//                message += "; was interrupted during processing";
-//            }
-//            if (handler.getProgress() > 0) {
-//                message += ". Average time for one object: " + handler.getAverageTime() + " ms (wall clock time average: " + handler.getWallAverageTime() + " ms).";
-//            }
-//
-//            OperationResultStatus resultStatus;
-//            if (handler.getErrors() > 0) {
-//                resultStatus = OperationResultStatus.PARTIAL_ERROR;
-//            } else {
-//                resultStatus = OperationResultStatus.SUCCESS;
-//            }
-//            result.recordStatus(resultStatus, message);
-//            LOGGER.info("Finished resource part of {} reconciliation: {}", resource, message);
-//
-//            reconResult.setResourceReconCount(handler.getProgress());
-//            reconResult.setResourceReconErrors(handler.getErrors());
-//
-//        } catch (ConfigurationException | SecurityViolationException | SchemaException | CommunicationException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException | Error e) {
-//            result.recordFatalError(e);
-//            throw e;
-//        }
-//
-//        if (handler.getExceptionEncountered() != null) {
-//            RepoCommonUtils.throwException(handler.getExceptionEncountered(), result);
-//        }
-//
-//        return !interrupted;
-//    }
-//
-//    // returns false in case of execution interruption
-//    private boolean performShadowReconciliation(final PrismObject<ResourceType> resource,
-//            @NotNull ObjectClassComplexTypeDefinition objectclassDef, @NotNull SynchronizationObjectsFilter objectsFilter,
-//            long startTimestamp, long endTimestamp, ReconciliationTaskResult reconResult, RunningTask localCoordinatorTask,
-//            WorkBucketType workBucket, OperationResult parentResult) throws SchemaException,
-//            ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException {
-//        boolean interrupted;
-//
-//        // find accounts
-//
-//        LOGGER.trace("Shadow reconciliation starting for {}, {} -> {}", resource, startTimestamp, endTimestamp);
-//        OperationResult result = parentResult.createSubresult(OperationConstants.RECONCILIATION+".shadowReconciliation");
-//        try {
-//
-//            long started = System.currentTimeMillis();
-//
-//            AtomicLong count = new AtomicLong(0);
-//            AtomicLong errors = new AtomicLong(0);
-//
-//            ResultHandler<ShadowType> handler = (shadow, shadowResult) -> {
-//            };
-//
-//            repositoryService.searchObjectsIterative(ShadowType.class, bucketNarrowedQuery, handler, null, true, result);
-//            interrupted = !localCoordinatorTask.canRun();
-//
-//            // for each try the operation again
-//
-//            result.computeStatus();
-//            if (errors.longValue() > 0) {
-//                result.setStatus(OperationResultStatus.PARTIAL_ERROR);
-//            }
-//
-//            LOGGER.trace("Shadow reconciliation finished, processed {} shadows for {}, result: {}",
-//                    count.longValue(), resource, result.getStatus());
-//
-//            reconResult.setShadowReconCount(count.longValue());
-//
-//            parentResult.createSubresult(OperationConstants.RECONCILIATION + ".shadowReconciliation.statistics")
-//                    .recordStatus(OperationResultStatus.SUCCESS, "Processed " + count.longValue() + " shadow(s) in "
-//                            + (System.currentTimeMillis() - started) + " ms."
-//                            + " Errors: " + errors.longValue() + "."
-//                            + (interrupted ? " Was interrupted during processing." : ""));
-//
-//            return !interrupted;
-//        } catch (Throwable t) {
-//            result.recordFatalError(t);
-//            throw t;
-//        } finally {
-//            result.computeStatusIfUnknown();
-//        }
-//    }
-//
-//    private void processShadowReconError(Throwable t, PrismObject<ShadowType> shadow, OperationResult result) {
-//        LOGGER.error("Error reconciling shadow {}: {}", shadow, t.getMessage(), t);
-//        result.recordFatalError(t);
-//        // TODO: store error in the shadow?
-//    }
-
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.RECONCILIATION;
@@ -400,6 +162,6 @@ public class ReconciliationTaskHandler
     }
 
     public ResourceObjectChangeListener getObjectChangeListener() {
-        return changeNotificationDispatcher;
+        return eventDispatcher;
     }
 }

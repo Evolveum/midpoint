@@ -56,6 +56,6 @@
     <recurrence>recurring</recurrence>
     <binding>loose</binding>
     <schedule>
-        <interval>5</interval>
+        <interval>10</interval>
     </schedule>
 </task>

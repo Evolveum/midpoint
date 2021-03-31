@@ -380,6 +380,11 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             protected void addButtons(RepeatingView repeatingView) {
                 initOperationalButtons(repeatingView);
             }
+
+            @Override
+            protected void addStateButtons(RepeatingView stateButtonsView) {
+                initStateButtons(stateButtonsView);
+            }
         };
 
         opButtonPanel.setOutputMarkupId(true);
@@ -450,6 +455,10 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                 getObjectArchetypeRef() != null && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())));
         changeArchetype.add(AttributeAppender.append("class", "btn-default"));
         repeatingView.add(changeArchetype);
+    }
+
+    protected void initStateButtons(RepeatingView stateButtonsView) {
+
     }
 
     protected OperationalButtonsPanel getOperationalButtonsPanel() {

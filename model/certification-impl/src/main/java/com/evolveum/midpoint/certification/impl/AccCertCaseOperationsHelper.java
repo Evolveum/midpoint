@@ -125,7 +125,7 @@ public class AccCertCaseOperationsHelper {
             DelegateWorkItemActionType delegateAction, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException,
             SecurityViolationException {
-        LOGGER.info("Going to delegate {} work item(s) in campaign {}", workItems.size(), campaignOid);
+        LOGGER.debug("Going to delegate {} work item(s) in campaign {}", workItems.size(), campaignOid);
 
         MidPointPrincipal principal = securityContextManager.getPrincipal();
         result.addContext("user", toShortString(principal.getFocus()));
@@ -208,7 +208,7 @@ public class AccCertCaseOperationsHelper {
             return;
         }
 
-        LOGGER.info("Going to escalate the campaign {}: {} work item(s)", campaignOid, workItems.size());
+        LOGGER.debug("Going to escalate the campaign {}: {} work item(s)", campaignOid, workItems.size());
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
         ModificationsToExecute modifications = new ModificationsToExecute();

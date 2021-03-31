@@ -100,7 +100,8 @@ public class TriggerScannerItemProcessor
                 logger.warn("Trigger without handler URI in {}", object);
                 continue;
             }
-            if (processedTriggers.triggerAlreadySeen(handlerUri, object, trigger)) {
+            // TODO maybe this check is redundant (we already filter on object OID)
+            if (processedTriggers.triggerAlreadySeen(handlerUri, object.getOid(), trigger.getId())) {
                 logger.debug("Handler {} already executed for {}:{}", handlerUri, ObjectTypeUtil.toShortString(object), trigger.getId());
                 // We don't request the trigger removal here. If the trigger was previously seen and processed correctly,
                 // it was already removed. But if it was seen and failed, we want to keep it!
@@ -122,7 +123,8 @@ public class TriggerScannerItemProcessor
                 // todo consider relaxing "timestamps equal" condition if declared so by the handler
                 while (i < triggers.size() && trigger.getTimestamp().equals(triggers.get(0).getTimestamp())) {
                     TriggerType t = triggers.get(i);
-                    if (processedTriggers.triggerAlreadySeen(handlerUri, object, t)) { // see comment above
+                    // TODO maybe this check is redundant (we already filter on object OID)
+                    if (processedTriggers.triggerAlreadySeen(handlerUri, object.getOid(), t.getId())) { // see comment above
                         logger.debug("Handler {} already executed for {}:{}", handlerUri, ObjectTypeUtil.toShortString(object), t.getId());
                         triggers.remove(i);
                     } else if (handlerUri.equals(t.getHandlerUri())) {

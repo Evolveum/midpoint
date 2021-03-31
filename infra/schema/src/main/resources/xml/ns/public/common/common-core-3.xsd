@@ -3397,6 +3397,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="complete" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        True if this part is complete.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="taskPartProgress" type="tns:TaskPartProgressType" />
@@ -7624,8 +7631,20 @@
             <xsd:element name="reshreshOnRead" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
+                        WARNING: There is a this property. Use the correct form "refreshOnRead" instead.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.9</a:since>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.3</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="refreshOnRead" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
                         If set to true then midPoint will always refresh shadow when it is retrieved.
-                        Refreshing a shadow means that the status of asynchronous (e.g. manual) opearions
+                        Refreshing a shadow means that the status of asynchronous (e.g. manual) operations
                         is checked, unfinished operations may be retried and so on. In this case shadow
                         will always be as fresh as it can be. But read may be slower and there may be
                         strange errors (e.g. reading a shadow may cause "already exists" error because
@@ -7635,7 +7654,7 @@
                         (e.g. during reconciliation).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>3.9</a:since>
+                        <a:since>4.3</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -19992,6 +20011,19 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="approvals" type="tns:AdminGuiApprovalsConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Configuration related to approvals GUI.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                        <a:displayName>AdminGuiConfigurationType.approvals</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="displayFormats" type="tns:AdminGuiConfigurationDisplayFormatsType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -20036,6 +20068,36 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="AdminGuiApprovalsConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration related to approvals GUI.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="expandRolesOnPreview" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Whether to expand (resolve) abstract role members on approval case preview.
+                            Default is false, unless overridden by workflowConfiguration/defaultExpandRolesOnPreview.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                        <a:displayName>AdminGuiApprovalsConfigurationType.expandRolesOnPreview</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="adminGuiApprovalsConfiguration" type="tns:AdminGuiApprovalsConfigurationType" />
 
     <xsd:complexType name="AdminGuiConfigurationDisplayFormatsType">
         <xsd:annotation>
@@ -22298,6 +22360,24 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="CONSENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="related">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Relation "is related to" kind.
+
+                        Specifies that the subject is somewhat related to the owner, but this relation does not bring any
+                        specific privileges or entitlements or whatever to it. It is just a descriptive information, with
+                        no tangible effect.
+
+                        Currently used to link shadow owners to their dead shadows. We want to maintain such link but
+                        we do not want to show them e.g. in links counts etc.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RELATED"/>
+                        <a:since>4.3</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -25864,6 +25944,42 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="execution" type="tns:TaskPartExecutionRecordType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Information about individual task part executions. Needed e.g. to compute real throughput.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="TaskPartExecutionRecordType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about individual task part execution. Needed e.g. to compute real throughput.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.3</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="startTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When the execution started.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When the execution ended (or current time, in order to avoid information loss).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -25882,10 +25998,10 @@
             <xsd:extension base="tns:OutcomeKeyedCounterType">
                 <xsd:sequence>
                     <!-- outcome and count are inherited -->
-                    <xsd:element name="duration" type="xsd:long" minOccurs="0">
+                    <xsd:element name="duration" type="xsd:double" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Total time spent while processing items in this set.
+                                Total time spent while processing items in this set (in milliseconds).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -26435,7 +26551,7 @@
                                Configuration for allowed search modes for search. All search mode are allowed by default.
                            </xsd:documentation>
                            <xsd:appinfo>
-                               <a:displayName>SearchBoxConfigurationType.defaultMode</a:displayName>
+                               <a:displayName>SearchBoxConfigurationType.allowedMode</a:displayName>
                            </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>
@@ -29345,6 +29461,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="message" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Message connected to the reported result status.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="initiatorRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -29363,6 +29486,17 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="taskPartUri" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        URI of the task part. Necessary to distinguish between results of various task parts.
+                        Currently supported only for complex operations.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -30299,4 +30433,104 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="qualifiedItemProcessingOutcome" type="tns:QualifiedItemProcessingOutcomeType" />
+
+    <xsd:complexType name="TaskReportingOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How should the task report its various aspects?
+
+                EXPERIMENTAL. Will most probably change in the future.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimentaL>true</a:experimentaL>
+                <a:container>true</a:container>
+                <a:since>4.3</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="logging" type="tns:TaskLoggingOptionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How should individual actions be logged?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="taskReportingOptions" type="tns:TaskReportingOptionsType" />
+
+    <xsd:complexType name="TaskLoggingOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configures task logging aspects.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimentaL>true</a:experimentaL>
+                <a:container>true</a:container>
+                <a:since>4.3</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="itemCompletion" type="tns:TaskLoggingOptionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How should item completion be logged?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="bucketCompletion" type="tns:TaskLoggingOptionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How should bucket completion be logged?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="taskLoggingOptions" type="tns:TaskLoggingOptionsType" />
+
+    <xsd:simpleType name="TaskLoggingOptionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Option about logging a particular task-related event.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Event should not be logged.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="brief">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Event should be logged briefly, typically by writing a single log line.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="BRIEF"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="full">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Event should be logged full. A couple of lines containing e.g. statistical information can be written.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FULL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 </xsd:schema>

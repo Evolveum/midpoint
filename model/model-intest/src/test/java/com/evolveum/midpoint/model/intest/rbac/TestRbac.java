@@ -279,7 +279,7 @@ public class TestRbac extends AbstractRbacTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 1);
-        assertLinks(userJack, 1);
+        assertLiveLinks(userJack, 1);
         assertAssignedRole(userJack, ROLE_PIRATE_OID);
         assertRoleMembershipRef(userJack, ROLE_PIRATE_OID);
         assertDelegatedRef(userJack);
@@ -312,7 +312,7 @@ public class TestRbac extends AbstractRbacTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 2);
-        assertLinks(userJack, 1);
+        assertLiveLinks(userJack, 1);
         assertAssignedRole(userJack, ROLE_PIRATE_OID);
         assertRoleMembershipRef(userJack, ROLE_PIRATE_OID);
         assertDelegatedRef(userJack);
@@ -343,7 +343,7 @@ public class TestRbac extends AbstractRbacTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 3);
-        assertLinks(userJack, 1);
+        assertLiveLinks(userJack, 1);
         assertAssignedRole(userJack, ROLE_PIRATE_OID);
         assertRoleMembershipRef(userJack, ROLE_PIRATE_OID);
         assertDelegatedRef(userJack);
@@ -370,7 +370,7 @@ public class TestRbac extends AbstractRbacTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 2);
-        assertLinks(userJack, 1);
+        assertLiveLinks(userJack, 1);
         assertAssignedRole(userJack, ROLE_PIRATE_OID);
         assertRoleMembershipRef(userJack, ROLE_PIRATE_OID);
         assertDelegatedRef(userJack);
@@ -396,7 +396,7 @@ public class TestRbac extends AbstractRbacTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 1);
-        assertLinks(userJack, 1);
+        assertLiveLinks(userJack, 1);
         assertAssignedRole(userJack, ROLE_PIRATE_OID);
         assertRoleMembershipRef(userJack, ROLE_PIRATE_OID);
         assertDelegatedRef(userJack);
@@ -2670,7 +2670,7 @@ public class TestRbac extends AbstractRbacTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         assertAssignedNoRole(userBefore);
-        assertLinks(userBefore, 1);
+        assertLiveLinks(userBefore, 1);
         assertLinked(userBefore, accountJackRedOid);
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);

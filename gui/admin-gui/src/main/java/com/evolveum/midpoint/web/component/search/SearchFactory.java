@@ -59,10 +59,12 @@ public class SearchFactory {
                 ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP)
         ));
         SEARCHABLE_OBJECTS.put(FocusType.class, Arrays.asList(
-                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
                 ItemPath.create(FocusType.F_ROLE_MEMBERSHIP_REF),
+                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
                 ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
-                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)
+                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS),
+                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
+                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO)
         ));
         SEARCHABLE_OBJECTS.put(UserType.class, Arrays.asList(
                 ItemPath.create(UserType.F_TITLE),

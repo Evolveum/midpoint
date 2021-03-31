@@ -82,7 +82,7 @@ public class SqlDetailFetchMapper<R, I, DQ extends FlexibleRelationalPathBase<DR
                 .from(dq)
                 .where(detailFkPath.in(rowById.keySet()));
 
-        // SQL logging is on DEBUG level of: com.querydsl.sql
+        // see com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger for logging details
         List<DR> details = query.fetch();
         for (DR detail : details) {
             for (R row : rowById.get(detailToMasterId.apply(detail))) {
@@ -100,7 +100,7 @@ public class SqlDetailFetchMapper<R, I, DQ extends FlexibleRelationalPathBase<DR
                 .from(dq)
                 .where(detailFkPath.eq(rowToId.apply(masterRow)));
 
-        // SQL logging is on DEBUG level of: com.querydsl.sql
+        // see com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger for logging details
         List<DR> details = query.fetch();
         for (DR detail : details) {
             masterDetailConsumer.accept(masterRow, detail);

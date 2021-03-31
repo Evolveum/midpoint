@@ -139,7 +139,7 @@ class EntitlementsHelper {
             return;
         }
         ShadowAssociationType associationType = association.asContainerable();
-        LOGGER.info("###Shadow association: {}, class: {}", associationType.getName(), associationType.getName().getClass());
+        LOGGER.debug("###Shadow association: {}, class: {}", associationType.getName(), associationType.getName().getClass());
         if (associationType.getShadowRef() == null
                 || StringUtils.isEmpty(associationType.getShadowRef().getOid())) {
             throw new SchemaException(

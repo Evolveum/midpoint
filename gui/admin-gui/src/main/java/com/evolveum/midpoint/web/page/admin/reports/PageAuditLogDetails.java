@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,20 +7,13 @@
 package com.evolveum.midpoint.web.page.admin.reports;
 
 import java.util.*;
-import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxEventBehavior;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -34,25 +27,23 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordItemValueDto;
-import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
-import com.evolveum.midpoint.web.session.AuditLogStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
@@ -104,14 +95,16 @@ public class PageAuditLogDetails extends PageBase {
     private static final String ID_ADDITIONAL_ITEM_LINE = "additionalItemLine";
     private static final String ID_ITEM_NAME = "itemName";
     private static final String ID_ITEM_VALUE = "itemValue";
-    private static final String ID_HISTORY_PANEL = "historyPanel";
+//    private static final String ID_HISTORY_PANEL = "historyPanel";
+
+    public static final String PARAMETER_STAGE = "stage";
 
     private static final String ID_BUTTON_BACK = "back";
-    private static final int TASK_EVENTS_TABLE_SIZE = 10;
 
-    private static final String OPERATION_RESOLVE_REFERENCE_NAME = PageAuditLogDetails.class.getSimpleName()
-            + ".resolveReferenceName()";
-    private static final String OPERATION_LOAD_AUDIT_RECORD = PageAuditLogDetails.class.getSimpleName() + ".loadAuditRecord";
+    private static final String DOT_CLASS = PageAuditLogDetails.class.getSimpleName() + ".";
+    private static final String OPERATION_RESOLVE_REFERENCE_NAME = DOT_CLASS + "resolveReferenceName()";
+    private static final String OPERATION_LOAD_AUDIT_RECORD = DOT_CLASS + "loadAuditRecord";
+    private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadTask";
     private IModel<AuditEventRecordType> recordModel;
 
     // items that are not listed here are sorted according to their display name
@@ -137,11 +130,7 @@ public class PageAuditLogDetails extends PageBase {
         if (params != null) {
             getPageParameters().overwriteWith(params);
         }
-        initAuditLogModel(getSessionStorage().getAuditLog().getAuditRecord());
-    }
-
-    public PageAuditLogDetails(AuditEventRecordType record) {
-        initAuditLogModel(record);
+        initAuditModel();
     }
 
     @Override
@@ -151,31 +140,26 @@ public class PageAuditLogDetails extends PageBase {
 
     }
 
-    private void initAuditLogModel(AuditEventRecordType record) {
-        recordModel = new LoadableModel<AuditEventRecordType>(false) {
-
-            @Override
-            protected AuditEventRecordType load() {
-                return record;
-            }
-        };
-    }
-
     private void initAuditModel() {
-        recordModel = new LoadableModel<AuditEventRecordType>(false) {
+        recordModel = new LoadableModel<>(false) {
 
             @Override
             protected AuditEventRecordType load() {
 
-                StringValue param = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-                if (param == null) {
-                    return null;
-                }
-                String eventIdentifier = param.toString();
-                ObjectQuery query = getPrismContext().queryFor(AuditEventRecordType.class)
+                String eventIdentifier = getEventIdentifierParameter();
+                AuditEventStageType stageType = getStageTypeParameter();
+                S_MatchingRuleEntry filter = getPrismContext().queryFor(AuditEventRecordType.class)
                         .item(AuditEventRecordType.F_EVENT_IDENTIFIER)
-                        .eq(eventIdentifier)
-                        .build();
+                        .eq(eventIdentifier);
+                //TODO: remove when we will be able to query according to "repo id".
+                // it is here, because there was a bug, that raw (execute_changes_raw) changes
+                // were executed with same eventIdentifier for both request and execution stage
+                if (stageType != null) {
+                    filter = filter.and()
+                            .item(AuditEventRecordType.F_EVENT_STAGE)
+                            .eq(stageType);
+                }
+                ObjectQuery query = filter.build();
                 OperationResult result = new OperationResult(OPERATION_LOAD_AUDIT_RECORD);
                 SearchResultList<AuditEventRecordType> records = null;
                 try {
@@ -187,8 +171,11 @@ public class PageAuditLogDetails extends PageBase {
                 }
 
                 showResult(result, false);
-                if (records == null) {
-                    return null;
+                if (records == null || records.size() > 1) {
+                    getSession().error("Cannot load audit event record, "
+                            + (records == null ?  "no record found " : "more than one record found ")
+                            + ", identifier: " + eventIdentifier);
+                    redirectBackViaRestartResponseException();
                 }
 
                 if (records.size() > 1) {
@@ -200,123 +187,61 @@ public class PageAuditLogDetails extends PageBase {
         };
     }
 
+    private String getEventIdentifierParameter() {
+        StringValue param = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+        if (param == null) {
+            return null;
+        }
+        return param.toString();
+    }
+
+    private AuditEventStageType getStageTypeParameter() {
+        StringValue param = getPageParameters().get(PageAuditLogDetails.PARAMETER_STAGE);
+        if (param == null) {
+            return null;
+        }
+        String stage = param.toString();
+        if (stage == null) {
+            return null;
+        }
+        return AuditEventStageType.fromValue(stage);
+    }
+
     private void initLayout() {
         WebMarkupContainer eventPanel = new WebMarkupContainer(ID_EVENT_PANEL);
         eventPanel.setOutputMarkupId(true);
         add(eventPanel);
-        initAuditLogHistoryPanel(eventPanel);
+//        initAuditLogHistoryPanel(eventPanel);
         initEventPanel(eventPanel);
         initDeltasPanel(eventPanel);
         initLayoutBackButton();
     }
 
-    public Map<String, Object> getAuditEventRecordProviderParameters() {
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put(AuditEventRecordProvider.PARAMETER_TASK_IDENTIFIER, recordModel.getObject().getTaskIdentifier());
-        return parameters;
-    }
-
-    private void initAuditLogHistoryPanel(WebMarkupContainer eventPanel) {
-        AuditEventRecordProvider provider = new AuditEventRecordProvider(PageAuditLogDetails.this, null,
-                this::getAuditEventRecordProviderParameters);
-
-        BoxedTablePanel<AuditEventRecordType> table = new BoxedTablePanel<AuditEventRecordType>(
-                ID_HISTORY_PANEL, provider, initColumns(), UserProfileStorage.TableId.TASK_EVENTS_TABLE) {
-
-            @Override
-            protected Item<AuditEventRecordType> customizeNewRowItem(final Item<AuditEventRecordType> item,
-                    final IModel<AuditEventRecordType> rowModel) {
-
-                if (rowModel.getObject().getTimestamp().equals(recordModel.getObject().getTimestamp())) {
-                    item.add(new AttributeAppender("style", "background-color: #eee; border-color: #d6d6d6; color: #000"));
-                }
-
-                item.add(new AjaxEventBehavior("click") {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void onEvent(AjaxRequestTarget target) {
-                        PageAuditLogDetails.this.rowItemClickPerformed(target, rowModel);
-                    }
-                });
-                return item;
-            }
-        };
-        table.getFooterMenu().setVisible(false);
-        table.getFooterCountLabel().setVisible(false);
-        //TODO hidden temporarily
-        table.setVisible(false);
-        table.setOutputMarkupId(true);
-        table.setAdditionalBoxCssClasses("without-box-header-top-border");
-        eventPanel.addOrReplace(table);
-
-    }
-
-    private void rowItemClickPerformed(
-            AjaxRequestTarget target, final IModel<AuditEventRecordType> rowModel) {
-        recordModel.setObject(rowModel.getObject());
-        AuditLogStorage storage = getSessionStorage().getAuditLog();
-        storage.setAuditRecord(rowModel.getObject());
-        WebMarkupContainer eventPanel = (WebMarkupContainer) PageAuditLogDetails.this.get(ID_EVENT_PANEL);
-        initAuditLogHistoryPanel(eventPanel);
-        initEventPanel(eventPanel);
-        initDeltasPanel(eventPanel);
-        target.add(eventPanel);
-
-    }
-
-    private List<IColumn<AuditEventRecordType, String>> initColumns() {
-        List<IColumn<AuditEventRecordType, String>> columns = new ArrayList<>();
-        PropertyColumn<AuditEventRecordType, String> timeColumn = new PropertyColumn<AuditEventRecordType, String>
-                (createStringResource("AuditEventRecordType.timestamp"),
-                        AuditEventRecordType.F_TIMESTAMP.getLocalPart()) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void populateItem(Item<ICellPopulator<AuditEventRecordType>> item, String componentId,
-                    IModel<AuditEventRecordType> rowModel) {
-                XMLGregorianCalendar time = rowModel.getObject().getTimestamp();
-                item.add(new Label(componentId, WebComponentUtil.getShortDateTimeFormattedValue(time, PageAuditLogDetails.this)));
-            }
-        };
-        columns.add(timeColumn);
-        PropertyColumn<AuditEventRecordType, String> stageColumn = new PropertyColumn<AuditEventRecordType, String>
-                (createStringResource("PageAuditLogViewer.eventStageShortLabel"),
-                        AuditEventRecordType.F_EVENT_STAGE.getLocalPart()) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void populateItem(Item<ICellPopulator<AuditEventRecordType>> item, String componentId,
-                    IModel<AuditEventRecordType> rowModel) {
-                AuditEventStageType stage = rowModel.getObject().getEventStage();
-                String shortStage = "";
-                if (AuditEventStageType.EXECUTION.equals(stage)) {
-                    shortStage = AuditEventStageType.EXECUTION.value().substring(0, 4);
-                } else if (AuditEventStageType.REQUEST.equals(stage)) {
-                    shortStage = AuditEventStageType.REQUEST.value().substring(0, 3);
-                }
-                item.add(new Label(componentId, shortStage));
-            }
-        };
-        columns.add(stageColumn);
-        PropertyColumn<AuditEventRecordType, String> typeColumn = new PropertyColumn<AuditEventRecordType, String>
-                (createStringResource("PageAuditLogViewer.eventTypeShortLabel"),
-                        AuditEventRecordType.F_EVENT_TYPE.getLocalPart()) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void populateItem(Item<ICellPopulator<AuditEventRecordType>> item, String componentId,
-                    IModel<AuditEventRecordType> rowModel) {
-                //TODO create some proper short values
-                AuditEventTypeType type = rowModel.getObject().getEventType();
-                String typeVal = type.value().substring(0, 4);
-                item.add(new Label(componentId, typeVal));
-            }
-        };
-        columns.add(typeColumn);
-
-        return columns;
-    }
+//    private void initAuditLogHistoryPanel(WebMarkupContainer eventPanel) {
+//
+//        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_HISTORY_PANEL) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected ObjectQuery getCustomizeContentQuery(){
+//                return getPageBase().getPrismContext().queryFor(AuditEventRecordType.class)
+//                        .item(AuditEventRecordType.F_TASK_IDENTIFIER)
+//                        .eq(recordModel.getObject().getTaskIdentifier())
+//                        .build();
+//            }
+//
+//            @Override
+//            protected String getAuditStorageKey(String collectionNameValue) {
+//                if (StringUtils.isNotEmpty(collectionNameValue)) {
+//                    return SessionStorage.KEY_EVENT_DETAIL_AUDIT_LOG + "." + collectionNameValue;
+//                }
+//                return SessionStorage.KEY_EVENT_DETAIL_AUDIT_LOG;
+//            }
+//        };
+//        panel.setOutputMarkupId(true);
+//        panel.add(new VisibleBehaviour(() -> recordModel.getObject() != null && recordModel.getObject().getTaskIdentifier() != null));
+//        eventPanel.addOrReplace(panel);
+//    }
 
     private void initEventPanel(WebMarkupContainer eventPanel) {
 
@@ -324,147 +249,30 @@ public class PageAuditLogDetails extends PageBase {
         eventDetailsPanel.setOutputMarkupId(true);
         eventPanel.addOrReplace(eventDetailsPanel);
 
-        final Label identifier = new Label(ID_PARAMETERS_EVENT_IDENTIFIER, new PropertyModel(recordModel, ID_PARAMETERS_EVENT_IDENTIFIER));
-        identifier.setOutputMarkupId(true);
-        eventDetailsPanel.add(identifier);
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_IDENTIFIER, new PropertyModel(recordModel, ID_PARAMETERS_EVENT_IDENTIFIER)));
 
-        final Label timestamp = new Label(ID_PARAMETERS_TIMESTAMP, new PropertyModel(recordModel, ID_PARAMETERS_TIMESTAMP));
-        timestamp.setOutputMarkupId(true);
-        eventDetailsPanel.add(timestamp);
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_TIMESTAMP, new PropertyModel(recordModel, ID_PARAMETERS_TIMESTAMP)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_SESSION_IDENTIFIER, new PropertyModel(recordModel, ID_PARAMETERS_SESSION_IDENTIFIER)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_TASK_IDENTIFIER, new PropertyModel(recordModel, ID_PARAMETERS_TASK_IDENTIFIER)));
+        eventDetailsPanel.add(createTaskLink());
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_TASK_OID_LABEL, new PropertyModel(recordModel, "taskOID")));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_REQUEST_IDENTIFIER, new PropertyModel(recordModel, ID_PARAMETERS_REQUEST_IDENTIFIER)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_HOST_IDENTIFIER, new PropertyModel(recordModel, ID_PARAMETERS_HOST_IDENTIFIER)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_NODE_IDENTIFIER, new PropertyModel(recordModel, ID_PARAMETERS_NODE_IDENTIFIER)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_REMOTE_HOST_ADDRESS, new PropertyModel(recordModel, ID_PARAMETERS_REMOTE_HOST_ADDRESS)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_INITIATOR, createInitiatorRefModel()));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_ATTORNEY, createAttorneyRefModel()));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_TARGET, createTargetRefModel()));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_TARGET_OWNER, createTargetOwnerRefModel()));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_TYPE, new PropertyModel(recordModel, ID_PARAMETERS_EVENT_TYPE)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_STAGE, new PropertyModel(recordModel, ID_PARAMETERS_EVENT_STAGE)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_CHANNEL, new PropertyModel(recordModel, ID_PARAMETERS_CHANNEL)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_OUTCOME, new PropertyModel(recordModel, ID_PARAMETERS_EVENT_OUTCOME)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_RESULT, new PropertyModel(recordModel, ID_PARAMETERS_EVENT_RESULT)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_PARAMETER, new PropertyModel(recordModel, ID_PARAMETERS_PARAMETER)));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_MESSAGE, new PropertyModel(recordModel, ID_PARAMETERS_MESSAGE)));
 
-        final Label sessionIdentifier = new Label(ID_PARAMETERS_SESSION_IDENTIFIER, new PropertyModel(recordModel, ID_PARAMETERS_SESSION_IDENTIFIER));
-        sessionIdentifier.setOutputMarkupId(true);
-        eventDetailsPanel.add(sessionIdentifier);
-
-        final Label taskIdentifier = new Label(ID_PARAMETERS_TASK_IDENTIFIER, new PropertyModel(recordModel, ID_PARAMETERS_TASK_IDENTIFIER));
-        taskIdentifier.setOutputMarkupId(true);
-        eventDetailsPanel.add(taskIdentifier);
-
-        IModel<TaskType> taskModel = new LoadableModel<TaskType>(false) {
-
-            @Override
-            protected TaskType load() {
-                PrismObject<TaskType> task;
-                if (recordModel != null && recordModel.getObject() != null && StringUtils.isNotEmpty(recordModel.getObject().getTaskOID())) {
-                    List<PrismObject<TaskType>> tasks = WebModelServiceUtils.searchObjects(TaskType.class,
-                            getPrismContext().queryFor(TaskType.class).id(recordModel.getObject().getTaskOID())
-                                    .build(),
-                            new OperationResult("search task by oid"), PageAuditLogDetails.this);
-                    if (tasks != null && !tasks.isEmpty()) {
-                        task = tasks.get(0);
-                        if (task != null) {
-                            return task.asObjectable();
-                        }
-                    }
-                }
-                return null;
-            }
-        };
-
-        Label taskOidLabel = new Label(ID_PARAMETERS_TASK_OID_LABEL, new PropertyModel(recordModel, "taskOID"));
-
-        AjaxLinkPanel taskOidLink = new AjaxLinkPanel(ID_PARAMETERS_TASK_OID_LINK, createTaskNameModel(taskModel)) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                TaskType finalTask = taskModel.getObject();
-                if (finalTask != null) {
-                    WebComponentUtil.dispatchToObjectDetailsPage(ObjectTypeUtil.createObjectRef(finalTask, getPrismContext()), this, false);
-                }
-            }
-        };
-
-        taskOidLabel.setOutputMarkupId(true);
-        eventDetailsPanel.add(taskOidLabel);
-        taskOidLink.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return taskModel != null && taskModel.getObject() != null;
-            }
-        });
-        taskOidLink.setOutputMarkupId(true);
-        eventDetailsPanel.add(taskOidLink);
-
-        final Label requestIdentifier = new Label(ID_PARAMETERS_REQUEST_IDENTIFIER, new PropertyModel(recordModel, ID_PARAMETERS_REQUEST_IDENTIFIER));
-        requestIdentifier.setOutputMarkupId(true);
-        eventDetailsPanel.add(requestIdentifier);
-
-        final Label hostIdentifier = new Label(ID_PARAMETERS_HOST_IDENTIFIER, new PropertyModel(recordModel, ID_PARAMETERS_HOST_IDENTIFIER));
-        hostIdentifier.setOutputMarkupId(true);
-        eventDetailsPanel.add(hostIdentifier);
-
-        final Label nodeIdentifier = new Label(ID_PARAMETERS_NODE_IDENTIFIER, new PropertyModel(recordModel, ID_PARAMETERS_NODE_IDENTIFIER));
-        nodeIdentifier.setOutputMarkupId(true);
-        eventDetailsPanel.add(nodeIdentifier);
-
-        final Label remoteHostAddress = new Label(ID_PARAMETERS_REMOTE_HOST_ADDRESS, new PropertyModel(recordModel, ID_PARAMETERS_REMOTE_HOST_ADDRESS));
-        remoteHostAddress.setOutputMarkupId(true);
-        eventDetailsPanel.add(remoteHostAddress);
-
-        final Label initiatorRef = new Label(ID_PARAMETERS_EVENT_INITIATOR, createInitiatorRefModel());
-        initiatorRef.setOutputMarkupId(true);
-        eventDetailsPanel.add(initiatorRef);
-
-        final Label attorneyRef = new Label(ID_PARAMETERS_EVENT_ATTORNEY, createAttorneyRefModel());
-        attorneyRef.setOutputMarkupId(true);
-        eventDetailsPanel.add(attorneyRef);
-
-        final Label targetRef = new Label(ID_PARAMETERS_EVENT_TARGET, createTargetRefModel());
-        targetRef.setOutputMarkupId(true);
-        eventDetailsPanel.add(targetRef);
-
-        IModel<String> targetOwnerRefModel = new IModel<String>() {
-            @Override
-            public String getObject() {
-                return WebModelServiceUtils.resolveReferenceName(recordModel.getObject().getTargetOwnerRef(),
-                        PageAuditLogDetails.this,
-                        createSimpleTask(OPERATION_RESOLVE_REFERENCE_NAME),
-                        new OperationResult(OPERATION_RESOLVE_REFERENCE_NAME));
-            }
-
-            @Override
-            public void setObject(String s) {
-
-            }
-
-            @Override
-            public void detach() {
-
-            }
-        };
-        final Label targetOwnerRef = new Label(ID_PARAMETERS_EVENT_TARGET_OWNER, targetOwnerRefModel);
-        targetOwnerRef.setOutputMarkupId(true);
-        eventDetailsPanel.add(targetOwnerRef);
-
-        final Label eventType = new Label(ID_PARAMETERS_EVENT_TYPE, new PropertyModel(recordModel, ID_PARAMETERS_EVENT_TYPE));
-        eventType.setOutputMarkupId(true);
-        eventDetailsPanel.add(eventType);
-
-        final Label eventStage = new Label(ID_PARAMETERS_EVENT_STAGE, new PropertyModel(recordModel, ID_PARAMETERS_EVENT_STAGE));
-        eventStage.setOutputMarkupId(true);
-        eventDetailsPanel.add(eventStage);
-
-        final Label channel = new Label(ID_PARAMETERS_CHANNEL, new PropertyModel(recordModel, ID_PARAMETERS_CHANNEL));
-        channel.setOutputMarkupId(true);
-        eventDetailsPanel.add(channel);
-
-        final Label eventOutcome = new Label(ID_PARAMETERS_EVENT_OUTCOME, new PropertyModel(recordModel, ID_PARAMETERS_EVENT_OUTCOME));
-        eventOutcome.setOutputMarkupId(true);
-        eventDetailsPanel.add(eventOutcome);
-
-        final Label eventResult = new Label(ID_PARAMETERS_EVENT_RESULT, new PropertyModel(recordModel, ID_PARAMETERS_EVENT_RESULT));
-        eventResult.setOutputMarkupId(true);
-        eventDetailsPanel.add(eventResult);
-
-        final Label parameter = new Label(ID_PARAMETERS_PARAMETER, new PropertyModel(recordModel, ID_PARAMETERS_PARAMETER));
-        parameter.setOutputMarkupId(true);
-        eventDetailsPanel.add(parameter);
-
-        final Label message = new Label(ID_PARAMETERS_MESSAGE, new PropertyModel(recordModel, ID_PARAMETERS_MESSAGE));
-        message.setOutputMarkupId(true);
-        eventDetailsPanel.add(message);
-
-        ListView<AuditEventRecordItemValueDto> additionalItemsList = new ListView<AuditEventRecordItemValueDto>(
+        ListView<AuditEventRecordItemValueDto> additionalItemsList = new ListView<>(
                 ID_ADDITIONAL_ITEM_LINE, createAdditionalItemsListModel()) {
 
             @Override
@@ -479,6 +287,75 @@ public class PageAuditLogDetails extends PageBase {
         eventDetailsPanel.add(additionalItemsContainer);
     }
 
+    private AjaxLinkPanel createTaskLink() {
+        IModel<TaskType> taskModel = createTaskModel();
+
+        AjaxLinkPanel taskOidLink = new AjaxLinkPanel(ID_PARAMETERS_TASK_OID_LINK, createTaskNameModel(taskModel)) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                TaskType finalTask = taskModel.getObject();
+                if (finalTask != null) {
+                    WebComponentUtil.dispatchToObjectDetailsPage(ObjectTypeUtil.createObjectRef(finalTask, getPrismContext()), this, false);
+                }
+            }
+        };
+        taskOidLink.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return taskModel.getObject() != null;
+            }
+        });
+        taskOidLink.setOutputMarkupId(true);
+        return taskOidLink;
+    }
+    private IModel<String> createTargetOwnerRefModel() {
+        return new ReadOnlyModel<>(() -> {
+            AuditEventRecordType record = recordModel.getObject();
+            if (record == null) {
+                return null;
+            }
+            return WebModelServiceUtils.resolveReferenceName(record.getTargetOwnerRef(),
+                    PageAuditLogDetails.this,
+                    createSimpleTask(OPERATION_RESOLVE_REFERENCE_NAME),
+                    new OperationResult(OPERATION_RESOLVE_REFERENCE_NAME));
+        });
+    }
+    private Label createLabel(String id, IModel<String> model) {
+        Label label = new Label(id, model);
+        label.setOutputMarkupId(true);
+        return label;
+    }
+
+    private LoadableModel<TaskType> createTaskModel() {
+        return new LoadableModel<>(false) {
+
+            @Override
+            protected TaskType load() {
+                String taskOid = getTaskOid(recordModel);
+                if (taskOid == null) {
+                    return null;
+                }
+                Task task = createSimpleTask(OPERATION_LOAD_TASK);
+                OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
+                PrismObject<TaskType> taskPrism = WebModelServiceUtils.loadObject(TaskType.class, taskOid, PageAuditLogDetails.this, task, result);
+                if (taskPrism == null) {
+                    return null;
+                }
+                return taskPrism.asObjectable();
+
+            }
+        };
+    }
+
+    private String getTaskOid(IModel<AuditEventRecordType> recordModel) {
+        if (recordModel == null || recordModel.getObject() == null) {
+            return null;
+        }
+
+        return recordModel.getObject().getTaskOID();
+    }
+
     private IModel<String> createTaskNameModel(IModel<TaskType> taskModel) {
         return new ReadOnlyModel<>(() -> {
             TaskType task = taskModel.getObject();
@@ -490,7 +367,11 @@ public class PageAuditLogDetails extends PageBase {
     }
 
     private IModel<String> createInitiatorRefModel() {
-        return new ReadOnlyModel<>(() -> WebModelServiceUtils.resolveReferenceName(recordModel.getObject().getInitiatorRef(), PageAuditLogDetails.this));
+        AuditEventRecordType record = recordModel.getObject();
+        if (record == null) {
+            return null;
+        }
+        return new ReadOnlyModel<>(() -> WebModelServiceUtils.resolveReferenceName(record.getInitiatorRef(), PageAuditLogDetails.this));
     }
 
     private IModel<String> createAttorneyRefModel() {
@@ -508,7 +389,7 @@ public class PageAuditLogDetails extends PageBase {
     }
 
     private IModel<List<AuditEventRecordItemValueDto>> createAdditionalItemsListModel() {
-        return new IModel<List<AuditEventRecordItemValueDto>>() {
+        return new IModel<>() {
             @Override
             public List<AuditEventRecordItemValueDto> getObject() {
                 List<AuditEventRecordItemValueDto> rv = new ArrayList<>();
@@ -525,8 +406,6 @@ public class PageAuditLogDetails extends PageBase {
                                     value.getTargetName().getOrig() : value.getOid()));
                             currentName = null;
                         }
-                    } else {
-                        // should not occur
                     }
                 }
                 return rv;
@@ -536,35 +415,42 @@ public class PageAuditLogDetails extends PageBase {
             private List<AuditEventRecordItemType> getSortedItems() {
                 AuditEventRecordType record = recordModel.getObject();
                 List<AuditEventRecordItemType> rv = new ArrayList<>();
+                if (record == null) {
+                    return rv;
+                }
                 rv.addAll(record.getProperty());
                 rv.addAll(record.getReference());
-                rv.sort((a, b) -> {
-                    // explicitly enumerated are shown first; others are sorted by display name
-                    int indexA = EXTENSION_ITEMS_ORDER.indexOf(a.getName());
-                    int indexB = EXTENSION_ITEMS_ORDER.indexOf(b.getName());
-                    if (indexA != -1 && indexB != -1) {
-                        return Integer.compare(indexA, indexB);
-                    } else if (indexA != -1) {
-                        return -1;
-                    } else if (indexB != -1) {
-                        return 1;
-                    }
-                    String nameA = getDisplayName(a.getName());
-                    String nameB = getDisplayName(b.getName());
-                    return String.CASE_INSENSITIVE_ORDER.compare(nameA, nameB);
-                });
+                rv.sort((a, b) -> sortItems(a, b));
                 return rv;
             }
 
-            private String getDisplayName(String nameKey) {
-                // null should not occur so we don't try to be nice when displaying it
-                return nameKey != null ? createStringResource(nameKey).getString() : "(null)";
-            }
+
         };
     }
 
+    private int sortItems(AuditEventRecordItemType a, AuditEventRecordItemType b) {
+        // explicitly enumerated are shown first; others are sorted by display name
+        int indexA = EXTENSION_ITEMS_ORDER.indexOf(a.getName());
+        int indexB = EXTENSION_ITEMS_ORDER.indexOf(b.getName());
+        if (indexA != -1 && indexB != -1) {
+            return Integer.compare(indexA, indexB);
+        } else if (indexA != -1) {
+            return -1;
+        } else if (indexB != -1) {
+            return 1;
+        }
+        String nameA = getDisplayName(a.getName());
+        String nameB = getDisplayName(b.getName());
+        return String.CASE_INSENSITIVE_ORDER.compare(nameA, nameB);
+    }
+
+    private String getDisplayName(String nameKey) {
+        // null should not occur so we don't try to be nice when displaying it
+        return nameKey != null ? createStringResource(nameKey).getString() : "(null)";
+    }
+
     private void initDeltasPanel(WebMarkupContainer eventPanel) {
-        ListView<ObjectDeltaOperationType> deltaScene = new ListView<ObjectDeltaOperationType>(ID_DELTA_LIST_PANEL, createObjectDeltasModel()) {
+        ListView<ObjectDeltaOperationType> deltaScene = new ListView<>(ID_DELTA_LIST_PANEL, createObjectDeltasModel()) {
 
             @Override
             protected void populateItem(ListItem<ObjectDeltaOperationType> item) {
@@ -582,13 +468,16 @@ public class PageAuditLogDetails extends PageBase {
     }
 
     private IModel<List<ObjectDeltaOperationType>> createObjectDeltasModel() {
-        return new LoadableModel<List<ObjectDeltaOperationType>>(false) {
+        return new LoadableModel<>(false) {
 
             @Override
             protected List<ObjectDeltaOperationType> load() {
-                List<ObjectDeltaOperationType> deltas = recordModel.getObject().getDelta();
-                List<ObjectDeltaOperationType> connectedDeltas = connectDeltas(deltas);
-                return connectedDeltas;
+                AuditEventRecordType record = recordModel.getObject();
+                if (record == null) {
+                    return new ArrayList<>();
+                }
+                List<ObjectDeltaOperationType> deltas = record.getDelta();
+                return connectDeltas(deltas);
             }
         };
     }
@@ -609,7 +498,7 @@ public class PageAuditLogDetails extends PageBase {
                         }
                         for (ItemDeltaType itemDelta : delta.getObjectDelta().getItemDelta()) {
                             if (itemDelta == null) {
-                                continue;
+                                continue; //TODO why?
                             }
                         }
                     }

@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.evolveum.midpoint.task.api.RunningLightweightTask;
 import com.evolveum.midpoint.task.api.TaskManager;
 
 import org.jetbrains.annotations.NotNull;
@@ -129,7 +130,7 @@ public class ProcessingCoordinator<I> {
         logger.warn("Processing was interrupted in {}", coordinatorTask);
     }
 
-    void createWorkerTasks() {
+    void createWorkerTasks(@NotNull TaskReportingOptions reportingOptions) {
         if (threadsCount == 0) {
             return;
         }
@@ -144,10 +145,8 @@ public class ProcessingCoordinator<I> {
             workerSpecificResult.addContext("subtaskIndex", i+1);
             workerSpecificResults.add(workerSpecificResult);
 
-            RunningTask subtask = coordinatorTask.createSubtask(new WorkerHandler(workerSpecificResult));
-            subtask.resetIterativeTaskInformation(null);
-            subtask.resetSynchronizationInformation(null);
-            subtask.resetActionsExecutedInformation(null);
+            RunningLightweightTask subtask = coordinatorTask.createSubtask(new WorkerHandler(workerSpecificResult));
+            initializeStatisticsCollection(subtask, reportingOptions);
             subtask.setCategory(coordinatorTask.getCategory());
             subtask.setResult(new OperationResult(OP_EXECUTE_WORKER, OperationResultStatus.IN_PROGRESS, (String) null));
             subtask.setName("Worker thread " + (i+1) + " of " + threadsCount);
@@ -155,6 +154,17 @@ public class ProcessingCoordinator<I> {
             subtask.startLightweightHandler();
             logger.trace("Worker subtask {} created", subtask);
         }
+    }
+
+    private void initializeStatisticsCollection(RunningLightweightTask subtask, TaskReportingOptions reportingOptions) {
+        subtask.resetIterativeTaskInformation(null, reportingOptions.isCollectExecutions());
+        if (reportingOptions.isEnableSynchronizationStatistics()) {
+            subtask.resetSynchronizationInformation(null);
+        }
+        if (reportingOptions.isEnableActionsExecutedStatistics()) {
+            subtask.resetActionsExecutedInformation(null);
+        }
+        // Note we never maintain structured progress for LATs.
     }
 
     public boolean isMultithreaded() {
@@ -196,7 +206,7 @@ public class ProcessingCoordinator<I> {
         }
 
         @Override
-        public void run(RunningTask workerTask) {
+        public void run(RunningLightweightTask workerTask) {
 
             assert multithreaded;
             assert requestsBuffer != null;
@@ -209,7 +219,7 @@ public class ProcessingCoordinator<I> {
 
             while (canRun(workerTask)) {
 
-                workerTask.refreshLowLevelStatistics();
+                workerTask.refreshThreadLocalStatistics();
                 ItemProcessingRequest<I> request = requestsBuffer.poll(taskIdentifier);
 
                 if (request != null) {
@@ -243,7 +253,7 @@ public class ProcessingCoordinator<I> {
             if (reservedRequests > 0) {
                 logger.warn("Worker task exiting but it has {} reserved (pre-assigned) change requests", reservedRequests);
             }
-            workerTask.refreshLowLevelStatistics();
+            workerTask.refreshThreadLocalStatistics();
         }
 
         private void treatOperationResultAfterOperation() {

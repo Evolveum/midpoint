@@ -12,7 +12,6 @@ import java.sql.Types;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.dsl.*;
@@ -56,7 +55,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
  *
  * @param <T> entity type - typically a pure DTO bean for the table mapped by Q-type
  */
-public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T> {
+public class FlexibleRelationalPathBase<T> extends RelationalPathBase<T> {
 
     public static final String DEFAULT_SCHEMA_NAME = "PUBLIC";
 
@@ -126,10 +125,20 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
         return addMetadata(createArray(property, byte[].class), columnMetadata);
     }
 
+    protected <E> ArrayPath<E[], E> createArray(
+            String property, Class<E[]> elementType, ColumnMetadata columnMetadata) {
+        return addMetadata(createArray(property, elementType), columnMetadata);
+    }
+
     /** Creates {@link UuidPath} path for a property and registers column metadata for it. */
     protected UuidPath createUuid(
             String property, ColumnMetadata columnMetadata) {
-        return addMetadata(add(new UuidPath(UUID.class, forProperty(property))), columnMetadata);
+        return addMetadata(add(new UuidPath(forProperty(property))), columnMetadata);
+    }
+
+    /** Creates {@link JsonbPath} path for a property and registers column metadata for it. */
+    protected JsonbPath createJsonb(String property, ColumnMetadata columnMetadata) {
+        return addMetadata(add(new JsonbPath(forProperty(property))), columnMetadata);
     }
 
     /**

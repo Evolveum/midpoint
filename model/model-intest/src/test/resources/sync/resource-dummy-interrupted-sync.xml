@@ -47,6 +47,11 @@
             <objectClass>ri:AccountObjectClass</objectClass>
             <attribute>
                 <ref>icfs:name</ref>
+                <outbound>
+                    <source>
+                        <path>name</path>
+                    </source>
+                </outbound>
                 <inbound>
                     <expression>
                         <script>

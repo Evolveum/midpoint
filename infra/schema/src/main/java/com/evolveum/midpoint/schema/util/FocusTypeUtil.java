@@ -8,25 +8,16 @@ package com.evolveum.midpoint.schema.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.jetbrains.annotations.NotNull;
 
@@ -207,11 +198,8 @@ public class FocusTypeUtil {
     }
 
     public static <O extends ObjectType> boolean hasSubtype(PrismObject<O> object, String subtype) {
-        List<String> objectSubtypes = determineSubTypes(object);
-        if (objectSubtypes == null) {
-            return false;
-        }
-        return objectSubtypes.contains(subtype);
+        return determineSubTypes(object)
+                .contains(subtype);
     }
 
     public static <O extends ObjectType>  void setSubtype(PrismObject<O> object, List<String> subtypes) {
@@ -223,5 +211,13 @@ public class FocusTypeUtil {
         if (subtypes != null) {
             objSubtypes.addAll(subtypes);
         }
+    }
+
+    @NotNull
+    public static <F extends FocusType> List<ObjectReferenceType> getLiveLinkRefs(F focus) {
+        RelationRegistry relationRegistry = SchemaService.get().relationRegistry();
+        return focus.getLinkRef().stream()
+                .filter(ref -> relationRegistry.isMember(ref.getRelation()))
+                .collect(Collectors.toList());
     }
 }

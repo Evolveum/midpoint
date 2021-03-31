@@ -11,7 +11,8 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.sqale.RefTableItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.ObjectRefTableItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
@@ -20,7 +21,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
  * Sqale implementation for nested mapping with support for sqale specific types.
- * This allows for fluent calls of methods like {@link #addRefMapping(QName, QReferenceMapping)}
+ * This allows for fluent calls of methods like {@link #addRefMapping(QName, QObjectReferenceMapping)}
  * which depend on sqale-specific types like {@link QReferenceMapping} in this example.
  */
 public class SqaleNestedMapping<S, Q extends FlexibleRelationalPathBase<R>, R>
@@ -39,16 +40,16 @@ public class SqaleNestedMapping<S, Q extends FlexibleRelationalPathBase<R>, R>
 
     // TODO will the version for RefItemFilterProcessor be useful too? Yes, if it needs relation mapping too!
     public final SqaleNestedMapping<S, Q, R> addRefMapping(
-            @NotNull QName itemName, @NotNull QReferenceMapping qReferenceMapping) {
+            @NotNull QName itemName, @NotNull QObjectReferenceMapping qReferenceMapping) {
         ((QueryModelMapping<?, ?, ?>) this).addItemMapping(itemName,
-                RefTableItemFilterProcessor.mapper(qReferenceMapping));
+                ObjectRefTableItemFilterProcessor.mapper(qReferenceMapping));
         // TODO add relation mapping too
         return this;
     }
 
     /** Nested mapping adaptation for repo-sqale. */
     @Override
-    public <N> SqaleNestedMapping<N, Q, R> nestedMapping(
+    public <N> SqaleNestedMapping<N, Q, R> addNestedMapping(
             @NotNull ItemName itemName, @NotNull Class<N> nestedSchemaType) {
         SqaleNestedMapping<N, Q, R> nestedMapping =
                 new SqaleNestedMapping<>(nestedSchemaType, queryType());

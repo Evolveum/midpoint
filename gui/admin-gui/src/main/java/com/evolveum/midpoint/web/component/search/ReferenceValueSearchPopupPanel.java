@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.TextField;
@@ -55,27 +56,20 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
 
     @Override
     protected void customizationPopoverForm(MidpointForm midpointForm) {
-        TextField<String> oidField = new TextField<>(ID_OID, new PropertyModel<>(getModel(), "oid"));
-        oidField.add(new AjaxFormComponentUpdatingBehavior("blur") {
-
-            private static final long serialVersionUID = 1L;
-
+        PropertyModel<String> oidModel = new PropertyModel<>(getModel(), "oid"){
             @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-
+            public void setObject(String object) {
+                super.setObject(object);
+                if (StringUtils.isBlank(object)) {
+                    ReferenceValueSearchPopupPanel.this.getModelObject().asReferenceValue().setObject(null);
+                    ReferenceValueSearchPopupPanel.this.getModelObject().setTargetName(null);
+                    ReferenceValueSearchPopupPanel.this.getModelObject().setRelation(null);
+                }
             }
-        });
+        };
+        TextField<String> oidField = new TextField<>(ID_OID, oidModel);
+        oidField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         oidField.setOutputMarkupId(true);
-        oidField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onUpdate(AjaxRequestTarget target) {
-                ReferenceValueSearchPopupPanel.this.getModelObject().asReferenceValue().setObject(null);
-                ReferenceValueSearchPopupPanel.this.getModelObject().setTargetName(null);
-                ReferenceValueSearchPopupPanel.this.getModelObject().setRelation(null);
-            }
-        });
         oidField.add(new EnableBehaviour(() -> isItemPanelEnabled()));
         midpointForm.add(oidField);
 
@@ -91,6 +85,11 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
                     return (Class<O>) ObjectType.class;
                 }
                 return (Class<O>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), getModelObject().getType());
+            }
+
+            @Override
+            protected boolean isAllowedNotFoundObjectRef() {
+                return ReferenceValueSearchPopupPanel.this.isAllowedNotFoundObjectRef();
             }
         };
 
@@ -188,6 +187,10 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
 
     protected List<QName> getSupportedTargetList() {
         return WebComponentUtil.createFocusTypeList();
+    }
+
+    protected boolean isAllowedNotFoundObjectRef(){
+        return false;
     }
 
 }

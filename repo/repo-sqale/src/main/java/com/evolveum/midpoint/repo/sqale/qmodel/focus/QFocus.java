@@ -17,6 +17,7 @@ import com.querydsl.sql.ColumnMetadata;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 
 /**
@@ -34,26 +35,26 @@ public class QFocus<T extends MFocus> extends QObject<T> {
     public static final String TABLE_NAME = "m_focus";
 
     public static final ColumnMetadata ROLE_TYPE =
-            ColumnMetadata.named("roleType").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("roleType").ofType(Types.VARCHAR);
 
     public static final ColumnMetadata COST_CENTER =
-            ColumnMetadata.named("costCenter").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("costCenter").ofType(Types.VARCHAR);
     public static final ColumnMetadata EMAIL_ADDRESS =
-            ColumnMetadata.named("emailAddress").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("emailAddress").ofType(Types.VARCHAR);
     public static final ColumnMetadata PHOTO =
             ColumnMetadata.named("photo").ofType(Types.BINARY);
     public static final ColumnMetadata LOCALE =
-            ColumnMetadata.named("locale").ofType(Types.VARCHAR).withSize(255);
-    public static final ColumnMetadata LOCALITY_NORM =
-            ColumnMetadata.named("locality_norm").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("locale").ofType(Types.VARCHAR);
     public static final ColumnMetadata LOCALITY_ORIG =
-            ColumnMetadata.named("locality_orig").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("locality_orig").ofType(Types.VARCHAR);
+    public static final ColumnMetadata LOCALITY_NORM =
+            ColumnMetadata.named("locality_norm").ofType(Types.VARCHAR);
     public static final ColumnMetadata PREFERRED_LANGUAGE =
-            ColumnMetadata.named("preferredLanguage").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("preferredLanguage").ofType(Types.VARCHAR);
     public static final ColumnMetadata TELEPHONE_NUMBER =
-            ColumnMetadata.named("telephoneNumber").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("telephoneNumber").ofType(Types.VARCHAR);
     public static final ColumnMetadata TIMEZONE =
-            ColumnMetadata.named("timezone").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("timezone").ofType(Types.VARCHAR);
     // credential/password/metadata columns
     public static final ColumnMetadata PASSWORD_CREATE_TIMESTAMP =
             ColumnMetadata.named("passwordCreateTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
@@ -69,7 +70,7 @@ public class QFocus<T extends MFocus> extends QObject<T> {
     public static final ColumnMetadata DISABLE_TIMESTAMP =
             ColumnMetadata.named("disableTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     public static final ColumnMetadata DISABLE_REASON =
-            ColumnMetadata.named("disableReason").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("disableReason").ofType(Types.VARCHAR);
     public static final ColumnMetadata VALIDITY_STATUS =
             ColumnMetadata.named("validityStatus").ofType(Types.OTHER);
     public static final ColumnMetadata VALID_FROM =
@@ -80,13 +81,15 @@ public class QFocus<T extends MFocus> extends QObject<T> {
             ColumnMetadata.named("validityChangeTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     public static final ColumnMetadata ARCHIVE_TIMESTAMP =
             ColumnMetadata.named("archiveTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata LOCKOUT_STATUS =
+            ColumnMetadata.named("lockoutStatus").ofType(Types.OTHER);
 
     public final StringPath costCenter = createString("costCenter", COST_CENTER);
     public final StringPath emailAddress = createString("emailAddress", EMAIL_ADDRESS);
     public final ArrayPath<byte[], Byte> photo = createByteArray("photo", PHOTO);
     public final StringPath locale = createString("locale", LOCALE);
-    public final StringPath localityNorm = createString("localityNorm", LOCALITY_NORM);
     public final StringPath localityOrig = createString("localityOrig", LOCALITY_ORIG);
+    public final StringPath localityNorm = createString("localityNorm", LOCALITY_NORM);
     public final StringPath preferredLanguage =
             createString("preferredLanguage", PREFERRED_LANGUAGE);
     public final StringPath telephoneNumber = createString("telephoneNumber", TELEPHONE_NUMBER);
@@ -114,12 +117,14 @@ public class QFocus<T extends MFocus> extends QObject<T> {
             createInstant("validityChangeTimestamp", VALIDITY_CHANGE_TIMESTAMP);
     public final DateTimePath<Instant> archiveTimestamp =
             createInstant("archiveTimestamp", ARCHIVE_TIMESTAMP);
+    public final EnumPath<LockoutStatusType> lockoutStatus =
+            createEnum("lockoutStatus", LockoutStatusType.class, LOCKOUT_STATUS);
 
-    public QFocus(Class<? extends T> type, String variable) {
+    public QFocus(Class<T> type, String variable) {
         this(type, variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
-    public QFocus(Class<? extends T> type, String variable, String schema, String table) {
+    public QFocus(Class<T> type, String variable, String schema, String table) {
         super(type, variable, schema, table);
     }
 }

@@ -12,6 +12,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.FocusSqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignSpecificationType;
 
 public class AbstractRoleSqlTransformer<
         S extends AbstractRoleType, Q extends QAbstractRole<R>, R extends MAbstractRole>
@@ -23,21 +24,18 @@ public class AbstractRoleSqlTransformer<
     }
 
     @Override
-    public @NotNull R toRowObjectWithoutFullObject(S schemaObject, JdbcSession jdbcSession) {
-        final R row = super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
-        /*
-        TODO:
-        public String approvalProcess;
-        public Boolean autoassignEnabled;
-        public String displayNameNorm;
-        public String displayNameOrig;
-        public String identifier;
-        public UUID ownerRefTargetOid;
-        public Integer ownerRefTargetType;
-        public Integer ownerRefRelationId;
-        */
-        row.requestable = schemaObject.isRequestable();
-        row.riskLevel = schemaObject.getRiskLevel();
+    public @NotNull R toRowObjectWithoutFullObject(S abstractRole, JdbcSession jdbcSession) {
+        R row = super.toRowObjectWithoutFullObject(abstractRole, jdbcSession);
+
+        AutoassignSpecificationType autoassign = abstractRole.getAutoassign();
+        if (autoassign != null) {
+            row.autoAssignEnabled = autoassign.isEnabled();
+        }
+        setPolyString(abstractRole.getDisplayName(),
+                o -> row.displayNameOrig = o, n -> row.displayNameNorm = n);
+        row.identifier = abstractRole.getIdentifier();
+        row.requestable = abstractRole.isRequestable();
+        row.riskLevel = abstractRole.getRiskLevel();
         return row;
     }
 }

@@ -15,10 +15,12 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
@@ -68,6 +70,9 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     PrismContext prismContext;
+
+    @Autowired
+    private RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher;
 
     private ObjectPostProcessor<Object> objectObjectPostProcessor;
 
@@ -170,9 +175,14 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
         HttpSessionSecurityContextRepository httpSecurityRepository = new HttpSessionSecurityContextRepository() {
             @Override
             public void saveContext(SecurityContext context, HttpServletRequest request, HttpServletResponse response) {
-                if(!SecurityUtils.isRecordSessionlessAccessChannel(request)) {
+                if(!SecurityUtils.isRecordSessionLessAccessChannel(request)) {
                     super.saveContext(context, request, response);
                 }
+            }
+
+            @Override
+            protected SecurityContext generateNewContext() {
+                return new MidpointSecurityContext(super.generateNewContext(), removeUnusedSecurityFilterPublisher);
             }
         };
         httpSecurityRepository.setDisableUrlRewriting(true);

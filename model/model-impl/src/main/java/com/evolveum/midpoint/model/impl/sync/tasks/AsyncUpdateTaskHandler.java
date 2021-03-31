@@ -48,7 +48,7 @@ public class AsyncUpdateTaskHandler
 
     protected AsyncUpdateTaskHandler() {
         super(LOGGER, CONTEXT, OperationConstants.ASYNC_UPDATE);
-        reportingOptions.setEnableSynchronizationStatistics(true);
+        globalReportingOptions.setEnableSynchronizationStatistics(true);
     }
 
     @PostConstruct
@@ -127,7 +127,7 @@ public class AsyncUpdateTaskHandler
                     ResourceObjectShadowChangeDescription changeDescription = event.getChangeDescription();
                     changeDescription.setItemProcessingIdentifier(request.getIdentifier());
                     changeDescription.setSimulate(partExecution.isSimulate());
-                    changeNotificationDispatcher.notifyChange(changeDescription, workerTask, result);
+                    eventDispatcher.notifyChange(changeDescription, workerTask, result);
                 } else if (event.isNotApplicable()) {
                     result.recordNotApplicable();
                 } else {

@@ -59,7 +59,6 @@ public class PartitioningTaskHandler implements TaskHandler {
 
         OperationResult opResult = new OperationResult(PartitioningTaskHandler.class.getName()+".run");
         TaskRunResult runResult = new TaskRunResult();
-        runResult.setProgress(masterTask.getProgress());
         runResult.setOperationResult(opResult);
 
         try {
@@ -96,7 +95,7 @@ public class PartitioningTaskHandler implements TaskHandler {
         } catch (ExitHandlerException e) {
             return e.getRunResult();
         }
-        runResult.setProgress(runResult.getProgress() + 1);
+        runResult.setProgress(null); // We intentionally do not set the progress to avoid counting it in the progress of task tree
         opResult.computeStatusIfUnknown();
         runResult.setRunResultStatus(TaskRunResultStatus.IS_WAITING);
         return runResult;
