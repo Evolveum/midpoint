@@ -15,35 +15,32 @@ Save the script and run it.
 
 NOTE:
 
-When extracting repo-ninja-3.1-SNAPSHOT-bin.zip file in \*/midpoint-home/bin, *check repo-ninja.bat file,* which content has to be following (please set your own path for midpoint-home):
+When extracting repo-ninja-3.1-SNAPSHOT-bin.zip file in `\*/midpoint-home/bin`, **check `repo-ninja.bat` file**, which content has to be following (please set your own path for midpoint-home):
 
-    rem Change the following line!
+[source,bat]
+----
+rem Change the following line!
+set MIDPOINT\_HOME="c:\midpoint-home"
 
-    set MIDPOINT\_HOME="c:\midpoint-home"
+rem Sets the basedir to the directory where libraries are located
+set BASEDIR=%~dp0..
 
-    rem Sets the basedir to the directory where libraries are located
+java -classpath "%BASEDIR%\lib\\*" -Dmidpoint.home=%MIDPOINT\_HOME% com.evolveum.midpoint.tools.ninja.Main %\*
+----
 
-    set BASEDIR=%~dp0..
+And also *check `repo-ninja` file* which content should be following:
 
-    java -classpath "%BASEDIR%\lib\\*" -Dmidpoint.home=%MIDPOINT\_HOME% com.evolveum.midpoint.tools.ninja.Main %\*
+[source,bat]
+----
+#!/bin/bash
 
+MIDPOINT\_HOME=/var/opt/midpoint
+BASEDIR="`dirname \"$0\"`/.."
 
-
-    and also *check repo-ninja file* which content should be following:
-
-    #!/bin/bash
-
-    MIDPOINT\_HOME=/var/opt/midpoint
-
-    BASEDIR="`dirname \"$0\"`/.."
-
-    exec java -classpath "$BASEDIR/lib/\*" -Dmidpoint.home=$MIDPOINT\_HOME com.evolveum.midpoint.tools.ninja.Main $\*
-
-
+exec java -classpath "$BASEDIR/lib/\*" -Dmidpoint.home=$MIDPOINT\_HOME com.evolveum.midpoint.tools.ninja.Main $\*
+----
 
 Also *verify up to date repo-ninja driver version* in \*\midpoint-home\lib such as repo-ninja-3.1-SNAPSHOT.jar (*has to be only one version in lib file because of mismatch risk*).
-
-
 
 The script is provided mainly for restoring your previously-backed up repository (*execute script when tomcat is turned off*):
 

@@ -40,7 +40,7 @@ Scripts can be executed on _resource_ or on _connector_.
 Execution on resource is execution directly on the target system.
 This is what is usually needed to create home directory, manage mailboxes and so on.
 
-Execution on connector is a rarely-used option.
+Execution on the connector is a rarely-used option.
 This executes the script on the "client side" which usually means midPoint host or a connector server.
 This option is not very practical.
 
@@ -67,7 +67,6 @@ For example, for wiki:Active+Directory+Connector+(LDAP)[Active Directory Connect
 {% include since.html since="3.6.1" %}
 ++++
 
-
 Error in a provisioning script is equivalent to the error in the main provisioning operation by default.
 Therefore if there is an error in create script then midPoint cannot assume that an account was created.
 This behavior is configurable by using the `criticality` setting:
@@ -89,7 +88,6 @@ The processing will be interrupted, fatal error will be indicated.
 * *partial*: The error will be indicated, composite result of the operation will be presented as partial error, but the processing will *not* be interrupted.
 The operation will try to recover and continue.
 
-
 == Examples
 
 The following is an example of simple powershell script configuration for Active Directory:
@@ -97,8 +95,6 @@ The following is an example of simple powershell script configuration for Active
 * after the account is created (operation: add), the script will be run on the resource as a Windows PowerShell script (language: powershell)
 
 * argument (specific to the script) "username" will be set to midPoint user name
-
-
 
 .AD Resource Script Example
 [source,xml]
@@ -155,11 +151,11 @@ Of course, complex scripting expressions may be used as well:
 
 Vast majority of provisioning scripts are coupled with provisioning operations.
 E.g. the scripts are executed before or after modification of an account.
-However, there are cases when a script has to be execute in an ad-hoc manner.
+However, there are cases when a script has to be executed in an ad-hoc manner.
 For example there may be need to execute a provisioning script from wiki:Expression[expression] because the script is used to determine a value used by the expression.
 For that purpose there is executeAdHocProvisioningScript function in wiki:MidPoint+Script+Library[MidPoint Script Library]:
 
-[source]
+[source,xml]
 ----
     <expression>
         <script>
@@ -180,18 +176,16 @@ Note: both resource and resource OID can be used as the first parameter to the e
 
 == Notes
 
-
-
 [TIP]
 .Object kind and script variables
 ====
 MidPoint 3.0 (and later) is designed with wiki:Generic+Synchronization[generic synchronization] in mind.
-Therefore the provisioning scripts are executed not just for accounts but also for other wiki:Kind,+Intent+and+ObjectClass[kinds of objects]. And there are two major consequences to this:
+Therefore the provisioning scripts are executed not just for accounts but also for other wiki:Kind,+Intent+and+ObjectClass[kinds of objects]. And there are two major consequences of this:
 
 * Please keep in mind that unless the script is limited to a particular wiki:Kind,+Intent+and+ObjectClass[kind] of objects then it will be executed for all object kinds that midPoint provisions.
 This may have unexpected side-effects therefore it is recommended to constraint the scripts to a particular object kind in midPoint 3.0 and later:
 
-[source]
+[source,xml]
 ----
         <script>
             ...
@@ -210,7 +204,6 @@ E.g. there is usually no "user" which is an owner of entitlement or organization
 The variable `$user` is therefore available only when dealing with accounts.
 Constraining the script to `account` kind will usually resolve the situation.
 If a more generic script is required then a generic variable `$focus` can be used instead of `$user`.
-
 ====
 
 
