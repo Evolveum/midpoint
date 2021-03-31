@@ -57,7 +57,8 @@ public class SearchFilterTypeForQueryModel<O extends ObjectType> extends SearchF
             return value.getText();
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);
-            getPageBase().error("Cannot parse filter: " + e.getMessage() + ". For more details, please, see midpoint log");
+            getPageBase().getFeedbackMessages().error(getPageBase(),
+                    "Cannot parse filter: " + e.getMessage() + ". For more details, please, see midpoint log");
         }
         return null;
     }
@@ -74,7 +75,7 @@ public class SearchFilterTypeForQueryModel<O extends ObjectType> extends SearchF
             getBaseModel().setObject(filter);
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot parse filter", e);
-            getPageBase().error("Cannot parse filter: " + e.getMessage() + ". For more details, please, see midpoint log");
+            getPageBase().getFeedbackMessages().error(getPageBase(), "Cannot parse filter: " + e.getMessage() + ". For more details, please, see midpoint log");
         }
     }
 }
