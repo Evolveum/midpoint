@@ -271,6 +271,26 @@ The most difficult and time-consuming parts of upgrade are configuration adjustm
 Upgrading the binaries and the database schema is usually quick and easy.
 It is usually possible to upgrade through several midPoint versions one by one, and make the configuration adjustments and testing just once.
 
+It is possible to "group" upgrades of several midPoint versions in one single process.
+For example, to upgrade from midPoint 4.1 to 4.4 you have to follow the 4.1 -> 4.2 -> 4.3 -> 4.4 upgrade path.
+That would mean three separate upgrades.
+You can make the upgrade in a single "step", provided that you are careful and have enough experience.
+You can do this by upgrading midPoint 4.1 binaries directly to midPoint 4.4.
+Then apply all the database migration SQL scripts from all the releases in correct order.
+Which means `postgresql-upgrade-4.1-4.2.sql` first, then `postgresql-upgrade-4.2-4.3.sql`, followed by `postgresql-upgrade-4.3-4.4.sql`.
+The important thing is to *read all the release notes for all the versions, including intermediary versions*.
+You have to adjust the configuration in the same way as you would do in case of tree separate upgrades.
+Reading through all the release notes very carefully is much more important than in case of separate upgrades.
+There are no pre-upgrade checks (e.g. running `ninja`) for intermediary versions, therefore the possible issues are not detected automatically.
+It is all up to the engineer to identify possible issues and act accordingly.
+This process is much faster than doing three separate upgrades, as the testing is step is done just once.
+It is the testing step that usually takes most of the time during upgrades, therefore time-saving can be considerable.
+However, grouping upgrades is also more risky than doing three separate upgrades.
+The issues are harder to diagnose, as the cause of an issue may be in any of the three versions, or it may be a combination of many factors.
+Experienced midPoint engineers have good success rate with this process.
+However, it is likely to cause problems for engineers that do not have sufficient expertise and experience.
+The recommendation for inexperienced engineers is to use long-term support (LTS) versions of midPoint, reducing the number of necessary upgrades.
+
 // TODO: Changing database
 
 == See Also
