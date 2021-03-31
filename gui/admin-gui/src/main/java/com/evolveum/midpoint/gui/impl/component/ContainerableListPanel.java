@@ -952,7 +952,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         }
 
         target.add(table);
-        target.add(getPageBase().getFeedbackPanel());
+        if (!getPageBase().getFeedbackMessages().isEmpty()) {
+            target.add(getPageBase().getFeedbackPanel());
+        }
 
     }
 

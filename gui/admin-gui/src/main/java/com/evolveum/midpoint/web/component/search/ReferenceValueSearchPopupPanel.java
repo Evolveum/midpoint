@@ -99,6 +99,9 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
+                if (!getPageBase().getFeedbackMessages().isEmpty()) {
+                    target.add(getPageBase().getFeedbackPanel());
+                }
                 ObjectReferenceType ort = nameField.getBaseFormComponent().getModelObject();
                 if (ort == null) {
                     return;
