@@ -308,7 +308,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private MainMenuItem createWorkItemsItems() {
-        MainMenuItem casesMenu = new MainMenuItem("PageAdmin.menu.top.cases", GuiStyleConstants.EVO_CASE_OBJECT_ICON) {
+        MainMenuItem casesMenu = new MainMenuItem("PageAdmin.menu.top.cases", GuiStyleConstants.EVO_CASE_THICK_ICON) {
 
             @Override
             public String getBubbleLabel() {

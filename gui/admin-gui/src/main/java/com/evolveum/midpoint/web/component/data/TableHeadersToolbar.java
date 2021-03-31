@@ -47,7 +47,7 @@ public class TableHeadersToolbar<T> extends AjaxFallbackHeadersToolbar<String> {
 
             @Override
             protected void onAjaxClick(AjaxRequestTarget target) {
-                target.add(getTable());
+                refreshTable(target);
             }
 
             @Override
@@ -69,5 +69,9 @@ public class TableHeadersToolbar<T> extends AjaxFallbackHeadersToolbar<String> {
                 }
             }
         };
+    }
+
+    protected void refreshTable(AjaxRequestTarget target) {
+        target.add(getTable());
     }
 }

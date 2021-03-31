@@ -7,19 +7,19 @@
 package com.evolveum.midpoint.repo.sqlbase;
 
 /**
- * Query related repository exception.
+ * Base repository exception.
  */
-public class QueryException extends RepositoryException {
+public class RepositoryException extends Exception {
 
-    public QueryException(String message) {
+    public RepositoryException(String message) {
         super(message);
     }
 
-    public QueryException(Throwable cause) {
+    public RepositoryException(Throwable cause) {
         super(cause);
     }
 
-    public QueryException(String message, Throwable cause) {
+    public RepositoryException(String message, Throwable cause) {
         super(message, cause);
     }
 }

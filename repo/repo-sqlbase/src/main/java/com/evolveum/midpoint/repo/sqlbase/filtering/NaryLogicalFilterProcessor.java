@@ -14,7 +14,7 @@ import com.querydsl.core.types.Predicate;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 
 public class NaryLogicalFilterProcessor implements FilterProcessor<NaryLogicalFilter> {
@@ -26,7 +26,7 @@ public class NaryLogicalFilterProcessor implements FilterProcessor<NaryLogicalFi
     }
 
     @Override
-    public Predicate process(NaryLogicalFilter filter) throws QueryException {
+    public Predicate process(NaryLogicalFilter filter) throws RepositoryException {
         Predicate predicate = null;
         Operator operator = (filter instanceof AndFilter) ? Ops.AND : Ops.OR;
         for (ObjectFilter subfilter : filter.getConditions()) {

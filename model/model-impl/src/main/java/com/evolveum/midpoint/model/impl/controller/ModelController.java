@@ -676,7 +676,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     private <O extends ObjectType> void checkIndestructible(PrismObject<O> existingObject, Task task, OperationResult result) throws IndestructibilityViolationException {
         if (existingObject != null && Boolean.TRUE.equals(existingObject.asObjectable().isIndestructible())) {
-            IndestructibilityViolationException e = new IndestructibilityViolationException("Attempt to delete indestructible object "+existingObject);
+            IndestructibilityViolationException e = new IndestructibilityViolationException("Attempt to delete indestructible object " + existingObject);
             ModelImplUtils.recordFatalError(result, e);
             throw e;
         }
@@ -1846,15 +1846,36 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Override
     public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOperation(taskOids, ModelAuthorizationAction.DELETE, AuditEventType.DELETE_OBJECT, operationTask, parentResult);
-        taskManager.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, parentResult);
+        List<String> indestructibleTaskOids = getIndestructibleTaskOids(resolvedTasks, operationTask, parentResult);
+        taskOids.removeAll(indestructibleTaskOids);
+        if (!taskOids.isEmpty()) {
+            taskManager.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, parentResult);
+        }
         postprocessTaskCollectionOperation(resolvedTasks, AuditEventType.DELETE_OBJECT, operationTask, parentResult);
     }
 
     @Override
     public void suspendAndDeleteTask(String taskOid, long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         List<PrismObject<TaskType>> resolvedTasks = preprocessTaskOperation(taskOid, ModelAuthorizationAction.DELETE, AuditEventType.DELETE_OBJECT, operationTask, parentResult);
-        taskManager.suspendAndDeleteTask(taskOid, waitForStop, alsoSubtasks, parentResult);
+        List<String> indestructibleTaskOids = getIndestructibleTaskOids(resolvedTasks, operationTask, parentResult);
+        if (indestructibleTaskOids.isEmpty() || !indestructibleTaskOids.contains(taskOid)) {
+            taskManager.suspendAndDeleteTask(taskOid, waitForStop, alsoSubtasks, parentResult);
+        }
         postprocessTaskCollectionOperation(resolvedTasks, AuditEventType.DELETE_OBJECT, operationTask, parentResult);
+    }
+
+    private List<String> getIndestructibleTaskOids(List<PrismObject<TaskType>> allTasks, Task operationTask, OperationResult parentResult) {
+        List<String> indestructible = new ArrayList<>();
+        for (PrismObject<TaskType> taskType : allTasks) {
+            OperationResult result = parentResult.createMinorSubresult(CHECK_INDESTRUCTIBLE);
+            try {
+                checkIndestructible(taskType, operationTask, result);
+                result.recordSuccessIfUnknown();
+            } catch (IndestructibilityViolationException e) {
+                indestructible.add(taskType.getOid());
+            }
+        }
+        return indestructible;
     }
 
     @Override

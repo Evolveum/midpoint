@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
-import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
-import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.uuidMapper;
+import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.stringMapper;
+import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.uuidMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ARCHETYPE_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ROLE_MEMBERSHIP_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.*;
@@ -24,10 +24,10 @@ import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.TableRelationResolver;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;

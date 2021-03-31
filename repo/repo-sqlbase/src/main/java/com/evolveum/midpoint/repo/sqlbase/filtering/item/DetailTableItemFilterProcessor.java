@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqlbase.mapping.item;
+package com.evolveum.midpoint.repo.sqlbase.filtering.item;
 
 import java.util.function.BiFunction;
 
@@ -13,9 +13,10 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
@@ -77,7 +78,7 @@ public class DetailTableItemFilterProcessor
     }
 
     @Override
-    public Predicate process(PropertyValueFilter<String> filter) throws QueryException {
+    public Predicate process(PropertyValueFilter<String> filter) throws RepositoryException {
         //noinspection unchecked
         SqlQueryContext<?, DQ, DR> joinContext =
                 ((SqlQueryContext<?, Q, ?>) context).leftJoin(detailQueryType, joinOnPredicate);

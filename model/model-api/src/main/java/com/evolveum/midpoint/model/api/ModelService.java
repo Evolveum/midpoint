@@ -86,6 +86,7 @@ public interface ModelService {
     String AUTZ_NAMESPACE = AuthorizationConstants.NS_AUTHORIZATION_MODEL;
 
     String OPERATION_LOGGER_NAME = "com.evolveum.midpoint.model.api.op";
+    String CHECK_INDESTRUCTIBLE = CLASS_NAME_WITH_DOT + "checkIndestructible";
 
     /**
      * <p>

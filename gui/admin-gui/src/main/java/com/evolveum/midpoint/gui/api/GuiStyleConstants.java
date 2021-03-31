@@ -22,7 +22,7 @@ public class GuiStyleConstants {
     public static final String CLASS_OBJECT_USER_BOX_CSS_CLASSES = "object-user-box";
     public static final String CLASS_OBJECT_USER_BOX_THIN_CSS_CLASSES = "object-user-box-thin";
 
-    public static final String CLASS_OBJECT_ROLE_ICON = "fe fe-role_icon";
+    public static final String CLASS_OBJECT_ROLE_ICON = "fe fe-role";
     public static final String CLASS_OBJECT_ROLE_BG = "object-role-bg";
     public static final String CLASS_DISABLED_OBJECT_ROLE_BG = "object-disabled-bg";
     public static final String CLASS_OBJECT_ROLE_ICON_COLORED = CLASS_OBJECT_ROLE_ICON + " object-role-color";
@@ -217,7 +217,8 @@ public class GuiStyleConstants {
     public static final String EVO_ROLE_TIE_ICON = "fe fe-role-tie";
     public static final String EVO_ROLE_TOP_HAT_ICON = "fe fe-role-top-hat";
     public static final String EVO_ASSIGNMENT_THICKER_ICON = "fe assignment-thicker";
-    public static final String EVO_CASE_OBJECT_ICON = "fe fe-case-object";
+    public static final String EVO_CASE_OBJECT_ICON = "fe fe-case";
+    public static final String EVO_CASE_THICK_ICON = "fe fe-case_thick";
     public static final String EVO_ARCHETYPE_TYPE_ICON = "fe fe-archetype_smooth";
 
     public static final String GREEN_COLOR = "color-green";

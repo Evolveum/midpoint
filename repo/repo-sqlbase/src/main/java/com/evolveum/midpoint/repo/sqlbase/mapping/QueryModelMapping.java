@@ -17,8 +17,9 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.NestedMappingResolver;
@@ -113,10 +114,10 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
      * Returns {@link ItemSqlMapper} for provided {@link ItemName}.
      * This is later used to create {@link ItemFilterProcessor}
      */
-    public final @NotNull ItemSqlMapper itemMapper(QName itemName) throws QueryException {
+    public final @NotNull ItemSqlMapper itemMapper(QName itemName) throws RepositoryException {
         ItemSqlMapper itemMapping = QNameUtil.getByQName(this.itemMapping, itemName);
         if (itemMapping == null) {
-            throw new QueryException("Missing item mapping for " + itemName
+            throw new RepositoryException("Missing item mapping for " + itemName
                     + " in mapping " + getClass().getSimpleName());
         }
         return itemMapping;

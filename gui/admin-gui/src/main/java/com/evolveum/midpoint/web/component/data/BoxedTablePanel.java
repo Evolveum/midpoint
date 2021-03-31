@@ -120,7 +120,14 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             }
         });
 
-        TableHeadersToolbar headersTop = new TableHeadersToolbar(table, provider);
+        TableHeadersToolbar headersTop = new TableHeadersToolbar(table, provider) {
+
+            @Override
+            protected void refreshTable(AjaxRequestTarget target) {
+                super.refreshTable(target);
+                target.add(getFooter());
+            }
+        };
         headersTop.setOutputMarkupId(true);
         table.addTopToolbar(headersTop);
 
@@ -196,7 +203,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         if (tableId == null) {
             return UserProfileStorage.DEFAULT_PAGING_SIZE;
         }
-        MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
+        MidPointAuthWebSession session = getSession();
         UserProfileStorage userProfile = session.getSessionStorage().getUserProfile();
         return userProfile.getPagingSize(tableId);
     }
