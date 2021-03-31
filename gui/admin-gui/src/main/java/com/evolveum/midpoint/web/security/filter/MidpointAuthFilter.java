@@ -6,6 +6,30 @@
  */
 package com.evolveum.midpoint.web.security.filter;
 
+import static com.evolveum.midpoint.schema.util.SecurityPolicyUtil.NO_CUSTOM_IGNORED_LOCAL_PATH;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.WebAttributes;
+import org.springframework.security.web.util.UrlUtils;
+import org.springframework.web.filter.GenericFilterBean;
+
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -22,28 +46,6 @@ import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
 import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.WebAttributes;
-import org.springframework.security.web.util.UrlUtils;
-import org.springframework.web.filter.GenericFilterBean;
-
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.evolveum.midpoint.schema.util.SecurityPolicyUtil.NO_CUSTOM_IGNORED_LOCAL_PATH;
 
 /**
  * @author skublik
@@ -294,9 +296,10 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
     private AuthenticationSequenceType getAuthenticationSequence(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest, AuthenticationsPolicyType authenticationsPolicy) {
         AuthenticationSequenceType sequence;
-        // permitAll pages (login, select ID for saml ...) during processing of modules
+        // permitAll pages (login, select ID for saml ...) during processing of modules, when is configured auth sequence for request
         if (mpAuthentication != null && SecurityUtils.isLoginPage(httpRequest)) {
-            if (!mpAuthentication.getAuthenticationChannel().getChannelId().equals(SecurityUtils.findChannelByRequest(httpRequest))
+            if (existOldAuthConfigurationForSelfRegistration(httpRequest)) { //TEMPORARY UGLY HACK remove when will be removed old authentication configuration of self registration
+            } else if (!mpAuthentication.getAuthenticationChannel().getChannelId().equals(SecurityUtils.findChannelByRequest(httpRequest))
                     && SecurityUtils.getSequenceByPath(httpRequest, authenticationsPolicy, taskManager.getLocalNodeGroups()) == null) {
                 return null;
             }
@@ -319,6 +322,27 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
         }
         return sequence;
+    }
+
+    private boolean existOldAuthConfigurationForSelfRegistration(HttpServletRequest httpRequest) {
+        if (!SchemaConstants.CHANNEL_SELF_REGISTRATION_URI.equals(SecurityUtils.findChannelByRequest(httpRequest))) {
+            return false;
+        }
+        try {
+            PrismObject<SecurityPolicyType> securityPolicy = getSecurityPolicy();
+            if (securityPolicy != null && securityPolicy.asObjectable() != null) {
+                SelfRegistrationPolicyType selfReg = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy.asObjectable());
+                if (selfReg != null
+                    && StringUtils.isNotBlank(selfReg.getAdditionalAuthenticationName())
+                    && SecurityPolicyUtil.getAuthenticationPolicy(selfReg.getAdditionalAuthenticationName(), securityPolicy.asObjectable()) != null) {
+                    return true;
+                }
+            }
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't load Authentication policy", e);
+            return false;
+        }
+        return false;
     }
 
     private AuthenticationsPolicyType getAuthenticationPolicy(
