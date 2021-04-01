@@ -12,12 +12,12 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemRelationResolver;
@@ -45,7 +45,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
     private final Class<S> schemaType;
     private final Class<Q> queryType;
 
-    private final Map<QName, ItemSqlMapper> itemMapping = new LinkedHashMap<>();
+    private final Map<QName, ItemSqlMapper> itemMappings = new LinkedHashMap<>();
     private final Map<QName, ItemRelationResolver> itemRelationResolvers = new HashMap<>();
 
     public QueryModelMapping(
@@ -92,7 +92,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
     public QueryModelMapping<S, Q, R> addItemMapping(
             @NotNull QName itemName,
             @NotNull ItemSqlMapper itemMapper) {
-        itemMapping.put(itemName, itemMapper);
+        itemMappings.put(itemName, itemMapper);
         return this;
     }
 
@@ -111,30 +111,48 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
     }
 
     /**
-     * Returns {@link ItemSqlMapper} for provided {@link ItemName}.
-     * This is later used to create {@link ItemFilterProcessor}
+     * Returns {@link ItemSqlMapper} for provided {@link ItemName} or throws.
+     * This is later used to create {@link ItemFilterProcessor}.
+     *
+     * @throws QueryException if the mapper for the item is not found
      */
-    public final @NotNull ItemSqlMapper itemMapper(QName itemName) throws RepositoryException {
-        ItemSqlMapper itemMapping = QNameUtil.getByQName(this.itemMapping, itemName);
+    public final @NotNull ItemSqlMapper itemMapper(QName itemName) throws QueryException {
+        ItemSqlMapper itemMapping = getItemMapper(itemName);
         if (itemMapping == null) {
-            throw new RepositoryException("Missing item mapping for " + itemName
+            throw new QueryException("Missing item mapping for " + itemName
                     + " in mapping " + getClass().getSimpleName());
         }
         return itemMapping;
     }
 
     /**
-     * Returns {@link ItemRelationResolver} for provided {@link ItemName}.
+     * Returns {@link ItemSqlMapper} for provided {@link ItemName} or `null`.
+     */
+    public final @Nullable ItemSqlMapper getItemMapper(QName itemName) {
+        return QNameUtil.getByQName(this.itemMappings, itemName);
+    }
+
+    /**
+     * Returns {@link ItemRelationResolver} for provided {@link ItemName} or throws.
      * Relation resolver helps with traversal over all-but-last components of item paths.
+     *
+     * @throws QueryException if the resolver for the item is not found
      */
     public final @NotNull ItemRelationResolver relationResolver(ItemName itemName)
             throws QueryException {
-        ItemRelationResolver resolver = QNameUtil.getByQName(itemRelationResolvers, itemName);
+        ItemRelationResolver resolver = getRelationResolver(itemName);
         if (resolver == null) {
             throw new QueryException("Missing relation resolver for " + itemName
                     + " in mapping " + getClass().getSimpleName());
         }
         return resolver;
+    }
+
+    /**
+     * Returns {@link ItemRelationResolver} for provided {@link ItemName} or `null`.
+     */
+    public final @Nullable ItemRelationResolver getRelationResolver(ItemName itemName) {
+        return QNameUtil.getByQName(itemRelationResolvers, itemName);
     }
 
     /**

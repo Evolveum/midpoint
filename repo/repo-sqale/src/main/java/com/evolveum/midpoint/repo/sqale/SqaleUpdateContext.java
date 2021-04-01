@@ -6,9 +6,12 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
+import static com.evolveum.midpoint.repo.sqale.SqaleUtils.objectVersionAsInt;
+
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
+import com.querydsl.core.types.Path;
 import com.querydsl.sql.dml.SQLUpdateClause;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -34,22 +37,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R extends MObject> {
 
-    protected final SqaleTableMapping<S, Q, R> mapping;
-    protected final JdbcSession jdbcSession;
-    protected final PrismObject<S> prismObject;
-    protected final Q rootPath;
+    private final SqlTransformerSupport transformerSupport;
+    private final JdbcSession jdbcSession;
+    private final PrismObject<S> prismObject;
+
+    private final SqaleTableMapping<S, Q, R> mapping;
+    private final Q rootPath;
     private final SQLUpdateClause update;
+    private final UUID objectOid;
+    private final int objectVersion;
 
     public SqaleUpdateContext(
-            SqaleTableMapping<S, Q, R> mapping,
+            SqlTransformerSupport sqlTransformerSupport,
             JdbcSession jdbcSession,
             PrismObject<S> prismObject) {
-        this.mapping = mapping;
+        this.transformerSupport = sqlTransformerSupport;
         this.jdbcSession = jdbcSession;
         this.prismObject = prismObject;
+
+        this.mapping = transformerSupport.sqlRepoContext()
+                .getMappingBySchemaType(prismObject.getCompileTimeClass());
         rootPath = mapping.defaultAlias();
+        objectOid = UUID.fromString(prismObject.getOid());
+        objectVersion = objectVersionAsInt(prismObject);
         update = jdbcSession.newUpdate(rootPath)
-                .where(rootPath.oid.eq(UUID.fromString(prismObject.getOid())));
+                .where(rootPath.oid.eq(objectOid)
+                        .and(rootPath.version.eq(objectVersion)));
     }
 
     public Q path() {
@@ -58,37 +71,50 @@ public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R ex
 
     public void processModification(ItemDelta<?, ?> modification) throws RepositoryException {
         QName itemPath = modification.getPath().asSingleName();
+        if (itemPath == null) {
+            return; // TODO no action now, we don't want NPE
+        }
+
         // TODO later resolution of complex paths just like for filters
-        ItemSqlMapper itemSqlMapper = mapping.itemMapper(itemPath);
+        ItemSqlMapper itemSqlMapper = mapping.getItemMapper(itemPath);
         if (itemSqlMapper instanceof SqaleItemSqlMapper) {
             ((SqaleItemSqlMapper) itemSqlMapper)
                     .createItemDeltaProcessor(this)
                     .process(modification);
-        } else {
+        } else if (itemSqlMapper != null) {
             throw new IllegalArgumentException("No delta processor available for " + itemPath
                     + " in mapping " + mapping + "! (Only query mapping is available.)");
         }
-    }
 
-    /** Updates version in enclosed {@link #prismObject} and adds corresponding set clause. */
-    public void incrementVersion() {
-        int newVersion = SqaleUtils.objectVersionAsInt(prismObject) + 1;
-        prismObject.setVersion(String.valueOf(newVersion));
-        update.set(rootPath.version, newVersion);
+        // if the mapper null it is not indexed ("externalized") attribute, no action
     }
 
     /**
-     * Serializes enclosed {@link #prismObject} and adds set clause to the update.
-     * This should be the last update otherwise following changes are not reflected in the stored
-     * full object.
+     * Executes all necessary SQL updates (including sub-entity inserts/deletes)
+     * for the enclosed {@link #prismObject}.
+     * This also increments the version information and serializes `fullObject`.
      */
-    public void updateFullObject(SqlTransformerSupport transformerSupport) throws SchemaException {
+    public void execute() throws SchemaException, RepositoryException {
+        int newVersion = objectVersionAsInt(prismObject) + 1;
+        prismObject.setVersion(String.valueOf(newVersion));
+        update.set(rootPath.version, newVersion);
+
         ObjectSqlTransformer<S, Q, R> transformer =
                 (ObjectSqlTransformer<S, Q, R>) mapping.createTransformer(transformerSupport);
         update.set(rootPath.fullObject, transformer.createFullObject(prismObject.asObjectable()));
+
+        long rows = update.execute();
+        if (rows != 1) {
+            throw new RepositoryException("Object " + objectOid + " with supposed version "
+                    + objectVersion + " could not be updated (concurrent access?).");
+        }
     }
 
-    public void execute() {
-        update.execute();
+    public SQLUpdateClause update() {
+        return update;
+    }
+
+    public <P extends Path<T>, T> void set(P path, T value) {
+        update.set(path, value);
     }
 }
