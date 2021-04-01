@@ -30427,6 +30427,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="determineExpectedTotal" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should the task instance try to determine expected total (usually by counting objects before processing)?
+                        Not applicable to bucketed tasks.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="taskReportingOptions" type="tns:TaskReportingOptionsType" />

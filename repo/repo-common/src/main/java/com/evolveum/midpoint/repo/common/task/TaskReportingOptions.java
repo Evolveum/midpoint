@@ -27,7 +27,10 @@ import org.jetbrains.annotations.NotNull;
 @Experimental
 public class TaskReportingOptions implements Cloneable, Serializable {
 
-    private boolean countObjectsOnStart = true; // todo make configurable per task instance (if necessary)
+    private boolean defaultDetermineExpectedTotal = true;
+    private TaskLoggingOptionType defaultBucketCompletionLogging = TaskLoggingOptionType.BRIEF;
+    private TaskLoggingOptionType defaultItemCompletionLogging = TaskLoggingOptionType.NONE;
+
     private boolean preserveStatistics = true;
     private boolean enableSynchronizationStatistics = false;
     private boolean enableActionsExecutedStatistics = true;
@@ -44,20 +47,23 @@ public class TaskReportingOptions implements Cloneable, Serializable {
     private boolean skipWritingOperationExecutionRecords;
 
     /**
-     * Options related to the specific task instance. Currently there is no overlap between these and the other ones.
-     * Must be immutable because of the thread safety.
+     * Options related to the specific task instance. Must be immutable because of the thread safety.
      *
      * Actually when it is modified, only a single thread is executing. So maybe the use of {@link AtomicReference}
      * is a bit overkill.
      */
     private final AtomicReference<TaskReportingOptionsType> instanceReportingOptions = new AtomicReference<>();
 
-    public boolean isCountObjectsOnStart() {
-        return countObjectsOnStart;
+    public void setDefaultDetermineExpectedTotal(boolean value) {
+        this.defaultDetermineExpectedTotal = value;
     }
 
-    public void setCountObjectsOnStart(boolean countObjectsOnStart) {
-        this.countObjectsOnStart = countObjectsOnStart;
+    public void setDefaultBucketCompletionLogging(TaskLoggingOptionType value) {
+        this.defaultBucketCompletionLogging = value;
+    }
+
+    public void setDefaultItemCompletionLogging(TaskLoggingOptionType value) {
+        this.defaultItemCompletionLogging = value;
     }
 
     public boolean isPreserveStatistics() {
@@ -144,7 +150,7 @@ public class TaskReportingOptions implements Cloneable, Serializable {
         if (options != null && options.getLogging() != null && options.getLogging().getBucketCompletion() != null) {
             return options.getLogging().getBucketCompletion();
         } else {
-            return TaskLoggingOptionType.BRIEF;
+            return defaultBucketCompletionLogging;
         }
     }
 
@@ -154,7 +160,16 @@ public class TaskReportingOptions implements Cloneable, Serializable {
         if (options != null && options.getLogging() != null && options.getLogging().getItemCompletion() != null) {
             return options.getLogging().getItemCompletion();
         } else {
-            return TaskLoggingOptionType.NONE;
+            return defaultItemCompletionLogging;
+        }
+    }
+
+    public boolean isDetermineExpectedTotal() {
+        TaskReportingOptionsType options = instanceReportingOptions.get();
+        if (options != null && options.isDetermineExpectedTotal() != null) {
+            return options.isDetermineExpectedTotal();
+        } else {
+            return defaultDetermineExpectedTotal;
         }
     }
 }
