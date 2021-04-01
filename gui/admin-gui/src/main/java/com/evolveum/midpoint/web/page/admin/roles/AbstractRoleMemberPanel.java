@@ -1492,7 +1492,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             @Override
             protected PrismObject<TaskType> getTask(AjaxRequestTarget target) {
                 Task task = MemberOperationsHelper.createRecomputeMembersTask(getPageBase(), getQueryScope(),
-                        getActionQuery(getQueryScope(), getSupportedRelations().getAvailableRelationList()), target);
+                        getActionQuery(getQueryScope(), getRelationsForRecomputeTask()), target);
                 if (task == null) {
                     return null;
                 }
@@ -1510,10 +1510,14 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 MemberOperationsHelper.recomputeMembersPerformed(getPageBase(), getQueryScope(),
-                        getActionQuery(getQueryScope(), getSupportedRelations().getAvailableRelationList()), target);
+                        getActionQuery(getQueryScope(), getRelationsForRecomputeTask()), target);
             }
         };
         ((PageBase) getPage()).showMainPopup(dialog, target);
+    }
+
+    protected List<QName> getRelationsForRecomputeTask() {
+        return getSupportedRelations().getAvailableRelationList();
     }
 
     protected QName getSearchType(){

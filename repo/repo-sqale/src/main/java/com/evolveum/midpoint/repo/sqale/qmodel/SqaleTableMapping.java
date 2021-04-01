@@ -6,16 +6,23 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
+import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.querydsl.core.types.EntityPath;
+import com.querydsl.core.types.dsl.StringPath;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqale.ObjectRefTableItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.delta.SimpleItemDeltaProcessor;
+import com.evolveum.midpoint.repo.sqale.delta.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.NestedMappingResolver;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
@@ -52,5 +59,14 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         ((QueryModelMapping<?, ?, ?>) this).addItemMapping(itemName,
                 ObjectRefTableItemFilterProcessor.mapper(qReferenceMapping));
         // TODO add relation mapping too
+    }
+
+    /** Returns the mapper creating the string filter/delta processors from context. */
+    protected ItemSqlMapper stringMapper(
+            Function<EntityPath<?>, StringPath> rootToQueryItem) {
+        return new SqaleItemSqlMapper(
+                ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
+                ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
+                rootToQueryItem);
     }
 }

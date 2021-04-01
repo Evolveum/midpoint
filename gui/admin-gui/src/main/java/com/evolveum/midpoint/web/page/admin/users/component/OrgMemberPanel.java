@@ -7,23 +7,24 @@
 package com.evolveum.midpoint.web.page.admin.users.component;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.cxf.common.util.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     private static final long serialVersionUID = 1L;
@@ -75,19 +76,19 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
     @Override
     protected void assignMembers(AjaxRequestTarget target, AvailableRelationDto availableRelationList,
-                                 List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList, boolean isOrgTreePanelVisible) {
+            List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList, boolean isOrgTreePanelVisible) {
         MemberOperationsHelper.assignOrgMembers(getPageBase(), getModelObject(), target, availableRelationList, objectTypes, archetypeRefList);
     }
 
     @Override
     protected List<QName> getDefaultSupportedObjectTypes(boolean includeAbstractTypes) {
-            List<QName> objectTypes = WebComponentUtil.createAssignmentHolderTypeQnamesList();
-            objectTypes.remove(ShadowType.COMPLEX_TYPE);
-            objectTypes.remove(ObjectType.COMPLEX_TYPE);
-            if (!includeAbstractTypes){
-                objectTypes.remove(AssignmentHolderType.COMPLEX_TYPE);
-            }
-            return objectTypes;
+        List<QName> objectTypes = WebComponentUtil.createAssignmentHolderTypeQnamesList();
+        objectTypes.remove(ShadowType.COMPLEX_TYPE);
+        objectTypes.remove(ObjectType.COMPLEX_TYPE);
+        if (!includeAbstractTypes) {
+            objectTypes.remove(AssignmentHolderType.COMPLEX_TYPE);
+        }
+        return objectTypes;
     }
 
     @Override
@@ -118,5 +119,13 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     @Override
     protected String getStorageKeyTabSuffix() {
         return "orgTreeMembers";
+    }
+
+    @Override
+    protected List<QName> getRelationsForRecomputeTask() {
+        if (getDefaultRelationConfiguration() == null || CollectionUtils.isEmpty(getDefaultRelationConfiguration().getSupportedRelations())) {
+            return Collections.singletonList(PrismConstants.Q_ANY);
+        }
+        return super.getRelationsForRecomputeTask();
     }
 }
