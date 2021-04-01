@@ -174,7 +174,9 @@
         <xml.resolver.version>1.2</xml.resolver.version>
         <xmlunit.version>2.1.1</xmlunit.version>
         <cron4j.version>2.2.3</cron4j.version>
-        <!-- We can't upgrade to 5.3 unless we get rid of EntityRegionAccessStrategy -->
+        <!-- We can't upgrade to 5.3+ unless we get rid of EntityRegionAccessStrategy -->
+        <!-- TODO upgrade to newest 5.2.x, at least 5.2.18, see https://mvnrepository.com/artifact/org.hibernate/hibernate-core
+        probably not above 5.2 to avoid breaking code changes -->
         <hibernate.version>5.2.12.Final</hibernate.version>
         <!--
         Default Spring Boot 2.4.3 uses H2 1.4.200 but that one has NPE bug:
