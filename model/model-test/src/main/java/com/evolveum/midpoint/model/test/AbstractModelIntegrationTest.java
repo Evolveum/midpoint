@@ -3279,7 +3279,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void displayTaskWithOperationStats(String message, Task task) throws SchemaException {
         display(message, task);
         String stats = prismContext.xmlSerializer()
-                .serializeRealValue(task.getUpdatedOrClonedTaskObject().asObjectable().getOperationStats(), TaskType.F_OPERATION_STATS);
+                .serializeRealValue(task.getStoredOperationStatsOrClone(), TaskType.F_OPERATION_STATS);
         displayValue(message + ": Operational stats", stats);
     }
 
@@ -3521,14 +3521,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected OperationResult waitForTaskTreeNextFinishedRun(String rootTaskOid, int timeout) throws Exception {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskTreeNextFinishedRun");
         Task origRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
-        return waitForTaskTreeNextFinishedRun(origRootTask.getUpdatedOrClonedTaskObject().asObjectable(), timeout, waitResult);
+        return waitForTaskTreeNextFinishedRun(origRootTask.getUpdatedTaskObject().asObjectable(), timeout, waitResult);
     }
 
     protected OperationResult runTaskTreeAndWaitForFinish(String rootTaskOid, int timeout) throws Exception {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".runTaskTreeAndWaitForFinish");
         Task origRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
         restartTask(rootTaskOid, waitResult);
-        return waitForTaskTreeNextFinishedRun(origRootTask.getUpdatedOrClonedTaskObject().asObjectable(), timeout, waitResult);
+        return waitForTaskTreeNextFinishedRun(origRootTask.getUpdatedTaskObject().asObjectable(), timeout, waitResult);
     }
 
     // a bit experimental

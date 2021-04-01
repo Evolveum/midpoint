@@ -456,7 +456,7 @@ public class SqaleRepositoryService implements RepositoryService {
         // TODO APPLY modifications HERE (generate update/set clauses)
         for (ItemDelta<?, ?> modification : modifications) {
             System.out.println("modification = " + modification);
-//            updateContext.processModification(modification); // TODO expected NPE right now
+            updateContext.processModification(modification); // TODO expected NPE right now
         }
 
         updateContext.incrementVersion();

@@ -48,6 +48,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.jetbrains.annotations.NotNull;
 
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
+
 /**
  * Evaluates all assignments and sorts them to triple: added, removed and "kept" assignments.
  *
@@ -140,9 +142,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                 beans.prismContext, task, result);
         LOGGER.trace("Forced assignments: {}", forcedAssignments);
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Task for process: {}", task.getUpdatedOrClonedTaskObject().debugDump());
-        }
+        LOGGER.trace("Task for process (operation result is not updated): {}",
+                lazy(() -> task.getRawTaskObjectClonedIfNecessary().debugDump()));
         Collection<Task> allTasksToRoot = task.getPathToRootTask(result);
         Collection<AssignmentType> taskAssignments = allTasksToRoot.stream()
                 .filter(Task::hasAssignments)
@@ -158,7 +159,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     private AssignmentType createTaskAssignment(Task fromTask) {
         AssignmentType taskAssignment = new AssignmentType(beans.prismContext);
         ObjectReferenceType targetRef = new ObjectReferenceType();
-        targetRef.asReferenceValue().setObject(fromTask.getUpdatedOrClonedTaskObject());
+        targetRef.asReferenceValue().setObject(fromTask.getRawTaskObjectClonedIfNecessary());
         taskAssignment.setTargetRef(targetRef);
         return taskAssignment;
     }

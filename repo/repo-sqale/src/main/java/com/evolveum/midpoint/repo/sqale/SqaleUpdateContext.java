@@ -7,38 +7,67 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import java.util.UUID;
+import javax.xml.namespace.QName;
 
 import com.querydsl.sql.dml.SQLUpdateClause;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.repo.sqale.delta.SqaleItemSqlMapper;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
-import com.evolveum.midpoint.repo.sqlbase.mapping.delta.SqlUpdateContext;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R extends MObject>
-        extends SqlUpdateContext<S, Q, R> {
+/**
+ * TODO
+ *
+ * @param <S> schema type
+ * @param <Q> type of entity path
+ * @param <R> row type related to the {@link Q}
+ */
+public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R extends MObject> {
 
+    protected final SqaleTableMapping<S, Q, R> mapping;
+    protected final JdbcSession jdbcSession;
+    protected final PrismObject<S> prismObject;
+    protected final Q rootPath;
     private final SQLUpdateClause update;
 
-    public SqaleUpdateContext(QueryTableMapping<S, Q, R> mapping, JdbcSession jdbcSession, PrismObject<S> prismObject) {
-        super(mapping, jdbcSession, prismObject);
-
+    public SqaleUpdateContext(
+            SqaleTableMapping<S, Q, R> mapping,
+            JdbcSession jdbcSession,
+            PrismObject<S> prismObject) {
+        this.mapping = mapping;
+        this.jdbcSession = jdbcSession;
+        this.prismObject = prismObject;
+        rootPath = mapping.defaultAlias();
         update = jdbcSession.newUpdate(rootPath)
                 .where(rootPath.oid.eq(UUID.fromString(prismObject.getOid())));
     }
 
+    public Q path() {
+        return rootPath;
+    }
+
     public void processModification(ItemDelta<?, ?> modification) throws RepositoryException {
-        mapping.itemMapper(modification.getPath().asSingleName())
-                .createItemDeltaProcessor(this)
-                .process(modification);
+        QName itemPath = modification.getPath().asSingleName();
+        // TODO later resolution of complex paths just like for filters
+        ItemSqlMapper itemSqlMapper = mapping.itemMapper(itemPath);
+        if (itemSqlMapper instanceof SqaleItemSqlMapper) {
+            ((SqaleItemSqlMapper) itemSqlMapper)
+                    .createItemDeltaProcessor(this)
+                    .process(modification);
+        } else {
+            throw new IllegalArgumentException("No delta processor available for " + itemPath
+                    + " in mapping " + mapping + "! (Only query mapping is available.)");
+        }
     }
 
     /** Updates version in enclosed {@link #prismObject} and adds corresponding set clause. */

@@ -223,7 +223,7 @@ public class TaskRetriever {
     private void addSubtask(Object task, Object subtask) {
         TaskType subtaskBean;
         if (subtask instanceof TaskQuartzImpl) {
-            subtaskBean = ((TaskQuartzImpl) subtask).getLiveTaskObject().asObjectable();
+            subtaskBean = ((TaskQuartzImpl) subtask).getRawTaskObjectClonedIfNecessary().asObjectable();
         } else if (subtask instanceof PrismObject<?>) {
             //noinspection unchecked
             subtaskBean = ((PrismObject<TaskType>) subtask).asObjectable();
@@ -336,7 +336,7 @@ public class TaskRetriever {
         }
         TaskType taskBean;
         if (task instanceof TaskQuartzImpl) {
-            taskBean = ((TaskQuartzImpl) task).getLiveTaskObjectForNotRunningTasks().asObjectable();
+            taskBean = ((TaskQuartzImpl) task).getRawTaskObject().asObjectable();
         } else if (task instanceof PrismObject<?>) {
             //noinspection unchecked
             taskBean = ((PrismObject<TaskType>) task).asObjectable();

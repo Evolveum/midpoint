@@ -27,6 +27,8 @@ import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
 import com.evolveum.midpoint.task.api.RunningLightweightTask;
 
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.jetbrains.annotations.NotNull;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
@@ -52,7 +54,6 @@ import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskConstants;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
@@ -769,6 +770,9 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         when();
 
         add(TASK_WITH_THREADS, result);
+
+        checkTreadSafety(TASK_WITH_THREADS.oid, 1000L, result);
+
         waitUntilDone(TASK_WITH_THREADS.oid, result, 15000, 100);
         waitForTaskClose(TASK_WITH_THREADS.oid, result, 15000, 100);
 
@@ -785,6 +789,40 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
             assertTrue("Handler has not run", handler.hasRun());
             assertTrue("Handler has not exited", handler.hasExited());
         }
+    }
+
+    /**
+     * A simple test for MID-6910.
+     */
+    @SuppressWarnings("SameParameterValue")
+    private void checkTreadSafety(String oid, long duration, OperationResult result)
+            throws CommonException, InterruptedException {
+
+        PrismObject<TaskType> retrievedTask;
+        long start = System.currentTimeMillis();
+        for (;;) {
+            Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
+                    .item(TaskType.F_SUBTASK_REF).retrieve()
+                    .build();
+            retrievedTask = taskManager.getObject(TaskType.class, oid, options, result);
+            if (!retrievedTask.asObjectable().getSubtaskRef().isEmpty()) {
+                break;
+            }
+            if (System.currentTimeMillis() - start > 3000) {
+                throw new AssertionError("Timed out waiting for the task to create subtasks");
+            }
+            //noinspection BusyWait
+            Thread.sleep(200);
+        }
+
+        display("Subtasks: " + retrievedTask.asObjectable().getSubtaskRef().size());
+        long startCloning = System.currentTimeMillis();
+        int cloneIterations = 0;
+        while (System.currentTimeMillis() - startCloning < duration) {
+            retrievedTask.clone();
+            cloneIterations++;
+        }
+        display("Clone iterations done: " + cloneIterations);
     }
 
     @SuppressWarnings("SameParameterValue")

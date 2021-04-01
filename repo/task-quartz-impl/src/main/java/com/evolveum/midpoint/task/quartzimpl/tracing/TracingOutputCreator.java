@@ -86,7 +86,7 @@ public class TracingOutputCreator {
             selectedNodeInformation.setClustered(localNode.isClustered());
             environment.setNodeRef(ObjectTypeUtil.createObjectRefWithFullObject(selectedNodeInformation, prismContext));
         }
-        TaskType taskClone = task.getClonedTaskObject().asObjectable();
+        TaskType taskClone = task.getRawTaskObjectClone().asObjectable(); // is it OK that we use not updated op. result?
         if (taskClone.getResult() != null) {
             taskClone.getResult().getPartialResults().clear();
         }

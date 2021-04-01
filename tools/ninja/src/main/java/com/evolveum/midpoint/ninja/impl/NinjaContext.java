@@ -35,7 +35,7 @@ public class NinjaContext {
     private static final String[] CTX_MIDPOINT = new String[] {
             "classpath:ctx-common.xml",
             "classpath:ctx-configuration.xml",
-            "classpath:ctx-repository.xml",
+            "classpath*:ctx-repository.xml",
             "classpath:ctx-repo-cache.xml",
             "classpath:ctx-audit.xml"
     };
@@ -45,7 +45,7 @@ public class NinjaContext {
             "classpath:ctx-configuration-no-repo.xml"
     };
 
-    private JCommander jc;
+    private final JCommander jc;
 
     private Log log;
 

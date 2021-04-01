@@ -69,7 +69,6 @@ import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.component.MultifunctionalButton;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.dialog.ChooseFocusTypeAndRelationDialogPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfigureTaskConfirmationPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -1497,7 +1496,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 if (task == null) {
                     return null;
                 }
-                PrismObject<TaskType> recomputeTask = task.getClonedTaskObject();
+                PrismObject<TaskType> recomputeTask = task.getRawTaskObjectClone();
                 TaskType recomputeTaskType = recomputeTask.asObjectable();
                 recomputeTaskType.getAssignment().add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value(), ObjectTypes.ARCHETYPE, getPrismContext()));
                 return recomputeTask;
