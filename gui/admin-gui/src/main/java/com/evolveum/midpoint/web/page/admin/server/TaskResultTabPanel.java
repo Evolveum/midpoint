@@ -74,7 +74,7 @@ public class TaskResultTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
 
             @Override
             public void onClick(Optional<AjaxRequestTarget> optionalTarget) {
-                if (optionalTarget.isPresent()) {
+                if (!optionalTarget.isPresent()) {
                     LOGGER.warn("Cannot show result in interactive way, request target not present.");
                     return;
                 }
