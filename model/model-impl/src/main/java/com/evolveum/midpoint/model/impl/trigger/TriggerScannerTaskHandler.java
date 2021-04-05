@@ -11,6 +11,8 @@ import javax.annotation.PostConstruct;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskLoggingOptionType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -54,7 +56,8 @@ public class TriggerScannerTaskHandler
 
     public TriggerScannerTaskHandler() {
         super(LOGGER, "Trigger scan", OperationConstants.TRIGGER_SCAN);
-        globalReportingOptions.setCountObjectsOnStart(false); // To avoid problems like in MID-6934.
+        globalReportingOptions.setDefaultDetermineExpectedTotal(false); // To avoid problems like in MID-6934.
+        globalReportingOptions.setDefaultBucketCompletionLogging(TaskLoggingOptionType.NONE); // To avoid log noise.
     }
 
     @PostConstruct

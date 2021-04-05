@@ -215,19 +215,21 @@ public interface ItemDelta<V extends PrismValue, D extends ItemDefinition>
 
     /**
      * Returns the narrowed delta that will have the same effect on the object as the current one.
-     *
-     * @param plusComparator Comparator we want to use when determining skippability of values being added.
-     * @param minusComparator Comparator we want to use when determining skippability of values being deleted.
      * <p>
      * We can skip deletion of vDel if there is no vEx ~ vDel (under minusComparator).
      * <p>
-     * We can skip addition of vAdd if there is existing vEx ~ vAdd (under plusComparator). But if we do that we must be sure
-     * to skip deletion of all vDel ~ vAdd (under minusComparator). Otherwise we would delete vDel but fail to add equivalent vAdd.
+     * We can skip addition of vAdd if there is existing vEx ~ vAdd (under plusComparator).
+     * But if we do that we must be sure
+     * to skip deletion of all vDel ~ vAdd (under minusComparator).
+     * Otherwise we would delete vDel but fail to add equivalent vAdd.
      * <p>
      * We can skip replacing of a set of values if and only if existing item has equivalent values under plusComparator.
      * <p>
      * This reasoning is bound to the actual application algorithm in ItemDeltaImpl.
      * But we should be aware that there are deltas that are applied by other code, e.g. those than are applied on a resource.
+     *
+     * @param plusComparator Comparator we want to use when determining skippability of values being added.
+     * @param minusComparator Comparator we want to use when determining skippability of values being deleted.
      */
     ItemDelta<V, D> narrow(PrismObject<? extends Objectable> object,
             @NotNull Comparator<V> plusComparator, @NotNull Comparator<V> minusComparator, boolean assumeMissingItems);

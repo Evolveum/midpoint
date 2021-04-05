@@ -194,7 +194,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
     @Nullable
     private Long computeExpectedTotal(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        if (!getReportingOptions().isCountObjectsOnStart()) {
+        if (!getReportingOptions().isDetermineExpectedTotal()) {
             return null;
         } else if (TaskWorkStateUtil.hasLimitations(workBucket)) {
             // We avoid computing expected total if we are processing a bucket: actually we could do it,
