@@ -17,7 +17,7 @@ import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
 
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
