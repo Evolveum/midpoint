@@ -311,7 +311,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         } else {
             query = createQueryFromDefaultItems(pageBase, variables);
             ObjectQuery searchTypeQuery = null;
-            if (SearchBoxModeType.ADVANCED.equals(searchType) || SearchBoxModeType.QUERY_DSL.equals(searchType)) {
+            if (SearchBoxModeType.ADVANCED.equals(searchType) || SearchBoxModeType.AXIOM_QUERY.equals(searchType)) {
                 searchTypeQuery = createObjectQueryAdvanced(pageBase);
             } else if (SearchBoxModeType.FULLTEXT.equals(searchType)) {
                 searchTypeQuery = createObjectQueryFullText(pageBase);
@@ -611,7 +611,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     public boolean isShowAdvanced() {
-        return SearchBoxModeType.ADVANCED.equals(searchType) || SearchBoxModeType.QUERY_DSL.equals(searchType);
+        return SearchBoxModeType.ADVANCED.equals(searchType) || SearchBoxModeType.AXIOM_QUERY.equals(searchType);
     }
 
     public String getAdvancedQuery() {
@@ -695,7 +695,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             }
             SearchFilterType search = ctx.parserFor(advancedQuery).type(SearchFilterType.COMPLEX_TYPE).parseRealValue();
             return ctx.getQueryConverter().parseFilter(search, getTypeClass());
-        } else if (SearchBoxModeType.QUERY_DSL.equals(searchType)) {
+        } else if (SearchBoxModeType.AXIOM_QUERY.equals(searchType)) {
             if (StringUtils.isEmpty(dslQuery)) {
                 return null;
             }

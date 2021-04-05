@@ -26997,13 +26997,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="queryDsl">
+            <xsd:enumeration value="axiomQuery">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Query DSL search mode. Ability to create complex query using a query DSL.
+                        Axiom query search mode. Ability to create complex query using a query DSL.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="QUERY_DSL"/>
+                        <jaxb:typesafeEnumMember name="AXIOM_QUERY"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
