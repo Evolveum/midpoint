@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2020-2021 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.gui.impl.component.menu;
 
 import java.util.ArrayList;
@@ -54,7 +60,6 @@ import com.evolveum.midpoint.web.page.admin.server.PageNodes;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.PageTasksCertScheduling;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
-import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsAttorney;
 import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
@@ -266,7 +271,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
     private MainMenuItem createUsersItems() {
         MainMenuItem userMenu = createMainMenuItem("PageAdmin.menu.top.users", GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED);
-        createBasicAssignmentHolderMenuItems(userMenu, UserType.COMPLEX_TYPE, PageTypes.USER, true);
+        createBasicAssignmentHolderMenuItems(userMenu, PageTypes.USER);
         return userMenu;
     }
 
@@ -279,7 +284,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 GuiStyleConstants.CLASS_OBJECT_ORG_ICON, PageOrgTree.class);
         organizationMenu.addMenuItem(orgTree);
 
-        createBasicAssignmentHolderMenuItems(organizationMenu, OrgType.COMPLEX_TYPE, PageTypes.ORG, true);
+        createBasicAssignmentHolderMenuItems(organizationMenu, PageTypes.ORG);
 
         return organizationMenu;
 
@@ -288,19 +293,19 @@ public class LeftMenuPanel extends BasePanel<Void> {
     private MainMenuItem createRolesMenu() {
         MainMenuItem roleMenu = createMainMenuItem("PageAdmin.menu.top.roles", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED
         );
-        createBasicAssignmentHolderMenuItems(roleMenu, RoleType.COMPLEX_TYPE, PageTypes.ROLE, true);
+        createBasicAssignmentHolderMenuItems(roleMenu, PageTypes.ROLE);
         return roleMenu;
     }
 
     private MainMenuItem createServicesItems() {
         MainMenuItem serviceMenu = createMainMenuItem("PageAdmin.menu.top.services", GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON_COLORED);
-        createBasicAssignmentHolderMenuItems(serviceMenu, ServiceType.COMPLEX_TYPE, PageTypes.SERVICE, true);
+        createBasicAssignmentHolderMenuItems(serviceMenu, PageTypes.SERVICE);
         return serviceMenu;
     }
 
     private MainMenuItem createResourcesItems() {
         MainMenuItem resourceMenu = createMainMenuItem("PageAdmin.menu.top.resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED);
-        createBasicAssignmentHolderMenuItems(resourceMenu, ResourceType.COMPLEX_TYPE, PageTypes.RESOURCE, true);
+        createBasicAssignmentHolderMenuItems(resourceMenu, PageTypes.RESOURCE);
         createFocusPageViewMenu(resourceMenu,"PageAdmin.menu.top.resources.view", PageResource.class);
         resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.resources.import", PageImportResource.class));
         resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class));
@@ -315,7 +320,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 return workItemCountModel.getObject();
             }
         };
-        createBasicAssignmentHolderMenuItems(casesMenu, CaseType.COMPLEX_TYPE, PageTypes.CASE, false);
+        createBasicAssignmentHolderMenuItems(casesMenu, PageTypes.CASE);
         casesMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.caseWorkItems.listAll", GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON, PageCaseWorkItemsAll.class));
 
         casesMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.caseWorkItems.list", PageCaseWorkItemsAllocatedToMe.class));
@@ -365,7 +370,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
     private MainMenuItem createServerTasksItems() {
         MainMenuItem tasksMenu = createMainMenuItem("PageAdmin.menu.top.serverTasks", GuiStyleConstants.CLASS_OBJECT_TASK_ICON_COLORED);
-        createBasicAssignmentHolderMenuItems(tasksMenu, TaskType.COMPLEX_TYPE, PageTypes.TASK, true);
+        createBasicAssignmentHolderMenuItems(tasksMenu, PageTypes.TASK);
         return tasksMenu;
     }
 
@@ -447,12 +452,15 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return menu;
     }
 
-    private void createBasicAssignmentHolderMenuItems(MainMenuItem mainMenuItem, QName type, PageTypes pageDesc, boolean canAddAndEdit) {
+    private void createBasicAssignmentHolderMenuItems(MainMenuItem mainMenuItem, PageTypes pageDesc) {
 
-        mainMenuItem.addMenuItem(addObjectListPageMenuItem( "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".list", pageDesc.getIcon(), pageDesc.getListClass()));
-        addCollectionsMenuItems(mainMenuItem, type, pageDesc.getListClass());
+        MenuItem objectListMenuItem = createObjectListPageMenuItem( "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".list", pageDesc.getIcon(), pageDesc.getListClass());
+        if (objectListMenuItem != null) {
+            mainMenuItem.addMenuItem(objectListMenuItem);
+        }
+        addCollectionsMenuItems(mainMenuItem, pageDesc.getTypeName(), pageDesc.getListClass());
 
-        if (canAddAndEdit) {
+        if (PageTypes.CASE != pageDesc) {
             createFocusPageNewEditMenu(mainMenuItem, "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".new",
                     "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".edit", pageDesc.getDetailsPage());
         }
@@ -517,7 +525,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
     private MainMenuItem createArchetypesItems() {
         MainMenuItem item = new MainMenuItem("PageAdmin.menu.top.archetypes", GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON);
-        item.addMenuItem(addObjectListPageMenuItem("PageAdmin.menu.top.archetypes.list", GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON, PageArchetypes.class));
+        item.addMenuItem(createObjectListPageMenuItem("PageAdmin.menu.top.archetypes.list", GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON, PageArchetypes.class));
         addCollectionsMenuItems(item, ArchetypeType.COMPLEX_TYPE, PageArchetypes.class);
 
         createFocusPageNewEditMenu(item, "PageAdmin.menu.top.archetypes.new",
@@ -529,7 +537,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
     private MainMenuItem createObjectsCollectionItems() {
         MainMenuItem item = new MainMenuItem("PageAdmin.menu.top.objectCollections", GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON
         );
-        item.addMenuItem(addObjectListPageMenuItem("PageAdmin.menu.top.objectCollections.list", GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON, PageObjectCollections.class));
+        item.addMenuItem(createObjectListPageMenuItem("PageAdmin.menu.top.objectCollections.list", GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON, PageObjectCollections.class));
         createFocusPageNewEditMenu(item, "PageAdmin.menu.top.objectCollections.new",
                 "PageAdmin.menu.top.objectCollections.edit", PageObjectCollection.class);
 
@@ -546,7 +554,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return repositoryObjectsMenu;
     }
 
-    private MenuItem addObjectListPageMenuItem(String key, String iconClass, Class<? extends PageBase> menuItemPage) {
+    private MenuItem createObjectListPageMenuItem(String key, String iconClass, Class<? extends PageBase> menuItemPage) {
 
         return new MenuItem(key, iconClass, menuItemPage) {
             @Override
@@ -585,7 +593,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
             MenuItem userViewMenu = new MenuItem(label,
                     StringUtils.isEmpty(iconClass) ? BaseMenuItem.DEFAULT_ICON : iconClass, redirectToPage, pageParameters, isObjectCollectionMenuActive(objectView));
             userViewMenu.setDisplayOrder(objectView.getDisplayOrder());
-            mainMenuItem.addMenuItem(userViewMenu);
+            mainMenuItem.addCollectionMenuItem(userViewMenu);
         });
 
         // We need to sort after we get all the collections. Only then we have correct collection labels.
