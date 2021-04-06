@@ -16,10 +16,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,6 +74,10 @@ public class DataModel {
 
     public ResourceDataItem findResourceItem(@NotNull String resourceOid, @Nullable ShadowKindType kind, @Nullable String intent,
             QName objectClassName, @NotNull ItemPath path) {
+        // FIXME Replace this ugly hack by something more serious
+        if (path.startsWith(ShadowType.F_ATTRIBUTES)) {
+            path = path.rest();
+        }
         kind = DataModelVisualizerImpl.def(kind);
         intent = DataModelVisualizerImpl.def(intent);
         for (ResourceDataItem item : getResourceDataItems()) {
