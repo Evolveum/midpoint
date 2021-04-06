@@ -13,12 +13,16 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
+import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
+
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.request.cycle.RequestCycle;
@@ -125,7 +129,20 @@ public class SecurityUtils {
     }
 
     public static boolean isMenuAuthorized(MenuItem item) {
-        Class<?> clazz = item.getPageClass();
+        Class<? extends WebPage> clazz = item.getPageClass();
+        List<String> authz = LeftMenuAuthzUtil.getAuthorizationsForPage(clazz);
+        if (CollectionUtils.isNotEmpty(authz)) {
+            return WebComponentUtil.isAuthorized(authz);
+        }
+        return isPageAuthorized(clazz);
+    }
+
+    public static boolean isCollectionMenuAuthorized(MenuItem item) {
+        Class<? extends WebPage> clazz = item.getPageClass();
+        List<String> authz = LeftMenuAuthzUtil.getAuthorizationsForView(clazz);
+        if (CollectionUtils.isNotEmpty(authz)) {
+            return WebComponentUtil.isAuthorized(authz);
+        }
         return isPageAuthorized(clazz);
     }
 

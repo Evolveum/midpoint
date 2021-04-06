@@ -21,4 +21,5 @@ public @interface AuthorizationAction {
     String description() default "";
 
     String actionUri();
+
 }

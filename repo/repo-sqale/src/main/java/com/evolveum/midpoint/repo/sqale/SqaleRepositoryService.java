@@ -435,18 +435,18 @@ public class SqaleRepositoryService implements RepositoryService {
             Collection<? extends ItemDelta<?, ?>> modifications)
             throws SchemaException, RepositoryException {
 
-        Collection<? extends ItemDelta<?, ?>> narrowedModifications =
-                prismObject.narrowModifications(modifications, EquivalenceStrategy.DATA,
-                        EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS, true);
-        LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(narrowedModifications));
+        // I reassign here, we DON'T want original modifications to be used further by accident
+        modifications = prismObject.narrowModifications(
+                modifications, EquivalenceStrategy.DATA,
+                EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS, true);
+        LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
 
         SqaleUpdateContext<S, Q, R> updateContext = new SqaleUpdateContext<>(
-                sqlRepoContext.getMappingBySchemaType(prismObject.getCompileTimeClass()),
-                jdbcSession, prismObject);
+                transformerSupport, jdbcSession, prismObject);
 
         // region updatePrismObject: can be extracted as updatePrismObject (not done before CID generation is cleared up
         // TODO taken from "legacy" branch, how is this worse/different from ObjectDeltaUpdater.handleObjectCommonAttributes()?
-        ItemDeltaCollectionsUtil.applyTo(modifications, prismObject);
+//        ItemDeltaCollectionsUtil.applyTo(modifications, prismObject);
         ObjectTypeUtil.normalizeAllRelations(prismObject, schemaService.relationRegistry());
         // TODO generate missing container IDs? is it needed? doesn't model do it? see old repo PrismIdentifierGenerator
         //  BWT: it's not enough to do it in prism object, we need it for deltas adding containers too
@@ -455,12 +455,15 @@ public class SqaleRepositoryService implements RepositoryService {
 
         // TODO APPLY modifications HERE (generate update/set clauses)
         for (ItemDelta<?, ?> modification : modifications) {
-            System.out.println("modification = " + modification);
-            updateContext.processModification(modification); // TODO expected NPE right now
+            // TODO validate that this is equivalent to ItemDeltaCollectionsUtil.applyTo above.
+            //  If so, how to update container IDs during/around this applyTo?
+            modification.applyTo(prismObject);
+            try {
+                updateContext.processModification(modification);
+            } catch (IllegalArgumentException e) {
+                LOGGER.warn("Modification failed/not implemented yet: " + e.toString());
+            }
         }
-
-        updateContext.incrementVersion();
-        updateContext.updateFullObject(transformerSupport);
 
         updateContext.execute();
     }
@@ -622,8 +625,7 @@ public class SqaleRepositoryService implements RepositoryService {
                     sqlQueryExecutor.list(queryContext, query, options);
             return result;
         } catch (RepositoryException | RuntimeException e) {
-            handledGeneralException(e, operationResult);
-            throw new SystemException(e);
+            throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
             operationResult.recordFatalError(t);
             throw t;

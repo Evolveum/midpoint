@@ -343,10 +343,26 @@ order by total_size desc;
 -- find sequence name for serial column (e.g. to alter its value later)
 select pg_get_serial_sequence('m_qname', 'id');
 
--- optional, little overhead, adds visibility, reqiures postgresql.conf change:
+-- optional, little overhead, adds visibility, requires postgresql.conf change:
 -- shared_preload_libraries = 'pg_stat_statements' + restart
--- create extension pg_stat_statements; -- is this necessary?
-select * from pg_stat_statements; -- this fails without the pg.conf change + restart
+create extension pg_stat_statements;
+select * from pg_stat_statements; -- this fails without the steps above
+-- select pg_stat_statements_reset(); -- to reset statistics
+
+-- STATS/perf selects
+select
+  (total_exec_time / 1000 / 60) as total_min,
+  mean_exec_time as avg_ms,
+  calls,
+  query
+from pg_stat_statements
+--   order by total_min desc
+  order by avg_ms desc
+  limit 50;
+
+select query, calls, total_exec_time, rows, 100.0 * shared_blks_hit /
+    nullif(shared_blks_hit + shared_blks_read, 0) AS hit_percent
+from pg_stat_statements order by total_exec_time desc limit 5;
 
 -- PRACTICAL UTILITY FUNCTIONS
 
