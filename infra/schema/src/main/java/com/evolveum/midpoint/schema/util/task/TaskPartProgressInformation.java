@@ -128,14 +128,10 @@ public class TaskPartProgressInformation implements DebugDumpable, Serializable 
             return false;
         }
         if (bucketsProgress.getExpectedBuckets() != null) {
-            if (bucketsProgress.getExpectedBuckets() > 1) {
-                // There are some buckets expected. Even if it is a small number, we consider the task as bucketed.
-                return true;
-            } else {
-                // A single bucket. There is no point in showing performance information in buckets for such tasks.
-                // We will use items progress instead.
-                return false;
-            }
+            // - If > 1: There are some buckets expected. Even if it is a small number, we consider the task as bucketed.
+            // - Otherwise: A single bucket. There is no point in showing performance information in buckets for such tasks.
+            //   We will use items progress instead.
+            return bucketsProgress.getExpectedBuckets() > 1;
         } else {
             // We don't know how many buckets to expect. So let's guess according to buckets completed so far.
             return bucketsProgress.getCompletedBuckets() > 1;
