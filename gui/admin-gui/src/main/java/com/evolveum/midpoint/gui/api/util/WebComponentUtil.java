@@ -3876,9 +3876,9 @@ public final class WebComponentUtil {
         switch (value) {
             case DISABLED:
                 if (isColumn) {
-                    appendIcon(builder, "fe fe-slash " + GuiStyleConstants.RED_COLOR, IconCssStyle.CENTER_FOR_COLUMN_STYLE);
+                    appendIcon(builder, "fe fe-no-line " + GuiStyleConstants.RED_COLOR, IconCssStyle.CENTER_FOR_COLUMN_STYLE);
                 } else {
-                    appendIcon(builder, "fe fe-slash " + GuiStyleConstants.RED_COLOR, IconCssStyle.CENTER_STYLE);
+                    appendIcon(builder, "fe fe-no-line " + GuiStyleConstants.RED_COLOR, IconCssStyle.CENTER_STYLE);
                 }
                 return builder.build();
             case ARCHIVED:
