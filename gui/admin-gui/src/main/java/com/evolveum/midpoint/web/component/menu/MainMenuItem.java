@@ -60,6 +60,12 @@ public class MainMenuItem extends BaseMenuItem {
         }
     }
 
+    public void addCollectionMenuItem(MenuItem menuItem) {
+        if (SecurityUtils.isCollectionMenuAuthorized(menuItem)) {
+            getItems().add(menuItem);
+        }
+    }
+
     private boolean isNotEmpty() {
         // If pageClass is not null, we can check page authorization
         // otherwise, empty items means that no sub-items were authorized

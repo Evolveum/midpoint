@@ -682,7 +682,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                                 searchPerformedConsumer.accept(target);
                             }
                         });
-                        inputPanel.getBaseFormComponent().add(new EnableBehaviour(() -> !SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope())));
+                        inputPanel.getBaseFormComponent().add(new EnableBehaviour(() -> getMemberPanelStorage() != null && !SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope())));
                         inputPanel.setOutputMarkupId(true);
                         return inputPanel;
                     }

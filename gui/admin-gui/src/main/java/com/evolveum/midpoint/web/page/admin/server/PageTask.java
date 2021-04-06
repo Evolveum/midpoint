@@ -82,10 +82,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         },
         encoder = OnePageParameterEncoder.class,
         action = {
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL,
                         label = "PageAdminUsers.auth.usersAll.label",
                         description = "PageAdminUsers.auth.usersAll.description"),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_URL,
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASK_URL,
                         label = "PageUser.auth.user.label",
                         description = "PageUser.auth.user.description")
         })
