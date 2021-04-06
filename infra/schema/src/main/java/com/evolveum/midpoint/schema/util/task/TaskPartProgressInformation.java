@@ -171,7 +171,7 @@ public class TaskPartProgressInformation implements DebugDumpable, Serializable 
             if (longForm) {
                 return bucketsProgress.getCompletedBuckets() + " buckets";
             } else {
-                return bucketsProgress.getCompletedBuckets() + "b";
+                return bucketsProgress.getCompletedBuckets() + " buckets"; // at least temporarily until we find something better
             }
         }
         if (longForm) {
