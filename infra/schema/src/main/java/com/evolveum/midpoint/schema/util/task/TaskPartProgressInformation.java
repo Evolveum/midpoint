@@ -117,13 +117,33 @@ public class TaskPartProgressInformation implements DebugDumpable, Serializable 
         return sb.toString();
     }
 
-    public boolean isBucketed() {
-        return bucketsProgress != null &&
-                (bucketsProgress.getExpectedBuckets() == null || bucketsProgress.getExpectedBuckets() > 1);
+    /**
+     * Related to {@link TaskWorkStateUtil#hasBuckets(TaskType)}. But unfortunately we do not have the full information
+     * here, in particular we don't see the actual buckets. This should be probably fixed in the pre-processing phase
+     * i.e. when {@link TaskPartProgressInformation} is created.
+     */
+    @SuppressWarnings("RedundantIfStatement")
+    private boolean shouldUseBucketForProgressReporting() {
+        if (bucketsProgress == null) {
+            return false;
+        }
+        if (bucketsProgress.getExpectedBuckets() != null) {
+            if (bucketsProgress.getExpectedBuckets() > 1) {
+                // There are some buckets expected. Even if it is a small number, we consider the task as bucketed.
+                return true;
+            } else {
+                // A single bucket. There is no point in showing performance information in buckets for such tasks.
+                // We will use items progress instead.
+                return false;
+            }
+        } else {
+            // We don't know how many buckets to expect. So let's guess according to buckets completed so far.
+            return bucketsProgress.getCompletedBuckets() > 1;
+        }
     }
 
     public String toHumanReadableString(boolean longForm) {
-        if (isBucketed()) {
+        if (shouldUseBucketForProgressReporting()) {
             return toHumanReadableStringForBucketed(longForm);
         } else if (itemsProgress != null) {
             return toHumanReadableStringForNonBucketed(longForm);
