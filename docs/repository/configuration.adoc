@@ -265,7 +265,7 @@ Data source configuration is common for all supported databases.
 . First step is DB resource configuration in application server.
 Here is example for Tomcat 7.
 This XML part is located in `<tomcat-location>/conf/server.xml`, resource will be available for all applications in the container.
-
++
 [source,xml]
 ----
 <GlobalNamingResources>
@@ -280,9 +280,9 @@ This XML part is located in `<tomcat-location>/conf/server.xml`, resource will b
         poolPreparedStatements="true"/>
 </GlobalNamingResources>
 ----
-
++
 Also configure `<tomcat-location>/conf/context.xml` file:
-
++
 [source,xml]
 ----
 <?xml version='1.0' encoding='utf-8'?>
@@ -296,7 +296,7 @@ Also configure `<tomcat-location>/conf/context.xml` file:
 
 . Next step is configuration in file `config.xml` located in *midpoint.home* folder.
 `hibernateDialect` depends on your DB choice, `dataSource` is based on resource name.
-
++
 [source,xml]
 ----
 <configuration>
@@ -314,7 +314,7 @@ Also configure `<tomcat-location>/conf/context.xml` file:
 
 == Index tuning
 
-Anything that is externalized into columns and related tables (like extensions, references, etc.) is effectively searchable using xref:../concepts/queyr/query-api/[].
+Anything that is externalized into columns and related tables (like extensions, references, etc.) is effectively searchable using xref:../concepts/query/query-api/[].
 It is not possible to search for information stored only in the serialized form of the object.
 But _searchable_ and _efficiently searchable_ are two different things.
 
