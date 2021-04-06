@@ -90,6 +90,8 @@ CREATE TYPE OperationExecutionRecordTypeType AS ENUM ('SIMPLE', 'COMPLEX');
 CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ERROR',
     'FATAL_ERROR', 'HANDLED_ERROR', 'NOT_APPLICABLE', 'IN_PROGRESS', 'UNKNOWN');
 
+CREATE TYPE OrientationType AS ENUM ('PORTRAIT', 'LANDSCAPE');
+
 CREATE TYPE ResourceAdministrativeStateType AS ENUM ('ENABLED', 'DISABLED');
 
 CREATE TYPE ShadowKindType AS ENUM ('ACCOUNT', 'ENTITLEMENT', 'GENERIC', 'UNKNOWN');
@@ -901,10 +903,8 @@ ALTER TABLE m_value_policy ADD CONSTRAINT m_value_policy_name_norm_key UNIQUE (n
 CREATE TABLE m_report (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('REPORT') STORED,
-    export INTEGER,
-    orientation INTEGER,
-    parent BOOLEAN,
-    useHibernateSession BOOLEAN
+    orientation OrientationType,
+    parent BOOLEAN
 )
     INHERITS (m_object);
 
@@ -928,6 +928,13 @@ CREATE TABLE m_report_data (
     reportRef_relation_id INTEGER REFERENCES m_uri(id)
 )
     INHERITS (m_object);
+
+CREATE TRIGGER m_report_data_oid_insert_tr BEFORE INSERT ON m_report_data
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_report_data_update_tr BEFORE UPDATE ON m_report_data
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_report_data_oid_delete_tr AFTER DELETE ON m_report_data
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_report_data_name_orig_idx ON m_report_data (name_orig);
 ALTER TABLE m_report_data ADD CONSTRAINT m_report_data_name_norm_key UNIQUE (name_norm);

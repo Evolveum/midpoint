@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.report;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType.F_REPORT_REF;
 
 import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
@@ -40,10 +39,8 @@ public class QReportDataMapping
     }
 
     @Override
-    public ObjectSqlTransformer<ReportDataType, QReportData, MReportData>
-    createTransformer(SqlTransformerSupport transformerSupport) {
-        // no special class needed, no additional columns
-        return new ObjectSqlTransformer<>(transformerSupport, this);
+    public ReportDataSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
+        return new ReportDataSqlTransformer(transformerSupport, this);
     }
 
     @Override

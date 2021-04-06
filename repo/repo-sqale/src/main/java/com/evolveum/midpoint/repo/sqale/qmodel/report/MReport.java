@@ -7,13 +7,13 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.report;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrientationType;
 
 /**
  * Querydsl "row bean" type related to {@link QReport}.
  */
 public class MReport extends MObject {
-    public Integer export;
-    public Integer orientation;
+
+    public OrientationType orientation;
     public Boolean parent;
-    public Boolean useHibernateSession;
 }
