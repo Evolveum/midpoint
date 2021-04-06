@@ -312,6 +312,38 @@ Also configure `<tomcat-location>/conf/context.xml` file:
 </configuration>
 ----
 
+== Index tuning
+
+Anything that is externalized into columns and related tables (like extensions, references, etc.) is effectively searchable using xref:../concepts/queyr/query-api/[].
+It is not possible to search for information stored only in the serialized form of the object.
+But _searchable_ and _efficiently searchable_ are two different things.
+
+For some tables (object types) and some columns no indexes are needed, but for others they typically are.
+MidPoint is provided with all essential indexes out of the box.
+Despite that it is possible to come up with real-life queries that will perform badly.
+While it is possible to cover nearly all needs by more and more indexes, it is not necessarily
+a good idea to have them all created by default.
+Indexes also take space and if not necessary only add cost to insert/update operation without really helping.
+
+For any non-trivial installation it is recommended to check the database performance logs/statistics regularly to identify sluggish queries.
+When identified check existing (predefined) indexes whether they should have covered the case and investigate why they didn't.
+If the existing index does not cover the case, don't be afraid to add the index according to your specific needs.
+
+Following notes and tips can be helpful:
+
+* Don't index each column separately if the critical query uses multiple where conditions.
+* Searching using `like` (especially with `%` at the start of the value) or case-insensitive
+search often require specific indexes.
+Consult your database resources; some databases don't offer function-based index and indexing the column using lower/upper (depending on the used query) may not be possible.
+Some databases offer specialized indexes, e.g. PostgreSQL trigram indexes that can significantly boost performance.
+* Don't index columns with low variability (e.g. boolean or integer representing enum with
+just a few distinct values).
+Leave the column unindexed and let other indexed column do the job first.
+Searching only by such a column is not recommended in general.
+* It is possible to use `where` clause in index when only specific values are selected often.
+This is typical for low variability columns, using them in where part of the index is good
+and it also makes the index size smaller.
+
 == External links
 
 * What is link:https://evolveum.com/midpoint/[midPoint Open Source Identity & Access Management]
