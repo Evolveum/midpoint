@@ -390,7 +390,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
                 PrismObject<T> originalObject = prismObject.clone();
 
-                modifyObjectAttempt(jdbcSession, prismObject, modifications);
+                modifications = modifyObjectAttempt(jdbcSession, prismObject, modifications);
 
             /*
             RObject rObject = objectDeltaUpdater.modifyObject(type, oid, modifications, prismObject, modifyOptions, session, attemptContext);
@@ -424,12 +424,14 @@ public class SqaleRepositoryService implements RepositoryService {
     }
 
     /**
+     * Applies modifications, executes necessary updates and returns narrowed modifications.
+     *
      * @param <S> schema type
      * @param <Q> type of entity path
      * @param <R> row type related to the {@link Q}
      */
     private <S extends ObjectType, Q extends QObject<R>, R extends MObject>
-    void modifyObjectAttempt(
+    Collection<? extends ItemDelta<?, ?>> modifyObjectAttempt(
             JdbcSession jdbcSession,
             PrismObject<S> prismObject,
             Collection<? extends ItemDelta<?, ?>> modifications)
@@ -440,6 +442,10 @@ public class SqaleRepositoryService implements RepositoryService {
                 modifications, EquivalenceStrategy.DATA,
                 EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS, true);
         LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
+
+        if (modifications.isEmpty()) {
+            return modifications; // no need to execute any update
+        }
 
         SqaleUpdateContext<S, Q, R> updateContext = new SqaleUpdateContext<>(
                 transformerSupport, jdbcSession, prismObject);
@@ -461,6 +467,7 @@ public class SqaleRepositoryService implements RepositoryService {
         }
 
         updateContext.execute();
+        return modifications;
     }
 
     private void logTraceModifications(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) {

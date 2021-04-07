@@ -181,6 +181,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     public void test104StringDeleteWithWrongValueDoesNotChangeAnything()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
         given("delta with email delete for user 1 using wrong previous value");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
@@ -203,6 +204,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("externalized column is updated");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.emailAddress).isEqualTo("newer@email.com");
+        // This is rather implementation detail, but it shows that when narrowed modifications are
+        // empty, we don't bother with update at all which is more efficient.
+        assertThat(row.version).isEqualTo(originalRow.version);
     }
 
     @Test
