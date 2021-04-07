@@ -17,9 +17,11 @@ import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsOperationEntryType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -109,6 +111,7 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
                     }
                 };
                 provisioningTable.setOutputMarkupId(true);
+                provisioningTable.add(new VisibleBehaviour(() -> hasAnyOperation(item.getModelObject())));
                 item.add(provisioningTable);
             }
         };
@@ -152,6 +155,14 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
 
         Label lastMessage = new Label(ID_LAST_MESSAGE, new PropertyModel<>(getModel(), StatisticsDto.F_LAST_MESSAGE));
         contentsPanel.add(lastMessage);
+    }
+
+    private boolean hasAnyOperation(ProvisioningStatisticsLineDto provisioningStatisticsLineDto) {
+        if (provisioningStatisticsLineDto == null) {
+            return false;
+        }
+
+        return CollectionUtils.isNotEmpty(provisioningStatisticsLineDto.getOperations());
     }
 
     private List<IColumn<ProvisioningStatisticsOperationDto, String>> createProvisioningStatisticsColumns() {
