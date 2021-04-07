@@ -223,41 +223,49 @@
 
                         discriminator = new ObjectSynchronizationDiscriminatorType();
 
+                        String secondaryIdentifier = basic.getSecondaryIdentifierValue(shadow);
+                        if (secondaryIdentifier.startsWith("test_")) {
+                            discriminator.setSynchronizationSituation(SynchronizationSituationType.DISPUTED)
+                            discriminator.setKind(ShadowKindType.ACCOUNT);
+                            discriminator.setIntent("default");
+                            return discriminator;
+                        }
+
                         owner = midpoint.searchShadowOwner(shadow.getOid());
 
                         if (owner == null) {
 
-                        applicableServices = midpoint.getFocusesByCorrelationRule(ServiceType.class,
-                        "1169ac14-8377-11e8-b404-5b5a1a8af0db", ShadowKindType.ACCOUNT, "service", shadow);
+                            applicableServices = midpoint.getFocusesByCorrelationRule(ServiceType.class,
+                            "1169ac14-8377-11e8-b404-5b5a1a8af0db", ShadowKindType.ACCOUNT, "service", shadow);
 
-                        if (applicableServices == null || applicableServices.isEmpty()) {
-                        log.info("No applicable services found, returning UNMATCHED situation for account/default")
-                        discriminator.setSynchronizationSituation(SynchronizationSituationType.UNMATCHED)
-                        discriminator.setKind(ShadowKindType.ACCOUNT)
-                        discriminator.setIntent("default")
-                        return discriminator
-                        }
+                            if (applicableServices == null || applicableServices.isEmpty()) {
+                                log.info("No applicable services found, returning UNMATCHED situation for account/default")
+                                discriminator.setSynchronizationSituation(SynchronizationSituationType.UNMATCHED)
+                                discriminator.setKind(ShadowKindType.ACCOUNT)
+                                discriminator.setIntent("default")
+                                return discriminator
+                            }
 
-                        if (applicableServices.size() == 1) {
-                        log.info("Corresponding service found, returning UNLINKED situation for account/service")
-                        log.info("service {}", applicableServices.get(0))
-                        discriminator.setOwner(applicableServices.get(0))
-                        discriminator.setKind(ShadowKindType.ACCOUNT)
-                        discriminator.setIntent("service")
-                        discriminator.setSynchronizationSituation(SynchronizationSituationType.UNLINKED)
-                        return discriminator
-                        }
+                            if (applicableServices.size() == 1) {
+                                log.info("Corresponding service found, returning UNLINKED situation for account/service")
+                                log.info("service {}", applicableServices.get(0))
+                                discriminator.setOwner(applicableServices.get(0))
+                                discriminator.setKind(ShadowKindType.ACCOUNT)
+                                discriminator.setIntent("service")
+                                discriminator.setSynchronizationSituation(SynchronizationSituationType.UNLINKED)
+                                return discriminator
+                            }
 
-                        log.info("Unexpected situation, throw exception rather")
-                        throw new ConfigurationException("Wrong configuration, cannot determine what to do.");
+                            log.info("Unexpected situation, throw exception rather")
+                            throw new ConfigurationException("Wrong configuration, cannot determine what to do.");
                         }
 
                         ownerType = owner.asObjectable();
                         if (ownerType instanceof UserType) {
-                        discriminator.setIntent("default")
+                            discriminator.setIntent("default")
 
                         } else if (ownerType instanceof ServiceType) {
-                        discriminator.setIntent("service")
+                            discriminator.setIntent("service")
                         }
 
                         discriminator.setOwner(ownerType)

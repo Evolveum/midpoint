@@ -697,7 +697,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
 
         syncCtx.setCorrelatedOwner(user);
-        syncCtx.setSituation(state);
+        if (syncCtx.getSituation() == null) {
+            syncCtx.setSituation(state);
+        }
     }
 
     private SynchronizationSituationType getSynchornizationSituationFromChange(ResourceObjectShadowChangeDescription change) {
