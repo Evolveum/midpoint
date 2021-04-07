@@ -12,7 +12,6 @@ import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanPath;
-import com.querydsl.core.types.dsl.NumberPath;
 
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
@@ -29,13 +28,6 @@ public class SimpleItemFilterProcessor<T, P extends Path<T>>
 
     // TODO these factory methods go away from filter processor as we want to create
     //  also delta processor in one go.
-
-    /** Returns the mapper creating the integer filter processor from context. */
-    public static ItemSqlMapper integerMapper(
-            Function<EntityPath<?>, NumberPath<Integer>> rootToQueryItem) {
-        return new ItemSqlMapper(ctx ->
-                new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
-    }
 
     /** Returns the mapper creating the boolean filter processor from context. */
     public static ItemSqlMapper booleanMapper(

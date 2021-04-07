@@ -20,28 +20,18 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
 
 /**
  * Filter processor for a an attribute path (Prism item) of a timestamp type.
  * Should support conversion of filter value types {@link XMLGregorianCalendar}
  * (what else do we want?) to paths of {@link Instant}, {@link Timestamp} and {@link Long}.
  */
-public class TimestampItemFilterProcessor
-        extends SinglePathItemFilterProcessor<PropertyValueFilter<?>, DateTimePath<Instant>> {
+public class TimestampItemFilterProcessor<T extends Comparable<T>>
+        extends SinglePathItemFilterProcessor<PropertyValueFilter<?>, DateTimePath<T>> {
 
-    /**
-     * Returns the mapper function creating the timestamp filter processor from context.
-     */
-    public static ItemSqlMapper mapper(
-            Function<EntityPath<?>, DateTimePath<Instant>> rootToQueryItem) {
-        return new ItemSqlMapper(context ->
-                new TimestampItemFilterProcessor(context, rootToQueryItem), rootToQueryItem);
-    }
-
-    private TimestampItemFilterProcessor(SqlQueryContext<?, ?, ?> context,
-            Function<EntityPath<?>, DateTimePath<Instant>> rootToQueryItem) {
+    public TimestampItemFilterProcessor(SqlQueryContext<?, ?, ?> context,
+            Function<EntityPath<?>, DateTimePath<T>> rootToQueryItem) {
         super(context, rootToQueryItem);
     }
 
@@ -52,30 +42,7 @@ public class TimestampItemFilterProcessor
     }
 
     // Used <T> instead of Object to conform to unknown type of path above
-    @SuppressWarnings("unchecked")
-    private <T> T convertToPathType(@NotNull Object value) {
-        if (value.getClass() == path.getType()) {
-            return (T) value;
-        }
-
-        long timestamp;
-        if (value instanceof XMLGregorianCalendar) {
-            timestamp = MiscUtil.asLong((XMLGregorianCalendar) value);
-        } else {
-            throw new IllegalArgumentException(
-                    "Unsupported temporal type " + value.getClass() + " for value: " + value);
-        }
-        Class<?> pathType = path.getType();
-        if (Long.class.isAssignableFrom(pathType)) {
-            value = timestamp;
-        } else if (Instant.class.isAssignableFrom(pathType)) {
-            value = Instant.ofEpochMilli(timestamp);
-        } else if (Timestamp.class.isAssignableFrom(pathType)) {
-            value = new Timestamp(timestamp);
-        } else {
-            throw new IllegalArgumentException(
-                    "Unsupported temporal type " + pathType + " for path: " + path);
-        }
-        return (T) value;
+    private T convertToPathType(@NotNull Object value) {
+        return QuerydslUtils.convertTimestampToPathType(value, path);
     }
 }
