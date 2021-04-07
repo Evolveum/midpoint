@@ -116,7 +116,7 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
     }
 
     private void addActionsTablePanel() {
-        ListDataProvider<ObjectActionsExecutedEntryType> objectActionsEntry = createActionsEntryProvider(ActionsExecutedInformationType.F_RESULTING_OBJECT_ACTIONS_ENTRY);
+        ListDataProvider<ObjectActionsExecutedEntryType> objectActionsEntry = createActionsEntryProvider(ActionsExecutedInformationType.F_OBJECT_ACTIONS_ENTRY);
         BoxedTablePanel<ObjectActionsExecutedEntryType> actionTable = new BoxedTablePanel<>(ID_ACTION_ENTRY, objectActionsEntry, createActionEntryColumns()) {
             @Override
             protected boolean hideFooterIfSinglePage() {
@@ -135,7 +135,7 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
 
     private void addResultingEntryPanel() {
         BoxedTablePanel<ObjectActionsExecutedEntryType> resultingEntry =
-                new BoxedTablePanel<>(ID_RESULTING_ENTRY, createActionsEntryProvider(ActionsExecutedInformationType.F_OBJECT_ACTIONS_ENTRY), createActionEntryColumns()) {
+                new BoxedTablePanel<>(ID_RESULTING_ENTRY, createActionsEntryProvider(ActionsExecutedInformationType.F_RESULTING_OBJECT_ACTIONS_ENTRY), createActionEntryColumns()) {
             @Override
             protected boolean hideFooterIfSinglePage() {
                 return true;
