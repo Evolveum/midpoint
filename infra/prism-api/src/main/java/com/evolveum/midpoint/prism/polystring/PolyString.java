@@ -355,12 +355,24 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
         }
     }
 
+    /** Returns orig value or null for the nullable input polystring. */
     public static String getOrig(PolyString s) {
         return s != null ? s.getOrig() : null;
     }
 
+    /** Returns orig value or null for the nullable input polystring. */
     public static String getOrig(PolyStringType s) {
         return s != null ? s.getOrig() : null;
+    }
+
+    /** Returns norm value or null for the nullable input polystring. */
+    public static String getNorm(PolyString s) {
+        return s != null ? s.getNorm() : null;
+    }
+
+    /** Returns norm value or null for the nullable input polystring. */
+    public static String getNorm(PolyStringType s) {
+        return s != null ? s.getNorm() : null;
     }
 
     @Override
