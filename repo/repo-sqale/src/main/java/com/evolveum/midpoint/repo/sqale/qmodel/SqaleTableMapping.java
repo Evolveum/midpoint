@@ -10,6 +10,7 @@ import java.util.function.Function;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.EntityPath;
+import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.StringPath;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,9 +18,11 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqale.ObjectRefTableItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.SimpleItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.SqaleItemSqlMapper;
+import com.evolveum.midpoint.repo.sqale.delta.TimestampItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
@@ -62,11 +65,22 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /** Returns the mapper creating the string filter/delta processors from context. */
+    @Override
     protected ItemSqlMapper stringMapper(
             Function<EntityPath<?>, StringPath> rootToQueryItem) {
         return new SqaleItemSqlMapper(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
                 ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
+                rootToQueryItem);
+    }
+
+    /** Returns the mapper creating the timestamp filter/delta processors from context. */
+    @Override
+    protected <T extends Comparable<T>> ItemSqlMapper timestampMapper(
+            Function<EntityPath<?>, DateTimePath<T>> rootToQueryItem) {
+        return new SqaleItemSqlMapper(
+                ctx -> new TimestampItemFilterProcessor<>(ctx, rootToQueryItem),
+                ctx -> new TimestampItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
     }
 }

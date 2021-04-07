@@ -14,7 +14,6 @@ import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -42,7 +41,7 @@ public class QShadowMapping
         addItemMapping(F_DEAD, booleanMapper(path(q -> q.dead)));
         addItemMapping(F_EXISTS, booleanMapper(path(q -> q.exist)));
         addItemMapping(F_FULL_SYNCHRONIZATION_TIMESTAMP,
-                TimestampItemFilterProcessor.mapper(path(q -> q.fullSynchronizationTimestamp)));
+                timestampMapper(path(q -> q.fullSynchronizationTimestamp)));
         // TODO size filter? how?
 //        addItemMapping(F_PENDING_OPERATION, integerMapper(path(q -> q.pendingOperationCount)));
         addItemMapping(F_PRIMARY_IDENTIFIER_VALUE,
@@ -50,7 +49,7 @@ public class QShadowMapping
         addItemMapping(F_SYNCHRONIZATION_SITUATION,
                 EnumItemFilterProcessor.mapper(path(q -> q.synchronizationSituation)));
         addItemMapping(F_SYNCHRONIZATION_TIMESTAMP,
-                TimestampItemFilterProcessor.mapper(path(q -> q.synchronizationTimestamp)));
+                timestampMapper(path(q -> q.synchronizationTimestamp)));
     }
 
     @Override

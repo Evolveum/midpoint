@@ -11,7 +11,6 @@ import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
@@ -32,16 +31,16 @@ public class QTaskMapping
         addItemMapping(TaskType.F_BINDING, EnumItemFilterProcessor.mapper(path(q -> q.binding)));
         addItemMapping(TaskType.F_CATEGORY, stringMapper(path(q -> q.category)));
         addItemMapping(TaskType.F_COMPLETION_TIMESTAMP,
-                TimestampItemFilterProcessor.mapper(path(q -> q.completionTimestamp)));
+                timestampMapper(path(q -> q.completionTimestamp)));
         addItemMapping(TaskType.F_EXECUTION_STATUS,
                 EnumItemFilterProcessor.mapper(path(q -> q.executionStatus)));
         // TODO byte[] fullResult mapping - probably does not make sense?
         addItemMapping(TaskType.F_HANDLER_URI,
                 UriItemFilterProcessor.mapper(path(q -> q.handlerUriId)));
         addItemMapping(TaskType.F_LAST_RUN_FINISH_TIMESTAMP,
-                TimestampItemFilterProcessor.mapper(path(q -> q.lastRunFinishTimestamp)));
+                timestampMapper(path(q -> q.lastRunFinishTimestamp)));
         addItemMapping(TaskType.F_LAST_RUN_START_TIMESTAMP,
-                TimestampItemFilterProcessor.mapper(path(q -> q.lastRunStartTimestamp)));
+                timestampMapper(path(q -> q.lastRunStartTimestamp)));
         addItemMapping(TaskType.F_NODE, stringMapper(path(q -> q.node)));
         addItemMapping(TaskType.F_OBJECT_REF, RefItemFilterProcessor.mapper(
                 path(q -> q.objectRefTargetOid),

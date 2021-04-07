@@ -8,23 +8,31 @@ package com.evolveum.midpoint.repo.sqale;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Instant;
+
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
+import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
+import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
     private String user1Oid; // typical object
-//    private String task1Oid; // task has more attribute type variability
+    private String task1Oid; // task has more attribute type variability
 //    private String shadow1Oid; // ditto
 
     @BeforeClass
@@ -34,9 +42,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         user1Oid = repositoryService.addObject(
                 new UserType(prismContext).name("user-1").asPrismObject(),
                 null, result);
-//        task1Oid = repositoryService.addObject(
-//                new TaskType(prismContext).name("task-1").asPrismObject(),
-//                null, result);
+        task1Oid = repositoryService.addObject(
+                new TaskType(prismContext).name("task-1").asPrismObject(),
+                null, result);
 //        shadow1Oid = repositoryService.addObject(
 //                new ShadowType(prismContext).name("shadow-1").asPrismObject(),
 //                null, result);
@@ -73,8 +81,42 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.emailAddress).isEqualTo("new@email.com");
     }
 
+    /**
+     * NOTE: This test documents current behavior where {@link ItemDelta#applyTo(Item)} interprets
+     * ADD for single-value item as REPLACE if the value is not empty.
+     * This behavior is likely to change.
+     */
     @Test
-    public void test101DeleteStringAttribute()
+    public void test101ChangeStringAttributeWithPreviousValueUsingAddModification()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta with email change for user 1 using property add modification");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .property(UserType.F_EMAIL_ADDRESS).add("new2@email.com")
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and old value is overridden");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getEmailAddress()).isEqualTo("new2@email.com");
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+
+        and("externalized column is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.emailAddress).isEqualTo("new2@email.com");
+    }
+
+    @Test
+    public void test102DeleteStringAttribute()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
@@ -103,7 +145,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test102StringReplacePreviousNullValueIsOk()
+    public void test103StringReplacePreviousNullValueIsOk()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -129,7 +171,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test103StringDeleteWithWrongValueDoesNotChangeAnything()
+    public void test104StringDeleteWithWrongValueDoesNotChangeAnything()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -157,7 +199,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test104StringReplaceWithExistingValueWorksOk()
+    public void test105StringReplaceWithExistingValueWorksOk()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -184,7 +226,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test105StringDeletedUsingTheRightValue()
+    public void test106StringDeletedUsingTheRightValue()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -209,6 +251,67 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("externalized column is set to NULL");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.emailAddress).isNull();
+    }
+
+    @Test
+    public void test110ChangeInstantAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+
+        given("delta with last run start timestamp change for task 1 adding value");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .property(TaskType.F_LAST_RUN_START_TIMESTAMP).add(MiscUtil.asXMLGregorianCalendar(1L))
+                .asObjectDelta(task1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getLastRunStartTimestamp()).isEqualTo(MiscUtil.asXMLGregorianCalendar(1L));
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+
+        and("externalized column is updated");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.lastRunStartTimestamp).isEqualTo(Instant.ofEpochMilli(1));
+    }
+
+    @Test
+    public void test111DeleteInstantAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with last run start timestamp replace to null ('delete') for task 1");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .property(TaskType.F_LAST_RUN_START_TIMESTAMP).replace()
+                .asObjectDelta(task1Oid);
+
+        and("task row previously having the timestamp value");
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(originalRow.lastRunStartTimestamp).isNotNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and email is gone");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getLastRunStartTimestamp()).isNull();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+
+        and("externalized column is set to NULL");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.lastRunStartTimestamp).isNull();
     }
 
     // TODO where is Integer on the root entity? not just in row, but also as schema type

@@ -6,18 +6,24 @@
  */
 package com.evolveum.midpoint.repo.sqlbase.querydsl;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.BiConsumer;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.sql.Configuration;
 import com.querydsl.sql.H2Templates;
 import com.querydsl.sql.MySQLTemplates;
 import com.querydsl.sql.PostgreSQLTemplates;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 // TODO MID-6318, MID-6319 review what needed (let's say in 2021), drop the rest
@@ -123,5 +129,37 @@ public enum QuerydslUtils {
             Expression<O> onePath,
             Expression<M> manyPath) {
         return mapOneToMany(rawResult, onePath, manyPath, null);
+    }
+
+    /**
+     * Tries to convert value of type type {@link XMLGregorianCalendar}
+     * to paths of {@link Instant} (most likely used), {@link Timestamp} and {@link Long}.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T extends Comparable<T>> T convertTimestampToPathType(
+            @NotNull Object value, @NotNull DateTimePath<T> path) {
+        if (value.getClass() == path.getType()) {
+            return (T) value;
+        }
+
+        long timestamp;
+        if (value instanceof XMLGregorianCalendar) {
+            timestamp = MiscUtil.asLong((XMLGregorianCalendar) value);
+        } else {
+            throw new IllegalArgumentException(
+                    "Unsupported temporal type " + value.getClass() + " for value: " + value);
+        }
+        Class<?> pathType = path.getType();
+        if (Long.class.isAssignableFrom(pathType)) {
+            value = timestamp;
+        } else if (Instant.class.isAssignableFrom(pathType)) {
+            value = Instant.ofEpochMilli(timestamp);
+        } else if (Timestamp.class.isAssignableFrom(pathType)) {
+            value = new Timestamp(timestamp);
+        } else {
+            throw new IllegalArgumentException(
+                    "Unsupported temporal type " + pathType + " for path: " + path);
+        }
+        return (T) value;
     }
 }
