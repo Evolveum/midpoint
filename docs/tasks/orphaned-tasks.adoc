@@ -138,6 +138,13 @@ To add menu item for Orphaned tasks collection to the Server tasks section, add 
                     <objectCollectionViews>
                         <objectCollectionView>
                             <identifier>orphaned-tasks</identifier>
+                            <display>
+                                <label>Orphaned Task</label>
+                                <pluralLabel>Orphaned Tasks</pluralLabel>
+                                <icon>
+                                    <cssClass>fa fa-exclamation</cssClass>
+                                </icon>
+                            </display>
                             <type>c:TaskType</type>
                             <collection>
                                 <collectionRef oid="32456589-1122-1643-2751-469323287545" relation="org:default" type="c:ObjectCollectionType">
