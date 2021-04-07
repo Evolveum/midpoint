@@ -558,6 +558,9 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     private R getParentVariables(VariablesMap variables) {
+        if (variables == null) {
+            return null;
+        }
         try {
             return (R) variables.getValue(ExpressionConstants.VAR_PARENT_OBJECT, AbstractRoleType.class);
         } catch (SchemaException e) {
