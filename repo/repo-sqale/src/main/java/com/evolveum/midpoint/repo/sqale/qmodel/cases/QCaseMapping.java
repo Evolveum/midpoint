@@ -12,7 +12,6 @@ import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 /**
@@ -30,8 +29,7 @@ public class QCaseMapping
                 CaseType.class, QCase.class);
 
         addItemMapping(F_STATE, stringMapper(path(q -> q.state)));
-        addItemMapping(F_CLOSE_TIMESTAMP,
-                TimestampItemFilterProcessor.mapper(path(q -> q.closeTimestamp)));
+        addItemMapping(F_CLOSE_TIMESTAMP, timestampMapper(path(q -> q.closeTimestamp)));
         addItemMapping(F_OBJECT_REF, RefItemFilterProcessor.mapper(
                 path(q -> q.objectRefTargetOid),
                 path(q -> q.objectRefTargetType),

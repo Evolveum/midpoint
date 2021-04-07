@@ -490,6 +490,9 @@
                         <c:path>stateBeforeSuspend</c:path>
                     </item>
                     <item>
+                        <path>schedulingStateBeforeSuspend</path>
+                    </item>
+                    <item>
                         <c:path>category</c:path>
                     </item>
                     <item>

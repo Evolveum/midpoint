@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRo
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 
 /**
@@ -33,7 +32,7 @@ public class QLookupTableRowMapping
                 path(q -> q.labelOrig), path(q -> q.labelNorm)));
         addItemMapping(F_VALUE, stringMapper(path(q -> q.rowValue)));
         addItemMapping(F_LAST_CHANGE_TIMESTAMP,
-                TimestampItemFilterProcessor.mapper(path(q -> q.lastChangeTimestamp)));
+                timestampMapper(path(q -> q.lastChangeTimestamp)));
     }
 
     @Override

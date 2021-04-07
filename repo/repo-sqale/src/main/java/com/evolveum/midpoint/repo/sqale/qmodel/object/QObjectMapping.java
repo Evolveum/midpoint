@@ -24,7 +24,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.TableRelationResolver;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -74,7 +73,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                 .addItemMapping(MetadataType.F_CREATE_CHANNEL,
                         UriItemFilterProcessor.mapper(path(q -> q.createChannelId)))
                 .addItemMapping(MetadataType.F_CREATE_TIMESTAMP,
-                        TimestampItemFilterProcessor.mapper(path(q -> q.createTimestamp)))
+                        timestampMapper(path(q -> q.createTimestamp)))
                 .addItemMapping(MetadataType.F_MODIFIER_REF, RefItemFilterProcessor.mapper(
                         path(q -> q.modifierRefTargetOid),
                         path(q -> q.modifierRefTargetType),
@@ -82,7 +81,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                 .addItemMapping(MetadataType.F_MODIFY_CHANNEL,
                         UriItemFilterProcessor.mapper(path(q -> q.modifyChannelId)))
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
-                        TimestampItemFilterProcessor.mapper(path(q -> q.modifyTimestamp)))
+                        timestampMapper(path(q -> q.modifyTimestamp)))
                 .addRefMapping(MetadataType.F_CREATE_APPROVER_REF,
                         QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER)
                 .addRefMapping(MetadataType.F_MODIFY_APPROVER_REF,

@@ -18,7 +18,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -57,30 +56,30 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
                 .addNestedMapping(CredentialsType.F_PASSWORD, PasswordType.class)
                 .addNestedMapping(PasswordType.F_METADATA, MetadataType.class)
                 .addItemMapping(MetadataType.F_CREATE_TIMESTAMP,
-                        TimestampItemFilterProcessor.mapper(path(q -> q.passwordCreateTimestamp)))
+                        timestampMapper(path(q -> q.passwordCreateTimestamp)))
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
-                        TimestampItemFilterProcessor.mapper(path(q -> q.passwordModifyTimestamp)));
+                        timestampMapper(path(q -> q.passwordModifyTimestamp)));
         addNestedMapping(F_ACTIVATION, ActivationType.class)
                 .addItemMapping(ActivationType.F_ADMINISTRATIVE_STATUS,
                         EnumItemFilterProcessor.mapper(path(q -> q.administrativeStatus)))
                 .addItemMapping(ActivationType.F_EFFECTIVE_STATUS,
                         EnumItemFilterProcessor.mapper(path(q -> q.effectiveStatus)))
                 .addItemMapping(ActivationType.F_ENABLE_TIMESTAMP,
-                        TimestampItemFilterProcessor.mapper(path(q -> q.enableTimestamp)))
+                        timestampMapper(path(q -> q.enableTimestamp)))
                 .addItemMapping(ActivationType.F_DISABLE_REASON,
-                        TimestampItemFilterProcessor.mapper(path(q -> q.disableTimestamp)))
+                        timestampMapper(path(q -> q.disableTimestamp)))
                 .addItemMapping(ActivationType.F_DISABLE_REASON,
                         stringMapper(path(q -> q.disableReason)))
                 .addItemMapping(ActivationType.F_VALIDITY_STATUS,
                         EnumItemFilterProcessor.mapper(path(q -> q.validityStatus)))
                 .addItemMapping(ActivationType.F_VALID_FROM,
-                        TimestampItemFilterProcessor.mapper(path(q -> q.validFrom)))
+                        timestampMapper(path(q -> q.validFrom)))
                 .addItemMapping(ActivationType.F_VALID_TO,
-                        TimestampItemFilterProcessor.mapper(path(q -> q.validTo)))
+                        timestampMapper(path(q -> q.validTo)))
                 .addItemMapping(ActivationType.F_VALIDITY_CHANGE_TIMESTAMP,
-                        TimestampItemFilterProcessor.mapper(path(q -> q.validityChangeTimestamp)))
+                        timestampMapper(path(q -> q.validityChangeTimestamp)))
                 .addItemMapping(ActivationType.F_ARCHIVE_TIMESTAMP,
-                        TimestampItemFilterProcessor.mapper(path(q -> q.archiveTimestamp)))
+                        timestampMapper(path(q -> q.archiveTimestamp)))
                 .addItemMapping(ActivationType.F_LOCKOUT_STATUS,
                         EnumItemFilterProcessor.mapper(path(q -> q.lockoutStatus)));
 

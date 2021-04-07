@@ -6,9 +6,12 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.report;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
+import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.booleanMapper;
+
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperReportEngineConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 /**
@@ -25,7 +28,11 @@ public class QReportMapping
         super(QReport.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 ReportType.class, QReport.class);
 
-        // TODO mapping, items are from ReportType or from JasperReportEngineConfigurationType?
+        addNestedMapping(ReportType.F_JASPER, JasperReportEngineConfigurationType.class)
+                .addItemMapping(JasperReportEngineConfigurationType.F_ORIENTATION,
+                        EnumItemFilterProcessor.mapper(path(q -> q.orientation)))
+                .addItemMapping(JasperReportEngineConfigurationType.F_PARENT,
+                        booleanMapper(path(q -> q.parent)));
     }
 
     @Override
@@ -34,10 +41,8 @@ public class QReportMapping
     }
 
     @Override
-    public ObjectSqlTransformer<ReportType, QReport, MReport>
-    createTransformer(SqlTransformerSupport transformerSupport) {
-        // no special class needed, no additional columns
-        return new ObjectSqlTransformer<>(transformerSupport, this);
+    public ReportSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
+        return new ReportSqlTransformer(transformerSupport, this);
     }
 
     @Override

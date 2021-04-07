@@ -444,20 +444,15 @@ public class SqaleRepositoryService implements RepositoryService {
         SqaleUpdateContext<S, Q, R> updateContext = new SqaleUpdateContext<>(
                 transformerSupport, jdbcSession, prismObject);
 
-        // region updatePrismObject: can be extracted as updatePrismObject (not done before CID generation is cleared up
-        // TODO taken from "legacy" branch, how is this worse/different from ObjectDeltaUpdater.handleObjectCommonAttributes()?
-//        ItemDeltaCollectionsUtil.applyTo(modifications, prismObject);
+        // region updatePrismObject: can be extracted as updatePrismObject (not done before CID generation is cleared up)
+        ItemDeltaCollectionsUtil.applyTo(modifications, prismObject);
         ObjectTypeUtil.normalizeAllRelations(prismObject, schemaService.relationRegistry());
-        // TODO generate missing container IDs? is it needed? doesn't model do it? see old repo PrismIdentifierGenerator
+        // TODO generate missing container IDs, see also old repo PrismIdentifierGenerator
         //  BWT: it's not enough to do it in prism object, we need it for deltas adding containers too
-
         // endregion
 
         // TODO APPLY modifications HERE (generate update/set clauses)
         for (ItemDelta<?, ?> modification : modifications) {
-            // TODO validate that this is equivalent to ItemDeltaCollectionsUtil.applyTo above.
-            //  If so, how to update container IDs during/around this applyTo?
-            modification.applyTo(prismObject);
             try {
                 updateContext.processModification(modification);
             } catch (IllegalArgumentException e) {

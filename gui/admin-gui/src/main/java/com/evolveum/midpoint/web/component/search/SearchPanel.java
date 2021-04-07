@@ -341,7 +341,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         plusIcon.setColor("white");
         builder.appendLayerIcon(getIconLabelByModeModel(), plusIcon, LayeredIconCssStyle.BOTTOM_RIGHT_STYLE);
         AjaxCompositedIconSubmitButton searchButtonBeforeDropdown = new AjaxCompositedIconSubmitButton(ID_SEARCH_BUTTON_BEFORE_DROPDOWN, builder.build(),
-                getPageBase().createStringResource("MainObjectListPanel.createReport")) {
+                getPageBase().createStringResource("SearchPanel.search")) {
 
             private static final long serialVersionUID = 1L;
 
