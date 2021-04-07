@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.role;
 
-import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.booleanMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType.*;
 
 import org.jetbrains.annotations.NotNull;

@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.BooleanPath;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcess
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -102,6 +104,20 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     /** Returns the mapper creating the integer filter processor from context. */
     public ItemSqlMapper integerMapper(
             Function<EntityPath<?>, NumberPath<Integer>> rootToQueryItem) {
+        return new ItemSqlMapper(ctx ->
+                new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
+    }
+
+    /** Returns the mapper creating the boolean filter processor from context. */
+    protected ItemSqlMapper booleanMapper(
+            Function<EntityPath<?>, BooleanPath> rootToQueryItem) {
+        return new ItemSqlMapper(ctx ->
+                new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
+    }
+
+    /** Returns the mapper creating the OID (UUID) filter processor from context. */
+    protected ItemSqlMapper uuidMapper(
+            Function<EntityPath<?>, UuidPath> rootToQueryItem) {
         return new ItemSqlMapper(ctx ->
                 new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
     }

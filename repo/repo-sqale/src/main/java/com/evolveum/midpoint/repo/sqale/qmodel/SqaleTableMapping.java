@@ -10,6 +10,7 @@ import java.util.function.Function;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.EntityPath;
+import com.querydsl.core.types.dsl.BooleanPath;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.NestedMappingResolver;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
  * Mapping superclass with common functions for {@link QObject} and non-objects (e.g. containers).
@@ -79,6 +81,23 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     @Override
     public ItemSqlMapper integerMapper(
             Function<EntityPath<?>, NumberPath<Integer>> rootToQueryItem) {
+        return new SqaleItemSqlMapper(
+                ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
+                ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
+                rootToQueryItem);
+    }
+
+    /** Returns the mapper creating the boolean filter/delta processors from context. */
+    @Override
+    protected ItemSqlMapper booleanMapper(Function<EntityPath<?>, BooleanPath> rootToQueryItem) {
+        return new SqaleItemSqlMapper(
+                ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
+                ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
+                rootToQueryItem);
+    }
+
+    @Override
+    protected ItemSqlMapper uuidMapper(Function<EntityPath<?>, UuidPath> rootToQueryItem) {
         return new SqaleItemSqlMapper(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
                 ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),

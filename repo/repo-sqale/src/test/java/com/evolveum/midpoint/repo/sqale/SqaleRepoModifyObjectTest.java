@@ -21,6 +21,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.MService;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QService;
+import com.evolveum.midpoint.repo.sqale.qmodel.shadow.MShadow;
+import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -29,6 +31,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -36,7 +39,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
     private String user1Oid; // typical object
     private String task1Oid; // task has more attribute type variability
-    //    private String shadow1Oid; // ditto
+    private String shadow1Oid; // ditto
     private String service1Oid; // object with integer attribute
 
     @BeforeClass
@@ -49,9 +52,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         task1Oid = repositoryService.addObject(
                 new TaskType(prismContext).name("task-1").asPrismObject(),
                 null, result);
-//        shadow1Oid = repositoryService.addObject(
-//                new ShadowType(prismContext).name("shadow-1").asPrismObject(),
-//                null, result);
+        shadow1Oid = repositoryService.addObject(
+                new ShadowType(prismContext).name("shadow-1").asPrismObject(),
+                null, result);
         service1Oid = repositoryService.addObject(
                 new ServiceType(prismContext).name("service-1").asPrismObject(),
                 null, result);
@@ -295,6 +298,12 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.lastRunStartTimestamp).isEqualTo(Instant.ofEpochMilli(1));
     }
 
+    /*
+    We don't bother with replace tests for these other simple types, if update works for
+    setting, it must work for replacing (it's the same code like for String).
+    We test nulls just to be sure there is no JDBC type trick there (NULL is a bit special).
+    */
+
     @Test
     public void test111DeleteInstantAttribute()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
@@ -389,6 +398,74 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MService row = selectObjectByOid(QService.class, service1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.displayOrder).isNull();
+    }
+
+    @Test
+    public void test120ChangeBooleanAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with boolean dead change for shadow 1");
+        ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
+                .property(ShadowType.F_DEAD).add(true)
+                .asObjectDelta(shadow1Oid);
+
+        and("shadow row previously having dead property empty (null)");
+        MShadow originalRow = selectObjectByOid(QShadow.class, shadow1Oid);
+        assertThat(originalRow.dead).isNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(
+                ShadowType.class, shadow1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        ShadowType shadowObject = repositoryService
+                .getObject(ShadowType.class, shadow1Oid, null, result)
+                .asObjectable();
+        assertThat(shadowObject.isDead()).isTrue();
+        assertThat(shadowObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+
+        and("externalized column is updated");
+        MShadow row = selectObjectByOid(QShadow.class, shadow1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.dead).isTrue();
+    }
+
+    @Test
+    public void test121DeleteBooleanAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with dead boolean replace to null for shadow 1");
+        ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
+                .property(ShadowType.F_DEAD).replace()
+                .asObjectDelta(shadow1Oid);
+
+        and("shadow row previously having the display order value");
+        MShadow originalRow = selectObjectByOid(QShadow.class, shadow1Oid);
+        assertThat(originalRow.dead).isNotNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(
+                ShadowType.class, shadow1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and display order is gone");
+        ShadowType shadowObject = repositoryService
+                .getObject(ShadowType.class, shadow1Oid, null, result)
+                .asObjectable();
+        assertThat(shadowObject.isDead()).isNull();
+        assertThat(shadowObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+
+        and("externalized column is set to NULL");
+        MShadow row = selectObjectByOid(QShadow.class, shadow1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.dead).isNull();
     }
 
     @Test
