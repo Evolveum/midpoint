@@ -18,11 +18,13 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqale.ObjectRefTableItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.delta.PolyStringPathItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.SimpleItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.delta.TimestampItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
@@ -112,5 +114,15 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 ctx -> new TimestampItemFilterProcessor<>(ctx, rootToQueryItem),
                 ctx -> new TimestampItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
+    }
+
+    @Override
+    protected ItemSqlMapper polyStringMapper(
+            @NotNull Function<EntityPath<?>, StringPath> origMapping,
+            @NotNull Function<EntityPath<?>, StringPath> normMapping) {
+        return new SqaleItemSqlMapper(
+                ctx -> new PolyStringItemFilterProcessor(ctx, origMapping, normMapping),
+                ctx -> new PolyStringPathItemDeltaProcessor(ctx, origMapping, normMapping),
+                origMapping);
     }
 }

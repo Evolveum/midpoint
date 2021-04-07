@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
@@ -127,6 +128,14 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
             Function<EntityPath<?>, DateTimePath<T>> rootToQueryItem) {
         return new ItemSqlMapper(context ->
                 new TimestampItemFilterProcessor<>(context, rootToQueryItem), rootToQueryItem);
+    }
+
+    /** Returns the mapper creating the string filter processor from context. */
+    protected ItemSqlMapper polyStringMapper(
+            Function<EntityPath<?>, StringPath> origMapping,
+            Function<EntityPath<?>, StringPath> normMapping) {
+        return new ItemSqlMapper(ctx ->
+                new PolyStringItemFilterProcessor(ctx, origMapping, normMapping), origMapping);
     }
 
     /**

@@ -22,7 +22,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.TableRelationResolver;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -51,9 +50,8 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         super(tableName, defaultAliasName, schemaType, queryType);
 
         addItemMapping(PrismConstants.T_ID, uuidMapper(path(q -> q.oid)));
-        addItemMapping(F_NAME,
-                PolyStringItemFilterProcessor.mapper(
-                        path(q -> q.nameOrig), path(q -> q.nameNorm)));
+        addItemMapping(F_NAME, polyStringMapper(
+                path(q -> q.nameOrig), path(q -> q.nameNorm)));
         addItemMapping(F_TENANT_REF, RefItemFilterProcessor.mapper(
                 path(q -> q.tenantRefTargetOid),
                 path(q -> q.tenantRefTargetType),

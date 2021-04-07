@@ -17,6 +17,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.MService;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
@@ -466,6 +468,80 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MShadow row = selectObjectByOid(QShadow.class, shadow1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.dead).isNull();
+    }
+
+    @Test
+    public void test130ChangePolyStringAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with polystring nickname change for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .property(UserType.F_NICK_NAME).add(new PolyString("nick-name"))
+                .asObjectDelta(user1Oid);
+
+        and("user row previously having dead property empty (null)");
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(originalRow.nickNameOrig).isNull();
+        assertThat(originalRow.nickNameNorm).isNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(
+                UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        PolyStringType nickName = userObject.getNickName();
+        assertThat(nickName.getOrig()).isEqualTo("nick-name");
+        assertThat(nickName.getNorm()).isEqualTo("nickname");
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+
+        and("externalized column is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.nickNameOrig).isEqualTo("nick-name");
+        assertThat(row.nickNameNorm).isEqualTo("nickname");
+    }
+
+    @Test
+    public void test131DeletePolyStringAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with polystring nickname delta replace to null for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .property(UserType.F_NICK_NAME).replace()
+                .asObjectDelta(user1Oid);
+
+        and("user row previously having the nickname value");
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(originalRow.nickNameOrig).isNotNull();
+        assertThat(originalRow.nickNameNorm).isNotNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(
+                UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and display order is gone");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getNickName()).isNull();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+
+        and("externalized column is set to NULL");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.nickNameOrig).isNull();
+        assertThat(row.nickNameNorm).isNull();
     }
 
     @Test

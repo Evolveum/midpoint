@@ -10,7 +10,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRo
 
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 
 /**
@@ -28,7 +27,7 @@ public class QLookupTableRowMapping
                 LookupTableRowType.class, QLookupTableRow.class);
 
         addItemMapping(F_KEY, stringMapper(path(q -> q.rowKey)));
-        addItemMapping(F_LABEL, PolyStringItemFilterProcessor.mapper(
+        addItemMapping(F_LABEL, polyStringMapper(
                 path(q -> q.labelOrig), path(q -> q.labelNorm)));
         addItemMapping(F_VALUE, stringMapper(path(q -> q.rowValue)));
         addItemMapping(F_LAST_CHANGE_TIMESTAMP,

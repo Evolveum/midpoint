@@ -17,7 +17,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -45,9 +44,8 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
         addItemMapping(F_EMAIL_ADDRESS, stringMapper(path(q -> q.emailAddress)));
         // TODO byte[] mapping for F_JPEG_PHOTO -> q.photo
         addItemMapping(F_LOCALE, stringMapper(path(q -> q.locale)));
-        addItemMapping(F_LOCALITY,
-                PolyStringItemFilterProcessor.mapper(
-                        path(q -> q.localityOrig), path(q -> q.localityNorm)));
+        addItemMapping(F_LOCALITY, polyStringMapper(
+                path(q -> q.localityOrig), path(q -> q.localityNorm)));
         addItemMapping(F_PREFERRED_LANGUAGE, stringMapper(path(q -> q.preferredLanguage)));
         addItemMapping(F_TIMEZONE, stringMapper(path(q -> q.timezone)));
         addItemMapping(F_TELEPHONE_NUMBER, stringMapper(path(q -> q.telephoneNumber)));

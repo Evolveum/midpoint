@@ -10,14 +10,12 @@ import java.util.function.Function;
 
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
-import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 
-public class SinglePathItemDeltaProcessor<T, P extends Path<T>> extends ItemDeltaProcessor {
+public class SinglePathItemDeltaProcessor<T, P extends Path<T>> extends ItemDeltaProcessor<T> {
 
     protected final P path;
 
@@ -35,19 +33,7 @@ public class SinglePathItemDeltaProcessor<T, P extends Path<T>> extends ItemDelt
             context.set(path, null);
         } else {
             // We treat add and replace the same way for single-value properties.
-            context.set(path, getValue(modification));
+            context.set(path, getAnyValue(modification));
         }
-    }
-
-    @Nullable
-    private T getValue(ItemDelta<?, ?> modification) {
-        PrismValue anyValue = modification.getAnyValue();
-        return anyValue != null ? transformRealValue(anyValue.getRealValue()) : null;
-    }
-
-    @Nullable
-    protected T transformRealValue(Object realValue) {
-        //noinspection unchecked
-        return (T) realValue;
     }
 }
