@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import javax.xml.namespace.QName;
 
@@ -35,6 +36,18 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
     @Override
     public void setRealValue(T realValueReferencable) {
         PrismReferenceValue value = getNewValue();
+        if (realValueReferencable == null) {
+            value.setOid(null);
+            value.setOriginType(null);
+            value.setOriginObject(null);
+            value.setTargetName((PolyStringType) null);
+            value.setTargetType(null);
+            value.setRelation(null);
+            value.setFilter(null);
+
+            setStatus(ValueStatus.MODIFIED);
+            return;
+        }
         PrismReferenceValue realValue = realValueReferencable.asReferenceValue();
         value.setOid(realValue.getOid());
         value.setOriginType(realValue.getOriginType());
