@@ -11,6 +11,7 @@ import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.dsl.DateTimePath;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import org.jetbrains.annotations.NotNull;
 
@@ -68,6 +69,16 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     @Override
     protected ItemSqlMapper stringMapper(
             Function<EntityPath<?>, StringPath> rootToQueryItem) {
+        return new SqaleItemSqlMapper(
+                ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
+                ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
+                rootToQueryItem);
+    }
+
+    /** Returns the mapper creating the integer filter/delta processors from context. */
+    @Override
+    public ItemSqlMapper integerMapper(
+            Function<EntityPath<?>, NumberPath<Integer>> rootToQueryItem) {
         return new SqaleItemSqlMapper(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
                 ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),

@@ -19,6 +19,8 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
+import com.evolveum.midpoint.repo.sqale.qmodel.role.MService;
+import com.evolveum.midpoint.repo.sqale.qmodel.role.QService;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -26,6 +28,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -33,7 +36,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
     private String user1Oid; // typical object
     private String task1Oid; // task has more attribute type variability
-//    private String shadow1Oid; // ditto
+    //    private String shadow1Oid; // ditto
+    private String service1Oid; // object with integer attribute
 
     @BeforeClass
     public void initObjects() throws Exception {
@@ -48,6 +52,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 //        shadow1Oid = repositoryService.addObject(
 //                new ShadowType(prismContext).name("shadow-1").asPrismObject(),
 //                null, result);
+        service1Oid = repositoryService.addObject(
+                new ServiceType(prismContext).name("service-1").asPrismObject(),
+                null, result);
 
         assertThatOperationResult(result).isSuccess();
     }
@@ -261,7 +268,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with last run start timestamp change for task 1 adding value");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .property(TaskType.F_LAST_RUN_START_TIMESTAMP).add(MiscUtil.asXMLGregorianCalendar(1L))
+                .property(TaskType.F_LAST_RUN_START_TIMESTAMP)
+                .add(MiscUtil.asXMLGregorianCalendar(1L))
                 .asObjectDelta(task1Oid);
 
         when("modifyObject is called");
@@ -273,7 +281,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("serialized form (fullObject) is updated");
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
-        assertThat(taskObject.getLastRunStartTimestamp()).isEqualTo(MiscUtil.asXMLGregorianCalendar(1L));
+        assertThat(taskObject.getLastRunStartTimestamp())
+                .isEqualTo(MiscUtil.asXMLGregorianCalendar(1L));
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
 
         and("externalized column is updated");
@@ -314,7 +323,69 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.lastRunStartTimestamp).isNull();
     }
 
-    // TODO where is Integer on the root entity? not just in row, but also as schema type
+    @Test
+    public void test115ChangeIntegerAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MService originalRow = selectObjectByOid(QService.class, service1Oid);
+
+        given("delta with display order change for service 1");
+        ObjectDelta<ServiceType> delta = prismContext.deltaFor(ServiceType.class)
+                .property(ServiceType.F_DISPLAY_ORDER).replace(5)
+                .asObjectDelta(service1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(
+                ServiceType.class, service1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        ServiceType serviceObject = repositoryService
+                .getObject(ServiceType.class, service1Oid, null, result)
+                .asObjectable();
+        assertThat(serviceObject.getDisplayOrder()).isEqualTo(5);
+        assertThat(serviceObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+
+        and("externalized column is updated");
+        MService row = selectObjectByOid(QService.class, service1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.displayOrder).isEqualTo(5);
+    }
+
+    @Test
+    public void test116DeleteIntegerAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with display order replace to null for service 1");
+        ObjectDelta<ServiceType> delta = prismContext.deltaFor(ServiceType.class)
+                .property(ServiceType.F_DISPLAY_ORDER).replace()
+                .asObjectDelta(service1Oid);
+
+        and("service row previously having the display order value");
+        MService originalRow = selectObjectByOid(QService.class, service1Oid);
+        assertThat(originalRow.displayOrder).isNotNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(ServiceType.class, service1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and display order is gone");
+        ServiceType serviceObject = repositoryService
+                .getObject(ServiceType.class, service1Oid, null, result)
+                .asObjectable();
+        assertThat(serviceObject.getDisplayOrder()).isNull();
+        assertThat(serviceObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+
+        and("externalized column is set to NULL");
+        MService row = selectObjectByOid(QService.class, service1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.displayOrder).isNull();
+    }
 
     @Test
     public void test900ModificationsMustNotBeNull() {

@@ -15,6 +15,7 @@ import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.DateTimePath;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
@@ -96,6 +97,13 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
         return new ItemSqlMapper(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
+    }
+
+    /** Returns the mapper creating the integer filter processor from context. */
+    public ItemSqlMapper integerMapper(
+            Function<EntityPath<?>, NumberPath<Integer>> rootToQueryItem) {
+        return new ItemSqlMapper(ctx ->
+                new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
     }
 
     /** Returns the mapper function creating the timestamp filter processor from context. */

@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
-import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.integerMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.*;
 
 import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
