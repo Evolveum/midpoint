@@ -180,26 +180,6 @@ public class PasswordPanel extends InputPanel {
                 password2.setRequired(required);
 
                 changePasswordPerformed();
-                //fix of MID-2463
-//                target.add(password2);
-//                target.appendJavaScript("$(\"#"+ password2.getMarkupId() +"\").focus()");
-            }
-        });
-        password1.add(new AjaxFormComponentUpdatingBehavior("keyup") {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                limitationsModel.reset();
-                validationPanel.refreshItems(target);
-                updatePasswordValidation(target);
-            }
-
-            @Override
-            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-                super.updateAjaxAttributes(attributes);
-                attributes.setThrottlingSettings(new ThrottlingSettings(Duration.milliseconds(500), true));
-                attributes.setChannel(new AjaxChannel("Drop", AjaxChannel.Type.DROP));
             }
         });
 
@@ -220,9 +200,28 @@ public class PasswordPanel extends InputPanel {
         password2ValidationMessage.setOutputMarkupId(true);
         inputContainer.add(password2ValidationMessage);
 
+        password1.add(new AjaxFormComponentUpdatingBehavior("keyup input") {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                limitationsModel.reset();
+                validationPanel.refreshItems(target);
+                updatePasswordValidation(target);
+                target.add(password2ValidationMessage);
+            }
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                attributes.setThrottlingSettings(new ThrottlingSettings(Duration.milliseconds(500), true));
+                attributes.setChannel(new AjaxChannel("Drop", AjaxChannel.Type.DROP));
+            }
+        });
+
         PasswordValidator pass2Validator = new PasswordValidator(password1);
         password2.add(pass2Validator);
-        password2.add(new AjaxFormComponentUpdatingBehavior("keyup") {
+        password2.add(new AjaxFormComponentUpdatingBehavior("keyup input") {
             private static final long serialVersionUID = 1L;
 
             @Override

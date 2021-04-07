@@ -46,6 +46,7 @@
                     progressBar.attr('aria-valuemin', 0)
                             .attr('aria-valuemay', 100);
 
+                    input.on('input', core.keyup);
                     input.on('keyup', core.keyup)
                             .keyup();
                 },
