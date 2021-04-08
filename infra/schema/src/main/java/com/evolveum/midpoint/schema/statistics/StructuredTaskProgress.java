@@ -121,7 +121,7 @@ public class StructuredTaskProgress {
             part.setComplete(true);
 //            System.out.printf("Updating progress on work completion. Part = %s\n", part);
         } else {
-            LOGGER.warn("Didn't mark structured progress for part {} as complete because there are no records"
+            LOGGER.debug("Didn't mark structured progress for part {} as complete because there are no records"
                             + " present for that part", value.getCurrentPartUri());
         }
     }
