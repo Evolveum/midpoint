@@ -23,9 +23,12 @@
 
     <properties>
         <!-- see notes in main midPoint POM -->
+        <!--  MID-5666: For some reason deploying of javadoc was disabled -->
+        <!--  
         <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
         <maven.test.skip>true</maven.test.skip>
+        -->
     </properties>
 
     <dependencies>
@@ -67,6 +70,7 @@
                     <isOffline>true</isOffline>
                     <doctitle>midPoint Aggregate JavaDoc</doctitle>
                     <windowtitle>midPoint Aggregate JavaDoc</windowtitle>
+                    <additionalJOption>--no-module-directories</additionalJOption>
                     <doclint>none</doclint>
                     <quiet>true</quiet>
                     <debug>false</debug>

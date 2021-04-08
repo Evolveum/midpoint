@@ -88,6 +88,7 @@
                     <quiet>false</quiet>
                     <debug>false</debug>
                     <doclint>none</doclint>
+                    <additionalJOption>--no-module-directories</additionalJOption>
 
                     <!--
                     TODO: Not usable yet, see https://github.com/asciidoctor/asciidoclet/pull/96 for the progress on JDK 11 support.
