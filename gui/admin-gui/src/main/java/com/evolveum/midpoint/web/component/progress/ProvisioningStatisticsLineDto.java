@@ -49,4 +49,8 @@ public class ProvisioningStatisticsLineDto {
         }
         return retval;
     }
+
+    public List<ProvisioningStatisticsOperationDto> getOperations() {
+        return operations;
+    }
 }

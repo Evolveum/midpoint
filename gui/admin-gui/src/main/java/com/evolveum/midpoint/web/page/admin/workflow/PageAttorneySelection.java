@@ -92,7 +92,6 @@ public class PageAttorneySelection extends PageBase {
         Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
 
-
         ObjectListPanel<UserType> table = new ObjectListPanel<>(ID_TABLE, UserType.class, Collections.emptyList()) {
 
             @Override
@@ -137,16 +136,16 @@ public class PageAttorneySelection extends PageBase {
                 ModelInteractionService service = getModelInteractionService();
                 Task task = createSimpleTask(OPERATION_GET_DONOR_FILTER);
                 try {
-                    ObjectQuery origQuery = ((SelectableBeanObjectDataProvider)getDataProvider()).getQuery();
-                    ObjectFilter filter;
+//                    ObjectQuery origQuery = ((SelectableBeanObjectDataProvider)getDataProvider()).getQuery();
+//                    ObjectFilter filter;
                     ObjectQuery query = PageAttorneySelection.this.getPrismContext().queryFactory().createQuery();
-                    if (origQuery != null) {
-                        filter = origQuery.getFilter();
-                    } else {
-                        filter = query.getFilter();
-                    }
-                    // todo target authorization action
-                    filter = service.getDonorFilter(UserType.class, filter, null,
+//                    if (origQuery != null) {
+//                        filter = origQuery.getFilter();
+//                    } else {
+//                        filter = query.getFilter();
+//                    }
+//                    // todo target authorization action
+                    ObjectFilter filter = service.getDonorFilter(UserType.class, null, null,
                             task, task.getResult());
 
                     query.addFilter(filter);

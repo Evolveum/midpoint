@@ -5511,8 +5511,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
         List<AuditEventRecord> latestEvent = modelAuditService.listRecords(
-                "select * from m_audit_event as aer order by aer.id desc limit 1",
-                Map.of(), task, result);
+                "select * from m_audit_event as aer order by aer.id desc",
+                // Search for "setMaxResult" to discover its secrets, sorry, but neither of the
+                // defined constants is available here (repo is hidden, GUI is higher).
+                // It's not a nice contract, but at least it shields from various DB implementations.
+                // Also, the map must be mutable (param is removed later), hence the wrapping.
+                new HashMap<>(Map.of("setMaxResults", 1)), task, result);
         return latestEvent.size() == 1 ? latestEvent.get(0).getRepoId() : 0;
     }
 

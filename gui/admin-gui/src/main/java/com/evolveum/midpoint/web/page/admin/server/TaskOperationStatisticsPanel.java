@@ -14,8 +14,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskIterativeProgressType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -112,6 +114,7 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
         SynchronizationSituationTransitionPanel transitions = new SynchronizationSituationTransitionPanel(ID_SYNCHORNIZATION_SITUATIONS_TRANSITIONS, syncInfoModel);
         transitions.setOutputMarkupId(true);
         syncTransitionParent.add(transitions);
+        transitions.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(syncInfoModel.getObject())));
 
     }
 
@@ -130,7 +133,30 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
         };
 
         actionTable.setOutputMarkupId(true);
+        actionTable.add(new VisibleBehaviour(() -> hasObjectActionsEntry()));
         add(actionTable);
+    }
+
+    private boolean hasObjectActionsEntry() {
+        ActionsExecutedInformationType actionsExecutedInformationType = getActionExecutedInformationType();
+        if (actionsExecutedInformationType == null) {
+            return false;
+        }
+        return CollectionUtils.isNotEmpty(actionsExecutedInformationType.getObjectActionsEntry());
+    }
+
+    private ActionsExecutedInformationType getActionExecutedInformationType() {
+        if (statisticsModel == null) {
+            return null;
+        }
+
+        OperationStatsType stats = statisticsModel.getObject();
+        if (stats == null) {
+            return null;
+        }
+
+        ActionsExecutedInformationType actionsExecutedInformationType = stats.getActionsExecutedInformation();
+        return actionsExecutedInformationType;
     }
 
     private void addResultingEntryPanel() {
@@ -148,7 +174,16 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
         };
 
         resultingEntry.setOutputMarkupId(true);
+        resultingEntry.add(new VisibleBehaviour(() -> hasResultingEntry()));
         add(resultingEntry);
+    }
+
+    private boolean hasResultingEntry() {
+        ActionsExecutedInformationType actionsExecutedInformationType = getActionExecutedInformationType();
+        if (actionsExecutedInformationType == null) {
+            return false;
+        }
+        return CollectionUtils.isNotEmpty(actionsExecutedInformationType.getResultingObjectActionsEntry());
     }
 
     private String getSynchronizationTransitionExpression() {

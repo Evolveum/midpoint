@@ -390,13 +390,17 @@ public class LeftMenuPanel extends BasePanel<Void> {
             addCollectionsMenuItems(reportsMenu, ReportType.COMPLEX_TYPE, PageReports.class);
         }
 
-        MenuItem edit = new MenuItem("PageAdmin.menu.top.reports.edit",
-                PageReport.class);
-        reportsMenu.addMenuItem(edit);
+        if (classMatches(PageReport.class)) {
+            MenuItem edit = new MenuItem("PageAdmin.menu.top.reports.edit",
+                    PageReport.class);
+            reportsMenu.addMenuItem(edit);
+        }
 
-        MenuItem configure = new MenuItem("PageAdmin.menu.top.reports.configure",
-                PageJasperReport.class);
-        reportsMenu.addMenuItem(configure);
+        if (classMatches(PageJasperReport.class)) {
+            MenuItem configure = new MenuItem("PageAdmin.menu.top.reports.configure",
+                    PageJasperReport.class);
+            reportsMenu.addMenuItem(configure);
+        }
 
         reportsMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.reports.created", PageCreatedReports.class));
         reportsMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.reports.new", PageNewReport.class));
@@ -405,7 +409,6 @@ public class LeftMenuPanel extends BasePanel<Void> {
 //        if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl())) {
             reportsMenu.addMenuItem(new MenuItem("PageAuditLogViewer.menuName", PageAuditLogViewer.class));
 //        }
-
 
         return reportsMenu;
     }
