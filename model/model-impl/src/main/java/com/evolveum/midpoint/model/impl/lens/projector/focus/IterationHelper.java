@@ -321,7 +321,7 @@ class IterationHelper<AH extends AssignmentHolderType> {
         // Explicitly check for name. The checker would check for this also. But checking it here
         // will produce better error message
         PolyStringType objectName = objectNew.asObjectable().getName();
-        if (objectName == null || objectName.getOrig().isEmpty()) {
+        if (objectName == null || objectName.getOrig() == null || objectName.getOrig().isEmpty()) {
             throw new NoFocusNameSchemaException("No name in new object " + objectName + " as produced by template " + context.getFocusTemplate() +
                     " in iteration " + ctx.iteration + ", we cannot process an object without a name");
         }

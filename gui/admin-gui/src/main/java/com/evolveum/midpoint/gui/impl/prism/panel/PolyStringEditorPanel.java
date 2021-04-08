@@ -425,7 +425,6 @@ public class PolyStringEditorPanel extends InputPanel {
         }
         if (getModelObject() == null) {
             Map<String, String> languagesMap = new HashMap<>();
-            languagesMap.put("", "");
             getModel().setObject(new PolyString(null, null, null, languagesMap));
             return;
         }
