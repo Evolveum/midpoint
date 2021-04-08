@@ -198,7 +198,9 @@ public class DirectAndIndirectAssignmentPanel extends AssignmentPanel {
 
     @Override
     protected void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
-        allAssignmentModel.reset();
+        if (allAssignmentModel != null) {
+            allAssignmentModel.reset();
+        }
         super.refreshTable(ajaxRequestTarget);
 
     }
