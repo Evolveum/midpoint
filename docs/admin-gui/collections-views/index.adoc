@@ -197,7 +197,7 @@ Advanced search mode.Ability to create complex query using a query language. +
 Fulltext search mode. Single input field used to search over several fields. +
 Oid search mode. Single input field used to search by oid over whole database. +
 Query DSL search mode. Ability to create complex query using a query DSL. +
-As default mode is used 'fullText' ,when fullText is  configured, or 'basic'.
+As default mode is used 'fullText', when fullText is configured, or 'basic'.
 
 Value of 'defaultMode' have to be in 'allowedMode', otherwise value will be ignored.
 |
@@ -207,6 +207,7 @@ Value of 'defaultMode' have to be in 'allowedMode', otherwise value will be igno
 | allowedMode
 | basic, advanced, fulltext, oid, queryDsl
 | Configuration for allowed search modes for search.
+
 All search mode are allowed by default.
 |
 
@@ -312,7 +313,7 @@ Tenant is applicable only to role members table.
 
 |===
 
-`ScopeSearchItemConfigurationType`, `ObjectTypeSearchItemConfigurationType`, `RelationSearchItemConfigurationType` and `IndirectSearchItemConfigurationType` are extension of `UserInterfaceFeatureType`, so we can configure _visibility_, _dislay/label _and _display/help. _Also this types contain _defaultValue _element and `ObjectTypeSearchItemConfigurationType` and `RelationSearchItemConfigurationType` contains element for supported values.
+`ScopeSearchItemConfigurationType`, `ObjectTypeSearchItemConfigurationType`, `RelationSearchItemConfigurationType` and `IndirectSearchItemConfigurationType` are extension of `UserInterfaceFeatureType`, so we can configure _visibility_, _display/label_ and _display/help_. Also this types contain _defaultValue_ element and `ObjectTypeSearchItemConfigurationType` and `RelationSearchItemConfigurationType` contains element for supported values.
 
 The example of search panel configuration for Users list page:
 
