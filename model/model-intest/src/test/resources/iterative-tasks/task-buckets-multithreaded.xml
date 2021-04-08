@@ -50,11 +50,11 @@
             <stringSegmentation>
                 <c:discriminator>name</c:discriminator>
                 <boundary>
-                    <position>0</position>
+                    <position>1</position>
                     <characters>0</characters>
                 </boundary>
                 <boundary>
-                    <position>1</position>
+                    <position>2</position>
                     <characters>0-9</characters>
                 </boundary>
             </stringSegmentation>
