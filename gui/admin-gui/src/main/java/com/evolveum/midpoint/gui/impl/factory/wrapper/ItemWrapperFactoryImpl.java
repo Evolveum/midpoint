@@ -153,6 +153,11 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 
         }
 
+        if (ItemStatus.ADDED == status && TaskType.F_SUBTASK_REF.equivalent(def.getItemName())) {
+            LOGGER.trace("Skipping creating wrapper for new subtaskRef, this is not supported. Only wrapper for existing subtaskRef should be created");
+            return true;
+        }
+
         return !canCreateWrapper(def, status, context, isEmptyValue);
     }
 
