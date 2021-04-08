@@ -104,7 +104,7 @@ public class SqaleRepositoryService implements RepositoryService {
         UUID oidUuid = checkOid(oid);
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
-        LOGGER.debug("Getting object '{}' with oid '{}': {}",
+        LOGGER.debug("Getting object '{}' with OID '{}': {}",
                 type.getSimpleName(), oid, parentResult.getOperation());
         InternalMonitor.recordRepositoryRead(type, oid);
 
@@ -115,17 +115,20 @@ public class SqaleRepositoryService implements RepositoryService {
                 .addParam("oid", oid)
                 .build();
 
-        PrismObject<T> object;
         try {
-            //noinspection unchecked
-            object = (PrismObject<T>) readByOid(type, oidUuid, options).asPrismObject();
+            PrismObject<T> object;
+            try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+                //noinspection unchecked
+                object = (PrismObject<T>) readByOid(jdbcSession, type, oidUuid, options).asPrismObject();
+            }
 
             // TODO what's with all the conflict watchers?
             // "objectLocal" is here just to provide effectively final variable for the lambda below
 //            PrismObject<T> objectLocal = executeAttempts(oid, OP_GET_OBJECT, type, "getting",
 //                    subResult, () -> objectRetriever.getObjectAttempt(type, oid, options, operationResult));
 //            object = objectLocal;
-//            invokeConflictWatchers((w) -> w.afterGetObject(objectLocal));
+            invokeConflictWatchers((w) -> w.afterGetObject(object));
+            return object;
         } catch (RuntimeException e) { // TODO what else to catch?
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -136,12 +139,10 @@ public class SqaleRepositoryService implements RepositoryService {
 //            OperationLogger.logGetObject(type, oid, options, object, operationResult);
             // TODO some logging
         }
-
-        return object;
     }
 
     private UUID checkOid(String oid) {
-        Objects.requireNonNull(oid, "Oid must not be null");
+        Objects.requireNonNull(oid, "OID must not be null");
         try {
             return UUID.fromString(oid);
         } catch (IllegalArgumentException e) {
@@ -149,11 +150,9 @@ public class SqaleRepositoryService implements RepositoryService {
         }
     }
 
-    /**
-     * Read object with shortest possible read-only transaction.
-     * Not intended as part of more complex transactional scenarios, only for {@link #getObject}.
-     */
+    /** Read object using provided {@link JdbcSession} as a part of already running transaction. */
     private <S extends ObjectType, Q extends QObject<R>, R extends MObject> S readByOid(
+            @NotNull JdbcSession jdbcSession,
             @NotNull Class<S> schemaType,
             @NotNull UUID oid,
             Collection<SelectorOptions<GetOperationOptions>> options)
@@ -163,46 +162,19 @@ public class SqaleRepositoryService implements RepositoryService {
 
         SqaleTableMapping<S, Q, R> rootMapping =
                 sqlRepoContext.getMappingBySchemaType(schemaType);
-        final Q root = rootMapping.defaultAlias();
-
-        Tuple result;
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
-            result = sqlRepoContext.newQuery(jdbcSession.connection())
-                    .from(root)
-                    .select(rootMapping.selectExpressions(root, options))
-                    .where(root.oid.eq(oid))
-                    .fetchOne();
-        }
-        if (result == null || result.get(root.fullObject) == null) {
-            // TODO is there a case when fullObject can be null?
-            String oidString = oid.toString();
-            throw new ObjectNotFoundException("Object of type '" + schemaType.getSimpleName()
-                    + "' with oid '" + oidString + "' was not found.", oidString);
-        }
-
-        return rootMapping.createTransformer(transformerSupport)
-                .toSchemaObject(result, root, options);
-    }
-
-    /** Read object using provided {@link JdbcSession} as a part of already running transaction. */
-    private <S extends ObjectType, Q extends QObject<R>, R extends MObject> S readByOid(
-            @NotNull JdbcSession jdbcSession,
-            @NotNull Class<S> schemaType,
-            @NotNull UUID oid,
-            Collection<SelectorOptions<GetOperationOptions>> options)
-            throws SchemaException {
-
-//        context.processOptions(options); TODO how to process option, is setting of select expressions enough?
-
-        SqaleTableMapping<S, Q, R> rootMapping =
-                sqlRepoContext.getMappingBySchemaType(schemaType);
-        final Q root = rootMapping.defaultAlias();
+        Q root = rootMapping.defaultAlias();
 
         Tuple result = sqlRepoContext.newQuery(jdbcSession.connection())
                 .from(root)
                 .select(rootMapping.selectExpressions(root, options))
                 .where(root.oid.eq(oid))
                 .fetchOne();
+
+        if (result == null || result.get(root.fullObject) == null) {
+            String oidString = oid.toString();
+            throw new ObjectNotFoundException("Object of type '" + schemaType.getSimpleName()
+                    + "' with OID '" + oidString + "' was not found.", oidString);
+        }
 
         return rootMapping.createTransformer(transformerSupport)
                 .toSchemaObject(result, root, options);
@@ -390,27 +362,13 @@ public class SqaleRepositoryService implements RepositoryService {
 
                 PrismObject<T> originalObject = prismObject.clone();
 
-                modifications = modifyObjectAttempt(jdbcSession, prismObject, modifications);
-
-            /*
-            RObject rObject = objectDeltaUpdater.modifyObject(type, oid, modifications, prismObject, modifyOptions, session, attemptContext);
-
-            LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
-            // Continuing the photo treatment: should we remove the (now obsolete) focus photo?
-            // We have to test prismObject at this place, because updateFullObject (below) removes photo property from the prismObject.
-            shouldPhotoBeRemoved =
-                    containsFocusPhotoModification && ((FocusType) prismObject.asObjectable()).getJpegPhoto() == null;
-
-            updateFullObject(rObject, prismObject);
-
-            LOGGER.trace("Starting save.");
-            session.save(rObject);
-            LOGGER.trace("Save finished.");
-            */
-
                 // TODO is modifications cloning unavoidable? see the clone at the start of ObjectUpdater.modifyObjectAttempt
                 //  If cloning will be necessary, do it at the beginning of modifyObjectAttempt,
                 //  especially if called potentially multiple times.
+                // TODO replaces: RObject rObject = objectDeltaUpdater.modifyObject(type, oid, modifications, prismObject, modifyOptions, session, attemptContext);
+                modifications = modifyObjectAttempt(jdbcSession, prismObject, modifications);
+                LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
+
                 return new ModifyObjectResult<>(originalObject, prismObject, modifications);
             }
         } catch (RepositoryException | RuntimeException e) {
@@ -462,7 +420,7 @@ public class SqaleRepositoryService implements RepositoryService {
             try {
                 updateContext.processModification(modification);
             } catch (IllegalArgumentException e) {
-                LOGGER.warn("Modification failed/not implemented yet: " + e.toString());
+                LOGGER.warn("Modification failed/not implemented yet: {}", e.toString());
             }
         }
 

@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.BeforeClass;
@@ -594,7 +595,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .isInstanceOf(SystemException.class)
                 .hasCauseInstanceOf(com.querydsl.core.QueryException.class);
 
-        then("operation is successful");
+        and("operation is fatal error");
         assertThatOperationResult(result).isFatalError();
 
         and("serialized form (fullObject) is not update");
@@ -623,5 +624,26 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 repositoryService.modifyObject(UserType.class, user1Oid, null, result))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("Modifications must not be null.");
+    }
+
+    @Test
+    public void test910ModificationsOfNonexistentObjectFails() throws SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with object name replace with null for user 1");
+        UUID nonexistentOid = UUID.randomUUID();
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .property(UserType.F_NAME).replace("new-name")
+                .asObjectDelta(nonexistentOid.toString());
+
+        expect("modifyObject throws exception");
+        Assertions.assertThatThrownBy(() ->
+                repositoryService.modifyObject(UserType.class, nonexistentOid.toString(),
+                        delta.getModifications(), result))
+                .isInstanceOf(ObjectNotFoundException.class)
+                .hasMessageMatching("Object of type 'UserType' with OID .* was not found\\.");
+
+        and("operation is fatal error");
+        assertThatOperationResult(result).isFatalError();
     }
 }
