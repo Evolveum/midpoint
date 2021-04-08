@@ -336,17 +336,25 @@ public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy
             }
         }
 
+        /**
+         * @param position User-visible position, i.e. starts at 1 (not at zero)!
+         */
         private void extendIfNeeded(int position) {
-            while (configuredBoundaries.size() <= position) {
+            int index = position - 1;
+            while (configuredBoundaries.size() <= index) {
                 configuredBoundaries.add(null);
             }
         }
 
+        /**
+         * @param position User-visible position, i.e. starts at 1 (not at zero)!
+         */
         private void set(int position, String characters) {
-            assert configuredBoundaries.size() > position;
-            argCheck(configuredBoundaries.get(position) == null,
+            int index = position - 1;
+            assert configuredBoundaries.size() > index;
+            argCheck(configuredBoundaries.get(index) == null,
                     "Boundary characters for position %d defined more than once: %s", position, configuredBoundaries);
-            configuredBoundaries.set(position, characters);
+            configuredBoundaries.set(index, characters);
         }
 
         private void checkConsistency() {

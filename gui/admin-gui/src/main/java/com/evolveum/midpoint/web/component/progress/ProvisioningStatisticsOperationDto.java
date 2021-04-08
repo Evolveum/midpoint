@@ -41,7 +41,23 @@ public class ProvisioningStatisticsOperationDto implements Serializable {
         for (ProvisioningStatisticsOperationEntryType entry : entries) {
             retval.add(new ProvisioningStatisticsOperationDto(entry));
         }
+
+        retval.sort((op1, op2) -> sortOperations(op1, op2));
         return retval;
+    }
+
+    private static int sortOperations(ProvisioningStatisticsOperationDto op1, ProvisioningStatisticsOperationDto op2) {
+        if (op1 == null) {
+            return op2 == null ? 0 : -1;
+        }
+        if (op2 == null) {
+            return 1;
+        }
+
+        String o1 = op1.getOperation();
+        String o2 = op2.getOperation();
+
+        return o1.compareTo(o2);
     }
 
     private void computeAvg() {

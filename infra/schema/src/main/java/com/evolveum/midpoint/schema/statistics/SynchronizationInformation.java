@@ -51,7 +51,7 @@ public class SynchronizationInformation {
      * @return Start value plus counters gathered during existence of this object (i.e. this task run).
      */
     public synchronized SynchronizationInformationType getValueCopy() {
-        return value.clone();
+        return value.cloneWithoutId();
     }
 
     public synchronized void onItemProcessingStart(@NotNull String processingIdentifier,
@@ -97,7 +97,7 @@ public class SynchronizationInformation {
                     .onSynchronizationEnd(onSynchronizationEnd)
                     .exclusionReason(exclusionReason)
                     .beginCounter()
-                        .outcome(outcome.clone())
+                        .outcome(outcome.cloneWithoutId())
                         .count(1)
                     .<SynchronizationSituationTransitionType>end()
                 .end();
@@ -119,7 +119,7 @@ public class SynchronizationInformation {
             if (existingTransition != null) {
                 addTo(existingTransition, deltaTransition);
             } else {
-                sum.getTransition().add(deltaTransition.clone());
+                sum.getTransition().add(deltaTransition.cloneWithoutId());
             }
         }
     }

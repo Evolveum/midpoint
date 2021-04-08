@@ -171,9 +171,11 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
         return sorted;
     }
 
+    //TODO cleanup and rename this methos. should not be named "setSorted" when actually performs sorting
     @Override
     public void setSorted(boolean sorted) {
         this.sorted = sorted;
+        sortContainers();
     }
 
     @Override
