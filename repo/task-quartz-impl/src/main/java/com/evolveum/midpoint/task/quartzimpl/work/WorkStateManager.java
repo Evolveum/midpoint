@@ -320,7 +320,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
                     String message = "getWorkBucketMultiNode: conflict; continuing as retry #{}; waiting {} ms in {}, worker {}";
                     Object[] objects = { retry, delay, ctx.coordinatorTask, ctx.workerTask, e };
                     CONTENTION_LOGGER.debug(message, objects);
-                    LOGGER.info(message, objects); // todo change to trace
+                    LOGGER.debug(message, objects);
                     dynamicSleep(delay, ctx);
                     ctx.reloadCoordinatorTask(result);
                     ctx.reloadWorkerTask(result);
