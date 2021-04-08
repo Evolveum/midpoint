@@ -22,6 +22,8 @@ import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 
 import org.apache.wicket.markup.html.WebPage;
 
+// TODO Temporary, should be removed when MID-5718 is resolved. We need it now
+// to distinguish between All users and Users view authorizations
 public class LeftMenuAuthzUtil {
 
     private static Map<Class<? extends WebPage>, List<String>> pageAuthorizationMaps;
