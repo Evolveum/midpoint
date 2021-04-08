@@ -758,6 +758,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:deprecated>true</a:deprecated>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1663,8 +1664,11 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Position(s) to which the boundary characters apply.
+
                         Should be specified, because (1) the ordering of boundary specifications is undefined,
                         (2) multiple definitions of the same boundary characters is not possible.
+
+                        Starts at 1.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2231,6 +2235,7 @@
                             <xsd:appinfo>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>4.0</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -5388,6 +5393,7 @@
                                 <a:displayOrder>410</a:displayOrder>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>3.8</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -6360,6 +6366,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ActivationType.administrativeStatus</a:displayName>
+                        <a:displayOrder>100</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6383,6 +6390,7 @@
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
                         <a:displayName>ActivationType.effectiveStatus</a:displayName>
+                        <a:displayOrder>110</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6396,6 +6404,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ActivationType.validFrom</a:displayName>
+                        <a:displayOrder>120</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6409,6 +6418,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ActivationType.validTo</a:displayName>
+                        <a:displayOrder>130</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6433,6 +6443,7 @@
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
                         <a:displayName>ActivationType.validityStatus</a:displayName>
+                        <a:displayOrder>140</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6461,6 +6472,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
+                        <a:displayOrder>150</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6475,6 +6487,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
+                        <a:displayOrder>150</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6489,6 +6502,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
+                        <a:displayOrder>160</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6505,6 +6519,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
+                        <a:displayOrder>170</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6523,6 +6538,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ActivationType.lockOutStatus</a:displayName>
+                        <a:displayOrder>180</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6538,6 +6554,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ActivationType.lockOutExpiration</a:displayName>
+                        <a:displayOrder>190</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6766,6 +6783,7 @@
                             <xsd:appinfo>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>4.3</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -8787,6 +8805,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -15254,6 +15273,7 @@
                                 <a:displayName>RoleType.roleType</a:displayName>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>3.8</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -15750,6 +15770,7 @@
                                 <a:displayOrder>120</a:displayOrder>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>3.8</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -15863,6 +15884,7 @@
                                 <a:displayOrder>120</a:displayOrder>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>3.8</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -16822,6 +16844,7 @@
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>4.0</a:deprecatedSince>
+                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -18198,6 +18221,7 @@
                                 <a:displayName>ObjectCollectionType.auditSearch</a:displayName>
                                 <a:experimental>true</a:experimental>
                                 <a:deprecated>true</a:deprecated>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -18608,6 +18632,7 @@
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
                 <a:deprecated>true</a:deprecated>
+                <a:plannedRemoval>4.4</a:plannedRemoval>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -18703,6 +18728,7 @@
                         <a:displayName>InternalsConfigurationType.subresultStripThreshold</a:displayName>
                         <a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>4.0</a:deprecatedSince>
+                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -19804,6 +19830,7 @@
                         <a:since>3.4</a:since>
                         <a:displayName>AdminGuiConfigurationType.objectLists</a:displayName>
                         <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -24738,7 +24765,7 @@
                                 <a:since>4.0</a:since>
                                 <a:displayName>ReportType.reportEngine</a:displayName>
                                 <a:deprecated>true</a:deprecated>
-                                <a:plannedRemoval>4.3</a:plannedRemoval>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -24751,7 +24778,7 @@
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
                                 <a:deprecated>true</a:deprecated>
-                                <a:plannedRemoval>4.3</a:plannedRemoval>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -25398,6 +25425,7 @@
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="LEGACY"/>
                         <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -25615,7 +25643,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:deprecated>true</a:deprecated>
-                <a:plannedRemoval>4.3</a:plannedRemoval>
+                <a:plannedRemoval>4.4</a:plannedRemoval>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -26282,6 +26310,7 @@
                         <xsd:appinfo>
                             <a:displayName>GuiObjectListViewsType.objectList</a:displayName>
                             <a:deprecated>true</a:deprecated>
+                            <a:plannedRemoval>4.4</a:plannedRemoval>
                         </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>
@@ -26401,6 +26430,7 @@
                                    <a:since>3.9</a:since>
                                 <a:displayName>GuiObjectListViewType.name</a:displayName>
                                 <a:deprecated>true</a:deprecated>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                                </xsd:appinfo>
                            </xsd:annotation>
                        </xsd:element>
@@ -26435,12 +26465,13 @@
                                <xsd:appinfo>
                                    <a:since>3.9</a:since>
                                    <a:deprecated>true</a:deprecated>
+                                   <a:plannedRemoval>4.4</a:plannedRemoval>
                                    <!-- Reference target type definition is NOT here by purpose. Later on we might want
                                         archetypes (meta-roles), services and orgs to work as implicit collections. Therefore
                                         this reference may point to various object types. By NOT specifying default ObjectCollectionType
                                         here we will force everybody to specify it explicitly. So their configuration will work in
                                         future versions when we add support for implicit collections. -->
-                                <a:displayName>GuiObjectListViewType.collectionRef</a:displayName>
+                                   <a:displayName>GuiObjectListViewType.collectionRef</a:displayName>
                                </xsd:appinfo>
                            </xsd:annotation>
                        </xsd:element>

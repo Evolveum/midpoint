@@ -86,7 +86,7 @@ public class IterativeTaskInformation {
 
     /** Returns a current value of this statistics. It is copied because of thread safety issues. */
     public synchronized IterativeTaskInformationType getValueCopy() {
-        return value.clone();
+        return value.cloneWithoutId();
     }
 
     /**
@@ -182,7 +182,7 @@ public class IterativeTaskInformation {
         itemSet.setCount(or0(itemSet.getCount()) + 1);
 
         itemSet.setDuration(or0(itemSet.getDuration()) + operation.getDurationRounded());
-        ProcessedItemType processedItemClone = operation.processedItem.clone(); // cloning to remove the parent
+        ProcessedItemType processedItemClone = operation.processedItem.cloneWithoutId(); // mainly to remove the parent
         processedItemClone.setEndTimestamp(XmlTypeConverter.createXMLGregorianCalendar(operation.endTimeMillis));
         if (exception != null) {
             processedItemClone.setMessage(exception.getMessage());
@@ -197,7 +197,7 @@ public class IterativeTaskInformation {
                 .filter(itemSet -> Objects.equals(itemSet.getOutcome(), outcome))
                 .findFirst()
                 .orElseGet(
-                        () -> add(part.getProcessed(), new ProcessedItemSetType(prismContext).outcome(outcome.clone())));
+                        () -> add(part.getProcessed(), new ProcessedItemSetType(prismContext).outcome(outcome.cloneWithoutId())));
     }
 
     /** Like {@link List#add(Object)} but returns the value. */
@@ -263,7 +263,7 @@ public class IterativeTaskInformation {
                         .getNonOverlappingRecords();
         sum.getExecution().clear();
         nonOverlappingRecords.sort(Comparator.comparing(r -> XmlTypeConverter.toMillis(r.getStartTimestamp())));
-        sum.getExecution().addAll(CloneUtil.cloneCollectionMembers(nonOverlappingRecords));
+        sum.getExecution().addAll(CloneUtil.cloneCollectionMembersWithoutIds(nonOverlappingRecords));
     }
 
     /** Adds `processed` items information */
@@ -298,7 +298,7 @@ public class IterativeTaskInformation {
 
     /** Adds `current` items information (simply concatenates the lists). */
     private static void addCurrent(List<ProcessedItemType> sum, List<ProcessedItemType> delta) {
-        sum.addAll(CloneUtil.cloneCollectionMembers(delta)); // to avoid problems with parent
+        sum.addAll(CloneUtil.cloneCollectionMembersWithoutIds(delta)); // to avoid problems with parent and IDs
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })

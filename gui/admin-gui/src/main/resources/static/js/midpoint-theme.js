@@ -240,6 +240,14 @@ function toggleSearchPopover(buttonId, popoverId, paddingRight) {
     var left = position.left - (popover.outerWidth() - button.outerWidth()) / 2 - paddingRight;
     var top = position.top + button.outerHeight();
 
+    var offsetLeft = button.offset().left - position.left;
+
+    if ((left + popover.outerWidth() + offsetLeft) > window.innerWidth) {
+        left = window.innerWidth - popover.outerWidth() - offsetLeft - 15;
+    } else if (left < 0) {
+        left = 0;
+    }
+
     popover.css('top', top);
     popover.css('left', left);
 
