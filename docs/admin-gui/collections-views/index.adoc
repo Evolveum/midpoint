@@ -184,7 +184,7 @@ The following properties within  SearchBoxConfigurationType can be configured:
 
 [%autowidth]
 |===
-| XML tag name | Possible values | Description | Depracated
+| XML tag name | Possible values | Description | Deprecated
 
 | defaultMode
 | basic +
@@ -198,6 +198,7 @@ Fulltext search mode. Single input field used to search over several fields. +
 Oid search mode. Single input field used to search by oid over whole database. +
 Query DSL search mode. Ability to create complex query using a query DSL. +
 As default mode is used 'fullText' ,when fullText is  configured, or 'basic'.
+
 Value of 'defaultMode' have to be in 'allowedMode', otherwise value will be ignored.
 |
 
@@ -213,7 +214,7 @@ All search mode are allowed by default.
 
 | defaultScope
 |
-oneLevelsubtree
+oneLevel
 | The scope of the search box.
 Scope may not be applicable to all types of lists/views.
 E.g. it does not make sense for flat searches.
