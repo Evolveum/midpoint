@@ -1663,8 +1663,11 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Position(s) to which the boundary characters apply.
+
                         Should be specified, because (1) the ordering of boundary specifications is undefined,
                         (2) multiple definitions of the same boundary characters is not possible.
+
+                        Starts at 1.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

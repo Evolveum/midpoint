@@ -22,11 +22,11 @@
                 <discriminator>name</discriminator>
                 <matchingRule>polyStringNorm</matchingRule>
                 <boundary>
-                    <position>0</position>
+                    <position>1</position>
                     <characters>05am</characters>
                 </boundary>
                 <boundary>
-                    <position>1</position>
+                    <position>2</position>
                     <characters>0am</characters>
                 </boundary>
                 <comparisonMethod>interval</comparisonMethod>

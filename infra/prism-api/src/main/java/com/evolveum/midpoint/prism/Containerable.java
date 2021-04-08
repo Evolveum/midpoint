@@ -6,7 +6,9 @@
  */
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
 
 import java.io.Serializable;
 
@@ -33,6 +35,21 @@ public interface Containerable extends Serializable, DebugDumpable {
     }
 
     PrismContainerValue asPrismContainerValue();
+
+    /**
+     * Creates a clone but with ID removed.
+     *
+     * TODO Make this something like copyForReuse, using cloneComplex(CloneStrategy.REUSE).
+     *  Unfortunately, this currently fails because of the required conversion of Containerable -> PCV -> Containerable.
+     *  So for now we use a minimalistic version here.
+     */
+    @Experimental
+    default <C extends Containerable> C cloneWithoutId() {
+        //noinspection unchecked
+        C clone = (C) CloneUtil.clone(this);
+        clone.asPrismContainerValue().setId(null);
+        return clone;
+    }
 
     /**
      * Setup value to the containerable representation. This is used to after (empty) containerable is created to
