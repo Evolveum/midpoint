@@ -110,7 +110,7 @@ public class SecurityQuestionsPanel extends BasePanel<PasswordQuestionsDto> {
         try {
 
             /*User's Pre-Set Question List*/
-            List<SecurityQuestionAnswerDTO> userQuestionList = getModelObject().getUserQuestionAnswers();
+            List<SecurityQuestionAnswerDTO> userQuestionList = dto.getUserQuestionAnswers();
 
             /* check if user's set number of
              * questions matches the policy or not*/
@@ -118,17 +118,17 @@ public class SecurityQuestionsPanel extends BasePanel<PasswordQuestionsDto> {
             //Case that policy have more than users's number of numbers
             int questionSize = questionsDef.size();
             if (userQuestionList == null) {
-                executeAddingQuestions(questionSize, 0, questionsDef);
+                dto.getActualQuestionAnswers().addAll(executeAddingQuestions(questionSize, 0, questionsDef));
                 //TODO same questions check should be implemented
             } else if (questionSize > userQuestionList.size()){
-                executePasswordQuestionsAndAnswers(userQuestionList, questionsDef, userQuestionList.size());
+                dto.getActualQuestionAnswers().addAll(executePasswordQuestionsAndAnswers(userQuestionList, questionsDef, userQuestionList.size()));
                 //QUESTION NUMBER BIGGER THAN QUESTION LIST
                 //rest of the questions
                 int difference = questionSize - userQuestionList.size();
-                executeAddingQuestions(difference, userQuestionList.size(), questionsDef);
+                dto.getActualQuestionAnswers().addAll(executeAddingQuestions(difference, userQuestionList.size(), questionsDef));
             } else if (questionSize <= userQuestionList.size()) {
                 //QUESTION NUMBER SMALLER THAN QUESTION LIST OR EQUALS TO QUESTION LIST
-                executePasswordQuestionsAndAnswers(userQuestionList, questionsDef, 0);
+                dto.getActualQuestionAnswers().addAll(executePasswordQuestionsAndAnswers(userQuestionList, questionsDef, 0));
             }
         } catch (Exception ex) {
             result.recordFatalError(getString("PageMyPasswordQuestions.message.couldNotLoadSysConfig"), ex);
@@ -195,14 +195,16 @@ public class SecurityQuestionsPanel extends BasePanel<PasswordQuestionsDto> {
      *
      * @author oguzhan
      */
-    public void executeAddingQuestions(int questionNumber, int panelNumber, List<SecurityQuestionDefinitionType> policyQuestionList) {
+    public List<SecurityQuestionAnswerDTO> executeAddingQuestions(int questionNumber, int panelNumber, List<SecurityQuestionDefinitionType> policyQuestionList) {
         LOGGER.debug("executeAddingQuestions");
+        List<SecurityQuestionAnswerDTO> questionsAnswer = new ArrayList<>();
         for (int i = 0; i < questionNumber; i++) {
             SecurityQuestionDefinitionType def = policyQuestionList.get(panelNumber);
             SecurityQuestionAnswerDTO a = new SecurityQuestionAnswerDTO(def.getIdentifier(), "", def.getQuestionText());
-            getModelObject().getActualQuestionAnswers().add(a);
+            questionsAnswer.add(a);
             panelNumber++;
         }
+        return questionsAnswer;
     }
 
     /**
@@ -210,9 +212,10 @@ public class SecurityQuestionsPanel extends BasePanel<PasswordQuestionsDto> {
      *
      * @author oguzhan
      */
-    public void executePasswordQuestionsAndAnswers(List<SecurityQuestionAnswerDTO> userQuestionList, List<SecurityQuestionDefinitionType> policyQuestionList, int panelNumber) {
+    public List<SecurityQuestionAnswerDTO> executePasswordQuestionsAndAnswers(List<SecurityQuestionAnswerDTO> userQuestionList, List<SecurityQuestionDefinitionType> policyQuestionList, int panelNumber) {
         int userQuest = 0;
         LOGGER.debug("executePasswordQuestionsAndAnswers");
+        List<SecurityQuestionAnswerDTO> secQuestionAnswer = new ArrayList<>();
         for (SecurityQuestionDefinitionType securityQuestionDefinitionType : policyQuestionList) {
             /* Loop for finding the Existing Questions
              * and Answers according to Policy*/
@@ -225,7 +228,7 @@ public class SecurityQuestionsPanel extends BasePanel<PasswordQuestionsDto> {
                 if (dto.getPwdQuestionIdentifier().trim().compareTo(securityQuestionDefinitionType.getIdentifier().trim()) == 0) {
                     SecurityQuestionAnswerDTO a = new SecurityQuestionAnswerDTO(dto.getPwdQuestionIdentifier(), dto.getPwdAnswer(), dto.getPwdQuestion());
                     a = checkIfQuestionIsValidSingle(a, securityQuestionDefinitionType);
-                    getModelObject().getActualQuestionAnswers().add(a);
+                    secQuestionAnswer.add(a);
 
                     panelNumber++;
                     userQuest++;
@@ -235,7 +238,7 @@ public class SecurityQuestionsPanel extends BasePanel<PasswordQuestionsDto> {
                     SecurityQuestionDefinitionType def = policyQuestionList.get(panelNumber);
                     SecurityQuestionAnswerDTO a = new SecurityQuestionAnswerDTO(def.getIdentifier(), "", def.getQuestionText());
                     a.setPwdQuestion(securityQuestionDefinitionType.getQuestionText());
-                    getModelObject().getActualQuestionAnswers().add(a);
+                    secQuestionAnswer.add(a);
                     dto.setPwdQuestionIdentifier(securityQuestionDefinitionType.getIdentifier().trim());
 
                     panelNumber++;
@@ -248,6 +251,7 @@ public class SecurityQuestionsPanel extends BasePanel<PasswordQuestionsDto> {
             }
 
         }
+        return secQuestionAnswer;
     }
 
     private SecurityQuestionAnswerDTO checkIfQuestionIsValidSingle(
