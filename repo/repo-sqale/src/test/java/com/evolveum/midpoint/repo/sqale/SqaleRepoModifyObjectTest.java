@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Instant;
 
@@ -31,10 +32,8 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
@@ -513,7 +512,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
 
-        given("delta with polystring nickname delta replace to null for user 1");
+        given("delta with polystring nickname replace with null for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .property(UserType.F_NICK_NAME).replace()
                 .asObjectDelta(user1Oid);
@@ -542,6 +541,74 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.nickNameOrig).isNull();
         assertThat(row.nickNameNorm).isNull();
+    }
+
+    @Test
+    public void test135ObjectNameCanBeChanged()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta with object name change for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .property(ObjectType.F_NAME).add(new PolyString("user-1-changed"))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(
+                UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        PolyStringType name = userObject.getName();
+        assertThat(name.getOrig()).isEqualTo("user-1-changed");
+        assertThat(name.getNorm()).isEqualTo("user1changed");
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+
+        and("externalized column is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.nameOrig).isEqualTo("user-1-changed");
+        assertThat(row.nameNorm).isEqualTo("user1changed");
+    }
+
+    @Test
+    public void test136ObjectNameCantBeRemoved()
+            throws ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta with object name replace with null for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .property(UserType.F_NAME).replace()
+                .asObjectDelta(user1Oid);
+
+        expect("modifyObject throws exception");
+        assertThatThrownBy(() -> repositoryService.modifyObject(
+                UserType.class, user1Oid, delta.getModifications(), result))
+                .isInstanceOf(SystemException.class)
+                .hasCauseInstanceOf(com.querydsl.core.QueryException.class);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isFatalError();
+
+        and("serialized form (fullObject) is not update");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getName()).isNotNull();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version));
+
+        and("externalized column is set to NULL");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version);
+        assertThat(row.nameOrig).isNotNull();
+        assertThat(row.nameNorm).isNotNull();
     }
 
     @Test

@@ -824,6 +824,7 @@ public class SqaleRepositoryService implements RepositoryService {
      * Returns {@link SystemException}, call with `throw` keyword.
      */
     private SystemException handledGeneralException(@NotNull Throwable ex, OperationResult result) {
+        // TODO reconsider this whole mechanism including isFatalException decision
         LOGGER.error("General checked exception occurred.", ex);
         recordException(ex, result,
                 sqlRepoContext.getJdbcRepositoryConfiguration().isFatalException(ex));
