@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.PrismInternalTestUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
-import com.evolveum.midpoint.prism.foo.ObjectType;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryFactory;
 import com.evolveum.midpoint.prism.impl.query.FullTextFilterImpl;
@@ -220,10 +219,10 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
                 + "and (givenName = 'Jack' or givenName = 'Jackie')", filter);
     }
 
-    @Test
+    @Test(enabled = false)
     public void testTypeAndMatch() throws Exception {
         ObjectFilter filter =
-                getPrismContext().queryFor(ObjectType.class)
+                getPrismContext().queryFor(UserType.class)
                         .type(UserType.class)
                         .item(UserType.F_FAMILY_NAME).eq("Sparrow")
                         .and().item(UserType.F_FULL_NAME).contains("arr")
