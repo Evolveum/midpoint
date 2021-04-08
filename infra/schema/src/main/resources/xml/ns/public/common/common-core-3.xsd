@@ -6366,6 +6366,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ActivationType.administrativeStatus</a:displayName>
+                        <a:displayOrder>100</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6389,6 +6390,7 @@
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
                         <a:displayName>ActivationType.effectiveStatus</a:displayName>
+                        <a:displayOrder>110</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6402,6 +6404,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ActivationType.validFrom</a:displayName>
+                        <a:displayOrder>120</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6415,6 +6418,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ActivationType.validTo</a:displayName>
+                        <a:displayOrder>130</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6439,6 +6443,7 @@
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
                         <a:displayName>ActivationType.validityStatus</a:displayName>
+                        <a:displayOrder>140</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6467,6 +6472,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
+                        <a:displayOrder>150</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6481,6 +6487,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
+                        <a:displayOrder>150</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6495,6 +6502,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
+                        <a:displayOrder>160</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6511,6 +6519,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
+                        <a:displayOrder>170</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6529,6 +6538,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ActivationType.lockOutStatus</a:displayName>
+                        <a:displayOrder>180</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6544,6 +6554,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ActivationType.lockOutExpiration</a:displayName>
+                        <a:displayOrder>190</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

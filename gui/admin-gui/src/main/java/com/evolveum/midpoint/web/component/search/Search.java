@@ -649,7 +649,6 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             @NotNull ObjectQuery query = pageBase.getPrismContext().queryFactory().createQuery(filter);
             return query;
         } catch (Exception ex) {
-            LOGGER.error("Couldn't parse axiom query.", ex);
             advancedError = createErrorMessage(ex);
         }
 
@@ -713,7 +712,6 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             createAdvancedObjectFilter(ctx);
             return true;
         } catch (Exception ex) {
-            LOGGER.error("Couldn't parse xml query.", ex);
             advancedError = createErrorMessage(ex);
         }
 
