@@ -17,9 +17,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.SerializationUtils;
@@ -143,6 +145,35 @@ public class CloneUtil {
         List<T> clonedCollection = new ArrayList<>(collection.size());
         for (T element : collection) {
             clonedCollection.add(clone(element));
+        }
+        return clonedCollection;
+    }
+
+    /**
+     * @return List that contains its members clones. For members that are Containerable the IDs are cleared.
+     *
+     * FIXME: BEWARE - UNFINISHED
+     *  - does not clear IDs if members are PCVs; does it only for Containerables
+     *  - should be named maybe "copyForReuse" and use complexClone with the strategy of REUSE for all prism data
+     *
+     * See {@link Containerable#cloneWithoutId()} and its TODOs.
+     */
+    @Experimental
+    @Contract("!null -> !null; null -> null")
+    public static <T> List<T> cloneCollectionMembersWithoutIds(Collection<T> collection) {
+        if (collection == null) {
+            return null;
+        }
+        List<T> clonedCollection = new ArrayList<>(collection.size());
+        for (T element : collection) {
+            T elementCopy;
+            if (element instanceof Containerable) {
+                //noinspection unchecked
+                elementCopy = ((Containerable) element).cloneWithoutId();
+            } else {
+                elementCopy = clone(element);
+            }
+            clonedCollection.add(elementCopy);
         }
         return clonedCollection;
     }

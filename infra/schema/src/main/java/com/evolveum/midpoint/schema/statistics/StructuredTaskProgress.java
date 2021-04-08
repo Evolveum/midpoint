@@ -62,7 +62,7 @@ public class StructuredTaskProgress {
 
     /** Returns a current value of this statistics. It is copied because of thread safety issues. */
     public synchronized StructuredTaskProgressType getValueCopy() {
-        return value.clone();
+        return value.cloneWithoutId();
     }
 
     /**
