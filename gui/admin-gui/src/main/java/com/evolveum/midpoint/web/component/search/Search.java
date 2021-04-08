@@ -649,6 +649,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             @NotNull ObjectQuery query = pageBase.getPrismContext().queryFactory().createQuery(filter);
             return query;
         } catch (Exception ex) {
+            LOGGER.error("Couldn't parse axiom query.", ex);
             advancedError = createErrorMessage(ex);
         }
 
@@ -712,6 +713,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             createAdvancedObjectFilter(ctx);
             return true;
         } catch (Exception ex) {
+            LOGGER.error("Couldn't parse xml query.", ex);
             advancedError = createErrorMessage(ex);
         }
 
@@ -770,9 +772,12 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         StringBuilder sb = new StringBuilder();
 
         Throwable t = ex;
-        while (t != null) {
-            sb.append(t.getMessage() == null ? t.getClass() : t.getMessage()).append('\n');
+        while (t != null && t.getMessage() != null) {
+            sb.append(t.getMessage()).append('\n');
             t = t.getCause();
+        }
+        if (StringUtils.isBlank(sb.toString())) {
+            sb.append(PageBase.createStringResourceStatic(null, "SearchPanel.unexpectedQuery").getString());
         }
 
         return sb.toString();
