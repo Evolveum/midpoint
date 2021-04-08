@@ -20,6 +20,9 @@ public class AxiomQuerySource {
         CodePointCharStream stream = CharStreams.fromString(query);
         AxiomQueryLexer lexer = new AxiomQueryLexer(stream);
         AxiomQueryParser parser = new AxiomQueryParser(new CommonTokenStream(lexer));
+        // DO NOT log to STDIN
+        lexer.removeErrorListeners();
+        parser.removeErrorListeners();
         FilterContext root = parser.filter();
         return new AxiomQuerySource(root);
     }

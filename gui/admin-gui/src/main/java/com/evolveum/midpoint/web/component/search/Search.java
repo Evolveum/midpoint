@@ -770,9 +770,12 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         StringBuilder sb = new StringBuilder();
 
         Throwable t = ex;
-        while (t != null) {
-            sb.append(t.getMessage() == null ? t.getClass() : t.getMessage()).append('\n');
+        while (t != null && t.getMessage() != null) {
+            sb.append(t.getMessage()).append('\n');
             t = t.getCause();
+        }
+        if (StringUtils.isBlank(sb.toString())) {
+            sb.append(PageBase.createStringResourceStatic(null, "SearchPanel.unexpectedQuery").getString());
         }
 
         return sb.toString();

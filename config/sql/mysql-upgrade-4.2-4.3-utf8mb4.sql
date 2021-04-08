@@ -8,7 +8,7 @@ ALTER TABLE m_focus ADD COLUMN lockoutStatus INTEGER;
 UPDATE m_global_metadata SET value = '4.3' WHERE name = 'databaseSchemaVersion';
 
 -- MID-6974
-UPDATE qrtz_job_details SET job_class_name = 'com.evolveum.midpoint.task.quartzimpl.run.JobExecutor'
+UPDATE QRTZ_JOB_DETAILS SET job_class_name = 'com.evolveum.midpoint.task.quartzimpl.run.JobExecutor'
     WHERE job_class_name = 'com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor';
 
 COMMIT;
