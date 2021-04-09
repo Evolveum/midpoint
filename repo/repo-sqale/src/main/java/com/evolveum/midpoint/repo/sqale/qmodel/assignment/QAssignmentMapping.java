@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.*;
 
-import com.evolveum.midpoint.repo.sqale.mapping.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
@@ -82,7 +81,7 @@ public class QAssignmentMapping
                         path(q -> q.creatorRefTargetType),
                         path(q -> q.creatorRefRelationId)))
                 .addItemMapping(MetadataType.F_CREATE_CHANNEL,
-                        UriItemFilterProcessor.mapper(path(q -> q.createChannelId)))
+                        uriMapper(path(q -> q.createChannelId)))
                 .addItemMapping(MetadataType.F_CREATE_TIMESTAMP,
                         timestampMapper(path(q -> q.createTimestamp)))
                 .addItemMapping(MetadataType.F_MODIFIER_REF, SqaleTableMapping.refMapper(
@@ -90,7 +89,7 @@ public class QAssignmentMapping
                         path(q -> q.modifierRefTargetType),
                         path(q -> q.modifierRefRelationId)))
                 .addItemMapping(MetadataType.F_MODIFY_CHANNEL,
-                        UriItemFilterProcessor.mapper(path(q -> q.modifyChannelId)))
+                        uriMapper(path(q -> q.modifyChannelId)))
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
                         timestampMapper(path(q -> q.modifyTimestamp)));
 

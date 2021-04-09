@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAccessCertificationDefinitionType.*;
 
-import com.evolveum.midpoint.repo.sqale.mapping.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
@@ -31,7 +30,7 @@ public class QAccessCertificationDefinitionMapping
         super(QAccessCertificationDefinition.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 AccessCertificationDefinitionType.class, QAccessCertificationDefinition.class);
 
-        addItemMapping(F_HANDLER_URI, UriItemFilterProcessor.mapper(path(q -> q.handlerUriId)));
+        addItemMapping(F_HANDLER_URI, uriMapper(path(q -> q.handlerUriId)));
         addItemMapping(F_LAST_CAMPAIGN_STARTED_TIMESTAMP,
                 timestampMapper(path(q -> q.lastCampaignStartedTimestamp)));
         addItemMapping(F_LAST_CAMPAIGN_CLOSED_TIMESTAMP,

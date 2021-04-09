@@ -691,6 +691,67 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.ownerRefRelationId).isNull();
     }
 
+    @Test
+    public void test145ChangeCachedUriAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+
+        given("delta with handler change for task 1 adding value");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(TaskType.F_HANDLER_URI).add("any://handler/uri")
+                .asObjectDelta(task1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful, repository doesn't check target existence");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(taskObject.getHandlerUri()).isEqualTo("any://handler/uri");
+
+        and("externalized column is updated");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertCachedUri(row.handlerUriId, "any://handler/uri");
+    }
+
+    @Test
+    public void test146DeleteCachedAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with handler replace to null ('delete') for task 1");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(TaskType.F_HANDLER_URI).replace()
+                .asObjectDelta(task1Oid);
+
+        and("task row previously having the handler URI value");
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(originalRow.handlerUriId).isNotNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and email is gone");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(taskObject.getHandlerUri()).isNull();
+
+        and("externalized column is set to NULL");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.handlerUriId).isNull();
+    }
+
     // TODO see: ModifyTest#test030ModifyUserOnNonExistingAccountTest
     //  and src/test/resources/modify/change-add-non-existing.xml
     @Test(enabled = false)

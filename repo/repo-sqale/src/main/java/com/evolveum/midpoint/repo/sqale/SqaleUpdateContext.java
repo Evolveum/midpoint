@@ -121,7 +121,11 @@ public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R ex
         return transformerSupport;
     }
 
-    public Integer processCacheableUri(QName relation) {
+    public Integer processCacheableRelation(QName relation) {
         return transformerSupport.processCacheableRelation(relation, jdbcSession);
+    }
+
+    public Integer processCacheableUri(String uri) {
+        return transformerSupport.processCacheableUri(uri, jdbcSession);
     }
 }

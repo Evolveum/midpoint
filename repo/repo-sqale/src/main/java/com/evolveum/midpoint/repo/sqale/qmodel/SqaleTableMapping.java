@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqale.mapping.ObjectRefTableItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.RefItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.mapping.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.delta.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
@@ -135,5 +136,13 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                         rootToOidPath, rootToTypePath, rootToRelationIdPath),
                 ctx -> new RefItemDeltaProcessor(ctx,
                         rootToOidPath, rootToTypePath, rootToRelationIdPath));
+    }
+
+    /** Returns the mapper creating the cached URI filter/delta processors from context. */
+    protected ItemSqlMapper uriMapper(
+            Function<EntityPath<?>, NumberPath<Integer>> rootToPath) {
+        return new SqaleItemSqlMapper(
+                ctx -> new UriItemFilterProcessor(ctx, rootToPath),
+                ctx -> new UriItemDeltaProcessor(ctx, rootToPath));
     }
 }

@@ -18,7 +18,6 @@ import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 
 /**
  * Filter processor for URI item paths - represented by string/QName in schema and by int ID in DB.
@@ -26,17 +25,9 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
  */
 public class UriItemFilterProcessor extends ItemFilterProcessor<PropertyValueFilter<String>> {
 
-    /**
-     * Returns the mapper fusnction creating the ref-filter processor from query context.
-     */
-    public static ItemSqlMapper mapper(
-            Function<EntityPath<?>, NumberPath<Integer>> rootToPath) {
-        return new ItemSqlMapper(ctx -> new UriItemFilterProcessor(ctx, rootToPath));
-    }
-
     private final NumberPath<Integer> path;
 
-    private UriItemFilterProcessor(
+    public UriItemFilterProcessor(
             SqlQueryContext<?, ?, ?> context,
             Function<EntityPath<?>, NumberPath<Integer>> rootToPath) {
         super(context);

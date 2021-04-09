@@ -16,7 +16,6 @@ import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.repo.sqale.mapping.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
@@ -67,7 +66,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                         path(q -> q.creatorRefTargetType),
                         path(q -> q.creatorRefRelationId)))
                 .addItemMapping(MetadataType.F_CREATE_CHANNEL,
-                        UriItemFilterProcessor.mapper(path(q -> q.createChannelId)))
+                        uriMapper(path(q -> q.createChannelId)))
                 .addItemMapping(MetadataType.F_CREATE_TIMESTAMP,
                         timestampMapper(path(q -> q.createTimestamp)))
                 .addItemMapping(MetadataType.F_MODIFIER_REF, SqaleTableMapping.refMapper(
@@ -75,7 +74,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                         path(q -> q.modifierRefTargetType),
                         path(q -> q.modifierRefRelationId)))
                 .addItemMapping(MetadataType.F_MODIFY_CHANNEL,
-                        UriItemFilterProcessor.mapper(path(q -> q.modifyChannelId)))
+                        uriMapper(path(q -> q.modifyChannelId)))
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
                         timestampMapper(path(q -> q.modifyTimestamp)))
                 .addRefMapping(MetadataType.F_CREATE_APPROVER_REF,

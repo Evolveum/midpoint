@@ -16,7 +16,7 @@ import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
  * This typically means adding set clauses to the update but can also mean adding rows
  * for containers, etc.
  *
- * @param <T> type of the expected value for the modification (after optional conversion)
+ * @param <T> expected type of the real value for the modification (after optional conversion)
  */
 public abstract class ItemDeltaProcessor<T> {
 

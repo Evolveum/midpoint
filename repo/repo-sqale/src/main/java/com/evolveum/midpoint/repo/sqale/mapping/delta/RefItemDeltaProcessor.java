@@ -59,7 +59,7 @@ public class RefItemDeltaProcessor extends ItemDeltaProcessor<ObjectReferenceTyp
         } else {
             context.set(oidPath, UUID.fromString(ref.getOid()));
             context.set(typePath, MObjectType.fromTypeQName(ref.getType()));
-            context.set(relationIdPath, context.processCacheableUri(ref.getRelation()));
+            context.set(relationIdPath, context.processCacheableRelation(ref.getRelation()));
         }
     }
 }

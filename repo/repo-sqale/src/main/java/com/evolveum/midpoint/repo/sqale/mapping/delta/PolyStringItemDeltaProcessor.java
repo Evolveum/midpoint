@@ -33,13 +33,13 @@ public class PolyStringItemDeltaProcessor extends ItemDeltaProcessor<PolyString>
     @Override
     public void process(ItemDelta<?, ?> modification) throws RepositoryException {
         // See implementation comments in SinglePathItemDeltaProcessor#process for logic details.
-        if (modification.isDelete()) {
+        PolyString polyString = getAnyValue(modification);
+        if (modification.isDelete() || polyString == null) {
             context.set(origPath, null);
             context.set(normPath, null);
         } else {
-            PolyString polyString = getAnyValue(modification);
-            context.set(origPath, PolyString.getOrig(polyString));
-            context.set(normPath, PolyString.getNorm(polyString));
+            context.set(origPath, polyString.getOrig());
+            context.set(normPath, polyString.getNorm());
         }
     }
 }

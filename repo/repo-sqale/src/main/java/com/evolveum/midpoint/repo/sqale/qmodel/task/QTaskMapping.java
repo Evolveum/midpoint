@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.task;
 
-import com.evolveum.midpoint.repo.sqale.mapping.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
@@ -36,7 +35,7 @@ public class QTaskMapping
                 EnumItemFilterProcessor.mapper(path(q -> q.executionStatus)));
         // TODO byte[] fullResult mapping - probably does not make sense?
         addItemMapping(TaskType.F_HANDLER_URI,
-                UriItemFilterProcessor.mapper(path(q -> q.handlerUriId)));
+                uriMapper(path(q -> q.handlerUriId)));
         addItemMapping(TaskType.F_LAST_RUN_FINISH_TIMESTAMP,
                 timestampMapper(path(q -> q.lastRunFinishTimestamp)));
         addItemMapping(TaskType.F_LAST_RUN_START_TIMESTAMP,
