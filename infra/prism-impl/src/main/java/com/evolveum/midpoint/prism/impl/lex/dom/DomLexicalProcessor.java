@@ -49,7 +49,8 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
     public RootXNodeImpl read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
         if (source instanceof ParserElementSource) {
             Element root = ((ParserElementSource) source).getElement();
-            return new DomReader(root, schemaRegistry, PrismNamespaceContext.EMPTY).read();
+            PrismNamespaceContext nsContext = PrismNamespaceContext.from(DOMUtil.allNamespaceDeclarations(root));
+            return new DomReader(root, schemaRegistry, nsContext.inherited()).read();
         } else {
             InputStream is = source.getInputStream();
             try {

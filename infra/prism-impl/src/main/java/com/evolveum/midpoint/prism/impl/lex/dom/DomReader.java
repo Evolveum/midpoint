@@ -80,7 +80,7 @@ class DomReader {
             return Collections.singletonList(read());
         } else {
             List<RootXNodeImpl> rv = new ArrayList<>();
-            PrismNamespaceContext context = rootContext.childContext(DOMUtil.getNamespaceDeclarationsNonNull(root));
+            PrismNamespaceContext context = rootContext.childContext(DOMUtil.allNamespaceDeclarations(root));
             for (Element child : DOMUtil.listChildElements(root)) {
                 rv.add(new DomReader(child, schemaRegistry, context.inherited()).read());
             }
