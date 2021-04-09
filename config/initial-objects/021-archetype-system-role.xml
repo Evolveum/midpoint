@@ -21,7 +21,7 @@
             <label>System role</label>
             <pluralLabel>System roles</pluralLabel>
             <icon>
-                <cssClass>fe fe-role_icon</cssClass>
+                <cssClass>fe fe-role</cssClass>
                 <color>red</color>
             </icon>
         </display>

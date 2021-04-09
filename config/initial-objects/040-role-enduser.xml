@@ -204,6 +204,18 @@
         <!-- Note: for production use you should consider limiting the items that can be read. -->
     </authorization>
     <authorization>
+        <name>operational-objects-get</name>
+        <description>
+            Authorization that allows to read all the object that are possible to use for (not only) GUI
+            customizations. E.g there might be lookup tables used for attributes, custom form types defined, etc.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
+        <object>
+            <type>LookupTableType</type>
+        </object>
+        <!-- Note: for production use you should consider limiting the items that can be read. -->
+    </authorization>
+    <authorization>
         <name>assignment-target-read-case</name>
         <description>
             Authorization that allows to read approval status of cases. This is used to display requests
