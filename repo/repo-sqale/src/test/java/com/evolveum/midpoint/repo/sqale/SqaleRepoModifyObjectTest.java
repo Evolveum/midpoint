@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Instant;
 import java.util.UUID;
+import javax.xml.namespace.QName;
 
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.BeforeClass;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.MService;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QService;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.MShadow;
@@ -84,8 +86,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("serialized form (fullObject) is updated");
         UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
-        assertThat(userObject.getEmailAddress()).isEqualTo("new@email.com");
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getEmailAddress()).isEqualTo("new@email.com");
 
         and("externalized column is updated");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
@@ -118,8 +120,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("serialized form (fullObject) is updated and old value is overridden");
         UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
-        assertThat(userObject.getEmailAddress()).isEqualTo("new2@email.com");
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getEmailAddress()).isEqualTo("new2@email.com");
 
         and("externalized column is updated");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
@@ -147,8 +149,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("serialized form (fullObject) is updated and email is gone");
         UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
-        assertThat(userObject.getEmailAddress()).isNull();
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getEmailAddress()).isNull();
 
         and("externalized column is set to NULL");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
@@ -290,9 +292,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("serialized form (fullObject) is updated");
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
         assertThat(taskObject.getLastRunStartTimestamp())
                 .isEqualTo(MiscUtil.asXMLGregorianCalendar(1L));
-        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
 
         and("externalized column is updated");
         MTask row = selectObjectByOid(QTask.class, task1Oid);
@@ -329,8 +331,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("serialized form (fullObject) is updated and email is gone");
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
-        assertThat(taskObject.getLastRunStartTimestamp()).isNull();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(taskObject.getLastRunStartTimestamp()).isNull();
 
         and("externalized column is set to NULL");
         MTask row = selectObjectByOid(QTask.class, task1Oid);
@@ -360,8 +362,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         ServiceType serviceObject = repositoryService
                 .getObject(ServiceType.class, service1Oid, null, result)
                 .asObjectable();
-        assertThat(serviceObject.getDisplayOrder()).isEqualTo(5);
         assertThat(serviceObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(serviceObject.getDisplayOrder()).isEqualTo(5);
 
         and("externalized column is updated");
         MService row = selectObjectByOid(QService.class, service1Oid);
@@ -393,8 +395,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         ServiceType serviceObject = repositoryService
                 .getObject(ServiceType.class, service1Oid, null, result)
                 .asObjectable();
-        assertThat(serviceObject.getDisplayOrder()).isNull();
         assertThat(serviceObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(serviceObject.getDisplayOrder()).isNull();
 
         and("externalized column is set to NULL");
         MService row = selectObjectByOid(QService.class, service1Oid);
@@ -427,8 +429,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         ShadowType shadowObject = repositoryService
                 .getObject(ShadowType.class, shadow1Oid, null, result)
                 .asObjectable();
-        assertThat(shadowObject.isDead()).isTrue();
         assertThat(shadowObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(shadowObject.isDead()).isTrue();
 
         and("externalized column is updated");
         MShadow row = selectObjectByOid(QShadow.class, shadow1Oid);
@@ -461,8 +463,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         ShadowType shadowObject = repositoryService
                 .getObject(ShadowType.class, shadow1Oid, null, result)
                 .asObjectable();
-        assertThat(shadowObject.isDead()).isNull();
         assertThat(shadowObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(shadowObject.isDead()).isNull();
 
         and("externalized column is set to NULL");
         MShadow row = selectObjectByOid(QShadow.class, shadow1Oid);
@@ -496,10 +498,11 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UserType userObject = repositoryService
                 .getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+
         PolyStringType nickName = userObject.getNickName();
         assertThat(nickName.getOrig()).isEqualTo("nick-name");
         assertThat(nickName.getNorm()).isEqualTo("nickname");
-        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
 
         and("externalized column is updated");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
@@ -534,8 +537,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UserType userObject = repositoryService
                 .getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
-        assertThat(userObject.getNickName()).isNull();
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getNickName()).isNull();
 
         and("externalized column is set to NULL");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
@@ -566,10 +569,11 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UserType userObject = repositoryService
                 .getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+
         PolyStringType name = userObject.getName();
         assertThat(name.getOrig()).isEqualTo("user-1-changed");
         assertThat(name.getNorm()).isEqualTo("user1changed");
-        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
 
         and("externalized column is updated");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
@@ -598,7 +602,117 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("operation is fatal error");
         assertThatOperationResult(result).isFatalError();
 
-        and("serialized form (fullObject) is not update");
+        and("serialized form (fullObject) is not updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version));
+        assertThat(userObject.getName()).isNotNull();
+
+        and("externalized column is set to NULL");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version);
+        assertThat(row.nameOrig).isNotNull();
+        assertThat(row.nameNorm).isNotNull();
+    }
+
+    @Test
+    public void test140ChangeReferenceAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+
+        given("delta with owner reference change for task 1 adding value");
+        UUID ownerTaskOid = UUID.randomUUID();
+        QName ownerTaskRelation = QName.valueOf("{https://random.org/ns}owner-task-rel");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(TaskType.F_OWNER_REF)
+                .add(new ObjectReferenceType().oid(ownerTaskOid.toString())
+                        .type(UserType.COMPLEX_TYPE)
+                        .relation(ownerTaskRelation))
+                .asObjectDelta(task1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+
+        ObjectReferenceType ownerRef = taskObject.getOwnerRef();
+        assertThat(ownerRef).isNotNull();
+        assertThat(ownerRef.getOid()).isEqualTo(ownerTaskOid.toString());
+        assertThat(ownerRef.getType()).isEqualTo(UserType.COMPLEX_TYPE);
+        assertThat(ownerRef.getRelation()).isEqualTo(ownerTaskRelation);
+
+        and("externalized column is updated");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ownerRefTargetOid).isEqualTo(ownerTaskOid);
+        assertThat(row.ownerRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(row.ownerRefRelationId, ownerTaskRelation);
+    }
+
+    @Test
+    public void test141DeleteReferenceAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with owner reference replace to null ('delete') for task 1");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(TaskType.F_OWNER_REF).replace()
+                .asObjectDelta(task1Oid);
+
+        and("task row previously having the owner reference value");
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(originalRow.ownerRefTargetOid).isNotNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and email is gone");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(taskObject.getOwnerRef()).isNull();
+
+        and("externalized column is set to NULL");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ownerRefTargetOid).isNull();
+        assertThat(row.ownerRefTargetType).isNull();
+        assertThat(row.ownerRefRelationId).isNull();
+    }
+
+    // TODO see: ModifyTest#test030ModifyUserOnNonExistingAccountTest
+    //  and src/test/resources/modify/change-add-non-existing.xml
+    @Test(enabled = false)
+    public void test160AddingProjectionRefDoesntCheckTargetExistence()
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding projection ref to non-existent shadow for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .property(UserType.F_LINK_REF).add() // TODO invalid ref, random UUID
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(
+                UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        // TODO
+        and("serialized form (fullObject) is not updated");
         UserType userObject = repositoryService
                 .getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();

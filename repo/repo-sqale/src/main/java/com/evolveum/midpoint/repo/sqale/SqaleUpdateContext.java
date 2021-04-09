@@ -16,14 +16,13 @@ import com.querydsl.sql.dml.SQLUpdateClause;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.repo.sqale.delta.SqaleItemSqlMapper;
+import com.evolveum.midpoint.repo.sqale.mapping.delta.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -37,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R extends MObject> {
 
-    private final SqlTransformerSupport transformerSupport;
+    private final SqaleTransformerSupport transformerSupport;
     private final JdbcSession jdbcSession;
     private final PrismObject<S> prismObject;
 
@@ -48,7 +47,7 @@ public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R ex
     private final int objectVersion;
 
     public SqaleUpdateContext(
-            SqlTransformerSupport sqlTransformerSupport,
+            SqaleTransformerSupport sqlTransformerSupport,
             JdbcSession jdbcSession,
             PrismObject<S> prismObject) {
         this.transformerSupport = sqlTransformerSupport;
@@ -116,5 +115,13 @@ public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R ex
 
     public <P extends Path<T>, T> void set(P path, T value) {
         update.set(path, value);
+    }
+
+    public SqaleTransformerSupport transformerSupport() {
+        return transformerSupport;
+    }
+
+    public Integer processCacheableUri(QName relation) {
+        return transformerSupport.processCacheableRelation(relation, jdbcSession);
     }
 }

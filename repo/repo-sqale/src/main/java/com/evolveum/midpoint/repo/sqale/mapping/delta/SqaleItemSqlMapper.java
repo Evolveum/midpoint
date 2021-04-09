@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale.delta;
+package com.evolveum.midpoint.repo.sqale.mapping.delta;
 
 import java.util.Objects;
 import java.util.function.Function;
@@ -26,19 +26,19 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 public class SqaleItemSqlMapper extends ItemSqlMapper {
 
     @NotNull private final
-    Function<SqaleUpdateContext<?, ?, ?>, ItemDeltaProcessor> deltaProcessorFactory;
+    Function<SqaleUpdateContext<?, ?, ?>, ItemDeltaProcessor<?>> deltaProcessorFactory;
 
     public <P extends Path<?>> SqaleItemSqlMapper(
             @NotNull Function<SqlQueryContext<?, ?, ?>, ItemFilterProcessor<?>> filterProcessorFactory,
-            @NotNull Function<SqaleUpdateContext<?, ?, ?>, ItemDeltaProcessor> deltaProcessorFactory,
+            @NotNull Function<SqaleUpdateContext<?, ?, ?>, ItemDeltaProcessor<?>> deltaProcessorFactory,
             @Nullable Function<EntityPath<?>, P> primaryItemMapping) {
         super(filterProcessorFactory, primaryItemMapping);
         this.deltaProcessorFactory = Objects.requireNonNull(deltaProcessorFactory);
     }
 
-    public <P extends Path<?>> SqaleItemSqlMapper(
+    public SqaleItemSqlMapper(
             @NotNull Function<SqlQueryContext<?, ?, ?>, ItemFilterProcessor<?>> filterProcessorFactory,
-            @NotNull Function<SqaleUpdateContext<?, ?, ?>, ItemDeltaProcessor> deltaProcessorFactory) {
+            @NotNull Function<SqaleUpdateContext<?, ?, ?>, ItemDeltaProcessor<?>> deltaProcessorFactory) {
         super(filterProcessorFactory);
         this.deltaProcessorFactory = Objects.requireNonNull(deltaProcessorFactory);
     }
@@ -51,7 +51,8 @@ public class SqaleItemSqlMapper extends ItemSqlMapper {
      *
      * The type of the returned filter is adapted to the client code needs for convenience.
      */
-    public ItemDeltaProcessor createItemDeltaProcessor(SqaleUpdateContext<?, ?, ?> sqlUpdateContext) {
+    public ItemDeltaProcessor<?> createItemDeltaProcessor(
+            SqaleUpdateContext<?, ?, ?> sqlUpdateContext) {
         return deltaProcessorFactory.apply(sqlUpdateContext);
     }
 }

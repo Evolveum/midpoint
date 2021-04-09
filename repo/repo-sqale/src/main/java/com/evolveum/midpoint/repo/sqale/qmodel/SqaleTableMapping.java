@@ -10,18 +10,14 @@ import java.util.function.Function;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.EntityPath;
-import com.querydsl.core.types.dsl.BooleanPath;
-import com.querydsl.core.types.dsl.DateTimePath;
-import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.core.types.dsl.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.sqale.ObjectRefTableItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.delta.PolyStringPathItemDeltaProcessor;
-import com.evolveum.midpoint.repo.sqale.delta.SimpleItemDeltaProcessor;
-import com.evolveum.midpoint.repo.sqale.delta.SqaleItemSqlMapper;
-import com.evolveum.midpoint.repo.sqale.delta.TimestampItemDeltaProcessor;
+import com.evolveum.midpoint.repo.sqale.mapping.ObjectRefTableItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.mapping.RefItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.mapping.delta.*;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
@@ -62,6 +58,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     // TODO will the version for RefItemFilterProcessor be useful too?
     //  Yes, if it needs relation mapping too!
+
     public final void addRefMapping(
             @NotNull QName itemName, @NotNull QObjectReferenceMapping qReferenceMapping) {
         ((QueryModelMapping<?, ?, ?>) this).addItemMapping(itemName,
@@ -98,6 +95,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 rootToQueryItem);
     }
 
+    /** Returns the mapper creating the UUID filter/delta processors from context. */
     @Override
     protected ItemSqlMapper uuidMapper(Function<EntityPath<?>, UuidPath> rootToQueryItem) {
         return new SqaleItemSqlMapper(
@@ -116,13 +114,26 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 rootToQueryItem);
     }
 
+    /** Returns the mapper creating the polystring filter/delta processors from context. */
     @Override
     protected ItemSqlMapper polyStringMapper(
             @NotNull Function<EntityPath<?>, StringPath> origMapping,
             @NotNull Function<EntityPath<?>, StringPath> normMapping) {
         return new SqaleItemSqlMapper(
                 ctx -> new PolyStringItemFilterProcessor(ctx, origMapping, normMapping),
-                ctx -> new PolyStringPathItemDeltaProcessor(ctx, origMapping, normMapping),
+                ctx -> new PolyStringItemDeltaProcessor(ctx, origMapping, normMapping),
                 origMapping);
+    }
+
+    /** Returns the mapper creating the reference filter/delta processors from context. */
+    public static ItemSqlMapper refMapper(
+            Function<EntityPath<?>, UuidPath> rootToOidPath,
+            Function<EntityPath<?>, EnumPath<MObjectType>> rootToTypePath,
+            Function<EntityPath<?>, NumberPath<Integer>> rootToRelationIdPath) {
+        return new SqaleItemSqlMapper(
+                ctx -> new RefItemFilterProcessor(ctx,
+                        rootToOidPath, rootToTypePath, rootToRelationIdPath),
+                ctx -> new RefItemDeltaProcessor(ctx,
+                        rootToOidPath, rootToTypePath, rootToRelationIdPath));
     }
 }

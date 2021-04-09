@@ -8,9 +8,11 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.util.QNameUtil;
 
 /**
  * Extension of {@link SqlTransformerSupport} adding Sqale features like {@link UriCache} support.
@@ -35,9 +37,20 @@ public class SqaleTransformerSupport extends SqlTransformerSupport {
         return sqaleRepoContext().resolveUriToId(uri);
     }
 
+    /**
+     * Returns ID for relation QName creating new {@link QUri} row in DB as needed.
+     * Relation is normalized before consulting the cache.
+     * Never returns null, returns default ID for configured default relation.
+     */
+    public Integer processCacheableRelation(QName qName, JdbcSession jdbcSession) {
+        return processCacheableUri(
+                QNameUtil.qNameToUri(normalizeRelation(qName)),
+                jdbcSession);
+    }
+
     /** Returns ID for URI creating new cache row in DB as needed. */
-    public Integer processCachedUri(String uri, JdbcSession jdbcSession) {
-        return sqaleRepoContext().processCachedUri(uri, jdbcSession);
+    public Integer processCacheableUri(String uri, JdbcSession jdbcSession) {
+        return sqaleRepoContext().processCacheableUri(uri, jdbcSession);
     }
 }
 

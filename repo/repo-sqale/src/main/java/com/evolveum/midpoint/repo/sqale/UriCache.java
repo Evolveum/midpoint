@@ -31,7 +31,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * no DB access by the URI cache itself;
  * * `resolve` returns URI/ID for ID/URI or throws exception if not found, this is for situations
  * where the entry for URI is expected to exist already, still no DB access required;
- * * finally, {@link #processCachedUri(String, JdbcSession)} is the only operation that accesses
+ * * finally, {@link #processCacheableUri(String, JdbcSession)} is the only operation that accesses
  * the database if the URI is not found in the cache in order to write it there.
  */
 public class UriCache {
@@ -125,7 +125,7 @@ public class UriCache {
      * Returns ID for URI creating new cache row in DB as needed.
      * Returns null for null URI parameter.
      */
-    public synchronized @Nullable Integer processCachedUri(
+    public synchronized @Nullable Integer processCacheableUri(
             @Nullable String uri, JdbcSession jdbcSession) {
         if (uri == null) {
             return null;

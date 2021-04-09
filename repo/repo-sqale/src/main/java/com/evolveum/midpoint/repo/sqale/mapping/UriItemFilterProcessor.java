@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale;
+package com.evolveum.midpoint.repo.sqale.mapping;
 
 import java.util.function.Function;
 
@@ -13,6 +13,7 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.NumberPath;
 
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
@@ -26,7 +27,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 public class UriItemFilterProcessor extends ItemFilterProcessor<PropertyValueFilter<String>> {
 
     /**
-     * Returns the mapper function creating the ref-filter processor from query context.
+     * Returns the mapper fusnction creating the ref-filter processor from query context.
      */
     public static ItemSqlMapper mapper(
             Function<EntityPath<?>, NumberPath<Integer>> rootToPath) {

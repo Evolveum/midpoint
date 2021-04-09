@@ -16,8 +16,7 @@ import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.mapping.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
@@ -52,7 +51,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         addItemMapping(PrismConstants.T_ID, uuidMapper(path(q -> q.oid)));
         addItemMapping(F_NAME, polyStringMapper(
                 path(q -> q.nameOrig), path(q -> q.nameNorm)));
-        addItemMapping(F_TENANT_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(F_TENANT_REF, SqaleTableMapping.refMapper(
                 path(q -> q.tenantRefTargetOid),
                 path(q -> q.tenantRefTargetType),
                 path(q -> q.tenantRefRelationId)));
@@ -63,7 +62,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         // TODO ext mapping can't be done statically
 
         addNestedMapping(F_METADATA, MetadataType.class)
-                .addItemMapping(MetadataType.F_CREATOR_REF, RefItemFilterProcessor.mapper(
+                .addItemMapping(MetadataType.F_CREATOR_REF, SqaleTableMapping.refMapper(
                         path(q -> q.creatorRefTargetOid),
                         path(q -> q.creatorRefTargetType),
                         path(q -> q.creatorRefRelationId)))
@@ -71,7 +70,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                         UriItemFilterProcessor.mapper(path(q -> q.createChannelId)))
                 .addItemMapping(MetadataType.F_CREATE_TIMESTAMP,
                         timestampMapper(path(q -> q.createTimestamp)))
-                .addItemMapping(MetadataType.F_MODIFIER_REF, RefItemFilterProcessor.mapper(
+                .addItemMapping(MetadataType.F_MODIFIER_REF, SqaleTableMapping.refMapper(
                         path(q -> q.modifierRefTargetOid),
                         path(q -> q.modifierRefTargetType),
                         path(q -> q.modifierRefRelationId)))

@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.task;
 
-import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.mapping.UriItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
@@ -42,11 +42,11 @@ public class QTaskMapping
         addItemMapping(TaskType.F_LAST_RUN_START_TIMESTAMP,
                 timestampMapper(path(q -> q.lastRunStartTimestamp)));
         addItemMapping(TaskType.F_NODE, stringMapper(path(q -> q.node)));
-        addItemMapping(TaskType.F_OBJECT_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(TaskType.F_OBJECT_REF, SqaleTableMapping.refMapper(
                 path(q -> q.objectRefTargetOid),
                 path(q -> q.objectRefTargetType),
                 path(q -> q.objectRefRelationId)));
-        addItemMapping(TaskType.F_OWNER_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(TaskType.F_OWNER_REF, SqaleTableMapping.refMapper(
                 path(q -> q.ownerRefTargetOid),
                 path(q -> q.ownerRefTargetType),
                 path(q -> q.ownerRefRelationId)));

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale;
 import com.querydsl.sql.SQLQuery;
 
 import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.repo.sqale.mapping.InOidFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
