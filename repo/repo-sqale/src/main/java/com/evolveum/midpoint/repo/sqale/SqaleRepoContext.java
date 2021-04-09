@@ -91,7 +91,7 @@ public class SqaleRepoContext extends SqlRepoContext {
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
-    public Integer processCachedUri(String uri, JdbcSession jdbcSession) {
-        return uriCache.processCachedUri(uri, jdbcSession);
+    public Integer processCacheableUri(String uri, JdbcSession jdbcSession) {
+        return uriCache.processCacheableUri(uri, jdbcSession);
     }
 }

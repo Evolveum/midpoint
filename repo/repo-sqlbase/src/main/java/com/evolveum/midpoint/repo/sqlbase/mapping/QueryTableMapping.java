@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.BooleanPath;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
@@ -26,10 +27,12 @@ import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -106,11 +109,33 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
                 new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
     }
 
+    /** Returns the mapper creating the boolean filter processor from context. */
+    protected ItemSqlMapper booleanMapper(
+            Function<EntityPath<?>, BooleanPath> rootToQueryItem) {
+        return new ItemSqlMapper(ctx ->
+                new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
+    }
+
+    /** Returns the mapper creating the OID (UUID) filter processor from context. */
+    protected ItemSqlMapper uuidMapper(
+            Function<EntityPath<?>, UuidPath> rootToQueryItem) {
+        return new ItemSqlMapper(ctx ->
+                new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
+    }
+
     /** Returns the mapper function creating the timestamp filter processor from context. */
     protected <T extends Comparable<T>> ItemSqlMapper timestampMapper(
             Function<EntityPath<?>, DateTimePath<T>> rootToQueryItem) {
         return new ItemSqlMapper(context ->
                 new TimestampItemFilterProcessor<>(context, rootToQueryItem), rootToQueryItem);
+    }
+
+    /** Returns the mapper creating the string filter processor from context. */
+    protected ItemSqlMapper polyStringMapper(
+            Function<EntityPath<?>, StringPath> origMapping,
+            Function<EntityPath<?>, StringPath> normMapping) {
+        return new ItemSqlMapper(ctx ->
+                new PolyStringItemFilterProcessor(ctx, origMapping, normMapping), origMapping);
     }
 
     /**

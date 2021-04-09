@@ -18,6 +18,8 @@ import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
  * Typical item filter processor is related to one table column represented by the {@link #path}.
  * This is typically obtained from context path (typically relational) using mapping function.
  * Typically it's the same function that is also called "primary mapping" and used for ordering.
+ *
+ * TODO: Currently all extends have `PropertyValueFilter<X>` as first parametrized type.
  */
 public abstract class SinglePathItemFilterProcessor<O extends ObjectFilter, P extends Path<?>>
         extends ItemFilterProcessor<O> {

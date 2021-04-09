@@ -8,8 +8,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.*;
 
-import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.mapping.UriItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
@@ -36,22 +36,22 @@ public class QAssignmentMapping
         //  But this will likely require special treatment/heuristic.
         addItemMapping(F_LIFECYCLE_STATE, stringMapper(path(q -> q.lifecycleState)));
         addItemMapping(F_ORDER, integerMapper(path(q -> q.orderValue)));
-        addItemMapping(F_ORG_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(F_ORG_REF, SqaleTableMapping.refMapper(
                 path(q -> q.orgRefTargetOid),
                 path(q -> q.orgRefTargetType),
                 path(q -> q.orgRefRelationId)));
-        addItemMapping(F_TARGET_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(F_TARGET_REF, SqaleTableMapping.refMapper(
                 path(q -> q.targetRefTargetOid),
                 path(q -> q.targetRefTargetType),
                 path(q -> q.targetRefRelationId)));
-        addItemMapping(F_TENANT_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(F_TENANT_REF, SqaleTableMapping.refMapper(
                 path(q -> q.tenantRefTargetOid),
                 path(q -> q.tenantRefTargetType),
                 path(q -> q.tenantRefRelationId)));
         // TODO no idea how extId/Oid works, see RAssignment.getExtension
         // TODO ext mapping can't be done statically
         addNestedMapping(F_CONSTRUCTION, ConstructionType.class)
-                .addItemMapping(ConstructionType.F_RESOURCE_REF, RefItemFilterProcessor.mapper(
+                .addItemMapping(ConstructionType.F_RESOURCE_REF, SqaleTableMapping.refMapper(
                         path(q -> q.resourceRefTargetOid),
                         path(q -> q.resourceRefTargetType),
                         path(q -> q.resourceRefRelationId)));
@@ -77,7 +77,7 @@ public class QAssignmentMapping
                 .addItemMapping(ActivationType.F_ARCHIVE_TIMESTAMP,
                         timestampMapper(path(q -> q.archiveTimestamp)));
         addNestedMapping(F_METADATA, MetadataType.class)
-                .addItemMapping(MetadataType.F_CREATOR_REF, RefItemFilterProcessor.mapper(
+                .addItemMapping(MetadataType.F_CREATOR_REF, SqaleTableMapping.refMapper(
                         path(q -> q.creatorRefTargetOid),
                         path(q -> q.creatorRefTargetType),
                         path(q -> q.creatorRefRelationId)))
@@ -85,7 +85,7 @@ public class QAssignmentMapping
                         UriItemFilterProcessor.mapper(path(q -> q.createChannelId)))
                 .addItemMapping(MetadataType.F_CREATE_TIMESTAMP,
                         timestampMapper(path(q -> q.createTimestamp)))
-                .addItemMapping(MetadataType.F_MODIFIER_REF, RefItemFilterProcessor.mapper(
+                .addItemMapping(MetadataType.F_MODIFIER_REF, SqaleTableMapping.refMapper(
                         path(q -> q.modifierRefTargetOid),
                         path(q -> q.modifierRefTargetType),
                         path(q -> q.modifierRefRelationId)))

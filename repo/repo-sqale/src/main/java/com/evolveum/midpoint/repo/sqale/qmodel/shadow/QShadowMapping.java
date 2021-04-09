@@ -6,11 +6,10 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 
-import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.booleanMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 
-import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.mapping.UriItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
@@ -31,7 +30,7 @@ public class QShadowMapping
 
         addItemMapping(ShadowType.F_OBJECT_CLASS,
                 UriItemFilterProcessor.mapper(path(q -> q.objectClassId)));
-        addItemMapping(F_RESOURCE_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(F_RESOURCE_REF, SqaleTableMapping.refMapper(
                 path(q -> q.resourceRefTargetOid),
                 path(q -> q.resourceRefTargetType),
                 path(q -> q.resourceRefRelationId)));

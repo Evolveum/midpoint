@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.UserType.*;
 
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -26,31 +25,23 @@ public class QUserMapping
         super(QUser.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 UserType.class, QUser.class);
 
-        addItemMapping(F_ADDITIONAL_NAME,
-                PolyStringItemFilterProcessor.mapper(
-                        path(q -> q.additionalNameOrig), path(q -> q.additionalNameNorm)));
+        addItemMapping(F_ADDITIONAL_NAME, polyStringMapper(
+                path(q -> q.additionalNameOrig), path(q -> q.additionalNameNorm)));
         addItemMapping(F_EMPLOYEE_NUMBER, stringMapper(path(q -> q.employeeNumber)));
-        addItemMapping(F_FAMILY_NAME,
-                PolyStringItemFilterProcessor.mapper(
-                        path(q -> q.familyNameOrig), path(q -> q.familyNameNorm)));
-        addItemMapping(F_FULL_NAME,
-                PolyStringItemFilterProcessor.mapper(
-                        path(q -> q.fullNameOrig), path(q -> q.fullNameNorm)));
-        addItemMapping(F_GIVEN_NAME,
-                PolyStringItemFilterProcessor.mapper(
-                        path(q -> q.givenNameOrig), path(q -> q.givenNameNorm)));
-        addItemMapping(F_HONORIFIC_PREFIX,
-                PolyStringItemFilterProcessor.mapper(
-                        path(q -> q.honorificPrefixOrig), path(q -> q.honorificPrefixNorm)));
-        addItemMapping(F_HONORIFIC_SUFFIX,
-                PolyStringItemFilterProcessor.mapper(
-                        path(q -> q.honorificSuffixOrig), path(q -> q.honorificSuffixNorm)));
-        addItemMapping(F_NICK_NAME,
-                PolyStringItemFilterProcessor.mapper(
-                        path(q -> q.nickNameOrig), path(q -> q.nickNameNorm)));
-        addItemMapping(F_TITLE,
-                PolyStringItemFilterProcessor.mapper(
-                        path(q -> q.titleOrig), path(q -> q.titleNorm)));
+        addItemMapping(F_FAMILY_NAME, polyStringMapper(
+                path(q -> q.familyNameOrig), path(q -> q.familyNameNorm)));
+        addItemMapping(F_FULL_NAME, polyStringMapper(
+                path(q -> q.fullNameOrig), path(q -> q.fullNameNorm)));
+        addItemMapping(F_GIVEN_NAME, polyStringMapper(
+                path(q -> q.givenNameOrig), path(q -> q.givenNameNorm)));
+        addItemMapping(F_HONORIFIC_PREFIX, polyStringMapper(
+                path(q -> q.honorificPrefixOrig), path(q -> q.honorificPrefixNorm)));
+        addItemMapping(F_HONORIFIC_SUFFIX, polyStringMapper(
+                path(q -> q.honorificSuffixOrig), path(q -> q.honorificSuffixNorm)));
+        addItemMapping(F_NICK_NAME, polyStringMapper(
+                path(q -> q.nickNameOrig), path(q -> q.nickNameNorm)));
+        addItemMapping(F_TITLE, polyStringMapper(
+                path(q -> q.titleOrig), path(q -> q.titleNorm)));
     }
 
     @Override

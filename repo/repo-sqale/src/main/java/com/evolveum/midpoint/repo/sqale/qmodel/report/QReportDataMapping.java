@@ -8,7 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.report;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType.F_REPORT_REF;
 
-import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
@@ -27,7 +27,7 @@ public class QReportDataMapping
         super(QReportData.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 ReportDataType.class, QReportData.class);
 
-        addItemMapping(F_REPORT_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(F_REPORT_REF, SqaleTableMapping.refMapper(
                 path(q -> q.reportRefTargetOid),
                 path(q -> q.reportRefTargetType),
                 path(q -> q.reportRefRelationId)));

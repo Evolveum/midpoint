@@ -7,8 +7,11 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Instant;
+import java.util.UUID;
+import javax.xml.namespace.QName;
 
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.BeforeClass;
@@ -17,10 +20,14 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.MService;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QService;
+import com.evolveum.midpoint.repo.sqale.qmodel.shadow.MShadow;
+import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -28,15 +35,15 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
     private String user1Oid; // typical object
     private String task1Oid; // task has more attribute type variability
-    //    private String shadow1Oid; // ditto
+    private String shadow1Oid; // ditto
     private String service1Oid; // object with integer attribute
 
     @BeforeClass
@@ -49,9 +56,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         task1Oid = repositoryService.addObject(
                 new TaskType(prismContext).name("task-1").asPrismObject(),
                 null, result);
-//        shadow1Oid = repositoryService.addObject(
-//                new ShadowType(prismContext).name("shadow-1").asPrismObject(),
-//                null, result);
+        shadow1Oid = repositoryService.addObject(
+                new ShadowType(prismContext).name("shadow-1").asPrismObject(),
+                null, result);
         service1Oid = repositoryService.addObject(
                 new ServiceType(prismContext).name("service-1").asPrismObject(),
                 null, result);
@@ -79,8 +86,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("serialized form (fullObject) is updated");
         UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
-        assertThat(userObject.getEmailAddress()).isEqualTo("new@email.com");
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getEmailAddress()).isEqualTo("new@email.com");
 
         and("externalized column is updated");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
@@ -113,8 +120,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("serialized form (fullObject) is updated and old value is overridden");
         UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
-        assertThat(userObject.getEmailAddress()).isEqualTo("new2@email.com");
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getEmailAddress()).isEqualTo("new2@email.com");
 
         and("externalized column is updated");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
@@ -142,8 +149,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("serialized form (fullObject) is updated and email is gone");
         UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
-        assertThat(userObject.getEmailAddress()).isNull();
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getEmailAddress()).isNull();
 
         and("externalized column is set to NULL");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
@@ -181,6 +188,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     public void test104StringDeleteWithWrongValueDoesNotChangeAnything()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
         given("delta with email delete for user 1 using wrong previous value");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
@@ -203,6 +211,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("externalized column is updated");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.emailAddress).isEqualTo("newer@email.com");
+        // This is rather implementation detail, but it shows that when narrowed modifications are
+        // empty, we don't bother with update at all which is more efficient.
+        assertThat(row.version).isEqualTo(originalRow.version);
     }
 
     @Test
@@ -281,15 +292,21 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("serialized form (fullObject) is updated");
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
         assertThat(taskObject.getLastRunStartTimestamp())
                 .isEqualTo(MiscUtil.asXMLGregorianCalendar(1L));
-        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
 
         and("externalized column is updated");
         MTask row = selectObjectByOid(QTask.class, task1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.lastRunStartTimestamp).isEqualTo(Instant.ofEpochMilli(1));
     }
+
+    /*
+    We don't bother with replace tests for these other simple types, if update works for
+    setting, it must work for replacing (it's the same code like for String).
+    We test nulls just to be sure there is no JDBC type trick there (NULL is a bit special).
+    */
 
     @Test
     public void test111DeleteInstantAttribute()
@@ -314,8 +331,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("serialized form (fullObject) is updated and email is gone");
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
-        assertThat(taskObject.getLastRunStartTimestamp()).isNull();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(taskObject.getLastRunStartTimestamp()).isNull();
 
         and("externalized column is set to NULL");
         MTask row = selectObjectByOid(QTask.class, task1Oid);
@@ -345,8 +362,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         ServiceType serviceObject = repositoryService
                 .getObject(ServiceType.class, service1Oid, null, result)
                 .asObjectable();
-        assertThat(serviceObject.getDisplayOrder()).isEqualTo(5);
         assertThat(serviceObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(serviceObject.getDisplayOrder()).isEqualTo(5);
 
         and("externalized column is updated");
         MService row = selectObjectByOid(QService.class, service1Oid);
@@ -378,13 +395,335 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         ServiceType serviceObject = repositoryService
                 .getObject(ServiceType.class, service1Oid, null, result)
                 .asObjectable();
-        assertThat(serviceObject.getDisplayOrder()).isNull();
         assertThat(serviceObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(serviceObject.getDisplayOrder()).isNull();
 
         and("externalized column is set to NULL");
         MService row = selectObjectByOid(QService.class, service1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.displayOrder).isNull();
+    }
+
+    @Test
+    public void test120ChangeBooleanAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with boolean dead change for shadow 1");
+        ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
+                .property(ShadowType.F_DEAD).add(true)
+                .asObjectDelta(shadow1Oid);
+
+        and("shadow row previously having dead property empty (null)");
+        MShadow originalRow = selectObjectByOid(QShadow.class, shadow1Oid);
+        assertThat(originalRow.dead).isNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(
+                ShadowType.class, shadow1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        ShadowType shadowObject = repositoryService
+                .getObject(ShadowType.class, shadow1Oid, null, result)
+                .asObjectable();
+        assertThat(shadowObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(shadowObject.isDead()).isTrue();
+
+        and("externalized column is updated");
+        MShadow row = selectObjectByOid(QShadow.class, shadow1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.dead).isTrue();
+    }
+
+    @Test
+    public void test121DeleteBooleanAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with dead boolean replace to null for shadow 1");
+        ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
+                .property(ShadowType.F_DEAD).replace()
+                .asObjectDelta(shadow1Oid);
+
+        and("shadow row previously having the display order value");
+        MShadow originalRow = selectObjectByOid(QShadow.class, shadow1Oid);
+        assertThat(originalRow.dead).isNotNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(
+                ShadowType.class, shadow1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and display order is gone");
+        ShadowType shadowObject = repositoryService
+                .getObject(ShadowType.class, shadow1Oid, null, result)
+                .asObjectable();
+        assertThat(shadowObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(shadowObject.isDead()).isNull();
+
+        and("externalized column is set to NULL");
+        MShadow row = selectObjectByOid(QShadow.class, shadow1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.dead).isNull();
+    }
+
+    @Test
+    public void test130ChangePolyStringAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with polystring nickname change for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .property(UserType.F_NICK_NAME).add(new PolyString("nick-name"))
+                .asObjectDelta(user1Oid);
+
+        and("user row previously having dead property empty (null)");
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(originalRow.nickNameOrig).isNull();
+        assertThat(originalRow.nickNameNorm).isNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(
+                UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+
+        PolyStringType nickName = userObject.getNickName();
+        assertThat(nickName.getOrig()).isEqualTo("nick-name");
+        assertThat(nickName.getNorm()).isEqualTo("nickname");
+
+        and("externalized column is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.nickNameOrig).isEqualTo("nick-name");
+        assertThat(row.nickNameNorm).isEqualTo("nickname");
+    }
+
+    @Test
+    public void test131DeletePolyStringAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with polystring nickname replace with null for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .property(UserType.F_NICK_NAME).replace()
+                .asObjectDelta(user1Oid);
+
+        and("user row previously having the nickname value");
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(originalRow.nickNameOrig).isNotNull();
+        assertThat(originalRow.nickNameNorm).isNotNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(
+                UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and display order is gone");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getNickName()).isNull();
+
+        and("externalized column is set to NULL");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.nickNameOrig).isNull();
+        assertThat(row.nickNameNorm).isNull();
+    }
+
+    @Test
+    public void test135ObjectNameCanBeChanged()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta with object name change for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .property(ObjectType.F_NAME).add(new PolyString("user-1-changed"))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(
+                UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+
+        PolyStringType name = userObject.getName();
+        assertThat(name.getOrig()).isEqualTo("user-1-changed");
+        assertThat(name.getNorm()).isEqualTo("user1changed");
+
+        and("externalized column is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.nameOrig).isEqualTo("user-1-changed");
+        assertThat(row.nameNorm).isEqualTo("user1changed");
+    }
+
+    @Test
+    public void test136ObjectNameCantBeRemoved()
+            throws ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta with object name replace with null for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .property(UserType.F_NAME).replace()
+                .asObjectDelta(user1Oid);
+
+        expect("modifyObject throws exception");
+        assertThatThrownBy(() -> repositoryService.modifyObject(
+                UserType.class, user1Oid, delta.getModifications(), result))
+                .isInstanceOf(SystemException.class)
+                .hasCauseInstanceOf(com.querydsl.core.QueryException.class);
+
+        and("operation is fatal error");
+        assertThatOperationResult(result).isFatalError();
+
+        and("serialized form (fullObject) is not updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version));
+        assertThat(userObject.getName()).isNotNull();
+
+        and("externalized column is set to NULL");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version);
+        assertThat(row.nameOrig).isNotNull();
+        assertThat(row.nameNorm).isNotNull();
+    }
+
+    @Test
+    public void test140ChangeReferenceAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+
+        given("delta with owner reference change for task 1 adding value");
+        UUID ownerTaskOid = UUID.randomUUID();
+        QName ownerTaskRelation = QName.valueOf("{https://random.org/ns}owner-task-rel");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(TaskType.F_OWNER_REF)
+                .add(new ObjectReferenceType().oid(ownerTaskOid.toString())
+                        .type(UserType.COMPLEX_TYPE)
+                        .relation(ownerTaskRelation))
+                .asObjectDelta(task1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+
+        ObjectReferenceType ownerRef = taskObject.getOwnerRef();
+        assertThat(ownerRef).isNotNull();
+        assertThat(ownerRef.getOid()).isEqualTo(ownerTaskOid.toString());
+        assertThat(ownerRef.getType()).isEqualTo(UserType.COMPLEX_TYPE);
+        assertThat(ownerRef.getRelation()).isEqualTo(ownerTaskRelation);
+
+        and("externalized column is updated");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ownerRefTargetOid).isEqualTo(ownerTaskOid);
+        assertThat(row.ownerRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(row.ownerRefRelationId, ownerTaskRelation);
+    }
+
+    @Test
+    public void test141DeleteReferenceAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with owner reference replace to null ('delete') for task 1");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(TaskType.F_OWNER_REF).replace()
+                .asObjectDelta(task1Oid);
+
+        and("task row previously having the owner reference value");
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(originalRow.ownerRefTargetOid).isNotNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and email is gone");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(taskObject.getOwnerRef()).isNull();
+
+        and("externalized column is set to NULL");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ownerRefTargetOid).isNull();
+        assertThat(row.ownerRefTargetType).isNull();
+        assertThat(row.ownerRefRelationId).isNull();
+    }
+
+    // TODO see: ModifyTest#test030ModifyUserOnNonExistingAccountTest
+    //  and src/test/resources/modify/change-add-non-existing.xml
+    @Test(enabled = false)
+    public void test160AddingProjectionRefDoesntCheckTargetExistence()
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding projection ref to non-existent shadow for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .property(UserType.F_LINK_REF).add() // TODO invalid ref, random UUID
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(
+                UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        // TODO
+        and("serialized form (fullObject) is not updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getName()).isNotNull();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version));
+
+        and("externalized column is set to NULL");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version);
+        assertThat(row.nameOrig).isNotNull();
+        assertThat(row.nameNorm).isNotNull();
     }
 
     @Test
@@ -399,5 +738,26 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 repositoryService.modifyObject(UserType.class, user1Oid, null, result))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("Modifications must not be null.");
+    }
+
+    @Test
+    public void test910ModificationsOfNonexistentObjectFails() throws SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with object name replace with null for user 1");
+        UUID nonexistentOid = UUID.randomUUID();
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .property(UserType.F_NAME).replace("new-name")
+                .asObjectDelta(nonexistentOid.toString());
+
+        expect("modifyObject throws exception");
+        Assertions.assertThatThrownBy(() ->
+                repositoryService.modifyObject(UserType.class, nonexistentOid.toString(),
+                        delta.getModifications(), result))
+                .isInstanceOf(ObjectNotFoundException.class)
+                .hasMessageMatching("Object of type 'UserType' with OID .* was not found\\.");
+
+        and("operation is fatal error");
+        assertThatOperationResult(result).isFatalError();
     }
 }

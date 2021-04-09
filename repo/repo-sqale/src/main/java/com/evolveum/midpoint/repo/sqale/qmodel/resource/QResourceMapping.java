@@ -8,7 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.resource;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.*;
 
-import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
@@ -39,7 +39,7 @@ public class QResourceMapping
                 .addItemMapping(OperationalStateType.F_LAST_AVAILABILITY_STATUS,
                         EnumItemFilterProcessor.mapper(
                                 path(q -> q.operationalStateLastAvailabilityStatus)));
-        addItemMapping(F_CONNECTOR_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(F_CONNECTOR_REF, SqaleTableMapping.refMapper(
                 path(q -> q.connectorRefTargetOid),
                 path(q -> q.connectorRefTargetType),
                 path(q -> q.connectorRefRelationId)));
