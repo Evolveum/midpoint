@@ -4,9 +4,9 @@ Communication
 =============
 
 Communication with core midPoint development team is crucial for any successful participation in midPoint development. There are several methods to communicate with the core team:
-* [Mailing lists](https://wiki.evolveum.com/display/midPoint/Mailing+Lists) are general-purpose communication mechanisms for midPoint community. All mailing lists are public. Almost any conversation is allowed on mailing lists as long as it is kept reasonable and polite. This includes conversation regarding development topics. However, the nature of a mailing list can make the conversation somehow slow and inflexible.
-* [Bug-tracking System](https://wiki.evolveum.com/display/midPoint/Bug-tracking+System) is open to anyone to search, open a bug report or participate on existing bug reports.
-* [Development chat room](https://wiki.evolveum.com/display/midPoint/Development+Chat) on gitter can be used as a faster communication channel. The room is public. However, the room is limited to development conversations. It is OK to discuss your contribution, planned contribution, development idea, localization, documentation updates and similar topics on this chat. However, the chat room is not supposed to be a replacement for subscription and support.
+* [Mailing lists](https://docs.evolveum.com/community/mailing-lists/) are general-purpose communication mechanisms for midPoint community. All mailing lists are public. Almost any conversation is allowed on mailing lists as long as it is kept reasonable and polite. This includes conversation regarding development topics. However, the nature of a mailing list can make the conversation somehow slow and inflexible.
+* [Bug-tracking System](https://docs.evolveum.com/support/bug-tracking-system/) is open to anyone to search, open a bug report or participate on existing bug reports.
+* [Development chat room](https://docs.evolveum.com/community/development/development-chat/) on gitter can be used as a faster communication channel. The room is public. However, the room is limited to development conversations. It is OK to discuss your contribution, planned contribution, development idea, localization, documentation updates and similar topics on this chat. However, the chat room is not supposed to be a replacement for subscription and support.
 * There are other private communication channels available for midPoint subscribers - and platform subscribers in particular. Please contact Evolveum for the details.
 
 Git
