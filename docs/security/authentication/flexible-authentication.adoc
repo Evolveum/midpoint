@@ -39,8 +39,7 @@ Flexible authentication knows following channels:
 |===
 | Request servlet suffix | Channel | Note
 
-|  +
-
+|
 | http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user
 | Default one, represents GUI.
 No suffix specified.
@@ -48,26 +47,22 @@ No suffix specified.
 
 | /ws/rest/api
 | http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest
-|  +
-
+|
 
 
 | /actuator
 | http://midpoint.evolveum.com/xml/ns/public/common/channels-3#actuator
-|  +
-
+|
 
 
 | /resetPassword
 | http://midpoint.evolveum.com/xml/ns/public/common/channels-3#resetPassword
-|  +
-
+|
 
 
 | /registration
 | http://midpoint.evolveum.com/xml/ns/public/common/channels-3#selfRegistration
-|  +
-
+|
 
 
 |===
@@ -127,23 +122,21 @@ But it is not supposed to be used as a user-friendly label for the module.
 The name is also used in the url, so it should not contain special characters.
 | true
 | _String_
-|  +
-
+|
 
 
 | `description`
 | Free form description of the module (administrator comment).
 | false
 | _String_
-|  +
-
+|
 
 
 | `focusType`
 | Type of logged object that this authentication module applies to.
 E.g UserType, RoleType, OrgType, ...
 | false
-|  +
+|
 
 | _UserType_
 
@@ -226,10 +219,7 @@ If not specified then default password definition is used.
 | false
 | _String_
 
-
 |===
-
- +
 
 
 .Example of mailNonce module
@@ -280,7 +270,6 @@ This module contains next attributes:
 | false
 | _AuthenticationModuleLdapSearchType_
 
-
 |===
 
 
@@ -309,10 +298,7 @@ Example (uid={0})
 | false
 | _Boolean_
 
-
 |===
-
- +
 
 
 .Example of ldap module
@@ -357,10 +343,8 @@ Default is '/'.
 | false
 | _String_
 
-
 |===
 
- +
 
 
 .Example of httpHeader module
@@ -395,7 +379,6 @@ This module contains specific attributes:
 | false
 | _AuthenticationModuleSaml2NetworkType_
 
-
 |===
 
 
@@ -416,7 +399,6 @@ _AuthenticationModuleSaml2NetworkType_ have only two attributes:
 | false
 | _int_
 
-
 |===
 
 
@@ -432,24 +414,21 @@ _AuthenticationModuleSaml2ServiceProviderType_ contains following configuration 
 | Unique identifier of the service provider.
 | true
 | _String_
-|  +
-
+|
 
 
 | `alias`
 | Unique alias used to identify the selected local service provider based on used URL.
 | false
 | _String_
-|  +
-
+|
 
 
 | `aliasForPath`
 | Alias used for AssertionConsumerServiceURL.
 | false
 | _String_
-|  +
-
+|
 
 
 | `defaultSigningAlgorithm`
@@ -495,32 +474,28 @@ Supported values are: EMAIL, TRANSIENT, PERSISTENT, UNSPECIFIED and X509\_SUBJEC
 Order of NameIDs in the property determines order of NameIDs in the generated metadata.
 | false
 | _enum_
-|  +
-
+|
 
 
 | `keys`
 | Key used by service provider.
 | false
 | _AuthenticationModuleSaml2KeyType_
-|  +
-
+|
 
 
 | `provider`
 | Possible identity providers for this service provider.
 | true
 | _AuthenticationModuleSaml2ProviderType_
-|  +
-
+|
 
 
 | `metadata`
 | Service provider can use prepared metadata.
 | false
 | _AuthenticationModuleSaml2ProviderMetadataType_
-|  +
-
+|
 
 
 |===
@@ -602,10 +577,8 @@ Possible values are SIGNING, UNSPECIFIED and ENCRYPTION.
 | false
 | _enum_
 
-
 |===
 
- +
 
 
 .Example of ModuleSaml2SimpleKeyType
@@ -664,10 +637,7 @@ Possible values are SIGNING, UNSPECIFIED and ENCRYPTION.
 | false
 | _enum_
 
-
 |===
-
- +
 
 
 .Example of ModuleSaml2KeyStoreKeyType
@@ -699,24 +669,21 @@ AuthenticationModuleSaml2ProviderType contains following attributes:
 | Unique identifier of the service provider.
 | true
 | _String_
-|  +
-
+|
 
 
 | `alias`
 | Unique alias used to identify the selected local service provider based on used URL.
 | true
 | _String_
-|  +
-
+|
 
 
 | `metadata`
 | Metadata of Identity provider.
 | true
 | _AuthenticationModuleSaml2MetadataType_
-|  +
-
+|
 
 
 | `skipSslValidation`
@@ -737,25 +704,21 @@ AuthenticationModuleSaml2ProviderType contains following attributes:
 | User friendly name of provider.
 | false
 | _String_
-|  +
-
+|
 
 
 | `authenticationRequestBinding`
 | SAML2 binding used for authentication request.
 | true
 | _String_
-|  +
-
+|
 
 
 | `verificationKeys`
-|  +
-
+|
 | false
 | _ProtectedStringType_
-|  +
-
+|
 
 
 | `nameOfUsernameAttribute`
@@ -763,9 +726,7 @@ AuthenticationModuleSaml2ProviderType contains following attributes:
 For example 'uid'.
 | true
 | _String_
-|  +
-
-
+|
 
 |===
 
@@ -790,10 +751,7 @@ You can choose from one definition for metadata: _metadataUrl_, _xml _and _pathT
 | `pathToFile`
 | Path to xml file, which contains metadata.
 
-
 |===
-
- +
 
 
 .Example of saml2 module
@@ -883,7 +841,6 @@ This authentication sequence is applicable only to node group that have active a
 | true
 | _AuthenticationSequenceModuleType_
 
-
 |===
 
 
@@ -922,7 +879,6 @@ In that case this element must be used explicitly.
 | URL suffix that can be used to select this authentication sequence specifically.
 | true
 | _String_
-
 
 |===
 
@@ -965,10 +921,7 @@ We support only SUFFICIENT modules in 4.1.
 | false
 | SUFFICIENT
 
-
 |===
-
- +
 
 
 .Example of default sequence
@@ -999,8 +952,6 @@ We support only SUFFICIENT modules in 4.1.
     </module>
 </sequence>
 ----
-
- +
 
 
 .Example of sequence for administrator login
