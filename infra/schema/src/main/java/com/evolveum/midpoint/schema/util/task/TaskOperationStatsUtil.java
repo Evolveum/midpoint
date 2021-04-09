@@ -110,7 +110,8 @@ public class TaskOperationStatsUtil {
                 .iterativeTaskInformation(new IterativeTaskInformationType(prismContext))
                 .synchronizationInformation(new SynchronizationInformationType(prismContext))
                 .actionsExecutedInformation(new ActionsExecutedInformationType())
-                .environmentalPerformanceInformation(new EnvironmentalPerformanceInformationType());
+                .environmentalPerformanceInformation(new EnvironmentalPerformanceInformationType())
+                .workBucketManagementPerformanceInformation(new WorkBucketManagementPerformanceInformationType());
 
         Stream<TaskType> subTasks = TaskTreeUtil.getAllTasksStream(task);
         subTasks.forEach(subTask -> {
@@ -120,6 +121,7 @@ public class TaskOperationStatsUtil {
                 SynchronizationInformation.addTo(aggregate.getSynchronizationInformation(), operationStatsBean.getSynchronizationInformation());
                 ActionsExecutedInformation.addTo(aggregate.getActionsExecutedInformation(), operationStatsBean.getActionsExecutedInformation());
                 EnvironmentalPerformanceInformation.addTo(aggregate.getEnvironmentalPerformanceInformation(), operationStatsBean.getEnvironmentalPerformanceInformation());
+                TaskWorkBucketManagementPerformanceInformationUtil.addTo(aggregate.getWorkBucketManagementPerformanceInformation(), operationStatsBean.getWorkBucketManagementPerformanceInformation());
             }
         });
         return aggregate;
@@ -403,6 +405,11 @@ public class TaskOperationStatsUtil {
         if (statistics.getCachesPerformanceInformation() != null) {
             sb.append("Cache performance information\n\n")
                     .append(CachePerformanceInformationUtil.format(statistics.getCachesPerformanceInformation()))
+                    .append("\n");
+        }
+        if (statistics.getWorkBucketManagementPerformanceInformation() != null) {
+            sb.append("Work bucket management performance information\n\n")
+                    .append(TaskWorkBucketManagementPerformanceInformationUtil.format(statistics.getWorkBucketManagementPerformanceInformation()))
                     .append("\n");
         }
         if (statistics.getOperationsPerformanceInformation() != null) {

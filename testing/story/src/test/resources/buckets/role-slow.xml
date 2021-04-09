@@ -1,0 +1,28 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="4c9f44cc-9cbd-454f-b346-a3a66242ec3d">
+    <name>role-slow</name>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <expression>
+                    <script>
+                        <code>
+                            Thread.sleep(100) // not for too long, just to provide illusion of realistic computation time
+                            null
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>description</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+</role>
