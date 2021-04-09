@@ -122,7 +122,6 @@ public class TaskPartProgressInformation implements DebugDumpable, Serializable 
      * here, in particular we don't see the actual buckets. This should be probably fixed in the pre-processing phase
      * i.e. when {@link TaskPartProgressInformation} is created.
      */
-    @SuppressWarnings("RedundantIfStatement")
     private boolean shouldUseBucketForProgressReporting() {
         if (bucketsProgress == null) {
             return false;
