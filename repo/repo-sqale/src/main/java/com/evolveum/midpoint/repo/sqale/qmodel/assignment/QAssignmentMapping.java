@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentTyp
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
@@ -56,9 +55,9 @@ public class QAssignmentMapping
                         path(q -> q.resourceRefRelationId)));
         addNestedMapping(F_ACTIVATION, ActivationType.class)
                 .addItemMapping(ActivationType.F_ADMINISTRATIVE_STATUS,
-                        EnumItemFilterProcessor.mapper(path(q -> q.administrativeStatus)))
+                        enumMapper(path(q -> q.administrativeStatus)))
                 .addItemMapping(ActivationType.F_EFFECTIVE_STATUS,
-                        EnumItemFilterProcessor.mapper(path(q -> q.effectiveStatus)))
+                        enumMapper(path(q -> q.effectiveStatus)))
                 .addItemMapping(ActivationType.F_ENABLE_TIMESTAMP,
                         timestampMapper(path(q -> q.enableTimestamp)))
                 .addItemMapping(ActivationType.F_DISABLE_REASON,
@@ -66,7 +65,7 @@ public class QAssignmentMapping
                 .addItemMapping(ActivationType.F_DISABLE_REASON,
                         stringMapper(path(q -> q.disableReason)))
                 .addItemMapping(ActivationType.F_VALIDITY_STATUS,
-                        EnumItemFilterProcessor.mapper(path(q -> q.validityStatus)))
+                        enumMapper(path(q -> q.validityStatus)))
                 .addItemMapping(ActivationType.F_VALID_FROM,
                         timestampMapper(path(q -> q.validFrom)))
                 .addItemMapping(ActivationType.F_VALID_TO,

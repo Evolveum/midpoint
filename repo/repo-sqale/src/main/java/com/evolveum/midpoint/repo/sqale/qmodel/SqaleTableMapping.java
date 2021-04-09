@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.sqale.mapping.delta.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
@@ -59,7 +60,6 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     // TODO will the version for RefItemFilterProcessor be useful too?
     //  Yes, if it needs relation mapping too!
-
     public final void addRefMapping(
             @NotNull QName itemName, @NotNull QObjectReferenceMapping qReferenceMapping) {
         ((QueryModelMapping<?, ?, ?>) this).addItemMapping(itemName,
@@ -144,5 +144,14 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         return new SqaleItemSqlMapper(
                 ctx -> new UriItemFilterProcessor(ctx, rootToPath),
                 ctx -> new UriItemDeltaProcessor(ctx, rootToPath));
+    }
+
+    /** Returns the mapper creating the enum filter/delta processors from context. */
+    public <E extends Enum<E>> ItemSqlMapper enumMapper(
+            @NotNull Function<EntityPath<?>, EnumPath<E>> rootToQueryItem) {
+        return new SqaleItemSqlMapper(
+                ctx -> new EnumItemFilterProcessor<>(ctx, rootToQueryItem),
+                ctx -> new EnumItemDeltaProcessor<>(ctx, rootToQueryItem),
+                rootToQueryItem);
     }
 }

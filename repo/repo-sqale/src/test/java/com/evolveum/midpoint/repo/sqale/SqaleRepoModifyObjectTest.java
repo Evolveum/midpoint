@@ -692,7 +692,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test145ChangeCachedUriAttribute()
+    public void test143ChangeCachedUriAttribute()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
@@ -721,7 +721,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test146DeleteCachedAttribute()
+    public void test144DeleteCachedUriAttribute()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -750,6 +750,67 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MTask row = selectObjectByOid(QTask.class, task1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.handlerUriId).isNull();
+    }
+
+    @Test
+    public void test146ChangeEnumAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+
+        given("delta with execution status change for task 1 adding value");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(TaskType.F_EXECUTION_STATUS).add(TaskExecutionStateType.SUSPENDED)
+                .asObjectDelta(task1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(taskObject.getExecutionStatus()).isEqualTo(TaskExecutionStateType.SUSPENDED);
+
+        and("externalized column is updated");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.executionStatus).isEqualTo(TaskExecutionStateType.SUSPENDED);
+    }
+
+    @Test
+    public void test147DeleteEnumAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with execution status replace to null ('delete') for task 1");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(TaskType.F_EXECUTION_STATUS).replace()
+                .asObjectDelta(task1Oid);
+
+        and("task row previously having the handler URI value");
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(originalRow.executionStatus).isNotNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and email is gone");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(taskObject.getExecutionStatus()).isNull();
+
+        and("externalized column is set to NULL");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.executionStatus).isNull();
     }
 
     // TODO see: ModifyTest#test030ModifyUserOnNonExistingAccountTest

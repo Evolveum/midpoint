@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.task;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
@@ -27,12 +26,12 @@ public class QTaskMapping
                 TaskType.class, QTask.class);
 
         addItemMapping(TaskType.F_TASK_IDENTIFIER, stringMapper(path(q -> q.taskIdentifier)));
-        addItemMapping(TaskType.F_BINDING, EnumItemFilterProcessor.mapper(path(q -> q.binding)));
+        addItemMapping(TaskType.F_BINDING, enumMapper(path(q -> q.binding)));
         addItemMapping(TaskType.F_CATEGORY, stringMapper(path(q -> q.category)));
         addItemMapping(TaskType.F_COMPLETION_TIMESTAMP,
                 timestampMapper(path(q -> q.completionTimestamp)));
         addItemMapping(TaskType.F_EXECUTION_STATUS,
-                EnumItemFilterProcessor.mapper(path(q -> q.executionStatus)));
+                enumMapper(path(q -> q.executionStatus)));
         // TODO byte[] fullResult mapping - probably does not make sense?
         addItemMapping(TaskType.F_HANDLER_URI,
                 uriMapper(path(q -> q.handlerUriId)));
@@ -51,13 +50,13 @@ public class QTaskMapping
                 path(q -> q.ownerRefRelationId)));
         addItemMapping(TaskType.F_PARENT, stringMapper(path(q -> q.parent)));
         addItemMapping(TaskType.F_RECURRENCE,
-                EnumItemFilterProcessor.mapper(path(q -> q.recurrence)));
+                enumMapper(path(q -> q.recurrence)));
         addItemMapping(TaskType.F_RESULT_STATUS,
-                EnumItemFilterProcessor.mapper(path(q -> q.resultStatus)));
+                enumMapper(path(q -> q.resultStatus)));
         addItemMapping(TaskType.F_THREAD_STOP_ACTION,
-                EnumItemFilterProcessor.mapper(path(q -> q.threadStopAction)));
+                enumMapper(path(q -> q.threadStopAction)));
         addItemMapping(TaskType.F_WAITING_REASON,
-                EnumItemFilterProcessor.mapper(path(q -> q.waitingReason)));
+                enumMapper(path(q -> q.waitingReason)));
         // TODO dependentTaskIdentifiers String[] mapping not supported yet
     }
 

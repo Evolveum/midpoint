@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -34,7 +33,7 @@ public class QShadowMapping
                 path(q -> q.resourceRefTargetType),
                 path(q -> q.resourceRefRelationId)));
         addItemMapping(F_INTENT, stringMapper(path(q -> q.intent)));
-        addItemMapping(F_KIND, EnumItemFilterProcessor.mapper(path(q -> q.kind)));
+        addItemMapping(F_KIND, enumMapper(path(q -> q.kind)));
         // TODO attemptNumber?
         addItemMapping(F_DEAD, booleanMapper(path(q -> q.dead)));
         addItemMapping(F_EXISTS, booleanMapper(path(q -> q.exist)));
@@ -45,7 +44,7 @@ public class QShadowMapping
         addItemMapping(F_PRIMARY_IDENTIFIER_VALUE,
                 stringMapper(path(q -> q.primaryIdentifierValue)));
         addItemMapping(F_SYNCHRONIZATION_SITUATION,
-                EnumItemFilterProcessor.mapper(path(q -> q.synchronizationSituation)));
+                enumMapper(path(q -> q.synchronizationSituation)));
         addItemMapping(F_SYNCHRONIZATION_TIMESTAMP,
                 timestampMapper(path(q -> q.synchronizationTimestamp)));
     }

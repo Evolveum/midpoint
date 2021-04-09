@@ -6,9 +6,9 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.report;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperReportEngineConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
@@ -28,7 +28,7 @@ public class QReportMapping
 
         addNestedMapping(ReportType.F_JASPER, JasperReportEngineConfigurationType.class)
                 .addItemMapping(JasperReportEngineConfigurationType.F_ORIENTATION,
-                        EnumItemFilterProcessor.mapper(path(q -> q.orientation)))
+                        enumMapper(path(q -> q.orientation)))
                 .addItemMapping(JasperReportEngineConfigurationType.F_PARENT,
                         booleanMapper(path(q -> q.parent)));
     }

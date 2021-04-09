@@ -13,10 +13,10 @@ import java.util.Collection;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -59,9 +59,9 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
                         timestampMapper(path(q -> q.passwordModifyTimestamp)));
         addNestedMapping(F_ACTIVATION, ActivationType.class)
                 .addItemMapping(ActivationType.F_ADMINISTRATIVE_STATUS,
-                        EnumItemFilterProcessor.mapper(path(q -> q.administrativeStatus)))
+                        enumMapper(path(q -> q.administrativeStatus)))
                 .addItemMapping(ActivationType.F_EFFECTIVE_STATUS,
-                        EnumItemFilterProcessor.mapper(path(q -> q.effectiveStatus)))
+                        enumMapper(path(q -> q.effectiveStatus)))
                 .addItemMapping(ActivationType.F_ENABLE_TIMESTAMP,
                         timestampMapper(path(q -> q.enableTimestamp)))
                 .addItemMapping(ActivationType.F_DISABLE_REASON,
@@ -69,7 +69,7 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
                 .addItemMapping(ActivationType.F_DISABLE_REASON,
                         stringMapper(path(q -> q.disableReason)))
                 .addItemMapping(ActivationType.F_VALIDITY_STATUS,
-                        EnumItemFilterProcessor.mapper(path(q -> q.validityStatus)))
+                        enumMapper(path(q -> q.validityStatus)))
                 .addItemMapping(ActivationType.F_VALID_FROM,
                         timestampMapper(path(q -> q.validFrom)))
                 .addItemMapping(ActivationType.F_VALID_TO,
@@ -79,7 +79,7 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
                 .addItemMapping(ActivationType.F_ARCHIVE_TIMESTAMP,
                         timestampMapper(path(q -> q.archiveTimestamp)))
                 .addItemMapping(ActivationType.F_LOCKOUT_STATUS,
-                        EnumItemFilterProcessor.mapper(path(q -> q.lockoutStatus)));
+                        enumMapper(path(q -> q.lockoutStatus)));
 
         addRefMapping(F_DELEGATED_REF, QObjectReferenceMapping.INSTANCE_DELEGATED);
         addRefMapping(F_PERSONA_REF, QObjectReferenceMapping.INSTANCE_PERSONA);
