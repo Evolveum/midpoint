@@ -1,5 +1,5 @@
-MidPoint 4.3 "Faraday"
-----------------------
+MidPoint 4.4 Development Branch
+-------------------------------
 
 General information:
 
