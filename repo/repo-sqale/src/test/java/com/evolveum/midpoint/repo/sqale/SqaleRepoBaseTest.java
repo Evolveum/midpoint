@@ -40,6 +40,8 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     @Autowired protected SqaleRepoContext sqlRepoContext;
     @Autowired protected PrismContext prismContext;
 
+    private static boolean uriCacheCleared = false;
+
     @BeforeClass
     public void init() {
         // TODO remove later, just for initial debugging
@@ -48,7 +50,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     }
 
     @BeforeClass
-    public void cleanDatabase() {
+    public void clearDatabase() {
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             // object delete cascades to sub-rows of the "object aggregate"
 
@@ -62,6 +64,23 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             long count = jdbcSession.newDelete(QObjectMapping.INSTANCE.defaultAlias()).execute();
             display("Deleted " + count + " objects from DB");
             */
+        }
+
+        // this is "suite" scope code, but @BeforeSuite can't use injected fields
+        if (!uriCacheCleared) {
+            QUri u = QUri.DEFAULT;
+            try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+                jdbcSession.newDelete(u)
+                        // We could skip default relation ID with .where(u.id.gt(0)),
+                        // but it must work even when it's gone.
+                        .execute();
+            }
+
+            sqlRepoContext.clearCaches(); // uses its own transaction
+
+            // It would work with URI cache cleared before every class, but that's not
+            // how midPoint will work either.
+            uriCacheCleared = true;
         }
     }
 
@@ -108,6 +127,11 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
                     .where(conditions);
             return query.fetchCount();
         }
+    }
+
+    protected <R, Q extends FlexibleRelationalPathBase<R>> List<R> select(
+            Class<Q> queryType, Predicate... conditions) {
+        return select(aliasFor(queryType), conditions);
     }
 
     protected <R, Q extends FlexibleRelationalPathBase<R>> List<R> select(

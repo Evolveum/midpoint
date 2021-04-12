@@ -190,7 +190,9 @@ CREATE TABLE m_uri (
     uri TEXT/*VARCHAR(255)*/ NOT NULL UNIQUE
 );
 
--- there can be more constants pre-filled, but that adds overhead, let the first-start do it
+-- There can be more constants pre-filled, but that adds overhead, let the first-start do it.
+-- Nothing in the application code should rely on anything inserted here, not even for 0=default.
+-- Pinning 0 to default relation is merely for convenience when reading the DB tables.
 INSERT INTO m_uri (id, uri)
     VALUES (0, 'http://midpoint.evolveum.com/xml/ns/public/common/org-3#default');
 -- endregion

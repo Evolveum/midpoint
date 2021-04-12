@@ -334,7 +334,8 @@ select t.oid as table_oid,
     tt.relname as toast_name,
     pg_size_pretty(pg_relation_size(t.oid)) AS table_size,
     pg_size_pretty(pg_relation_size(tt.oid)) AS toast_size,
-    pg_size_pretty(pg_relation_size(t.oid) + coalesce(pg_relation_size(tt.oid), 0)) AS total_size
+    pg_size_pretty(pg_relation_size(t.oid) + coalesce(pg_relation_size(tt.oid), 0)) AS total_size,
+    t.reltuples as rows -- non-precise count
 from pg_class t
          left join pg_class tt on t.reltoastrelid = tt.oid and tt.relkind = 't'
 where t.relkind = 'r' and t.relnamespace = (select oid from pg_namespace where nspname = 'public')

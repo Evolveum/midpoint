@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.*;
 import java.util.function.Consumer;
@@ -13,6 +14,7 @@ import javax.annotation.PreDestroy;
 
 import com.google.common.base.Strings;
 import com.querydsl.core.Tuple;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +37,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.*;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -108,7 +111,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 type.getSimpleName(), oid, parentResult.getOperation());
         InternalMonitor.recordRepositoryRead(type, oid);
 
-        OperationResult operationResult = parentResult.subresult(GET_OBJECT)
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_GET_OBJECT)
                 .addQualifier(type.getSimpleName())
                 .setMinor()
                 .addParam("type", type.getName())
@@ -117,12 +120,13 @@ public class SqaleRepositoryService implements RepositoryService {
 
         try {
             PrismObject<T> object;
-            try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+            try (JdbcSession jdbcSession =
+                    sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
                 //noinspection unchecked
-                object = (PrismObject<T>) readByOid(jdbcSession, type, oidUuid, options).asPrismObject();
+                object = (PrismObject<T>) readByOid(
+                        jdbcSession, type, oidUuid, options).asPrismObject();
             }
 
-            // TODO what's with all the conflict watchers?
             // "objectLocal" is here just to provide effectively final variable for the lambda below
 //            PrismObject<T> objectLocal = executeAttempts(oid, OP_GET_OBJECT, type, "getting",
 //                    subResult, () -> objectRetriever.getObjectAttempt(type, oid, options, operationResult));
@@ -204,7 +208,7 @@ public class SqaleRepositoryService implements RepositoryService {
             options = new RepoAddOptions();
         }
 
-        OperationResult operationResult = parentResult.subresult(ADD_OBJECT)
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_ADD_OBJECT)
                 .addQualifier(object.asObjectable().getClass().getSimpleName())
                 .addParam("object", object)
                 .addParam("options", options.toString())
@@ -322,7 +326,7 @@ public class SqaleRepositoryService implements RepositoryService {
         UUID oidUuid = checkOid(oid);
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
-        OperationResult operationResult = parentResult.subresult(MODIFY_OBJECT)
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_MODIFY_OBJECT)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
                 .addParam("oid", oid)
@@ -448,8 +452,58 @@ public class SqaleRepositoryService implements RepositoryService {
     public @NotNull <T extends ObjectType> DeleteObjectResult deleteObject(
             Class<T> type, String oid, OperationResult parentResult)
             throws ObjectNotFoundException {
-        return null;
-        // TODO
+
+        Validate.notNull(type, "Object type must not be null.");
+        UUID oidUuid = checkOid(oid);
+        Validate.notNull(parentResult, "Operation result must not be null.");
+
+        LOGGER.debug("Deleting object type '{}' with oid '{}'", type.getSimpleName(), oid);
+
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_DELETE_OBJECT)
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type.getName())
+                .addParam("oid", oid)
+                .build();
+        try {
+            try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+                DeleteObjectResult result = deleteObjectAttempt(type, oidUuid, jdbcSession);
+                invokeConflictWatchers((w) -> w.afterDeleteObject(oid));
+                return result;
+            }
+        } catch (RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private <T extends ObjectType, Q extends QObject<R>, R extends MObject>
+    DeleteObjectResult deleteObjectAttempt(Class<T> type, UUID oid, JdbcSession jdbcSession)
+            throws ObjectNotFoundException {
+
+        QueryTableMapping<T, Q, R> mapping =
+                transformerSupport.sqlRepoContext().getMappingBySchemaType(type);
+        Q entityPath = mapping.defaultAlias();
+        byte[] fullObject = jdbcSession.newQuery()
+                .select(entityPath.fullObject)
+                .forUpdate()
+                .from(entityPath)
+                .where(entityPath.oid.eq(oid))
+                .fetchOne();
+        if (fullObject == null) {
+            throw new ObjectNotFoundException(type, oid.toString());
+        }
+
+        // object delete cascades to all owned related rows
+        // TODO org closure
+        jdbcSession.newDelete(entityPath)
+                .where(entityPath.oid.eq(oid))
+                .execute();
+
+        return new DeleteObjectResult(new String(fullObject, StandardCharsets.UTF_8));
     }
 
     // Counting/searching
@@ -572,7 +626,7 @@ public class SqaleRepositoryService implements RepositoryService {
         Objects.requireNonNull(type, "Container type must not be null.");
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
-        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + SEARCH_CONTAINERS)
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_SEARCH_CONTAINERS)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
                 .addParam("query", query)
@@ -726,7 +780,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
     @Override
     public boolean hasConflict(ConflictWatcher watcher, OperationResult parentResult) {
-        OperationResult result = parentResult.subresult(HAS_CONFLICT)
+        OperationResult result = parentResult.subresult(OP_NAME_PREFIX + OP_HAS_CONFLICT)
                 .setMinor()
                 .addParam("oid", watcher.getOid())
                 .addParam("watcherClass", watcher.getClass().getName())
