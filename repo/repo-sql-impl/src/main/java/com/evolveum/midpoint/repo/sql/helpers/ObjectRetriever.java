@@ -215,8 +215,7 @@ public class ObjectRetriever {
 
     private <T extends ObjectType> PrismObject<T> throwObjectNotFoundException(
             Class<T> type, String oid) throws ObjectNotFoundException {
-        throw new ObjectNotFoundException("Object of type '" + type.getSimpleName()
-                + "' with oid '" + oid + "' was not found.", oid);
+        throw new ObjectNotFoundException(type, oid);
     }
 
     public <F extends FocusType> PrismObject<F> searchShadowOwnerAttempt(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {

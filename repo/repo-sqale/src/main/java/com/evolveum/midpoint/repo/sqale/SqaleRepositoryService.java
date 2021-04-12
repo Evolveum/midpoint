@@ -172,8 +172,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
         if (result == null || result.get(root.fullObject) == null) {
             String oidString = oid.toString();
-            throw new ObjectNotFoundException("Object of type '" + schemaType.getSimpleName()
-                    + "' with OID '" + oidString + "' was not found.", oidString);
+            throw new ObjectNotFoundException(schemaType, oidString);
         }
 
         return rootMapping.createTransformer(transformerSupport)
