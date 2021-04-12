@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.repo.sql.audit.mapping;
 
 import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditEventRecord.TABLE_NAME;
-import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.*;
 
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
@@ -19,7 +18,6 @@ import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.CanonicalItemPathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.DetailTableItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumOrdinalItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlDetailFetchMapper;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -56,7 +54,7 @@ public class QAuditEventRecordMapping
         addItemMapping(F_SESSION_IDENTIFIER, stringMapper(path(q -> q.sessionIdentifier)));
         addItemMapping(F_TASK_IDENTIFIER, stringMapper(path(q -> q.taskIdentifier)));
         addItemMapping(F_TASK_OID, stringMapper(path(q -> q.taskOid)));
-        addItemMapping(F_TIMESTAMP, TimestampItemFilterProcessor.mapper(path(q -> q.timestamp)));
+        addItemMapping(F_TIMESTAMP, timestampMapper(path(q -> q.timestamp)));
 
         addItemMapping(F_CHANGED_ITEM, DetailTableItemFilterProcessor.mapper(
                 QAuditItem.class,

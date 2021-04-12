@@ -69,7 +69,6 @@ import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.component.MultifunctionalButton;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.dialog.ChooseFocusTypeAndRelationDialogPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfigureTaskConfirmationPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -559,6 +558,9 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     private R getParentVariables(VariablesMap variables) {
+        if (variables == null) {
+            return null;
+        }
         try {
             return (R) variables.getValue(ExpressionConstants.VAR_PARENT_OBJECT, AbstractRoleType.class);
         } catch (SchemaException e) {
@@ -683,7 +685,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                                 searchPerformedConsumer.accept(target);
                             }
                         });
-                        inputPanel.getBaseFormComponent().add(new EnableBehaviour(() -> !SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope())));
+                        inputPanel.getBaseFormComponent().add(new EnableBehaviour(() -> getMemberPanelStorage() != null && !SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope())));
                         inputPanel.setOutputMarkupId(true);
                         return inputPanel;
                     }
@@ -1493,11 +1495,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             @Override
             protected PrismObject<TaskType> getTask(AjaxRequestTarget target) {
                 Task task = MemberOperationsHelper.createRecomputeMembersTask(getPageBase(), getQueryScope(),
-                        getActionQuery(getQueryScope(), getSupportedRelations().getAvailableRelationList()), target);
+                        getActionQuery(getQueryScope(), getRelationsForRecomputeTask()), target);
                 if (task == null) {
                     return null;
                 }
-                PrismObject<TaskType> recomputeTask = task.getClonedTaskObject();
+                PrismObject<TaskType> recomputeTask = task.getRawTaskObjectClone();
                 TaskType recomputeTaskType = recomputeTask.asObjectable();
                 recomputeTaskType.getAssignment().add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value(), ObjectTypes.ARCHETYPE, getPrismContext()));
                 return recomputeTask;
@@ -1511,10 +1513,14 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 MemberOperationsHelper.recomputeMembersPerformed(getPageBase(), getQueryScope(),
-                        getActionQuery(getQueryScope(), getSupportedRelations().getAvailableRelationList()), target);
+                        getActionQuery(getQueryScope(), getRelationsForRecomputeTask()), target);
             }
         };
         ((PageBase) getPage()).showMainPopup(dialog, target);
+    }
+
+    protected List<QName> getRelationsForRecomputeTask() {
+        return getSupportedRelations().getAvailableRelationList();
     }
 
     protected QName getSearchType(){

@@ -20,12 +20,14 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -49,6 +51,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
     private static final String ID_TYPE = "type";
     private static final String ID_RELATION = "relation";
     private static final String ID_SELECT_OBJECT_BUTTON = "selectObject";
+    private static final String ID_FEEDBACK = "feedback";
 
     public ReferenceValueSearchPopupPanel(String id, IModel<ObjectReferenceType> model) {
         super(id, model);
@@ -56,6 +59,10 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
 
     @Override
     protected void customizationPopoverForm(MidpointForm midpointForm) {
+        FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
+        feedback.setOutputMarkupId(true);
+        midpointForm.add(feedback);
+
         PropertyModel<String> oidModel = new PropertyModel<>(getModel(), "oid"){
             @Override
             public void setObject(String object) {
@@ -93,12 +100,15 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
             }
         };
 
+        feedback.setFilter(new ComponentFeedbackMessageFilter(nameField));
         nameField.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
+                target.add(midpointForm.get(ID_FEEDBACK));
+
                 ObjectReferenceType ort = nameField.getBaseFormComponent().getModelObject();
                 if (ort == null) {
                     return;

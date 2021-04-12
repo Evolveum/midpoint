@@ -6,10 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
-import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
 /**
@@ -27,9 +25,9 @@ public class QTriggerMapping
                 TriggerType.class, QTrigger.class);
 
         addItemMapping(TriggerType.F_HANDLER_URI,
-                UriItemFilterProcessor.mapper(path(q -> q.handlerUriId)));
+                uriMapper(path(q -> q.handlerUriId)));
         addItemMapping(TriggerType.F_TIMESTAMP,
-                TimestampItemFilterProcessor.mapper(path(q -> q.timestampValue)));
+                timestampMapper(path(q -> q.timestampValue)));
     }
 
     @Override

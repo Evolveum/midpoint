@@ -142,23 +142,20 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
      * Never returns null, returns default ID for configured default relation.
      */
     protected Integer processCacheableRelation(QName qName, JdbcSession jdbcSession) {
-        return processCacheableUri(
-                QNameUtil.qNameToUri(
-                        transformerSupport.normalizeRelation(qName)),
-                jdbcSession);
+        return transformerSupport.processCacheableRelation(qName, jdbcSession);
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
     protected Integer processCacheableUri(String uri, JdbcSession jdbcSession) {
         return uri != null
-                ? transformerSupport.processCachedUri(uri, jdbcSession)
+                ? transformerSupport.processCacheableUri(uri, jdbcSession)
                 : null;
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
     protected Integer processCacheableUri(QName qName, JdbcSession jdbcSession) {
         return qName != null
-                ? transformerSupport.processCachedUri(QNameUtil.qNameToUri(qName), jdbcSession)
+                ? transformerSupport.processCacheableUri(QNameUtil.qNameToUri(qName), jdbcSession)
                 : null;
     }
 

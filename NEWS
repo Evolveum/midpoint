@@ -1,14 +1,12 @@
-midPoint 4.2 "Maxwell"
+midPoint 4.3 "Faraday"
 ----------------------
 
-Release 4.2 is a thirty-third midPoint release code-named "Maxwell".
-The 4.2 release brings new reporting mechanism, updates to auditing implementation,
-continued improvement for authentication and handful of other interesting improvements.
-Most importantly, midPoint 4.2 brings experimental updates to the very foundations of midPoint.
+Release 4.3 is a thirty-fourth midPoint release code-named Faraday.
+ The 4.3 release brings performance improvements, user interface and diagnostic improvements and major internal improvements.
 
-Release date: 23rd October 2020
+Release date: 9th April 2021
 Release type: Feature release
-End of support: 23rd October 2021
+End of support: 9th April 2022
 
 Please see the release notes for detailed list of changes:
-https://wiki.evolveum.com/display/midPoint/Release+4.2
+https://docs.evolveum.com/midpoint/release/4.3/

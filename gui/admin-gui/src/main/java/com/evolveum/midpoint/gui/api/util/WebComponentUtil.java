@@ -29,6 +29,7 @@ import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperIm
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.util.task.TaskPartProgressInformation;
 import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
+import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -3432,7 +3433,7 @@ public final class WebComponentUtil {
         return relationsList;
     }
 
-    public static String getReferenceObjectTextValue(ObjectReferenceType ref, PageBase pageBase) {
+    public static String getReferenceObjectTextValue(ObjectReferenceType ref, PrismReferenceDefinition referenceDef, PageBase pageBase) {
         if (ref == null) {
             return "";
         }
@@ -3460,7 +3461,14 @@ public final class WebComponentUtil {
             if (sb.length() > 0) {
                 sb.append("; ");
             }
-            sb.append(ref.getType().getLocalPart());
+            if (referenceDef != null) {
+                List<QName> supportedTypes = createSupportedTargetTypeList(referenceDef.getTargetTypeName());
+                if (supportedTypes != null && supportedTypes.size() > 1) {
+                    sb.append(ref.getType().getLocalPart());
+                }
+            } else {
+                sb.append(ref.getType().getLocalPart());
+            }
         }
         return sb.toString();
     }
@@ -3772,6 +3780,16 @@ public final class WebComponentUtil {
             appendActivationStatus(title, activationStatusIcon, obj, pageBase);
         }
 
+        if (obj instanceof TaskType && TaskWorkStateUtil.isCoordinator((TaskType)obj)) {
+            IconType icon = new IconType();
+            icon.setCssClass(GuiStyleConstants.CLASS_OBJECT_NODE_ICON_COLORED);
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+            if (title.length() > 0) {
+                title.append("\n");
+            }
+            title.append(pageBase.createStringResource(TaskWorkStateUtil.getKind((TaskType)obj)).getString());
+        }
+
         if (StringUtils.isNotEmpty(title.toString())) {
             builder.setTitle(title.toString());
         }
@@ -3858,9 +3876,9 @@ public final class WebComponentUtil {
         switch (value) {
             case DISABLED:
                 if (isColumn) {
-                    appendIcon(builder, "fe fe-slash " + GuiStyleConstants.RED_COLOR, IconCssStyle.CENTER_FOR_COLUMN_STYLE);
+                    appendIcon(builder, "fe fe-no-line " + GuiStyleConstants.RED_COLOR, IconCssStyle.CENTER_FOR_COLUMN_STYLE);
                 } else {
-                    appendIcon(builder, "fe fe-slash " + GuiStyleConstants.RED_COLOR, IconCssStyle.CENTER_STYLE);
+                    appendIcon(builder, "fe fe-no-line " + GuiStyleConstants.RED_COLOR, IconCssStyle.CENTER_STYLE);
                 }
                 return builder.build();
             case ARCHIVED:

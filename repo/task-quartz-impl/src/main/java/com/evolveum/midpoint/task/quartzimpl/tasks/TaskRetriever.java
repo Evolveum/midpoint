@@ -166,7 +166,7 @@ public class TaskRetriever {
     }
 
     /**
-     * Updates selected fields (operation statistics, progress, result) from in-memory running task.
+     * Updates selected fields (operation statistics, progress) from in-memory running task.
      */
     private void updateFromTaskInMemory(Task task0) {
         TaskQuartzImpl task = (TaskQuartzImpl) task0;
@@ -188,19 +188,9 @@ public class TaskRetriever {
         task.setProgressTransient(taskInMemory.getProgress());
         task.setStructuredProgressTransient(taskInMemory.getStructuredProgressOrClone());
 
-        OperationResult result = taskInMemory.getResult();
-        if (result != null) {
-            try {
-                task.setResultTransient(taskInMemory.getResult().clone());
-            } catch (ConcurrentModificationException e) {
-                // This can occur, see MID-3954/MID-4088. We will use operation result that was fetched from the repository
-                // (it might be a bit outdated).
-                LOGGER.warn("Concurrent access to operation result denied; using data from the repository (see MID-3954/MID-4088): {}", task, e);
-            }
-        } else {
-            // Actually this should not occur. TODO Consider leaving task result "as is" (i.e. having value from the prism).
-            task.setResultTransient(null);
-        }
+        // We intentionally do not try to get operation result from the task. OperationResult class is not thread-safe,
+        // so it cannot be safely accessed from a different thread. It is not a big problem, because the result should be
+        // periodically updated in the repository, so we get (at worst) an information that is a few seconds out-of-date.
     }
 
     // task is Task or TaskType
@@ -223,7 +213,7 @@ public class TaskRetriever {
     private void addSubtask(Object task, Object subtask) {
         TaskType subtaskBean;
         if (subtask instanceof TaskQuartzImpl) {
-            subtaskBean = ((TaskQuartzImpl) subtask).getLiveTaskObject().asObjectable();
+            subtaskBean = ((TaskQuartzImpl) subtask).getRawTaskObjectClonedIfNecessary().asObjectable();
         } else if (subtask instanceof PrismObject<?>) {
             //noinspection unchecked
             subtaskBean = ((PrismObject<TaskType>) subtask).asObjectable();
@@ -336,7 +326,7 @@ public class TaskRetriever {
         }
         TaskType taskBean;
         if (task instanceof TaskQuartzImpl) {
-            taskBean = ((TaskQuartzImpl) task).getLiveTaskObjectForNotRunningTasks().asObjectable();
+            taskBean = ((TaskQuartzImpl) task).getRawTaskObject().asObjectable();
         } else if (task instanceof PrismObject<?>) {
             //noinspection unchecked
             taskBean = ((PrismObject<TaskType>) task).asObjectable();

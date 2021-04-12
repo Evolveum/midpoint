@@ -9,10 +9,11 @@ package com.evolveum.midpoint.repo.sqale.qmodel.report;
 import java.sql.Types;
 
 import com.querydsl.core.types.dsl.BooleanPath;
-import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.sql.ColumnMetadata;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrientationType;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
@@ -24,17 +25,14 @@ public class QReport extends QObject<MReport> {
 
     public static final String TABLE_NAME = "m_report";
 
-    public static final ColumnMetadata EXPORT =
-            ColumnMetadata.named("export").ofType(Types.INTEGER);
     public static final ColumnMetadata ORIENTATION =
-            ColumnMetadata.named("orientation").ofType(Types.INTEGER);
+            ColumnMetadata.named("orientation").ofType(Types.OTHER);
     public static final ColumnMetadata PARENT =
             ColumnMetadata.named("parent").ofType(Types.BOOLEAN);
 
-    public final NumberPath<Integer> export = createInteger("export", EXPORT);
-    public final NumberPath<Integer> orientation = createInteger("orientation", ORIENTATION);
+    public final EnumPath<OrientationType> orientation =
+            createEnum("orientation", OrientationType.class, ORIENTATION);
     public final BooleanPath parent = createBoolean("parent", PARENT);
-    // TODO what about that useHibernateSession
 
     public QReport(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

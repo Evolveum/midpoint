@@ -6,16 +6,11 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
-import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.integerMapper;
-import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.*;
 
-import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
@@ -39,63 +34,63 @@ public class QAssignmentMapping
         //  But this will likely require special treatment/heuristic.
         addItemMapping(F_LIFECYCLE_STATE, stringMapper(path(q -> q.lifecycleState)));
         addItemMapping(F_ORDER, integerMapper(path(q -> q.orderValue)));
-        addItemMapping(F_ORG_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(F_ORG_REF, SqaleTableMapping.refMapper(
                 path(q -> q.orgRefTargetOid),
                 path(q -> q.orgRefTargetType),
                 path(q -> q.orgRefRelationId)));
-        addItemMapping(F_TARGET_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(F_TARGET_REF, SqaleTableMapping.refMapper(
                 path(q -> q.targetRefTargetOid),
                 path(q -> q.targetRefTargetType),
                 path(q -> q.targetRefRelationId)));
-        addItemMapping(F_TENANT_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(F_TENANT_REF, SqaleTableMapping.refMapper(
                 path(q -> q.tenantRefTargetOid),
                 path(q -> q.tenantRefTargetType),
                 path(q -> q.tenantRefRelationId)));
         // TODO no idea how extId/Oid works, see RAssignment.getExtension
         // TODO ext mapping can't be done statically
         addNestedMapping(F_CONSTRUCTION, ConstructionType.class)
-                .addItemMapping(ConstructionType.F_RESOURCE_REF, RefItemFilterProcessor.mapper(
+                .addItemMapping(ConstructionType.F_RESOURCE_REF, SqaleTableMapping.refMapper(
                         path(q -> q.resourceRefTargetOid),
                         path(q -> q.resourceRefTargetType),
                         path(q -> q.resourceRefRelationId)));
         addNestedMapping(F_ACTIVATION, ActivationType.class)
                 .addItemMapping(ActivationType.F_ADMINISTRATIVE_STATUS,
-                        EnumItemFilterProcessor.mapper(path(q -> q.administrativeStatus)))
+                        enumMapper(path(q -> q.administrativeStatus)))
                 .addItemMapping(ActivationType.F_EFFECTIVE_STATUS,
-                        EnumItemFilterProcessor.mapper(path(q -> q.effectiveStatus)))
+                        enumMapper(path(q -> q.effectiveStatus)))
                 .addItemMapping(ActivationType.F_ENABLE_TIMESTAMP,
-                        TimestampItemFilterProcessor.mapper(path(q -> q.enableTimestamp)))
+                        timestampMapper(path(q -> q.enableTimestamp)))
                 .addItemMapping(ActivationType.F_DISABLE_REASON,
-                        TimestampItemFilterProcessor.mapper(path(q -> q.disableTimestamp)))
+                        timestampMapper(path(q -> q.disableTimestamp)))
                 .addItemMapping(ActivationType.F_DISABLE_REASON,
                         stringMapper(path(q -> q.disableReason)))
                 .addItemMapping(ActivationType.F_VALIDITY_STATUS,
-                        EnumItemFilterProcessor.mapper(path(q -> q.validityStatus)))
+                        enumMapper(path(q -> q.validityStatus)))
                 .addItemMapping(ActivationType.F_VALID_FROM,
-                        TimestampItemFilterProcessor.mapper(path(q -> q.validFrom)))
+                        timestampMapper(path(q -> q.validFrom)))
                 .addItemMapping(ActivationType.F_VALID_TO,
-                        TimestampItemFilterProcessor.mapper(path(q -> q.validTo)))
+                        timestampMapper(path(q -> q.validTo)))
                 .addItemMapping(ActivationType.F_VALIDITY_CHANGE_TIMESTAMP,
-                        TimestampItemFilterProcessor.mapper(path(q -> q.validityChangeTimestamp)))
+                        timestampMapper(path(q -> q.validityChangeTimestamp)))
                 .addItemMapping(ActivationType.F_ARCHIVE_TIMESTAMP,
-                        TimestampItemFilterProcessor.mapper(path(q -> q.archiveTimestamp)));
+                        timestampMapper(path(q -> q.archiveTimestamp)));
         addNestedMapping(F_METADATA, MetadataType.class)
-                .addItemMapping(MetadataType.F_CREATOR_REF, RefItemFilterProcessor.mapper(
+                .addItemMapping(MetadataType.F_CREATOR_REF, SqaleTableMapping.refMapper(
                         path(q -> q.creatorRefTargetOid),
                         path(q -> q.creatorRefTargetType),
                         path(q -> q.creatorRefRelationId)))
                 .addItemMapping(MetadataType.F_CREATE_CHANNEL,
-                        UriItemFilterProcessor.mapper(path(q -> q.createChannelId)))
+                        uriMapper(path(q -> q.createChannelId)))
                 .addItemMapping(MetadataType.F_CREATE_TIMESTAMP,
-                        TimestampItemFilterProcessor.mapper(path(q -> q.createTimestamp)))
-                .addItemMapping(MetadataType.F_MODIFIER_REF, RefItemFilterProcessor.mapper(
+                        timestampMapper(path(q -> q.createTimestamp)))
+                .addItemMapping(MetadataType.F_MODIFIER_REF, SqaleTableMapping.refMapper(
                         path(q -> q.modifierRefTargetOid),
                         path(q -> q.modifierRefTargetType),
                         path(q -> q.modifierRefRelationId)))
                 .addItemMapping(MetadataType.F_MODIFY_CHANNEL,
-                        UriItemFilterProcessor.mapper(path(q -> q.modifyChannelId)))
+                        uriMapper(path(q -> q.modifyChannelId)))
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
-                        TimestampItemFilterProcessor.mapper(path(q -> q.modifyTimestamp)));
+                        timestampMapper(path(q -> q.modifyTimestamp)));
 
         // TODO relation mapping (often in nested mapping ;-))
     }

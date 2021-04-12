@@ -484,7 +484,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     private InlineMenuItem createDeleteAllClosedTasksMenuAction() {
         return createTaskInlineMenuItem("pageTasks.button.deleteAllClosedTasks",
                 (target, task) -> deleteAllClosedTasksConfirmedPerformed(target),
-                "pageTasks.message.deleteAllClosedTasksConfirm",
+                OPERATION_DELETE_ALL_CLOSED_TASKS,  //this is more hack than a perfect solution
                 (task) -> false,
                 true);
     }
@@ -511,6 +511,9 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
             @Override
             public IModel<String> getConfirmationMessageModel() {
+                if (OPERATION_DELETE_ALL_CLOSED_TASKS.equals(confirmationMessageKey)) {
+                    return createStringResource("pageTasks.message.deleteAllClosedTasksConfirm");
+                }
                 String actionName = createStringResource(confirmationMessageKey).getString();
                 return TaskTablePanel.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }

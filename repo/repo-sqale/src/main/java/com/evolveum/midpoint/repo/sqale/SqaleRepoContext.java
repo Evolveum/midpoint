@@ -45,6 +45,7 @@ public class SqaleRepoContext extends SqlRepoContext {
         querydslConfig.register(new EnumAsObjectType<>(LockoutStatusType.class));
         querydslConfig.register(new EnumAsObjectType<>(OperationExecutionRecordTypeType.class));
         querydslConfig.register(new EnumAsObjectType<>(OperationResultStatusType.class));
+        querydslConfig.register(new EnumAsObjectType<>(OrientationType.class));
         querydslConfig.register(new EnumAsObjectType<>(ResourceAdministrativeStateType.class));
         querydslConfig.register(new EnumAsObjectType<>(ShadowKindType.class));
         querydslConfig.register(new EnumAsObjectType<>(SynchronizationSituationType.class));
@@ -90,7 +91,7 @@ public class SqaleRepoContext extends SqlRepoContext {
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
-    public Integer processCachedUri(String uri, JdbcSession jdbcSession) {
-        return uriCache.processCachedUri(uri, jdbcSession);
+    public Integer processCacheableUri(String uri, JdbcSession jdbcSession) {
+        return uriCache.processCacheableUri(uri, jdbcSession);
     }
 }

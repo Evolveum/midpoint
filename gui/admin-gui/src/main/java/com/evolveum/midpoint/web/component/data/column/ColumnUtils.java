@@ -995,7 +995,7 @@ public class ColumnUtils {
         if (referencesList != null) {
             referencesList.forEach(reference -> {
                 AjaxLinkPanel referenceAjaxLinkPanel = new AjaxLinkPanel(multilineLinkPanel.newChildId(),
-                        Model.of(WebModelServiceUtils.resolveReferenceName(reference, pageBase))) {
+                        Model.of(WebModelServiceUtils.resolveReferenceName(reference, pageBase, true))) {
                     private static final long serialVersionUID = 1L;
 
                     @Override

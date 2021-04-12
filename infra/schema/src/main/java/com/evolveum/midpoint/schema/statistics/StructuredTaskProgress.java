@@ -62,7 +62,7 @@ public class StructuredTaskProgress {
 
     /** Returns a current value of this statistics. It is copied because of thread safety issues. */
     public synchronized StructuredTaskProgressType getValueCopy() {
-        return value.clone();
+        return value.cloneWithoutId();
     }
 
     /**
@@ -121,7 +121,7 @@ public class StructuredTaskProgress {
             part.setComplete(true);
 //            System.out.printf("Updating progress on work completion. Part = %s\n", part);
         } else {
-            LOGGER.warn("Didn't mark structured progress for part {} as complete because there are no records"
+            LOGGER.debug("Didn't mark structured progress for part {} as complete because there are no records"
                             + " present for that part", value.getCurrentPartUri());
         }
     }

@@ -52,13 +52,17 @@ public class ReferenceConverter implements IConverter<ObjectReferenceType> {
         ObjectQuery query = pageBase.getPrismContext().queryFor(type)
                 .item(ObjectType.F_NAME)
                 .eq(value)
-                .matchingOrig()
+//                .matchingOrig()
+                .matchingNorm()
                 .build();
         List<PrismObject<ObjectType>> objectsList = WebModelServiceUtils.searchObjects(
                 type, query, new OperationResult("searchObjects"), pageBase);
         if (CollectionUtils.isNotEmpty(objectsList)) {
-            return ObjectTypeUtil.createObjectRefWithFullObject(
-                    objectsList.get(0), pageBase.getPrismContext());
+            if (objectsList.size() == 1) {
+                return ObjectTypeUtil.createObjectRefWithFullObject(
+                        objectsList.get(0), pageBase.getPrismContext());
+            }
+            pageBase.error("Couldn't specify one object by name '" + value + "' and type " + type.getSimpleName() + ". Please will try specific type of object.");
         }
         ObjectReferenceType ref = null;
         if (isAllowedNotFoundObjectRef()) {
@@ -74,7 +78,6 @@ public class ReferenceConverter implements IConverter<ObjectReferenceType> {
             }
         }
         return ref;
-
     }
 
     @Override

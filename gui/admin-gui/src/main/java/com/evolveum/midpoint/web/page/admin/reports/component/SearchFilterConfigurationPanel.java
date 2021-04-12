@@ -6,16 +6,26 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.factory.panel.SearchFilterTypeForQueryModel;
 import com.evolveum.midpoint.gui.impl.factory.panel.SearchFilterTypeForXmlModel;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.search.BasicSearchFilterModel;
+import com.evolveum.midpoint.web.component.search.SearchPropertiesConfigPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -26,17 +36,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.search.BasicSearchFilterModel;
-import com.evolveum.midpoint.web.component.search.SearchPropertiesConfigPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
 import javax.xml.namespace.QName;
 
 /**
@@ -45,7 +44,7 @@ import javax.xml.namespace.QName;
 public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePanel<SearchFilterType> {
 
     private enum FiledType {
-        XML, DSL
+        XML, QUERY
     }
 
     private static final long serialVersionUID = 1L;
@@ -64,24 +63,24 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
     private PrismContainerValueWrapper<ObjectCollectionType> containerWrapper;
     private FiledType fieldType;
 
-    public SearchFilterConfigurationPanel(String id, IModel<SearchFilterType> model, PrismContainerValueWrapper<ObjectCollectionType> containerWrapper){
+    public SearchFilterConfigurationPanel(String id, IModel<SearchFilterType> model, PrismContainerValueWrapper<ObjectCollectionType> containerWrapper) {
         super(id, model);
         this.containerWrapper = containerWrapper;
         if (model.getObject() != null && StringUtils.isNotBlank(model.getObject().getText())) {
-            fieldType = FiledType.DSL;
+            fieldType = FiledType.QUERY;
         } else {
             fieldType = FiledType.XML;
         }
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initFilterTypeModel();
         initLayout();
     }
 
-    private void initFilterTypeModel(){
+    private void initFilterTypeModel() {
         filterTypeModel = new LoadableModel<Class<O>>() {
             private static final long serialVersionUID = 1L;
 
@@ -101,12 +100,14 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
     private void initLayout() {
         WebMarkupContainer aceEditorContainer = new WebMarkupContainer(ID_ACE_EDITOR_XML_CONTAINER);
         aceEditorContainer.setOutputMarkupId(true);
-        aceEditorContainer.add(AttributeAppender.append("class", (IModel<?>) () -> {
+        IModel<String> classGridModel = () -> {
             if (containerWrapper != null) {
-                return "col-md-11";
+                return "col-md-10";
             }
             return "col-md-12";
-        }));
+        };
+
+        aceEditorContainer.add(AttributeAppender.append("class", classGridModel));
         aceEditorContainer.add(AttributeAppender.append("style", (IModel<?>) () -> {
             if (FiledType.XML.equals(fieldType)) {
                 return "display: block;";
@@ -121,14 +122,9 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
 
         WebMarkupContainer textFieldContainer = new WebMarkupContainer(ID_TEXT_DNS_CONTAINER);
         textFieldContainer.setOutputMarkupId(true);
-        textFieldContainer.add(AttributeAppender.append("class", (IModel<?>) () -> {
-            if (containerWrapper != null) {
-                return "col-md-11";
-            }
-            return "col-md-12";
-        }));
+        textFieldContainer.add(AttributeAppender.append("class", classGridModel));
         textFieldContainer.add(AttributeAppender.append("style", (IModel<?>) () -> {
-            if (FiledType.DSL.equals(fieldType)) {
+            if (FiledType.QUERY.equals(fieldType)) {
                 return "display: block;";
             }
             return "display: none;";
@@ -152,11 +148,11 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
         add(searchConfigurationButton);
 
         IModel<String> labelModel = (IModel) () -> {
-            if (FiledType.DSL.equals(fieldType)) {
-                return FiledType.XML.toString();
+            if (FiledType.XML.equals(fieldType)) {
+                return getPageBase().createStringResource(SearchBoxModeType.AXIOM_QUERY).getString();
             }
-            return FiledType.DSL.toString();
-            };
+            return getPageBase().createStringResource("SearchFilterConfigurationPanel.fieldType.xml").getString();
+        };
 
         Label buttonLabel = new Label(ID_FILED_TYPE_BUTTON_LABEL, labelModel);
         buttonLabel.setOutputMarkupId(true);
@@ -166,10 +162,10 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                if (FiledType.DSL.equals(fieldType)) {
+                if (FiledType.QUERY.equals(fieldType)) {
                     fieldType = FiledType.XML;
                 } else {
-                    fieldType = FiledType.DSL;
+                    fieldType = FiledType.QUERY;
                 }
                 target.add(getAceEditorContainer());
                 target.add(getTextFieldContainer());
@@ -186,11 +182,11 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
     private void searchConfigurationPerformed(AjaxRequestTarget target) {
         filterTypeModel.reset();
         SearchPropertiesConfigPanel<O> configPanel = new SearchPropertiesConfigPanel<O>(getPageBase().getMainPopupBodyId(),
-                new BasicSearchFilterModel<O>(getModel(), filterTypeModel.getObject(), getPageBase()), filterTypeModel){
+                new BasicSearchFilterModel<O>(getModel(), filterTypeModel.getObject(), getPageBase()), filterTypeModel) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void filterConfiguredPerformed(ObjectFilter configuredFilter, AjaxRequestTarget target){
+            protected void filterConfiguredPerformed(ObjectFilter configuredFilter, AjaxRequestTarget target) {
                 getPageBase().hideMainPopup(target);
 
                 try {
@@ -209,11 +205,11 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
         getPageBase().showMainPopup(configPanel, target);
     }
 
-    private Component getAceEditorContainer(){
+    private Component getAceEditorContainer() {
         return get(ID_ACE_EDITOR_XML_CONTAINER);
     }
 
-    private Component getTextFieldContainer(){
+    private Component getTextFieldContainer() {
         return get(ID_TEXT_DNS_CONTAINER);
     }
 }

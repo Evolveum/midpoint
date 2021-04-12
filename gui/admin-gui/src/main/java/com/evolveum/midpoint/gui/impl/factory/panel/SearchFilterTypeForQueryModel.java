@@ -17,6 +17,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ThreadContext;
 import org.apache.wicket.model.IModel;
 
 public class SearchFilterTypeForQueryModel<O extends ObjectType> extends SearchFilterTypeModel {
@@ -57,7 +58,7 @@ public class SearchFilterTypeForQueryModel<O extends ObjectType> extends SearchF
             return value.getText();
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);
-            getPageBase().error("Cannot parse filter: " + e.getMessage() + ". For more details, please, see midpoint log");
+            ThreadContext.getSession().error("Cannot parse filter: " + e.getMessage() + ". For more details, please, see midpoint log");
         }
         return null;
     }
@@ -74,7 +75,7 @@ public class SearchFilterTypeForQueryModel<O extends ObjectType> extends SearchF
             getBaseModel().setObject(filter);
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot parse filter", e);
-            getPageBase().error("Cannot parse filter: " + e.getMessage() + ". For more details, please, see midpoint log");
+            ThreadContext.getSession().error("Cannot parse filter: " + e.getMessage() + ". For more details, please, see midpoint log");
         }
     }
 }

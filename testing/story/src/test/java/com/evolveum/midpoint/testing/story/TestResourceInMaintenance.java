@@ -22,6 +22,8 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import com.evolveum.midpoint.test.TestResource;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -40,7 +42,6 @@ import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.ClassPathUtil;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -107,6 +108,8 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         importObjectFromFile(RESOURCE_CSV_FILE);
 
         prepareCsvResource(initTask, initResult);
+
+        addObject(TASK_RECONCILE_CSV, initTask, initResult);
     }
 
     @Test
@@ -701,57 +704,72 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         turnMaintenanceModeOff(task, result);
 
-        ShadowType shadow = new ShadowType(prismContext)
-                .resourceRef(RESOURCE_OID, ResourceType.COMPLEX_TYPE)
-                .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS);
-
-        UserType user = new UserType(prismContext)
-                .name("test110")
-                .linkRef(ObjectTypeUtil.createObjectRefWithFullObject(shadow.clone(), prismContext));
-
-        String userOid = addObject(user.asPrismObject(), task, result);
+        UserWithAccount userWithAccount = createUserWithAccount("test110", task, result);
+        UserType user = userWithAccount.getUser();
 
         turnMaintenanceModeOn(task, result);
 
         when("delete account");
-        PrismObject<UserType> userAfterCreation = assertUser(userOid, "after creation, before deletion")
-                .display()
-                .links()
-                    .assertLiveLinks(1)
-                .end()
-                .getObject();
-        String shadowOid = getLiveLinkRefOid(userAfterCreation, RESOURCE_OID);
-        shadow.setOid(shadowOid);
 
-        ObjectDelta<UserType> delta = deltaFor(UserType.class)
-                .item(UserType.F_LINK_REF).delete(ObjectTypeUtil.createObjectRefWithFullObject(shadow.clone(), prismContext))
-                .asObjectDelta(userOid);
-
+        ObjectDelta<UserType> delta = userWithAccount.createDeleteAccountDelta();
         executeChanges(delta, null, task, result);
 
         then("delete account");
-        assertUser(userOid, "after deletion, before reconciliation")
-                .display()
-                .links()
-                    .assertLiveLinks(1)
-                    .singleAny()
-                        .resolveTarget()
-                        .display()
-                            .pendingOperations()
-                                .assertOperations(1)
-                                .deleteOperation();
+
+        userWithAccount.assertAccountDeletionPending();
 
         when("reconcile in normal mode");
 
         turnMaintenanceModeOff(task, result);
-        addObject(TASK_RECONCILE_CSV, task, result);
-        waitForTaskFinish(TASK_RECONCILE_CSV.oid, true);
+        rerunTask(TASK_RECONCILE_CSV.oid);
 
         then("reconcile in normal mode");
 
-        assertUserAfter(userAfterCreation.getOid())
+        assertUserAfter(user.getOid())
                 .links()
                     .assertNoLiveLinks();
+    }
+
+    /**
+     * The same as test110 but the reconciliation runs in maintenance mode.
+     *
+     * 1. Creates a user with linked (not assigned) account.
+     * 2. Deletes the account in maintenance mode.
+     * 3. Reconciles the resource. (This is different from test110.)
+     *
+     * MID-6946
+     */
+    @Test
+    public void test115DeleteLinkedAccountAndReconcileInMaintenance() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        turnMaintenanceModeOff(task, result);
+
+        UserWithAccount userWithAccount = createUserWithAccount("test115", task, result);
+
+        turnMaintenanceModeOn(task, result);
+
+        when("delete account");
+
+        ObjectDelta<UserType> delta = userWithAccount.createDeleteAccountDelta();
+        executeChanges(delta, null, task, result);
+
+        then("delete account");
+
+        userWithAccount.assertAccountDeletionPending();
+
+        when("reconcile in maintenance mode");
+
+        Task taskAfter = rerunTask(TASK_RECONCILE_CSV.oid);
+
+        then("reconcile in maintenance mode");
+
+        assertTask(taskAfter, "reconciliation after run")
+                .display()
+                .assertHandledError()
+                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED); // Maybe should be discussed.
     }
 
     /**
@@ -817,5 +835,66 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         assertPendingOperation(shadow, shadow.asObjectable().getPendingOperation().get(1),
                 null, null, expectedExecutionStatus, expectedResultStatus, null, null);
+    }
+
+
+    private UserWithAccount createUserWithAccount(String name, Task task, OperationResult result) throws CommonException {
+        return new UserWithAccount().invoke(name, task, result);
+    }
+
+    private class UserWithAccount {
+        private ShadowType shadow;
+        private UserType user;
+
+        public ShadowType getShadow() {
+            return shadow;
+        }
+
+        public UserType getUser() {
+            return user;
+        }
+
+        UserWithAccount invoke(String name, Task task, OperationResult result) throws CommonException {
+            shadow = new ShadowType(prismContext)
+                    .resourceRef(RESOURCE_OID, ResourceType.COMPLEX_TYPE)
+                    .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS);
+
+            user = new UserType(prismContext)
+                    .name(name)
+                    .linkRef(ObjectTypeUtil.createObjectRefWithFullObject(shadow.clone(), prismContext));
+
+            String userOid = addObject(user.asPrismObject(), task, result);
+
+            user = assertUser(userOid, "after creation")
+                    .display()
+                    .links()
+                        .assertLiveLinks(1)
+                        .end()
+                    .getObject().asObjectable();
+
+            String shadowOid = getLiveLinkRefOid(user.asPrismObject(), RESOURCE_OID);
+            shadow.setOid(shadowOid);
+
+            return this;
+        }
+
+        ObjectDelta<UserType> createDeleteAccountDelta() throws SchemaException {
+            return deltaFor(UserType.class)
+                    .item(UserType.F_LINK_REF).delete(ObjectTypeUtil.createObjectRefWithFullObject(shadow.clone(), prismContext))
+                    .asObjectDelta(user.getOid());
+        }
+
+        void assertAccountDeletionPending() throws CommonException {
+            assertUser(user.getOid(), "after deletion")
+                    .display()
+                    .links()
+                        .assertLiveLinks(1)
+                        .singleAny()
+                            .resolveTarget()
+                            .display()
+                                .pendingOperations()
+                                    .assertOperations(1)
+                                    .deleteOperation();
+        }
     }
 }

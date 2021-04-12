@@ -38,7 +38,7 @@
             <label>Business role</label>
             <pluralLabel>Business roles</pluralLabel>
             <icon>
-                <cssClass>fe fe-role_icon</cssClass>
+                <cssClass>fe fe-role</cssClass>
                 <color>green</color>
             </icon>
         </display>

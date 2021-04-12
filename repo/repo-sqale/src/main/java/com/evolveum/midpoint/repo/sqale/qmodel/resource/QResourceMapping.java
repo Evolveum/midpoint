@@ -8,11 +8,10 @@ package com.evolveum.midpoint.repo.sqale.qmodel.resource;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.*;
 
-import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBusinessConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -32,14 +31,14 @@ public class QResourceMapping
 
         addNestedMapping(F_BUSINESS, ResourceBusinessConfigurationType.class)
                 .addItemMapping(ResourceBusinessConfigurationType.F_ADMINISTRATIVE_STATE,
-                        EnumItemFilterProcessor.mapper(path(q -> q.businessAdministrativeState)))
+                        enumMapper(path(q -> q.businessAdministrativeState)))
                 .addRefMapping(ResourceBusinessConfigurationType.F_APPROVER_REF,
                         QObjectReferenceMapping.INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER);
         addNestedMapping(F_OPERATIONAL_STATE, OperationalStateType.class)
                 .addItemMapping(OperationalStateType.F_LAST_AVAILABILITY_STATUS,
-                        EnumItemFilterProcessor.mapper(
+                        enumMapper(
                                 path(q -> q.operationalStateLastAvailabilityStatus)));
-        addItemMapping(F_CONNECTOR_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(F_CONNECTOR_REF, SqaleTableMapping.refMapper(
                 path(q -> q.connectorRefTargetOid),
                 path(q -> q.connectorRefTargetType),
                 path(q -> q.connectorRefRelationId)));

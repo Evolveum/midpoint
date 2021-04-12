@@ -96,7 +96,7 @@ public class TaskPersister {
         }
 
         try {
-            CryptoUtil.encryptValues(protector, task.getLiveTaskObjectForNotRunningTasks());
+            CryptoUtil.encryptValues(protector, task.getRawTaskObject());
             addTaskToRepositoryAndQuartz(task, null, result);
         } catch (ObjectAlreadyExistsException ex) {
             // This should not happen. If it does, it is a bug. It is OK to convert to a runtime exception

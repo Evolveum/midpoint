@@ -953,7 +953,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
         target.add(table);
         target.add(getPageBase().getFeedbackPanel());
-
     }
 
     public void resetSearchModel(){

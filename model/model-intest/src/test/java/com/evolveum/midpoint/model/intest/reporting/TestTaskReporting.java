@@ -414,7 +414,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
 
         when();
         var taskBefore = addTask(TASK_RECONCILIATION_PARTITIONED_MULTINODE, result);
-        waitForTaskTreeNextFinishedRun(taskBefore.asObjectable(), 20000, result);
+        waitForTaskTreeNextFinishedRun(taskBefore.asObjectable(), 60000, result);
 
         then();
         assertTaskTree(TASK_RECONCILIATION_PARTITIONED_MULTINODE.oid, "reconciliation task after")

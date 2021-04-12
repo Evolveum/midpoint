@@ -6,14 +6,9 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.task;
 
-import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.stringMapper;
-
-import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
@@ -31,37 +26,37 @@ public class QTaskMapping
                 TaskType.class, QTask.class);
 
         addItemMapping(TaskType.F_TASK_IDENTIFIER, stringMapper(path(q -> q.taskIdentifier)));
-        addItemMapping(TaskType.F_BINDING, EnumItemFilterProcessor.mapper(path(q -> q.binding)));
+        addItemMapping(TaskType.F_BINDING, enumMapper(path(q -> q.binding)));
         addItemMapping(TaskType.F_CATEGORY, stringMapper(path(q -> q.category)));
         addItemMapping(TaskType.F_COMPLETION_TIMESTAMP,
-                TimestampItemFilterProcessor.mapper(path(q -> q.completionTimestamp)));
+                timestampMapper(path(q -> q.completionTimestamp)));
         addItemMapping(TaskType.F_EXECUTION_STATUS,
-                EnumItemFilterProcessor.mapper(path(q -> q.executionStatus)));
+                enumMapper(path(q -> q.executionStatus)));
         // TODO byte[] fullResult mapping - probably does not make sense?
         addItemMapping(TaskType.F_HANDLER_URI,
-                UriItemFilterProcessor.mapper(path(q -> q.handlerUriId)));
+                uriMapper(path(q -> q.handlerUriId)));
         addItemMapping(TaskType.F_LAST_RUN_FINISH_TIMESTAMP,
-                TimestampItemFilterProcessor.mapper(path(q -> q.lastRunFinishTimestamp)));
+                timestampMapper(path(q -> q.lastRunFinishTimestamp)));
         addItemMapping(TaskType.F_LAST_RUN_START_TIMESTAMP,
-                TimestampItemFilterProcessor.mapper(path(q -> q.lastRunStartTimestamp)));
+                timestampMapper(path(q -> q.lastRunStartTimestamp)));
         addItemMapping(TaskType.F_NODE, stringMapper(path(q -> q.node)));
-        addItemMapping(TaskType.F_OBJECT_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(TaskType.F_OBJECT_REF, SqaleTableMapping.refMapper(
                 path(q -> q.objectRefTargetOid),
                 path(q -> q.objectRefTargetType),
                 path(q -> q.objectRefRelationId)));
-        addItemMapping(TaskType.F_OWNER_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(TaskType.F_OWNER_REF, SqaleTableMapping.refMapper(
                 path(q -> q.ownerRefTargetOid),
                 path(q -> q.ownerRefTargetType),
                 path(q -> q.ownerRefRelationId)));
         addItemMapping(TaskType.F_PARENT, stringMapper(path(q -> q.parent)));
         addItemMapping(TaskType.F_RECURRENCE,
-                EnumItemFilterProcessor.mapper(path(q -> q.recurrence)));
+                enumMapper(path(q -> q.recurrence)));
         addItemMapping(TaskType.F_RESULT_STATUS,
-                EnumItemFilterProcessor.mapper(path(q -> q.resultStatus)));
+                enumMapper(path(q -> q.resultStatus)));
         addItemMapping(TaskType.F_THREAD_STOP_ACTION,
-                EnumItemFilterProcessor.mapper(path(q -> q.threadStopAction)));
+                enumMapper(path(q -> q.threadStopAction)));
         addItemMapping(TaskType.F_WAITING_REASON,
-                EnumItemFilterProcessor.mapper(path(q -> q.waitingReason)));
+                enumMapper(path(q -> q.waitingReason)));
         // TODO dependentTaskIdentifiers String[] mapping not supported yet
     }
 

@@ -13,7 +13,6 @@ import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableMap;
@@ -25,6 +24,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.impl.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.impl.query.*;
+import com.evolveum.midpoint.prism.impl.xnode.PrimitiveXNodeImpl;
+import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
@@ -62,7 +63,8 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
         @Override
         public ObjectFilter create(PrismContainerDefinition<?> parentDef, ComplexTypeDefinition typeDef, ItemPath path, ItemDefinition<?> definition,
                 QName matchingRule, SubfilterOrValueContext subfilterOrValue) throws SchemaException {
-            Preconditions.checkArgument(subfilterOrValue != null);
+            schemaCheck(definition != null, "Path %s is not property", path);
+            schemaCheck(subfilterOrValue != null, "Value or subfilter is missing");
             schemaCheck(definition instanceof PrismPropertyDefinition<?>, "Definition %s is not property", definition);
             PrismPropertyDefinition<?> propDef = (PrismPropertyDefinition<?>) definition;
 
@@ -72,7 +74,7 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
                 ArrayList<Object> values = new ArrayList<>();
                 for(SingleValueContext value : valueSet.values) {
                     schemaCheck(value.literalValue() != null, "Only literal value is supported if multiple values are enumerated");
-                    values.add(parseLiteral(propDef.getTypeClass(), value.literalValue()));
+                    values.add(parseLiteral(propDef, value.literalValue()));
                 }
                 return valuesFilter(propDef, path, matchingRule, values);
             }
@@ -82,9 +84,10 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
             if (valueSpec.path() != null) {
                 ItemPath rightPath = path(parentDef, valueSpec.path());
                 PrismPropertyDefinition<?> rightDef = findDefinition(parentDef, typeDef, rightPath, PrismPropertyDefinition.class);
+                schemaCheck(rightDef != null, "Path %s does not reference property", rightPath);
                 return propertyFilter(propDef, path, matchingRule, rightPath, rightDef);
             } else if (valueSpec.literalValue() != null) {
-                Object parsedValue = parseLiteral(propDef.getTypeClass(), valueSpec.literalValue());
+                Object parsedValue = parseLiteral(propDef, valueSpec.literalValue());
                 return valueFilter(propDef, path, matchingRule, parsedValue);
             }
             throw new IllegalStateException();
@@ -313,6 +316,22 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
 
     public PrismQueryLanguageParserImpl(PrismContext context) {
         this(context, ImmutableMap.of());
+    }
+
+    public Object parseLiteral(PrismPropertyDefinition<?> propDef, LiteralValueContext literalValue) {
+        if(propDef.getTypeClass() != null) {
+            // shortcut
+            return parseLiteral(propDef.getTypeClass(), literalValue);
+        }
+        PrismNamespaceContext nsCtx = PrismNamespaceContext.from(namespaceContext);
+        RootXNodeImpl xnode = new RootXNodeImpl(propDef.getItemName(), nsCtx);
+        xnode.setSubnode(new PrimitiveXNodeImpl<>(extractTextForm(literalValue), nsCtx));
+        try {
+            PrismPropertyValue<?> itemValue = context.parserFor(xnode).definition(propDef).parseItemValue();
+            return itemValue.getRealValue();
+        } catch (SchemaException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
     }
 
     protected <T> Collection<T> requireLiterals(Class<T> type, String filterName, SubfilterOrValueContext subfilterOrValue) throws SchemaException {

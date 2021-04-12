@@ -54,7 +54,7 @@ public class MockParallelTaskHandler implements TaskHandler {
         private boolean hasRun = false;
         private boolean hasExited = false;
         private final long duration;
-        private static final long STEP = 100;
+        private static final long STEP = 10;
 
         MyLightweightTaskHandler(Integer duration) {
             this.duration = duration != null ? duration : 86400L * 1000L * 365000L; // 1000 years
@@ -72,8 +72,9 @@ public class MockParallelTaskHandler implements TaskHandler {
             //assertTrue("Subtask is not in Running LAT list of parent", isAmongRunningChildren(task, parentTask));
 
             while (System.currentTimeMillis() < end && task.canRun()) {
-                // hoping to get ConcurrentModificationException when setting operation result here (MID-5113)
-                task.getLightweightTaskParent().getUpdatedOrClonedTaskObject();
+                // Check for some concurrency issues - although not related to the operation result, because
+                // it is inherently not thread-safe.
+                task.getLightweightTaskParent().getRawTaskObjectClonedIfNecessary();
                 IterationItemInformation info = new IterationItemInformation("o1", null, UserType.COMPLEX_TYPE, "oid1");
                 Operation op = task.recordIterativeOperationStart(info);
                 try {
@@ -88,6 +89,9 @@ public class MockParallelTaskHandler implements TaskHandler {
                     op.failed(e);
                     break;
                 }
+                OperationResult result = task.getResult();
+                result.createSubresult("test");
+                result.summarize();
             }
             hasExited = true;
         }

@@ -717,30 +717,25 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     //region Task object as a whole
 
     /**
-     * Returns backing task prism object.
-     *
-     * *AVOID* use of this method if possible:
-     *
-     * - for regular tasks it has to update operation result in the prism object (might be costly)
-     * - for running tasks it provides a clone of the actual prism object (even more costly and leads to lost changes
-     *   if the returned value is changed)
+     * Returns backing task prism object without updating with current operation result.
+     * If the task is running, a clone is returned.
      */
     @NotNull
-    PrismObject<TaskType> getUpdatedOrClonedTaskObject();
+    PrismObject<TaskType> getRawTaskObjectClonedIfNecessary();
 
     /**
-     * Returns backing task prism object, provided that task is not running.
-     * Beware that the task operation result is updated (might be costly).
-     * @throws IllegalStateException if task is running
+     * Returns CLONE of backing task prism object without updating with current operation result.
+     */
+    @NotNull
+    PrismObject<TaskType> getRawTaskObjectClone();
+
+    /**
+     * Returns backing task prism object UPDATED with current operation result.
+     *
+     * Assumes that task is not running. (Otherwise IllegalStateException is thrown.)
      */
     @NotNull
     PrismObject<TaskType> getUpdatedTaskObject();
-
-    /**
-     * Returns cloned task object.
-     */
-    @NotNull
-    PrismObject<TaskType> getClonedTaskObject();
 
     /**
      * Returns a reference to the task prism.

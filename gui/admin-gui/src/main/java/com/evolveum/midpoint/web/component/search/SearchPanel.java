@@ -105,7 +105,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     private static final String ID_ADVANCED_GROUP = "advancedGroup";
     private static final String ID_MORE_GROUP = "moreGroup";
     private static final String ID_ADVANCED_AREA = "advancedArea";
-    private static final String ID_QUERY_DSL_FIELD = "queryDslField";
+    private static final String ID_AXIOM_QUERY_FIELD = "axiomQueryField";
     private static final String ID_ADVANCED_CHECK = "advancedCheck";
     private static final String ID_ADVANCED_ERROR_GROUP = "advancedErrorGroup";
     private static final String ID_ADVANCED_ERROR = "advancedError";
@@ -341,7 +341,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         plusIcon.setColor("white");
         builder.appendLayerIcon(getIconLabelByModeModel(), plusIcon, LayeredIconCssStyle.BOTTOM_RIGHT_STYLE);
         AjaxCompositedIconSubmitButton searchButtonBeforeDropdown = new AjaxCompositedIconSubmitButton(ID_SEARCH_BUTTON_BEFORE_DROPDOWN, builder.build(),
-                getPageBase().createStringResource("MainObjectListPanel.createReport")) {
+                getPageBase().createStringResource("SearchPanel.search")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -357,7 +357,9 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         };
 
         IModel<String> buttonRightPaddingModel = () -> {
-            String style = "padding-right: " + (SearchBoxModeType.BASIC.equals(getModelObject().getSearchType()) ? "23" : "16") + "px;";
+            boolean isLongButton = SearchBoxModeType.BASIC.equals(getModelObject().getSearchType())
+                    || SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchType());
+            String style = "padding-right: " + (isLongButton ? "23" : "16") + "px;";
             if (getModelObject().getAllowedSearchType().size() == 1) {
                 style = style + "border-top-right-radius: 3px; border-bottom-right-radius: 3px;";
             }
@@ -372,7 +374,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
             @Override
             public boolean isEnabled() {
                 if (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType())
-                        || SearchBoxModeType.QUERY_DSL.equals(getModelObject().getSearchType())) {
+                        || SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchType())) {
                     Search search = getModelObject();
                     PrismContext ctx = getPageBase().getPrismContext();
                     return search.isAdvancedQueryValid(ctx);
@@ -489,7 +491,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         searchItems.add(searchItem);
 
         searchItem = new InlineMenuItem(
-                createStringResource("SearchPanel.queryDsl")) {
+                createStringResource("SearchPanel.axiomQuery")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -500,7 +502,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        searchTypeUpdated(target, SearchBoxModeType.QUERY_DSL);
+                        searchTypeUpdated(target, SearchBoxModeType.AXIOM_QUERY);
                     }
                 };
             }
@@ -508,7 +510,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
             @Override
             public IModel<Boolean> getVisible() {
                 return Model.of(WebModelServiceUtils.isEnableExperimentalFeature(getPageBase())
-                        && getModelObject().isAllowedSearchMode(SearchBoxModeType.QUERY_DSL));
+                        && getModelObject().isAllowedSearchMode(SearchBoxModeType.AXIOM_QUERY));
             }
         };
         searchItems.add(searchItem);
@@ -566,7 +568,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         fullTextContainer.add(fullTextInput);
 
         WebMarkupContainer advancedGroup = new WebMarkupContainer(ID_ADVANCED_GROUP);
-        advancedGroup.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED, SearchBoxModeType.QUERY_DSL));
+        advancedGroup.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED, SearchBoxModeType.AXIOM_QUERY));
         advancedGroup.add(AttributeAppender.append("class", createAdvancedGroupStyle()));
         advancedGroup.setOutputMarkupId(true);
         form.add(advancedGroup);
@@ -596,7 +598,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         advancedArea.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED));
         advancedGroup.add(advancedArea);
 
-        TextField<String> queryDslField = new TextField<>(ID_QUERY_DSL_FIELD,
+        TextField<String> queryDslField = new TextField<>(ID_AXIOM_QUERY_FIELD,
                 new PropertyModel<>(getModel(), Search.F_DSL_QUERY));
         queryDslField.add(new AjaxFormComponentUpdatingBehavior("keyup") {
 
@@ -610,12 +612,12 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                 super.updateAjaxAttributes(attributes);
 
                 attributes.setThrottlingSettings(
-                        new ThrottlingSettings(ID_QUERY_DSL_FIELD, Duration.milliseconds(500), true));
+                        new ThrottlingSettings(ID_AXIOM_QUERY_FIELD, Duration.milliseconds(500), true));
                 attributes.setChannel(new AjaxChannel("Drop", AjaxChannel.Type.DROP));
             }
         });
-        queryDslField.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertQueryDsl")));
-        queryDslField.add(createVisibleBehaviour(SearchBoxModeType.QUERY_DSL));
+        queryDslField.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertAxiomQuery")));
+        queryDslField.add(createVisibleBehaviour(SearchBoxModeType.AXIOM_QUERY));
         advancedGroup.add(queryDslField);
 
         WebMarkupContainer advancedErrorGroup = new WebMarkupContainer(ID_ADVANCED_ERROR_GROUP);
@@ -651,8 +653,8 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                     return "Full";
                 } else if (SearchBoxModeType.OID.equals(getModelObject().getSearchType())) {
                     return "Oid";
-                } else if (SearchBoxModeType.QUERY_DSL.equals(getModelObject().getSearchType())) {
-                    return "DSL";
+                } else if (SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchType())) {
+                    return "Query";
                 } else {
                     return "Basic";
                 }

@@ -26,13 +26,19 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.MConnector;
+import com.evolveum.midpoint.repo.sqale.qmodel.connector.MConnectorHost;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnector;
+import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHost;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MGenericObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.*;
+import com.evolveum.midpoint.repo.sqale.qmodel.report.MReport;
+import com.evolveum.midpoint.repo.sqale.qmodel.report.MReportData;
+import com.evolveum.midpoint.repo.sqale.qmodel.report.QReport;
+import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportData;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.MResource;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResource;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.MShadow;
@@ -567,6 +573,75 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         assertThat(row.connectorHostRefTargetType).isEqualTo(MObjectType.CONNECTOR_HOST);
         assertCachedUri(row.connectorHostRefRelationId, connectorHostRelation);
         assertThat(row.targetSystemTypes).containsExactlyInAnyOrder("type1", "type2");
+    }
+
+    @Test
+    public void test912ConnectorHost() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("connector host");
+        String objectName = "conn-host" + getTestNumber();
+        ConnectorHostType connectorHost = new ConnectorHostType(prismContext)
+                .name(objectName)
+                .hostname("hostname")
+                .port("port");
+
+        when("adding it to the repository");
+        repositoryService.addObject(connectorHost.asPrismObject(), null, result);
+
+        then("it is stored and relevant attributes are in columns");
+        assertThatOperationResult(result).isSuccess();
+
+        MConnectorHost row = selectObjectByOid(QConnectorHost.class, connectorHost.getOid());
+        assertThat(row.hostname).isEqualTo("hostname");
+        assertThat(row.port).isEqualTo("port");
+    }
+
+    @Test
+    public void test913Report() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("report");
+        String objectName = "report" + getTestNumber();
+        ReportType report = new ReportType(prismContext)
+                .name(objectName)
+                .jasper(new JasperReportEngineConfigurationType()
+                        .orientation(OrientationType.LANDSCAPE)
+                        .parent(true));
+
+        when("adding it to the repository");
+        repositoryService.addObject(report.asPrismObject(), null, result);
+
+        then("it is stored and relevant attributes are in columns");
+        assertThatOperationResult(result).isSuccess();
+
+        MReport row = selectObjectByOid(QReport.class, report.getOid());
+        assertThat(row.orientation).isEqualTo(OrientationType.LANDSCAPE);
+        assertThat(row.parent).isTrue();
+    }
+
+    @Test
+    public void test914ReportData() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("report data");
+        String objectName = "report-data" + getTestNumber();
+        UUID reportOid = UUID.randomUUID();
+        QName reportRelation = QName.valueOf("{https://random.org/ns}report-rel");
+        ReportDataType report = new ReportDataType(prismContext)
+                .name(objectName)
+                .reportRef(reportOid.toString(), ReportType.COMPLEX_TYPE, reportRelation);
+
+        when("adding it to the repository");
+        repositoryService.addObject(report.asPrismObject(), null, result);
+
+        then("it is stored and relevant attributes are in columns");
+        assertThatOperationResult(result).isSuccess();
+
+        MReportData row = selectObjectByOid(QReportData.class, report.getOid());
+        assertThat(row.reportRefTargetOid).isEqualTo(reportOid);
+        assertThat(row.reportRefTargetType).isEqualTo(MObjectType.REPORT);
+        assertCachedUri(row.reportRefRelationId, reportRelation);
     }
 
     @Test

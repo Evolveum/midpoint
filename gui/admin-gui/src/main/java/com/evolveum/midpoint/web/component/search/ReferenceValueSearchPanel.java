@@ -73,7 +73,7 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
         return new LoadableModel<String>() {
             @Override
             protected String load() {
-                return WebComponentUtil.getReferenceObjectTextValue(getModelObject(), getPageBase());
+                return WebComponentUtil.getReferenceObjectTextValue(getModelObject(), referenceDef, getPageBase());
             }
         };
     }

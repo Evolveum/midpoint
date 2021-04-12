@@ -8,11 +8,9 @@ package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAccessCertificationDefinitionType.*;
 
-import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 
 /**
@@ -32,12 +30,12 @@ public class QAccessCertificationDefinitionMapping
         super(QAccessCertificationDefinition.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 AccessCertificationDefinitionType.class, QAccessCertificationDefinition.class);
 
-        addItemMapping(F_HANDLER_URI, UriItemFilterProcessor.mapper(path(q -> q.handlerUriId)));
+        addItemMapping(F_HANDLER_URI, uriMapper(path(q -> q.handlerUriId)));
         addItemMapping(F_LAST_CAMPAIGN_STARTED_TIMESTAMP,
-                TimestampItemFilterProcessor.mapper(path(q -> q.lastCampaignStartedTimestamp)));
+                timestampMapper(path(q -> q.lastCampaignStartedTimestamp)));
         addItemMapping(F_LAST_CAMPAIGN_CLOSED_TIMESTAMP,
-                TimestampItemFilterProcessor.mapper(path(q -> q.lastCampaignClosedTimestamp)));
-        addItemMapping(F_OWNER_REF, RefItemFilterProcessor.mapper(
+                timestampMapper(path(q -> q.lastCampaignClosedTimestamp)));
+        addItemMapping(F_OWNER_REF, SqaleTableMapping.refMapper(
                 path(q -> q.ownerRefTargetOid),
                 path(q -> q.ownerRefTargetType),
                 path(q -> q.ownerRefRelationId)));

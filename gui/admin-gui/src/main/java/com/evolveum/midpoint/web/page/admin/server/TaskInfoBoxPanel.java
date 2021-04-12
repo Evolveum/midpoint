@@ -11,8 +11,11 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -40,6 +43,8 @@ public class TaskInfoBoxPanel extends InfoBoxPanel<TaskInfoBoxType> {
 
         Label errorMessage = new Label(ID_ERROR_MESSAGE, new PropertyModel<>(model, TaskInfoBoxType.F_ERROR_MESSAGE));
         parentInfoBox.add(errorMessage);
+        errorMessage.add(AttributeAppender.append("title", new PropertyModel<>(model, TaskInfoBoxType.F_ERROR_MESSAGE)));
+        errorMessage.add(new TooltipBehavior());
 
 
         if (linkPage != null) {

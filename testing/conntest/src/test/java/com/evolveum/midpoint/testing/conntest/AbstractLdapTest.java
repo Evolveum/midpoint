@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.testing.conntest;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayXml;
+
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.LDAP_CONNECTOR_TYPE;
@@ -349,6 +351,9 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
             lsof.rememberBaseline();
             displayDumpable("lsof baseline", lsof);
         }
+
+        resource = getObject(ResourceType.class, getResourceOid());
+        displayXml("Resource after test connection", resource);
     }
 
     @Test

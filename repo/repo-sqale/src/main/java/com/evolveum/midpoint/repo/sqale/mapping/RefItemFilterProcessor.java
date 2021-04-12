@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale;
+package com.evolveum.midpoint.repo.sqale.mapping;
 
 import java.util.List;
 import java.util.UUID;
@@ -19,11 +19,11 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
@@ -33,23 +33,12 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
  */
 public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
 
-    /**
-     * Returns the mapper function creating the ref-filter processor from query context.
-     */
-    public static ItemSqlMapper mapper(
-            Function<EntityPath<?>, UuidPath> rootToOidPath,
-            Function<EntityPath<?>, EnumPath<MObjectType>> rootToTypePath,
-            Function<EntityPath<?>, NumberPath<Integer>> rootToRelationIdPath) {
-        return new ItemSqlMapper(ctx -> new RefItemFilterProcessor(
-                ctx, rootToOidPath, rootToTypePath, rootToRelationIdPath));
-    }
-
     // only oidPath is strictly not-null, but then the filter better not ask for type or relation
     private final UuidPath oidPath;
     private final EnumPath<MObjectType> typePath;
     private final NumberPath<Integer> relationIdPath;
 
-    private RefItemFilterProcessor(
+    public RefItemFilterProcessor(
             SqlQueryContext<?, ?, ?> context,
             Function<EntityPath<?>, UuidPath> rootToOidPath,
             Function<EntityPath<?>, EnumPath<MObjectType>> rootToTypePath,

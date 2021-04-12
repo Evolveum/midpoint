@@ -242,7 +242,8 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
     @Override
     public boolean isFatalException(Throwable ex) {
-        return false;
+        // by default, any exception is fatal, unless specified otherwise (not yet implemented)
+        return true;
     }
 
     @Override

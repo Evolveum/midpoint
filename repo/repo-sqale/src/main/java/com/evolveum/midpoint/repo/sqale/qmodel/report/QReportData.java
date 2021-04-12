@@ -29,7 +29,7 @@ public class QReportData extends QObject<MReportData> {
     public static final ColumnMetadata REPORT_REF_TARGET_OID =
             ColumnMetadata.named("reportRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata REPORT_REF_TARGET_TYPE =
-            ColumnMetadata.named("reportRef_targetType").ofType(Types.INTEGER);
+            ColumnMetadata.named("reportRef_targetType").ofType(Types.OTHER);
     public static final ColumnMetadata REPORT_REF_RELATION_ID =
             ColumnMetadata.named("reportRef_relation_id").ofType(Types.INTEGER);
 

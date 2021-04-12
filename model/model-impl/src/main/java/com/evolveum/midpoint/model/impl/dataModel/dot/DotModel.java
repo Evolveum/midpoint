@@ -215,7 +215,11 @@ public class DotModel {
 
     private void showNodesIfNeeded(StringBuilder sb, int indent, Set<DataItem> itemsShown, List<DataItem> items) {
         for (DataItem item : items) {
-            showNodeIfNeeded(sb, indent, itemsShown, item);
+            if (item != null) {
+                showNodeIfNeeded(sb, indent, itemsShown, item);
+            } else {
+                // a warning was probably already issued
+            }
         }
     }
 

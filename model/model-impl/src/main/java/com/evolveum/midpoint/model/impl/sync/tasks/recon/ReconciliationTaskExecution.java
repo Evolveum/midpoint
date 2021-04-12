@@ -43,6 +43,7 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
@@ -193,8 +194,15 @@ public class ReconciliationTaskExecution
         taskHandler.auditHelper.audit(record, null, localCoordinatorTask, opResult);
     }
 
-    private PrismObject<ResourceType> getResourceObject() {
-        return targetInfo.resource.asPrismObject();
+    /**
+     * Can return null in case of exception, i.e. when targetInfo is not set.
+     */
+    @Nullable private PrismObject<ResourceType> getResourceObject() {
+        if (targetInfo != null) {
+            return targetInfo.resource.asPrismObject();
+        } else {
+            return null;
+        }
     }
 
     public @NotNull Stage getStage() {

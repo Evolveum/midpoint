@@ -275,14 +275,12 @@ public class JobExecutor implements InterruptableJob {
             return;
         }
 
-        try {
-            LOGGER.debug("Unscheduling non-ready task {}", task);
-            context.getScheduler().unscheduleJob(context.getTrigger().getKey());
-            throw new StopJobException(WARNING, "Task is not in READY state (its state is {}), exiting its execution after "
-                    + "removed the Quartz trigger. Task = {}", null, task.getSchedulingState(), task);
-        } catch (Throwable t) {
-            throw new StopJobException(UNEXPECTED_ERROR, "Couldn't unschedule job for a non-READY task {}", t, task);
-        }
+        // We intentionally do not remove the Quartz trigger, as the task could be re-executed later in the correct state.
+        // (On the other hand this could mean accumulation of warning messages, if Quartz re-attempts to run this task.
+        // But that should resolve automatically on the next task synchronization, e.g. when a node is started.)
+
+        throw new StopJobException(WARNING, "A non-ready task %s (state is e:%s/s:%s) was attempted to execute. "
+                + "Exiting the execution.", null, task, task.getExecutionState(), task.getSchedulingState());
     }
 
     private void fetchTheTask(String oid, OperationResult result) throws StopJobException {
