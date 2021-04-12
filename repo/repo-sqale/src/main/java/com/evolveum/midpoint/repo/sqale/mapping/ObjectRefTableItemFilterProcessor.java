@@ -16,7 +16,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 
 /**
  * Filter processor for reference item paths resolved via {@link QReference} tables.

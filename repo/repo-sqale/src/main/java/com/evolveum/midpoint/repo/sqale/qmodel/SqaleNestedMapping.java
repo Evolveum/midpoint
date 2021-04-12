@@ -12,11 +12,11 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqale.mapping.ObjectRefTableItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.mapping.item.NestedMappingResolver;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.NestedMappingResolver;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
@@ -48,7 +48,6 @@ public class SqaleNestedMapping<S, Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     /** Nested mapping adaptation for repo-sqale. */
-    @Override
     public <N> SqaleNestedMapping<N, Q, R> addNestedMapping(
             @NotNull ItemName itemName, @NotNull Class<N> nestedSchemaType) {
         SqaleNestedMapping<N, Q, R> nestedMapping =

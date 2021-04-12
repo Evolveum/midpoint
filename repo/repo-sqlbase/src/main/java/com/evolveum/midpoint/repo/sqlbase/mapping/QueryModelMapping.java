@@ -20,9 +20,6 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemRelationResolver;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.NestedMappingResolver;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.util.QNameUtil;
 
@@ -153,18 +150,5 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
      */
     public final @Nullable ItemRelationResolver getRelationResolver(ItemName itemName) {
         return QNameUtil.getByQName(itemRelationResolvers, itemName);
-    }
-
-    /**
-     * Creates relation resolver for nested mapping and returns the mapping so the nested items
-     * can be mapped in a fluent matter.
-     */
-    public <N> QueryModelMapping<N, Q, R> addNestedMapping(
-            @NotNull ItemName itemName,
-            @NotNull Class<N> nestedSchemaType) {
-        QueryModelMapping<N, Q, R> nestedMapping =
-                new QueryModelMapping<>(nestedSchemaType, queryType());
-        addRelationResolver(itemName, new NestedMappingResolver<>(nestedMapping));
-        return nestedMapping;
     }
 }

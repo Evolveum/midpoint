@@ -18,6 +18,7 @@ import com.evolveum.midpoint.repo.sqale.mapping.ObjectRefTableItemFilterProcesso
 import com.evolveum.midpoint.repo.sqale.mapping.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.delta.*;
+import com.evolveum.midpoint.repo.sqale.mapping.item.NestedMappingResolver;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
@@ -25,10 +26,9 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.NestedMappingResolver;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
@@ -49,7 +49,6 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /** Nested mapping adaptation for repo-sqale. */
-    @Override
     public <N> SqaleNestedMapping<N, Q, R> addNestedMapping(
             @NotNull ItemName itemName, @NotNull Class<N> nestedSchemaType) {
         SqaleNestedMapping<N, Q, R> nestedMapping =

@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 
 /**
  * Declarative information how an item (from schema/prism world) is to be processed

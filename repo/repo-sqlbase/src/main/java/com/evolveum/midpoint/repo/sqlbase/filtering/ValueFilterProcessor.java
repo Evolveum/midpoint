@@ -18,8 +18,8 @@ import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemRelationResolver;
 
 /**
  * Filter processor that resolves item path and then constructs an SQL condition for it.
