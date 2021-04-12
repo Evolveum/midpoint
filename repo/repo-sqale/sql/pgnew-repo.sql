@@ -28,6 +28,7 @@ CREATE TYPE ContainerType AS ENUM (
     'ACCESS_CERTIFICATION_WORK_ITEM',
     'ASSIGNMENT',
     'INDUCEMENT',
+    'LOOKUP_TABLE_ROW',
     'OPERATION_EXECUTION',
     'TRIGGER');
 
@@ -959,18 +960,19 @@ ALTER TABLE m_lookup_table ADD CONSTRAINT m_lookup_table_name_norm_key UNIQUE (n
 -- Represents LookupTableRowType, see also m_lookup_table above
 CREATE TABLE m_lookup_table_row (
     owner_oid UUID NOT NULL REFERENCES m_lookup_table(oid) ON DELETE CASCADE,
-    row_id INTEGER NOT NULL,
-    row_key TEXT/*VARCHAR(255)*/,
+    containerType ContainerType GENERATED ALWAYS AS ('LOOKUP_TABLE_ROW') STORED,
+    key TEXT/*VARCHAR(255)*/,
+    value TEXT/*VARCHAR(255)*/,
     label_orig TEXT/*VARCHAR(255)*/,
     label_norm TEXT/*VARCHAR(255)*/,
-    row_value TEXT/*VARCHAR(255)*/,
     lastChangeTimestamp TIMESTAMPTZ,
 
-    PRIMARY KEY (owner_oid, row_id)
-);
+    PRIMARY KEY (owner_oid, cid)
+)
+    INHERITS(m_container);
 
 ALTER TABLE m_lookup_table_row
-    ADD CONSTRAINT m_lookup_table_row_owner_oid_row_key_key UNIQUE (owner_oid, row_key);
+    ADD CONSTRAINT m_lookup_table_row_owner_oid_key_key UNIQUE (owner_oid, key);
 
 -- Represents ConnectorType, see https://wiki.evolveum.com/display/midPoint/Identity+Connectors
 CREATE TABLE m_connector (

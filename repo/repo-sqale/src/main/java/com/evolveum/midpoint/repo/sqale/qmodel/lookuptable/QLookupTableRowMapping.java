@@ -8,7 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.lookuptable;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType.*;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 
@@ -16,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
  * Mapping between {@link QLookupTableRow} and {@link LookupTableRowType}.
  */
 public class QLookupTableRowMapping
-        extends SqaleTableMapping<LookupTableRowType, QLookupTableRow, MLookupTableRow> {
+        extends QContainerMapping<LookupTableRowType, QLookupTableRow, MLookupTableRow> {
 
     public static final String DEFAULT_ALIAS_NAME = "ltr";
 
@@ -26,10 +26,10 @@ public class QLookupTableRowMapping
         super(QLookupTableRow.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 LookupTableRowType.class, QLookupTableRow.class);
 
-        addItemMapping(F_KEY, stringMapper(path(q -> q.rowKey)));
+        addItemMapping(F_KEY, stringMapper(path(q -> q.key)));
         addItemMapping(F_LABEL, polyStringMapper(
                 path(q -> q.labelOrig), path(q -> q.labelNorm)));
-        addItemMapping(F_VALUE, stringMapper(path(q -> q.rowValue)));
+        addItemMapping(F_VALUE, stringMapper(path(q -> q.value)));
         addItemMapping(F_LAST_CHANGE_TIMESTAMP,
                 timestampMapper(path(q -> q.lastChangeTimestamp)));
     }
