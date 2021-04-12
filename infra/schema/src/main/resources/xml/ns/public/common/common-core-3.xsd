@@ -5142,6 +5142,11 @@
                     <a:name>user-details</a:name>
                     <a:form>expanded</a:form>
                 </a:diagram>
+                <a:diagram>
+                    <a:name>user-overview</a:name>
+                    <a:form>expanded</a:form>
+                    <a:subitemInclusion>exclude</a:subitemInclusion>
+                </a:diagram>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -5175,6 +5180,10 @@
                                 <a:displayName>UserType.fullName</a:displayName>
                                 <a:displayOrder>100</a:displayOrder>
                                 <a:emphasized>true</a:emphasized>
+                                <a:diagram>
+                                    <a:name>user-overview</a:name>
+                                    <a:inclusion>include</a:inclusion>
+                                </a:diagram>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -5203,6 +5212,10 @@
                                 <a:displayName>UserType.givenName</a:displayName>
                                 <a:displayOrder>110</a:displayOrder>
                                 <a:emphasized>true</a:emphasized>
+                                <a:diagram>
+                                    <a:name>user-overview</a:name>
+                                    <a:inclusion>include</a:inclusion>
+                                </a:diagram>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -5231,6 +5244,10 @@
                                 <a:displayName>UserType.familyName</a:displayName>
                                 <a:displayOrder>120</a:displayOrder>
                                 <a:emphasized>true</a:emphasized>
+                                <a:diagram>
+                                    <a:name>user-overview</a:name>
+                                    <a:inclusion>include</a:inclusion>
+                                </a:diagram>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

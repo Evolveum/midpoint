@@ -128,6 +128,11 @@ public class TestSchemaRegistry extends AbstractUnitTest {
 
         PrismPropertyDefinition<PolyString> givenNameDef = userDefinition.findPropertyDefinition(UserType.F_GIVEN_NAME);
         assertNotNull("No givenName definition", givenNameDef);
+        List<ItemDiagramSpecification> diagrams = givenNameDef.getDiagrams();
+        assertNotNull("No diagrams in user definition", diagrams);
+        assertEquals("Unexpected number of diagrams in user definition", 1, diagrams.size());
+        assertEquals("Unexpected name of diagram in user definition", "user-overview", diagrams.get(0).getName());
+        assertEquals("Unexpected name of diagram in user definition", DiagramElementInclusionType.INCLUDE, diagrams.get(0).getInclusion());
 
         PrismPropertyDefinition<String> preferredLanguageDef = userDefinition.findPropertyDefinition(UserType.F_PREFERRED_LANGUAGE);
         assertNotNull("No preferredLanguage definition", preferredLanguageDef);
@@ -138,9 +143,9 @@ public class TestSchemaRegistry extends AbstractUnitTest {
         assertEquals("Wrong type in valueEnumerationRef in preferredLanguage definition",
                 LookupTableType.COMPLEX_TYPE, preferredLanguageValueEnumerationRef.getTargetType());
 
-        List<ItemDiagramSpecification> diagrams = userDefinition.getDiagrams();
+        diagrams = userDefinition.getDiagrams();
         assertNotNull("No diagrams in user definition", diagrams);
-        assertEquals("Unexpected number of diagrams in user definition", 2, diagrams.size());
+        assertEquals("Unexpected number of diagrams in user definition", 3, diagrams.size());
         assertEquals("Unexpected name of diagram in user definition", "user-shadow-resource", diagrams.get(0).getName());
         assertEquals("Unexpected form of diagram in user definition", DiagramElementFormType.COLLAPSED, diagrams.get(0).getForm());
         assertEquals("Unexpected form of diagram in user definition", DiagramElementInclusionType.INCLUDE, diagrams.get(0).getInclusion());
