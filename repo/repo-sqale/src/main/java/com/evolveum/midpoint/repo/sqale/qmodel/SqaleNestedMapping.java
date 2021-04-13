@@ -39,6 +39,7 @@ public class SqaleNestedMapping<S, Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     // TODO will the version for RefItemFilterProcessor be useful too? Yes, if it needs relation mapping too!
+
     public final SqaleNestedMapping<S, Q, R> addRefMapping(
             @NotNull QName itemName, @NotNull QObjectReferenceMapping qReferenceMapping) {
         ((QueryModelMapping<?, ?, ?>) this).addItemMapping(itemName,

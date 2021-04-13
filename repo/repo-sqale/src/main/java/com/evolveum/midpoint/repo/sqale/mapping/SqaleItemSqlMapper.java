@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
@@ -45,7 +46,7 @@ public class SqaleItemSqlMapper extends ItemSqlMapper {
     }
 
     /**
-     * Creates {@link ItemDeltaValueProcessor} based on this mapping.
+     * Creates {@link ItemDeltaProcessor} based on this mapping.
      * Provided {@link SqaleUpdateContext} is used to figure out the query paths when this is
      * executed (as the entity path instance is not yet available when the mapping is configured
      * in a declarative manner).

@@ -13,14 +13,14 @@ import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-public class RefItemDeltaProcessor extends ItemDeltaValueProcessor<ObjectReferenceType> {
+public class RefItemDeltaProcessor extends ItemDeltaValueProcessor<Referencable> {
 
     // only oidPath is strictly not-null, but then the filter better not ask for type or relation
     private final UuidPath oidPath;
@@ -49,17 +49,27 @@ public class RefItemDeltaProcessor extends ItemDeltaValueProcessor<ObjectReferen
 
     @Override
     public void process(ItemDelta<?, ?> modification) throws RepositoryException {
-        ObjectReferenceType ref = getAnyValue(modification);
+        Referencable ref = getAnyValue(modification);
 
         // See implementation comments in SinglePathItemDeltaProcessor#process for logic details.
         if (modification.isDelete() || ref == null) {
-            context.set(oidPath, null);
-            context.set(typePath, null);
-            context.set(relationIdPath, null);
+            delete();
         } else {
-            context.set(oidPath, UUID.fromString(ref.getOid()));
-            context.set(typePath, MObjectType.fromTypeQName(ref.getType()));
-            context.set(relationIdPath, context.processCacheableRelation(ref.getRelation()));
+            setValue(ref);
         }
+    }
+
+    @Override
+    public void setValue(Referencable value) {
+        context.set(oidPath, UUID.fromString(value.getOid()));
+        context.set(typePath, MObjectType.fromTypeQName(value.getType()));
+        context.set(relationIdPath, context.processCacheableRelation(value.getRelation()));
+    }
+
+    @Override
+    public void delete() {
+        context.set(oidPath, null);
+        context.set(typePath, null);
+        context.set(relationIdPath, null);
     }
 }

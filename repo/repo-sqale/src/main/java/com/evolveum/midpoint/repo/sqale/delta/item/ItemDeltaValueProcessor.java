@@ -43,4 +43,15 @@ public abstract class ItemDeltaValueProcessor<T> implements ItemDeltaProcessor {
         //noinspection unchecked
         return (T) realValue;
     }
+
+    /** Sets the database columns to reflect the provided real value. */
+    public void setRealValue(Object realValue) {
+        setValue(transformRealValue(realValue));
+    }
+
+    /** Sets the database columns to reflect the provided value (must be transformed if needed). */
+    public abstract void setValue(T value);
+
+    /** Resets the database columns, exposed for the needs of container processing. */
+    public abstract void delete();
 }

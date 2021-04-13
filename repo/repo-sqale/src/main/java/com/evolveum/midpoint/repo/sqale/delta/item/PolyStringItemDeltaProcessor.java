@@ -35,11 +35,21 @@ public class PolyStringItemDeltaProcessor extends ItemDeltaValueProcessor<PolySt
         // See implementation comments in SinglePathItemDeltaProcessor#process for logic details.
         PolyString polyString = getAnyValue(modification);
         if (modification.isDelete() || polyString == null) {
-            context.set(origPath, null);
-            context.set(normPath, null);
+            delete();
         } else {
-            context.set(origPath, polyString.getOrig());
-            context.set(normPath, polyString.getNorm());
+            setValue(polyString);
         }
+    }
+
+    @Override
+    public void setValue(PolyString value) {
+        context.set(origPath, value.getOrig());
+        context.set(normPath, value.getNorm());
+    }
+
+    @Override
+    public void delete() {
+        context.set(origPath, null);
+        context.set(normPath, null);
     }
 }

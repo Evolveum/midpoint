@@ -151,4 +151,9 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
     public final @Nullable ItemRelationResolver getRelationResolver(ItemName itemName) {
         return QNameUtil.getByQName(itemRelationResolvers, itemName);
     }
+
+    /** Returns copy of the map of the item mappings. */
+    public final @NotNull Map<QName, ItemSqlMapper> getItemMappings() {
+        return new LinkedHashMap<>(itemMappings);
+    }
 }

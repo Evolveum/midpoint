@@ -852,7 +852,35 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test200ChangeNestedMetadataAttribute()
+    public void test190ChangeOfNonPersistedAttributeWorksOk()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta with email change for user 1 using property add modification");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_DESCRIPTION).replace("Description only in serialized form.")
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getDescription()).isEqualTo("Description only in serialized form.");
+
+        and("externalized version is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+    }
+
+    @Test
+    public void test200ChangeNestedMetadataAttributeWithAddModification()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
@@ -914,6 +942,86 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.createChannelId).isNull();
     }
+
+    @Test
+    public void test202ChangeNestedMetadataAttributeWithReplaceModification()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with metadata/createChannel (multi-part path) change for task 1 adding value");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(ItemPath.create(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL))
+                .replace("any://channel")
+                .asObjectDelta(task1Oid);
+
+        and("task row previously having no value in createChannelId (is null)");
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(originalRow.createChannelId).isNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(taskObject.getMetadata().getCreateChannel()).isEqualTo("any://channel");
+
+        and("externalized column is updated");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertCachedUri(row.createChannelId, "any://channel");
+    }
+
+    // This one is questionable, it is technically a replace and perhaps should refuse to override
+    // existing container but if it works on prism level, it must work on repository level too.
+    @Test
+    public void test203SetNestedMetadataContainerWithAdd()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with metadata/createChannel (multi-part path) change for task 1 adding value");
+        UUID modifierRefOid = UUID.randomUUID();
+        QName modifierRelation = QName.valueOf("{https://random.org/ns}modifier-rel");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(ItemPath.create(ObjectType.F_METADATA)).add(new MetadataType()
+                        .modifyChannel("any://modify-channel")
+                        .modifierRef(modifierRefOid.toString(),
+                                UserType.COMPLEX_TYPE, modifierRelation))
+                .asObjectDelta(task1Oid);
+
+        and("task row previously having some value in metadata container");
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(originalRow.createChannelId).isNotNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(taskObject.getMetadata().getCreateChannel()).isNull();
+        assertThat(taskObject.getMetadata().getModifyChannel()).isEqualTo("any://modify-channel");
+        assertThat(taskObject.getMetadata().getModifierRef()).isNotNull(); // details checked in row
+
+        and("externalized column is updated");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.createChannelId).isNull(); // overwritten by complete container value
+        assertCachedUri(row.modifyChannelId, "any://modify-channel");
+        assertThat(row.modifierRefTargetOid).isEqualTo(modifierRefOid);
+        assertThat(row.modifierRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(row.modifierRefRelationId, modifierRelation);
+    }
+
+    // TODO replace of metadata to other values, then replace with null
 
     // TODO: "indexed" containers: .item(ItemPath.create(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
 

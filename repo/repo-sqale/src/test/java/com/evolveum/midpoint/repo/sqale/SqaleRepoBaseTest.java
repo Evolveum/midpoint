@@ -177,6 +177,9 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     }
 
     protected void assertCachedUri(Integer uriId, String uri) {
+        assertThat(uriId)
+                .withFailMessage("Unexpected NULL ID for cached URI %s", uri)
+                .isNotNull();
         assertThat(cachedUriById(uriId)).isEqualTo(uri);
     }
 
