@@ -14,11 +14,12 @@ import com.querydsl.core.types.dsl.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.sqale.mapping.ObjectRefTableItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.mapping.RefItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.mapping.UriItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.mapping.delta.*;
-import com.evolveum.midpoint.repo.sqale.mapping.item.NestedMappingResolver;
+import com.evolveum.midpoint.repo.sqale.delta.item.*;
+import com.evolveum.midpoint.repo.sqale.filtering.ObjectRefTableItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.UriItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.mapping.NestedMappingResolver;
+import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;

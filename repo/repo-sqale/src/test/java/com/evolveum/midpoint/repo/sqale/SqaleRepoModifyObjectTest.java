@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.testng.Assert.assertTrue;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -75,7 +76,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with email change for user 1 using property add modification");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .property(UserType.F_EMAIL_ADDRESS).add("new@email.com")
+                .item(UserType.F_EMAIL_ADDRESS).add("new@email.com")
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -109,7 +110,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with email change for user 1 using property add modification");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .property(UserType.F_EMAIL_ADDRESS).add("new2@email.com")
+                .item(UserType.F_EMAIL_ADDRESS).add("new2@email.com")
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -138,7 +139,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with email replace to null ('delete') for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .property(UserType.F_EMAIL_ADDRESS).replace()
+                .item(UserType.F_EMAIL_ADDRESS).replace()
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -166,7 +167,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with email change for user 1 using property replace modification");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .property(UserType.F_EMAIL_ADDRESS).replace("newer@email.com")
+                .item(UserType.F_EMAIL_ADDRESS).replace("newer@email.com")
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -194,7 +195,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta with email delete for user 1 using wrong previous value");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 // without value it would not be recognized as delete
-                .property(UserType.F_EMAIL_ADDRESS).delete("x")
+                .item(UserType.F_EMAIL_ADDRESS).delete("x")
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -225,7 +226,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta with email replace for user 1 (email has previous value)");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 // without value it would not be recognized as delete
-                .property(UserType.F_EMAIL_ADDRESS).replace("newest@email.com")
+                .item(UserType.F_EMAIL_ADDRESS).replace("newest@email.com")
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -252,7 +253,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta with email delete for user 1 using valid previous value");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 // without value it would not be recognized as delete
-                .property(UserType.F_EMAIL_ADDRESS).delete("newest@email.com")
+                .item(UserType.F_EMAIL_ADDRESS).delete("newest@email.com")
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -280,7 +281,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with last run start timestamp change for task 1 adding value");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .property(TaskType.F_LAST_RUN_START_TIMESTAMP)
+                .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
                 .add(MiscUtil.asXMLGregorianCalendar(1L))
                 .asObjectDelta(task1Oid);
 
@@ -316,7 +317,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with last run start timestamp replace to null ('delete') for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .property(TaskType.F_LAST_RUN_START_TIMESTAMP).replace()
+                .item(TaskType.F_LAST_RUN_START_TIMESTAMP).replace()
                 .asObjectDelta(task1Oid);
 
         and("task row previously having the timestamp value");
@@ -349,7 +350,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with display order change for service 1");
         ObjectDelta<ServiceType> delta = prismContext.deltaFor(ServiceType.class)
-                .property(ServiceType.F_DISPLAY_ORDER).replace(5)
+                .item(ServiceType.F_DISPLAY_ORDER).replace(5)
                 .asObjectDelta(service1Oid);
 
         when("modifyObject is called");
@@ -379,7 +380,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with display order replace to null for service 1");
         ObjectDelta<ServiceType> delta = prismContext.deltaFor(ServiceType.class)
-                .property(ServiceType.F_DISPLAY_ORDER).replace()
+                .item(ServiceType.F_DISPLAY_ORDER).replace()
                 .asObjectDelta(service1Oid);
 
         and("service row previously having the display order value");
@@ -412,7 +413,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with boolean dead change for shadow 1");
         ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
-                .property(ShadowType.F_DEAD).add(true)
+                .item(ShadowType.F_DEAD).add(true)
                 .asObjectDelta(shadow1Oid);
 
         and("shadow row previously having dead property empty (null)");
@@ -446,7 +447,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with dead boolean replace to null for shadow 1");
         ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
-                .property(ShadowType.F_DEAD).replace()
+                .item(ShadowType.F_DEAD).replace()
                 .asObjectDelta(shadow1Oid);
 
         and("shadow row previously having the display order value");
@@ -480,7 +481,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with polystring nickname change for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .property(UserType.F_NICK_NAME).add(new PolyString("nick-name"))
+                .item(UserType.F_NICK_NAME).add(new PolyString("nick-name"))
                 .asObjectDelta(user1Oid);
 
         and("user row previously having dead property empty (null)");
@@ -519,7 +520,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with polystring nickname replace with null for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .property(UserType.F_NICK_NAME).replace()
+                .item(UserType.F_NICK_NAME).replace()
                 .asObjectDelta(user1Oid);
 
         and("user row previously having the nickname value");
@@ -556,7 +557,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with object name change for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .property(ObjectType.F_NAME).add(new PolyString("user-1-changed"))
+                .item(ObjectType.F_NAME).add(new PolyString("user-1-changed"))
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -591,7 +592,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with object name replace with null for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .property(UserType.F_NAME).replace()
+                .item(UserType.F_NAME).replace()
                 .asObjectDelta(user1Oid);
 
         expect("modifyObject throws exception");
@@ -823,8 +824,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
         given("delta adding projection ref to non-existent shadow for user 1");
+        UUID refTargetOid = UUID.randomUUID();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .property(UserType.F_LINK_REF).add() // TODO invalid ref, random UUID
+                .item(UserType.F_LINK_REF).add(refTargetOid.toString())
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -855,9 +857,10 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
         MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
 
-        given("delta with execution status change for task 1 adding value");
+        given("delta with metadata/createChannel (multi-part path) change for task 1 adding value");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(TaskType.F_EXECUTION_STATUS).add(TaskExecutionStateType.SUSPENDED)
+                .item(ItemPath.create(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL))
+                .add("any://channel")
                 .asObjectDelta(task1Oid);
 
         when("modifyObject is called");
@@ -870,12 +873,12 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(taskObject.getExecutionStatus()).isEqualTo(TaskExecutionStateType.SUSPENDED);
+        assertThat(taskObject.getMetadata().getCreateChannel()).isEqualTo("any://channel");
 
         and("externalized column is updated");
         MTask row = selectObjectByOid(QTask.class, task1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
-        assertThat(row.executionStatus).isEqualTo(TaskExecutionStateType.SUSPENDED);
+        assertCachedUri(row.createChannelId, "any://channel");
     }
 
     @Test
@@ -883,15 +886,15 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
 
-        given("delta with execution status replace to null ('delete') for task 1");
+        given("delta with metadata/createChannel status replace to null ('delete') for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
                 .item(ItemPath.create(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL))
-                        .replace()
+                .replace()
                 .asObjectDelta(task1Oid);
 
-        and("task row previously having the handler URI value");
+        and("task row previously having the createChannelId value");
         MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
-        assertThat(originalRow.executionStatus).isNotNull();
+        assertThat(originalRow.createChannelId).isNotNull();
 
         when("modifyObject is called");
         repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
@@ -903,15 +906,18 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(taskObject.getExecutionStatus()).isNull();
+        assertTrue(taskObject.getMetadata() == null // if removed with last item
+                || taskObject.getMetadata().getCreateChannel() == null);
 
         and("externalized column is set to NULL");
         MTask row = selectObjectByOid(QTask.class, task1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
-        assertThat(row.executionStatus).isNull();
+        assertThat(row.createChannelId).isNull();
     }
 
     // TODO: "indexed" containers: .item(ItemPath.create(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
+
+    // TODO test for multi-value (e.g. subtypes) with item delta with both add and delete lists
 
     @Test
     public void test900ModificationsMustNotBeNull() {
@@ -934,7 +940,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta with object name replace with null for user 1");
         UUID nonexistentOid = UUID.randomUUID();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .property(UserType.F_NAME).replace("new-name")
+                .item(UserType.F_NAME).replace("new-name")
                 .asObjectDelta(nonexistentOid.toString());
 
         expect("modifyObject throws exception");

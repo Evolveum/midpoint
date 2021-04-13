@@ -27,7 +27,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
  */
 public class ValueFilterProcessor implements FilterProcessor<ValueFilter<?, ?>> {
 
-    /** Query context here is not final as it can change during complex path resolution. */
+    /** Query context and mapping is not final as it can change during complex path resolution. */
     private SqlQueryContext<?, ?, ?> context;
     private QueryModelMapping<?, ?, ?> mapping;
 

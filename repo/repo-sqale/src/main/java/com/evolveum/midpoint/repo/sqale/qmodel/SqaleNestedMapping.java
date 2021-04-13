@@ -11,8 +11,8 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.sqale.mapping.ObjectRefTableItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.mapping.item.NestedMappingResolver;
+import com.evolveum.midpoint.repo.sqale.filtering.ObjectRefTableItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.mapping.NestedMappingResolver;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;

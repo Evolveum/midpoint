@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale.mapping.delta;
+package com.evolveum.midpoint.repo.sqale.delta.item;
 
 import java.util.function.Function;
 
@@ -16,7 +16,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 
-public class PolyStringItemDeltaProcessor extends ItemDeltaProcessor<PolyString> {
+public class PolyStringItemDeltaProcessor extends ItemDeltaValueProcessor<PolyString> {
 
     private final StringPath origPath;
     private final StringPath normPath;

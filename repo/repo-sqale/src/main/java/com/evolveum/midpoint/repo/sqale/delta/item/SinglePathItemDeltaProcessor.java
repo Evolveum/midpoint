@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale.mapping.delta;
+package com.evolveum.midpoint.repo.sqale.delta.item;
 
 import java.util.function.Function;
 
@@ -20,7 +20,8 @@ import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
  * to match the column (attribute) type in the row bean (M-type)
  * @param <P> type of the corresponding path in the Q-type
  */
-public class SinglePathItemDeltaProcessor<T, P extends Path<T>> extends ItemDeltaProcessor<T> {
+public class SinglePathItemDeltaProcessor<T, P extends Path<T>>
+        extends ItemDeltaValueProcessor<T> {
 
     protected final P path;
 

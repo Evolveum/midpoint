@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale.mapping.delta;
+package com.evolveum.midpoint.repo.sqale.delta.item;
 
 import java.util.UUID;
 import java.util.function.Function;
@@ -20,7 +20,7 @@ import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-public class RefItemDeltaProcessor extends ItemDeltaProcessor<ObjectReferenceType> {
+public class RefItemDeltaProcessor extends ItemDeltaValueProcessor<ObjectReferenceType> {
 
     // only oidPath is strictly not-null, but then the filter better not ask for type or relation
     private final UuidPath oidPath;
