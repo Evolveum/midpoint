@@ -19,6 +19,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.apache.commons.lang3.Validate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -557,30 +559,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             return new ModifyObjectResult<>(modifications);
         }
 
-        if (InternalsConfig.encryptionChecks) {
-            CryptoUtil.checkEncrypted(modifications);
-        }
-
-        if (InternalsConfig.consistencyChecks) {
-            ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
-        } else {
-            ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
-        }
-
-        if (LOGGER.isTraceEnabled()) {
-            for (ItemDelta<?, ?> modification : modifications) {
-                if (modification instanceof PropertyDelta<?>) {
-                    PropertyDelta<?> propDelta = (PropertyDelta<?>) modification;
-                    if (propDelta.getPath().equivalent(ObjectType.F_NAME)) {
-                        Collection<PrismPropertyValue<PolyString>> values = propDelta.getValues(PolyString.class);
-                        for (PrismPropertyValue<PolyString> pval : values) {
-                            PolyString value = pval.getValue();
-                            LOGGER.trace("NAME delta: {} - {}", value.getOrig(), value.getNorm());
-                        }
-                    }
-                }
-            }
-        }
+        checkModifications(modifications);
+        logNameChange(modifications);
 
         // TODO executeAttempts?
         final String operation = "modifying";
@@ -596,8 +576,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             while (true) {
                 try {
                     ModifyObjectResult<T> rv = objectUpdater.modifyObjectAttempt(type, oid, modifications, precondition, options,
-                            attempt, subResult, this, noFetchExtensionValueInsertionForbidden);
+                            attempt, subResult, this, noFetchExtensionValueInsertionForbidden, null);
                     invokeConflictWatchers((w) -> w.afterModifyObject(oid));
+                    rv.setPerformanceRecord(
+                            pm.registerOperationFinish(opHandle, attempt));
                     return rv;
                 } catch (RestartOperationRequestedException ex) {
                     // special case: we want to restart but we do not want to count these
@@ -614,11 +596,114 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 }
             }
         } catch (Throwable t) {
-            LOGGER.debug("Got exception while processing modifications on {}:{}:\n{}", type.getSimpleName(), oid, DebugUtil.debugDump(modifications), t);
+            LOGGER.debug("Got exception while processing modifications on {}:{}:\n{}", type.getSimpleName(), oid,
+                    DebugUtil.debugDump(modifications), t);
+            pm.registerOperationFinish(opHandle, attempt);
             throw t;
         } finally {
-            pm.registerOperationFinish(opHandle, attempt);
             OperationLogger.logModify(type, oid, modifications, precondition, options, subResult);
+        }
+    }
+
+    private void checkModifications(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
+
+        if (InternalsConfig.encryptionChecks) {
+            CryptoUtil.checkEncrypted(modifications);
+        }
+
+        if (InternalsConfig.consistencyChecks) {
+            ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
+        } else {
+            ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
+        }
+    }
+
+    private void logNameChange(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
+        if (LOGGER.isTraceEnabled()) {
+            for (ItemDelta<?, ?> modification : modifications) {
+                if (modification instanceof PropertyDelta<?>) {
+                    PropertyDelta<?> propDelta = (PropertyDelta<?>) modification;
+                    if (propDelta.getPath().equivalent(ObjectType.F_NAME)) {
+                        Collection<PrismPropertyValue<PolyString>> values = propDelta.getValues(PolyString.class);
+                        for (PrismPropertyValue<PolyString> pval : values) {
+                            PolyString value = pval.getValue();
+                            LOGGER.trace("NAME delta: {} - {}", value.getOrig(), value.getNorm());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @NotNull
+    @Override
+    @Experimental
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObjectDynamically(
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> getOptions,
+            @NotNull ModificationsSupplier<T> modificationsSupplier,
+            RepoModifyOptions modifyOptions,
+            @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+
+        Validate.notNull(type, "Object class in delta must not be null.");
+        Validate.notEmpty(oid, "Oid must not null or empty.");
+        Validate.notNull(modificationsSupplier, "Modifications supplier must not be null.");
+        Validate.notNull(parentResult, "Operation result must not be null.");
+
+        // TODO executeAttempts?
+        final String operation = "modifying";
+        int attempt = 1;
+        int restarts = 0;
+
+        boolean noFetchExtensionValueInsertionForbidden = false;
+
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(OP_MODIFY_OBJECT_DYNAMICALLY, type);
+
+        OperationResult result = parentResult.subresult(MODIFY_OBJECT_DYNAMICALLY)
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type.getName())
+                .addParam("oid", oid)
+                .build();
+
+        ModifyObjectResult<T> rv = null;
+        try {
+            while (true) {
+                try {
+                    ModificationsSupplier<T> innerModificationsSupplier = object -> {
+                        Collection<? extends ItemDelta<?, ?>> modifications = modificationsSupplier.get(object);
+                        checkModifications(modifications);
+                        logNameChange(modifications);
+                        return modifications;
+                    };
+                    rv = objectUpdater.modifyObjectDynamicallyAttempt(type, oid, getOptions, innerModificationsSupplier,
+                            modifyOptions, attempt, result, this, noFetchExtensionValueInsertionForbidden);
+                    invokeConflictWatchers((w) -> w.afterModifyObject(oid));
+                    rv.setPerformanceRecord(
+                            pm.registerOperationFinish(opHandle, attempt));
+                    return rv;
+                } catch (RestartOperationRequestedException ex) {
+                    // special case: we want to restart but we do not want to count these
+                    LOGGER.trace("Restarting because of {}", ex.getMessage());
+                    restarts++;
+                    if (restarts > RESTART_LIMIT) {
+                        throw new IllegalStateException("Too many operation restarts");
+                    } else if (ex.isForbidNoFetchExtensionValueAddition()) {
+                        noFetchExtensionValueInsertionForbidden = true;
+                    }
+                } catch (RuntimeException ex) {
+                    attempt = baseHelper.logOperationAttempt(oid, operation, attempt, ex, result);
+                    pm.registerOperationNewAttempt(opHandle, attempt);
+                }
+            }
+        } catch (Throwable t) {
+            LOGGER.debug("Got exception while processing dynamic modifications on {}:{}", type.getSimpleName(), oid, t);
+            pm.registerOperationFinish(opHandle, attempt);
+            throw t;
+        } finally {
+            OperationLogger.logModifyDynamically(type, oid, rv, getOptions, modifyOptions, result);
         }
     }
 

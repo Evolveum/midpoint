@@ -13,6 +13,12 @@ import java.util.Collections;
 import java.util.List;
 import javax.persistence.PersistenceException;
 
+import com.evolveum.midpoint.schema.*;
+
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.exception.ConstraintViolationException;
@@ -41,9 +47,6 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.helpers.delta.ObjectDeltaUpdater;
 import com.evolveum.midpoint.repo.sql.util.*;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -341,11 +344,15 @@ public class ObjectUpdater {
         }
     }
 
+    /**
+     * @param externalSession If non-null, this session is used to execute the operation. Note that usual commit/rollback is
+     * issued even if external session is present. We assume we are the last element of the processing in the session.
+     */
     public <T extends ObjectType> ModifyObjectResult<T> modifyObjectAttempt(
             Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> originalModifications,
             ModificationPrecondition<T> precondition, RepoModifyOptions originalModifyOptions,
             int attempt, OperationResult result, SqlRepositoryServiceImpl sqlRepositoryService,
-            boolean noFetchExtensionValueInsertionForbidden)
+            boolean noFetchExtensionValueInsertionForbidden, Session externalSession)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
             SerializationRelatedException, PreconditionViolationException {
 
@@ -363,10 +370,12 @@ public class ObjectUpdater {
         LOGGER.trace("Modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
         LOGGER.trace("noFetchExtensionValueInsertionForbidden: {}", noFetchExtensionValueInsertionForbidden);
 
-        Session session = null;
+        Session session = externalSession;
         OrgClosureManager.Context closureContext = null;
         try {
-            session = baseHelper.beginTransaction();
+            if (session == null) {
+                session = baseHelper.beginTransaction();
+            }
 
             closureContext = closureManager.onBeginTransactionModify(session, type, oid, modifications);
 
@@ -550,6 +559,65 @@ public class ObjectUpdater {
             closureManager.cleanUpAfterOperation(closureContext, session);
         }
         baseHelper.cleanupSessionAndResult(session, result);
+    }
+
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObjectDynamicallyAttempt(Class<T> type, String oid,
+            Collection<SelectorOptions<GetOperationOptions>> getOptions,
+            RepositoryService.ModificationsSupplier<T> modificationsSupplier,
+            RepoModifyOptions modifyOptions, int attempt, OperationResult result,
+            SqlRepositoryServiceImpl sqlRepositoryService, boolean noFetchExtensionValueInsertionForbidden)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+
+        LOGGER_PERFORMANCE.debug("> modify object dynamically {}, oid={}", type.getSimpleName(), oid);
+
+        ExplicitAccessLock lock = getConfiguration().isUsingH2() ? ExplicitAccessLock.acquireFor(oid) : null;
+
+        try {
+
+            Session session = baseHelper.beginTransaction();
+
+            PrismObject<T> objectBefore;
+            Collection<? extends ItemDelta<?, ?>> modifications;
+            try {
+                objectBefore = objectRetriever.getObjectInternal(session, type, oid, getOptions, false);
+                LOGGER.trace("Object retrieved:\n{}", objectBefore.debugDumpLazily(1));
+
+                // Intentionally within this try-catch block because this call must be covered by proper exception handling.
+                modifications = modificationsSupplier.get(objectBefore.asObjectable());
+                LOGGER.trace("Modifications computed:\n{}", DebugUtil.debugDumpLazily(modifications, 1));
+            } catch (ObjectNotFoundException ex) {
+                GetOperationOptions rootOptions = SelectorOptions.findRootOptions(getOptions);
+                baseHelper.rollbackTransaction(session, ex, result, !GetOperationOptions.isAllowNotFound(rootOptions));
+                throw ex;
+            } catch (SchemaException ex) {
+                baseHelper.rollbackTransaction(session, ex, "Schema error while getting object with oid: "
+                        + oid + ". Reason: " + ex.getMessage(), result, true);
+                throw ex;
+            } catch (DtoTranslationException | RuntimeException ex) {
+                baseHelper.handleGeneralException(ex, session, result);
+                throw new AssertionError("shouldn't be here");
+            }
+
+            if (modifications.isEmpty() && !RepoModifyOptions.isForceReindex(modifyOptions)) {
+                LOGGER.debug("Modification list is empty, nothing was modified.");
+                session.getTransaction().commit();
+                result.recordStatus(OperationResultStatus.SUCCESS, "Computed modification list is empty");
+                return new ModifyObjectResult<>(objectBefore, objectBefore, modifications);
+            }
+
+            try {
+                // TODO: eliminate redundant getObjectInternal call in modifyObjectAttempt
+                return modifyObjectAttempt(type, oid, modifications, null, modifyOptions, attempt, result, sqlRepositoryService,
+                        noFetchExtensionValueInsertionForbidden, session);
+            } catch (PreconditionViolationException e) {
+                throw new SystemException("Unexpected PreconditionViolationException: " + e.getMessage(), e);
+            }
+
+        } finally {
+            if (lock != null) {
+                lock.release();
+            }
+        }
     }
 
     /**

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -30,15 +32,20 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.RepoModifyOptions;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.api.RepositoryService.ModificationsSupplier;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+@SuppressWarnings("BusyWait")
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ConcurrencyTest extends BaseSQLRepoTest {
@@ -154,6 +161,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 checker.check(readIteration, oid);
             }
             if (waitStep > 0L) {
+                //noinspection BusyWait
                 Thread.sleep(waitStep);
             }
             for (PropertyModifierThread mt : modifierThreads) {
@@ -189,8 +197,6 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
     abstract class WorkerThread extends Thread {
 
         int id;
-        Class<? extends ObjectType> objectClass;                // object to modify
-        String oid;                                             // object to modify
         String lastVersion = null;
         volatile Throwable threadResult;
         AtomicInteger counter = new AtomicInteger(0);
@@ -224,18 +230,28 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         abstract void runOnce(OperationResult result) throws Exception;
         abstract String description();
 
-        public void setObject(Class<? extends ObjectType> objectClass, String oid) {
-            this.objectClass = objectClass;
-            this.oid = oid;
-        }
-
         @Override
         public String toString() {
             return description() + " @" + counter;
         }
     }
 
-    class PropertyModifierThread extends WorkerThread {
+    abstract class ObjectModificationThread extends WorkerThread {
+
+        Class<? extends ObjectType> objectClass;
+        String oid;
+
+        ObjectModificationThread(int id) {
+            super(id);
+        }
+
+        public void setObject(Class<? extends ObjectType> objectClass, String oid) {
+            this.objectClass = objectClass;
+            this.oid = oid;
+        }
+    }
+
+    class PropertyModifierThread extends ObjectModificationThread {
 
         final ItemPath attribute1;           // attribute to modify
         final ItemPath attribute2;           // attribute to modify
@@ -434,7 +450,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         protected abstract String getOidToDelete();
     }
 
-    abstract class DeltaExecutionThread extends WorkerThread {
+    abstract class DeltaExecutionThread extends ObjectModificationThread {
 
         String description;
 
@@ -554,6 +570,8 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         int THREADS = 8;
         long DURATION = 30000L;
 
+        AtomicInteger globalCounter = new AtomicInteger();
+
         UserType user = new UserType(prismContext).name("alice");
 
         OperationResult result = new OperationResult("test110AddAssignments");
@@ -570,6 +588,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             DeltaExecutionThread thread = new DeltaExecutionThread(i, UserType.class, oid, "assignment adder #" + i) {
                 @Override
                 Collection<ItemDelta<?, ?>> getItemDeltas() throws Exception {
+                    globalCounter.incrementAndGet();
                     return prismContext.deltaFor(UserType.class)
                             .item(UserType.F_ASSIGNMENT).add(
                                     new AssignmentType(prismContext)
@@ -584,6 +603,9 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         waitForThreads(threads, DURATION);
         PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, oid, null, result);
         displayValue("user after", userAfter);
+        assertThat(userAfter.asObjectable().getAssignment().size())
+                .as("# of assignments")
+                .isEqualTo(globalCounter.get());
     }
 
     @Test
@@ -695,7 +717,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         AtomicInteger objectsPointer = new AtomicInteger(0);
         List<DeleteObjectsThread<UserType>> deleteThreads = new ArrayList<>();
         for (int i = 0; i < DELETE_THREADS; i++) {
-            DeleteObjectsThread<UserType> thread = new DeleteObjectsThread<UserType>(i, UserType.class, "deleter #" + i) {
+            DeleteObjectsThread<UserType> thread = new DeleteObjectsThread<>(i, UserType.class, "deleter #" + i) {
                 @Override
                 protected String getOidToDelete() {
                     int pointer = objectsPointer.getAndIncrement();
@@ -714,6 +736,85 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
         assertEquals("Wrong # of users after deletion", 0,
                 repositoryService.countObjects(UserType.class, null, null, result));
+    }
+
+    /**
+     * Here we test concurrent work bucket creation using {@link RepositoryService#modifyObjectDynamically(Class, String, Collection, RepositoryService.ModificationsSupplier, RepoModifyOptions, OperationResult)}
+     * method.
+     *
+     * Note that on H2 this test passes only due to explicit locking (see ExplicitAccessLock helper class).
+     */
+    @Test
+    public void test140WorkBuckets() throws Exception {
+
+        int THREADS = 8;
+        long DURATION = 30000L;
+
+        TaskType task = new TaskType(prismContext).name("test140");
+
+        OperationResult result = new OperationResult("test140WorkBuckets");
+        String oid = repositoryService.addObject(task.asPrismObject(), null, result);
+
+        displayValue("object added", oid);
+
+        logger.info("Starting worker threads");
+
+        List<WorkerThread> threads = new ArrayList<>();
+        for (int i = 0; i < THREADS; i++) {
+            final int threadIndex = i;
+
+            WorkerThread thread = new WorkerThread(i) {
+                @Override
+                void runOnce(OperationResult result) throws Exception {
+                    ModificationsSupplier<TaskType> modificationSupplier =
+                            task -> prismContext.deltaFor(TaskType.class)
+                                    .item(TaskType.F_WORK_STATE, TaskWorkStateType.F_BUCKET)
+                                    .add(getNextBucket(task))
+                                    .asItemDeltas();
+                    repositoryService.modifyObjectDynamically(TaskType.class, oid, null, modificationSupplier, null, result);
+                }
+
+                private WorkBucketType getNextBucket(TaskType task) {
+                    int lastBucketNumber = task.getWorkState() != null ? getLastBucketNumber(task.getWorkState().getBucket()) : 0;
+                    return new WorkBucketType(prismContext)
+                            .sequentialNumber(lastBucketNumber + 1)
+                            .state(WorkBucketStateType.DELEGATED)
+                            .workerRef(String.valueOf(threadIndex), TaskType.COMPLEX_TYPE);
+                }
+
+                private int getLastBucketNumber(List<WorkBucketType> buckets) {
+                    return buckets.stream()
+                            .mapToInt(WorkBucketType::getSequentialNumber)
+                            .max().orElse(0);
+                }
+
+                @Override
+                String description() {
+                    return "Bucket computer thread #" + threadIndex;
+                }
+            };
+            thread.start();
+            threads.add(thread);
+        }
+
+        waitForThreads(threads, DURATION);
+        PrismObject<TaskType> taskAfter = repositoryService.getObject(TaskType.class, oid, null, result);
+        displayValue("user after", taskAfter);
+
+        assertCorrectBucketSequence(taskAfter.asObjectable().getWorkState().getBucket());
+    }
+
+    private void assertCorrectBucketSequence(List<WorkBucketType> buckets) {
+        for (int i = 1; i <= buckets.size(); i++) {
+            int sequentialNumber = i;
+            List<WorkBucketType> selected = buckets.stream()
+                    .filter(b -> b.getSequentialNumber() == sequentialNumber)
+                    .collect(Collectors.toList());
+            if (selected.size() != 1) {
+                fail("Unexpected # of bucket with sequential number " + sequentialNumber + ":\n" +
+                        DebugUtil.debugDump(selected, 1));
+            }
+        }
     }
 
     private void waitForThreadsFinish(List<? extends WorkerThread> threads, long timeout) throws InterruptedException {

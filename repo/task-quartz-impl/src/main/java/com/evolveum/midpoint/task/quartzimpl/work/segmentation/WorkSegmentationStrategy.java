@@ -49,7 +49,7 @@ public interface WorkSegmentationStrategy {
          */
         public static class FoundExisting extends GetBucketResult {
             /**
-             * Free bucket that is provided as a result of the operation; or null if no bucket could be obtained.
+             * Free bucket that is provided as a result of the operation.
              */
             @NotNull public final WorkBucketType bucket;
 

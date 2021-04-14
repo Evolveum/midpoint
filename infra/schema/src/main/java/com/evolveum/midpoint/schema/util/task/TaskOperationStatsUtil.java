@@ -111,6 +111,7 @@ public class TaskOperationStatsUtil {
                 .synchronizationInformation(new SynchronizationInformationType(prismContext))
                 .actionsExecutedInformation(new ActionsExecutedInformationType())
                 .environmentalPerformanceInformation(new EnvironmentalPerformanceInformationType())
+                .repositoryPerformanceInformation(new RepositoryPerformanceInformationType())
                 .workBucketManagementPerformanceInformation(new WorkBucketManagementPerformanceInformationType());
 
         Stream<TaskType> subTasks = TaskTreeUtil.getAllTasksStream(task);
@@ -121,6 +122,7 @@ public class TaskOperationStatsUtil {
                 SynchronizationInformation.addTo(aggregate.getSynchronizationInformation(), operationStatsBean.getSynchronizationInformation());
                 ActionsExecutedInformation.addTo(aggregate.getActionsExecutedInformation(), operationStatsBean.getActionsExecutedInformation());
                 EnvironmentalPerformanceInformation.addTo(aggregate.getEnvironmentalPerformanceInformation(), operationStatsBean.getEnvironmentalPerformanceInformation());
+                RepositoryPerformanceInformationUtil.addTo(aggregate.getRepositoryPerformanceInformation(), operationStatsBean.getRepositoryPerformanceInformation());
                 TaskWorkBucketManagementPerformanceInformationUtil.addTo(aggregate.getWorkBucketManagementPerformanceInformation(), operationStatsBean.getWorkBucketManagementPerformanceInformation());
             }
         });

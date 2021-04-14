@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.api;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -115,6 +117,7 @@ public interface RepositoryService {
     String SEARCH_CONTAINERS = CLASS_NAME_WITH_DOT + "searchContainers";
     String COUNT_CONTAINERS = CLASS_NAME_WITH_DOT + "countContainers";
     String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
+    String MODIFY_OBJECT_DYNAMICALLY = CLASS_NAME_WITH_DOT + "modifyObjectDynamically";
     String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
     String GET_VERSION = CLASS_NAME_WITH_DOT + "getVersion";
     String SEARCH_OBJECTS_ITERATIVE = CLASS_NAME_WITH_DOT + "searchObjectsIterative";
@@ -132,6 +135,7 @@ public interface RepositoryService {
     String OP_DELETE_OBJECT = "deleteObject";
     String OP_COUNT_OBJECTS = "countObjects";
     String OP_MODIFY_OBJECT = "modifyObject";
+    String OP_MODIFY_OBJECT_DYNAMICALLY = "modifyObjectDynamically";
     String OP_GET_VERSION = "getVersion";
     String OP_IS_ANY_SUBORDINATE = "isAnySubordinate";
     String OP_ADVANCE_SEQUENCE = "advanceSequence";
@@ -266,6 +270,40 @@ public interface RepositoryService {
             @Nullable RepoModifyOptions options,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException;
+
+    /**
+     * Modifies an object dynamically. This means that the deltas are not provided by the caller, but computed by specified
+     * supplier, based on the current object state.
+     *
+     * This is to allow more complex atomic modifications with low overhead: Instead of calling getObject + compute deltas +
+     * modifyObject (with precondition that the object has not changed in the meanwhile) + repeating if the precondition fails,
+     * we now simply use modifyObjectDynamically that does all of this within a single DB transaction.
+     *
+     * BEWARE: Do not use unless really needed. Use modifyObject method instead.
+     *
+     * @param type Type of the object to modify
+     * @param oid OID of the object to modify
+     * @param getOptions Options to use when getting the original object state
+     * @param modificationsSupplier Supplier of the modifications (item deltas) to be applied on the object
+     * @param modifyOptions Options to be used when modifying the object
+     * @param parentResult Operation result into which we put our result
+     */
+    @Experimental
+    @NotNull default <T extends ObjectType> ModifyObjectResult<T> modifyObjectDynamically(
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> getOptions,
+            @NotNull ModificationsSupplier<T> modificationsSupplier,
+            @Nullable RepoModifyOptions modifyOptions,
+            @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        throw new UnsupportedOperationException();
+    }
+
+    @FunctionalInterface
+    interface ModificationsSupplier<T extends ObjectType> {
+        @NotNull Collection<? extends ItemDelta<?, ?>> get(T object) throws SchemaException;
+    }
 
     /**
      * <p>Deletes object with specified OID.</p>
