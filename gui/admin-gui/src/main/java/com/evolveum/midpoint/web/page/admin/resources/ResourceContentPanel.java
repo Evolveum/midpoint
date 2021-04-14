@@ -249,7 +249,6 @@ public abstract class ResourceContentPanel extends Panel {
                     @Override
                     protected void objectDetailsPerformed(AjaxRequestTarget target, ShadowType object) {
                         shadowDetailsPerformed(target, WebComponentUtil.getName(object), object.getOid());
-
                     }
 
                     @Override
@@ -269,20 +268,11 @@ public abstract class ResourceContentPanel extends Panel {
 
                     @Override
                     protected ISelectableDataProvider createProvider() {
-                        provider = (SelectableBeanObjectDataProvider<ShadowType>) super.createProvider();
+                        provider = createSelectableBeanObjectDataProvider(() -> getResourceContentQuery(), null);
                         provider.setEmptyListOnNullQuery(true);
                         provider.setSort(null);
                         provider.setDefaultCountIfNull(Integer.MAX_VALUE);
                         return provider;
-                    }
-
-                    @Override
-                    protected ObjectQuery getCustomizeContentQuery() {
-                        ObjectQuery customQuery = ResourceContentPanel.this.createQuery();
-                        if (customQuery != null && customQuery.getFilter() != null) {
-                            return customQuery;
-                        }
-                        return null;
                     }
 
                     @Override
@@ -319,6 +309,14 @@ public abstract class ResourceContentPanel extends Panel {
         initButton(ID_LIVE_SYNC, "Live Sync", " fa-refresh", TaskCategory.LIVE_SYNCHRONIZATION, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value());
 
         initCustomLayout();
+    }
+
+    private ObjectQuery getResourceContentQuery() {
+        ObjectQuery customQuery = ResourceContentPanel.this.createQuery();
+        if (customQuery != null && customQuery.getFilter() != null) {
+            return customQuery;
+        }
+        return null;
     }
 
     protected abstract void initShadowStatistics(WebMarkupContainer totals);

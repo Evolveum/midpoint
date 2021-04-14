@@ -346,7 +346,7 @@ public class PageResource extends PageAdmin {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new ResourceTasksPanel(panelId, resourceModel, PageResource.this);
+                return new ResourceTasksPanel(panelId, resourceModel);
             }
         });
 

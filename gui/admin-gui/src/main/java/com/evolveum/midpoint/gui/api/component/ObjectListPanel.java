@@ -6,15 +6,17 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.function.Supplier;
+
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
+
+import com.evolveum.midpoint.web.component.util.SerializableFunction;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -94,7 +96,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         return super.getSearchModel();
     }
 
-    protected ISelectableDataProvider<O, SelectableBean<O>> createProvider() {
+    protected final SelectableBeanObjectDataProvider<O> createSelectableBeanObjectDataProvider(SerializableSupplier<ObjectQuery> querySuplier,
+            SerializableFunction<SortParam<String>, List<ObjectOrdering>> orderingSuplier) {
         List<O> preSelectedObjectList = getPreselectedObjectList();
         SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<O>(
                 getPageBase(), getSearchModel(), preSelectedObjectList == null ? null : new HashSet<>(preSelectedObjectList)) {
@@ -107,24 +110,24 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
-                return ObjectListPanel.this.getCustomizeContentQuery();
+                if (querySuplier == null) {
+                    return null;
+                }
+                return querySuplier.get();
+            }
+
+            @Override
+            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+                if (orderingSuplier == null) {
+                    return super.createObjectOrderings(sortParam);
+                }
+                return orderingSuplier.apply(sortParam);
             }
         };
         provider.setCompiledObjectCollectionView(getObjectCollectionView());
         provider.setOptions(createOptions());
-        setDefaultSorting(provider);
-
         return provider;
     }
-
-    protected ObjectQuery getCustomizeContentQuery() {
-        return null;
-    }
-
-    protected void setDefaultSorting(ISelectableDataProvider<O, SelectableBean<O>> provider){
-        //should be overrided if needed
-    }
-
 
     protected List<CompiledObjectCollectionView> getAllApplicableArchetypeViews() {
         return getPageBase().getCompiledGuiProfile().findAllApplicableArchetypeViews(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()));

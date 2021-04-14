@@ -749,7 +749,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return dataProvider.getSelectedRealObjects();
     }
 
-    protected Collection<SelectorOptions<GetOperationOptions>> createOptions() {
+    protected final Collection<SelectorOptions<GetOperationOptions>> createOptions() {
 
         if (getObjectCollectionView() != null && getObjectCollectionView().getOptions() != null
                 && !getObjectCollectionView().getOptions().isEmpty()) {
@@ -842,7 +842,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return 0;
     }
 
-    protected CompiledObjectCollectionView getObjectCollectionView() {
+    protected final CompiledObjectCollectionView getObjectCollectionView() {
         CompiledObjectCollectionView view = getWidgetCollectionView();
         if (view != null) {
             return view;

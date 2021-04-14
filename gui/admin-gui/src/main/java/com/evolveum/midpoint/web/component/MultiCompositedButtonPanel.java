@@ -55,11 +55,11 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<MultiFun
             @Override
             protected void populateItem(ListItem<MultiFunctinalButtonDto> item) {
                 MultiFunctinalButtonDto additionalButtonObject = item.getModelObject();
-                DisplayType additionalButtonDisplayType = fixDisplayTypeIfNeeded(additionalButtonObject.getAdditionalButtonDisplayType()); //getAdditionalButtonDisplayType(additionalButtonObject)
-                additionalButtonObject.setAdditionalButtonDisplayType(additionalButtonDisplayType);
+//                DisplayType additionalButtonDisplayType = fixDisplayTypeIfNeeded(additionalButtonObject.getAdditionalButtonDisplayType()); //getAdditionalButtonDisplayType(additionalButtonObject)
+//                additionalButtonObject.setAdditionalButtonDisplayType(additionalButtonDisplayType);
 
                 AjaxCompositedIconButton additionalButton = new AjaxCompositedIconButton(ID_COMPOSITED_BUTTON, getCompositedIcon(additionalButtonObject),
-                        Model.of(WebComponentUtil.getDisplayTypeTitle(additionalButtonDisplayType))) {
+                        Model.of(WebComponentUtil.getDisplayTypeTitle(additionalButtonObject.getAdditionalButtonDisplayType()))) {
 
                     private static final long serialVersionUID = 1L;
 

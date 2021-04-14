@@ -27,6 +27,20 @@ public class MultiFunctinalButtonDto implements Serializable {
         this.additionalButtonDisplayType = additionalButtonDisplayType;
     }
 
+    public void setOrCreateDefaultAdditionalButtonDisplayType(DisplayType additionalButtonDisplayType) {
+        if (additionalButtonDisplayType == null) {
+            additionalButtonDisplayType = new DisplayType();
+        }
+        if (additionalButtonDisplayType.getIcon() == null) {
+            additionalButtonDisplayType.setIcon(new IconType());
+        }
+        if (additionalButtonDisplayType.getIcon().getCssClass() == null) {
+            additionalButtonDisplayType.getIcon().setCssClass("");
+        }
+
+        this.additionalButtonDisplayType = additionalButtonDisplayType;
+    }
+
     public CompositedIcon getCompositedIcon() {
         return compositedIcon;
     }
