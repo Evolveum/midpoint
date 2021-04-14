@@ -73,7 +73,6 @@ public class PerfTestCodecObject extends AbstractSchemaTest implements Performan
     }
 
     private String getCachedStream(Path path) throws IOException {
-        // TODO Auto-generated method stub
         StringBuilder builder = new StringBuilder();
         CharStreams.copy(MoreFiles.asCharSource(Paths.get("src", "test", "resources").resolve(path), Charsets.UTF_8).openStream(), builder);
         return builder.toString();
