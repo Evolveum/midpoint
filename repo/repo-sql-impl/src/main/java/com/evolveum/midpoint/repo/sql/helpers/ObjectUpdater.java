@@ -570,53 +570,43 @@ public class ObjectUpdater {
 
         LOGGER_PERFORMANCE.debug("> modify object dynamically {}, oid={}", type.getSimpleName(), oid);
 
-        ExplicitAccessLock lock = getConfiguration().isUsingH2() ? ExplicitAccessLock.acquireFor(oid) : null;
+        Session session = baseHelper.beginTransaction();
+
+        PrismObject<T> objectBefore;
+        Collection<? extends ItemDelta<?, ?>> modifications;
+        try {
+            objectBefore = objectRetriever.getObjectInternal(session, type, oid, getOptions, true);
+            LOGGER.trace("Object retrieved:\n{}", objectBefore.debugDumpLazily(1));
+
+            // Intentionally within this try-catch block because this call must be covered by proper exception handling.
+            modifications = modificationsSupplier.get(objectBefore.asObjectable());
+            LOGGER.trace("Modifications computed:\n{}", DebugUtil.debugDumpLazily(modifications, 1));
+        } catch (ObjectNotFoundException ex) {
+            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(getOptions);
+            baseHelper.rollbackTransaction(session, ex, result, !GetOperationOptions.isAllowNotFound(rootOptions));
+            throw ex;
+        } catch (SchemaException ex) {
+            baseHelper.rollbackTransaction(session, ex, "Schema error while getting object with oid: "
+                    + oid + ". Reason: " + ex.getMessage(), result, true);
+            throw ex;
+        } catch (DtoTranslationException | RuntimeException ex) {
+            baseHelper.handleGeneralException(ex, session, result);
+            throw new AssertionError("shouldn't be here");
+        }
+
+        if (modifications.isEmpty() && !RepoModifyOptions.isForceReindex(modifyOptions)) {
+            LOGGER.debug("Modification list is empty, nothing was modified.");
+            session.getTransaction().commit();
+            result.recordStatus(OperationResultStatus.SUCCESS, "Computed modification list is empty");
+            return new ModifyObjectResult<>(objectBefore, objectBefore, modifications);
+        }
 
         try {
-
-            Session session = baseHelper.beginTransaction();
-
-            PrismObject<T> objectBefore;
-            Collection<? extends ItemDelta<?, ?>> modifications;
-            try {
-                objectBefore = objectRetriever.getObjectInternal(session, type, oid, getOptions, false);
-                LOGGER.trace("Object retrieved:\n{}", objectBefore.debugDumpLazily(1));
-
-                // Intentionally within this try-catch block because this call must be covered by proper exception handling.
-                modifications = modificationsSupplier.get(objectBefore.asObjectable());
-                LOGGER.trace("Modifications computed:\n{}", DebugUtil.debugDumpLazily(modifications, 1));
-            } catch (ObjectNotFoundException ex) {
-                GetOperationOptions rootOptions = SelectorOptions.findRootOptions(getOptions);
-                baseHelper.rollbackTransaction(session, ex, result, !GetOperationOptions.isAllowNotFound(rootOptions));
-                throw ex;
-            } catch (SchemaException ex) {
-                baseHelper.rollbackTransaction(session, ex, "Schema error while getting object with oid: "
-                        + oid + ". Reason: " + ex.getMessage(), result, true);
-                throw ex;
-            } catch (DtoTranslationException | RuntimeException ex) {
-                baseHelper.handleGeneralException(ex, session, result);
-                throw new AssertionError("shouldn't be here");
-            }
-
-            if (modifications.isEmpty() && !RepoModifyOptions.isForceReindex(modifyOptions)) {
-                LOGGER.debug("Modification list is empty, nothing was modified.");
-                session.getTransaction().commit();
-                result.recordStatus(OperationResultStatus.SUCCESS, "Computed modification list is empty");
-                return new ModifyObjectResult<>(objectBefore, objectBefore, modifications);
-            }
-
-            try {
-                // TODO: eliminate redundant getObjectInternal call in modifyObjectAttempt
-                return modifyObjectAttempt(type, oid, modifications, null, modifyOptions, attempt, result, sqlRepositoryService,
-                        noFetchExtensionValueInsertionForbidden, session);
-            } catch (PreconditionViolationException e) {
-                throw new SystemException("Unexpected PreconditionViolationException: " + e.getMessage(), e);
-            }
-
-        } finally {
-            if (lock != null) {
-                lock.release();
-            }
+            // TODO: eliminate redundant getObjectInternal call in modifyObjectAttempt
+            return modifyObjectAttempt(type, oid, modifications, null, modifyOptions, attempt, result, sqlRepositoryService,
+                    noFetchExtensionValueInsertionForbidden, session);
+        } catch (PreconditionViolationException e) {
+            throw new SystemException("Unexpected PreconditionViolationException: " + e.getMessage(), e);
         }
     }
 
