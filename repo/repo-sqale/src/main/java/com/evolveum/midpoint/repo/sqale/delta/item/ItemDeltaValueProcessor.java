@@ -4,29 +4,29 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale.mapping.delta;
+package com.evolveum.midpoint.repo.sqale.delta.item;
 
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
-import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
+import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaProcessor;
 
 /**
- * Processes delta modification and arranges necessary SQL changes using update context.
+ * Applies item delta values to an item and arranges necessary SQL changes using update context.
  * This typically means adding set clauses to the update but can also mean adding rows
  * for containers, etc.
+ * This kind of item delta processor does not resolve multi-part item paths, see other
+ * subclasses of {@link ItemDeltaProcessor} for that.
  *
  * @param <T> expected type of the real value for the modification (after optional conversion)
  */
-public abstract class ItemDeltaProcessor<T> {
+public abstract class ItemDeltaValueProcessor<T> implements ItemDeltaProcessor {
 
     protected final SqaleUpdateContext<?, ?, ?> context;
 
-    protected ItemDeltaProcessor(SqaleUpdateContext<?, ?, ?> context) {
+    protected ItemDeltaValueProcessor(SqaleUpdateContext<?, ?, ?> context) {
         this.context = context;
     }
-
-    public abstract void process(ItemDelta<?, ?> modification) throws RepositoryException;
 
     /**
      * Often the single real value is necessary, optionally transformed using
@@ -43,4 +43,15 @@ public abstract class ItemDeltaProcessor<T> {
         //noinspection unchecked
         return (T) realValue;
     }
+
+    /** Sets the database columns to reflect the provided real value. */
+    public void setRealValue(Object realValue) {
+        setValue(transformRealValue(realValue));
+    }
+
+    /** Sets the database columns to reflect the provided value (must be transformed if needed). */
+    public abstract void setValue(T value);
+
+    /** Resets the database columns, exposed for the needs of container processing. */
+    public abstract void delete();
 }

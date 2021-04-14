@@ -62,8 +62,9 @@ public class SqaleRepoContext extends SqlRepoContext {
         uriCache = new UriCache();
     }
 
+    // This has nothing to do with "repo cache" which is higher than this.
     @PostConstruct
-    public void init() {
+    public void clearCaches() {
         try (JdbcSession jdbcSession = newJdbcSession().startReadOnlyTransaction()) {
             uriCache.initialize(jdbcSession);
         }

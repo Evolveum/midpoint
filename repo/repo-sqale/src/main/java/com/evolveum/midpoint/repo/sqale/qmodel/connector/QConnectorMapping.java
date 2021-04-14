@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.connector;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType.*;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
@@ -30,7 +29,7 @@ public class QConnectorMapping
         addItemMapping(F_CONNECTOR_TYPE, stringMapper(path(q -> q.connectorType)));
         addItemMapping(F_CONNECTOR_VERSION, stringMapper(path(q -> q.connectorVersion)));
         addItemMapping(F_FRAMEWORK, uriMapper(path(q -> q.frameworkId)));
-        addItemMapping(F_CONNECTOR_HOST_REF, SqaleTableMapping.refMapper(
+        addItemMapping(F_CONNECTOR_HOST_REF, refMapper(
                 path(q -> q.connectorHostRefTargetOid),
                 path(q -> q.connectorHostRefTargetType),
                 path(q -> q.connectorHostRefRelationId)));

@@ -17,12 +17,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Contract for SQL transformers translating from query beans or tuples to model types.
- * TODO: Competencies of this class are not clear yet; in general it contains the "stuff specific
- *  to the related type". It may not only transform, but can also store entities (especially
- *  sub-entities of object aggregate) and more which is a bit beyond mere "transformation".
- *  Also the implemented methods vary wildly as some are used by very generic mechanisms (query
- *  interpreter) while others are called on concrete transformer of known type needed in particular
- *  situation.
+ * Concrete transformers may do more than pure transformation, they can also help with storing
+ * related entities (e.g. parts of the object aggregate).
+ * The implemented methods may vary wildly as some are used by very generic mechanisms (query
+ * interpreter) while others are called on concrete transformer of known type needed in particular
+ * situation.
  *
  * @param <S> schema type
  * @param <Q> type of entity path

@@ -11,12 +11,12 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.sqale.mapping.ObjectRefTableItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.ObjectRefTableItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.mapping.NestedMappingResolver;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.NestedMappingResolver;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
@@ -39,6 +39,7 @@ public class SqaleNestedMapping<S, Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     // TODO will the version for RefItemFilterProcessor be useful too? Yes, if it needs relation mapping too!
+
     public final SqaleNestedMapping<S, Q, R> addRefMapping(
             @NotNull QName itemName, @NotNull QObjectReferenceMapping qReferenceMapping) {
         ((QueryModelMapping<?, ?, ?>) this).addItemMapping(itemName,
@@ -48,7 +49,6 @@ public class SqaleNestedMapping<S, Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     /** Nested mapping adaptation for repo-sqale. */
-    @Override
     public <N> SqaleNestedMapping<N, Q, R> addNestedMapping(
             @NotNull ItemName itemName, @NotNull Class<N> nestedSchemaType) {
         SqaleNestedMapping<N, Q, R> nestedMapping =

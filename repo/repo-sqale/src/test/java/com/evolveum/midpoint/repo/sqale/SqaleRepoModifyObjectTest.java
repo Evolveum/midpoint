@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.testng.Assert.assertTrue;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -20,6 +21,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
@@ -74,7 +76,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with email change for user 1 using property add modification");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .property(UserType.F_EMAIL_ADDRESS).add("new@email.com")
+                .item(UserType.F_EMAIL_ADDRESS).add("new@email.com")
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -108,7 +110,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with email change for user 1 using property add modification");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .property(UserType.F_EMAIL_ADDRESS).add("new2@email.com")
+                .item(UserType.F_EMAIL_ADDRESS).add("new2@email.com")
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -137,7 +139,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with email replace to null ('delete') for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .property(UserType.F_EMAIL_ADDRESS).replace()
+                .item(UserType.F_EMAIL_ADDRESS).replace()
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -165,7 +167,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with email change for user 1 using property replace modification");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .property(UserType.F_EMAIL_ADDRESS).replace("newer@email.com")
+                .item(UserType.F_EMAIL_ADDRESS).replace("newer@email.com")
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -193,7 +195,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta with email delete for user 1 using wrong previous value");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 // without value it would not be recognized as delete
-                .property(UserType.F_EMAIL_ADDRESS).delete("x")
+                .item(UserType.F_EMAIL_ADDRESS).delete("x")
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -224,7 +226,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta with email replace for user 1 (email has previous value)");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 // without value it would not be recognized as delete
-                .property(UserType.F_EMAIL_ADDRESS).replace("newest@email.com")
+                .item(UserType.F_EMAIL_ADDRESS).replace("newest@email.com")
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -251,7 +253,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta with email delete for user 1 using valid previous value");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 // without value it would not be recognized as delete
-                .property(UserType.F_EMAIL_ADDRESS).delete("newest@email.com")
+                .item(UserType.F_EMAIL_ADDRESS).delete("newest@email.com")
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -279,7 +281,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with last run start timestamp change for task 1 adding value");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .property(TaskType.F_LAST_RUN_START_TIMESTAMP)
+                .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
                 .add(MiscUtil.asXMLGregorianCalendar(1L))
                 .asObjectDelta(task1Oid);
 
@@ -315,7 +317,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with last run start timestamp replace to null ('delete') for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .property(TaskType.F_LAST_RUN_START_TIMESTAMP).replace()
+                .item(TaskType.F_LAST_RUN_START_TIMESTAMP).replace()
                 .asObjectDelta(task1Oid);
 
         and("task row previously having the timestamp value");
@@ -348,7 +350,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with display order change for service 1");
         ObjectDelta<ServiceType> delta = prismContext.deltaFor(ServiceType.class)
-                .property(ServiceType.F_DISPLAY_ORDER).replace(5)
+                .item(ServiceType.F_DISPLAY_ORDER).replace(5)
                 .asObjectDelta(service1Oid);
 
         when("modifyObject is called");
@@ -378,7 +380,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with display order replace to null for service 1");
         ObjectDelta<ServiceType> delta = prismContext.deltaFor(ServiceType.class)
-                .property(ServiceType.F_DISPLAY_ORDER).replace()
+                .item(ServiceType.F_DISPLAY_ORDER).replace()
                 .asObjectDelta(service1Oid);
 
         and("service row previously having the display order value");
@@ -411,7 +413,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with boolean dead change for shadow 1");
         ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
-                .property(ShadowType.F_DEAD).add(true)
+                .item(ShadowType.F_DEAD).add(true)
                 .asObjectDelta(shadow1Oid);
 
         and("shadow row previously having dead property empty (null)");
@@ -445,7 +447,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with dead boolean replace to null for shadow 1");
         ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
-                .property(ShadowType.F_DEAD).replace()
+                .item(ShadowType.F_DEAD).replace()
                 .asObjectDelta(shadow1Oid);
 
         and("shadow row previously having the display order value");
@@ -479,7 +481,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with polystring nickname change for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .property(UserType.F_NICK_NAME).add(new PolyString("nick-name"))
+                .item(UserType.F_NICK_NAME).add(new PolyString("nick-name"))
                 .asObjectDelta(user1Oid);
 
         and("user row previously having dead property empty (null)");
@@ -518,7 +520,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with polystring nickname replace with null for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .property(UserType.F_NICK_NAME).replace()
+                .item(UserType.F_NICK_NAME).replace()
                 .asObjectDelta(user1Oid);
 
         and("user row previously having the nickname value");
@@ -555,7 +557,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with object name change for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .property(ObjectType.F_NAME).add(new PolyString("user-1-changed"))
+                .item(ObjectType.F_NAME).add(new PolyString("user-1-changed"))
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -590,7 +592,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with object name replace with null for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .property(UserType.F_NAME).replace()
+                .item(UserType.F_NAME).replace()
                 .asObjectDelta(user1Oid);
 
         expect("modifyObject throws exception");
@@ -822,8 +824,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
         given("delta adding projection ref to non-existent shadow for user 1");
+        UUID refTargetOid = UUID.randomUUID();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .property(UserType.F_LINK_REF).add() // TODO invalid ref, random UUID
+                .item(UserType.F_LINK_REF).add(refTargetOid.toString())
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -849,6 +852,372 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test190ChangeOfNonPersistedAttributeWorksOk()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta with email change for user 1 using property add modification");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_DESCRIPTION).replace("Description only in serialized form.")
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getDescription()).isEqualTo("Description only in serialized form.");
+
+        and("externalized version is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+    }
+
+    @Test
+    public void test200ChangeNestedMetadataAttributeWithAddModification()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+
+        given("delta with metadata/createChannel (multi-part path) change for task 1 adding value");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(ItemPath.create(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL))
+                .add("any://channel")
+                .asObjectDelta(task1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(taskObject.getMetadata().getCreateChannel()).isEqualTo("any://channel");
+
+        and("externalized column is updated");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertCachedUri(row.createChannelId, "any://channel");
+    }
+
+    @Test
+    public void test201DeleteNestedMetadataAttribute()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with metadata/createChannel status replace to null ('delete') for task 1");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(ItemPath.create(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL))
+                .replace()
+                .asObjectDelta(task1Oid);
+
+        and("task row previously having the createChannelId value");
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(originalRow.createChannelId).isNotNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and email is gone");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertTrue(taskObject.getMetadata() == null // if removed with last item
+                || taskObject.getMetadata().getCreateChannel() == null);
+
+        and("externalized column is set to NULL");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.createChannelId).isNull();
+    }
+
+    @Test
+    public void test202ChangeNestedMetadataAttributeWithReplaceModification()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with metadata/createChannel (multi-part path) change for task 1 adding value");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(ItemPath.create(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL))
+                .replace("any://channel")
+                .asObjectDelta(task1Oid);
+
+        and("task row previously having no value in createChannelId (is null)");
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(originalRow.createChannelId).isNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(taskObject.getMetadata().getCreateChannel()).isEqualTo("any://channel");
+
+        and("externalized column is updated");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertCachedUri(row.createChannelId, "any://channel");
+    }
+
+    @Test
+    public void test203AddingEmptyValueForNestedMetadataChangesNothing()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with metadata add with no value for task 1");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(ItemPath.create(ObjectType.F_METADATA)).add()
+                .asObjectDelta(task1Oid);
+
+        and("task row previously having some value in metadata container");
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(originalRow.createChannelId).isNotNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("but nothing was updated (modifications narrowed to empty)");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version));
+        assertThat(taskObject.getMetadata().getCreateChannel()).isEqualTo("any://channel");
+
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version);
+        assertCachedUri(row.createChannelId, "any://channel");
+    }
+
+    // This one is questionable, it is technically a replace and perhaps should refuse to override
+    // existing container but if it works on prism level, it must work on repository level too.
+    @Test
+    public void test204SetNestedMetadataContainerWithAdd()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with metadata change for task 1 adding value");
+        UUID modifierRefOid = UUID.randomUUID();
+        QName modifierRelation = QName.valueOf("{https://random.org/ns}modifier-rel");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(ItemPath.create(ObjectType.F_METADATA)).add(new MetadataType()
+                        .modifyChannel("any://modify-channel")
+                        .modifierRef(modifierRefOid.toString(),
+                                UserType.COMPLEX_TYPE, modifierRelation))
+                .asObjectDelta(task1Oid);
+
+        and("task row previously having some value in metadata container");
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(originalRow.createChannelId).isNotNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(taskObject.getMetadata().getCreateChannel()).isNull();
+        assertThat(taskObject.getMetadata().getModifyChannel()).isEqualTo("any://modify-channel");
+        assertThat(taskObject.getMetadata().getModifierRef()).isNotNull(); // details checked in row
+
+        and("externalized column is updated");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.createChannelId).isNull(); // overwritten by complete container value
+        assertCachedUri(row.modifyChannelId, "any://modify-channel");
+        assertThat(row.modifierRefTargetOid).isEqualTo(modifierRefOid);
+        assertThat(row.modifierRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(row.modifierRefRelationId, modifierRelation);
+    }
+
+    @Test
+    public void test205SetNestedMetadataContainerWithReplace()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+
+        given("delta with metadata change for task 1 replacing value");
+        UUID creatorRefOid = UUID.randomUUID();
+        QName creatorRelation = QName.valueOf("{https://random.org/ns}modifier-rel");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(ItemPath.create(ObjectType.F_METADATA)).replace(new MetadataType()
+                        .createChannel("any://create-channel")
+                        .modifyChannel("any://modify2-channel")
+                        .creatorRef(creatorRefOid.toString(),
+                                UserType.COMPLEX_TYPE, creatorRelation))
+                .asObjectDelta(task1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(taskObject.getMetadata().getCreateChannel()).isEqualTo("any://create-channel");
+        assertThat(taskObject.getMetadata().getModifyChannel()).isEqualTo("any://modify2-channel");
+        assertThat(taskObject.getMetadata().getCreatorRef()).isNotNull(); // details checked in row
+        assertThat(taskObject.getMetadata().getModifierRef()).isNull();
+
+        and("externalized column is updated");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertCachedUri(row.createChannelId, "any://create-channel");
+        assertThat(row.creatorRefTargetOid).isEqualTo(creatorRefOid);
+        assertThat(row.creatorRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(row.creatorRefRelationId, creatorRelation);
+        assertCachedUri(row.modifyChannelId, "any://modify2-channel");
+        assertThat(row.modifierRefTargetOid).isNull();
+        assertThat(row.modifierRefTargetType).isNull();
+        assertThat(row.modifierRefRelationId).isNull();
+    }
+
+    @Test
+    public void test205DeleteNestedMetadataContainerWithReplace()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+
+        given("delta with metadata replaced with no value for task 1");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(ItemPath.create(ObjectType.F_METADATA)).replace()
+                .asObjectDelta(task1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(taskObject.getMetadata()).isNull();
+
+        and("all externalized columns for metadata are cleared");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.creatorRefTargetOid).isNull();
+        assertThat(row.creatorRefTargetType).isNull();
+        assertThat(row.creatorRefRelationId).isNull();
+        assertThat(row.createChannelId).isNull();
+        assertThat(row.createTimestamp).isNull();
+        assertThat(row.modifierRefTargetOid).isNull();
+        assertThat(row.modifierRefTargetType).isNull();
+        assertThat(row.modifierRefRelationId).isNull();
+        assertThat(row.modifyChannelId).isNull();
+        assertThat(row.modifyTimestamp).isNull();
+    }
+
+    @Test
+    public void test206SetNestedMetadataWithEmptyContainer()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+
+        given("delta with metadata replaced with no value for task 1");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(ItemPath.create(ObjectType.F_METADATA)).replace(new MetadataType())
+                .asObjectDelta(task1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(taskObject.getMetadata()).isNull();
+
+        and("all externalized columns for metadata are cleared");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.creatorRefTargetOid).isNull();
+        assertThat(row.creatorRefTargetType).isNull();
+        assertThat(row.creatorRefRelationId).isNull();
+        assertThat(row.createChannelId).isNull();
+        assertThat(row.createTimestamp).isNull();
+        assertThat(row.modifierRefTargetOid).isNull();
+        assertThat(row.modifierRefTargetType).isNull();
+        assertThat(row.modifierRefRelationId).isNull();
+        assertThat(row.modifyChannelId).isNull();
+        assertThat(row.modifyTimestamp).isNull();
+    }
+
+    @Test
+    public void test207AddingEmptyNestedMetadataContainer()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+
+        given("delta with empty metadata added for task 1");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(ItemPath.create(ObjectType.F_METADATA)).add(new MetadataType())
+                .asObjectDelta(task1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        // this one is not narrowed to empty modifications, version is incremented
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        // but empty container is not left in the full object
+        assertThat(taskObject.getMetadata()).isNull();
+
+        and("all externalized columns for metadata are set (or left) null");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.creatorRefTargetOid).isNull();
+        assertThat(row.creatorRefTargetType).isNull();
+        assertThat(row.creatorRefRelationId).isNull();
+        assertThat(row.createChannelId).isNull();
+        assertThat(row.createTimestamp).isNull();
+        assertThat(row.modifierRefTargetOid).isNull();
+        assertThat(row.modifierRefTargetType).isNull();
+        assertThat(row.modifierRefRelationId).isNull();
+        assertThat(row.modifyChannelId).isNull();
+        assertThat(row.modifyTimestamp).isNull();
+    }
+
+    // TODO: "indexed" containers: .item(ItemPath.create(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
+
+    // TODO test for multi-value (e.g. subtypes) with item delta with both add and delete lists
+
+    @Test
     public void test900ModificationsMustNotBeNull() {
         OperationResult result = createOperationResult();
 
@@ -869,7 +1238,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta with object name replace with null for user 1");
         UUID nonexistentOid = UUID.randomUUID();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .property(UserType.F_NAME).replace("new-name")
+                .item(UserType.F_NAME).replace("new-name")
                 .asObjectDelta(nonexistentOid.toString());
 
         expect("modifyObject throws exception");

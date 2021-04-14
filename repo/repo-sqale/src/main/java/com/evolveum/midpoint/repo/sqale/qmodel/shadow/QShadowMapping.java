@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -28,7 +27,7 @@ public class QShadowMapping
 
         addItemMapping(ShadowType.F_OBJECT_CLASS,
                 uriMapper(path(q -> q.objectClassId)));
-        addItemMapping(F_RESOURCE_REF, SqaleTableMapping.refMapper(
+        addItemMapping(F_RESOURCE_REF, refMapper(
                 path(q -> q.resourceRefTargetOid),
                 path(q -> q.resourceRefTargetType),
                 path(q -> q.resourceRefRelationId)));

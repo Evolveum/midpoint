@@ -50,6 +50,10 @@ public class UriCache {
     private final Map<String, Integer> uriToId = new ConcurrentHashMap<>();
 
     public synchronized void initialize(JdbcSession jdbcSession) {
+        // this can be called repeatedly in tests, so the clear may be necessary
+        idToUri.clear();
+        uriToId.clear();
+
         QUri uri = QUri.DEFAULT;
         List<MUri> result = jdbcSession.newQuery()
                 .select(uri)
