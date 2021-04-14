@@ -48,46 +48,45 @@ public class TenantSearchItem extends SpecialSearchItem {
     private static final Trace LOGGER = TraceManager.getTrace(TenantSearchItem.class);
 
     private MemberPanelStorage memberStorage;
-    private AvailableRelationDto supportedRelations;
     private UserInterfaceFeatureType tenantConfig;
 
-    public TenantSearchItem(Search search, MemberPanelStorage memberStorage, AvailableRelationDto supportedRelations, UserInterfaceFeatureType tenantConfig) {
+    public TenantSearchItem(Search search, MemberPanelStorage memberStorage, UserInterfaceFeatureType tenantConfig) {
         super(search);
         this.memberStorage = memberStorage;
-        this.supportedRelations = supportedRelations;
         this.tenantConfig = tenantConfig;
     }
 
     @Override
     public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
-        AbstractRoleType object = getParentVariables(variables);
-        if (object == null) {
-            return null;
-        }
-        PrismContext prismContext = pageBase.getPrismContext();
-        List relations = new ArrayList();
-        if (QNameUtil.match(PrismConstants.Q_ANY, getSupportedRelations().getDefaultRelationAllowAny())) {
-            relations.addAll(getSupportedRelations().getAvailableRelationList());
-        } else {
-            relations.add(getSupportedRelations().getDefaultRelationAllowAny());
-        }
-
-        ObjectFilter filter;
-        Class type = getSearch().getTypeClass();
-        S_AtomicFilterExit q = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
-                .block()
-                .item(AssignmentType.F_TARGET_REF)
-                .ref(MemberOperationsHelper.createReferenceValuesList(object, relations));
-
-        if (!getMemberPanelStorage().isTenantEmpty()) {
-            q = q.and().item(AssignmentType.F_TENANT_REF).ref(getMemberPanelStorage().getTenant().getOid());
-        }
-
-        if (!getMemberPanelStorage().isProjectEmpty()) {
-            q = q.and().item(AssignmentType.F_ORG_REF).ref(getMemberPanelStorage().getProject().getOid());
-        }
-        filter = q.endBlock().buildFilter();
-        return filter;
+        throw new UnsupportedOperationException();
+//        AbstractRoleType object = getParentVariables(variables);
+//        if (object == null) {
+//            return null;
+//        }
+//        PrismContext prismContext = pageBase.getPrismContext();
+//        List relations = new ArrayList();
+//        if (QNameUtil.match(PrismConstants.Q_ANY, getSupportedRelations().getDefaultRelationAllowAny())) {
+//            relations.addAll(getSupportedRelations().getAvailableRelationList());
+//        } else {
+//            relations.add(getSupportedRelations().getDefaultRelationAllowAny());
+//        }
+//
+//        ObjectFilter filter;
+//        Class type = getSearch().getTypeClass();
+//        S_AtomicFilterExit q = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
+//                .block()
+//                .item(AssignmentType.F_TARGET_REF)
+//                .ref(MemberOperationsHelper.createReferenceValuesList(object, relations));
+//
+//        if (!getMemberPanelStorage().isTenantEmpty()) {
+//            q = q.and().item(AssignmentType.F_TENANT_REF).ref(getMemberPanelStorage().getTenant().getOid());
+//        }
+//
+//        if (!getMemberPanelStorage().isProjectEmpty()) {
+//            q = q.and().item(AssignmentType.F_ORG_REF).ref(getMemberPanelStorage().getProject().getOid());
+//        }
+//        filter = q.endBlock().buildFilter();
+//        return filter;
     }
 
     @Override
@@ -157,10 +156,6 @@ public class TenantSearchItem extends SpecialSearchItem {
             LOGGER.error("Couldn't load parent object.");
         }
         return null;
-    }
-
-    public AvailableRelationDto getSupportedRelations() {
-        return supportedRelations;
     }
 
     public MemberPanelStorage getMemberPanelStorage() {

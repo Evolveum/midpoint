@@ -57,32 +57,33 @@ public class IndirectSearchItem extends SpecialSearchItem {
 
     @Override
     public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
-        AbstractRoleType object = getParentVariables(variables);
-        if (object == null) {
-            return null;
-        }
-        List relations = new ArrayList();
-        if (QNameUtil.match(PrismConstants.Q_ANY, memberStorage.getRelation())) {
-            relations.addAll(supportedRelations.getAvailableRelationList());
-        } else {
-            relations.add(memberStorage.getRelation());
-        }
-
-        ObjectFilter filter;
-        PrismContext prismContext = pageBase.getPrismContext();
-        Class type = getSearch().getTypeClass();
-        if(!Boolean.TRUE.equals(memberStorage.getIndirect())) {
-            filter = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
-                    .block()
-                    .item(AssignmentType.F_TARGET_REF)
-                    .ref(MemberOperationsHelper.createReferenceValuesList(object, relations))
-                    .endBlock().buildFilter();
-        } else {
-            filter = prismContext.queryFor(type)
-                    .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(object, relations))
-                    .buildFilter();
-        }
-        return filter;
+        throw new UnsupportedOperationException();
+//        AbstractRoleType object = getParentVariables(variables);
+//        if (object == null) {
+//            return null;
+//        }
+//        List relations = new ArrayList();
+//        if (QNameUtil.match(PrismConstants.Q_ANY, memberStorage.getRelation())) {
+//            relations.addAll(supportedRelations.getAvailableRelationList());
+//        } else {
+//            relations.add(memberStorage.getRelation());
+//        }
+//
+//        ObjectFilter filter;
+//        PrismContext prismContext = pageBase.getPrismContext();
+//        Class type = getSearch().getTypeClass();
+//        if(!Boolean.TRUE.equals(memberStorage.getIndirect())) {
+//            filter = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
+//                    .block()
+//                    .item(AssignmentType.F_TARGET_REF)
+//                    .ref(MemberOperationsHelper.createReferenceValuesList(object, relations))
+//                    .endBlock().buildFilter();
+//        } else {
+//            filter = prismContext.queryFor(type)
+//                    .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(object, relations))
+//                    .buildFilter();
+//        }
+//        return filter;
     }
 
     @Override
@@ -128,9 +129,7 @@ public class IndirectSearchItem extends SpecialSearchItem {
                 return Model.of(WebComponentUtil.getTranslatedPolyString(indirectConfig.getDisplay().getHelp()));
             }
         };
-        panel.add(new VisibleBehaviour(() -> memberStorage == null
-                || (supportedRelations.getAvailableRelationList() != null
-                && !SearchBoxScopeType.SUBTREE.equals(memberStorage.getOrgSearchScope()))));
+        panel.add(new VisibleBehaviour(() -> isPanelVisible()));
         return panel;
     }
 
@@ -144,5 +143,9 @@ public class IndirectSearchItem extends SpecialSearchItem {
             LOGGER.error("Couldn't load parent object.");
         }
         return null;
+    }
+
+    protected boolean isPanelVisible() {
+        return false;
     }
 }

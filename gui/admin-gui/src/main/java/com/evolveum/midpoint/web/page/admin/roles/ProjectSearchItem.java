@@ -46,42 +46,41 @@ public class ProjectSearchItem extends SpecialSearchItem {
     private static final Trace LOGGER = TraceManager.getTrace(ProjectSearchItem.class);
 
     private MemberPanelStorage memberStorage;
-    private AvailableRelationDto supportedRelations;
     private UserInterfaceFeatureType projectConfig;
 
-    public ProjectSearchItem(Search search, MemberPanelStorage memberStorage, AvailableRelationDto supportedRelations, UserInterfaceFeatureType projectConfig) {
+    public ProjectSearchItem(Search search, MemberPanelStorage memberStorage, UserInterfaceFeatureType projectConfig) {
         super(search);
         this.memberStorage = memberStorage;
-        this.supportedRelations = supportedRelations;
         this.projectConfig = projectConfig;
     }
 
     @Override
     public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
-        AbstractRoleType object = getParentVariables(variables);
-        if (object == null) {
-            return null;
-        }
-        PrismContext prismContext = pageBase.getPrismContext();
-        List relations = new ArrayList();
-        if (QNameUtil.match(PrismConstants.Q_ANY, getSupportedRelations().getDefaultRelationAllowAny())) {
-            relations.addAll(getSupportedRelations().getAvailableRelationList());
-        } else {
-            relations.add(getSupportedRelations().getDefaultRelationAllowAny());
-        }
-
-        ObjectFilter filter;
-        Class type = getSearch().getTypeClass();
-        S_AtomicFilterExit q = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
-                .block()
-                .item(AssignmentType.F_TARGET_REF)
-                .ref(MemberOperationsHelper.createReferenceValuesList(object, relations));
-
-        if (!getMemberPanelStorage().isProjectEmpty()) {
-            q = q.and().item(AssignmentType.F_ORG_REF).ref(getMemberPanelStorage().getProject().getOid());
-        }
-        filter = q.endBlock().buildFilter();
-        return filter;
+        throw new UnsupportedOperationException();
+//        AbstractRoleType object = getParentVariables(variables);
+//        if (object == null) {
+//            return null;
+//        }
+//        PrismContext prismContext = pageBase.getPrismContext();
+//        List relations = new ArrayList();
+//        if (QNameUtil.match(PrismConstants.Q_ANY, getSupportedRelations().getDefaultRelationAllowAny())) {
+//            relations.addAll(getSupportedRelations().getAvailableRelationList());
+//        } else {
+//            relations.add(getSupportedRelations().getDefaultRelationAllowAny());
+//        }
+//
+//        ObjectFilter filter;
+//        Class type = getSearch().getTypeClass();
+//        S_AtomicFilterExit q = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
+//                .block()
+//                .item(AssignmentType.F_TARGET_REF)
+//                .ref(MemberOperationsHelper.createReferenceValuesList(object, relations));
+//
+//        if (!getMemberPanelStorage().isProjectEmpty()) {
+//            q = q.and().item(AssignmentType.F_ORG_REF).ref(getMemberPanelStorage().getProject().getOid());
+//        }
+//        filter = q.endBlock().buildFilter();
+//        return filter;
     }
 
     @Override
@@ -139,22 +138,6 @@ public class ProjectSearchItem extends SpecialSearchItem {
         panel.add(new VisibleBehaviour(() -> getMemberPanelStorage() == null
                 || !Boolean.TRUE.equals(getMemberPanelStorage().getIndirect())));
         return panel;
-    }
-
-    private <R extends AbstractRoleType> R getParentVariables(VariablesMap variables) {
-        if (variables == null) {
-            return null;
-        }
-        try {
-            return (R) variables.getValue(ExpressionConstants.VAR_PARENT_OBJECT, AbstractRoleType.class);
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't load parent object.");
-        }
-        return null;
-    }
-
-    public AvailableRelationDto getSupportedRelations() {
-        return supportedRelations;
     }
 
     public MemberPanelStorage getMemberPanelStorage() {

@@ -38,25 +38,24 @@ public class ScopeSearchItem extends SpecialSearchItem {
     private static final Trace LOGGER = TraceManager.getTrace(TenantSearchItem.class);
 
     private MemberPanelStorage memberStorage;
-    private AvailableRelationDto supportedRelations;
     private UserInterfaceFeatureType scopeConfig;
 
-    public ScopeSearchItem(Search search, MemberPanelStorage memberStorage, AvailableRelationDto supportedRelations, ScopeSearchItemConfigurationType scopeConfig) {
+    public ScopeSearchItem(Search search, MemberPanelStorage memberStorage, ScopeSearchItemConfigurationType scopeConfig) {
         super(search);
         this.memberStorage = memberStorage;
-        this.supportedRelations = supportedRelations;
         this.scopeConfig = scopeConfig;
     }
 
     @Override
     public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
-        AbstractRoleType object = getParentVariables(variables);
-        if (object == null) {
-            return null;
-        }
-        Class type = getSearch().getTypeClass();
-        ObjectReferenceType ref = MemberOperationsHelper.createReference(object, null);
-        return pageBase.getPrismContext().queryFor(type).isChildOf(ref.asReferenceValue()).buildFilter();
+        throw new UnsupportedOperationException();
+//        AbstractRoleType object = getParentVariables(variables);
+//        if (object == null) {
+//            return null;
+//        }
+//        Class type = getSearch().getTypeClass();
+//        ObjectReferenceType ref = MemberOperationsHelper.createReference(object, null);
+//        return pageBase.getPrismContext().queryFor(type).isChildOf(ref.asReferenceValue()).buildFilter();
     }
 
     @Override
@@ -92,22 +91,6 @@ public class ScopeSearchItem extends SpecialSearchItem {
                 return Model.of(WebComponentUtil.getTranslatedPolyString(scopeConfig.getDisplay().getHelp()));
             }
         };
-    }
-
-    private <R extends AbstractRoleType> R getParentVariables(VariablesMap variables) {
-        if (variables == null) {
-            return null;
-        }
-        try {
-            return (R) variables.getValue(ExpressionConstants.VAR_PARENT_OBJECT, AbstractRoleType.class);
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't load parent object.");
-        }
-        return null;
-    }
-
-    public AvailableRelationDto getSupportedRelations() {
-        return supportedRelations;
     }
 
     public MemberPanelStorage getMemberPanelStorage() {

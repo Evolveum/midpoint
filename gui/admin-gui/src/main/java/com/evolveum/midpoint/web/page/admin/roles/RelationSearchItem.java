@@ -65,43 +65,44 @@ public class RelationSearchItem extends SpecialSearchItem {
 //    private SearchItem createRelationItem(Search search) {
 //        return new SpecialSearchItem(search) {
 //            @Override
-            public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
-                AbstractRoleType object = getParentVariables(variables);
-                if (object == null) {
-                    return null;
-                }
-                PrismContext prismContext = pageBase.getPrismContext();
-                List relations;
-                QName relation = memberStorage.getRelation();
-                if (QNameUtil.match(relation, PrismConstants.Q_ANY)){
-                    relations = supportedRelations.getAvailableRelationList();
-                } else {
-                    relations = Collections.singletonList(relation);
-                }
-
-                ObjectFilter filter;
-                Boolean indirect = memberStorage.getIndirect();
-                Class type = getSearch().getTypeClass();
-                if(!Boolean.TRUE.equals(indirect)) {
-                    S_AtomicFilterExit q = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
-                            .block()
-                            .item(AssignmentType.F_TARGET_REF)
-                            .ref(MemberOperationsHelper.createReferenceValuesList(object, relations));
-
-                    if (!memberStorage.isTenantEmpty()) {
-                        q = q.and().item(AssignmentType.F_TENANT_REF).ref(memberStorage.getTenant().getOid());
-                    }
-
-                    if (!memberStorage.isProjectEmpty()) {
-                        q = q.and().item(AssignmentType.F_ORG_REF).ref(memberStorage.getProject().getOid());
-                    }
-                    filter = q.endBlock().buildFilter();
-                } else {
-                    filter = prismContext.queryFor(type)
-                            .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(object, relations))
-                            .buildFilter();
-                }
-                return filter;
+    public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
+        throw new UnsupportedOperationException();
+//                AbstractRoleType object = getParentVariables(variables);
+//                if (object == null) {
+//                    return null;
+//                }
+//                PrismContext prismContext = pageBase.getPrismContext();
+//                List relations;
+//                QName relation = memberStorage.getRelation();
+//                if (QNameUtil.match(relation, PrismConstants.Q_ANY)){
+//                    relations = supportedRelations.getAvailableRelationList();
+//                } else {
+//                    relations = Collections.singletonList(relation);
+//                }
+//
+//                ObjectFilter filter;
+//                Boolean indirect = memberStorage.getIndirect();
+//                Class type = getSearch().getTypeClass();
+//                if(!Boolean.TRUE.equals(indirect)) {
+//                    S_AtomicFilterExit q = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
+//                            .block()
+//                            .item(AssignmentType.F_TARGET_REF)
+//                            .ref(MemberOperationsHelper.createReferenceValuesList(object, relations));
+//
+//                    if (!memberStorage.isTenantEmpty()) {
+//                        q = q.and().item(AssignmentType.F_TENANT_REF).ref(memberStorage.getTenant().getOid());
+//                    }
+//
+//                    if (!memberStorage.isProjectEmpty()) {
+//                        q = q.and().item(AssignmentType.F_ORG_REF).ref(memberStorage.getProject().getOid());
+//                    }
+//                    filter = q.endBlock().buildFilter();
+//                } else {
+//                    filter = prismContext.queryFor(type)
+//                            .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(object, relations))
+//                            .buildFilter();
+//                }
+//                return filter;
             }
 
 //            @Override
