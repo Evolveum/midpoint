@@ -114,17 +114,7 @@ public class TestSchemaRegistry extends AbstractUnitTest {
         PrismObjectDefinition<UserType> userDefinition = schemaRegistry.findObjectDefinitionByCompileTimeClass(UserType.class);
         assertNotNull("No user definition", userDefinition);
 
-        System.out.println("testUserType:");
-        System.out.println(userDefinition.debugDump());
-
-        assertFalse("User definition is marked as runtime", userDefinition.isRuntimeSchema());
-
-        PrismPropertyDefinition<PolyString> nameDef = userDefinition.findPropertyDefinition(ObjectType.F_NAME);
-        assertNotNull("No name definition", nameDef);
-
-        PrismContainerDefinition extensionDef = userDefinition.findContainerDefinition(UserType.F_EXTENSION);
-        assertNotNull("No 'extension' definition", extensionDef);
-        assertTrue("Extension definition is NOT marked as runtime", extensionDef.isRuntimeSchema());
+        basicObjectDefinitionAsserts(userDefinition);
 
         PrismPropertyDefinition<PolyString> givenNameDef = userDefinition.findPropertyDefinition(UserType.F_GIVEN_NAME);
         assertNotNull("No givenName definition", givenNameDef);
@@ -132,7 +122,7 @@ public class TestSchemaRegistry extends AbstractUnitTest {
         assertNotNull("No diagrams in user definition", diagrams);
         assertEquals("Unexpected number of diagrams in user definition", 1, diagrams.size());
         assertEquals("Unexpected name of diagram in user definition", "user-overview", diagrams.get(0).getName());
-        assertEquals("Unexpected name of diagram in user definition", DiagramElementInclusionType.INCLUDE, diagrams.get(0).getInclusion());
+        assertEquals("Unexpected inclusion of diagram in user definition", DiagramElementInclusionType.INCLUDE, diagrams.get(0).getInclusion());
 
         PrismPropertyDefinition<String> preferredLanguageDef = userDefinition.findPropertyDefinition(UserType.F_PREFERRED_LANGUAGE);
         assertNotNull("No preferredLanguage definition", preferredLanguageDef);
@@ -148,13 +138,47 @@ public class TestSchemaRegistry extends AbstractUnitTest {
         assertEquals("Unexpected number of diagrams in user definition", 3, diagrams.size());
         assertEquals("Unexpected name of diagram in user definition", "user-shadow-resource", diagrams.get(0).getName());
         assertEquals("Unexpected form of diagram in user definition", DiagramElementFormType.COLLAPSED, diagrams.get(0).getForm());
-        assertEquals("Unexpected form of diagram in user definition", DiagramElementInclusionType.INCLUDE, diagrams.get(0).getInclusion());
-        assertEquals("Unexpected form of diagram in user definition", DiagramElementInclusionType.AUTO, diagrams.get(0).getSubitemInclusion());
+        assertEquals("Unexpected inclusion of diagram in user definition", DiagramElementInclusionType.INCLUDE, diagrams.get(0).getInclusion());
+        assertEquals("Unexpected subitem inclusion of diagram in user definition", DiagramElementInclusionType.AUTO, diagrams.get(0).getSubitemInclusion());
 
         // Just make sure this does not end with NPE or stack overflow
         userDefinition.clone();
         userDefinition.deepClone(false, null);
         userDefinition.deepClone(true, null);
+    }
+
+    @Test
+    public void testResourceType() throws Exception {
+        MidPointPrismContextFactory factory = getContextFactory();
+        PrismContext context = factory.createInitializedPrismContext();
+        SchemaRegistry schemaRegistry = context.getSchemaRegistry();
+
+        PrismObjectDefinition<ResourceType> resourceDefinition = schemaRegistry.findObjectDefinitionByCompileTimeClass(ResourceType.class);
+        assertNotNull("No resource definition", resourceDefinition);
+
+        basicObjectDefinitionAsserts(resourceDefinition);
+
+        PrismContainerDefinition<OperationalStateType> oshDef = resourceDefinition.findContainerDefinition(ResourceType.F_OPERATIONAL_STATE_HISTORY);
+        assertNotNull("No operationalStateHistory definition", oshDef);
+        List<ItemDiagramSpecification> diagrams = oshDef.getDiagrams();
+        assertNotNull("No diagrams in operationalStateHistory definition", diagrams);
+        assertEquals("Unexpected number of diagrams in operationalStateHistory definition", 1, diagrams.size());
+        assertEquals("Unexpected name of diagram in operationalStateHistory definition", "user-shadow-resource", diagrams.get(0).getName());
+        assertEquals("Unexpected form of diagram in operationalStateHistory definition", DiagramElementFormType.COLLAPSED, diagrams.get(0).getForm());
+    }
+
+    private <O extends ObjectType> void basicObjectDefinitionAsserts(PrismObjectDefinition<O> objectDefinition) {
+        System.out.println("object definition:");
+        System.out.println(objectDefinition.debugDump());
+
+        assertFalse("Resource definition is marked as runtime", objectDefinition.isRuntimeSchema());
+
+        PrismPropertyDefinition<PolyString> nameDef = objectDefinition.findPropertyDefinition(ObjectType.F_NAME);
+        assertNotNull("No name definition", nameDef);
+
+        PrismContainerDefinition extensionDef = objectDefinition.findContainerDefinition(UserType.F_EXTENSION);
+        assertNotNull("No 'extension' definition", extensionDef);
+        assertTrue("Extension definition is NOT marked as runtime", extensionDef.isRuntimeSchema());
     }
 
     @Test

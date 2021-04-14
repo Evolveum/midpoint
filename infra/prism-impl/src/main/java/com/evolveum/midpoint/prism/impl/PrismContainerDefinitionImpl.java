@@ -514,7 +514,13 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     }
 
     @Override
-    public List<ItemDiagramSpecification> getDiagrams() { return complexTypeDefinition.getDiagrams(); }
+    public List<ItemDiagramSpecification> getDiagrams() {
+        List<ItemDiagramSpecification> diagrams = super.getDiagrams();
+        if (diagrams != null) {
+            return diagrams;
+        }
+        return complexTypeDefinition.getDiagrams();
+    }
 
     @Override
     public String debugDump(int indent) {
