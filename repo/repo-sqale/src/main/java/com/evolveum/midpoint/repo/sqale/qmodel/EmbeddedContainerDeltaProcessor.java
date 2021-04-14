@@ -53,6 +53,10 @@ public class EmbeddedContainerDeltaProcessor<T extends Containerable>
      */
     public void setValue(T value) {
         PrismContainerValue<T> pcv = Containerable.asPrismContainerValue(value);
+        if (pcv == null) {
+            return;
+        }
+
         for (Item<?, ?> item : pcv.getItems()) {
             ItemSqlMapper mapper = mappers.remove(item.getElementName());
             if (mapper == null) {
