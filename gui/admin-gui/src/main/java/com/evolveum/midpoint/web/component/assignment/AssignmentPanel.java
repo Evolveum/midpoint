@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -155,7 +156,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                     }
 
                     @Override
-                    protected List<MultiFunctinalButtonDto> createNewButtonDescription() {
+                    protected List<CompositedIconButtonDto> createNewButtonDescription() {
                         return newButtonDescription();
                     }
 
@@ -163,13 +164,6 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                     protected boolean getNewObjectGenericButtonVisibility() {
                         AssignmentCandidatesSpecification spec = loadAssignmentHolderSpecification();
                         return spec == null || spec.isSupportGenericAssignment();
-                    }
-
-                    @Override
-                    protected DisplayType getNewObjectButtonDisplayType() {
-                        return WebComponentUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
-                                AssignmentPanel.this.createStringResource(isInducement() ?
-                                        "AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle", "", "").getString());
                     }
 
                     @Override
@@ -260,8 +254,16 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     protected void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
     }
 
-    private List<MultiFunctinalButtonDto> newButtonDescription() {
-        List<MultiFunctinalButtonDto> buttonDtoList = new ArrayList<>();
+    private List<CompositedIconButtonDto> newButtonDescription() {
+//        MultiFunctinalButtonDto multiFunctinalButtonDto = new MultiFunctinalButtonDto();
+//
+//        DisplayType mainObjectDisplayType = WebComponentUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
+//                    AssignmentPanel.this.createStringResource(isInducement() ?
+//                            "AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle", "", "").getString());
+//        CompositedIconButtonDto mainButton = new CompositedIconButtonDto();
+//        mainButton.setAdditionalButtonDisplayType(mainObjectDisplayType);
+//        multiFunctinalButtonDto.setMainButton(mainButton);
+
         if (AssignmentPanel.this.getModelObject() == null) {
             return null;
         }
@@ -274,8 +276,9 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
             return null;
         }
 
+        List<CompositedIconButtonDto> buttonDtoList = new ArrayList<>();
         relations.forEach(relation -> {
-            MultiFunctinalButtonDto buttonDto = new MultiFunctinalButtonDto();
+            CompositedIconButtonDto buttonDto = new CompositedIconButtonDto();
             buttonDto.setAssignmentObjectRelation(relation);
 
             DisplayType additionalButtonDisplayType = WebComponentUtil.getAssignmentObjectRelationDisplayType(AssignmentPanel.this.getPageBase(), relation,
@@ -291,7 +294,30 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
             buttonDto.setCompositedIcon(icon);
             buttonDtoList.add(buttonDto);
         });
+
+        if (isGenericNewObjectButtonVisible()) {
+            DisplayType defaultButtonDisplayType = WebComponentUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
+                    AssignmentPanel.this.createStringResource(isInducement() ?
+                            "AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle", "", "").getString());
+            CompositedIconButtonDto defaultButton = new CompositedIconButtonDto();
+            CompositedIconBuilder builder = new CompositedIconBuilder();
+            builder.setBasicIcon(WebComponentUtil.getIconCssClass(defaultButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
+                    .appendColorHtmlValue(WebComponentUtil.getIconColor(defaultButtonDisplayType))
+                    .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
+
+            defaultButton.setAdditionalButtonDisplayType(defaultButtonDisplayType);
+            defaultButton.setCompositedIcon(builder.build());
+            buttonDtoList.add(defaultButton);
+        }
+
+//        multiFunctinalButtonDto.setAdditionalButtons(buttonDtoList);
+
         return buttonDtoList;
+    }
+
+    private boolean isGenericNewObjectButtonVisible() {
+        AssignmentCandidatesSpecification spec = loadAssignmentHolderSpecification();
+        return spec == null || spec.isSupportGenericAssignment();
     }
 
     private List<AssignmentObjectRelation> getAssignmentObjectRelationList() {

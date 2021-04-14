@@ -16,6 +16,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 
+import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -332,7 +334,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return null;
     }
 
-    protected List<MultiFunctinalButtonDto> createNewButtonDescription() {
+    protected List<CompositedIconButtonDto> createNewButtonDescription() {
         return null;
     }
 

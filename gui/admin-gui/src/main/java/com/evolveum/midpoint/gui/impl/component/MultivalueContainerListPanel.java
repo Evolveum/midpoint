@@ -13,6 +13,8 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -127,9 +129,9 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> bar = new ArrayList<>();
         MultiCompositedButtonPanel newObjectIcon =
-                new MultiCompositedButtonPanel(idButton, new LoadableModel<List<MultiFunctinalButtonDto>>(false) {
+                new MultiCompositedButtonPanel(idButton, new LoadableModel<List<CompositedIconButtonDto>>(false) {
                     @Override
-                    protected List<MultiFunctinalButtonDto> load() {
+                    protected List<CompositedIconButtonDto> load() {
                         return createNewButtonDescription();
                     }
                 }) {
@@ -140,20 +142,11 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
                         newItemPerformed(target, relationSepc);
                     }
 
-                    @Override
-                    protected boolean isDefaultButtonVisible(){
-                        return getNewObjectGenericButtonVisibility();
-                    }
+//                    @Override
+//                    protected boolean isDefaultButtonVisible(){
+//                        return getNewObjectGenericButtonVisibility();
+//                    }
 
-                    @Override
-                    protected DisplayType getMainButtonDisplayType() {
-                        return getNewObjectButtonDisplayType();
-                    }
-
-                    @Override
-                    protected DisplayType getDefaultObjectButtonDisplayType() {
-                        return getNewObjectButtonDisplayType();
-                    }
                 };
         newObjectIcon.add(AttributeModifier.append("class", "btn-group btn-margin-right"));
         newObjectIcon.add(new VisibleEnableBehaviour() {
@@ -173,7 +166,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return bar;
     }
 
-    protected List<MultiFunctinalButtonDto> createNewButtonDescription() {
+    protected List<CompositedIconButtonDto> createNewButtonDescription() {
         return null;
     }
 

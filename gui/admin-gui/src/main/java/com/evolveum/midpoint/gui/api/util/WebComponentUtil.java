@@ -5089,7 +5089,7 @@ public final class WebComponentUtil {
     public static Map<IconCssStyle, IconType> createMainButtonLayerIcon(DisplayType mainButtonDisplayType) {
         if (mainButtonDisplayType.getIcon() != null && mainButtonDisplayType.getIcon().getCssClass() != null &&
                 mainButtonDisplayType.getIcon().getCssClass().contains(GuiStyleConstants.CLASS_ADD_NEW_OBJECT)) {
-            return null;
+            return Collections.emptyMap();
         }
         Map<IconCssStyle, IconType> layerIconMap = new HashMap<>();
         layerIconMap.put(IconCssStyle.BOTTOM_RIGHT_STYLE, WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"));
