@@ -330,7 +330,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
-        and("serialized form (fullObject) is updated and email is gone");
+        and("serialized form (fullObject) is updated and last run start timestamp is gone");
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
@@ -461,7 +461,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
-        and("serialized form (fullObject) is updated and display order is gone");
+        and("serialized form (fullObject) is updated and dead is null");
         ShadowType shadowObject = repositoryService
                 .getObject(ShadowType.class, shadow1Oid, null, result)
                 .asObjectable();
@@ -535,7 +535,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
-        and("serialized form (fullObject) is updated and display order is gone");
+        and("serialized form (fullObject) is updated and nickname is gone");
         UserType userObject = repositoryService
                 .getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
@@ -679,7 +679,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
-        and("serialized form (fullObject) is updated and email is gone");
+        and("serialized form (fullObject) is updated and owner ref is gone");
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
@@ -742,7 +742,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
-        and("serialized form (fullObject) is updated and email is gone");
+        and("serialized form (fullObject) is updated and handler URI is gone");
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
@@ -803,7 +803,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
-        and("serialized form (fullObject) is updated and email is gone");
+        and("serialized form (fullObject) is updated and execution status is gone");
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
@@ -930,7 +930,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
-        and("serialized form (fullObject) is updated and email is gone");
+        and("serialized form (fullObject) is updated and create channel is gone");
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
@@ -1211,6 +1211,147 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.modifierRefRelationId).isNull();
         assertThat(row.modifyChannelId).isNull();
         assertThat(row.modifyTimestamp).isNull();
+    }
+
+    @Test
+    public void test210ChangeDeeplyNestedFocusPasswordCreateTimestamp()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding credential/password/metadata/createTimestamp value for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
+                        PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
+                .add(MiscUtil.asXMLGregorianCalendar(1L))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(user.getCredentials().getPassword().getMetadata()
+                .getCreateTimestamp().getMillisecond()).isEqualTo(1);
+
+        and("externalized column is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.passwordCreateTimestamp).isEqualTo(Instant.ofEpochMilli(1));
+    }
+
+    @Test
+    public void test211DeleteDeeplyNestedFocusPasswordCreateTimestamp()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with metadata/createChannel status replace to null ('delete') for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
+                        PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
+                .replace()
+                .asObjectDelta(user1Oid);
+
+        and("user row previously having the passwordCreateTimestamp value");
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(originalRow.passwordCreateTimestamp).isNotNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and password create timestamp is gone");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertTrue(userObject.getCredentials() == null // if removed with last item
+                || userObject.getCredentials().getPassword() == null
+                || userObject.getCredentials().getPassword().getMetadata() == null
+                || userObject.getCredentials().getPassword().getMetadata()
+                .getCreateTimestamp() == null);
+
+        and("externalized column is set to NULL");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.passwordCreateTimestamp).isNull();
+    }
+
+    @Test
+    public void test212AddingDeeplyNestedEmbeddedContainer()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding whole credential/password container user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD))
+                .replace(new PasswordType(prismContext)
+                        .metadata(new MetadataType(prismContext)
+                                .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(1L))))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(user.getCredentials().getPassword().getMetadata()
+                .getModifyTimestamp().getMillisecond()).isEqualTo(1);
+
+        and("externalized column is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.passwordCreateTimestamp).isNull(); // not set, left as null
+        assertThat(row.passwordModifyTimestamp).isEqualTo(Instant.ofEpochMilli(1));
+    }
+
+    @Test
+    public void test213OverwritingParentOfDeeplyNestedEmbeddedContainer()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding whole credential/password container user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(ItemPath.create(FocusType.F_CREDENTIALS))
+                .replace(new CredentialsType(prismContext)
+                        .password(new PasswordType(prismContext)
+                                .metadata(new MetadataType(prismContext)
+                                        .createTimestamp(MiscUtil.asXMLGregorianCalendar(1L)))))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(user.getCredentials().getPassword().getMetadata()
+                .getCreateTimestamp().getMillisecond()).isEqualTo(1);
+        assertThat(user.getCredentials().getPassword().getMetadata().getModifyTimestamp())
+                .isNull();
+
+        and("externalized column is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.passwordModifyTimestamp).isNull(); // not set, left as null
+        assertThat(row.passwordCreateTimestamp).isEqualTo(Instant.ofEpochMilli(1));
     }
 
     // TODO: "indexed" containers: .item(ItemPath.create(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
