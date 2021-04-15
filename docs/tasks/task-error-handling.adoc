@@ -123,6 +123,7 @@ Each of the options described has its own strengths and limitations. These are s
 in the table below.
 
 [%autowidth]
+[%header]
 |===
 | Feature | Operation Execution Records | Triggers | Comment
 
@@ -178,6 +179,7 @@ An example of a recoverer task:
 The `failedObjectSelector` can have the following items:
 
 [%autowidth]
+[%header]
 |===
 | Item | Description | Default
 
@@ -215,6 +217,7 @@ value.
 The selection method has the following values:
 
 [%autowidth]
+[%header]
 |===
 | Item | Description
 | `default` | When searching for shadows via provisioning, `fetchFailedObjects`; otherwise `narrowQuery`.
@@ -290,6 +293,7 @@ and without attempt limit.
 Generally, the `errorHandlingStrategy` contains a list of entries. Each entry has:
 
 [%autowidth]
+[%header]
 |===
 | Item | Description | Default
 | `order` | Order in which this entry is to be evaluated. (Related to other entries.) Smaller numbers
@@ -301,6 +305,7 @@ go first. Entries with no order go last. | No order.
 A `situation` contains the following:
 
 [%autowidth]
+[%header]
 |===
 | Item | Description | Default
 | `status` | Operation result status to match. Can be either PARTIAL_ERROR or FATAL_ERROR.
@@ -315,6 +320,7 @@ to be highly experimental.
 The `reaction` is either:
 
 [%autowidth]
+[%header]
 |===
 | Reaction | Description | Note
 
@@ -350,6 +356,7 @@ of error situations.
 The `retryLater` reaction has itself the following properties:
 
 [%autowidth]
+[%header]
 |===
 | Property | Meaning | The default
 
