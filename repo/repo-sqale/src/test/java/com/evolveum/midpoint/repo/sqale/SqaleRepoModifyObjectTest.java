@@ -1350,7 +1350,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("externalized column is updated");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
-        assertThat(row.passwordModifyTimestamp).isNull(); // not set, left as null
+        assertThat(row.passwordModifyTimestamp).isNull(); // cleared
         assertThat(row.passwordCreateTimestamp).isEqualTo(Instant.ofEpochMilli(1));
     }
 

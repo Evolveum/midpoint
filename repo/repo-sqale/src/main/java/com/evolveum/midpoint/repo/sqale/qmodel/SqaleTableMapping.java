@@ -50,6 +50,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /** Nested mapping adaptation for repo-sqale. */
+    @SuppressWarnings("DuplicatedCode") // the same code in SqaleNestedMapping
     public <N extends Containerable> SqaleNestedMapping<N, Q, R> addNestedMapping(
             @NotNull ItemName itemName, @NotNull Class<N> nestedSchemaType) {
         SqaleNestedMapping<N, Q, R> nestedMapping =
@@ -57,7 +58,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         addRelationResolver(itemName, new NestedMappingResolver<>(nestedMapping));
         // first function for query doesn't matter, it just can't be null
         addItemMapping(itemName, new SqaleItemSqlMapper(ctx -> null,
-                ctx -> new EmbeddedContainerDeltaProcessor<N>(ctx, nestedMapping)));
+                ctx -> new EmbeddedContainerDeltaProcessor<>(ctx, nestedMapping)));
         return nestedMapping;
     }
 
