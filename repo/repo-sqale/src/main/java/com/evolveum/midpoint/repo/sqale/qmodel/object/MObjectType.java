@@ -13,8 +13,6 @@ import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.other.QDashboard;
-import com.evolveum.midpoint.repo.sqale.qmodel.other.QObjectCollection;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCase;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnector;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHost;
@@ -23,6 +21,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTable;
 import com.evolveum.midpoint.repo.sqale.qmodel.node.QNode;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping.QAssignmentHolder;
+import com.evolveum.midpoint.repo.sqale.qmodel.other.QDashboard;
+import com.evolveum.midpoint.repo.sqale.qmodel.other.QObjectCollection;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReport;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportData;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QAbstractRole;

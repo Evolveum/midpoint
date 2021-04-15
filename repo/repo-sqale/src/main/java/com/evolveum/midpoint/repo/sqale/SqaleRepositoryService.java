@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.*;
 import java.util.function.Consumer;
@@ -13,6 +14,7 @@ import javax.annotation.PreDestroy;
 
 import com.google.common.base.Strings;
 import com.querydsl.core.Tuple;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +37,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.*;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -104,28 +107,35 @@ public class SqaleRepositoryService implements RepositoryService {
         UUID oidUuid = checkOid(oid);
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
-        LOGGER.debug("Getting object '{}' with oid '{}': {}",
+        LOGGER.debug("Getting object '{}' with OID '{}': {}",
                 type.getSimpleName(), oid, parentResult.getOperation());
         InternalMonitor.recordRepositoryRead(type, oid);
 
-        OperationResult operationResult = parentResult.subresult(GET_OBJECT)
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_GET_OBJECT)
                 .addQualifier(type.getSimpleName())
                 .setMinor()
                 .addParam("type", type.getName())
                 .addParam("oid", oid)
                 .build();
 
-        PrismObject<T> object;
         try {
-            //noinspection unchecked
-            object = (PrismObject<T>) readByOid(type, oidUuid, options).asPrismObject();
+            PrismObject<T> object;
+            try (JdbcSession jdbcSession =
+                    sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+                //noinspection unchecked
+                object = (PrismObject<T>) readByOid(
+                        jdbcSession, type, oidUuid, options).asPrismObject();
+            }
 
-            // TODO what's with all the conflict watchers?
             // "objectLocal" is here just to provide effectively final variable for the lambda below
 //            PrismObject<T> objectLocal = executeAttempts(oid, OP_GET_OBJECT, type, "getting",
 //                    subResult, () -> objectRetriever.getObjectAttempt(type, oid, options, operationResult));
 //            object = objectLocal;
-//            invokeConflictWatchers((w) -> w.afterGetObject(objectLocal));
+            invokeConflictWatchers((w) -> w.afterGetObject(object));
+
+            // TODO both update and get need this?
+            ObjectTypeUtil.normalizeAllRelations(object, schemaService.relationRegistry());
+            return object;
         } catch (RuntimeException e) { // TODO what else to catch?
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -136,12 +146,10 @@ public class SqaleRepositoryService implements RepositoryService {
 //            OperationLogger.logGetObject(type, oid, options, object, operationResult);
             // TODO some logging
         }
-
-        return object;
     }
 
     private UUID checkOid(String oid) {
-        Objects.requireNonNull(oid, "Oid must not be null");
+        Objects.requireNonNull(oid, "OID must not be null");
         try {
             return UUID.fromString(oid);
         } catch (IllegalArgumentException e) {
@@ -149,11 +157,9 @@ public class SqaleRepositoryService implements RepositoryService {
         }
     }
 
-    /**
-     * Read object with shortest possible read-only transaction.
-     * Not intended as part of more complex transactional scenarios, only for {@link #getObject}.
-     */
+    /** Read object using provided {@link JdbcSession} as a part of already running transaction. */
     private <S extends ObjectType, Q extends QObject<R>, R extends MObject> S readByOid(
+            @NotNull JdbcSession jdbcSession,
             @NotNull Class<S> schemaType,
             @NotNull UUID oid,
             Collection<SelectorOptions<GetOperationOptions>> options)
@@ -163,46 +169,18 @@ public class SqaleRepositoryService implements RepositoryService {
 
         SqaleTableMapping<S, Q, R> rootMapping =
                 sqlRepoContext.getMappingBySchemaType(schemaType);
-        final Q root = rootMapping.defaultAlias();
-
-        Tuple result;
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
-            result = sqlRepoContext.newQuery(jdbcSession.connection())
-                    .from(root)
-                    .select(rootMapping.selectExpressions(root, options))
-                    .where(root.oid.eq(oid))
-                    .fetchOne();
-        }
-        if (result == null || result.get(root.fullObject) == null) {
-            // TODO is there a case when fullObject can be null?
-            String oidString = oid.toString();
-            throw new ObjectNotFoundException("Object of type '" + schemaType.getSimpleName()
-                    + "' with oid '" + oidString + "' was not found.", oidString);
-        }
-
-        return rootMapping.createTransformer(transformerSupport)
-                .toSchemaObject(result, root, options);
-    }
-
-    /** Read object using provided {@link JdbcSession} as a part of already running transaction. */
-    private <S extends ObjectType, Q extends QObject<R>, R extends MObject> S readByOid(
-            @NotNull JdbcSession jdbcSession,
-            @NotNull Class<S> schemaType,
-            @NotNull UUID oid,
-            Collection<SelectorOptions<GetOperationOptions>> options)
-            throws SchemaException {
-
-//        context.processOptions(options); TODO how to process option, is setting of select expressions enough?
-
-        SqaleTableMapping<S, Q, R> rootMapping =
-                sqlRepoContext.getMappingBySchemaType(schemaType);
-        final Q root = rootMapping.defaultAlias();
+        Q root = rootMapping.defaultAlias();
 
         Tuple result = sqlRepoContext.newQuery(jdbcSession.connection())
                 .from(root)
                 .select(rootMapping.selectExpressions(root, options))
                 .where(root.oid.eq(oid))
                 .fetchOne();
+
+        if (result == null || result.get(root.fullObject) == null) {
+            String oidString = oid.toString();
+            throw new ObjectNotFoundException(schemaType, oidString);
+        }
 
         return rootMapping.createTransformer(transformerSupport)
                 .toSchemaObject(result, root, options);
@@ -233,7 +211,7 @@ public class SqaleRepositoryService implements RepositoryService {
             options = new RepoAddOptions();
         }
 
-        OperationResult operationResult = parentResult.subresult(ADD_OBJECT)
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_ADD_OBJECT)
                 .addQualifier(object.asObjectable().getClass().getSimpleName())
                 .addParam("object", object)
                 .addParam("options", options.toString())
@@ -351,7 +329,7 @@ public class SqaleRepositoryService implements RepositoryService {
         UUID oidUuid = checkOid(oid);
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
-        OperationResult operationResult = parentResult.subresult(MODIFY_OBJECT)
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_MODIFY_OBJECT)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
                 .addParam("oid", oid)
@@ -390,27 +368,13 @@ public class SqaleRepositoryService implements RepositoryService {
 
                 PrismObject<T> originalObject = prismObject.clone();
 
-                modifyObjectAttempt(jdbcSession, prismObject, modifications);
-
-            /*
-            RObject rObject = objectDeltaUpdater.modifyObject(type, oid, modifications, prismObject, modifyOptions, session, attemptContext);
-
-            LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
-            // Continuing the photo treatment: should we remove the (now obsolete) focus photo?
-            // We have to test prismObject at this place, because updateFullObject (below) removes photo property from the prismObject.
-            shouldPhotoBeRemoved =
-                    containsFocusPhotoModification && ((FocusType) prismObject.asObjectable()).getJpegPhoto() == null;
-
-            updateFullObject(rObject, prismObject);
-
-            LOGGER.trace("Starting save.");
-            session.save(rObject);
-            LOGGER.trace("Save finished.");
-            */
-
                 // TODO is modifications cloning unavoidable? see the clone at the start of ObjectUpdater.modifyObjectAttempt
                 //  If cloning will be necessary, do it at the beginning of modifyObjectAttempt,
                 //  especially if called potentially multiple times.
+                // TODO replaces: RObject rObject = objectDeltaUpdater.modifyObject(type, oid, modifications, prismObject, modifyOptions, session, attemptContext);
+                modifications = modifyObjectAttempt(jdbcSession, prismObject, modifications);
+                LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
+
                 return new ModifyObjectResult<>(originalObject, prismObject, modifications);
             }
         } catch (RepositoryException | RuntimeException e) {
@@ -424,12 +388,14 @@ public class SqaleRepositoryService implements RepositoryService {
     }
 
     /**
+     * Applies modifications, executes necessary updates and returns narrowed modifications.
+     *
      * @param <S> schema type
      * @param <Q> type of entity path
      * @param <R> row type related to the {@link Q}
      */
     private <S extends ObjectType, Q extends QObject<R>, R extends MObject>
-    void modifyObjectAttempt(
+    Collection<? extends ItemDelta<?, ?>> modifyObjectAttempt(
             JdbcSession jdbcSession,
             PrismObject<S> prismObject,
             Collection<? extends ItemDelta<?, ?>> modifications)
@@ -441,26 +407,29 @@ public class SqaleRepositoryService implements RepositoryService {
                 EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS, true);
         LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
 
+        if (modifications.isEmpty()) {
+            return modifications; // no need to execute any update
+        }
+
         SqaleUpdateContext<S, Q, R> updateContext = new SqaleUpdateContext<>(
                 transformerSupport, jdbcSession, prismObject);
-
-        // region updatePrismObject: can be extracted as updatePrismObject (not done before CID generation is cleared up)
-        ItemDeltaCollectionsUtil.applyTo(modifications, prismObject);
-        ObjectTypeUtil.normalizeAllRelations(prismObject, schemaService.relationRegistry());
-        // TODO generate missing container IDs, see also old repo PrismIdentifierGenerator
-        //  BWT: it's not enough to do it in prism object, we need it for deltas adding containers too
-        // endregion
 
         // TODO APPLY modifications HERE (generate update/set clauses)
         for (ItemDelta<?, ?> modification : modifications) {
             try {
+                // TODO generate missing container IDs, see also old repo PrismIdentifierGenerator
+                //  BWT: it's not enough to do it in prism object, we need it for deltas adding containers too
+                modification.applyTo(prismObject);
+
                 updateContext.processModification(modification);
             } catch (IllegalArgumentException e) {
-                LOGGER.warn("Modification failed/not implemented yet: " + e.toString());
+                LOGGER.warn("Modification failed/not implemented yet: {}", e.toString());
             }
         }
 
+        ObjectTypeUtil.normalizeAllRelations(prismObject, schemaService.relationRegistry());
         updateContext.execute();
+        return modifications;
     }
 
     private void logTraceModifications(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
@@ -484,8 +453,58 @@ public class SqaleRepositoryService implements RepositoryService {
     public @NotNull <T extends ObjectType> DeleteObjectResult deleteObject(
             Class<T> type, String oid, OperationResult parentResult)
             throws ObjectNotFoundException {
-        return null;
-        // TODO
+
+        Validate.notNull(type, "Object type must not be null.");
+        UUID oidUuid = checkOid(oid);
+        Validate.notNull(parentResult, "Operation result must not be null.");
+
+        LOGGER.debug("Deleting object type '{}' with oid '{}'", type.getSimpleName(), oid);
+
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_DELETE_OBJECT)
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type.getName())
+                .addParam("oid", oid)
+                .build();
+        try {
+            try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+                DeleteObjectResult result = deleteObjectAttempt(type, oidUuid, jdbcSession);
+                invokeConflictWatchers((w) -> w.afterDeleteObject(oid));
+                return result;
+            }
+        } catch (RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private <T extends ObjectType, Q extends QObject<R>, R extends MObject>
+    DeleteObjectResult deleteObjectAttempt(Class<T> type, UUID oid, JdbcSession jdbcSession)
+            throws ObjectNotFoundException {
+
+        QueryTableMapping<T, Q, R> mapping =
+                transformerSupport.sqlRepoContext().getMappingBySchemaType(type);
+        Q entityPath = mapping.defaultAlias();
+        byte[] fullObject = jdbcSession.newQuery()
+                .select(entityPath.fullObject)
+                .forUpdate()
+                .from(entityPath)
+                .where(entityPath.oid.eq(oid))
+                .fetchOne();
+        if (fullObject == null) {
+            throw new ObjectNotFoundException(type, oid.toString());
+        }
+
+        // object delete cascades to all owned related rows
+        // TODO org closure
+        jdbcSession.newDelete(entityPath)
+                .where(entityPath.oid.eq(oid))
+                .execute();
+
+        return new DeleteObjectResult(new String(fullObject, StandardCharsets.UTF_8));
     }
 
     // Counting/searching
@@ -608,7 +627,7 @@ public class SqaleRepositoryService implements RepositoryService {
         Objects.requireNonNull(type, "Container type must not be null.");
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
-        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + SEARCH_CONTAINERS)
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_SEARCH_CONTAINERS)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
                 .addParam("query", query)
@@ -762,7 +781,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
     @Override
     public boolean hasConflict(ConflictWatcher watcher, OperationResult parentResult) {
-        OperationResult result = parentResult.subresult(HAS_CONFLICT)
+        OperationResult result = parentResult.subresult(OP_NAME_PREFIX + OP_HAS_CONFLICT)
                 .setMinor()
                 .addParam("oid", watcher.getOid())
                 .addParam("watcherClass", watcher.getClass().getName())
@@ -817,6 +836,7 @@ public class SqaleRepositoryService implements RepositoryService {
      * Returns {@link SystemException}, call with `throw` keyword.
      */
     private SystemException handledGeneralException(@NotNull Throwable ex, OperationResult result) {
+        // TODO reconsider this whole mechanism including isFatalException decision
         LOGGER.error("General checked exception occurred.", ex);
         recordException(ex, result,
                 sqlRepoContext.getJdbcRepositoryConfiguration().isFatalException(ex));

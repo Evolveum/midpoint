@@ -4,11 +4,12 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale;
+package com.evolveum.midpoint.repo.sqale.filtering;
 
 import com.querydsl.core.types.Predicate;
 
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
@@ -16,7 +17,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 
 /**
  * Filter processor for reference item paths resolved via {@link QReference} tables.
@@ -26,9 +26,12 @@ public class ObjectRefTableItemFilterProcessor
         extends ItemFilterProcessor<RefFilter> {
 
     /** Returns the mapper function creating the ref-filter processor from query context. */
-    public static ItemSqlMapper mapper(
+    public static SqaleItemSqlMapper mapper(
             QObjectReferenceMapping qReferenceMapping) {
-        return new ItemSqlMapper(ctx -> new ObjectRefTableItemFilterProcessor(ctx, qReferenceMapping));
+        return new SqaleItemSqlMapper(
+                ctx -> new ObjectRefTableItemFilterProcessor(ctx, qReferenceMapping),
+                ctx -> null // TODO add delta processor
+        );
     }
 
     private final QObjectReferenceMapping qObjectReferenceMapping;

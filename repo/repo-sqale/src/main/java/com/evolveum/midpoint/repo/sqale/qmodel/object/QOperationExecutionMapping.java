@@ -8,10 +8,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType.*;
 
-import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
 
 /**
@@ -28,13 +26,13 @@ public class QOperationExecutionMapping
         super(QOperationExecution.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 OperationExecutionType.class, QOperationExecution.class);
 
-        addItemMapping(F_STATUS, EnumItemFilterProcessor.mapper(path(q -> q.status)));
-        addItemMapping(F_RECORD_TYPE, EnumItemFilterProcessor.mapper(path(q -> q.recordType)));
-        addItemMapping(F_INITIATOR_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(F_STATUS, enumMapper(path(q -> q.status)));
+        addItemMapping(F_RECORD_TYPE, enumMapper(path(q -> q.recordType)));
+        addItemMapping(F_INITIATOR_REF, refMapper(
                 path(q -> q.initiatorRefTargetOid),
                 path(q -> q.initiatorRefTargetType),
                 path(q -> q.initiatorRefRelationId)));
-        addItemMapping(F_TASK_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(F_TASK_REF, refMapper(
                 path(q -> q.taskRefTargetOid),
                 path(q -> q.taskRefTargetType),
                 path(q -> q.taskRefRelationId)));

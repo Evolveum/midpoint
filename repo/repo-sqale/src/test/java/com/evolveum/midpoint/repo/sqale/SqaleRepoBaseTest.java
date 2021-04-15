@@ -16,7 +16,6 @@ import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Predicate;
 import com.querydsl.sql.SQLQuery;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
@@ -27,7 +26,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -40,15 +38,10 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     @Autowired protected SqaleRepoContext sqlRepoContext;
     @Autowired protected PrismContext prismContext;
 
-    @BeforeClass
-    public void init() {
-        // TODO remove later, just for initial debugging
-        ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(SqlLogger.class))
-                .setLevel(ch.qos.logback.classic.Level.TRACE);
-    }
+    private static boolean uriCacheCleared = false;
 
     @BeforeClass
-    public void cleanDatabase() {
+    public void clearDatabase() {
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             // object delete cascades to sub-rows of the "object aggregate"
 
@@ -62,6 +55,23 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             long count = jdbcSession.newDelete(QObjectMapping.INSTANCE.defaultAlias()).execute();
             display("Deleted " + count + " objects from DB");
             */
+        }
+
+        // this is "suite" scope code, but @BeforeSuite can't use injected fields
+        if (!uriCacheCleared) {
+            QUri u = QUri.DEFAULT;
+            try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+                jdbcSession.newDelete(u)
+                        // We could skip default relation ID with .where(u.id.gt(0)),
+                        // but it must work even when it's gone.
+                        .execute();
+            }
+
+            sqlRepoContext.clearCaches(); // uses its own transaction
+
+            // It would work with URI cache cleared before every class, but that's not
+            // how midPoint will work either.
+            uriCacheCleared = true;
         }
     }
 
@@ -111,6 +121,11 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     }
 
     protected <R, Q extends FlexibleRelationalPathBase<R>> List<R> select(
+            Class<Q> queryType, Predicate... conditions) {
+        return select(aliasFor(queryType), conditions);
+    }
+
+    protected <R, Q extends FlexibleRelationalPathBase<R>> List<R> select(
             Q path, Predicate... conditions) {
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()) {
             return jdbcSession.newQuery()
@@ -153,6 +168,9 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     }
 
     protected void assertCachedUri(Integer uriId, String uri) {
+        assertThat(uriId)
+                .withFailMessage("Unexpected NULL ID for cached URI %s", uri)
+                .isNotNull();
         assertThat(cachedUriById(uriId)).isEqualTo(uri);
     }
 

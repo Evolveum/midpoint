@@ -6,12 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
-import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.uuidMapper;
-
-import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
@@ -33,11 +29,13 @@ public class QReferenceMapping<Q extends QReference<R>, R extends MReference>
 
         // TODO owner and reference type is not possible to query, probably OK
         //  not sure about this mapping yet, does it make sense to query ref components?
+        /* REMOVE in 2022 if nothing is missing this
         addItemMapping(ObjectReferenceType.F_OID, uuidMapper(path(q -> q.targetOid)));
         addItemMapping(ObjectReferenceType.F_TYPE,
                 EnumItemFilterProcessor.mapper(path(q -> q.targetType)));
         addItemMapping(ObjectReferenceType.F_RELATION,
                 UriItemFilterProcessor.mapper(path(q -> q.relationId)));
+         */
     }
 
     @Override

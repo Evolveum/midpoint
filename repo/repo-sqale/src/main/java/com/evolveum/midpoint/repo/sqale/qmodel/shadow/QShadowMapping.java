@@ -6,14 +6,10 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 
-import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.booleanMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 
-import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -30,13 +26,13 @@ public class QShadowMapping
         super(QShadow.TABLE_NAME, DEFAULT_ALIAS_NAME, ShadowType.class, QShadow.class);
 
         addItemMapping(ShadowType.F_OBJECT_CLASS,
-                UriItemFilterProcessor.mapper(path(q -> q.objectClassId)));
-        addItemMapping(F_RESOURCE_REF, RefItemFilterProcessor.mapper(
+                uriMapper(path(q -> q.objectClassId)));
+        addItemMapping(F_RESOURCE_REF, refMapper(
                 path(q -> q.resourceRefTargetOid),
                 path(q -> q.resourceRefTargetType),
                 path(q -> q.resourceRefRelationId)));
         addItemMapping(F_INTENT, stringMapper(path(q -> q.intent)));
-        addItemMapping(F_KIND, EnumItemFilterProcessor.mapper(path(q -> q.kind)));
+        addItemMapping(F_KIND, enumMapper(path(q -> q.kind)));
         // TODO attemptNumber?
         addItemMapping(F_DEAD, booleanMapper(path(q -> q.dead)));
         addItemMapping(F_EXISTS, booleanMapper(path(q -> q.exist)));
@@ -47,7 +43,7 @@ public class QShadowMapping
         addItemMapping(F_PRIMARY_IDENTIFIER_VALUE,
                 stringMapper(path(q -> q.primaryIdentifierValue)));
         addItemMapping(F_SYNCHRONIZATION_SITUATION,
-                EnumItemFilterProcessor.mapper(path(q -> q.synchronizationSituation)));
+                enumMapper(path(q -> q.synchronizationSituation)));
         addItemMapping(F_SYNCHRONIZATION_TIMESTAMP,
                 timestampMapper(path(q -> q.synchronizationTimestamp)));
     }

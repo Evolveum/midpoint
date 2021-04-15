@@ -47,8 +47,10 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
             Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException {
 
+        byte[] fullObject = Objects.requireNonNull(row.get(entityPath.fullObject));
+
         PrismObject<S> prismObject;
-        String serializedForm = new String(row.get(entityPath.fullObject), StandardCharsets.UTF_8);
+        String serializedForm = new String(fullObject, StandardCharsets.UTF_8);
         try {
             SqlTransformerSupport.ParseResult<S> result =
                     transformerSupport.parsePrismObject(serializedForm);

@@ -62,8 +62,9 @@ public class SqaleRepoContext extends SqlRepoContext {
         uriCache = new UriCache();
     }
 
+    // This has nothing to do with "repo cache" which is higher than this.
     @PostConstruct
-    public void init() {
+    public void clearCaches() {
         try (JdbcSession jdbcSession = newJdbcSession().startReadOnlyTransaction()) {
             uriCache.initialize(jdbcSession);
         }
@@ -91,7 +92,7 @@ public class SqaleRepoContext extends SqlRepoContext {
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
-    public Integer processCachedUri(String uri, JdbcSession jdbcSession) {
-        return uriCache.processCachedUri(uri, jdbcSession);
+    public Integer processCacheableUri(String uri, JdbcSession jdbcSession) {
+        return uriCache.processCacheableUri(uri, jdbcSession);
     }
 }

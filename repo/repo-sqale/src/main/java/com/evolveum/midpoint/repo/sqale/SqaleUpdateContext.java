@@ -16,15 +16,13 @@ import com.querydsl.sql.dml.SQLUpdateClause;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.repo.sqale.delta.SqaleItemSqlMapper;
+import com.evolveum.midpoint.repo.sqale.delta.DelegatingItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -37,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R extends MObject> {
 
-    private final SqlTransformerSupport transformerSupport;
+    private final SqaleTransformerSupport transformerSupport;
     private final JdbcSession jdbcSession;
     private final PrismObject<S> prismObject;
 
@@ -48,7 +46,7 @@ public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R ex
     private final int objectVersion;
 
     public SqaleUpdateContext(
-            SqlTransformerSupport sqlTransformerSupport,
+            SqaleTransformerSupport sqlTransformerSupport,
             JdbcSession jdbcSession,
             PrismObject<S> prismObject) {
         this.transformerSupport = sqlTransformerSupport;
@@ -70,23 +68,8 @@ public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R ex
     }
 
     public void processModification(ItemDelta<?, ?> modification) throws RepositoryException {
-        QName itemPath = modification.getPath().asSingleName();
-        if (itemPath == null) {
-            return; // TODO no action now, we don't want NPE
-        }
-
-        // TODO later resolution of complex paths just like for filters
-        ItemSqlMapper itemSqlMapper = mapping.getItemMapper(itemPath);
-        if (itemSqlMapper instanceof SqaleItemSqlMapper) {
-            ((SqaleItemSqlMapper) itemSqlMapper)
-                    .createItemDeltaProcessor(this)
-                    .process(modification);
-        } else if (itemSqlMapper != null) {
-            throw new IllegalArgumentException("No delta processor available for " + itemPath
-                    + " in mapping " + mapping + "! (Only query mapping is available.)");
-        }
-
-        // if the mapper null it is not indexed ("externalized") attribute, no action
+        new DelegatingItemDeltaProcessor(this, mapping)
+                .process(modification);
     }
 
     /**
@@ -116,5 +99,17 @@ public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R ex
 
     public <P extends Path<T>, T> void set(P path, T value) {
         update.set(path, value);
+    }
+
+    public SqaleTransformerSupport transformerSupport() {
+        return transformerSupport;
+    }
+
+    public Integer processCacheableRelation(QName relation) {
+        return transformerSupport.processCacheableRelation(relation, jdbcSession);
+    }
+
+    public Integer processCacheableUri(String uri) {
+        return transformerSupport.processCacheableUri(uri, jdbcSession);
     }
 }

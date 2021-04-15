@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
-import static com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor.uuidMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ARCHETYPE_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ROLE_MEMBERSHIP_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.*;
@@ -17,15 +16,12 @@ import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.UriItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.mapping.TableRelationResolver;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.TableRelationResolver;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
@@ -52,10 +48,9 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         super(tableName, defaultAliasName, schemaType, queryType);
 
         addItemMapping(PrismConstants.T_ID, uuidMapper(path(q -> q.oid)));
-        addItemMapping(F_NAME,
-                PolyStringItemFilterProcessor.mapper(
-                        path(q -> q.nameOrig), path(q -> q.nameNorm)));
-        addItemMapping(F_TENANT_REF, RefItemFilterProcessor.mapper(
+        addItemMapping(F_NAME, polyStringMapper(
+                path(q -> q.nameOrig), path(q -> q.nameNorm)));
+        addItemMapping(F_TENANT_REF, refMapper(
                 path(q -> q.tenantRefTargetOid),
                 path(q -> q.tenantRefTargetType),
                 path(q -> q.tenantRefRelationId)));
@@ -66,20 +61,20 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         // TODO ext mapping can't be done statically
 
         addNestedMapping(F_METADATA, MetadataType.class)
-                .addItemMapping(MetadataType.F_CREATOR_REF, RefItemFilterProcessor.mapper(
+                .addItemMapping(MetadataType.F_CREATOR_REF, refMapper(
                         path(q -> q.creatorRefTargetOid),
                         path(q -> q.creatorRefTargetType),
                         path(q -> q.creatorRefRelationId)))
                 .addItemMapping(MetadataType.F_CREATE_CHANNEL,
-                        UriItemFilterProcessor.mapper(path(q -> q.createChannelId)))
+                        uriMapper(path(q -> q.createChannelId)))
                 .addItemMapping(MetadataType.F_CREATE_TIMESTAMP,
                         timestampMapper(path(q -> q.createTimestamp)))
-                .addItemMapping(MetadataType.F_MODIFIER_REF, RefItemFilterProcessor.mapper(
+                .addItemMapping(MetadataType.F_MODIFIER_REF, refMapper(
                         path(q -> q.modifierRefTargetOid),
                         path(q -> q.modifierRefTargetType),
                         path(q -> q.modifierRefRelationId)))
                 .addItemMapping(MetadataType.F_MODIFY_CHANNEL,
-                        UriItemFilterProcessor.mapper(path(q -> q.modifyChannelId)))
+                        uriMapper(path(q -> q.modifyChannelId)))
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
                         timestampMapper(path(q -> q.modifyTimestamp)))
                 .addRefMapping(MetadataType.F_CREATE_APPROVER_REF,

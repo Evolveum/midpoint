@@ -48,15 +48,15 @@ public class QTask extends QObject<MTask> {
     public static final ColumnMetadata NODE =
             ColumnMetadata.named("node").ofType(Types.VARCHAR);
     public static final ColumnMetadata OBJECT_REF_TARGET_OID =
-            ColumnMetadata.named("objectRef_targetOid").ofType(Types.OTHER);
+            ColumnMetadata.named("objectRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata OBJECT_REF_TARGET_TYPE =
-            ColumnMetadata.named("objectRef_targetType").ofType(Types.INTEGER);
+            ColumnMetadata.named("objectRef_targetType").ofType(Types.OTHER);
     public static final ColumnMetadata OBJECT_REF_RELATION_ID =
             ColumnMetadata.named("objectRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata OWNER_REF_TARGET_OID =
-            ColumnMetadata.named("ownerRef_targetOid").ofType(Types.OTHER);
+            ColumnMetadata.named("ownerRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata OWNER_REF_TARGET_TYPE =
-            ColumnMetadata.named("ownerRef_targetType").ofType(Types.INTEGER);
+            ColumnMetadata.named("ownerRef_targetType").ofType(Types.OTHER);
     public static final ColumnMetadata OWNER_REF_RELATION_ID =
             ColumnMetadata.named("ownerRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata PARENT =

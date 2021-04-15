@@ -7,19 +7,9 @@
 package com.evolveum.midpoint.repo.sqale.delta;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 
-/**
- * TODO
- */
-public abstract class ItemDeltaProcessor {
+public interface ItemDeltaProcessor {
 
-    protected final SqaleUpdateContext<?, ?, ?> context;
-
-    protected ItemDeltaProcessor(SqaleUpdateContext<?, ?, ?> context) {
-        this.context = context;
-    }
-
-    public abstract void process(ItemDelta<?, ?> modification) throws RepositoryException;
+    void process(ItemDelta<?, ?> modification) throws RepositoryException;
 }

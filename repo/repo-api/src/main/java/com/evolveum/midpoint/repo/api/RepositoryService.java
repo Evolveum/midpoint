@@ -110,26 +110,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public interface RepositoryService {
 
     String CLASS_NAME_WITH_DOT = RepositoryService.class.getName() + ".";
-    String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
-    String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
-    String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
-    String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
-    String SEARCH_CONTAINERS = CLASS_NAME_WITH_DOT + "searchContainers";
-    String COUNT_CONTAINERS = CLASS_NAME_WITH_DOT + "countContainers";
-    String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
-    String MODIFY_OBJECT_DYNAMICALLY = CLASS_NAME_WITH_DOT + "modifyObjectDynamically";
-    String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
-    String GET_VERSION = CLASS_NAME_WITH_DOT + "getVersion";
-    String SEARCH_OBJECTS_ITERATIVE = CLASS_NAME_WITH_DOT + "searchObjectsIterative";
-    String SEARCH_SHADOW_OWNER = CLASS_NAME_WITH_DOT + "searchShadowOwner";
-    String ADVANCE_SEQUENCE = CLASS_NAME_WITH_DOT + "advanceSequence";
-    String RETURN_UNUSED_VALUES_TO_SEQUENCE = CLASS_NAME_WITH_DOT + "returnUnusedValuesToSequence";
-    String EXECUTE_QUERY_DIAGNOSTICS = CLASS_NAME_WITH_DOT + "executeQueryDiagnostics";
-    String ADD_DIAGNOSTIC_INFORMATION = CLASS_NAME_WITH_DOT + "addDiagnosticInformation";
-    String HAS_CONFLICT = CLASS_NAME_WITH_DOT + "hasConflict";
-
-    String KEY_DIAG_DATA = "repositoryDiagData"; // see GetOperationOptions.attachDiagData
-    String KEY_ORIGINAL_OBJECT = "repositoryOriginalObject";
 
     String OP_ADD_OBJECT = "addObject";
     String OP_DELETE_OBJECT = "deleteObject";
@@ -145,7 +125,32 @@ public interface RepositoryService {
     String OP_SEARCH_SHADOW_OWNER = "searchShadowOwner";
     String OP_SEARCH_OBJECTS = "searchObjects";
     String OP_SEARCH_OBJECTS_ITERATIVE = "searchObjectsIterative";
+    String OP_SEARCH_CONTAINERS = "searchContainers";
+    String OP_COUNT_CONTAINERS = "countContainers";
     String OP_FETCH_EXT_ITEMS = "fetchExtItems";
+    String OP_ADD_DIAGNOSTIC_INFORMATION = "addDiagnosticInformation";
+    String OP_HAS_CONFLICT = "hasConflict";
+
+    String GET_OBJECT = CLASS_NAME_WITH_DOT + OP_GET_OBJECT;
+    String ADD_OBJECT = CLASS_NAME_WITH_DOT + OP_ADD_OBJECT;
+    String DELETE_OBJECT = CLASS_NAME_WITH_DOT + OP_DELETE_OBJECT;
+    String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + OP_SEARCH_OBJECTS;
+    String SEARCH_CONTAINERS = CLASS_NAME_WITH_DOT + OP_SEARCH_CONTAINERS;
+    String COUNT_CONTAINERS = CLASS_NAME_WITH_DOT + OP_COUNT_CONTAINERS;
+    String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + OP_MODIFY_OBJECT;
+    String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + OP_COUNT_OBJECTS;
+    String MODIFY_OBJECT_DYNAMICALLY = CLASS_NAME_WITH_DOT + OP_MODIFY_OBJECT_DYNAMICALLY;
+    String GET_VERSION = CLASS_NAME_WITH_DOT + OP_GET_VERSION;
+    String SEARCH_OBJECTS_ITERATIVE = CLASS_NAME_WITH_DOT + OP_SEARCH_OBJECTS_ITERATIVE;
+    String SEARCH_SHADOW_OWNER = CLASS_NAME_WITH_DOT + OP_SEARCH_SHADOW_OWNER;
+    String ADVANCE_SEQUENCE = CLASS_NAME_WITH_DOT + OP_ADVANCE_SEQUENCE;
+    String RETURN_UNUSED_VALUES_TO_SEQUENCE = CLASS_NAME_WITH_DOT + OP_RETURN_UNUSED_VALUES_TO_SEQUENCE;
+    String EXECUTE_QUERY_DIAGNOSTICS = CLASS_NAME_WITH_DOT + OP_EXECUTE_QUERY_DIAGNOSTICS;
+    String ADD_DIAGNOSTIC_INFORMATION = CLASS_NAME_WITH_DOT + OP_ADD_DIAGNOSTIC_INFORMATION;
+    String HAS_CONFLICT = CLASS_NAME_WITH_DOT + OP_HAS_CONFLICT;
+
+    String KEY_DIAG_DATA = "repositoryDiagData"; // see GetOperationOptions.attachDiagData
+    String KEY_ORIGINAL_OBJECT = "repositoryOriginalObject";
 
     /**
      * Returns object for provided OID.

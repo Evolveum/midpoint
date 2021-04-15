@@ -20,6 +20,7 @@ import javax.xml.namespace.QName;
 
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.repo.api.DeleteObjectResult;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.MAccessCertificationDefinition;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDefinition;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
@@ -33,6 +34,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.MGenericObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
+import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.MLookupTableRow;
+import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableRow;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.MReport;
@@ -46,14 +49,16 @@ import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QSystemConfiguration;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
+public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
     @Test
     public void test100AddNamedUserWithoutOidWorksOk()
@@ -97,8 +102,11 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
                 .isInstanceOf(SchemaException.class)
                 .hasMessage("Attempt to add object without name.");
 
+        and("operation result is fatal error");
         assertThatOperationResult(result).isFatalError()
                 .hasMessageContaining("Attempt to add object without name.");
+
+        and("object count in the repository is not changed");
         assertCount(QUser.class, baseCount);
     }
 
@@ -329,7 +337,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
 
     // this test covers function of ObjectSqlTransformer and all the basic object fields
     @Test
-    public void test900SystemConfigurationBasicObjectAttributes() throws Exception {
+    public void test800SystemConfigurationBasicObjectAttributes() throws Exception {
         OperationResult result = createOperationResult();
 
         given("system configuration");
@@ -389,12 +397,12 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test901ContainerTrigger() throws Exception {
+    public void test801ContainerTrigger() throws Exception {
         OperationResult result = createOperationResult();
 
         given("object with few triggers");
         String objectName = "object" + getTestNumber();
-        SystemConfigurationType object = new SystemConfigurationType(prismContext)
+        SystemConfigurationType systemConfiguration = new SystemConfigurationType(prismContext)
                 .name(objectName)
                 .trigger(new TriggerType()
                         .id(3L) // one pre-filled CID, with non-first ID
@@ -405,13 +413,13 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
                         .timestamp(MiscUtil.asXMLGregorianCalendar(2L)));
 
         when("adding it to the repository");
-        repositoryService.addObject(object.asPrismObject(), null, result);
+        repositoryService.addObject(systemConfiguration.asPrismObject(), null, result);
 
         then("it is stored with its persisted trigger containers");
         assertThatOperationResult(result).isSuccess();
 
         QTrigger t = aliasFor(QTrigger.class);
-        List<MTrigger> containers = select(t, t.ownerOid.eq(UUID.fromString(object.getOid())));
+        List<MTrigger> containers = select(t, t.ownerOid.eq(UUID.fromString(systemConfiguration.getOid())));
         assertThat(containers).hasSize(2);
 
         containers.sort(comparing(tr -> tr.cid));
@@ -425,12 +433,12 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         assertCachedUri(containerRow.handlerUriId, "trigger-2-handler-uri");
         assertThat(containerRow.timestampValue).isEqualTo(Instant.ofEpochMilli(2));
 
-        MObject objectRow = selectObjectByOid(QSystemConfiguration.class, object.getOid());
+        MObject objectRow = selectObjectByOid(QSystemConfiguration.class, systemConfiguration.getOid());
         assertThat(objectRow.containerIdSeq).isEqualTo(5); // next free CID
     }
 
     @Test
-    public void test902ContainerOperationExecution() throws Exception {
+    public void test802ContainerOperationExecution() throws Exception {
         OperationResult result = createOperationResult();
 
         given("object with few operation executions");
@@ -439,7 +447,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         UUID taskRefOid = UUID.randomUUID();
         QName initiatorRelation = QName.valueOf("{https://random.org/ns}rel-initiator");
         QName taskRelation = QName.valueOf("{https://random.org/ns}rel-task");
-        SystemConfigurationType object = new SystemConfigurationType(prismContext)
+        SystemConfigurationType systemConfiguration = new SystemConfigurationType(prismContext)
                 .name(objectName)
                 .operationExecution(new OperationExecutionType()
                         .status(OperationResultStatusType.FATAL_ERROR)
@@ -453,14 +461,14 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
                         .timestamp(MiscUtil.asXMLGregorianCalendar(2L)));
 
         when("adding it to the repository");
-        repositoryService.addObject(object.asPrismObject(), null, result);
+        repositoryService.addObject(systemConfiguration.asPrismObject(), null, result);
 
         then("it is stored with its persisted trigger containers");
         assertThatOperationResult(result).isSuccess();
 
         QOperationExecution oe = aliasFor(QOperationExecution.class);
         List<MOperationExecution> containers =
-                select(oe, oe.ownerOid.eq(UUID.fromString(object.getOid())));
+                select(oe, oe.ownerOid.eq(UUID.fromString(systemConfiguration.getOid())));
         assertThat(containers).hasSize(2);
 
         containers.sort(comparing(tr -> tr.cid));
@@ -481,7 +489,58 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         assertThat(containerRow.status).isEqualTo(OperationResultStatusType.UNKNOWN);
         assertThat(containerRow.timestampValue).isEqualTo(Instant.ofEpochMilli(2));
 
-        // this time we didn't test assigned CID or CID SEQ value on owner (see test901)
+        // this time we didn't test assigned CID or CID SEQ value on owner (see test801)
+    }
+
+    @Test
+    public void test808LookupTable() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("lookup table with a couple of rows");
+        String objectName = "ltable" + getTestNumber();
+        LookupTableType lookupTable = new LookupTableType(prismContext)
+                .name(objectName)
+                .row(new LookupTableRowType()
+                        .key("row1")
+                        .value("value1")
+                        .label("label-1")
+                        .lastChangeTimestamp(MiscUtil.asXMLGregorianCalendar(1L)))
+                .row(new LookupTableRowType()
+                        .key("row2")
+                        .value("value2")
+                        .lastChangeTimestamp(MiscUtil.asXMLGregorianCalendar(2L)))
+                .row(new LookupTableRowType()
+                        .key("row3"));
+
+        when("adding it to the repository");
+        repositoryService.addObject(lookupTable.asPrismObject(), null, result);
+
+        then("it is stored with its persisted trigger containers");
+        assertThatOperationResult(result).isSuccess();
+
+        QLookupTableRow ltRow = aliasFor(QLookupTableRow.class);
+        List<MLookupTableRow> rows =
+                select(ltRow, ltRow.ownerOid.eq(UUID.fromString(lookupTable.getOid())));
+        assertThat(rows).hasSize(3);
+
+        rows.sort(comparing(tr -> tr.cid));
+        MLookupTableRow containerRow = rows.get(0);
+        assertThat(containerRow.cid).isEqualTo(1);
+        assertThat(containerRow.key).isEqualTo("row1");
+        assertThat(containerRow.value).isEqualTo("value1");
+        assertThat(containerRow.labelOrig).isEqualTo("label-1");
+        assertThat(containerRow.labelNorm).isEqualTo("label1");
+        assertThat(containerRow.lastChangeTimestamp).isEqualTo(Instant.ofEpochMilli(1));
+
+        containerRow = rows.get(1);
+        assertThat(containerRow.cid).isEqualTo(2);
+        assertThat(containerRow.key).isEqualTo("row2");
+        assertThat(containerRow.value).isEqualTo("value2");
+        assertThat(containerRow.lastChangeTimestamp).isEqualTo(Instant.ofEpochMilli(2));
+
+        containerRow = rows.get(2);
+        assertThat(containerRow.cid).isEqualTo(3);
+        assertThat(containerRow.key).isEqualTo("row3");
     }
 
     // TODO test for object's related entities?
@@ -489,7 +548,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
     // - operation execution
 
     @Test
-    public void test910ResourceAndItsBusinessApproverReferences() throws Exception {
+    public void test810ResourceAndItsBusinessApproverReferences() throws Exception {
         OperationResult result = createOperationResult();
 
         given("resource");
@@ -540,7 +599,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test911Connector() throws Exception {
+    public void test811Connector() throws Exception {
         OperationResult result = createOperationResult();
 
         given("connector");
@@ -576,7 +635,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test912ConnectorHost() throws Exception {
+    public void test812ConnectorHost() throws Exception {
         OperationResult result = createOperationResult();
 
         given("connector host");
@@ -598,7 +657,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test913Report() throws Exception {
+    public void test813Report() throws Exception {
         OperationResult result = createOperationResult();
 
         given("report");
@@ -621,7 +680,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test914ReportData() throws Exception {
+    public void test814ReportData() throws Exception {
         OperationResult result = createOperationResult();
 
         given("report data");
@@ -645,7 +704,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test918Shadow() throws Exception {
+    public void test818Shadow() throws Exception {
         OperationResult result = createOperationResult();
 
         given("shadow");
@@ -694,7 +753,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
 
     // this covers mapping of attributes in FocusSqlTransformer + GenericObject
     @Test
-    public void test920GenericObject() throws Exception {
+    public void test820GenericObject() throws Exception {
         OperationResult result = createOperationResult();
 
         given("generic object");
@@ -769,7 +828,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
     // TODO test for focus' related entities?
 
     @Test
-    public void test930Task() throws Exception {
+    public void test830Task() throws Exception {
         OperationResult result = createOperationResult();
 
         given("task");
@@ -831,7 +890,7 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test940AccessCertificationDefinition() throws Exception {
+    public void test840AccessCertificationDefinition() throws Exception {
         OperationResult result = createOperationResult();
 
         given("access certification definition");
@@ -861,6 +920,99 @@ public class SqaleRepoAddObjectTest extends SqaleRepoBaseTest {
         assertThat(row.ownerRefTargetOid).isEqualTo(ownerRefOid);
         assertThat(row.ownerRefTargetType).isEqualTo(MObjectType.USER);
         assertCachedUri(row.ownerRefRelationId, relationUri);
+    }
+    // endregion
+
+    // region delete tests
+    // when we get here we have couple of users and some other types stored in the repository
+    @Test
+    public void test900DeleteOfNonexistentObjectFails() {
+        OperationResult result = createOperationResult();
+
+        given("nonexistent OID");
+        String oid = UUID.randomUUID().toString();
+
+        expect("deleting object fails");
+        assertThatThrownBy(() -> repositoryService.deleteObject(ObjectType.class, oid, result))
+                .isInstanceOf(ObjectNotFoundException.class);
+
+        and("operation result is fatal error");
+        assertThatOperationResult(result).isFatalError()
+                .hasMessageMatching("Object of type 'ObjectType' with OID .* was not found\\.");
+    }
+
+    @Test
+    public void test910DeleteUsingSupertypeWorksOk() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("any object existing in the repository");
+        // we'll sacrifice one of the users for this
+        UUID userOid = randomExistingOid(QUser.class);
+
+        when("deleting the object using its supertype");
+        DeleteObjectResult deleteResult =
+                repositoryService.deleteObject(ObjectType.class, userOid.toString(), result);
+
+        then("object is deleted");
+        assertThatOperationResult(result).isSuccess();
+
+        assertThat(deleteResult).isNotNull();
+        assertThat(deleteResult.getObjectTextRepresentation()).isNotNull();
+
+        assertThat(selectObjectByOid(QUser.class, userOid)).isNull();
+    }
+
+    // slight variation of the above, but using lower-level abstract table
+    @Test
+    public void test911DeleteUserUsingFocusWorksOk() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("random user existing in the repository");
+        // we'll sacrifice one of the users for this
+        UUID userOid = randomExistingOid(QUser.class);
+
+        when("deleting it using the focus type");
+        DeleteObjectResult deleteResult =
+                repositoryService.deleteObject(FocusType.class, userOid.toString(), result);
+
+        then("user is deleted");
+        assertThatOperationResult(result).isSuccess();
+
+        assertThat(deleteResult).isNotNull();
+        assertThat(deleteResult.getObjectTextRepresentation()).isNotNull();
+
+        assertThat(selectObjectByOid(QUser.class, userOid)).isNull();
+    }
+
+    @Test
+    public void test920DeleteAllOtherObjects() throws Exception {
+        // this doesn't follow given-when-then, sorry
+        OperationResult result = createOperationResult();
+
+        // we didn't create that many in this class, it should be OK to read them all at once
+        for (MObject row : select(QObject.CLASS)) {
+            DeleteObjectResult deleteResult = repositoryService.deleteObject(
+                    row.objectType.getSchemaType(), row.oid.toString(), result);
+
+            assertThat(deleteResult).isNotNull();
+        }
+
+        assertThatOperationResult(result).isSuccess();
+
+        assertThat(select(QObject.CLASS)).isEmpty();
+        assertThat(select(QContainer.CLASS)).isEmpty();
+        assertThat(select(QReference.CLASS)).isEmpty();
+    }
+
+    protected <R extends MObject, Q extends QObject<R>> UUID randomExistingOid(Class<Q> queryType) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()) {
+            Q path = aliasFor(queryType);
+            return jdbcSession.newQuery()
+                    .from(path)
+                    .orderBy(path.oid.asc())
+                    .select(path.oid)
+                    .fetchFirst();
+        }
     }
     // endregion
 }

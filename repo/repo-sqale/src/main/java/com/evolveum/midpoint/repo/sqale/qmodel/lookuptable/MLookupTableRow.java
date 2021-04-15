@@ -7,18 +7,17 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.lookuptable;
 
 import java.time.Instant;
-import java.util.UUID;
+
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 
 /**
  * Querydsl "row bean" type related to {@link QLookupTableRow}.
  */
-public class MLookupTableRow {
+public class MLookupTableRow extends MContainer {
 
-    public UUID ownerOid;
-    public int cid;
-    public String rowKey;
+    public String key;
+    public String value;
     public String labelNorm;
     public String labelOrig;
-    public String rowValue;
     public Instant lastChangeTimestamp;
 }

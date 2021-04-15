@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 
 /**
  * Filter processor for a polystring attribute path (Prism item).
@@ -45,17 +44,7 @@ public class PolyStringItemFilterProcessor
     private final StringPath origPath;
     private final StringPath normPath;
 
-    /**
-     * Returns the mapper creating the string filter processor from context.
-     */
-    public static ItemSqlMapper mapper(
-            Function<EntityPath<?>, StringPath> origMapping,
-            Function<EntityPath<?>, StringPath> normMapping) {
-        return new ItemSqlMapper(ctx ->
-                new PolyStringItemFilterProcessor(ctx, origMapping, normMapping), origMapping);
-    }
-
-    private PolyStringItemFilterProcessor(
+    public PolyStringItemFilterProcessor(
             SqlQueryContext<?, ?, ?> context,
             Function<EntityPath<?>, StringPath> origMapping,
             Function<EntityPath<?>, StringPath> normMapping) {

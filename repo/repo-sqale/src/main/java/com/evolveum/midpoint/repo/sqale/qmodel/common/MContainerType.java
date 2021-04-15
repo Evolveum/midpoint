@@ -14,6 +14,7 @@ public enum MContainerType {
     ACCESS_CERTIFICATION_WORK_ITEM,
     ASSIGNMENT,
     INDUCEMENT, // also represented by AssignmentType
+    LOOKUP_TABLE_ROW,
     OPERATION_EXECUTION,
     TRIGGER
 }

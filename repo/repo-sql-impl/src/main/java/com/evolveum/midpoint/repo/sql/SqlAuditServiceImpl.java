@@ -355,10 +355,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                         .set(qAuditRefValue.name, refName)
                         .set(qAuditRefValue.oid, refValue.getOid())
                         .set(qAuditRefValue.type, RUtil.qnameToString(refValue.getType()))
-                        .set(qAuditRefValue.targetNameOrig,
-                                targetName != null ? targetName.getOrig() : null)
-                        .set(qAuditRefValue.targetNameNorm,
-                                targetName != null ? targetName.getNorm() : null)
+                        .set(qAuditRefValue.targetNameOrig, PolyString.getOrig(targetName))
+                        .set(qAuditRefValue.targetNameNorm, PolyString.getNorm(targetName))
                         .addBatch();
             }
         }

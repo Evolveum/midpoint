@@ -42,6 +42,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         // DB should be empty
         assertCount(QObject.CLASS, 0);
         assertCount(QContainer.CLASS, 0);
+        assertCount(QReference.CLASS, 0);
         // we just want the table and count, we don't care about "bean" type here
         FlexibleRelationalPathBase<?> oidTable = new FlexibleRelationalPathBase<>(
                 void.class, "oid", DEFAULT_SCHEMA_NAME, "m_object_oid");
