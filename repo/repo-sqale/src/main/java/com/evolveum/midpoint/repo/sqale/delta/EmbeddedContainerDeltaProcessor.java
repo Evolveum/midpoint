@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale.qmodel;
+package com.evolveum.midpoint.repo.sqale.delta;
 
 import java.util.Map;
 import javax.xml.namespace.QName;
@@ -12,18 +12,17 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
-import com.evolveum.midpoint.repo.sqale.delta.item.ItemDeltaValueProcessor;
+import com.evolveum.midpoint.repo.sqale.delta.item.ItemDeltaSingleValueProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
-import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleNestedMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 
 /**
  * Processor for embedded containers.
  */
 public class EmbeddedContainerDeltaProcessor<T extends Containerable>
-        extends ItemDeltaValueProcessor<T> {
+        extends ItemDeltaSingleValueProcessor<T> {
 
     private final SqaleNestedMapping<?, ?, ?> mapping;
 
@@ -31,15 +30,6 @@ public class EmbeddedContainerDeltaProcessor<T extends Containerable>
             SqaleUpdateContext<?, ?, ?> context, SqaleNestedMapping<?, ?, ?> nestedMapping) {
         super(context);
         this.mapping = nestedMapping;
-    }
-
-    @Override
-    public void process(ItemDelta<?, ?> modification) throws RepositoryException {
-        if (!modification.isDelete()) {
-            setValue(getAnyValue(modification));
-        } else {
-            delete();
-        }
     }
 
     /**
@@ -65,7 +55,8 @@ public class EmbeddedContainerDeltaProcessor<T extends Containerable>
                 System.out.println("PROCESSOR NULL for: " + mapper);
                 continue;
             }
-            processor.setRealValue(item.getAnyValue().getRealValue());
+            // while the embedded container is single-value, its items may be multi-value
+            processor.setRealValues(item.getRealValues());
         }
 
         // clear the rest of the values

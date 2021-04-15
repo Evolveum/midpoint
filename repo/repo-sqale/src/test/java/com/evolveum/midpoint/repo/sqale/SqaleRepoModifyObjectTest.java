@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.testng.Assert.assertTrue;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
@@ -26,6 +27,9 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.MService;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QService;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.MShadow;
@@ -637,7 +641,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         when("modifyObject is called");
         repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
 
-        then("operation is successful");
+        then("operation is successful, repository doesn't check target existence");
         assertThatOperationResult(result).isSuccess();
 
         and("serialized form (fullObject) is updated");
@@ -707,7 +711,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         when("modifyObject is called");
         repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
 
-        then("operation is successful, repository doesn't check target existence");
+        then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
         and("serialized form (fullObject) is updated");
@@ -815,40 +819,48 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.executionStatus).isNull();
     }
 
-    // TODO see: ModifyTest#test030ModifyUserOnNonExistingAccountTest
-    //  and src/test/resources/modify/change-add-non-existing.xml
-    @Test(enabled = false)
-    public void test160AddingProjectionRefDoesntCheckTargetExistence()
+    @Test
+    public void test160AddingProjectionRefInsertsRowsToTable()
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
         given("delta adding projection ref to non-existent shadow for user 1");
         UUID refTargetOid = UUID.randomUUID();
+        QName refRelation = QName.valueOf("{https://random.org/ns}projection-rel1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(UserType.F_LINK_REF).add(refTargetOid.toString())
+                .item(UserType.F_LINK_REF).add(new ObjectReferenceType()
+                        .oid(refTargetOid.toString())
+                        .type(ShadowType.COMPLEX_TYPE) // TODO: why can I store this with UserType, when its unobtainable afterwards?
+                        .relation(refRelation))
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
-        repositoryService.modifyObject(
-                UserType.class, user1Oid, delta.getModifications(), result);
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
 
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
-        // TODO
-        and("serialized form (fullObject) is not updated");
+        and("serialized form (fullObject) is updated");
         UserType userObject = repositoryService
                 .getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
-        assertThat(userObject.getName()).isNotNull();
+        assertThat(userObject.getLinkRef()).hasSize(1);
+        assertThat(userObject.getLinkRef().get(0).getOid()).isEqualTo(refTargetOid.toString());
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version));
 
-        and("externalized column is set to NULL");
+        and("user row version is incremented");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version);
-        assertThat(row.nameOrig).isNotNull();
-        assertThat(row.nameNorm).isNotNull();
+
+        and("externalized refs are inserted to the dedicated table");
+        QObjectReference r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        UUID ownerOid = UUID.fromString(user1Oid);
+        List<MReference> refs = select(r, r.ownerOid.eq(ownerOid));
+        assertThat(refs).hasSize(1);
+        MReference ref = refs.get(0);
+        assertThat(ref.ownerOid).isEqualTo(ownerOid);
+        assertThat(ref.targetOid).isEqualTo(refTargetOid);
     }
 
     @Test

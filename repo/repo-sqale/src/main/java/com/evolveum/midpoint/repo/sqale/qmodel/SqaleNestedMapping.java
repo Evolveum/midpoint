@@ -12,7 +12,8 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.sqale.filtering.ObjectRefTableItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.delta.EmbeddedContainerDeltaProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.RefTableItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.NestedMappingResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
@@ -45,7 +46,7 @@ public class SqaleNestedMapping<S extends Containerable, Q extends FlexibleRelat
     public final SqaleNestedMapping<S, Q, R> addRefMapping(
             @NotNull QName itemName, @NotNull QObjectReferenceMapping qReferenceMapping) {
         ((QueryModelMapping<?, ?, ?>) this).addItemMapping(itemName,
-                ObjectRefTableItemFilterProcessor.mapper(qReferenceMapping));
+                RefTableItemFilterProcessor.mapper(qReferenceMapping));
         // TODO add relation mapping too
         return this;
     }
