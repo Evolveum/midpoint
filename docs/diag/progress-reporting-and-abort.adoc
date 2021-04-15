@@ -1,4 +1,4 @@
-= Task Progress Reporting and Abort
+= Operation Progress Reporting and Abort
 :page-wiki-name: Configuring progress reporting and abort functionality HOWTO
 :page-upkeep-status: yellow
 
