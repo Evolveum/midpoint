@@ -95,7 +95,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     protected static final String ID_CONTAINER_MEMBER = "memberContainer";
     protected static final String ID_MEMBER_TABLE = "memberTable";
 
-//    private SearchBoxConfigurationHelper abstractRoleMemberSearchConfiguration;
     private GuiObjectListPanelConfigurationType additionalPanelConfig;
 
     private static final Map<QName, Map<String, String>> AUTHORIZATIONS = new HashMap<>();
@@ -115,7 +114,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         AUTHORIZATIONS.put(ArchetypeType.COMPLEX_TYPE, GuiAuthorizationConstants.ARCHETYPE_MEMBERS_AUTHORIZATIONS);
     }
 
-    public AbstractRoleMemberPanel(String id, IModel<R> model, PageBase parentPage) {
+    public AbstractRoleMemberPanel(String id, IModel<R> model) {
         super(id, model);
     }
 
@@ -130,7 +129,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         form.setOutputMarkupId(true);
         add(form);
         this.additionalPanelConfig = getAdditionalPanelConfig();
-//        this.abstractRoleMemberSearchConfiguration = new SearchBoxConfigurationHelper(additionalPanelConfig, getSupportedRelations());
         initMemberTable(form);
         setOutputMarkupId(true);
     }
@@ -189,18 +187,13 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 return AbstractRoleMemberPanel.this.createStorageKey();
             }
 
-//            @Override
-//            protected ContainerTypeSearchItem getTypeItem(Class<? extends ObjectType> type, List<DisplayableValue<Class<? extends ObjectType>>> allowedValues) {
-//
-//            }
-
             protected PageStorage getPageStorage(String storageKey){
                 return getSession().getSessionStorage().getPageStorageMap().get(storageKey);
             }
 
             @Override
             protected Search createSearch(Class<ObjectType> type) {
-                return createMemberSearch(type, getTypeItem(type, getAllowedTypes()));
+                return createMemberSearch(type);
             }
 
             @Override
@@ -234,31 +227,23 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         return (Class<O>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), objectTypeQname);
     }
 
-    private Search createMemberSearch(Class<ObjectType> type, ContainerTypeSearchItem typeItem) {
-        Search search = null;
+    private Search createMemberSearch(Class<ObjectType> type) {
+        Search search;
 
         MemberPanelStorage memberPanelStorage = getMemberPanelStorage();
         if (memberPanelStorage == null) { //normally, this should not happen
-            ContainerTypeSearchItem<ObjectType> defaultTypeItem = new ContainerTypeSearchItem<ObjectType>(type);
+            ContainerTypeSearchItem<ObjectType> defaultTypeItem = new ContainerTypeSearchItem<>(type);
             search = SearchFactory.createSearch(defaultTypeItem, null, null, null, getPageBase(), null, true, true, Search.PanelType.MEMBER_PANEL);
             return search;
         }
-
-//        ContainerTypeSearchItem oldTypeItem;
-//        if (search != null) {
-//            if (!search.isTypeChanged()) {
-//                return search;
-//            }
-//            oldTypeItem = search.getType();
-//        } else {
-//            oldTypeItem = typeItem;
-//        }
 
         if (memberPanelStorage.getSearch() != null) {
             return memberPanelStorage.getSearch();
         }
 
-        ContainerTypeSearchItem searchTypeItem = new ContainerTypeSearchItem(WebComponentUtil.qnameToClass(getPrismContext(), memberPanelStorage.getDefaultObjectType()));
+        Class<ObjectType> typeClass = (Class<ObjectType>) WebComponentUtil.qnameToClass(getPrismContext(), memberPanelStorage.getDefaultObjectType());
+        SearchValue<Class<ObjectType>> searchClassValue = new SearchValue<>(typeClass, "ObjectType." + typeClass.getSimpleName());
+        ContainerTypeSearchItem searchTypeItem = new ContainerTypeSearchItem(searchClassValue, getAllowedTypes());
         searchTypeItem.setConfiguration(memberPanelStorage.getObjectTypeSearchItem());
         searchTypeItem.setVisible(true);
 
@@ -334,22 +319,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         return tableId.name() + "_" + getStorageKeyTabSuffix() + collectionName;
     }
 
-
-
-
-    private R getParentVariables(VariablesMap variables) {
-        if (variables == null) {
-            return null;
-        }
-        try {
-            return (R) variables.getValue(ExpressionConstants.VAR_PARENT_OBJECT, AbstractRoleType.class);
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't load parent object.");
-        }
-        return null;
-    }
-
-
     protected Class<? extends ObjectType> getChoiceForAllTypes () {
         return FocusType.class;
     }
@@ -378,8 +347,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
                 CompositedIconButtonDto mainButton = new CompositedIconButtonDto();
                 DisplayType mainButtonDisplayType = getCreateMemberButtonDisplayType();
-//                DisplayType mainButtonDisplayType = WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
-//                        createStringResource("abstractRoleMemberPanel.menu.createMember", "", "").getString());
                 mainButton.setAdditionalButtonDisplayType(mainButtonDisplayType);
 
                 CompositedIconBuilder builder = new CompositedIconBuilder();
@@ -425,19 +392,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
-                List<QName> relations = relation != null && !CollectionUtils.isEmpty(relation.getRelations())
-                        ? Collections.singletonList(relation.getRelations().get(0))
-                        : getMemberPanelStorage().getSupportedRelations();
-                List<QName> availableRelations = getMemberPanelStorage().getSupportedRelations();//new AvailableRelationDto(relations, getSupportedRelations().getDefaultRelation(), abstractRoleMemberSearchConfiguration.getDefaultRelationConfiguration());
                 List<QName> objectTypes = relation != null && !CollectionUtils.isEmpty(relation.getObjectTypes()) ?
                         relation.getObjectTypes() : null;
                 List<ObjectReferenceType> archetypeRefList = relation != null && !CollectionUtils.isEmpty(relation.getArchetypeRefs()) ?
                         relation.getArchetypeRefs() : null;
                 assignMembers(target, getMemberPanelStorage().getRelationSearchItem(), objectTypes, archetypeRefList, relation == null);
             }
-
-
-
         };
         assignButton.add(AttributeAppender.append("class", "btn-margin-right"));
 
@@ -915,14 +875,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         return null;
     }
 
-//    protected List<QName> getSupportedObjectTypes(boolean includeAbstractTypes) {
-//        if (!CollectionUtils.isEmpty(abstractRoleMemberSearchConfiguration.getDefaultObjectTypeConfiguration().getSupportedTypes())) {
-//            return abstractRoleMemberSearchConfiguration.getDefaultObjectTypeConfiguration().getSupportedTypes();
-//        }
-//        return getDefaultSupportedObjectTypes(includeAbstractTypes);
-//    }
-
-
     protected List<QName> getDefaultSupportedObjectTypes(boolean includeAbstractTypes) {
         return WebComponentUtil.createFocusTypeList(includeAbstractTypes);
     }
@@ -1043,7 +995,4 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         return "";
     }
 
-//    protected RelationSearchItemConfigurationType getDefaultRelationConfiguration() {
-//        return abstractRoleMemberSearchConfiguration.getDefaultRelationConfiguration();
-//    }
 }

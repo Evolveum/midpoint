@@ -31,9 +31,6 @@ public class SearchBoxConfigurationHelper implements Serializable {
     private UserInterfaceFeatureType defaultTenantConfiguration = null;
     private UserInterfaceFeatureType defaultProjectConfiguration = null;
 
-
-    private Class<ObjectType> defaultObjectTypeClass = null;
-
     private List<QName> supportedRelations;
     private List<QName> supportedObjectTypes;
     private QName defaultRelation;
@@ -82,31 +79,10 @@ public class SearchBoxConfigurationHelper implements Serializable {
         return defaultScopeConfiguration;
     }
 
-    private UserInterfaceElementVisibilityType getVisibility(UserInterfaceFeatureType feature) {
-        if (feature == null) {
-            return UserInterfaceElementVisibilityType.AUTOMATIC;
-        }
-
-        return feature.getVisibility();
-    }
-
     public ObjectTypeSearchItemConfigurationType getDefaultObjectTypeConfiguration() {
         if (defaultObjectTypeConfiguration == null) {
             defaultObjectTypeConfiguration = searchBoxConfigurationType.getObjectTypeConfiguration();
 
-//        if (defaultObjectTypeConfiguration.getDefaultValue() == null) {
-//            if (searchBoxConfigurationType.getDefaultObjectType() != null) {
-//                defaultObjectTypeClass = (Class<ObjectType>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(),
-//                        searchBoxConfigurationType.getDefaultObjectType());
-//            }
-//        } else {
-//            defaultObjectTypeClass = (Class<ObjectType>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(),
-//                    defaultObjectTypeConfiguration.getDefaultValue());
-//        }
-
-//        if (defaultObjectTypeClass == null) {
-//            defaultObjectTypeClass = getDefaultObjectType();
-//        }
             if (defaultObjectTypeConfiguration == null) {
                 defaultObjectTypeConfiguration = new ObjectTypeSearchItemConfigurationType();
             }
@@ -116,6 +92,10 @@ public class SearchBoxConfigurationHelper implements Serializable {
         }
         if (defaultObjectTypeConfiguration.getDefaultValue() == null) {
             defaultObjectTypeConfiguration.setDefaultValue(defaultObjectType);
+        }
+
+        if (CollectionUtils.isEmpty(defaultObjectTypeConfiguration.getSupportedTypes())) {
+            defaultObjectTypeConfiguration.getSupportedTypes().addAll(supportedObjectTypes);
         }
         return defaultObjectTypeConfiguration;
     }
@@ -163,18 +143,6 @@ public class SearchBoxConfigurationHelper implements Serializable {
         return defaultIndirectConfiguration;
     }
 
-    public UserInterfaceElementVisibilityType getDefaultIndirecVisibility() {
-        return getVisibility(getDefaultIndirectConfiguration());
-    }
-
-    public PolyStringType getDefaultIndirectLabel() {
-        return getDefaultIndirectConfiguration().getDisplay().getLabel();
-    }
-
-    public PolyStringType getDefaultIndirectHelp() {
-        return getDefaultIndirectConfiguration().getDisplay().getHelp();
-    }
-
     public UserInterfaceFeatureType getDefaultTenantConfiguration() {
         if (defaultTenantConfiguration == null) {
             defaultTenantConfiguration = searchBoxConfigurationType.getTenantConfiguration();
@@ -184,18 +152,6 @@ public class SearchBoxConfigurationHelper implements Serializable {
             setDisplay(defaultTenantConfiguration, "tenant","abstractRoleMemberPanel.tenant", null);
         }
         return defaultTenantConfiguration;
-    }
-
-    public UserInterfaceElementVisibilityType getDefaultTenantVisibility() {
-        return getVisibility(getDefaultTenantConfiguration());
-    }
-
-    public PolyStringType getDefaultTenantLabel() {
-        return getDefaultTenantConfiguration().getDisplay().getLabel();
-    }
-
-    public PolyStringType getDefaultTenantHelp() {
-        return getDefaultTenantConfiguration().getDisplay().getHelp();
     }
 
     public UserInterfaceFeatureType getDefaultProjectConfiguration() {
@@ -208,19 +164,6 @@ public class SearchBoxConfigurationHelper implements Serializable {
         }
         return defaultProjectConfiguration;
     }
-
-    public UserInterfaceElementVisibilityType getDefaultProjectVisibility() {
-        return getVisibility(getDefaultProjectConfiguration());
-    }
-
-    public PolyStringType getDefaultProjectLabel() {
-        return getDefaultProjectConfiguration().getDisplay().getLabel();
-    }
-
-    public PolyStringType getDefaultProjectHelp() {
-        return getDefaultProjectConfiguration().getDisplay().getHelp();
-    }
-
 
     private void setDisplay(UserInterfaceFeatureType configuration, String orig, String labelKey, String helpKey) {
         if (configuration.getDisplay() == null) {

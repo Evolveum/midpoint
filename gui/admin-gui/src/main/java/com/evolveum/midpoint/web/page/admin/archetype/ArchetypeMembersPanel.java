@@ -28,7 +28,7 @@ import javax.xml.namespace.QName;
 public class ArchetypeMembersPanel extends AbstractRoleMemberPanel<ArchetypeType> {
 
     public ArchetypeMembersPanel(String id, IModel<ArchetypeType> model, PageBase pageBase) {
-        super(id, model, pageBase);
+        super(id, model);
     }
 
     private static final long serialVersionUID = 1L;

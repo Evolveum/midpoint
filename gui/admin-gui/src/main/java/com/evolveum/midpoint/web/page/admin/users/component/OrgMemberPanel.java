@@ -31,7 +31,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     private static final Trace LOGGER = TraceManager.getTrace(OrgMemberPanel.class);
 
     public OrgMemberPanel(String id, IModel<OrgType> model, PageBase parentPage) {
-        super(id, model, parentPage);
+        super(id, model);
         setOutputMarkupId(true);
     }
 

@@ -101,7 +101,7 @@ public class ContainerTypeSearchItem<C extends Containerable> extends SearchItem
                 '}';
     }
 
-    public List<DisplayableValue<Class<? extends C>>> getAllowedValues(PageBase pageBase) {
+    public List<DisplayableValue<Class<? extends C>>> getAllowedValues() {
         return allowedValues;
     }
 
