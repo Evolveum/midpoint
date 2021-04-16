@@ -16,7 +16,7 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**

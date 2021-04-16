@@ -14,6 +14,7 @@ import javax.annotation.PreDestroy;
 
 import com.google.common.base.Strings;
 import com.querydsl.core.Tuple;
+import com.querydsl.sql.SQLQuery;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -123,8 +124,8 @@ public class SqaleRepositoryService implements RepositoryService {
             try (JdbcSession jdbcSession =
                     sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
                 //noinspection unchecked
-                object = (PrismObject<T>) readByOid(
-                        jdbcSession, type, oidUuid, options).asPrismObject();
+                object = (PrismObject<T>) readByOid(jdbcSession, type, oidUuid, options)
+                        .asPrismObject();
             }
 
             // "objectLocal" is here just to provide effectively final variable for the lambda below
@@ -132,6 +133,9 @@ public class SqaleRepositoryService implements RepositoryService {
 //                    subResult, () -> objectRetriever.getObjectAttempt(type, oid, options, operationResult));
 //            object = objectLocal;
             invokeConflictWatchers((w) -> w.afterGetObject(object));
+
+            // TODO both update and get need this?
+            ObjectTypeUtil.normalizeAllRelations(object, schemaService.relationRegistry());
             return object;
         } catch (RuntimeException e) { // TODO what else to catch?
             throw handledGeneralException(e, operationResult);
@@ -161,6 +165,27 @@ public class SqaleRepositoryService implements RepositoryService {
             @NotNull UUID oid,
             Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException, ObjectNotFoundException {
+        return readByOidInternal(jdbcSession, schemaType, oid, options, false);
+    }
+
+    /** Read object using provided {@link JdbcSession} and locks it for update. */
+    private <S extends ObjectType, Q extends QObject<R>, R extends MObject> S readByOidAndLock(
+            @NotNull JdbcSession jdbcSession,
+            @NotNull Class<S> schemaType,
+            @NotNull UUID oid,
+            Collection<SelectorOptions<GetOperationOptions>> options)
+            throws SchemaException, ObjectNotFoundException {
+        return readByOidInternal(jdbcSession, schemaType, oid, options, true);
+    }
+
+    // use one of above to avoid ugly last boolean parameter
+    private <S extends ObjectType, Q extends QObject<R>, R extends MObject> S readByOidInternal(
+            @NotNull JdbcSession jdbcSession,
+            @NotNull Class<S> schemaType,
+            @NotNull UUID oid,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            boolean forUpdate)
+            throws SchemaException, ObjectNotFoundException {
 
 //        context.processOptions(options); TODO how to process option, is setting of select expressions enough?
 
@@ -168,7 +193,12 @@ public class SqaleRepositoryService implements RepositoryService {
                 sqlRepoContext.getMappingBySchemaType(schemaType);
         Q root = rootMapping.defaultAlias();
 
-        Tuple result = sqlRepoContext.newQuery(jdbcSession.connection())
+        SQLQuery<?> sqlQuery = sqlRepoContext.newQuery(jdbcSession.connection());
+        if (forUpdate) {
+            sqlQuery.forUpdate();
+        }
+
+        Tuple result = sqlQuery
                 .from(root)
                 .select(rootMapping.selectExpressions(root, options))
                 .where(root.oid.eq(oid))
@@ -355,7 +385,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
             try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
                 GetOperationOptionsBuilder getOptionsBuilder = schemaService.getOperationOptionsBuilder();
-                T object = readByOid(jdbcSession, type, oidUuid, getOptionsBuilder.build());
+                T object = readByOidAndLock(jdbcSession, type, oidUuid, getOptionsBuilder.build());
                 //noinspection unchecked
                 PrismObject<T> prismObject = (PrismObject<T>) object.asPrismObject();
                 if (precondition != null && !precondition.holds(prismObject)) {
@@ -411,22 +441,20 @@ public class SqaleRepositoryService implements RepositoryService {
         SqaleUpdateContext<S, Q, R> updateContext = new SqaleUpdateContext<>(
                 transformerSupport, jdbcSession, prismObject);
 
-        // region updatePrismObject: can be extracted as updatePrismObject (not done before CID generation is cleared up)
-        ItemDeltaCollectionsUtil.applyTo(modifications, prismObject);
-        ObjectTypeUtil.normalizeAllRelations(prismObject, schemaService.relationRegistry());
-        // TODO generate missing container IDs, see also old repo PrismIdentifierGenerator
-        //  BWT: it's not enough to do it in prism object, we need it for deltas adding containers too
-        // endregion
-
         // TODO APPLY modifications HERE (generate update/set clauses)
         for (ItemDelta<?, ?> modification : modifications) {
             try {
+                // TODO generate missing container IDs, see also old repo PrismIdentifierGenerator
+                //  BWT: it's not enough to do it in prism object, we need it for deltas adding containers too
+                modification.applyTo(prismObject);
+
                 updateContext.processModification(modification);
             } catch (IllegalArgumentException e) {
                 LOGGER.warn("Modification failed/not implemented yet: {}", e.toString());
             }
         }
 
+        ObjectTypeUtil.normalizeAllRelations(prismObject, schemaService.relationRegistry());
         updateContext.execute();
         return modifications;
     }

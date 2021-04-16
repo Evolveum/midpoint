@@ -18,8 +18,8 @@ import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemRelationResolver;
 
 /**
  * Filter processor that resolves item path and then constructs an SQL condition for it.
@@ -27,7 +27,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemRelationResolver;
  */
 public class ValueFilterProcessor implements FilterProcessor<ValueFilter<?, ?>> {
 
-    /** Query context here is not final as it can change during complex path resolution. */
+    /** Query context and mapping is not final as it can change during complex path resolution. */
     private SqlQueryContext<?, ?, ?> context;
     private QueryModelMapping<?, ?, ?> mapping;
 
@@ -39,6 +39,7 @@ public class ValueFilterProcessor implements FilterProcessor<ValueFilter<?, ?>> 
     @Override
     public Predicate process(ValueFilter<?, ?> filter) throws RepositoryException {
         if (filter.getRightHandSidePath() != null) {
+            // TODO
             throw new QueryException(
                     "Filter with right-hand-side path is not supported YET: " + filter.getPath());
         }

@@ -48,9 +48,10 @@
             <resource>
                 <directory>src/main/resources</directory>
             </resource>
-            <resource>
-                <directory>target/midpoint-schema</directory>
-            </resource>
+            <!-- Commented out experimentally, as this fools IDEA into searching for XSD types at this location as well. -->
+            <!--<resource>-->
+            <!--    <directory>target/midpoint-schema</directory>-->
+            <!--</resource>-->
         </resources>
         <plugins>
             <plugin>

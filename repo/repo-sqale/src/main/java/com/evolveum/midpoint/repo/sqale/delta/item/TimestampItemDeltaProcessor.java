@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale.mapping.delta;
+package com.evolveum.midpoint.repo.sqale.delta.item;
 
 import java.util.function.Function;
 
@@ -24,7 +24,8 @@ public class TimestampItemDeltaProcessor<T extends Comparable<T>>
     }
 
     @Override
-    protected @Nullable T transformRealValue(Object realValue) {
+    @Nullable
+    public T convertRealValue(Object realValue) {
         return QuerydslUtils.convertTimestampToPathType(realValue, path);
     }
 }

@@ -8,9 +8,9 @@ package com.evolveum.midpoint.repo.sqale.qmodel.lookuptable;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType.F_ROW;
 
+import com.evolveum.midpoint.repo.sqale.mapping.TableRelationResolver;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.TableRelationResolver;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 /**

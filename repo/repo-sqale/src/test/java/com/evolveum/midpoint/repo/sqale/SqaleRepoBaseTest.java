@@ -16,7 +16,6 @@ import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Predicate;
 import com.querydsl.sql.SQLQuery;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
@@ -27,7 +26,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -41,13 +39,6 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     @Autowired protected PrismContext prismContext;
 
     private static boolean uriCacheCleared = false;
-
-    @BeforeClass
-    public void init() {
-        // TODO remove later, just for initial debugging
-        ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(SqlLogger.class))
-                .setLevel(ch.qos.logback.classic.Level.TRACE);
-    }
 
     @BeforeClass
     public void clearDatabase() {
@@ -177,6 +168,9 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     }
 
     protected void assertCachedUri(Integer uriId, String uri) {
+        assertThat(uriId)
+                .withFailMessage("Unexpected NULL ID for cached URI %s", uri)
+                .isNotNull();
         assertThat(cachedUriById(uriId)).isEqualTo(uri);
     }
 

@@ -4,18 +4,18 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqlbase.mapping.item;
+package com.evolveum.midpoint.repo.sqlbase.mapping;
 
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 
 /**
- * Common contract for resolver that helps with navigating over complex (non-single) item paths.
+ * Common contract for resolver that helps with navigating over complex (non-single) item paths
+ * for query purposes.
  */
 public interface ItemRelationResolver {
 
     /**
-     * Resolves current query context to {@link ResolutionResult} with new context and mapping.
+     * Resolves a query context to {@link ResolutionResult} with new context and mapping.
      * The information about the resolved item is captured in the instance resolver already
      * in a manner that is specific for various types of resolution (JOIN or nested mapping).
      */
@@ -25,7 +25,8 @@ public interface ItemRelationResolver {
         public final SqlQueryContext<?, ?, ?> context;
         public final QueryModelMapping<?, ?, ?> mapping;
 
-        public ResolutionResult(SqlQueryContext<?, ?, ?> context, QueryModelMapping<?, ?, ?> mapping) {
+        public ResolutionResult(
+                SqlQueryContext<?, ?, ?> context, QueryModelMapping<?, ?, ?> mapping) {
             this.context = context;
             this.mapping = mapping;
         }

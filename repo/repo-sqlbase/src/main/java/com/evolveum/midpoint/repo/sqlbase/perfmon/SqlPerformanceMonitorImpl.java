@@ -131,13 +131,15 @@ public class SqlPerformanceMonitorImpl implements PerformanceMonitor {
         }
     }
 
-    public void registerOperationFinish(long opHandle, int attempt) {
+    public OperationRecord registerOperationFinish(long opHandle, int attempt) {
         if (level > LEVEL_NONE) {
             OperationRecord operation = outstandingOperations.get(opHandle);
             if (isOperationHandleOk(operation, opHandle)) {
                 registerOperationFinishInternal(operation, attempt);
+                return operation;
             }
         }
+        return null;
     }
 
     private boolean isOperationHandleOk(OperationRecord operation, long opHandle) {
