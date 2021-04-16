@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.filtering;
 import com.querydsl.core.types.Predicate;
 
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.repo.sqale.delta.item.RefTableItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
@@ -22,21 +23,21 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
  * Filter processor for reference item paths resolved via {@link QReference} tables.
  * This just joins the reference table and then delegates to {@link RefItemFilterProcessor}.
  */
-public class ObjectRefTableItemFilterProcessor
+public class RefTableItemFilterProcessor
         extends ItemFilterProcessor<RefFilter> {
 
     /** Returns the mapper function creating the ref-filter processor from query context. */
     public static SqaleItemSqlMapper mapper(
             QObjectReferenceMapping qReferenceMapping) {
         return new SqaleItemSqlMapper(
-                ctx -> new ObjectRefTableItemFilterProcessor(ctx, qReferenceMapping),
-                ctx -> null // TODO add delta processor
+                ctx -> new RefTableItemFilterProcessor(ctx, qReferenceMapping),
+                ctx -> new RefTableItemDeltaProcessor(ctx, qReferenceMapping)
         );
     }
 
     private final QObjectReferenceMapping qObjectReferenceMapping;
 
-    public ObjectRefTableItemFilterProcessor(
+    public RefTableItemFilterProcessor(
             SqlQueryContext<?, ?, ?> context, QObjectReferenceMapping qObjectReferenceMapping) {
         super(context);
         this.qObjectReferenceMapping = qObjectReferenceMapping;

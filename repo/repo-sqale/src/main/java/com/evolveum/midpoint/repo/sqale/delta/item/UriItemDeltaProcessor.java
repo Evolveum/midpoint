@@ -23,7 +23,7 @@ public class UriItemDeltaProcessor
     }
 
     @Override
-    protected @Nullable Integer transformRealValue(Object realValue) {
+    public @Nullable Integer convertRealValue(Object realValue) {
         return context.processCacheableUri((String) realValue);
     }
 }

@@ -15,8 +15,9 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.repo.sqale.delta.EmbeddedContainerDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.*;
-import com.evolveum.midpoint.repo.sqale.filtering.ObjectRefTableItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.RefTableItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.NestedMappingResolver;
@@ -50,6 +51,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /** Nested mapping adaptation for repo-sqale. */
+    @SuppressWarnings("DuplicatedCode") // the same code in SqaleNestedMapping
     public <N extends Containerable> SqaleNestedMapping<N, Q, R> addNestedMapping(
             @NotNull ItemName itemName, @NotNull Class<N> nestedSchemaType) {
         SqaleNestedMapping<N, Q, R> nestedMapping =
@@ -57,7 +59,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         addRelationResolver(itemName, new NestedMappingResolver<>(nestedMapping));
         // first function for query doesn't matter, it just can't be null
         addItemMapping(itemName, new SqaleItemSqlMapper(ctx -> null,
-                ctx -> new EmbeddedContainerDeltaProcessor<N>(ctx, nestedMapping)));
+                ctx -> new EmbeddedContainerDeltaProcessor<>(ctx, nestedMapping)));
         return nestedMapping;
     }
 
@@ -66,7 +68,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     public final void addRefMapping(
             @NotNull QName itemName, @NotNull QObjectReferenceMapping qReferenceMapping) {
         ((QueryModelMapping<?, ?, ?>) this).addItemMapping(itemName,
-                ObjectRefTableItemFilterProcessor.mapper(qReferenceMapping));
+                RefTableItemFilterProcessor.mapper(qReferenceMapping));
         // TODO add relation mapping too
     }
 
