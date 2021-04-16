@@ -360,16 +360,13 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             protected MultiFunctinalButtonDto load() {
                 MultiFunctinalButtonDto multiFunctinalButtonDto = new MultiFunctinalButtonDto();
 
-                CompositedIconButtonDto mainButton = new CompositedIconButtonDto();
                 DisplayType mainButtonDisplayType = getCreateMemberButtonDisplayType();
-                mainButton.setAdditionalButtonDisplayType(mainButtonDisplayType);
-
                 CompositedIconBuilder builder = new CompositedIconBuilder();
                 Map<IconCssStyle, IconType> layerIcons = WebComponentUtil.createMainButtonLayerIcon(mainButtonDisplayType);
                 for (Map.Entry<IconCssStyle, IconType> icon : layerIcons.entrySet()) {
                     builder.appendLayerIcon(icon.getValue(), icon.getKey());
                 }
-                mainButton.setCompositedIcon(builder.build());
+                CompositedIconButtonDto mainButton = createCompositedIconButtonDto(mainButtonDisplayType, null, builder.build());
                 multiFunctinalButtonDto.setMainButton(mainButton);
 
                 List<AssignmentObjectRelation> loadedRelations = loadMemberRelationsList();
@@ -377,12 +374,9 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 if (CollectionUtils.isNotEmpty(loadedRelations)) {
                     List<AssignmentObjectRelation> relations = WebComponentUtil.divideAssignmentRelationsByAllValues(loadedRelations);
                     relations.forEach(relation -> {
-                        CompositedIconButtonDto buttonDto = new CompositedIconButtonDto();
                         DisplayType additionalButtonDisplayType = WebComponentUtil.getAssignmentObjectRelationDisplayType(getPageBase(), relation,
                                 "abstractRoleMemberPanel.menu.createMember");
-                        buttonDto.setAdditionalButtonDisplayType(additionalButtonDisplayType);
-                        buttonDto.setCompositedIcon(createCompositedIcon(relation, additionalButtonDisplayType));
-                        buttonDto.setAssignmentObjectRelation(relation);
+                        CompositedIconButtonDto buttonDto = createCompositedIconButtonDto(additionalButtonDisplayType, relation, createCompositedIcon(relation, additionalButtonDisplayType));
                         additionalButtons.add(buttonDto);
                     });
                 }
@@ -395,9 +389,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     private CompositedIcon createCompositedIcon(AssignmentObjectRelation relation, DisplayType additionalButtonDisplayType) {
         CompositedIconBuilder builder = WebComponentUtil.getAssignmentRelationIconBuilder(getPageBase(), relation,
                 additionalButtonDisplayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green"));
-        if (builder == null) {
-            return null;
-        }
         return builder.build();
     }
 
@@ -425,32 +416,22 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             @Override
             protected MultiFunctinalButtonDto load() {
                 MultiFunctinalButtonDto multiFunctinalButtonDto = new MultiFunctinalButtonDto();
-                CompositedIconButtonDto mainButton = new CompositedIconButtonDto();
-                DisplayType mainButtonDisplayType = getAssignMemberButtonDisplayType();
-                mainButton.setAdditionalButtonDisplayType(mainButtonDisplayType);
-                CompositedIconBuilder mainButtonIconBuilder = new CompositedIconBuilder();
-                mainButtonIconBuilder.setBasicIcon(WebComponentUtil.getIconCssClass(mainButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                        .appendColorHtmlValue(WebComponentUtil.getIconColor(mainButtonDisplayType));
-                mainButton.setCompositedIcon(mainButtonIconBuilder.build());
+
+                CompositedIconButtonDto mainButton = createCompositedIconButtonDto(getAssignMemberButtonDisplayType(), null, null);
                 multiFunctinalButtonDto.setMainButton(mainButton);
 
-                List<CompositedIconButtonDto> additionalAssignmentButtons = new ArrayList<>();
                 List<AssignmentObjectRelation> assignmentObjectRelations = WebComponentUtil.divideAssignmentRelationsByAllValues(loadMemberRelationsList());
                 if (assignmentObjectRelations == null) {
                     return multiFunctinalButtonDto;
                 }
+                List<CompositedIconButtonDto> additionalAssignmentButtons = new ArrayList<>();
                 assignmentObjectRelations.forEach(relation -> {
-                    CompositedIconButtonDto buttonDto = new CompositedIconButtonDto();
-                    buttonDto.setAssignmentObjectRelation(relation);
-
-                    DisplayType additionalDispayType = WebComponentUtil.getAssignmentObjectRelationDisplayType(AbstractRoleMemberPanel.this.getPageBase(), relation,
-                            "abstractRoleMemberPanel.menu.assignMember");
-                    //TODO null additinalDisplayType
+                    DisplayType additionalDispayType = WebComponentUtil.getAssignmentObjectRelationDisplayType(AbstractRoleMemberPanel.this.getPageBase(),
+                            relation,"abstractRoleMemberPanel.menu.assignMember");
                     CompositedIconBuilder builder = WebComponentUtil.getAssignmentRelationIconBuilder(AbstractRoleMemberPanel.this.getPageBase(), relation,
                             additionalDispayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green"));
                     CompositedIcon icon = builder.build();
-                    buttonDto.setAdditionalButtonDisplayType(additionalDispayType);
-                    buttonDto.setCompositedIcon(icon);
+                    CompositedIconButtonDto buttonDto = createCompositedIconButtonDto(additionalDispayType, relation, icon);
                     additionalAssignmentButtons.add(buttonDto);
                 });
                 multiFunctinalButtonDto.setAdditionalButtons(additionalAssignmentButtons);
@@ -458,7 +439,21 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 return multiFunctinalButtonDto;
             }
         };
+    }
 
+    private CompositedIconButtonDto createCompositedIconButtonDto(DisplayType buttonDisplayType, AssignmentObjectRelation relation, CompositedIcon icon) {
+        CompositedIconButtonDto compositedIconButtonDto = new CompositedIconButtonDto();
+        compositedIconButtonDto.setAdditionalButtonDisplayType(buttonDisplayType);
+        if (icon != null) {
+            compositedIconButtonDto.setCompositedIcon(icon);
+        } else {
+            CompositedIconBuilder mainButtonIconBuilder = new CompositedIconBuilder();
+            mainButtonIconBuilder.setBasicIcon(WebComponentUtil.getIconCssClass(buttonDisplayType), IconCssStyle.IN_ROW_STYLE)
+                    .appendColorHtmlValue(WebComponentUtil.getIconColor(buttonDisplayType));
+            compositedIconButtonDto.setCompositedIcon(mainButtonIconBuilder.build());
+        }
+        compositedIconButtonDto.setAssignmentObjectRelation(relation);
+        return compositedIconButtonDto;
     }
 
     protected UserProfileStorage.TableId getTableId(QName complextType) {
@@ -624,7 +619,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         try {
             spec = getPageBase().getModelInteractionService()
                     .determineAssignmentHolderSpecification(obj, result);
-        } catch (SchemaException | ConfigurationException ex) {
+        } catch (Throwable ex) {
             result.recordPartialError(ex.getLocalizedMessage());
             LOGGER.error("Couldn't load member relations list for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
         }
@@ -656,15 +651,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             protected List<QName> getDefaultRelations() {
-                List<QName> defaultRelations = new ArrayList<>();
-                QName defaultRelation = AbstractRoleMemberPanel.this.getMemberPanelStorage().getDefaultRelation();
-                if (defaultRelation != null) {
-                    defaultRelations.add(AbstractRoleMemberPanel.this.getMemberPanelStorage().getDefaultRelation());
-                } else {
-                    defaultRelations.add(RelationTypes.MEMBER.getRelation());
-                }
-                return defaultRelations;
-
+                return getDefaultRelationsForActions();
             }
 
             @Override
@@ -673,7 +660,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
-                unassignMembersPerformed(type, SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getScopeSearchItem().getDefaultValue())
+                unassignMembersPerformed(type, getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE)
                         && QueryScope.ALL.equals(scope) ? QueryScope.ALL_DIRECT : scope, relations, target);
             }
 
@@ -706,6 +693,17 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         getPageBase().showMainPopup(chooseTypePopupContent, target);
     }
 
+    private List<QName> getDefaultRelationsForActions() {
+        List<QName> defaultRelations = new ArrayList<>();
+        QName defaultRelation = AbstractRoleMemberPanel.this.getMemberPanelStorage().getDefaultRelation();
+        if (defaultRelation != null) {
+            defaultRelations.add(AbstractRoleMemberPanel.this.getMemberPanelStorage().getDefaultRelation());
+        } else {
+            defaultRelations.add(RelationTypes.MEMBER.getRelation());
+        }
+        return defaultRelations;
+    }
+
     private void deleteMembersPerformed(AjaxRequestTarget target) {
         QueryScope scope = getQueryScope();
         StringResourceModel confirmModel;
@@ -732,15 +730,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             protected List<QName> getDefaultRelations() {
-                List<QName> defaultRelations = new ArrayList<>();
-                QName defaultRelation = AbstractRoleMemberPanel.this.getMemberPanelStorage().getDefaultRelation();
-                if (defaultRelation != null) {
-                    defaultRelations.add(AbstractRoleMemberPanel.this.getMemberPanelStorage().getDefaultRelation());
-                } else {
-                    defaultRelations.add(RelationTypes.MEMBER.getRelation());
-                }
-                return defaultRelations;
-
+                return getDefaultRelationsForActions();
             }
 
             protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
@@ -802,15 +792,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
                 @Override
                 protected List<QName> getDefaultRelations() {
-                    List<QName> defaultRelations = new ArrayList<>();
-                    QName defaultRelation = AbstractRoleMemberPanel.this.getMemberPanelStorage().getDefaultRelation();
-                    if (defaultRelation != null) {
-                        defaultRelations.add(AbstractRoleMemberPanel.this.getMemberPanelStorage().getDefaultRelation());
-                    } else {
-                        defaultRelations.add(RelationTypes.MEMBER.getRelation());
-                    }
-                    return defaultRelations;
-
+                    return getDefaultRelationsForActions();
                 }
 
                 protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
@@ -820,10 +802,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                         target.add(getPageBase().getFeedbackPanel());
                         return;
                     }
-                    if (relations == null || relations.isEmpty()) {
-                        getSession().warn("No relation was selected. Cannot create member");
-                        target.add(this);
-                        target.add(getPageBase().getFeedbackPanel());
+                    if (!checkRelationSelected(relations, "No relation was selected. Cannot create member", target)) {
                         return;
                     }
                     AbstractRoleMemberPanel.this.getPageBase().hideMainPopup(target);
@@ -858,20 +837,24 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     protected void deleteMembersPerformed(QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
-        if (relations == null || relations.isEmpty()) {
-            getSession().warn("No relation was selected. Cannot perform delete members");
-            target.add(this);
-            target.add(getPageBase().getFeedbackPanel());
+        if (!checkRelationSelected(relations, "No relation was selected. Cannot perform delete members", target)) {
             return;
         }
         MemberOperationsHelper.deleteMembersPerformed(getPageBase(), scope, getActionQuery(scope, relations), target);
     }
 
+    private boolean checkRelationSelected(Collection<QName> relations, String message, AjaxRequestTarget target) {
+        if (CollectionUtils.isNotEmpty(relations)) {
+            return true;
+        }
+        getSession().warn(message);
+        target.add(this);
+        target.add(getPageBase().getFeedbackPanel());
+        return false;
+    }
+
     protected void unassignMembersPerformed(QName type, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
-        if (relations == null || relations.isEmpty()) {
-            getSession().warn("No relation was selected. Cannot perform unassign members");
-            target.add(this);
-            target.add(getPageBase().getFeedbackPanel());
+        if (!checkRelationSelected(relations, "No relation was selected. Cannot perform unassign members", target)) {
             return;
         }
         MemberOperationsHelper.unassignMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, type, target);
@@ -982,8 +965,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     private Collection<SelectorOptions<GetOperationOptions>> getSearchOptions() {
-        return SelectorOptions
-                .createCollection(GetOperationOptions.createDistinct());
+        return SelectorOptions.createCollection(GetOperationOptions.createDistinct());
     }
 
     protected Class<? extends ObjectType> getDefaultObjectType() {
@@ -1006,9 +988,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         return (MemberPanelStorage) storage;
     }
 
-
     protected String getStorageKeyTabSuffix(){
         return "";
     }
-
 }

@@ -4070,6 +4070,7 @@ public final class WebComponentUtil {
         return icon;
     }
 
+    @Contract("_,_,_,null -> null")
     public static CompositedIconBuilder getAssignmentRelationIconBuilder(PageBase pageBase, AssignmentObjectRelation relationSpec,
             IconType relationIcon, IconType actionButtonIcon) {
         CompositedIconBuilder builder = new CompositedIconBuilder();
