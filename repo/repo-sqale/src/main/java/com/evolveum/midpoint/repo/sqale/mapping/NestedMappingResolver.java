@@ -4,10 +4,10 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale.mapping.item;
+package com.evolveum.midpoint.repo.sqale.mapping;
 
+import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
@@ -17,7 +17,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * @param <Q> type of source entity path
  */
 public class NestedMappingResolver<Q extends FlexibleRelationalPathBase<?>>
-        implements ItemRelationResolver {
+        implements SqaleItemRelationResolver {
 
     private final QueryModelMapping<?, Q, ?> mapping;
 
@@ -29,5 +29,10 @@ public class NestedMappingResolver<Q extends FlexibleRelationalPathBase<?>>
     @Override
     public ResolutionResult resolve(SqlQueryContext<?, ?, ?> context) {
         return new ResolutionResult(context, mapping);
+    }
+
+    @Override
+    public UpdateResolutionResult resolve(SqaleUpdateContext<?, ?, ?> context) {
+        return new UpdateResolutionResult(context, mapping);
     }
 }

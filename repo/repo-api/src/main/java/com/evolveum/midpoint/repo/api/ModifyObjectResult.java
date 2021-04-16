@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.repo.api.perf.OperationRecord;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.util.Collection;
@@ -24,17 +26,25 @@ import java.util.Collection;
  *
  *  EXPERIMENTAL. We will probably drop objectBefore and modifications.
  */
+@Experimental
 public class ModifyObjectResult<T extends ObjectType> {
 
     private final PrismObject<T> objectBefore;
     private final PrismObject<T> objectAfter;
     private final Collection<? extends ItemDelta> modifications;
 
+    /**
+     * Performance record for the current operation.
+     * Very experimental. Probably should be present also for other repository operation result objects.
+     */
+    private OperationRecord performanceRecord;
+
     public ModifyObjectResult(Collection<? extends ItemDelta> modifications) {
         this(null, null, modifications);
     }
 
-    public ModifyObjectResult(PrismObject<T> objectBefore, PrismObject<T> objectAfter, Collection<? extends ItemDelta> modifications) {
+    public ModifyObjectResult(PrismObject<T> objectBefore, PrismObject<T> objectAfter,
+            Collection<? extends ItemDelta> modifications) {
         this.objectBefore = objectBefore;
         this.objectAfter = objectAfter;
         this.modifications = modifications;
@@ -48,21 +58,33 @@ public class ModifyObjectResult<T extends ObjectType> {
         return objectAfter;
     }
 
+    public Collection<? extends ItemDelta> getModifications() {
+        return modifications;
+    }
+
+    public OperationRecord getPerformanceRecord() {
+        return performanceRecord;
+    }
+
+    public void setPerformanceRecord(OperationRecord performanceRecord) {
+        this.performanceRecord = performanceRecord;
+    }
+
+    public int getRetries() {
+        return performanceRecord != null ? performanceRecord.getAttempts() - 1 : 0;
+    }
+
+    public long getWastedTime() {
+        return performanceRecord != null ? performanceRecord.getWastedTime() : 0;
+    }
+
     @Override
     public String toString() {
         return "ModifyObjectResult{" +
                 "objectBefore=" + objectBefore +
                 ", objectAfter=" + objectAfter +
                 ", modifications=" + modifications +
+                ", performanceRecord=" + performanceRecord +
                 '}';
     }
-
-//    private String getDeltaDump() {
-//        if (objectBefore != null && objectAfter != null) {
-//            ObjectDelta<T> diff = objectBefore.diff(objectAfter);
-//            return diff.debugDump();
-//        } else {
-//            return "";
-//        }
-//    }
 }

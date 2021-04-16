@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
 import java.util.UUID;
 
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTransformerBase;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
@@ -26,7 +27,7 @@ public class ReferenceSqlTransformer<Q extends QReference<R>, R extends MReferen
      * care of the FK-columns initialization directly on the owning row object.
      * All the other columns are based on a single schema type, so there is no variation.
      */
-    public void insert(ObjectReferenceType schemaObject,
+    public void insert(Referencable schemaObject,
             MReferenceOwner<R> ownerRow, JdbcSession jdbcSession) {
         R row = ownerRow.createReference();
         // row.referenceType is DB generated, must be kept NULL, but it will match referenceType
