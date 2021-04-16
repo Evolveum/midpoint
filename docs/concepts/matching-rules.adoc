@@ -1,5 +1,7 @@
 = Matching Rules
 :page-wiki-name: Matching Rules
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/" }
 
 Matching rules are short expressions that can normalize and match attribute values.
 Attributes values are normally compared literally, e.g. strings are compared as they come from the resource in a case-sensitive manner.
@@ -47,7 +49,7 @@ Note that besides in attribute definitions, matching rules can also be used in w
 .Matching rule specification
 [source,xml]
 ----
-<correlation>	         	
+<correlation>
    <q:equal>
 	  <q:matching>polyStringNorm</q:matching>
       <q:path>name</q:path>
@@ -73,7 +75,7 @@ All of them have a namespace of `http://prism.evolveum.com/xml/ns/public/matchin
 
 [%autowidth]
 |===
-| Name | Applicable to | Usable in attribute definition | Usable in repository query | Description 
+| Name | Applicable to | Usable in attribute definition | Usable in repository query | Description
 
 | `default`
 | all types

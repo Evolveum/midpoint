@@ -1,0 +1,20 @@
+= Iteration
+:page-wiki-name: Iteration
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/" }
+:page-upkeep-status: green
+
+Iteration is mechanism how to determine a unique value by several attempts.
+E.g. it can be used to determine a unique username by trying values such as `foobar`, `foobar2`, `foobar3`, ...
+
+Iteration mechanism can be easily enabled and customized in wiki:Object+Template[Object Template] and wiki:Outbound+Mapping[Outbound Mapping].
+
+
+== See Also
+
+* wiki:Unique+midPoint+User+Name[Unique midPoint User Name]
+
+* wiki:Unique+Account+Username+HOWTO[Unique Account Username HOWTO]
+
+* wiki:Unique+property+value+HOWTO[Unique property value HOWTO]
+

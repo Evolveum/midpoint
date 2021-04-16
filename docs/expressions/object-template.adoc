@@ -2,6 +2,8 @@
 :page-wiki-name: Object Template
 :page-upkeep-status: orange
 :page-toc: top
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/" }
 
 == Introduction
 

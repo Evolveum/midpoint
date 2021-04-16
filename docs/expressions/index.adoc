@@ -2,7 +2,8 @@
 :page-nav-title: Expressions and Mappings
 :page-display-order: 200
 :page-upkeep-status: green
-:page-liquid:
+
+For an introduction to the topic, please see the xref:introduction/[] page.
 
 Following pages describe concepts related to expressions, mappings and data processing and transformation in general.
 

@@ -1,0 +1,39 @@
+= High Availability and Load Balancing
+:page-wiki-name: High Availability and Load Balancing
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/" }
+:page-upkeep-status: orange
+:page-upkeep-note: Merge with clustering-ha?
+
+In order to attain high availability and load balancing, it is possible to configure multiple midPoint nodes working with the same repository.
+
+In the following figure, there are two such nodes (A and B).
+
+image::clustering-ha/failover.png[]
+
+These nodes then share the load in the following ways:
+
+. MidPoint tasks (e.g. live synchronization, reconciliation, import, workflow approvals, etc) can run on either node.
+
+. Interactive users can connect to either node.
+
+There can be two or more nodes in such a cluster.
+(Although the number is not limited, some practical limits probably exist; they have to be determined experimentally.)
+
+Technologies used:
+
+. For task load balancing, the link:http://www.quartz-scheduler.org[Quartz scheduler] is used (see wiki:Task+Manager[architectural description]).
+
+. For load balancing for interactive users, standard link:http://tomcat.apache.org/tomcat-8.0-doc/balancer-howto.html[tomcat solution] is recommended.
+
+. For fail over without load balancing for interactive users network-level setup with Virtual IP may be used.
+
+For practical information on forming a cluster, see the wiki:Clustering+/+high+availability+setup[administration guide].
+
+
+== See Also
+
+* wiki:Clustering+/+high+availability+setup[Clustering / high availability setup]
+
+* wiki:System+Requirements[System Requirements]
+

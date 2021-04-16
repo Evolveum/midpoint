@@ -1,4 +1,5 @@
 = Persona Configuration
+:page-nav-title: Configuration
 :page-wiki-name: Persona Configuration
 :page-since: "3.6"
 :page-upkeep-status: yellow

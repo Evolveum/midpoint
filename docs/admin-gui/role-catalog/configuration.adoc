@@ -1,4 +1,5 @@
 = Role Catalog Configuration
+:page-nav-title: Configuration
 :page-wiki-name: Role Catalog Configuration
 :page-since: "3.5"
 :page-upkeep-status: yellow

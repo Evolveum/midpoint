@@ -3,6 +3,8 @@
 :page-display-order: 520
 :page-upkeep-status: green
 
+For an introduction to the topic, please see the xref:introduction/[] page.
+
 Following pages describe midPoint identity synchronization mechanisms.
 
 ++++

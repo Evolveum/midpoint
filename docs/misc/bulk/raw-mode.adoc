@@ -1,0 +1,37 @@
+= Raw mode
+:page-wiki-name: Raw mode
+:page-upkeep-status: yellow
+
+When running bulk actions that needs to be fast and alter only data stored in midPoint, you may use parameter raw=true to avoid midPoint's business logic and touching resources.
+Its exactly like editing objects via GUI Repository Objects.
+
+[source,xml]
+----
+<search xmlns="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <type>UserType</type>
+    <searchFilter>
+            <q:not>
+                <q:equal>
+                    <q:path>activation/validTo</q:path>
+                </q:equal>
+            </q:not>
+    </searchFilter>
+    <action>
+        <type>modify</type>
+        <parameter>
+            <name>delta</name>
+            <c:value>
+                <itemDelta>
+                    <modificationType>replace</modificationType>
+                    <path>activation/validTo</path>
+                </itemDelta>
+            </c:value>
+        </parameter>
+        <parameter>
+            <name>raw</name>
+            <value>true</value>
+        </parameter>
+    </action>
+</search>
+----

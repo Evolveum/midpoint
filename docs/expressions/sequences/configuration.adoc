@@ -1,7 +1,7 @@
 = Using Sequences
+:page-nav-title: Configuration
 :page-wiki-name: Using Sequences
 :page-since: "3.3"
-
 
 == Sequences
 

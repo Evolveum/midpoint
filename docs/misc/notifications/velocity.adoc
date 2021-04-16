@@ -1,0 +1,92 @@
+= Using Velocity Templates for Notifications
+:page-nav-title: Velocity Templates
+:page-wiki-name: Using Velocity Templates for Notifications
+:page-upkeep-status: yellow
+
+Starting with midPoint 3.4.1 it is possible to use Apache Velocity templates for writing notifications.
+(In fact, it is possible to use Velocity templates at each place where an expression is expected, e.g. in mappings, but the use for notifications seems to be the most natural.)
+
+A few examples follow:
+
+[source,xml]
+----
+        <handler>
+            <accountPasswordNotifier>
+                <bodyExpression>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <code>Password for account $event.shadowName on $event.resourceName is: $event.plaintextPassword</code>
+                    </script>
+                </bodyExpression>
+                <transport>mail</transport>
+            </accountPasswordNotifier>
+        </handler>
+        <handler>
+            <operation>add</operation>
+            <status>success</status>
+            <simpleResourceObjectNotifier>
+                <bodyExpression>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <code>Notification about account-related operation
+
+#if ($event.requesteeObject)Owner: $!event.requesteeDisplayName ($event.requesteeName, oid $event.requesteeOid)#end
+
+Resource: $!event.resourceName (oid $event.resourceOid)
+
+An account has been successfully created on the resource with attributes:
+$event.contentAsFormattedList
+Channel: $!event.channel</code>
+                    </script>
+                </bodyExpression>
+                <transport>mail</transport>
+            </simpleResourceObjectNotifier>
+        </handler>
+        <handler>
+            <operation>delete</operation>
+            <status>success</status>
+            <simpleResourceObjectNotifier>
+                <bodyExpression>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <code>Notification about account-related operation
+
+#if ($event.requesteeObject)Owner: $!event.requesteeDisplayName ($event.requesteeName, oid $event.requesteeOid)#end
+
+Resource: $event.resourceName (oid $event.resourceOid)
+Account: $!event.shadowName
+
+The account has been successfully removed from the resource.
+
+Channel: $!event.channel</code>
+                    </script>
+                </bodyExpression>
+
+                <transport>mail</transport>
+            </simpleResourceObjectNotifier>
+        </handler>
+        <handler>
+            <simpleUserNotifier>
+                <bodyExpression>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <code>Notification about ${event.focusTypeName.toLowerCase()}-related operation (status: $event.statusAsText)
+
+$event.focusTypeName: $event.requesteeDisplayName ($event.requesteeName, oid $event.requesteeOid)
+
+#if ($event.add)The ${event.focusTypeName.toLowerCase()} record was created with the following data:
+$event.contentAsFormattedList
+#elseif ($event.modify)The ${event.focusTypeName.toLowerCase()} record was modified. Modified attributes are:
+$event.contentAsFormattedList
+#elseif ($event.delete)The ${event.focusTypeName.toLowerCase()} record was deleted.
+#end
+Channel: $!event.channel</code>
+                    </script>
+                </bodyExpression>
+                <transport>mail</transport>
+            </simpleUserNotifier>
+        </handler>
+----
+
+TODO more detailed explanation
+

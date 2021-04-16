@@ -1,576 +1,599 @@
-= Configuring notifications
-:page-wiki-name: Configuring notifications
-:page-toc: top
-:page-upkeep-status: yellow
+= Notifications
+:page-wiki-name: Notifications
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/" }
+:page-upkeep-status: orange
 
-For a basic introduction to notifications, please see this wiki:Notifications[general overview].
+== Introduction
 
-Here we describe detailed information pertaining to configuring the notifications from the point of view of system administrator.
+This mechanism is used to notify users about relevant changes in midPoint and/or connected resources.
+For example, a user (or user's boss, or the person who requested the operation, the security manager, etc) may be notified when one of user's accounts is created, modified, or removed.
+Or, when the midPoint user record is created, when the password is changed, or when he has a new work item to process.
+There are many such situations imaginable.
 
+Currently there are the following basic kinds of notifications:
 
-== Configuring transports
+. *User notifications.* These are related to midPoint user record, e.g. its creation, modification or removal.
 
-Currently, there are a couple of transports available: *mail, sms*, *custom* and *file*.
+. *Resource object notifications.* These are related to objects on resources, e.g. creation, modification, or removal of accounts, groups, etc.
 
-They have to be configured to work properly.
-For the time being, here we show a sample configuration, hopefully self-explanatory enough:
+. *Workflow notifications.* These are generated e.g. when a work item is created or completed, or when a workflow process instance is started or finished.
 
-[source,xml]
-----
-<mail>
-    <server>
-        <host>smtp.gmail.com</host>
-        <port>587</port>                                <!-- specify port: 25, 587 (e.g. MS Exchange and TLS) or other based on your mail server -->
-                                                        <!-- you can skip the port definition altogether to use default -->
-        <username>abc@gmail.com</username>
-        <password>
-            <clearValue>abcdef</clearValue>
-        </password>
-        <transportSecurity>starttlsRequired</transportSecurity>        <!-- other possibilities: none, starttlsEnabled, starttlsRequired -->
-    </server>                                           <!-- there can be more servers if necessary; they are tried in the order specified -->
+. *Access certification notifications.* They are sent e.g. when a campaign is started, closed or about-to-be-closed, or when a response is requested from a reviewer.
 
-    <server>                                            <!-- Second server -->
-       . . .
-    </server>
-    <server>                                            <!-- Third server -->
-       . . .
-    </server>
+. *Task notifications.* These are created when a task is started or finished.
+They are useful e.g. to notify in cases when a recurring task (like a reconciliation or live sync) ends with a failure.
 
-    <defaultFrom>abc@gmail.com</defaultFrom>
-    <debug>true</debug>                                    <!-- standard javax.mail debugging; it is going to stdout (catalina.out)! -->
-    <logToFile>mail-notifications.log</logToFile>        <!-- All notifications are logged to this file IN ADDITION TO sending them via mail. They are
-                                                             logged in all cases: even if they eventually cannot be send. Implemented since 3.6.1. -->
-</mail>
-
-----
-
-*Ensure your SMTP server will accept multiple connection (message rate limit)* as midPoint notifications are being sent as the objects are created, e.g. one user can have 15 accounts or one organization 40 entitlements created at the same time.
-This is especially important for Microsoft Exchange, where the default limit seems to be very low (5 connections per minute).
-
-Also please note that SSL-related settings for mail messaging are currently experimental (e.g. there is no support for setting certificate validation-related properties; default behavior of javax.mail implementation is used).
-You may also need to store the mail server self-signed SSL certificate in your Java "cacerts" keystore.
-
-[TIP]
-====
-For Microsoft Exchange, we've successfully tested the configuration with port=587, transportSecurity=starttlsRequired and a valid username/password combination.
-====
+. *Custom notifications.* These can be used for any other purposes.
 
 
-=== "File" transport
+== Some simple examples
 
-This transport can be used to diagnose notifications.
-It works in a similar way as "redirectToFile" option, but:
-
-. can be used when you want to send messages both via mail/sms and log them into a file,
-
-. can be used selectively for some classes of notifications, and not for others.
-
-An example:
+Configuration of notifications is currently done within SystemConfiguration object.
+Some examples are shown below:
 
 [source,xml]
 ----
-   <notificationConfiguration>
-      <handler>
-         <simpleUserNotifier>
-            ...
+<notificationConfiguration>
+    <handler>
+
+       <!-- this event handler sends accounts passwords (when created or changed) via mail to the account owner email address, if known -->
+        <accountPasswordNotifier>
+            <recipientExpression>
+                <script><code>requestee.getEmailAddress()</code></script>
+            </recipientExpression>
             <transport>mail</transport>
-            <transport>file:users</transport>
-         </simpleUserNotifier>
-         <simpleWorkflowNotifier>
-            ...
+        </accountPasswordNotifier>
+
+        <!-- this event handler sends accounts passwords (when created or changed) via mail to the account owner email address stored in schema extension attribute otherMailbox, if known -->
+        <accountPasswordNotifier>
+            <recipientExpression>
+                <script><code>basic.getExtensionPropertyValue(requestee, 'http://evolveum.com/my', 'otherMailbox')</code></script>
+            </recipientExpression>
             <transport>mail</transport>
-            <transport>file</transport>
-         </simpleWorkflowNotifier>
-         <simpleCampaignNotifier>
-            ...
+        </accountPasswordNotifier>
+
+        <!-- this event handler sends accounts passwords (when created or changed) via SMS to the account owner telephone number, if known -->
+        <accountPasswordNotifier>
+            <recipientExpression>
+                <script><code>requestee.getTelephoneNumber()</code></script>
+            </recipientExpression>
+            <transport>sms:default</transport>
+        </accountPasswordNotifier>
+
+        <!-- this event handler sends *user* passwords (when created or changed) via SMS to the user's telephone number, if known -->
+        <userPasswordNotifier>
+            <recipientExpression>
+                <script><code>requestee.getTelephoneNumber()</code></script>
+            </recipientExpression>
+            <transport>sms</transport>
+        </userPasswordNotifier>
+
+    	<!-- this event handler sends notifications about successful account creation to the account owner mail, if known -->
+        <simpleResourceObjectNotifier>
+            <status>success</status>		<!-- only successful operations! -->
             <transport>mail</transport>
-            <transport>file</transport>
-         </simpleCampaignNotifier>
-         ...
-      </handler>
-      ...
-      <file name="users">
-         <file>notifications-users.txt</file>
-      </file>
-      <file>
-         <file>notifications-other.txt</file>
-      </file>
-   </notificationConfiguration>
+        </simpleResourceObjectNotifier>
+
+        <simpleUserNotifier>		<!-- sends notification about user operations to the user's mail address -->
+            <transport>mail</transport>
+        </simpleUserNotifier>
+
+        <simpleTaskNotifier>
+            <transport>mail</transport>
+        </simpleTaskNotifier>
+
+   </handler>
+
+    <!-- configurations suitable for testing - they redirect all notifications to log files; some more real configurations are show below -->
+    <mail>
+        <redirectToFile>mail-notifications.log</redirectToFile>
+    </mail>
+    <sms>
+        <redirectToFile>sms-notifications.log</redirectToFile>
+    </sms>
+</notificationConfiguration>
+
 ----
 
 
-[TIP]
-====
-"File" transport is available since 3.6.1.
-====
-
-
-=== "SMS" transport
-
-SMS transport assumes the existence of HTTP-based SMS gateway.
-The administrator basically configures how to construct the HTTP request to send the SMS.
-
-Some examples:
+== General Notifier Example
 
 [source,xml]
 ----
-<sms name="method1">         <!-- there can be more SMS configurations, distinguished by their name -->
-    <gateway>                <!-- there can be one or more gateways; if one fails, the next one is tried -->
-        <urlExpression>
-            <script>
-                <code>"https://my-sms-gateway.com/send?number=" + encodedTo + "&amp;text=" + encodedMessageText</code>
-            </script>
-        </urlExpression>
-    </gateway>
-</sms>
+<notificationConfiguration>
+. . .
+    <handler>
+    	<generalNotifier>
+        	<name>Notify system administrator for organization change - general</name>
+            <expressionFilter>      <!-- Filter only changes of OrgType objects -->
+                <script>
+                    <code>
+                    import com.evolveum.midpoint.notifications.api.events.ModelEvent
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType
 
-<sms name="with-post">
-    <gateway>
-        <method>post</method>
-        <urlExpression>
-            <value>https://gw.com/send</value>
-        </urlExpression>
-        <headersExpression>
-            <value>Content-Type: application/x-www-form-urlencoded</value>
-            <value>X-Custom: test</value>
-        </headersExpression>
-        <bodyExpression>
-            <script>
-                <code>"Body=\"$encodedMessageText\"&amp;To=$encodedTo&amp;From=$encodedFrom".toString()</code>
-            </script>
-        </bodyExpression>
-        <username>a9038321</username>
-        <password>5ecr3t</password>
-        <logToFile>target/sms.log</logToFile>        <!-- Logs messages to a file IN ADDITION TO being sent via gateway. Useful for debugging. -->
-    </gateway>
-</sms>
-
-<sms name="test">
-    <redirectToFile>sms-notifications.log</redirectToFile>        <!-- when used, logs all notifications to a file INSTEAD OF sending them via gateway;
-                                                                       this element can be used also within definition of a gateway - in that case the
-                                                                       computed URL is logged as well. -->
-</sms>
+                   (event instanceof ModelEvent &amp;&amp; event.getFocusContext() != null &amp;&amp; OrgType.class.isAssignableFrom(event.getFocusContext().getObjectTypeClass()))
+                    </code>
+                </script>
+            </expressionFilter>
+            <recipientExpression>    <!-- Send notifications to iam@localhost -->
+                <value>iam@localhost</value>
+            </recipientExpression>
+            <subjectExpression>      <!-- Subject expression is defined here -->
+                <script>
+                    <code>
+                    tmpObject = 'Organization - GeneralNotifier - '
+                    if (event.isSuccess())
+                        tmpText = "[IDM] SUCCESS: " + tmpObject + event?.getChangeType() + " operation succeeded"
+                    else if (event.isFailure())
+                        tmpText = "[IDM] ERROR: " + tmpObject + event?.getChangeType() + " operation failed"
+                    else  tmpText = "[IDM] IN PROGRESS: " + tmpObject + event?.getChangeType() + " operation in progress"
+                    return tmpText
+                </code>
+               </script>
+            </subjectExpression>
+            <bodyExpression>         <!-- Body expression is defined here -->
+                <script>
+                   <code>            <!-- Some imports needed to have all necessary objects and variables -->
+                   import com.evolveum.midpoint.notifications.impl.notifiers.GeneralNotifier;
+                   import com.evolveum.midpoint.notifications.api.events.ModelEvent;
+                   import com.evolveum.midpoint.prism.delta.ObjectDelta;
+                   delta = ObjectDelta.summarize(((ModelEvent) event).getFocusDeltas());
+                   hiddenPaths = GeneralNotifier.getAuxiliaryPaths()
+                   body = ''
+                   attemptedTo = event.isSuccess() ? "" : "(attempted to be) ";
+                   if (delta.isAdd()) {
+                       body = "The object was " + attemptedTo + "created with the following data:\n";
+                       body += textFormatter.formatObject(delta.getObjectToAdd(), hiddenPaths, false);
+                   } else if (delta.isModify()) {
+                       body = "The object was " + attemptedTo + "modified. Modified attributes are:\n";
+                       body += textFormatter.formatObjectModificationDelta(delta, hiddenPaths, false);
+                   } else if (delta.isDelete()) {
+                       body = "The object was " + attemptedTo + "removed.\n\n";
+                   }
+                   </code>
+               </script>
+           </bodyExpression>
+           <transport>mail</transport>
+       </generalNotifier>
+   </handler>
+   <!-- configurations suitable for testing - they redirect all notifications to log files; some more real configurations are show below -->
+   <mail>
+        <redirectToFile>mail-notifications.log</redirectToFile>
+   </mail>
+   <sms>
+        <redirectToFile>sms-notifications.log</redirectToFile>
+   </sms>
+</notificationConfiguration>
 ----
 
-The following items can be configured for a gateway:
+
+== Another General Notifier Example
+
+The description of this example can be found on the next wiki page - wiki:General+notification+-+role+assignment+example[General notification - role assignment example].
+
+[source,xml]
+----
+    <notificationConfiguration>
+        <handler>
+            <generalNotifier>
+                <name>Notify user about new role added - general</name>
+                <expressionFilter>
+                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                            import com.evolveum.midpoint.notifications.api.events.ModelEvent
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType
+                            import com.evolveum.midpoint.prism.delta.ObjectDelta
+                            import com.evolveum.midpoint.prism.path.ItemPath
+                            import com.evolveum.midpoint.prism.PrismValue
+
+                            if (
+                            event instanceof ModelEvent
+                                    && event.getFocusContext().getObjectTypeClass().getName().equals(UserType.getName())
+                                    && !event.isOperationType(EventOperationType.DELETE)
+                            ) {
+                                for (ObjectDelta delta : event.getFocusDeltas()) {
+                                    if (delta.isAdd()) {
+                                        for (AssignmentType localObject in delta.getObjectToAdd().asObjectable().assignment) {
+                                            if (localObject.getTargetRef() == null) continue;
+                                            if (localObject.getTargetRef().getType().localPart.equals("RoleType")) {
+                                                if (midpoint.getObject(RoleType, localObject.getTargetRef().getOid(),midpoint.schemaHelper.operationOptionsBuilder.raw().build()).getIdentifier().equals("notification")) return true;
+                                            }
+                                        }
+                                    } else if (delta.isModify()) {
+                                        for (ItemPath paths : delta.getModifiedItems()) {
+                                            if (AssignmentHolderType.F_ASSIGNMENT.equivalent(paths)) {
+                                                for (PrismValue values : delta.getNewValuesFor(paths)) {
+                                                    if (values.getRealClass().getName().equals(AssignmentType.getName())) {
+                                                        AssignmentType localObject = values.getRealValue();
+                                                        if (localObject.getTargetRef() == null) continue;
+                                                        if (localObject.getTargetRef().getType().localPart.equals("RoleType")) {
+                                                            if (midpoint.getObject(RoleType, localObject.getTargetRef().getOid(),midpoint.schemaHelper.operationOptionsBuilder.raw().build()).getIdentifier().equals("notification")) return true;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        </code>
+                    </script>
+                </expressionFilter>
+                <recipientExpression>
+                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                            if (
+                            event.requesteeObject.emailAddress != null
+                                    && event.requesteeObject.emailAddress != ""
+                            ) {
+                                return event.requesteeObject.emailAddress
+                            } else {
+                                return "iam@localhost"
+                            }
+                        </code>
+                    </script>
+                </recipientExpression>
+                <subjectExpression>
+                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                            if (
+                            event.requesteeObject.emailAddress != null
+                                    && event.requesteeObject.emailAddress != ""
+                            ) {
+                                return "[IDM] New Role assignment notification"
+                            } else {
+                                return "[IDM] unknown address for notification"
+                            }
+                        </code>
+                    </script>
+                </subjectExpression>
+                <bodyExpression>
+                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                            import com.evolveum.midpoint.notifications.api.events.ModelEvent
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType
+                            import com.evolveum.midpoint.prism.delta.ObjectDelta
+                            import com.evolveum.midpoint.prism.path.ItemPath
+                            import com.evolveum.midpoint.prism.PrismValue
+
+                            String body = "";
+
+                            if (
+                            event instanceof ModelEvent
+                                    && event.getFocusContext().getObjectTypeClass().getName().equals(UserType.getName())
+                                    && !event.isOperationType(EventOperationType.DELETE)
+                            ) {
+                                for (ObjectDelta delta : event.getFocusDeltas()) {
+                                    if (delta.isAdd()) {
+                                        for (AssignmentType localObject in delta.getObjectToAdd().asObjectable().assignment) {
+                                            if (localObject.getTargetRef() == null) continue;
+                                            if (localObject.getTargetRef().getType().localPart.equals("RoleType")) {
+                                                if (midpoint.getObject(RoleType, localObject.getTargetRef().getOid(),midpoint.schemaHelper.operationOptionsBuilder.raw().build()).getIdentifier().equals("notification")) {
+                                                    body += midpoint.getObject(RoleType, localObject.getTargetRef().getOid(),midpoint.schemaHelper.operationOptionsBuilder.raw().build()).getDescription() + "\n\n";
+                                                }
+                                            }
+                                        }
+                                    } else if (delta.isModify()) {
+                                        for (ItemPath paths : delta.getModifiedItems()) {
+                                            if (AssignmentHolderType.F_ASSIGNMENT.equivalent(paths)) {
+                                                for (PrismValue values : delta.getNewValuesFor(paths)) {
+                                                    if (values.getRealClass().getName().equals(AssignmentType.getName())) {
+                                                        AssignmentType localObject = values.getRealValue();
+                                                        if (localObject.getTargetRef() == null) continue;
+                                                        if (localObject.getTargetRef().getType().localPart.equals("RoleType")) {
+                                                            if (midpoint.getObject(RoleType, localObject.getTargetRef().getOid(),midpoint.schemaHelper.operationOptionsBuilder.raw().build()).getIdentifier().equals("notification")) {
+                                                                body += midpoint.getObject(RoleType, localObject.getTargetRef().getOid(),midpoint.schemaHelper.operationOptionsBuilder.raw().build()).getDescription() + "\n\n";
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            if (!body.isEmpty()) {
+                                if (event?.requesteeDisplayName == null) {
+                                    boolean nameContructed = false
+                                    String tmpName = ""
+                                    if (event?.requesteeObject.getGivenName() != null) {
+                                        tmpName += event?.requesteeObject.givenName.toString();
+                                        nameContructed = true
+                                    }
+                                    if (event?.requesteeObject.getFamilyName() != null) {
+                                        if (nameContructed) tmpName += " "
+                                        tmpName += event?.requesteeObject.familyName.toString();
+                                        nameContructed = true
+                                    }
+                                    if (nameContructed) {
+                                        body = "Dear " + tmpName +
+                                                " (" + event.requesteeObject.name.toString() + ")" +
+                                                ",\n\n" + body + "\n\n Best regards,\n\n IDM admin team"
+                                    } else {
+                                        body = "Dear " +
+                                                event.requesteeObject.name.toString() +
+                                                ",\n\n" + body + "\n\n Best regards,\n\n IDM admin team"
+                                    }
+                                } else {
+                                    body = "Dear " + event?.requesteeDisplayName.toString() +
+                                            " (" + event.requesteeObject.name.toString() + ")" +
+                                            ",\n\n" + body + "\nBest regards,\n\n IDM admin team";
+                                }
+
+                                if (
+                                event.requesteeObject.emailAddress == null
+                                        || event.requesteeObject.emailAddress == ""
+                                ) {
+                                    body = "Notification for the user : " + event.requesteeObject.name.toString() + " / " + event.requesteeObject.oid +
+                                            "\nSubject: [IDM] New Role assignment notification\n" +
+                                            "\nThe e-mail address is not know at this moment" +
+                                            "\n - - - - - - -\n" + body
+                                }
+
+                                return body
+                            }
+                        </code>
+                    </script>
+                </bodyExpression>
+                <transport>mail</transport>
+            </generalNotifier>
+        </handler>
+        <mail>
+            <redirectToFile>/opt/midpoint/var/log/mails.log</redirectToFile>
+        </mail>
+    </notificationConfiguration>
+----
+
+
+== A bit of theory related to event handling
+
+When something potentially of interest occurs, an *event* is generated.
+This event is then processed by one or more *event handlers*, as prescribed in <notificationConfiguration> section.
+
+There are the following kinds of event handlers.
+
+
+=== Notifiers
+
+A notifier is a module that transforms an event to zero, one or more notifications.
+Examples are:
 
 [%autowidth]
 |===
-| Item | Description | Note
+| Notifier | Type | Description
 
-| method
-| Which HTTP method is used to send SMS.
-Currently, "get" and "post" are supported.
-If not specified, "get" is assumed.
-| since 3.7.1
+| simpleUserNotifier
+| User notification
+| Generates notifications about user records.
 
 
-| urlExpression
-| Expression that returns URL used to send SMS.
-| since 3.7.1 (up to 3.7, this item was called `url`)
+| simpleResourceObjectNotifier
+| Resource object notification
+| Generates notifications about resource objects (e.g. accounts).
 
 
-| headersExpression
-| Expression that returns HTTP request headers.
-The expression should return 0, 1 or more string values that will be used as request HTTP headers.
-Each value is in the form of "name: value", i.e. a header name followed by comma, space and a header value.
-If one header has to have more values, such name-value pair should be present more times for the given header name.
-| since 3.7.1
+| userPasswordNotifier
+| User notification
+| Generates notifications about user passwords.
 
 
-| bodyExpression
-| Expression that returns request body used to send SMS (as a string).
-| since 3.7.1
+| accountPasswordNotifier
+| Account notification
+| Generates notifications about account passwords.
 
 
-| bodyEncoding
-| Encoding to be used for the message body.
-ISO 8859-1 is the default.
-Note that if you use any other encoding, your responsibility is to provide appropriate Content-Type header (see headersExpression item).
-This requirement might change in the future.
-| since 3.7.1
+| simpleWorkflowNotifier
+| Workflow notification
+| Generates notifications about start/completion of work items (i.e. user tasks) and about start/completion of workflow process instances.
 
 
-| username, password
-| How to authenticate to the SMS gateway.
-| since 3.7.1
+| simpleCampaignNotifier, simpleCampaignStageNotifier
+| Certification notification
+| Generates notifications about certification campaigns.
 
 
-| redirectToFile
-| Instead of opening HTTP connection, writes the URL and other parameters to this file.
-Useful for debugging.
+| simpleTaskNotifier
+| Task notification
+| Generates notifications about tasks.
+
+
+| generalNotifier
 |  +
 
-
-
-| logToFile
-| In addition to executing the expression, writes all messages to a file.
-Useful for debugging.
-| since 3.7.1
+| This is a general purpose notifier that is driven by expressions, which transform an event into a notification.
 
 
 |===
 
-Expressions specified in urlExpression (url), headersExpression, bodyExpression can use the following variables:
+
+=== Filters
+
+A filter is a component that does not generate notifications, but passes through (or filters out) defined subsets of notifications.
+There are currently the following kinds of filters:
 
 [%autowidth]
 |===
-| Variable | Meaning
+| Filter | Description
 
-| from
-| The message sender: Either message.from, smsConfiguration.defaultFrom or an empty string (in that order).
-
-
-| to
-| List of message recipients.
+| *category*
+| passes one or more defined categories of events: resource object-related events ("resourceObjectEvent"), user-related events ("modelEvent"), work item-related events ("workItemEvent"), workflow-related events ("workflowProcessEvent"), or any workflow-related events ("workflowEvent" - currently this means "either workItemEvent or workflowProcessEvent")
 
 
-| messageText
-| Message text (body).
+| *status*
+| passes or filters events based on their status: success, alsoSuccess, failure, onlyFailure, inProgress (with a bit different sets of acceptable values and their semantics for account/user/workflow events)
 
 
-| encodedFrom
-| URL-encoded version of the `from` variable.
+| *operation*
+| passes or filters events based on the kind of operation that was executed or attempted to: add, modify, or delete
 
 
-| encodedTo
-| URL-encoded version of the `to` variable.
+| *expression*
+| a generic filter that evaluates an expression and passes/filters event based on the result
 
 
-| encodedMessageText
-| URL-encoded version of the `messageText` variable.
+| *objectKind*
+| passes or filters events based on the kind of resource object they deal with (account, entitlement, generic)
 
 
-| message
-| The whole message (`com.evolveum.midpoint.notifications.api.transports.Message`).
+| *objectIntent*
+| passes or filters events based on the intent of resource object they deal with
 
 
 |===
 
+A filter can be specified as part of a notifier - in that case it defines which classes of events get processed by that notifier.
+Or a filter can be a standalone part of a handler chain (see below).
 
-== Configuring notifiers
 
+=== Special kinds of handlers
 
-=== generalNotifier
-
-It can accept any event and produce any notification(s).
-All is directed by parameters and expressions, as described in the following table.
-Please note that the following parameters can be used in any kind of notifier.
+There are two special kinds of handlers:
 
 [%autowidth]
 |===
-| Parameter name | Type | Cardinality | Meaning
+| Name | Description
 
-| name (attribute)
-| String
-| 0..1
-| Name of the notifier - just a help to the administrator in order to increase readability of the configuration.
-
-
-| description
-| String
-| 0..1
-| Description of the notifier - also just a help to the admin.
+| Handler chain (chained)
+| Contains sequentially ordered event handlers (notifiers, filters, forks, other chains).
+Processing within a chain continues until an event is filtered out.
+(Please note that filtering is done only by filters; all notifiers simply pass all events along.)
 
 
-| recipientExpression
-| ExpressionType
-| 0..1
-| Recipient(s) that should get the notifications.
-(TODO: Exact form is to be determined yet, but here may be mail addresses, phone numbers, etc.
-We need to think how to distinguish these kinds of destinations.) Default: mail address of the requestee - user that is being dealt with by repository object change or within a workflow; or account owner.
-
-
-| ccExpression
-| ExpressionType
-| 0..1
-| Recipient(s) that should get the notifications (as Cc).
-Only for mail transport.
-
-
-| bccExpression
-| ExpressionType
-| 0..1
-| Recipient(s) that should get the notifications (as Bcc).
-Only for mail transport.
-
-
-| subjectExpression
-| ExpressionType
-| 0..1
-| How to construct the subject of the message that is to be sent.
-
-
-| subjectPrefix
-| String
-| 0..1
-| Simpler alternative to subjectExpression: the subject itself will be constructed by the notifier (applicable to concrete kinds of notifiers, like e.g. userPasswordNotifier), but it will be prefixed by value specified here.
-
-
-| bodyExpression
-| ExpressionType
-| 0..1
-| How to construct the body (text) of the message that is to be sent.
-
-
-| watchAuxiliaryAttributes
-| Boolean
-| 0..1
-| Whether to send a notification when only auxiliary attributes (namely: validityStatus, validityChangeTimestamp, effectiveStatus, disableTimestamp, modifyChannel, modifyTimestamp, modifierRef and maybe others) are modified.
-Default value: false.
-This setting also influences the list of modifications that is shown within the notification when using simpleUserNotifier and simplePasswordNotifier - if set to false, modifications of auxiliary attributes are not listed among account/user modifications.
-
-
-| showModifiedValues
-| Boolean
-| 0..1
-| Whether to show modified values (or only names of changed attributes).
-Default: true.
-(NOT IMPLEMENTED YET.
-THE NAME MIGHT CHANGE.) Applies to concrete notifiers, not to the general one.
-
-
-| showTechnicalInformation
-| Boolean
-| 0..1
-| Whether to show technical information (e.g. model context or account operation details) in the notification.
-Applies to concrete notifiers, not to the general one.
-
-
-| transport
-| String
-| 0..N
-| To what transport(s) should the message be sent.
+| Fork (forked)
+| Splits processing of an event into more handlers "in parallel".
+(We expect this kind of handler will be used only occassionally, however, we have implemented in for completeness.)
 
 
 |===
 
-An example:
+
+=== Mail attachments
+
+++++
+{% include since.html since="4.0" %}
+++++
+
+
+We can define attachments for mail.
+We have two choices, adding attributes to the xml or writing of script.
+
+
+.Example of attachments
+[source,xml]
+----
+<notificationConfiguration>
+. . .
+    <handler>
+        <generalNotifier>
+        . . .
+           <attachment>
+           		<contentType>image/png</contentType>
+                <contentFromFile>/home/user/example.png</contentFromFile>
+           </attachment>
+           <attachment>
+                <contentType>text/plain</contentType>
+                <content>Hello world!</content>
+                <fileName>hello_world.txt</fileName>
+           </attachment>
+           <attachment>
+                <contentType>image/jpeg</contentType>
+                <content xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:base64Binary">iVBORw0KGgoAAAANSUhEUgAAATUAAABLCAMAAAAmnuAzAAAAaVBMVEUAAAD////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8G612AAAAInRSTlMAwIBA8NBwoOBgELAgkOgw+1Cc3B/3PK9Xh6nWyvO5Uy1z3+GvZwAAB4RJREFUeNrsmO2W2iAQhl8+EwIkTWJ0rbqn5f4vslVTOwimlWN7utbn52wCzMMwWcSLf4s1XtxPixf3c8CL+5nw4nVC/w6f8eJ+GF68rMUYtgSKUcjDCAYfCGcq4zDDwxIoZkSeQOD4OBhpuZXmMdbW/4k1Iz03XSfNQ6ypmydx9VTWasGYl0LUD7GG3Ygscv1M1joJVonaQHYPsQY15MNvz2RNKLA6VIASj7GGd40IzUbZyk/6mawhNIz30jXhYd/QkeHCtp3URgPY+aeyZivGYW1lH2YNo8KJFZOXg6meq9YaZXvXW9U8zhrGzanOPtGiey5raLgKijdIrSlxDX6TjVpBhS2NPJk1SmyNoRglJ7nCjOs5r/d/zpo40uBRuJ5/JxqwEceQ6UqtOUZxmOmv7pOr8J1WTa1sD5+mQxDje1C+/7U1zQgeP/A0TPPpqzqckdaA0jFCbpz5cRNPZ1SYsQJnhA0ztSmstToQDGYqGu2Asd3VKwCuqjp+nM7vzwOu18vW+kDJPqZwwdSBUmtagbmBWFranObbqUDw5zqJJu+KrPlAqDCj4qyU2gwbuYJpD1W0LB9s55asxbsicgZmNXOKMaxBuTUJI0NEBXRXIdmVWHPR5uJME2e1lRg0hnZoj8+EGNUvWvO5TqdpcBZDU6RJ/bY1nWQswjV9l0yimgJrUIHgcKKPYutpBaaBcRpCBixa60JmBZbELM6YkEU1v2tNJBmn21DLkMAXraWk+27StyzGLbBl6CuvcmmhWbKGOpOtTKfswg1sgbW7kE2BNUcjVboYs5YA+JvbWSNDhmovXd5auisimVLiRFOHW4g/bC2YAmtgaWOLdmJcAxje9uE23Ny25tKQSffJ0ykZow7VfdZEuBdbYs0kjU3QrFYKANTnls7D/cgVyfPLbWtQSWOrFquPX1do94etyRJrTVKtdMn9oAHg8/6nXN8AWwmIi493vWBNJ1OqpLj90lse5dak5zb5JHgWB1yBNdBhq6tAjRFHdp8vK2xPSUlSNDWQt5buipgDsRFIqjEJFVijX+A+RGhc/9cmSqyZ68YmaVYtjkyDnqNf5QhAeyrcuAVrsAv3BXedqUf6liu25tKbjk2f6kusQcbzONpTNMORT2TSyQNzuJHERmot3RUWr0klq6z4DCM+Sq2xjEiR3iR5kbUqbmyGZjXo2JoDViPH4OPxWd5aekTjVHWSfA5das1mVuXinMut9XFjq+h6WWxN4ci0ZSy+kNU3raXfzPQ2JcMivMxa/gRkxPCy39fqqLEpujEMR4RktO28TbsNPd2Su/WX0x+y1vooKDK18CGteVrBTZQVA6Df+LSepe73XOvtLhwY01pvh5PidjPI3bCR7zJrDSTMoEk7+NDWvrVzrktugmAYftEP8BTEs+tme+D+L7LRtEqCsttOu0lneGbyQyCR70GOmbE0G5V1W2KkX5su6ZRRZuHcS8UGMWgz1KcvnJpuTtXTlFxkipo7wTpd1Log/NfW7C4aCXtf+3Ncy+77VP1FtXbGtGTktROsE0m5mZX/uTWrGDvZUdmzgX1AIF5GLaxVhWK4QC9OsE6rVE6c3tnAv/JIHmqtsHvlzeqvHjDT3W94GEbdbo2t6sVt71hzBk5pTzzuI5Mwl+Jo0QXzUGvglrabqEaOGV1HdM0tMNM2QCMhrmlxSS9LKTjWPKdnJ0eqr5LxzlerB1sTh1F1mLlc5Pbh6qkB2vPrOtj93JweWQM3LgX2F4z7xO7BeMY/wRqxe05uF3VOaFS/3DdfN7xJDIB/tVRTmZ7nUow51jytwrFBZiNJs61alYx3pwxKgYqbT7DmwrCS70a1Dmw6VWYlrzL5tRTJlsCVAND0jjVPqwhsyLtbsyiKToyR/SuJcXi4tfQoqra79tOzOWaq5mdPNHCsebpo5kj11zF/QmvZ4bDTjAAIfZMLZlz0KCaJfJlBPdZS/7lz9P5Ja/qE1pAfRdUrADXwXQLGhScVy0BA3cCx5mmV9GASP2y9jJ7QWnUYVSOAVwBSxsblxPU3QALU+6wh9x/WZ9xnYyF6Qmugo38J+w5YgjzNkTGrnKTLh71SDw4+wLHm6aISH9UWAYf//lH+aGvyMKqBQ7dL5Iqn1zp017sV+SQzKNaeaoLfWkbOk+GvqzsAlnQvrYwebS02h2fpVGssFDJJs9npSHM9L5dLuSRXuvVYc1slwQ6FJOPAUxxpS0pUVo0fYg3JYVSt1sPLwJqIMdYQKeK8U2+K3njOLuRMmxHvWaucfYdLlkq7FkymxW2+pZ6i7MZR9PesFbGPEjblYQ5GkwyiFlPfiqGORDRxnU/12M5ZQohIvw14l9giwzHeMoXI+dXnkp3FKwWwpqxJ7p1/JUUbMf4RY8dh0yfYEFqARgQcWurGG1FYYUsO1Qi4DKbpN4kKV1qhOBYSiYBLy0wj8BP6laTXpLfQSfeplR56zHCgvVzpGis95QjssKhSxhBp6gzxETdwBLwQdogGBHwo7DGFt6N4abBLmEe9EAIfIQz84aVYHyQ8a0+ARuC3aRMEwkuxPoX2jMBv8zVsAv6AtkUgsPEDb0ZOzzalzlUAAAAASUVORK5CYII</content>
+                <fileName>evolveum_logo.jpg</fileName>
+           </attachment>
+           <attachmentExpression>
+                <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                    <code>
+                       import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageAttachmentType;
+
+                       NotificationMessageAttachmentType attachment = new NotificationMessageAttachmentType();
+                       attachment.setContentType("text/html");
+                       attachment.setContent("&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;body&gt;Hello World!&lt;/body&gt;&lt;/html&gt;");
+                       attachment.setFileName("hello_world.html");
+                       return attachment;
+                    </code>
+                </script>
+            </attachmentExpression>
+            <transport>mail</transport>
+        </generalNotifier>
+    </handler>
+</notificationConfiguration>
+
+
+
+
+
+
+----
+
+
+==== Attributes
+
+If we use attachment, then we have two choices, insert the content to the xml or use file.
+
+[%autowidth]
+|===
+| Name | Required | Description
+
+| contentType
+| true
+| Content type for the attachment, e.g. image/png or text/html.
+
+
+| content
+| choice
+| Content of the attachment.
+
+
+| contentFromFile
+| choice
+| Path of the file that provides the content for this attachment.
+
+
+| fileName
+| false
+| File name for the attachment. E.g. in the case of the mail transport it should be put into Content-Disposition header field. If omitted and if contentFromFile is used, it is derived from the name of that file. If it omitted with used content, it's value is 'attachment'.
+
+
+| contentId
+| false
+| Value of the Content-ID header of MIME body part for this attachment.
+This can used to reference image attachments from your email HTML.
+E.g. <c:contentId>&lt;customerLogo&gt;</c:contentId> is referenced in HTML as <img src="cid:customerLogo"/>
+
+
+|===
+
+
+=== Executing the handlers
+
+When an event is created, all the handlers defined at the level of <notificationConfiguration> are executed.
+
+Some more advanced examples:
 
 TODO
 
+For instructions how to configure notifiers, filters, and transports please see wiki:Configuring+notifications[administrator's guide].
 
-=== simpleUserNotifier
+To send HTML emails, set <contentType>text/html; charset=UTF-8</contentType> and put to <bodyExpression> escaped HTML in single quote.
 
-Sends out a notification about the change of a user.
-It has no special parameters in addition to parameters of a general notifier.
 
+=== Custom notifications
 
-=== simpleResourceObjectNotifier
+These are briefly described in the wiki:Sending+custom+notifications+HOWTO[Sending custom notifications HOWTO].
 
-Sends out a notification about the change of a resource object.It has one parameter:
 
-[%autowidth]
-|===
-| Parameter name | Type | Cardinality | Description
+== See Also
 
-| watchSynchronizationAttributes
-| Boolean
-| 0..1
-| Whether to send a notification when only auxiliary attributes related to synchronization situation (synchronizationSituationDescription, synchronizationSituation) are modified.
-Default: false.
+* wiki:Configuring+notifications[Configuring notifications]
 
+* wiki:Using+Velocity+Templates+for+Notifications[Using Velocity Templates for Notifications]
 
-|===
-
-
-=== userPasswordNotifier, accountPasswordNotifier
-
-Send a notification when a user/account password is generated or changed.
-No special parameters.
-
-
-=== workflowNotifier
-
-Send a notification when a process instance or work item is started or completed.
-No special parameters.
-
-
-== Configuring filters
-
-
-=== category filter
-
-Passes events that are of one of the specified categories.
-There are the following categories available:
-
-[%autowidth]
-|===
-| Category name | Expression | Description
-
-| userEvent
-| event.isUserRelated()
-| Event connected to a user object in repository.
-
-
-| resourceObjectEvent
-| event.isAccountRelated() (TODO: change this in code and in docs)
-| Event connected to an object on a resource.
-
-
-| workItemEvent
-| event.isWorkItemRelated()
-| Start/completion of a work item.
-
-
-| workflowProcessEvent
-| event.isWorkflowProcessRelated()
-| Start/completion of a workflow process instance.
-
-
-| workflowEvent
-| event.isWorkflowRelated()
-| workItemEvent or workflowProcessEvent
-
-
-|===
-
-(Expressions are used in scripts connected to event processing, see below.)
-
-An example:
-
-[source,xml]
-----
-<category>userEvent</category>
-
-----
-
-
-=== status filter
-
-Passes events that can be described by one of specified status descriptions.
-This has a slightly different meaning depending on the event category:
-
-[%autowidth]
-|===
-| Name | Expression | Meaning for user events | Meaning for account events | Meaning for workflow events****
-
-| success
-| event.isSuccess()
-| All modifications were carried out successfully\*.
-.2+| The operation was successful.
-.2+| The request was approved.
-
-
-| alsoSuccess
-| event.isAlsoSuccess()
-| At least one modification was carried out successfully\*.
-
-
-| onlyFailure
-| event.isOnlyFailure()
-| All modifications failed\**.
-.2+| The operation was unsuccessful.
-.2+| The request was denied.
-
-
-| failure
-| event.isFailure()
-| At least one modification failed\**.
-
-
-| inProgress
-| event.isInProgress()
-| At least one modification is in progress\***.
-| The operation is in progress.
-| The result of request is not known.
-
-|===
-
-
-
-(\*) The result is either SUCCESS, WARNING, or NOT\_APPLICABLE.
-
-(\**) The result is either FATAL\_ERROR, PARTIAL\_ERROR or NOT\_APPLICABLE.
-
-(\***) The result is IN\_PROGRESS.
-
-Please note that we take into account only user (i.e. focus) modifications, *not* modifications of user's accounts.
-
-(\****) Alternatively, it is possible to use the following expressions for workflow events: event.isApproved(), event.isRejected(), event.isResultKnown().
-
-
-=== operation filter
-
-Filters events based on operation that was executed (or attempted to execute).
-
-[%autowidth]
-|===
-| Name | Expression | Description for user and account events. | Description for workflow events.
-
-| add
-| event.isAdd()
-| User/account is created.
-| Work item or process instance is started.
-
-
-| modify
-| event.isModify()
-| User/account is modified.
-| N/A
-
-
-| delete
-| event.isDelete()
-| User/account is deleted.
-| Work item or process instance has been competed.
-
-
-|===
-
-
-=== expression filter
-
-Passes events based on arbitrary expression.
-Some examples:
-
-[source,xml]
-----
-<expressionFilter>    <!-- passes 'new account' events requested by user named "security-admin" -->
-    <script><code>event.isAccountRelated() &amp;&amp; event.isAdd() &amp;&amp; "security-admin".equals(requester?.getName()?.getOrig())</code></script>
-</expressionFilter>
-----
-
-
-== Expressions
-
-Any wiki:Expression[expressions] supported by midPoint can be used.
-
-Variables that are available are:
-
-[%autowidth]
-|===
-| Name | Type | Description
-
-| event
-| com.evolveum.midpoint.notifications.events.Event
-| The event that is being processed.
-
-
-| requester
-| UserType
-| The user who requested the operation (if known).
-
-
-| requestee
-| ObjectType
-| The object (typically a user) that is modified by the operation, or the owner of an account that is modified by the operation (if known).
-
-
-| assignee
-| UserType
-| The user who is assigned the work item (only for WorkItemEvent).
-
-
-| transportName
-| String
-| Name of transport (e.g. "mail", "sms", etc.). Available in expressions for getting recipient(s), message subject and body.
-Not available in expressionFilters.
-
-
-|===
-
-
-== Configuring Office365
-
-You need to put certificate to midPoint keystore, please see

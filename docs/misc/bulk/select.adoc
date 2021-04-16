@@ -1,0 +1,43 @@
+= Select
+:page-wiki-name: Select
+:page-upkeep-status: yellow
+
+== Description
+
+Selects a given item (container, reference, property) from the input data and copies its value(s) into output.
+For example, accepts a list of users and selects only their accounts.
+
+
+== Input
+
+Any value.
+
+
+== Output
+
+Values of selected item(s) in input values.
+
+
+== Properties
+
+[%autowidth]
+|===
+| Property name | Meaning
+
+| path
+| Path to the item to be selected
+
+
+|===
+
+
+== Examples
+
+.Assuming users on input, selects accounts of these users
+[source,xml]
+----
+<select>
+  <path>linkRef</path>
+</select>
+----
+

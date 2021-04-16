@@ -4,7 +4,7 @@
 :page-display-order: 20
 :page-upkeep-status: orange
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/", "title" : "Synchronization", "display-order" : 100 }
+:page-alias: { "parent" : "/midpoint/features/", "slug" : "synchronization", "title" : "Synchronization", "display-order" : 100 }
 
 Synchronization is an umbrella term used to describe several related mechanism in midPoint.
 All the synchronization mechanisms have the same goal: make sure that the information in midPoint and the real state of the resources is consistent.
