@@ -831,8 +831,53 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_LINK_REF).add(new ObjectReferenceType()
                         .oid(refTargetOid.toString())
-                        .type(ShadowType.COMPLEX_TYPE) // TODO: why can I store this with UserType, when its unobtainable afterwards?
+                        .type(ShadowType.COMPLEX_TYPE)
                         .relation(refRelation))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful, ref target doesn't have to exist");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getLinkRef()).hasSize(1)
+                .anyMatch(refMatcher(refTargetOid, refRelation));
+
+        and("user row version is incremented");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        and("externalized refs are inserted to the dedicated table");
+        QObjectReference r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        UUID ownerOid = UUID.fromString(user1Oid);
+        List<MReference> refs = select(r, r.ownerOid.eq(ownerOid));
+        assertThat(refs).hasSize(1)
+                .anyMatch(refRowMatcher(refTargetOid, MObjectType.SHADOW, refRelation))
+                .allMatch(ref -> ref.ownerOid.equals(ownerOid));
+    }
+
+    @Test
+    public void test161AddingMoreProjectionRefsInsertsRowsToTable()
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding projection refs to the same target with different relation for user 1");
+        UUID refTargetOid = UUID.randomUUID();
+        QName refRelation1 = QName.valueOf("{https://random.org/ns}projection-rel1");
+        QName refRelation2 = QName.valueOf("{https://random.org/ns}projection-rel2");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF).add(
+                        new ObjectReferenceType().oid(refTargetOid.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation1),
+                        new ObjectReferenceType().oid(refTargetOid.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation2))
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -845,22 +890,259 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UserType userObject = repositoryService
                 .getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
-        assertThat(userObject.getLinkRef()).hasSize(1);
-        assertThat(userObject.getLinkRef().get(0).getOid()).isEqualTo(refTargetOid.toString());
-        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version));
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getLinkRef()).hasSize(3); // no more checks, we believe in Prism
 
         and("user row version is incremented");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
-        assertThat(row.version).isEqualTo(originalRow.version);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted to the dedicated table");
         QObjectReference r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        List<MReference> refs = select(r, r.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(refs).hasSize(3)
+                .anyMatch(refRowMatcher(refTargetOid, refRelation1))
+                .anyMatch(refRowMatcher(refTargetOid, refRelation2));
+    }
+
+    @Test
+    public void test162ReplacingProjectionRefs()
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta replacing projection refs w relation for user 1");
+        UUID refTargetOid = UUID.randomUUID();
+        QName refRelation1 = QName.valueOf("{https://random.org/ns}projection-rel3");
+        QName refRelation2 = QName.valueOf("{https://random.org/ns}projection-rel4");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF).replace(
+                        new ObjectReferenceType().oid(refTargetOid.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation1),
+                        new ObjectReferenceType().oid(refTargetOid.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation2))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getLinkRef()).hasSize(2); // no more checks, we believe in Prism
+
+        and("user row version is incremented");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        and("externalized refs are inserted to the dedicated table");
+        QObjectReference r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        List<MReference> refs = select(r, r.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(refs).hasSize(2) // new added, previous three or so are gone
+                .anyMatch(refRowMatcher(refTargetOid, refRelation1))
+                .anyMatch(refRowMatcher(refTargetOid, refRelation2));
+    }
+
+    @Test
+    public void test163ReplacingProjectionRefs()
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+
+        given("user 1 with a few projection refs");
+        UUID refTargetOid1 = UUID.randomUUID();
+        UUID refTargetOid2 = UUID.randomUUID();
+        QName refRelation1 = QName.valueOf("{https://random.org/ns}projection-rel1");
+        QName refRelation2 = QName.valueOf("{https://random.org/ns}projection-rel2");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF).replace(
+                        new ObjectReferenceType().oid(refTargetOid1.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation1), // to delete
+                        new ObjectReferenceType().oid(refTargetOid1.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation2),
+                        new ObjectReferenceType().oid(refTargetOid2.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation1),
+                        new ObjectReferenceType().oid(refTargetOid2.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation2)) // to delete
+                .asObjectDelta(user1Oid);
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        and("delta both adding and deleting multiple projection refs");
+        UUID refTargetOid3 = UUID.randomUUID();
+        UUID refTargetOid4 = UUID.randomUUID();
+        delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF)
+                // add must go first here, even though it overrules conflicting delete later
+                .add(new ObjectReferenceType().oid(refTargetOid3.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation1),
+                        // delete of this lower will be "narrowed" out, this WILL be added
+                        new ObjectReferenceType().oid(refTargetOid3.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation2),
+                        new ObjectReferenceType().oid(refTargetOid4.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation1),
+                        new ObjectReferenceType().oid(refTargetOid4.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation2))
+                .delete(new ObjectReferenceType() // type is ignored/ignorable
+                                .oid(refTargetOid1.toString()).relation(refRelation1),
+                        new ObjectReferenceType()
+                                .oid(refTargetOid2.toString()).relation(refRelation2),
+                        new ObjectReferenceType() // nonexistent anyway
+                                .oid(refTargetOid3.toString()).relation(refRelation2),
+                        new ObjectReferenceType() // from add above, will be "narrowed" out
+                                .oid(refTargetOid3.toString()).relation(refRelation1))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getLinkRef()).hasSize(6)
+                .anyMatch(refMatcher(refTargetOid1, refRelation2))
+                .anyMatch(refMatcher(refTargetOid2, refRelation1))
+                .anyMatch(refMatcher(refTargetOid3, refRelation1))
+                .anyMatch(refMatcher(refTargetOid3, refRelation2))
+                .anyMatch(refMatcher(refTargetOid4, refRelation1))
+                .anyMatch(refMatcher(refTargetOid4, refRelation2));
+
+        and("user row version is incremented");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        and("externalized refs are inserted and deleted accordingly");
+        QObjectReference r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        List<MReference> refs = select(r, r.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(refs).hasSize(6)
+                .anyMatch(refRowMatcher(refTargetOid1, refRelation2))
+                .anyMatch(refRowMatcher(refTargetOid2, refRelation1))
+                .anyMatch(refRowMatcher(refTargetOid3, refRelation1))
+                .anyMatch(refRowMatcher(refTargetOid3, refRelation2))
+                .anyMatch(refRowMatcher(refTargetOid4, refRelation1))
+                .anyMatch(refRowMatcher(refTargetOid4, refRelation2));
+    }
+
+    @Test
+    public void test164DeletingAllProjectionRefsUsingReplace()
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta to replace projection refs with no value");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF).replace()
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and has no projection refs now");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getLinkRef()).isEmpty();
+
+        and("user row version is incremented");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        and("externalized refs are inserted and deleted accordingly");
+        QObjectReference r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
+    }
+
+    @Test
+    public void test170AddingCreateApproverRefsUnderMetadata()
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding create approver refs for user 1");
+        UUID approverOid1 = UUID.randomUUID();
+        UUID approverOid2 = UUID.randomUUID();
+        QName refRelation = QName.valueOf("{https://random.org/ns}approver");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF)
+                .add(new ObjectReferenceType().oid(approverOid1.toString())
+                                .type(UserType.COMPLEX_TYPE).relation(refRelation),
+                        new ObjectReferenceType().oid(approverOid2.toString())
+                                .type(UserType.COMPLEX_TYPE).relation(refRelation))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getMetadata().getCreateApproverRef()).hasSize(2)
+                .anyMatch(refMatcher(approverOid1, refRelation))
+                .anyMatch(refMatcher(approverOid2, refRelation));
+
+        and("user row version is incremented");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        and("externalized refs are inserted to the dedicated table");
+        QObjectReference r = QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER.defaultAlias();
         UUID ownerOid = UUID.fromString(user1Oid);
         List<MReference> refs = select(r, r.ownerOid.eq(ownerOid));
-        assertThat(refs).hasSize(1);
-        MReference ref = refs.get(0);
-        assertThat(ref.ownerOid).isEqualTo(ownerOid);
-        assertThat(ref.targetOid).isEqualTo(refTargetOid);
+        assertThat(refs).hasSize(2)
+                .anyMatch(refRowMatcher(approverOid1, refRelation))
+                .anyMatch(refRowMatcher(approverOid2, refRelation));
+    }
+
+    @Test
+    public void test171DeletingMetadataContainerRemovesContainedRefs()
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta to replace metadata with no value");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_METADATA).replace()
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and has no metadata");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getMetadata()).isNull();
+
+        and("externalized refs under metadata are removed");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        QObjectReference r = QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER.defaultAlias();
+        assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
+        r = QObjectReferenceMapping.INSTANCE_OBJECT_MODIFY_APPROVER.defaultAlias();
+        assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
     }
 
     @Test

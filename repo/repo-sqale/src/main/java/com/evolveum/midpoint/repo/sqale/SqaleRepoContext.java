@@ -82,7 +82,7 @@ public class SqaleRepoContext extends SqlRepoContext {
     }
 
     /** @see UriCache#resolveUriToId(String) */
-    public Integer resolveUriToId(String uri) {
+    public @NotNull Integer resolveUriToId(String uri) {
         return uriCache.resolveUriToId(uri);
     }
 

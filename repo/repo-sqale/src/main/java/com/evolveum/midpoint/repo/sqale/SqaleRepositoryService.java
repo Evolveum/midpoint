@@ -438,6 +438,17 @@ public class SqaleRepositoryService implements RepositoryService {
             return modifications; // no need to execute any update
         }
 
+        // TODO - Idea: What if the context also contains the owner row (M-object)? That can
+        //  help transformers to insert sub-rows. But if the row is too deep, e.g. ref of the
+        //  assignment, we would still not have the parent row for inserting the ref (which is
+        //  MAssignment) and we would have to query it or create transient row with necessary
+        //  ids (CID, owner_oid). We can create transient owner object as well, we know the OID
+        //  already. But with owner row we would be also able to check previous values for columns
+        //  if we really wanted it, but perhaps we don't need it + it could be done using prism
+        //  object directly (I hope).
+        //  WARN: To know previous values we would have to fetch all columns which may be silly
+        //  for one-item delta; full object is already big, but why loading other data, potentially
+        //  big blobs like photos?
         SqaleUpdateContext<S, Q, R> updateContext = new SqaleUpdateContext<>(
                 transformerSupport, jdbcSession, prismObject);
 

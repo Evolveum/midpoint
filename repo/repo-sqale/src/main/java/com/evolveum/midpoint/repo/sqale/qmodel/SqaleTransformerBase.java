@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
-import com.evolveum.midpoint.repo.sqale.UriCache;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
@@ -120,18 +119,11 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
         return MiscUtil.trimString(value, columnMetadata.getSize());
     }
 
-    /**
-     * Returns ID for relation QName without going ot database.
-     * Relation is normalized before consulting {@link UriCache}.
-     * Never returns null, returns default ID for configured default relation.
-     */
-    protected @NotNull Integer resolveRelationToId(QName qName) {
-        return resolveUriToId(
-                QNameUtil.qNameToUri(
-                        transformerSupport.normalizeRelation(qName)));
+    protected @NotNull Integer searchCachedRelationId(QName qName) {
+        return transformerSupport.searchCachedRelationId(qName);
     }
 
-    /** Returns ID for cached URI without going ot database. */
+    /** Returns ID for cached URI without going to the database. */
     protected Integer resolveUriToId(String uri) {
         return transformerSupport.resolveUriToId(uri);
     }

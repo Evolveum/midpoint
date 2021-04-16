@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
@@ -27,12 +29,21 @@ public class SqaleTransformerSupport extends SqlTransformerSupport {
         return (SqaleRepoContext) sqlRepoContext;
     }
 
-    /** Returns ID for cached URI without going ot database. */
+    /**
+     * Returns ID for relation QName or {@link UriCache#UNKNOWN_ID} without going to the database.
+     * Relation is normalized before consulting {@link UriCache}.
+     * Never returns null; returns default ID for configured default relation if provided with null.
+     */
+    public @NotNull Integer searchCachedRelationId(QName qName) {
+        return sqaleRepoContext().searchCachedUriId(QNameUtil.qNameToUri(normalizeRelation(qName)));
+    }
+
+    /** Returns ID for cached URI without going to the database. */
     public Integer resolveUriToId(String uri) {
         return sqaleRepoContext().resolveUriToId(uri);
     }
 
-    /** Returns ID for cached URI without going ot database. */
+    /** Returns ID for cached URI without going to the database. */
     public Integer resolveUriToId(QName uri) {
         return sqaleRepoContext().resolveUriToId(uri);
     }

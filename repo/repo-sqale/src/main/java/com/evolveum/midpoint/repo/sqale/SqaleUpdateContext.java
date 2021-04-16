@@ -101,6 +101,20 @@ public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R ex
         update.set(path, value);
     }
 
+    public UUID objectOid() {
+        return objectOid;
+    }
+
+    /**
+     * Returns fake object row having just the necessary identification attributes that can be
+     * used as an "owner row" for inserting sub-entities.
+     */
+    public R fakeObjectRow() {
+        R row = mapping.newRowObject();
+        row.oid = objectOid;
+        return row;
+    }
+
     public SqaleTransformerSupport transformerSupport() {
         return transformerSupport;
     }
@@ -111,5 +125,9 @@ public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R ex
 
     public Integer processCacheableUri(String uri) {
         return transformerSupport.processCacheableUri(uri, jdbcSession);
+    }
+
+    public JdbcSession jdbcSession() {
+        return jdbcSession;
     }
 }

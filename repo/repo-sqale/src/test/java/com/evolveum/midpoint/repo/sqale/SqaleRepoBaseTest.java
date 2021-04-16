@@ -21,9 +21,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
@@ -111,7 +114,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     }
 
     protected <R, Q extends FlexibleRelationalPathBase<R>> long count(
-            Q path, Predicate[] conditions) {
+            Q path, Predicate... conditions) {
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()) {
             SQLQuery<?> query = jdbcSession.newQuery()
                     .from(path)
@@ -185,5 +188,22 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     protected void setName(MObject object, String origName) {
         object.nameOrig = origName;
         object.nameNorm = prismContext.getDefaultPolyStringNormalizer().normalize(origName);
+    }
+
+    protected java.util.function.Predicate<? super Referencable> refMatcher(UUID targetOid, QName relation) {
+        return ref -> ref.getOid().equals(targetOid.toString())
+                && ref.getRelation().equals(relation);
+    }
+
+    protected java.util.function.Predicate<? super MReference> refRowMatcher(UUID targetOid, QName relation) {
+        return ref -> ref.targetOid.equals(targetOid)
+                && cachedUriById(ref.relationId).equals(QNameUtil.qNameToUri(relation));
+    }
+
+    protected java.util.function.Predicate<? super MReference> refRowMatcher(
+            UUID targetOid, MObjectType targetType, QName relation) {
+        return ref -> ref.targetOid.equals(targetOid)
+                && ref.targetType == targetType
+                && cachedUriById(ref.relationId).equals(QNameUtil.qNameToUri(relation));
     }
 }

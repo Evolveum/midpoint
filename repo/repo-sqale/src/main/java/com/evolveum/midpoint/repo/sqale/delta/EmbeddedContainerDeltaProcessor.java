@@ -50,11 +50,6 @@ public class EmbeddedContainerDeltaProcessor<T extends Containerable>
             }
 
             ItemDeltaValueProcessor<?> processor = createItemDeltaProcessor(mapper);
-            // TODO remove: this should not happen when all mapper types are covered (e.g. ref tables)
-            if (processor == null) {
-                System.out.println("PROCESSOR NULL for: " + mapper);
-                continue;
-            }
             // while the embedded container is single-value, its items may be multi-value
             processor.setRealValues(item.getRealValues());
         }
@@ -72,11 +67,6 @@ public class EmbeddedContainerDeltaProcessor<T extends Containerable>
 
     private void deleteUsing(ItemSqlMapper mapper) {
         ItemDeltaValueProcessor<?> processor = createItemDeltaProcessor(mapper);
-        // TODO remove: this should not happen when all mapper types are covered (e.g. ref tables)
-        if (processor == null) {
-            System.out.println("PROCESSOR NULL for: " + mapper);
-            return;
-        }
         processor.delete();
     }
 
