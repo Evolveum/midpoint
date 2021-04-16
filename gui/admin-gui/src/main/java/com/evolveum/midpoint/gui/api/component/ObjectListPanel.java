@@ -174,13 +174,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
 
     protected void objectDetailsPerformed(AjaxRequestTarget target, O object){}
 
-    protected ContainerTypeSearchItem getTypeItem(Class<? extends O> type, List<DisplayableValue<Class<? extends O>>> allowedValues){
-        @NotNull ObjectTypes objectType = ObjectTypes.getObjectType(type);
-        return new ContainerTypeSearchItem<>(new SearchValue<>(objectType.getClassDefinition(),
-                "ObjectType." + objectType.getTypeQName().getLocalPart()),
-                allowedValues);
-    }
-
     @Override
     protected O getRowRealValue(SelectableBean<O> rowModelObject) {
         if (rowModelObject == null) {

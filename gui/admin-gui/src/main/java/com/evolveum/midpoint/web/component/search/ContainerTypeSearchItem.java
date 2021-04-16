@@ -32,7 +32,7 @@ public class ContainerTypeSearchItem<C extends Containerable> extends SearchItem
     public static final String F_TYPE_VALUE = "type.value";
     public static final String F_TYPE = "type";
 
-    private List<DisplayableValue<Class<? extends C>>> allowedValues = new ArrayList<>();
+    private List<DisplayableValue<Class<C>>> allowedValues = new ArrayList<>();
     private DisplayableValue<Class<C>> type;
     private Class<C> oldType;
     private boolean visible = false;
@@ -46,7 +46,7 @@ public class ContainerTypeSearchItem<C extends Containerable> extends SearchItem
         this(type, null);
     }
 
-    public ContainerTypeSearchItem(@NotNull DisplayableValue<Class<C>> type, List<DisplayableValue<Class<? extends C>>> allowedValues) {
+    public ContainerTypeSearchItem(@NotNull DisplayableValue<Class<C>> type, List<DisplayableValue<Class<C>>> allowedValues) {
         super(null);
         Validate.notNull(type, "Type must not be null.");
         Validate.notNull(type.getValue(), "Type must not be null.");
@@ -101,7 +101,7 @@ public class ContainerTypeSearchItem<C extends Containerable> extends SearchItem
                 '}';
     }
 
-    public List<DisplayableValue<Class<? extends C>>> getAllowedValues() {
+    public List<DisplayableValue<Class<C>>> getAllowedValues() {
         return allowedValues;
     }
 
