@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.roles;
 
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
@@ -52,14 +53,10 @@ public class RelationSearchItem extends SpecialSearchItem {
     private static final Trace LOGGER = TraceManager.getTrace(RelationSearchItem.class);
 
     private MemberPanelStorage memberStorage;
-    private AvailableRelationDto supportedRelations;
-    private RelationSearchItemConfigurationType relationConfig;
 
-    public RelationSearchItem(Search search, MemberPanelStorage memberStorage, AvailableRelationDto supportedRelations, RelationSearchItemConfigurationType relationConfig) {
+    public RelationSearchItem(Search search, MemberPanelStorage memberStorage) {
         super(search);
         this.memberStorage = memberStorage;
-        this.supportedRelations = supportedRelations;
-        this.relationConfig = relationConfig;
     }
 
 //    private SearchItem createRelationItem(Search search) {
@@ -113,18 +110,25 @@ public class RelationSearchItem extends SpecialSearchItem {
 
             @Override
             public SearchSpecialItemPanel createSpecialSearchPanel(String id, Consumer<AjaxRequestTarget> searchPerformedConsumer) {
-                return new SearchSpecialItemPanel(id, new PropertyModel(memberStorage, MemberPanelStorage.F_RELATION)) {
+                return new SearchSpecialItemPanel(id, new PropertyModel<>(memberStorage, MemberPanelStorage.F_RELATION_ITEM)) {
                     @Override
                     protected WebMarkupContainer initSearchItemField(String id) {
 
-                        List<QName> choices = new ArrayList();
-                        List<QName> relations = supportedRelations.getAvailableRelationList();
-                        if (relations != null && relations.size() > 1) {
-                            choices.add(PrismConstants.Q_ANY);
-                        }
-                        choices.addAll(relations);
+                        ReadOnlyModel<List<QName>> availableRelations = new ReadOnlyModel<>(() -> {
+                            List<QName> choices = new ArrayList();
+                            IModel<RelationSearchItemConfigurationType> relationItem = getModelValue();
+                            List<QName> relations = relationItem.getObject().getSupportedRelations();
+                            if (relations != null && relations.size() > 1) {
+                                choices.add(PrismConstants.Q_ANY);
+                            }
+                            choices.addAll(relations);
+                            return choices;
+                        });
 
-                        DropDownChoicePanel inputPanel = new DropDownChoicePanel(id, getModelValue(), Model.of(choices), new QNameIChoiceRenderer() {
+
+                        DropDownChoicePanel inputPanel = new DropDownChoicePanel(id,
+                                new PropertyModel(getModelValue(), RelationSearchItemConfigurationType.F_DEFAULT_VALUE.getLocalPart()),
+                                availableRelations, new QNameIChoiceRenderer() {
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -154,34 +158,28 @@ public class RelationSearchItem extends SpecialSearchItem {
                             }
                         });
 
-                        inputPanel.getBaseFormComponent().add(new EnableBehaviour(() -> supportedRelations.getAvailableRelationList().size() > 1));
+                        inputPanel.getBaseFormComponent().add(new EnableBehaviour(() -> availableRelations.getObject().size() > 1));
                         inputPanel.setOutputMarkupId(true);
                         return inputPanel;
                     }
 
                     @Override
                     protected IModel<String> createLabelModel() {
-                        return Model.of(WebComponentUtil.getTranslatedPolyString(relationConfig.getDisplay().getLabel()));
+                        return Model.of(WebComponentUtil.getTranslatedPolyString(getReltaionConfig().getDisplay().getLabel()));
                     }
 
                     @Override
                     protected IModel<String> createHelpModel(){
-                        return Model.of(WebComponentUtil.getTranslatedPolyString(relationConfig.getDisplay().getHelp()));
+                        return Model.of(WebComponentUtil.getTranslatedPolyString(getReltaionConfig().getDisplay().getHelp()));
                     }
                 };
             }
 //        };
 //    }
 
-    private <R extends AbstractRoleType> R getParentVariables(VariablesMap variables) {
-        if (variables == null) {
-            return null;
-        }
-        try {
-            return (R) variables.getValue(ExpressionConstants.VAR_PARENT_OBJECT, AbstractRoleType.class);
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't load parent object.");
-        }
-        return null;
+    private RelationSearchItemConfigurationType getReltaionConfig() {
+        return memberStorage.getRelationSearchItem();
     }
+
+
 }

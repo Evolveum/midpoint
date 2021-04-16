@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.orgs;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
@@ -28,7 +29,6 @@ import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel
 import com.evolveum.midpoint.web.component.objectdetails.AbstractRoleMainPanel;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
-import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.web.page.admin.users.component.OrgMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.OrgSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -113,8 +113,8 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected AvailableRelationDto getSupportedRelations() {
-                        return getSupportedMembersTabRelations(getDefaultRelationConfiguration());
+                    protected List<QName> getSupportedRelations() {
+                        return getSupportedMembersTabRelations();
                     }
 
                     @Override
@@ -133,8 +133,8 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected AvailableRelationDto getSupportedRelations() {
-                        return getSupportedGovernanceTabRelations(getDefaultRelationConfiguration());
+                    protected List<QName> getSupportedRelations() {
+                        return getSupportedGovernanceTabRelations();
                     }
 
                     @Override

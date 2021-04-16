@@ -46,12 +46,10 @@ public class ProjectSearchItem extends SpecialSearchItem {
     private static final Trace LOGGER = TraceManager.getTrace(ProjectSearchItem.class);
 
     private MemberPanelStorage memberStorage;
-    private UserInterfaceFeatureType projectConfig;
 
-    public ProjectSearchItem(Search search, MemberPanelStorage memberStorage, UserInterfaceFeatureType projectConfig) {
+    public ProjectSearchItem(Search search, MemberPanelStorage memberStorage) {
         super(search);
         this.memberStorage = memberStorage;
-        this.projectConfig = projectConfig;
     }
 
     @Override
@@ -120,13 +118,13 @@ public class ProjectSearchItem extends SpecialSearchItem {
 
             @Override
             protected IModel<String> createLabelModel() {
-                return Model.of(WebComponentUtil.getTranslatedPolyString(projectConfig.getDisplay().getLabel()));
+                return Model.of(WebComponentUtil.getTranslatedPolyString(getProjectSearchConfig().getDisplay().getLabel()));
             }
 
             @Override
             protected IModel<String> createHelpModel() {
-                if (projectConfig.getDisplay().getHelp() != null){
-                    return Model.of(WebComponentUtil.getTranslatedPolyString(projectConfig.getDisplay().getHelp()));
+                if (getProjectSearchConfig().getDisplay().getHelp() != null){
+                    return Model.of(WebComponentUtil.getTranslatedPolyString(getProjectSearchConfig().getDisplay().getHelp()));
                 }
                 String help = projectRefDef.getHelp();
                 if (StringUtils.isNotEmpty(help)) {
@@ -138,6 +136,10 @@ public class ProjectSearchItem extends SpecialSearchItem {
         panel.add(new VisibleBehaviour(() -> getMemberPanelStorage() == null
                 || !Boolean.TRUE.equals(getMemberPanelStorage().getIndirect())));
         return panel;
+    }
+
+    private UserInterfaceFeatureType getProjectSearchConfig() {
+        return memberStorage.getProjectSearchItem();
     }
 
     public MemberPanelStorage getMemberPanelStorage() {

@@ -45,14 +45,10 @@ public class IndirectSearchItem extends SpecialSearchItem {
     private static final Trace LOGGER = TraceManager.getTrace(IndirectSearchItem.class);
 
     private MemberPanelStorage memberStorage;
-    private AvailableRelationDto supportedRelations;
-    private IndirectSearchItemConfigurationType indirectConfig;
 
-    public IndirectSearchItem(Search search, MemberPanelStorage memberStorage, AvailableRelationDto supportedRelations, IndirectSearchItemConfigurationType indirectConfig) {
+    public IndirectSearchItem(Search search, MemberPanelStorage memberStorage) {
         super(search);
         this.memberStorage = memberStorage;
-        this.supportedRelations = supportedRelations;
-        this.indirectConfig = indirectConfig;
     }
 
     @Override
@@ -86,9 +82,14 @@ public class IndirectSearchItem extends SpecialSearchItem {
 //        return filter;
     }
 
+
+    private IndirectSearchItemConfigurationType getIndirectConfig() {
+        return memberStorage.getIndirectSearchItem();
+    }
+
     @Override
     public SearchSpecialItemPanel createSpecialSearchPanel(String id, Consumer<AjaxRequestTarget> searchPerformedConsumer) {
-        SearchSpecialItemPanel panel = new SearchSpecialItemPanel(id, new PropertyModel(memberStorage, MemberPanelStorage.F_INDIRECT)) {
+        SearchSpecialItemPanel panel = new SearchSpecialItemPanel(id, new PropertyModel(memberStorage, MemberPanelStorage.F_INDIRECT_ITEM + "." + IndirectSearchItemConfigurationType.F_INDIRECT.getLocalPart())) {
             @Override
             protected WebMarkupContainer initSearchItemField(String id) {
                 List<Boolean> choices = new ArrayList<>();
@@ -121,28 +122,16 @@ public class IndirectSearchItem extends SpecialSearchItem {
 
             @Override
             protected IModel<String> createLabelModel() {
-                return Model.of(WebComponentUtil.getTranslatedPolyString(indirectConfig.getDisplay().getLabel()));
+                return Model.of(WebComponentUtil.getTranslatedPolyString(getIndirectConfig().getDisplay().getLabel()));
             }
 
             @Override
             protected IModel<String> createHelpModel(){
-                return Model.of(WebComponentUtil.getTranslatedPolyString(indirectConfig.getDisplay().getHelp()));
+                return Model.of(WebComponentUtil.getTranslatedPolyString(getIndirectConfig().getDisplay().getHelp()));
             }
         };
         panel.add(new VisibleBehaviour(() -> isPanelVisible()));
         return panel;
-    }
-
-    private <R extends AbstractRoleType> R getParentVariables(VariablesMap variables) {
-        if (variables == null) {
-            return null;
-        }
-        try {
-            return (R) variables.getValue(ExpressionConstants.VAR_PARENT_OBJECT, AbstractRoleType.class);
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't load parent object.");
-        }
-        return null;
     }
 
     protected boolean isPanelVisible() {

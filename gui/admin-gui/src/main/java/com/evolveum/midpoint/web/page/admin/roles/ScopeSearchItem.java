@@ -6,20 +6,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.roles;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchSpecialItemPanel;
-import com.evolveum.midpoint.web.component.search.SpecialSearchItem;
-import com.evolveum.midpoint.web.session.MemberPanelStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.Arrays;
+import java.util.function.Consumer;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -30,22 +18,33 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import java.util.Arrays;
-import java.util.function.Consumer;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchSpecialItemPanel;
+import com.evolveum.midpoint.web.component.search.SpecialSearchItem;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScopeSearchItemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
 
 public class ScopeSearchItem extends SpecialSearchItem {
 
     private static final Trace LOGGER = TraceManager.getTrace(TenantSearchItem.class);
 
-    private MemberPanelStorage memberStorage;
-    private UserInterfaceFeatureType scopeConfig;
+    private IModel<ScopeSearchItemConfigurationType> scopeConfigModel;
 
-    public ScopeSearchItem(Search search, MemberPanelStorage memberStorage, ScopeSearchItemConfigurationType scopeConfig) {
+    public ScopeSearchItem(Search search, IModel<ScopeSearchItemConfigurationType> scopeConfigModel) {
         super(search);
-        this.memberStorage = memberStorage;
-        this.scopeConfig = scopeConfig;
+        this.scopeConfigModel = scopeConfigModel;
     }
 
+    private ScopeSearchItemConfigurationType getScopeConfig() {
+        return scopeConfigModel.getObject();
+    }
     @Override
     public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
         throw new UnsupportedOperationException();
@@ -60,12 +59,14 @@ public class ScopeSearchItem extends SpecialSearchItem {
 
     @Override
     public boolean isApplyFilter() {
-        return SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope());
+        return  getScopeConfig() != null && getScopeConfig().getDefaultValue() == SearchBoxScopeType.SUBTREE;
     }
 
     @Override
     public SearchSpecialItemPanel createSpecialSearchPanel(String id, Consumer<AjaxRequestTarget> searchPerformedConsumer) {
-        return new SearchSpecialItemPanel(id, new PropertyModel(getMemberPanelStorage(), MemberPanelStorage.F_ORG_SEARCH_SCOPE)) {
+        return new SearchSpecialItemPanel(id, new PropertyModel(scopeConfigModel, ScopeSearchItemConfigurationType.F_DEFAULT_VALUE.getLocalPart())) {
+
+
             @Override
             protected WebMarkupContainer initSearchItemField(String id) {
                 DropDownChoicePanel inputPanel = new DropDownChoicePanel(id, getModelValue(), Model.of(Arrays.asList(SearchBoxScopeType.values())), new EnumChoiceRenderer(), false);
@@ -83,18 +84,15 @@ public class ScopeSearchItem extends SpecialSearchItem {
 
             @Override
             protected IModel<String> createLabelModel() {
-                return Model.of(WebComponentUtil.getTranslatedPolyString(scopeConfig.getDisplay().getLabel()));
+                return Model.of(WebComponentUtil.getTranslatedPolyString(getScopeConfig().getDisplay().getLabel()));
             }
 
             @Override
             protected IModel<String> createHelpModel(){
-                return Model.of(WebComponentUtil.getTranslatedPolyString(scopeConfig.getDisplay().getHelp()));
+                return Model.of(WebComponentUtil.getTranslatedPolyString(getScopeConfig().getDisplay().getHelp()));
             }
         };
     }
 
-    public MemberPanelStorage getMemberPanelStorage() {
-        return memberStorage;
-    }
 
 }

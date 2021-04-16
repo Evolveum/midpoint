@@ -48,12 +48,10 @@ public class TenantSearchItem extends SpecialSearchItem {
     private static final Trace LOGGER = TraceManager.getTrace(TenantSearchItem.class);
 
     private MemberPanelStorage memberStorage;
-    private UserInterfaceFeatureType tenantConfig;
 
-    public TenantSearchItem(Search search, MemberPanelStorage memberStorage, UserInterfaceFeatureType tenantConfig) {
+    public TenantSearchItem(Search search, MemberPanelStorage memberStorage) {
         super(search);
         this.memberStorage = memberStorage;
-        this.tenantConfig = tenantConfig;
     }
 
     @Override
@@ -87,6 +85,10 @@ public class TenantSearchItem extends SpecialSearchItem {
 //        }
 //        filter = q.endBlock().buildFilter();
 //        return filter;
+    }
+
+    private UserInterfaceFeatureType getTenantConfig() {
+        return memberStorage.getTenantSearchItem();
     }
 
     @Override
@@ -126,13 +128,13 @@ public class TenantSearchItem extends SpecialSearchItem {
 
             @Override
             protected IModel<String> createLabelModel() {
-                return Model.of(WebComponentUtil.getTranslatedPolyString(tenantConfig.getDisplay().getLabel()));
+                return Model.of(WebComponentUtil.getTranslatedPolyString(getTenantConfig().getDisplay().getLabel()));
             }
 
             @Override
             protected IModel<String> createHelpModel() {
-                if (tenantConfig.getDisplay().getHelp() != null){
-                    return Model.of(WebComponentUtil.getTranslatedPolyString(tenantConfig.getDisplay().getHelp()));
+                if (getTenantConfig().getDisplay().getHelp() != null){
+                    return Model.of(WebComponentUtil.getTranslatedPolyString(getTenantConfig().getDisplay().getHelp()));
                 }
                 String help = tenantRefDef.getHelp();
                 if (StringUtils.isNotEmpty(help)) {

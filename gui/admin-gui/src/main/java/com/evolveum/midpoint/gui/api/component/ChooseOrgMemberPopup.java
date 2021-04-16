@@ -8,13 +8,12 @@ package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationSearchItemConfigurationType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -22,7 +21,6 @@ import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author honchar
@@ -30,8 +28,8 @@ import java.util.stream.Collectors;
 public abstract class ChooseOrgMemberPopup<O extends ObjectType> extends ChooseMemberPopup<O, OrgType> {
     private static final long serialVersionUID = 1L;
 
-    public ChooseOrgMemberPopup(String id, AvailableRelationDto availableRelationList){
-        super(id, availableRelationList);
+    public ChooseOrgMemberPopup(String id, RelationSearchItemConfigurationType relationCofig){
+        super(id, relationCofig);
     }
 
     @Override
@@ -44,7 +42,7 @@ public abstract class ChooseOrgMemberPopup<O extends ObjectType> extends ChooseM
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MultiTypesMemberPopupTabPanel<O>(panelId, availableRelationList, getArchetypeRefList()){
+                return new MultiTypesMemberPopupTabPanel<O>(panelId, relationsConfig, getArchetypeRefList()){
                     private static final long serialVersionUID = 1L;
 
                     @Override

@@ -7,14 +7,20 @@
 package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.util.List;
+import java.util.stream.Collectors;
 
-public class AbstractRoleMemberSearchConfiguration implements Serializable {
+public class SearchBoxConfigurationHelper implements Serializable {
 
     private SearchBoxConfigurationType searchBoxConfigurationType;
 
@@ -28,10 +34,30 @@ public class AbstractRoleMemberSearchConfiguration implements Serializable {
 
     private Class<ObjectType> defaultObjectTypeClass = null;
 
+    private List<QName> supportedRelations;
+    private List<QName> supportedObjectTypes;
+    private QName defaultRelation;
+    private QName defaultObjectType;
 
 
-    public AbstractRoleMemberSearchConfiguration(GuiObjectListPanelConfigurationType additionalPanel) {
+    public SearchBoxConfigurationHelper(GuiObjectListPanelConfigurationType additionalPanel) {
         this.searchBoxConfigurationType = additionalPanel == null ? new SearchBoxConfigurationType() : additionalPanel.getSearchBoxConfiguration();
+    }
+
+    public void setDefaultSupportedRelations(List<QName> defaultSupportedRelations) {
+        this.supportedRelations = defaultSupportedRelations;
+    }
+
+    public void setDefaultSupportedObjectTypes(List<QName> defaultSupportedObjectTypes) {
+        this.supportedObjectTypes = defaultSupportedObjectTypes;
+    }
+
+    public void setDefaultRelation(QName defaultRelation) {
+        this.defaultRelation = defaultRelation;
+    }
+
+    public void setDefaultObjectType(QName defaultObjectType) {
+        this.defaultObjectType = defaultObjectType;
     }
 
     public ScopeSearchItemConfigurationType getDefaultSearchScopeConfiguration() {
@@ -54,22 +80,6 @@ public class AbstractRoleMemberSearchConfiguration implements Serializable {
 
         }
         return defaultScopeConfiguration;
-    }
-
-    public UserInterfaceElementVisibilityType getDefaultSearchScopeVisibility() {
-        if (getDefaultSearchScopeConfiguration() == null) {
-            return UserInterfaceElementVisibilityType.AUTOMATIC;
-        }
-
-        return getDefaultSearchScopeConfiguration().getVisibility();
-    }
-
-    public PolyStringType getDefaultSearchScopeLabel() {
-        return getDefaultSearchScopeConfiguration().getDisplay().getLabel();
-    }
-
-    public PolyStringType getDefaultSearchScopeHelp() {
-        return getDefaultSearchScopeConfiguration().getDisplay().getHelp();
     }
 
     private UserInterfaceElementVisibilityType getVisibility(UserInterfaceFeatureType feature) {
@@ -104,16 +114,10 @@ public class AbstractRoleMemberSearchConfiguration implements Serializable {
                 defaultObjectTypeConfiguration.setVisibility(UserInterfaceElementVisibilityType.AUTOMATIC);
             }
         }
-        return defaultObjectTypeConfiguration;
-    }
-
-    public QName getDefaultObjectTypeQName() {
-        ObjectTypeSearchItemConfigurationType defaultObjectClassConfig = getDefaultObjectTypeConfiguration();
-        QName defaultObjectTypeQName = defaultObjectClassConfig.getDefaultValue();
-        if (defaultObjectTypeQName == null) {
-            defaultObjectTypeQName = searchBoxConfigurationType.getDefaultObjectType();
+        if (defaultObjectTypeConfiguration.getDefaultValue() == null) {
+            defaultObjectTypeConfiguration.setDefaultValue(defaultObjectType);
         }
-        return defaultObjectTypeQName;
+        return defaultObjectTypeConfiguration;
     }
 
     public RelationSearchItemConfigurationType getDefaultRelationConfiguration() {
@@ -125,20 +129,25 @@ public class AbstractRoleMemberSearchConfiguration implements Serializable {
             setDisplay(defaultRelationConfiguration, "relation","relationDropDownChoicePanel.relation", "relationDropDownChoicePanel.tooltip.relation");
 
         }
+        if (CollectionUtils.isEmpty(defaultRelationConfiguration.getSupportedRelations())) {
+            defaultRelationConfiguration.getSupportedRelations().addAll(supportedRelations);
+        }
+
+        if (defaultRelationConfiguration.getDefaultValue() == null) {
+            QName defaultRelation = getDefaultRelationAllowAny(defaultRelationConfiguration.getSupportedRelations());
+            defaultRelationConfiguration.setDefaultValue(defaultRelation);
+        }
+
         return defaultRelationConfiguration;
     }
 
-    public UserInterfaceElementVisibilityType getDefaultRelationVisibility() {
-        return getVisibility(getDefaultRelationConfiguration());
+    private QName getDefaultRelationAllowAny(List<QName> availableRelationList) {
+        if (availableRelationList != null && availableRelationList.size() == 1) {
+            return availableRelationList.get(0);
+        }
+        return PrismConstants.Q_ANY;
     }
 
-    public PolyStringType getRelationConfigurationLabel() {
-        return getDefaultRelationConfiguration().getDisplay().getLabel();
-    }
-
-    public PolyStringType getRelationConfigurationHelp() {
-        return getDefaultRelationConfiguration().getDisplay().getHelp();
-    }
 
     public IndirectSearchItemConfigurationType getDefaultIndirectConfiguration() {
         if (defaultIndirectConfiguration == null) {

@@ -22,7 +22,6 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
-import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 
 import javax.xml.namespace.QName;
 
@@ -35,8 +34,8 @@ public class ArchetypeMembersPanel extends AbstractRoleMemberPanel<ArchetypeType
     private static final long serialVersionUID = 1L;
 
     @Override
-    protected AvailableRelationDto getSupportedRelations() {
-        return new AvailableRelationDto(Arrays.asList(SchemaConstants.ORG_DEFAULT), getDefaultRelationConfiguration());
+    protected List<QName> getSupportedRelations() {
+        return Arrays.asList(SchemaConstants.ORG_DEFAULT);
     }
 
     @Override
@@ -44,9 +43,9 @@ public class ArchetypeMembersPanel extends AbstractRoleMemberPanel<ArchetypeType
         return WebComponentUtil.createAssignmentHolderTypeQnamesList();
     }
 
-    protected void assignMembers(AjaxRequestTarget target, AvailableRelationDto availableRelationList,
+    protected void assignMembers(AjaxRequestTarget target, RelationSearchItemConfigurationType relationConfig,
             List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList, boolean isOrgTreePanelVisible) {
-        MemberOperationsHelper.assignArchetypeMembers(getPageBase(), getModelObject(), target, availableRelationList,
+        MemberOperationsHelper.assignArchetypeMembers(getPageBase(), getModelObject(), target, relationConfig,
                 objectTypes, archetypeRefList);
     }
 
