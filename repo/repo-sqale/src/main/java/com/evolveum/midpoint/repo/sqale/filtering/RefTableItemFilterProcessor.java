@@ -9,8 +9,6 @@ package com.evolveum.midpoint.repo.sqale.filtering;
 import com.querydsl.core.types.Predicate;
 
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.repo.sqale.delta.item.RefTableItemDeltaProcessor;
-import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
@@ -25,15 +23,6 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
  */
 public class RefTableItemFilterProcessor
         extends ItemFilterProcessor<RefFilter> {
-
-    /** Returns the mapper function creating the ref-filter processor from query context. */
-    public static SqaleItemSqlMapper mapper(
-            QObjectReferenceMapping qReferenceMapping) {
-        return new SqaleItemSqlMapper(
-                ctx -> new RefTableItemFilterProcessor(ctx, qReferenceMapping),
-                ctx -> new RefTableItemDeltaProcessor(ctx, qReferenceMapping)
-        );
-    }
 
     private final QObjectReferenceMapping qObjectReferenceMapping;
 

@@ -13,14 +13,10 @@ import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.dsl.*;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.sqale.delta.EmbeddedContainerDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.*;
-import com.evolveum.midpoint.repo.sqale.filtering.RefTableItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.RefTableItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.UriItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.mapping.NestedMappingResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
@@ -37,10 +33,14 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 /**
  * Mapping superclass with common functions for {@link QObject} and non-objects (e.g. containers).
  *
+ * @param <S> schema type
+ * @param <Q> type of entity path
+ * @param <R> row type related to the {@link Q}
  * @see QueryTableMapping
  */
 public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<R>, R>
-        extends QueryTableMapping<S, Q, R> {
+        extends QueryTableMapping<S, Q, R>
+        implements SqaleMappingMixin<S, Q, R> {
 
     protected SqaleTableMapping(
             @NotNull String tableName,
@@ -48,28 +48,6 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull Class<S> schemaType,
             @NotNull Class<Q> queryType) {
         super(tableName, defaultAliasName, schemaType, queryType);
-    }
-
-    /** Nested mapping adaptation for repo-sqale. */
-    @SuppressWarnings("DuplicatedCode") // the same code in SqaleNestedMapping
-    public <N extends Containerable> SqaleNestedMapping<N, Q, R> addNestedMapping(
-            @NotNull ItemName itemName, @NotNull Class<N> nestedSchemaType) {
-        SqaleNestedMapping<N, Q, R> nestedMapping =
-                new SqaleNestedMapping<>(nestedSchemaType, queryType());
-        addRelationResolver(itemName, new NestedMappingResolver<>(nestedMapping));
-        // first function for query doesn't matter, it just can't be null
-        addItemMapping(itemName, new SqaleItemSqlMapper(ctx -> null,
-                ctx -> new EmbeddedContainerDeltaProcessor<>(ctx, nestedMapping)));
-        return nestedMapping;
-    }
-
-    // TODO will the version for RefItemFilterProcessor be useful too?
-    //  Yes, if it needs relation mapping too!
-    public final void addRefMapping(
-            @NotNull QName itemName, @NotNull QObjectReferenceMapping qReferenceMapping) {
-        ((QueryModelMapping<?, ?, ?>) this).addItemMapping(itemName,
-                RefTableItemFilterProcessor.mapper(qReferenceMapping));
-        // TODO add relation mapping too
     }
 
     /** Returns the mapper creating the string filter/delta processors from context. */

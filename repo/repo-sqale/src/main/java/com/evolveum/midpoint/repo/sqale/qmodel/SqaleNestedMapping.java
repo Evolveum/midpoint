@@ -11,11 +11,6 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.sqale.delta.EmbeddedContainerDeltaProcessor;
-import com.evolveum.midpoint.repo.sqale.filtering.RefTableItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.mapping.NestedMappingResolver;
-import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
@@ -26,9 +21,16 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * Sqale implementation for nested mapping with support for sqale specific types.
  * This allows for fluent calls of methods like {@link #addRefMapping(QName, QObjectReferenceMapping)}
  * which depend on sqale-specific types like {@link QReferenceMapping} in this example.
+ * This extends from sqlbase {@link QueryModelMapping} because this is NOT whole table mapping
+ * so it can't extend from {@link SqaleTableMapping}.
+ *
+ * @param <S> schema type
+ * @param <Q> type of entity path
+ * @param <R> row type related to the {@link Q}
  */
 public class SqaleNestedMapping<S extends Containerable, Q extends FlexibleRelationalPathBase<R>, R>
-        extends QueryModelMapping<S, Q, R> {
+        extends QueryModelMapping<S, Q, R>
+        implements SqaleMappingMixin<S, Q, R> {
 
     protected SqaleNestedMapping(@NotNull Class<S> schemaType, @NotNull Class<Q> queryType) {
         super(schemaType, queryType);
@@ -39,28 +41,5 @@ public class SqaleNestedMapping<S extends Containerable, Q extends FlexibleRelat
             @NotNull QName itemName, @NotNull ItemSqlMapper itemMapper) {
         super.addItemMapping(itemName, itemMapper);
         return this;
-    }
-
-    // TODO will the version for RefItemFilterProcessor be useful too? Yes, if it needs relation mapping too!
-
-    public final SqaleNestedMapping<S, Q, R> addRefMapping(
-            @NotNull QName itemName, @NotNull QObjectReferenceMapping qReferenceMapping) {
-        ((QueryModelMapping<?, ?, ?>) this).addItemMapping(itemName,
-                RefTableItemFilterProcessor.mapper(qReferenceMapping));
-        // TODO add relation mapping too
-        return this;
-    }
-
-    /** Nested mapping adaptation for repo-sqale. */
-    @SuppressWarnings("DuplicatedCode") // the same code needed in SqaleTableMapping
-    public <N extends Containerable> SqaleNestedMapping<N, Q, R> addNestedMapping(
-            @NotNull ItemName itemName, @NotNull Class<N> nestedSchemaType) {
-        SqaleNestedMapping<N, Q, R> nestedMapping =
-                new SqaleNestedMapping<>(nestedSchemaType, queryType());
-        addRelationResolver(itemName, new NestedMappingResolver<>(nestedMapping));
-        // first function for query doesn't matter, it just can't be null
-        addItemMapping(itemName, new SqaleItemSqlMapper(ctx -> null,
-                ctx -> new EmbeddedContainerDeltaProcessor<>(ctx, nestedMapping)));
-        return nestedMapping;
     }
 }
