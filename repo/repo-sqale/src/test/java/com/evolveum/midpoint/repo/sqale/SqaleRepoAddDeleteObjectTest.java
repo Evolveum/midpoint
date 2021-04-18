@@ -330,7 +330,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         expect("adding object to repository throws exception");
         assertThatThrownBy(() -> repositoryService.addObject(user.asPrismObject(), null, result))
                 .isInstanceOf(SchemaException.class)
-                .hasMessage("CID 1 is used repeatedly in the object!");
+                .hasMessageStartingWith("CID 1 is used repeatedly in the object:");
     }
 
     // region insertion of various types

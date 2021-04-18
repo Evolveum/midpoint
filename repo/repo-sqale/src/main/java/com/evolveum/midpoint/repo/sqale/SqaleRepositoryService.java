@@ -438,25 +438,22 @@ public class SqaleRepositoryService implements RepositoryService {
             return modifications; // no need to execute any update
         }
 
-        // TODO - Idea: What if the context also contains the owner row (M-object)? That can
-        //  help transformers to insert sub-rows. But if the row is too deep, e.g. ref of the
-        //  assignment, we would still not have the parent row for inserting the ref (which is
-        //  MAssignment) and we would have to query it or create transient row with necessary
-        //  ids (CID, owner_oid). We can create transient owner object as well, we know the OID
-        //  already. But with owner row we would be also able to check previous values for columns
-        //  if we really wanted it, but perhaps we don't need it + it could be done using prism
-        //  object directly (I hope).
-        //  WARN: To know previous values we would have to fetch all columns which may be silly
-        //  for one-item delta; full object is already big, but why loading other data, potentially
-        //  big blobs like photos?
+        // TODO: separate getObject for update above, put the row inside the context
+        //  we also need it for cid sequence!
         SqaleUpdateContext<S, Q, R> updateContext = new SqaleUpdateContext<>(
                 transformerSupport, jdbcSession, prismObject);
 
-        // TODO APPLY modifications HERE (generate update/set clauses)
+        // TODO consider hiding this into update context. It's not needed for sub-context
+        //  updating sub-containers in separate tables, so it seems we want simplified context
+        //  type for these and common update context contract (interface? abstract class?).
+        //  Initialize maxId for generator from row!
+        ContainerValueIdGenerator cidGenerator =
+                new ContainerValueIdGenerator(prismObject).forModifyObject();
         for (ItemDelta<?, ?> modification : modifications) {
             try {
                 // TODO generate missing container IDs, see also old repo PrismIdentifierGenerator
                 //  BWT: it's not enough to do it in prism object, we need it for deltas adding containers too
+                cidGenerator.processModification(modification);
                 modification.applyTo(prismObject);
 
                 updateContext.processModification(modification);
@@ -466,7 +463,7 @@ public class SqaleRepositoryService implements RepositoryService {
         }
 
         ObjectTypeUtil.normalizeAllRelations(prismObject, schemaService.relationRegistry());
-        updateContext.execute();
+        updateContext.execute(cidGenerator.lastUsedId() + 1);
         return modifications;
     }
 

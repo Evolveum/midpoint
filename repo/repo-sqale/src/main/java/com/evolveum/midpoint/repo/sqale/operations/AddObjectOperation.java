@@ -97,7 +97,7 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
     }
 
     private String addObjectWithOid() throws SchemaException {
-        long lastCid = new ContainerValueIdGenerator(object).generate();
+        long lastCid = new ContainerValueIdGenerator(object).generateForNewObject();
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             S schemaObject = object.asObjectable();
             R row = transformer.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
@@ -118,7 +118,7 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
     }
 
     private String addObjectWithoutOid() throws SchemaException {
-        long lastCid = new ContainerValueIdGenerator(object).generate();
+        long lastCid = new ContainerValueIdGenerator(object).generateForNewObject();
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             S schemaObject = object.asObjectable();
             R row = transformer.toRowObjectWithoutFullObject(schemaObject, jdbcSession);

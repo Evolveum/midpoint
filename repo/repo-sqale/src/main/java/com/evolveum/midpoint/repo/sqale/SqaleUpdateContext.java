@@ -77,10 +77,12 @@ public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R ex
      * for the enclosed {@link #prismObject}.
      * This also increments the version information and serializes `fullObject`.
      */
-    public void execute() throws SchemaException, RepositoryException {
+    public void execute(long nextCid) throws SchemaException, RepositoryException {
         int newVersion = objectVersionAsInt(prismObject) + 1;
         prismObject.setVersion(String.valueOf(newVersion));
         update.set(rootPath.version, newVersion);
+
+        update.set(rootPath.containerIdSeq, nextCid);
 
         ObjectSqlTransformer<S, Q, R> transformer =
                 (ObjectSqlTransformer<S, Q, R>) mapping.createTransformer(transformerSupport);
@@ -129,5 +131,9 @@ public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R ex
 
     public JdbcSession jdbcSession() {
         return jdbcSession;
+    }
+
+    public PrismObject<S> prismObject() {
+        return prismObject;
     }
 }
