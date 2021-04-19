@@ -290,7 +290,7 @@ public class DefaultColumnUtils {
     }
 
     public static Collection<SelectorOptions<GetOperationOptions>> createOption(
-            Class<ObjectType> type, SchemaService schemaService) {
+            Class<Containerable> type, SchemaService schemaService) {
         if (type == null) {
             return null;
         }

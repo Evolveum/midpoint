@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<report oid="2b44aa2e-dd86-4842-bcf5-762c8a9a85ew">
+    <name>Object Collection report with parameters</name>
+    <objectCollection>
+        <collection>
+            <filter>
+                <equal>
+                    <path>givenName</path>
+                    <expression>
+                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
+                            <code>
+                                return givenName;
+                            </code>
+                        </script>
+                    </expression>
+                </equal>
+            </filter>
+        </collection>
+        <view>
+            <type>UserType</type>
+            <column>
+                <name>nameColumn</name>
+                <path>name</path>
+                <display>
+                    <label>Name</label>
+                </display>
+            </column>
+            <column>
+                <name>nameColumn2</name>
+                <path>name</path>
+                <display>
+                    <label>Name2</label>
+                </display>
+                <previousColumn>nameColumn</previousColumn>
+                <export>
+                    <expression>
+                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
+                            <code>
+                                return "Test name: " + object;
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+        </view>
+        <useOnlyReportView>true</useOnlyReportView>
+    </objectCollection>
+</report>

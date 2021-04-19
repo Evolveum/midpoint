@@ -7,26 +7,30 @@
 package com.evolveum.midpoint.report.api;
 
 import java.util.Collection;
+import java.util.function.Predicate;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+
+import javax.xml.namespace.QName;
 
 public interface ReportService {
 
@@ -60,4 +64,8 @@ public interface ReportService {
     boolean isAuthorizedToImportReport(PrismObject<ReportType> report, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException;
+
+    @Experimental
+    VariablesMap getParameters(Task task);
+
 }

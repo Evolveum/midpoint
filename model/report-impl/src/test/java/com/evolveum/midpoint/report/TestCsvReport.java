@@ -8,6 +8,8 @@ package com.evolveum.midpoint.report;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -23,6 +25,7 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.testng.annotations.Test;
 
 import javax.xml.datatype.DatatypeFactory;
@@ -45,6 +48,7 @@ public class TestCsvReport extends BasicNewReportTest {
 
     int expectedColumns;
     int expectedRow;
+    String lastLine;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -166,6 +170,22 @@ public class TestCsvReport extends BasicNewReportTest {
         expectedColumns = 1;
         expectedRow = 2;
         super.test117CreateObjectCollectionReportWithFilterAndBasicCollectionWithoutView();
+    }
+
+    @Test
+    public void test118CreateObjectCollectionWithParamReport() throws Exception {
+        expectedColumns = 2;
+        expectedRow = 2;
+        super.test118CreateObjectCollectionWithParamReport();
+    }
+
+    @Test
+    public void test119CreateObjectCollectionWithSubreportParamReport() throws Exception {
+        expectedColumns = 2;
+        expectedRow = 2;
+        lastLine = "\"will\";\"TestRole1230,TestRole123010\"";
+        super.test119CreateObjectCollectionWithSubreportParamReport();
+        lastLine = null;
     }
 
     @Test
@@ -304,6 +324,12 @@ public class TestCsvReport extends BasicNewReportTest {
         if (actualColumns != expectedColumns) {
             fail("Unexpected count of columns of csv report. Expected: " + expectedColumns + ", Actual: " + actualColumns);
         }
+
+        String lastLine = lines.get(lines.size() - 1);
+        if (StringUtils.isNoneEmpty(this.lastLine) && !lastLine.equals(this.lastLine)) {
+            fail("Unexpected last line of csv report. Expected: '" + this.lastLine + "', Actual: '" + lastLine + "'");
+        }
+
         return lines;
     }
 

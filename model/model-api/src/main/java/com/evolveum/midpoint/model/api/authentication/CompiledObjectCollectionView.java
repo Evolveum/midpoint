@@ -13,6 +13,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -76,11 +78,11 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         this.containerType = containerType;
     }
 
-    public <O extends ObjectType> Class<O> getTargetClass() {
+    public <C extends Containerable> Class<C> getTargetClass(PrismContext prismContext) {
         if (containerType == null) {
             return null;
         }
-        return ObjectTypes.getObjectTypeClass(containerType);
+        return prismContext.getSchemaRegistry().determineClassForType(containerType);
     }
 
     public String getViewIdentifier() {
@@ -243,7 +245,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(CompiledObjectCollectionView.class, indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "objectType", containerType, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "containerType", containerType, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "viewIdentifier", viewIdentifier, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "actions", actions, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "columns", columns, indent + 1);

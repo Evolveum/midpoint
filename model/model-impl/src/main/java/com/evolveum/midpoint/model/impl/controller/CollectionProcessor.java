@@ -204,7 +204,7 @@ public class CollectionProcessor {
 
     public <O extends ObjectType> CollectionStats determineCollectionStats(CompiledObjectCollectionView collectionView, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
         CollectionStats stats = new CollectionStats();
-        Class<O> targetClass = collectionView.getTargetClass();
+        Class<O> targetClass = collectionView.getTargetClass(prismContext);
         stats.setObjectCount(countObjects(targetClass, evaluateExpressionsInFilter(collectionView.getFilter(), result, task), collectionView.getOptions(), task, result));
         stats.setDomainCount(countObjects(targetClass, evaluateExpressionsInFilter(collectionView.getDomainFilter(), result, task), collectionView.getDomainOptions(), task, result));
         return stats;
@@ -409,7 +409,7 @@ public class CollectionProcessor {
             return;
         }
         compileObjectCollectionView(existingView, baseCollectionRef, targetTypeClass, task, result);
-        targetTypeClass = existingView.getTargetClass();
+        targetTypeClass = existingView.getTargetClass(prismContext);
         if (targetTypeClass == null) {
             throw new IllegalArgumentException("UndefinedTypeForCollection type: " + baseCollectionRef);
         }
@@ -447,7 +447,7 @@ public class CollectionProcessor {
     }
 
     @Nullable
-    public ObjectFilter evaluateExpressionsInFilter(ObjectFilter filterRaw, OperationResult result, Task task)
+    private ObjectFilter evaluateExpressionsInFilter(ObjectFilter filterRaw, OperationResult result, Task task)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         VariablesMap variables = new VariablesMap();      // do we want to put any variables here?

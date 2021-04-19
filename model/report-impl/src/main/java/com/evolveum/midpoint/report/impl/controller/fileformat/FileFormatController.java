@@ -11,7 +11,10 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.report.api.ReportConstants;
+
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -56,6 +59,8 @@ public abstract class FileFormatController {
     private final ReportServiceImpl reportService;
     private final FileFormatConfigurationType fileFormatConfiguration;
     private final ReportType report;
+    private VariablesMap parameters;
+    private VariablesMap variables;
 
     public FileFormatController(FileFormatConfigurationType fileFormatConfiguration, ReportType report, ReportServiceImpl reportService) {
         this.fileFormatConfiguration = fileFormatConfiguration;
@@ -92,10 +97,6 @@ public abstract class FileFormatController {
     public abstract String getTypeSuffix();
 
     public abstract String getType();
-
-//    protected String getMessage(Enum e) {
-//        return getMessage(e.getDeclaringClass().getSimpleName() + '.' + e.name());
-//    }
 
     protected String getMessage(String key) {
         return getMessage(key, null);
@@ -242,12 +243,13 @@ public abstract class FileFormatController {
     }
 
     private Object evaluateExportExpression(ExpressionType expression, Object valueObject, Task task, OperationResult result) {
-
-        VariablesMap variables = new VariablesMap();
-        if (valueObject == null) {
-            variables.put(ExpressionConstants.VAR_OBJECT, null, Object.class);
-        } else {
-            variables.put(ExpressionConstants.VAR_OBJECT, valueObject, valueObject.getClass());
+        checkVariables(task);
+        if (!variables.containsKey(ExpressionConstants.VAR_OBJECT)) {
+            if (valueObject == null) {
+                variables.put(ExpressionConstants.VAR_OBJECT, null, Object.class);
+            } else {
+                variables.put(ExpressionConstants.VAR_OBJECT, valueObject, valueObject.getClass());
+            }
         }
         Object values = null;
         try {
@@ -357,14 +359,16 @@ public abstract class FileFormatController {
         return type;
     }
 
-    protected Class<ObjectType> resolveType(CollectionRefSpecificationType collectionRef, CompiledObjectCollectionView compiledCollection) {
+    protected Class<Containerable> resolveType(CollectionRefSpecificationType collectionRef, CompiledObjectCollectionView compiledCollection) {
         QName type = resolveTypeQname(collectionRef, compiledCollection);
-        return (Class<ObjectType>) getReportService().getPrismContext().getSchemaRegistry()
-                .getCompileTimeClassForObjectType(type);
-    }
-
-    protected boolean isAuditCollection(CollectionRefSpecificationType collection, Task task, OperationResult result) {
-        return DashboardUtils.isAuditCollection(collection, getReportService().getModelService(), task, result);
+        ComplexTypeDefinition def = getReportService().getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByType(type);
+        if (def != null) {
+            Class<?> clazz = def.getCompileTimeClass();
+            if (Containerable.class.isAssignableFrom(clazz)) {
+                return (Class<Containerable>) clazz;
+            }
+        }
+        throw new IllegalArgumentException("Couldn't define type for QName " + type);
     }
 
     protected PrismContainer<? extends Containerable> getAuditRecordAsContainer(AuditEventRecordType record) throws SchemaException {
@@ -379,13 +383,63 @@ public abstract class FileFormatController {
 
     protected <T extends Object> boolean evaluateCondition(ExpressionType condition, T value, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        VariablesMap variables = new VariablesMap();
-        variables.put(ExpressionConstants.VAR_OBJECT, value, value.getClass());
+        checkVariables(task);
+        if (!variables.containsKey(ExpressionConstants.VAR_OBJECT)) {
+            variables.put(ExpressionConstants.VAR_OBJECT, value, value.getClass());
+        }
         PrismPropertyValue<Boolean> conditionValue = ExpressionUtil.evaluateCondition(variables, condition, null, getReportService().getExpressionFactory(),
                 "Evaluate condition", task, result);
         if (conditionValue == null || Boolean.FALSE.equals(conditionValue.getRealValue())) {
             return false;
         }
         return true;
+    }
+
+    private void checkVariables(Task task) {
+        if (variables == null) {
+            if (parameters == null) {
+                parameters = getReportService().getParameters(task);
+            }
+            variables = new VariablesMap();
+            variables.putAll(parameters);
+        }
+    }
+
+    protected void evaluateSubreportParameters(List<SubreportParameterType> subreports, Object value, Task task) {
+        if (subreports != null && !subreports.isEmpty()){
+            cleanUpVariables();
+            checkVariables(task);
+            if (!variables.containsKey(ExpressionConstants.VAR_OBJECT)) {
+                variables.put(ExpressionConstants.VAR_OBJECT, value, value.getClass());
+            }
+            List<SubreportParameterType> sortedSubreports = new ArrayList<>();
+            sortedSubreports.addAll(subreports);
+            sortedSubreports.sort(Comparator.comparingInt(s -> ObjectUtils.defaultIfNull(s.getOrder(), Integer.MAX_VALUE)));
+            for (SubreportParameterType subreport : sortedSubreports) {
+                if (subreport.getExpression() == null || subreport.getName() == null) {
+                    continue;
+                }
+                Object subreportParameter = null;
+                ExpressionType expression = subreport.getExpression();
+                try {
+                    subreportParameter = ExpressionUtil.evaluateExpression(null, variables, null, expression,
+                            determineExpressionProfile(task.getResult()), getReportService().getExpressionFactory(), "subreport parameter", task, task.getResult());
+                    Class<?> subreportParameterClass;
+                    if (subreport.getType() != null) {
+                        subreportParameterClass = getReportService().getPrismContext().getSchemaRegistry().determineClassForType(subreport.getType());
+                    } else {
+                        subreportParameterClass = subreportParameter.getClass();
+                    }
+                    variables.put(subreport.getName(), subreportParameter, subreportParameterClass);
+                } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
+                        | ConfigurationException | SecurityViolationException e) {
+                    LOGGER.error("Couldn't execute expression " + expression, e);
+                }
+            }
+        }
+    }
+
+    protected void cleanUpVariables() {
+        variables = null;
     }
 }

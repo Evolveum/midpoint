@@ -14,6 +14,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -101,9 +102,11 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
     private static final String ID_PARAMETERS = "paramTable";
 
     private IModel<ReportDto> reportModel;
+    private final ReportType reportType;
 
     public RunReportPopupPanel(String id, final ReportType reportType) {
         super(id);
+        this.reportType = reportType;
 
         reportModel = new LoadableModel<ReportDto>(false) {
 
@@ -124,12 +127,12 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         add(mainForm);
 
 
-        ListView<JasperReportParameterDto> paramListView = new ListView<JasperReportParameterDto>(ID_PARAMETERS, new PropertyModel<>(reportModel, "jasperReportDto.parameters")) {
+        ListView<SearchFilterParameterType> paramListView = new ListView<SearchFilterParameterType>(ID_PARAMETERS, new PropertyModel<>(reportType, "objectCollection.parameter")) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void populateItem(ListItem<JasperReportParameterDto> paramItem) {
+            protected void populateItem(ListItem<SearchFilterParameterType> paramItem) {
                 paramItem.add(createParameterPanel(paramItem.getModel()));
 
             }
@@ -169,41 +172,41 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
     }
 
-    private WebMarkupContainer createParameterPanel(final IModel<JasperReportParameterDto> parameterModel) {
+    private WebMarkupContainer createParameterPanel(final IModel<SearchFilterParameterType> parameterModel) {
         WebMarkupContainer paramPanel = new WebMarkupContainer("paramPanel");
-        paramPanel.setOutputMarkupId(true);
-        String paramValue = new PropertyModel<String>(parameterModel, "name").getObject();
-        StringResourceModel paramDisplay = PageBase.createStringResourceStatic(RunReportPopupPanel.this, "runReportPopupContent.param.name." + paramValue);
-
-        paramPanel.add(new Label("name", paramDisplay)); // use display name rather than property name
-
-        WebMarkupContainer required = new WebMarkupContainer("required");
-        JasperReportParameterPropertiesDto properties = parameterModel.getObject().getProperties();
-        boolean mandatory = (properties != null && properties.getMandatory());
-        required.add(new VisibleBehaviour(() -> mandatory));
-        paramPanel.add(required);
-
-        String paramClass = new PropertyModel<String>(parameterModel, "nestedTypeAsString").getObject();
-        if (StringUtils.isBlank(paramClass)) {
-            paramClass = new PropertyModel<String>(parameterModel, "typeAsString").getObject();
-        }
-        paramClass = paramClass == null ? "" : paramClass.substring(paramClass.lastIndexOf(".") + 1);
-        paramPanel.add(new Label("type", paramClass));
-
-        ListView<JasperReportValueDto> listView = new ListView<JasperReportValueDto>(ID_VALUE_LIST, new PropertyModel<>(parameterModel, "value")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void populateItem(ListItem<JasperReportValueDto> item) {
-                item.add(createInputMarkup(item.getModel(), parameterModel.getObject(), mandatory, paramDisplay));
-
-            }
-
-        };
-        listView.setOutputMarkupId(true);
-
-        paramPanel.add(listView);
+//        paramPanel.setOutputMarkupId(true);
+//        String paramValue = new PropertyModel<String>(parameterModel, "name").getObject();
+//        StringResourceModel paramDisplay = PageBase.createStringResourceStatic(RunReportPopupPanel.this, "runReportPopupContent.param.name." + paramValue);
+//
+//        paramPanel.add(new Label("name", paramDisplay)); // use display name rather than property name
+//
+//        WebMarkupContainer required = new WebMarkupContainer("required");
+//        JasperReportParameterPropertiesDto properties = parameterModel.getObject().getProperties();
+//        boolean mandatory = (properties != null && properties.getMandatory());
+//        required.add(new VisibleBehaviour(() -> mandatory));
+//        paramPanel.add(required);
+//
+//        String paramClass = new PropertyModel<String>(parameterModel, "nestedTypeAsString").getObject();
+//        if (StringUtils.isBlank(paramClass)) {
+//            paramClass = new PropertyModel<String>(parameterModel, "typeAsString").getObject();
+//        }
+//        paramClass = paramClass == null ? "" : paramClass.substring(paramClass.lastIndexOf(".") + 1);
+//        paramPanel.add(new Label("type", paramClass));
+//
+//        ListView<JasperReportValueDto> listView = new ListView<JasperReportValueDto>(ID_VALUE_LIST, new PropertyModel<>(parameterModel, "value")) {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected void populateItem(ListItem<JasperReportValueDto> item) {
+//                item.add(createInputMarkup(item.getModel(), parameterModel.getObject(), mandatory, paramDisplay));
+//
+//            }
+//
+//        };
+//        listView.setOutputMarkupId(true);
+//
+//        paramPanel.add(listView);
         return paramPanel;
     }
 

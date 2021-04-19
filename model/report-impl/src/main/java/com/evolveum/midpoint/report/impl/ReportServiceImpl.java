@@ -8,16 +8,26 @@ package com.evolveum.midpoint.report.impl;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ScriptingService;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
 
+import com.evolveum.midpoint.report.api.ReportConstants;
+import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -44,9 +54,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.report.api.ReportService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.expression.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -467,6 +474,27 @@ public class ReportServiceImpl implements ReportService {
     public boolean isAuthorizedToImportReport(PrismObject<ReportType> report, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         AuthorizationParameters<ReportType,ObjectType> params = AuthorizationParameters.Builder.buildObject(report);
         return securityEnforcer.isAuthorized(ModelAuthorizationAction.IMPORT_REPORT.getUrl(), null, params, null, task, result);
+    }
+
+    public VariablesMap getParameters(Task task) {
+        VariablesMap variables = new VariablesMap();
+        PrismContainer<ReportParameterType> reportParams = (PrismContainer) task.getExtensionItemOrClone(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
+        if (reportParams != null) {
+            PrismContainerValue<ReportParameterType> reportParamsValues = reportParams.getValue();
+            Collection<Item<?, ?>> items = reportParamsValues.getItems();
+            for (Item item : items) {
+                PrismProperty pp = (PrismProperty) item;
+                String paramName = pp.getPath().lastName().getLocalPart();
+                Object value;
+                if (item.isSingleValue()) {
+                    value = pp.getRealValues().iterator().next();
+                } else {
+                    value = pp.getRealValues();
+                }
+                variables.put(paramName, new TypedValue(value, ((PrismProperty<?>) item).getValueClass()));
+            }
+        }
+        return variables;
     }
 
     public Clock getClock() {

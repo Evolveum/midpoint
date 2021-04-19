@@ -15,15 +15,15 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -49,6 +49,7 @@ import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * A service provided by the IDM Model that allows to improve the (user) interaction with the model.
@@ -496,4 +497,9 @@ public interface ModelInteractionService {
     @Experimental
     <O extends ObjectType> List<StringLimitationResult> validateValue(ProtectedStringType protectedStringValue, ValuePolicyType pp, PrismObject<O> object, Task task, OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+
+    @Experimental
+    void searchObjectFromCollection(CollectionRefSpecificationType collection, QName typeForFilter, Predicate<PrismContainer> handler,
+            Collection<SelectorOptions<GetOperationOptions>> options, ObjectPaging paging, VariablesMap variables, Task task, OperationResult result, boolean recordProgress) throws SchemaException,
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 }

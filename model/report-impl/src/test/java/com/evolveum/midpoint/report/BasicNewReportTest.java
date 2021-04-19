@@ -16,10 +16,17 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.prism.*;
+
+import com.evolveum.midpoint.report.api.ReportConstants;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -28,6 +35,8 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author skublik
@@ -80,6 +89,8 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
     public static final File REPORT_OBJECT_COLLECTION_FILTER_BASIC_COLLECTION_WITHOUT_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-filter-and-basic-collection-without-view.xml");
     public static final File REPORT_OBJECT_COLLECTION_WITH_CONDITION_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-condition.xml");
     public static final File REPORT_OBJECT_COLLECTION_EMPTY_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-empty.xml");
+    public static final File REPORT_OBJECT_COLLECTION_WITH_PARAM_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-param.xml");
+    public static final File REPORT_OBJECT_COLLECTION_WITH_SUBREPORT_PARAM_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-subreport-param.xml");
     public static final File REPORT_WITH_IMPORT_SCRIPT = new File(TEST_REPORTS_DIR, "report-with-import-script.xml");
 
     public static final String REPORT_DASHBOARD_WITH_DEFAULT_COLUMN_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a8582";
@@ -102,6 +113,8 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
     public static final String REPORT_OBJECT_COLLECTION_WITH_CONDITION_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a851a";
     public static final String REPORT_OBJECT_COLLECTION_EMPTY_LIST_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85sq";
     public static final String REPORT_WITH_IMPORT_SCRIPT_OID = "2b44aa2e-dd86-4842-bcf5-762c8c4a851a";
+    public static final String REPORT_OBJECT_COLLECTION_WITH_PARAM_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85ew";
+    public static final String REPORT_OBJECT_COLLECTION_WITH_SUBREPORT_PARAM_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85qq";
 
     public static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
 
@@ -158,6 +171,8 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
         importObjectFromFile(REPORT_OBJECT_COLLECTION_FILTER_BASIC_COLLECTION_WITHOUT_VIEW_FILE, initResult);
         importObjectFromFile(REPORT_OBJECT_COLLECTION_WITH_CONDITION_FILE, initResult);
         importObjectFromFile(REPORT_OBJECT_COLLECTION_EMPTY_FILE, initResult);
+        importObjectFromFile(REPORT_OBJECT_COLLECTION_WITH_PARAM_FILE, initResult);
+        importObjectFromFile(REPORT_OBJECT_COLLECTION_WITH_SUBREPORT_PARAM_FILE, initResult);
         importObjectFromFile(REPORT_WITH_IMPORT_SCRIPT, initResult);
     }
 
@@ -280,7 +295,48 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
         basicCheckOutputFile(report);
     }
 
+    @Test
+    public void test118CreateObjectCollectionWithParamReport() throws Exception {
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_WITH_PARAM_OID);
+        runReport(report, getParameters("givenName", String.class, "Will"), false);
+        basicCheckOutputFile(report);
+    }
+
+    @Test
+    public void test119CreateObjectCollectionWithSubreportParamReport() throws Exception {
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_WITH_SUBREPORT_PARAM_OID);
+        runReport(report, false);
+        basicCheckOutputFile(report);
+    }
+
+    private PrismContainer<ReportParameterType> getParameters(String name, Class<String> type, Object realValue) throws SchemaException {
+        PrismContainerDefinition<ReportParameterType> paramContainerDef = prismContext.getSchemaRegistry().findContainerDefinitionByElementName(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
+        PrismContainer<ReportParameterType> paramContainer;
+        paramContainer = paramContainerDef.instantiate();
+        ReportParameterType reportParam = new ReportParameterType();
+        PrismContainerValue<ReportParameterType> reportParamValue = reportParam.asPrismContainerValue();
+        reportParamValue.revive(prismContext);
+        paramContainer.add(reportParamValue);
+
+        QName typeName = prismContext.getSchemaRegistry().determineTypeForClass(type);
+        MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
+                new QName(ReportConstants.NS_EXTENSION, name), typeName);
+        def.setDynamic(true);
+        def.setRuntimeSchema(true);
+        def.toMutable().setMaxOccurs(1);
+
+        PrismProperty prop = def.instantiate();
+        prop.addRealValue(realValue);
+        reportParamValue.add(prop);
+
+        return paramContainer;
+    }
+
     protected PrismObject<TaskType> runReport(PrismObject<ReportType> report, boolean errorOk) throws Exception {
+        return runReport(report, null, errorOk);
+    }
+
+    protected PrismObject<TaskType> runReport(PrismObject<ReportType> report, PrismContainer<ReportParameterType> params, boolean errorOk) throws Exception {
         Task task = createTask(OP_CREATE_REPORT);
         OperationResult result = task.getResult();
         PrismObject<ReportType> reportBefore = report.clone();
@@ -290,7 +346,7 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
 
         // WHEN
         when();
-        reportManager.runReport(report, null, task, result);
+        reportManager.runReport(report, params, task, result);
 
         assertInProgress(result);
 
