@@ -48,8 +48,10 @@ public class ContainerValueIdGenerator {
             @NotNull PrismObject<?> object, long containerIdSeq) throws SchemaException {
         checkExistingContainers(object);
         if (!pcvsWithoutId.isEmpty()) {
-            throw new SchemaException("Stored prism object with OID " + object.getOid()
-                    + " has missing CIDs for these container values: " + pcvsWithoutId);
+            LOGGER.warn("Generating missing container IDs in previously persisted prism object "
+                    + object.toDebugType() + "/" + object.getOid() + " for container values: "
+                    + pcvsWithoutId);
+            assignMissingContainerIds();
         }
         if (containerIdSeq <= maxUsedId) {
             LOGGER.warn("Current CID sequence (" + containerIdSeq + ") is not above max used CID ("
