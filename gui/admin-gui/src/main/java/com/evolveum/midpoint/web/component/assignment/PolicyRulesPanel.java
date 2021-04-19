@@ -10,29 +10,23 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.web.session.SessionStorage;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -120,31 +114,31 @@ public class PolicyRulesPanel extends AssignmentPanel {
         return defs;
     }
 
-    @Override
-    protected ItemVisibility getTypedContainerVisibility(ItemWrapper<?, ?> wrapper) {
-        if (QNameUtil.match(ConstructionType.COMPLEX_TYPE, wrapper.getTypeName())){
-            return ItemVisibility.HIDDEN;
-        }
-
-        if (QNameUtil.match(PersonaConstructionType.COMPLEX_TYPE, wrapper.getTypeName())){
-            return ItemVisibility.HIDDEN;
-        }
-
-        if (QNameUtil.match(AssignmentType.F_ORG_REF, wrapper.getItemName())){
-            return ItemVisibility.HIDDEN;
-        }
-
-        if (ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).equivalent(wrapper.getPath().namedSegmentsOnly())){
-            return ItemVisibility.HIDDEN;
-        }
-
-        if (ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_TARGET_REF).equivalent(wrapper.getPath().namedSegmentsOnly())){
-            return ItemVisibility.HIDDEN;
-        }
-
-        if (QNameUtil.match(AssignmentType.F_TENANT_REF, wrapper.getItemName())){
-            return ItemVisibility.HIDDEN;
-        }
-        return ItemVisibility.AUTO;
-    }
+//    @Override
+//    protected ItemVisibility getTypedContainerVisibility(ItemWrapper<?, ?> wrapper) {
+//        if (QNameUtil.match(ConstructionType.COMPLEX_TYPE, wrapper.getTypeName())){
+//            return ItemVisibility.HIDDEN;
+//        }
+//
+//        if (QNameUtil.match(PersonaConstructionType.COMPLEX_TYPE, wrapper.getTypeName())){
+//            return ItemVisibility.HIDDEN;
+//        }
+//
+//        if (QNameUtil.match(AssignmentType.F_ORG_REF, wrapper.getItemName())){
+//            return ItemVisibility.HIDDEN;
+//        }
+//
+//        if (ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).equivalent(wrapper.getPath().namedSegmentsOnly())){
+//            return ItemVisibility.HIDDEN;
+//        }
+//
+//        if (ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_TARGET_REF).equivalent(wrapper.getPath().namedSegmentsOnly())){
+//            return ItemVisibility.HIDDEN;
+//        }
+//
+//        if (QNameUtil.match(AssignmentType.F_TENANT_REF, wrapper.getItemName())){
+//            return ItemVisibility.HIDDEN;
+//        }
+//        return ItemVisibility.AUTO;
+//    }
 }

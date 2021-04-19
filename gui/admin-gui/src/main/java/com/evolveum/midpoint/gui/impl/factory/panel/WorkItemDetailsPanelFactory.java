@@ -8,7 +8,12 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
+
+import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+
 import org.apache.wicket.markup.html.panel.Panel;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
@@ -20,11 +25,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
  * Created by honchar
  */
 @Component
-public class WorkItemDetailsPanelFactory extends AbstractGuiComponentFactory<CaseWorkItemType> {
+public class WorkItemDetailsPanelFactory implements GuiComponentFactory<PrismContainerPanelContext<CaseWorkItemType>> {
+
+    @Autowired private GuiComponentRegistry registry;
 
     @PostConstruct
     public void register() {
-        getRegistry().addToRegistry(this);
+        registry.addToRegistry(this);
     }
 
     @Override
@@ -33,9 +40,14 @@ public class WorkItemDetailsPanelFactory extends AbstractGuiComponentFactory<Cas
     }
 
     @Override
-    protected Panel getPanel(PrismPropertyPanelContext<CaseWorkItemType> panelCtx) {
+    public org.apache.wicket.Component createPanel(PrismContainerPanelContext<CaseWorkItemType> panelCtx) {
         WorkItemDetailsPanel panel = new WorkItemDetailsPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
         panel.setOutputMarkupId(true);
         return panel;
+    }
+
+    @Override
+    public Integer getOrder() {
+        return Integer.MAX_VALUE - 10;
     }
 }

@@ -41,7 +41,7 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
         initLayout();
     }
 
-    protected void initLayout() {
+    private void initLayout() {
 
         try {
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()

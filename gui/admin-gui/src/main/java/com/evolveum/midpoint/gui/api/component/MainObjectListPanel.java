@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.api.component;
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -200,6 +202,15 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
         };
 
+    }
+
+    @Override
+    protected List<IColumn<SelectableBean<O>, String>> createDefaultColumns() {
+        GuiObjectListViewType defaultView = DefaultColumnUtils.getDefaultView(getType());
+        if (defaultView == null) {
+            return null;
+        }
+        return getViewColumnsTransformed(defaultView.getColumn());
     }
 
     private DisplayType getNewObjectButtonStandardDisplayType() {

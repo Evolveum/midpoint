@@ -91,11 +91,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         return fixedSearchItems;
     }
 
-    @Override
-    protected LoadableModel<Search<O>> getSearchModel() {
-        return super.getSearchModel();
-    }
-
     protected final SelectableBeanObjectDataProvider<O> createSelectableBeanObjectDataProvider(SerializableSupplier<ObjectQuery> querySuplier,
             SerializableFunction<SortParam<String>, List<ObjectOrdering>> orderingSuplier) {
         List<O> preSelectedObjectList = getPreselectedObjectList();

@@ -342,11 +342,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return true;
     }
 
-    protected boolean getNewObjectGenericButtonVisibility(){
-        return true;
-    }
-
-
     protected DisplayType getNewObjectButtonDisplayType(){
         return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", createStringResource("MainObjectListPanel.newObject").getString());
     }
@@ -422,7 +417,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         }
     }
 
-    private List<IColumn<PO, String>> getViewColumnsTransformed(List<GuiObjectColumnType> customColumns){
+    protected List<IColumn<PO, String>> getViewColumnsTransformed(List<GuiObjectColumnType> customColumns){
         List<IColumn<PO, String>> columns = new ArrayList<>();
         if (customColumns == null || customColumns.isEmpty()) {
             return columns;
@@ -696,11 +691,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
         List<IColumn<PO, String>> others = createDefaultColumns();
         if (others == null) {
-            GuiObjectListViewType defaultView = DefaultColumnUtils.getDefaultView(getType());
-            if (defaultView == null) {
-                return columns;
-            }
-            others = getViewColumnsTransformed(defaultView.getColumn());
+            return columns;
         } else {
             IColumn<PO, String> nameColumn = createNameColumn(null, null, null);
             if (nameColumn != null) {
@@ -725,9 +716,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return null;
     }
 
-    protected List<IColumn<PO, String>> createDefaultColumns() {
-        return null;
-    }
+    protected abstract List<IColumn<PO, String>> createDefaultColumns();
 
     protected List<InlineMenuItem> createInlineMenu() {
         return null;
