@@ -60,6 +60,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             long count = jdbcSession.newDelete(QObjectMapping.INSTANCE.defaultAlias()).execute();
             display("Deleted " + count + " objects from DB");
             */
+            jdbcSession.commit();
         }
 
         // this is "suite" scope code, but @BeforeSuite can't use injected fields
@@ -70,6 +71,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
                         // We could skip default relation ID with .where(u.id.gt(0)),
                         // but it must work even when it's gone.
                         .execute();
+                jdbcSession.commit();
             }
 
             sqlRepoContext.clearCaches(); // uses its own transaction

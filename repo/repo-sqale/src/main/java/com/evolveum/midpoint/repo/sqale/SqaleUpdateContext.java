@@ -76,7 +76,7 @@ public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R ex
     }
 
     /** Applies modifications, executes necessary updates and returns narrowed modifications. */
-    public Collection<? extends ItemDelta<?, ?>> finishExecution(
+    public Collection<? extends ItemDelta<?, ?>> execute(
             Collection<? extends ItemDelta<?, ?>> modifications)
             throws SchemaException, RepositoryException {
 

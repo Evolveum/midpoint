@@ -123,6 +123,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 //noinspection unchecked
                 object = (PrismObject<T>) readByOid(jdbcSession, type, oidUuid, options)
                         .asPrismObject();
+                jdbcSession.commit();
             }
 
             // "objectLocal" is here just to provide effectively final variable for the lambda below
@@ -357,6 +358,7 @@ public class SqaleRepositoryService implements RepositoryService {
                         prepareUpdateContext(jdbcSession, type, oidUuid);
                 PrismObject<T> prismObject = updateContext.getPrismObject();
                 if (precondition != null && !precondition.holds(prismObject)) {
+                    jdbcSession.rollback();
                     throw new PreconditionViolationException(
                             "Modification precondition does not hold for " + prismObject);
                 }
@@ -368,7 +370,9 @@ public class SqaleRepositoryService implements RepositoryService {
                 // TODO replaces: RObject rObject = objectDeltaUpdater.modifyObject(type, oid, modifications, prismObject, modifyOptions, session, attemptContext);
                 PrismObject<T> originalObject = prismObject.clone();
 
-                modifications = updateContext.finishExecution(modifications);
+                modifications = updateContext.execute(modifications);
+                jdbcSession.commit();
+
                 LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
 
                 return new ModifyObjectResult<>(originalObject, prismObject, modifications);
@@ -452,6 +456,8 @@ public class SqaleRepositoryService implements RepositoryService {
             try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
                 DeleteObjectResult result = deleteObjectAttempt(type, oidUuid, jdbcSession);
                 invokeConflictWatchers((w) -> w.afterDeleteObject(oid));
+
+                jdbcSession.commit();
                 return result;
             }
         } catch (RuntimeException e) {

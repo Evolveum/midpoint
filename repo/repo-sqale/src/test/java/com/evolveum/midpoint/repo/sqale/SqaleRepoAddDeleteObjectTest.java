@@ -77,10 +77,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(result).isSuccess();
 
         QUser u = aliasFor(QUser.class);
-        List<MUser> users = select(u, u.nameOrig.eq(userName));
-        assertThat(users).hasSize(1);
-
-        MUser row = users.get(0);
+        MUser row = selectOne(u, u.nameOrig.eq(userName));
         assertThat(row.oid).isNotNull();
         assertThat(row.nameNorm).isNotNull(); // normalized name is stored
         assertThat(row.version).isEqualTo(1); // initial version is set
@@ -320,10 +317,11 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     @Test
     public void test291DuplicateCidInDifferentContainersIsCaughtByRepo() {
         OperationResult result = createOperationResult();
+        long previousUserCount = count(QUser.class);
 
         given("object with duplicate CID in different containers");
         UserType user = new UserType(prismContext)
-                .name("any name")
+                .name("user" + getTestNumber())
                 .assignment(new AssignmentType().id(1L))
                 .operationExecution(new OperationExecutionType().id(1L));
 
@@ -331,6 +329,9 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThatThrownBy(() -> repositoryService.addObject(user.asPrismObject(), null, result))
                 .isInstanceOf(SchemaException.class)
                 .hasMessageStartingWith("CID 1 is used repeatedly in the object:");
+
+        and("no new object is created in the database (transaction is rolled back)");
+        assertThat(count(QUser.class)).isEqualTo(previousUserCount);
     }
 
     // region insertion of various types

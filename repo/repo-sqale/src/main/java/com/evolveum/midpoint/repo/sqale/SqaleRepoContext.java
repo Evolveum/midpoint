@@ -67,6 +67,7 @@ public class SqaleRepoContext extends SqlRepoContext {
     public void clearCaches() {
         try (JdbcSession jdbcSession = newJdbcSession().startReadOnlyTransaction()) {
             uriCache.initialize(jdbcSession);
+            jdbcSession.commit();
         }
     }
 

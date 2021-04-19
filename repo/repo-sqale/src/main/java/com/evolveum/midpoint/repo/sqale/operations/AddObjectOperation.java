@@ -112,6 +112,7 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
             row.objectType = objectType;
             transformer.storeRelatedEntities(row, schemaObject, jdbcSession);
 
+            jdbcSession.commit();
             return Objects.requireNonNull(oid, "OID of inserted object can't be null")
                     .toString();
         }
@@ -146,6 +147,7 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
             row.objectType = objectType;
             transformer.storeRelatedEntities(row, schemaObject, jdbcSession);
 
+            jdbcSession.commit();
             return oidString;
         }
     }
@@ -164,5 +166,4 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
             }
         }
     }
-
 }
