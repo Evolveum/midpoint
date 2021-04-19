@@ -22,12 +22,10 @@ import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
  * This hierarchy branch should not need {@link #addRealValues} and {@link #deleteRealValues},
  * so it's not overridden and throws {@link UnsupportedOperationException}.
  */
-public abstract class ItemDeltaSingleValueProcessor<T> implements ItemDeltaValueProcessor<T> {
-
-    protected final SqaleUpdateContext<?, ?, ?> context;
+public abstract class ItemDeltaSingleValueProcessor<T> extends ItemDeltaValueProcessor<T> {
 
     protected ItemDeltaSingleValueProcessor(SqaleUpdateContext<?, ?, ?> context) {
-        this.context = context;
+        super(context);
     }
 
     @Override

@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.UUID;
 
 import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
@@ -18,34 +17,16 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.ReferenceSqlTransformer;
-import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 
-public class RefTableItemDeltaProcessor implements ItemDeltaValueProcessor<Referencable> {
+public class RefTableItemDeltaProcessor extends ItemDeltaValueProcessor<Referencable> {
 
-    protected final SqaleUpdateContext<?, ?, ?> context;
     private final QObjectReferenceMapping refTableMapping;
 
     public RefTableItemDeltaProcessor(
             SqaleUpdateContext<?, ?, ?> context,
             QObjectReferenceMapping refTableMapping) {
-        this.context = context;
+        super(context);
         this.refTableMapping = refTableMapping;
-    }
-
-    @Override
-    public void process(ItemDelta<?, ?> modification) throws RepositoryException {
-        if (modification.isReplace()) {
-            setRealValues(modification.getRealValuesToReplace());
-            return;
-        }
-
-        // if it was replace, we don't get here, but add+delete can be used together
-        if (modification.isAdd()) {
-            addRealValues(modification.getRealValuesToAdd());
-        }
-        if (modification.isDelete()) {
-            deleteRealValues(modification.getRealValuesToDelete());
-        }
     }
 
     @Override
