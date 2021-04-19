@@ -1676,7 +1676,6 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     // TODO: "indexed" containers: .item(ItemPath.create(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
     // endregion
 
-
     // TODO test for multi-value (e.g. subtypes) with item delta with both add and delete lists
     //  But with current implementation this can go to the first hundred section...?
 
@@ -1740,6 +1739,35 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .asObjectable();
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
         assertThat(userObject.getDescription()).isEqualTo("Description only in serialized form.");
+
+        and("externalized version is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+    }
+
+    @Test
+    public void test991ChangeInsideNonPersistedContainerWorksOk()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta with email change for user 1 using property add modification");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_BEHAVIOR, BehaviorType.F_AUTHENTICATION,
+                        AuthenticationBehavioralDataType.F_FAILED_LOGINS).replace(5)
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getBehavior().getAuthentication().getFailedLogins()).isEqualTo(5);
 
         and("externalized version is updated");
         MUser row = selectObjectByOid(QUser.class, user1Oid);

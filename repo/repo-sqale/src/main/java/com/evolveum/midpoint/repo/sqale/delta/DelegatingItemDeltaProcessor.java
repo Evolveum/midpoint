@@ -75,7 +75,11 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
             ItemName firstName = path.firstName();
             path = path.rest();
 
-            ItemRelationResolver relationResolver = mapping.relationResolver(firstName);
+            ItemRelationResolver relationResolver = mapping.getRelationResolver(firstName);
+            if (relationResolver == null) {
+                return null; // unmapped, not persisted, nothing to do
+            }
+
             if (!(relationResolver instanceof SqaleItemRelationResolver)) {
                 // Again, programmers fault.
                 throw new IllegalArgumentException("Relation resolver for " + firstName
