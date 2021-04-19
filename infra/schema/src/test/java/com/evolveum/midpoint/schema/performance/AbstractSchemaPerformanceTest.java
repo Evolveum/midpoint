@@ -99,7 +99,7 @@ public  abstract class AbstractSchemaPerformanceTest extends AbstractUnitTest im
     }
 
     @NotNull
-    public PrismObject<UserType> getJack() throws SchemaException, IOException {
+    public static PrismObject<UserType> getJack() throws SchemaException, IOException {
         return getPrismContext().parserFor(USER_JACK_FILE).parse();
     }
 
