@@ -50,7 +50,7 @@ public class RefTableItemDeltaProcessor implements ItemDeltaValueProcessor<Refer
 
     @Override
     public void addValues(Collection<Referencable> values) {
-        MObject ownerRow = context.fakeObjectRow();
+        MObject ownerRow = context.row();
         ReferenceSqlTransformer<QObjectReference, MReference> transformer =
                 refTableMapping.createTransformer(context.transformerSupport());
 

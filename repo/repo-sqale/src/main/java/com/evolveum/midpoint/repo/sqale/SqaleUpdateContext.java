@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale;
 
 import static com.evolveum.midpoint.repo.sqale.SqaleUtils.objectVersionAsInt;
 
+import java.util.Collection;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
@@ -16,6 +17,7 @@ import com.querydsl.sql.dml.SQLUpdateClause;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.repo.sqale.delta.DelegatingItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
@@ -23,7 +25,10 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -35,31 +40,34 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R extends MObject> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(SqaleUpdateContext.class);
+
     private final SqaleTransformerSupport transformerSupport;
     private final JdbcSession jdbcSession;
-    private final PrismObject<S> prismObject;
+    private final S object;
+    private final R rootRow;
 
     private final SqaleTableMapping<S, Q, R> mapping;
     private final Q rootPath;
     private final SQLUpdateClause update;
-    private final UUID objectOid;
     private final int objectVersion;
 
-    public SqaleUpdateContext(
-            SqaleTransformerSupport sqlTransformerSupport,
-            JdbcSession jdbcSession,
-            PrismObject<S> prismObject) {
+    private ContainerValueIdGenerator cidGenerator;
+
+    public SqaleUpdateContext(SqaleTransformerSupport sqlTransformerSupport,
+            JdbcSession jdbcSession, S object, R rootRow) {
         this.transformerSupport = sqlTransformerSupport;
         this.jdbcSession = jdbcSession;
-        this.prismObject = prismObject;
+        this.object = object;
+        this.rootRow = rootRow;
 
+        //noinspection unchecked
         this.mapping = transformerSupport.sqlRepoContext()
-                .getMappingBySchemaType(prismObject.getCompileTimeClass());
+                .getMappingBySchemaType((Class<S>) object.getClass());
         rootPath = mapping.defaultAlias();
-        objectOid = UUID.fromString(prismObject.getOid());
-        objectVersion = objectVersionAsInt(prismObject);
+        objectVersion = objectVersionAsInt(object);
         update = jdbcSession.newUpdate(rootPath)
-                .where(rootPath.oid.eq(objectOid)
+                .where(rootPath.oid.eq(rootRow.oid)
                         .and(rootPath.version.eq(objectVersion)));
     }
 
@@ -67,30 +75,68 @@ public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R ex
         return rootPath;
     }
 
-    public void processModification(ItemDelta<?, ?> modification) throws RepositoryException {
+    /** Applies modifications, executes necessary updates and returns narrowed modifications. */
+    public Collection<? extends ItemDelta<?, ?>> finishExecution(
+            Collection<? extends ItemDelta<?, ?>> modifications)
+            throws SchemaException, RepositoryException {
+
+        PrismObject<S> prismObject = getPrismObject();
+
+        // I reassign here, we DON'T want original modifications to be used further by accident
+        modifications = prismObject.narrowModifications(
+                modifications, EquivalenceStrategy.DATA,
+                EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS, true);
+        LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
+
+        if (modifications.isEmpty()) {
+            return modifications; // no need to execute any update
+        }
+
+        cidGenerator = new ContainerValueIdGenerator()
+                .forModifyObject(getPrismObject(), rootRow.containerIdSeq);
+
+        for (ItemDelta<?, ?> modification : modifications) {
+            try {
+                processModification(modification);
+            } catch (IllegalArgumentException e) {
+                LOGGER.warn("Modification failed/not implemented yet: {}", e.toString());
+            }
+        }
+
+        transformerSupport.normalizeAllRelations(prismObject);
+        finishExecution();
+
+        return modifications;
+    }
+
+    private void processModification(ItemDelta<?, ?> modification)
+            throws RepositoryException, SchemaException {
+        cidGenerator.processModification(modification);
+        modification.applyTo(getPrismObject());
+
         new DelegatingItemDeltaProcessor(this, mapping)
                 .process(modification);
     }
 
     /**
      * Executes all necessary SQL updates (including sub-entity inserts/deletes)
-     * for the enclosed {@link #prismObject}.
+     * for the enclosed {@link #object}.
      * This also increments the version information and serializes `fullObject`.
      */
-    public void execute(long nextCid) throws SchemaException, RepositoryException {
-        int newVersion = objectVersionAsInt(prismObject) + 1;
-        prismObject.setVersion(String.valueOf(newVersion));
+    public void finishExecution() throws SchemaException, RepositoryException {
+        int newVersion = objectVersionAsInt(object) + 1;
+        object.setVersion(String.valueOf(newVersion));
         update.set(rootPath.version, newVersion);
 
-        update.set(rootPath.containerIdSeq, nextCid);
+        update.set(rootPath.containerIdSeq, cidGenerator.lastUsedId() + 1);
 
         ObjectSqlTransformer<S, Q, R> transformer =
                 (ObjectSqlTransformer<S, Q, R>) mapping.createTransformer(transformerSupport);
-        update.set(rootPath.fullObject, transformer.createFullObject(prismObject.asObjectable()));
+        update.set(rootPath.fullObject, transformer.createFullObject(object));
 
         long rows = update.execute();
         if (rows != 1) {
-            throw new RepositoryException("Object " + objectOid + " with supposed version "
+            throw new RepositoryException("Object " + objectOid() + " with supposed version "
                     + objectVersion + " could not be updated (concurrent access?).");
         }
     }
@@ -104,17 +150,11 @@ public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R ex
     }
 
     public UUID objectOid() {
-        return objectOid;
+        return rootRow.oid;
     }
 
-    /**
-     * Returns fake object row having just the necessary identification attributes that can be
-     * used as an "owner row" for inserting sub-entities.
-     */
-    public R fakeObjectRow() {
-        R row = mapping.newRowObject();
-        row.oid = objectOid;
-        return row;
+    public R row() {
+        return rootRow;
     }
 
     public SqaleTransformerSupport transformerSupport() {
@@ -133,7 +173,12 @@ public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R ex
         return jdbcSession;
     }
 
-    public PrismObject<S> prismObject() {
-        return prismObject;
+    public S getObject() {
+        return object;
+    }
+
+    public PrismObject<S> getPrismObject() {
+        //noinspection unchecked
+        return (PrismObject<S>) object.asPrismObject();
     }
 }

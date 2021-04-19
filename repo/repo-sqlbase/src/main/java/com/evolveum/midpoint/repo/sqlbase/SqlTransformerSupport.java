@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -72,6 +73,10 @@ public class SqlTransformerSupport {
 
     public SqlRepoContext sqlRepoContext() {
         return sqlRepoContext;
+    }
+
+    public void normalizeAllRelations(PrismObject<?> prismObject) {
+        ObjectTypeUtil.normalizeAllRelations(prismObject, schemaService.relationRegistry());
     }
 
     public static class ParseResult<T extends Objectable> {
