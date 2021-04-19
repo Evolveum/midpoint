@@ -6,14 +6,16 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
+import javax.xml.namespace.QName;
+
 import com.querydsl.sql.SQLQuery;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.repo.sqale.filtering.InOidFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
@@ -23,7 +25,8 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         extends SqlQueryContext<S, Q, R> {
 
     public static <S, Q extends FlexibleRelationalPathBase<R>, R> SqaleQueryContext<S, Q, R> from(
-            Class<S> schemaType, SqlTransformerSupport transformerSupport, SqlRepoContext sqlRepoContext) {
+            Class<S> schemaType, SqaleTransformerSupport transformerSupport,
+            SqlRepoContext sqlRepoContext) {
 
         SqaleTableMapping<S, Q, R> rootMapping = sqlRepoContext.getMappingBySchemaType(schemaType);
         Q rootPath = rootMapping.defaultAlias();
@@ -32,13 +35,14 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         // we must take care of unique alias names for JOINs, which is what we want.
         query.getMetadata().setValidate(true);
 
-        return new SqaleQueryContext<>(rootPath, rootMapping, transformerSupport, sqlRepoContext, query);
+        return new SqaleQueryContext<>(
+                rootPath, rootMapping, transformerSupport, sqlRepoContext, query);
     }
 
     private SqaleQueryContext(
             Q entityPath,
             SqaleTableMapping<S, Q, R> mapping,
-            SqlTransformerSupport transformerSupport,
+            SqaleTransformerSupport transformerSupport,
             SqlRepoContext sqlRepoContext,
             SQLQuery<?> query) {
         super(entityPath, mapping, sqlRepoContext, transformerSupport, query);
@@ -54,6 +58,10 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         return new InOidFilterProcessor(context);
     }
 
+    public @NotNull Integer searchCachedRelationId(QName qName) {
+        return transformerSupport().searchCachedRelationId(qName);
+    }
+
     /**
      * Returns {@link SqaleQueryContext} - lot of ugly casting here, but it is not possible to
      * use covariant return type with covariant parametric types (narrower generics).
@@ -64,6 +72,10 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     deriveNew(DQ newPath, QueryTableMapping<?, DQ, DR> newMapping) {
         return (SqlQueryContext<?, DQ, DR>) new SqaleQueryContext(
                 newPath, (SqaleTableMapping<?, ?, ?>) newMapping,
-                transformerSupport, sqlRepoContext, sqlQuery);
+                transformerSupport(), sqlRepoContext, sqlQuery);
+    }
+
+    private SqaleTransformerSupport transformerSupport() {
+        return (SqaleTransformerSupport) transformerSupport;
     }
 }

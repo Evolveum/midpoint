@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale.delta;
+package com.evolveum.midpoint.repo.sqale.delta.item;
 
 import java.util.Map;
 import javax.xml.namespace.QName;
@@ -13,14 +13,12 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
-import com.evolveum.midpoint.repo.sqale.delta.item.ItemDeltaSingleValueProcessor;
+import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleNestedMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 
-/**
- * Processor for embedded containers.
- */
+/** Delta processor for embedded single-value containers. */
 public class EmbeddedContainerDeltaProcessor<T extends Containerable>
         extends ItemDeltaSingleValueProcessor<T> {
 
@@ -50,11 +48,6 @@ public class EmbeddedContainerDeltaProcessor<T extends Containerable>
             }
 
             ItemDeltaValueProcessor<?> processor = createItemDeltaProcessor(mapper);
-            // TODO remove: this should not happen when all mapper types are covered (e.g. ref tables)
-            if (processor == null) {
-                System.out.println("PROCESSOR NULL for: " + mapper);
-                continue;
-            }
             // while the embedded container is single-value, its items may be multi-value
             processor.setRealValues(item.getRealValues());
         }
@@ -72,11 +65,6 @@ public class EmbeddedContainerDeltaProcessor<T extends Containerable>
 
     private void deleteUsing(ItemSqlMapper mapper) {
         ItemDeltaValueProcessor<?> processor = createItemDeltaProcessor(mapper);
-        // TODO remove: this should not happen when all mapper types are covered (e.g. ref tables)
-        if (processor == null) {
-            System.out.println("PROCESSOR NULL for: " + mapper);
-            return;
-        }
         processor.delete();
     }
 

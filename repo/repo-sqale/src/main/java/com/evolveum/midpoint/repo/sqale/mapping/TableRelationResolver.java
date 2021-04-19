@@ -19,19 +19,19 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * Resolver that knows how to add {@code JOIN} for the specified target query type.
  *
  * @param <Q> type of source entity path
- * @param <DQ> type of target entity path
- * @param <DR> row type related to the target entity path {@link DQ}
+ * @param <TQ> type of target entity path
+ * @param <TR> row type related to the target entity path {@link TQ}
  */
 public class TableRelationResolver<
-        Q extends FlexibleRelationalPathBase<?>, DQ extends FlexibleRelationalPathBase<DR>, DR>
+        Q extends FlexibleRelationalPathBase<?>, TQ extends FlexibleRelationalPathBase<TR>, TR>
         implements SqaleItemRelationResolver {
 
-    private final Class<DQ> targetQueryType;
-    private final BiFunction<Q, DQ, Predicate> joinPredicate;
+    private final Class<TQ> targetQueryType;
+    private final BiFunction<Q, TQ, Predicate> joinPredicate;
 
     public TableRelationResolver(
-            @NotNull Class<DQ> targetQueryType,
-            @NotNull BiFunction<Q, DQ, Predicate> joinPredicate) {
+            @NotNull Class<TQ> targetQueryType,
+            @NotNull BiFunction<Q, TQ, Predicate> joinPredicate) {
         this.targetQueryType = targetQueryType;
         this.joinPredicate = joinPredicate;
     }
@@ -46,7 +46,7 @@ public class TableRelationResolver<
     @Override
     public ResolutionResult resolve(SqlQueryContext<?, ?, ?> context) {
         //noinspection unchecked
-        SqlQueryContext<?, DQ, DR> joinContext =
+        SqlQueryContext<?, TQ, TR> joinContext =
                 ((SqlQueryContext<?, Q, ?>) context).leftJoin(targetQueryType, joinPredicate);
 
         return new ResolutionResult(joinContext, joinContext.mapping());

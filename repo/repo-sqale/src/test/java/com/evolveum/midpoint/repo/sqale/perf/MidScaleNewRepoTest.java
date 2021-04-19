@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale;
+package com.evolveum.midpoint.repo.sqale.perf;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,6 +18,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.tools.testng.PerformanceTestClassMixin;
@@ -134,7 +135,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
         return new ShadowType(prismContext)
                 .name(PolyStringType.fromOrig(shadowName))
                 .resourceRef(MiscSchemaUtil.createObjectReference(
-                resourceOid, ResourceType.COMPLEX_TYPE));
+                        resourceOid, ResourceType.COMPLEX_TYPE));
     }
 
     @Test

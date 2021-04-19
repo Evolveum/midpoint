@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale;
+package com.evolveum.midpoint.repo.sqale.func;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPath
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
@@ -89,8 +90,9 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         user.subtypes = new String[] { "subtype1", "subtype2" };
         user.ext = new Jsonb("{\"key\" : \"value\",\n\"number\": 47} "); // more whitespaces/lines
         user.photo = new byte[] { 0, 1, 0, 1 };
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             jdbcSession.newInsert(u).populate(user).execute();
+            jdbcSession.commit();
         }
 
         MUser row = selectOne(u, u.nameNorm.eq(userName));
@@ -101,7 +103,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         assertThat(row.photo).hasSize(4);
 
         // setting NULLs
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             jdbcSession.newUpdate(u)
                     .setNull(u.policySituations)
                     .set(u.subtypes, (String[]) null) // this should do the same
@@ -109,6 +111,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
                     .setNull(u.photo)
                     .where(u.oid.eq(row.oid))
                     .execute();
+            jdbcSession.commit();
         }
 
         row = selectOne(u, u.nameNorm.eq(userName));

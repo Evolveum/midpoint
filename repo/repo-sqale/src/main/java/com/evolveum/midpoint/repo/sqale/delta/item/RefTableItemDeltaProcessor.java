@@ -7,45 +7,58 @@
 package com.evolveum.midpoint.repo.sqale.delta.item;
 
 import java.util.Collection;
+import java.util.UUID;
 
 import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
-import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.ReferenceSqlTransformer;
 
-public class RefTableItemDeltaProcessor implements ItemDeltaValueProcessor<Referencable> {
+public class RefTableItemDeltaProcessor extends ItemDeltaValueProcessor<Referencable> {
 
-    protected final SqaleUpdateContext<?, ?, ?> context;
     private final QObjectReferenceMapping refTableMapping;
 
     public RefTableItemDeltaProcessor(
             SqaleUpdateContext<?, ?, ?> context,
             QObjectReferenceMapping refTableMapping) {
-        this.context = context;
+        super(context);
         this.refTableMapping = refTableMapping;
     }
 
     @Override
-    public void process(ItemDelta<?, ?> modification) throws RepositoryException {
-        System.out.println("modification = " + modification);
-        // TODO
+    public void addValues(Collection<Referencable> values) {
+        MObject ownerRow = context.row();
+        ReferenceSqlTransformer<QObjectReference, MReference> transformer =
+                refTableMapping.createTransformer(context.transformerSupport());
 
-//        ReferenceSqlTransformer<QObjectReference, MReference> transformer =
-//                refTableMapping.createTransformer(context.transformerSupport());
-//        transformer.insert();
+        // It looks like the insert belongs to context, but there is no common insert contract.
+        // Each transformer has different types and needs. What? No, I don't want to introduce
+        // owner row type as another parametrized type on the transformer, thank you.
+        values.forEach(ref -> transformer.insert(ref, ownerRow, context.jdbcSession()));
     }
 
     @Override
-    public void setRealValues(Collection<?> values) {
-        System.out.println("values = " + values);
-        // TODO
+    public void deleteValues(Collection<Referencable> values) {
+        QObjectReference r = refTableMapping.defaultAlias();
+        for (Referencable ref : values) {
+            Integer relId = context.transformerSupport().searchCachedRelationId(ref.getRelation());
+            context.jdbcSession().newDelete(r)
+                    .where(r.ownerOid.eq(context.objectOid())
+                            .and(r.targetOid.eq(UUID.fromString(ref.getOid())))
+                            .and(r.relationId.eq(relId)))
+                    .execute();
+        }
     }
 
     @Override
     public void delete() {
-        System.out.println("DELETE");
-        // TODO
+        QObjectReference r = refTableMapping.defaultAlias();
+        context.jdbcSession().newDelete(r)
+                .where(r.ownerOid.eq(context.objectOid()))
+                .execute();
     }
 }

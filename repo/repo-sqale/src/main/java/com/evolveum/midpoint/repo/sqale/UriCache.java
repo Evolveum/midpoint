@@ -43,6 +43,7 @@ public class UriCache {
      * and returning `null` or throwing exception would not make sense.
      * Typical case is using it for query predicate when searching for unknown URI should result
      * in a condition comparing URI ID attribute (e.g. relation_id) to id that will not be found.
+     * This is completely transient and can be changed if the need arises.
      */
     public static final int UNKNOWN_ID = -1;
 
