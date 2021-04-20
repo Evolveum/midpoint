@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
+import java.util.function.BiFunction;
+
+import com.querydsl.core.types.Predicate;
+
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -39,5 +43,10 @@ public class QAssignmentReferenceMapping
         row.ownerOid = ownerRow.ownerOid;
         row.assignmentCid = ownerRow.cid;
         return row;
+    }
+
+    @Override
+    public BiFunction<QAssignment, QAssignmentReference, Predicate> joinOnPredicate() {
+        return (a, r) -> a.ownerOid.eq(r.ownerOid).and(a.cid.eq(r.assignmentCid));
     }
 }

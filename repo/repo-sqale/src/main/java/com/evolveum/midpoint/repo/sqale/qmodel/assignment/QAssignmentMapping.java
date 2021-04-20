@@ -89,9 +89,11 @@ public class QAssignmentMapping
                 .addItemMapping(MetadataType.F_MODIFY_CHANNEL,
                         uriMapper(path(q -> q.modifyChannelId)))
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
-                        timestampMapper(path(q -> q.modifyTimestamp)));
-
-        // TODO relation mapping (often in nested mapping ;-))
+                        timestampMapper(path(q -> q.modifyTimestamp)))
+                .addRefMapping(MetadataType.F_CREATE_APPROVER_REF,
+                        QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_CREATE_APPROVER)
+                .addRefMapping(MetadataType.F_MODIFY_APPROVER_REF,
+                        QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_MODIFY_APPROVER);
     }
 
     @Override

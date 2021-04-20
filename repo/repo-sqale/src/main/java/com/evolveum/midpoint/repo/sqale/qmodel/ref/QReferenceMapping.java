@@ -66,10 +66,12 @@ public class QReferenceMapping<Q extends QReference<R>, R extends MReference, OQ
     /** Defines a contract for creating the reference for the provided owner row. */
     public R newRowObject(OR ownerRow) {
         throw new UnsupportedOperationException(
-                "Reference bean creation for owner row called on super-class level");
+                "Reference bean creation for owner row called on abstract reference mapping");
     }
 
+    /** Returns a bi-function that constructs JOIN query predicate for owner and reference. */
     public BiFunction<OQ, Q, Predicate> joinOnPredicate() {
-        return null;
+        throw new UnsupportedOperationException(
+                "joinOnPredicate not supported on abstract reference mapping");
     }
 }

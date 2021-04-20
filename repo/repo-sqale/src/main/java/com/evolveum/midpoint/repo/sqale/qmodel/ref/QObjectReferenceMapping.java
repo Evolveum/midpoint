@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
+import java.util.function.BiFunction;
+
+import com.querydsl.core.types.Predicate;
+
 import com.evolveum.midpoint.repo.sqale.qmodel.QObjectTemplate;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
@@ -57,5 +61,10 @@ public class QObjectReferenceMapping<Q extends QObject<R>, R extends MObject>
         MReference row = new MReference();
         row.ownerOid = ownerRow.oid;
         return row;
+    }
+
+    @Override
+    public BiFunction<Q, QObjectReference, Predicate> joinOnPredicate() {
+        return (o, r) -> o.oid.eq(r.ownerOid);
     }
 }
