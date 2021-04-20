@@ -15,7 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  * The mapping is the same for all subtypes, see different `INSTANCE_*` constants below.
  */
 public class QAssignmentReferenceMapping
-        extends QReferenceMapping<QAssignmentReference, MAssignmentReference> {
+        extends QReferenceMapping<QAssignmentReference, MAssignmentReference, MAssignment> {
 
     public static final QAssignmentReferenceMapping INSTANCE_ASSIGNMENT_CREATE_APPROVER =
             new QAssignmentReferenceMapping("m_assignment_ref_create_approver", "arefca");
@@ -34,7 +34,10 @@ public class QAssignmentReferenceMapping
     }
 
     @Override
-    public MAssignmentReference newRowObject() {
-        return new MAssignmentReference();
+    public MAssignmentReference newRowObject(MAssignment ownerRow) {
+        MAssignmentReference row = new MAssignmentReference();
+        row.ownerOid = ownerRow.ownerOid;
+        row.assignmentCid = ownerRow.cid;
+        return row;
     }
 }

@@ -12,27 +12,25 @@ import java.util.UUID;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.ReferenceSqlTransformer;
 
-public class RefTableItemDeltaProcessor extends ItemDeltaValueProcessor<Referencable> {
+public class RefTableItemDeltaProcessor<Q extends QReference<?>, OR> extends ItemDeltaValueProcessor<Referencable> {
 
-    private final QObjectReferenceMapping refTableMapping;
+    private final QReferenceMapping<Q, ?, OR> refTableMapping;
 
     public RefTableItemDeltaProcessor(
-            SqaleUpdateContext<?, ?, ?> context,
-            QObjectReferenceMapping refTableMapping) {
+            SqaleUpdateContext<?, ?, ?> context, // TODO OR as last here as well
+            QReferenceMapping<Q, ?, OR> refTableMapping) {
         super(context);
         this.refTableMapping = refTableMapping;
     }
 
     @Override
     public void addValues(Collection<Referencable> values) {
-        MObject ownerRow = context.row();
-        ReferenceSqlTransformer<QObjectReference, MReference> transformer =
+        OR ownerRow = (OR) context.row(); // TODO cleanup when context has generic superclass
+        ReferenceSqlTransformer<?, ?, OR> transformer =
                 refTableMapping.createTransformer(context.transformerSupport());
 
         // It looks like the insert belongs to context, but there is no common insert contract.
@@ -43,7 +41,7 @@ public class RefTableItemDeltaProcessor extends ItemDeltaValueProcessor<Referenc
 
     @Override
     public void deleteValues(Collection<Referencable> values) {
-        QObjectReference r = refTableMapping.defaultAlias();
+        Q r = refTableMapping.defaultAlias();
         for (Referencable ref : values) {
             Integer relId = context.transformerSupport().searchCachedRelationId(ref.getRelation());
             context.jdbcSession().newDelete(r)
@@ -56,7 +54,7 @@ public class RefTableItemDeltaProcessor extends ItemDeltaValueProcessor<Referenc
 
     @Override
     public void delete() {
-        QObjectReference r = refTableMapping.defaultAlias();
+        Q r = refTableMapping.defaultAlias();
         context.jdbcSession().newDelete(r)
                 .where(r.ownerOid.eq(context.objectOid()))
                 .execute();

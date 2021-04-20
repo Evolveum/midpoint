@@ -11,7 +11,6 @@ import java.util.UUID;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceOwner;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
@@ -19,7 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusTy
 /**
  * Querydsl "row bean" type related to {@link QAssignment}.
  */
-public class MAssignment extends MContainer implements MReferenceOwner<MAssignmentReference> {
+public class MAssignment extends MContainer {
 
     public MObjectType ownerType;
     public String lifecycleState;
@@ -63,12 +62,4 @@ public class MAssignment extends MContainer implements MReferenceOwner<MAssignme
     public Integer modifierRefRelationId;
     public Integer modifyChannelId;
     public Instant modifyTimestamp;
-
-    @Override
-    public MAssignmentReference createReference() {
-        MAssignmentReference row = new MAssignmentReference();
-        row.ownerOid = ownerOid;
-        row.assignmentCid = cid;
-        return row;
-    }
 }

@@ -10,15 +10,13 @@ import java.time.Instant;
 import java.util.UUID;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceOwner;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 
 /**
  * Querydsl "row bean" type related to {@link QObject}.
  * It is also used for other mappings/objects types with no additional columns in their tables.
  */
-public class MObject implements MReferenceOwner<MReference> {
+public class MObject {
 
     public UUID oid;
     // objectType is read-only, it must be null before insert/updates of the whole M-bean
@@ -51,13 +49,6 @@ public class MObject implements MReferenceOwner<MReference> {
 
     public PolyString getName() {
         return new PolyString(nameOrig, nameNorm);
-    }
-
-    @Override
-    public MReference createReference() {
-        MReference ref = new MReference();
-        ref.ownerOid = oid;
-        return ref;
     }
 
     @Override

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
@@ -13,7 +14,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  * The mapping is the same for all subtypes, see different `INSTANCE_*` constants below.
  */
 public class QObjectReferenceMapping
-        extends QReferenceMapping<QObjectReference, MReference> {
+        extends QReferenceMapping<QObjectReference, MReference, MObject> {
 
     public static final QObjectReferenceMapping INSTANCE_ARCHETYPE =
             new QObjectReferenceMapping("m_ref_archetype", "refa");
@@ -46,7 +47,9 @@ public class QObjectReferenceMapping
     }
 
     @Override
-    public MReference newRowObject() {
-        return new MReference();
+    public MReference newRowObject(MObject ownerRow) {
+        MReference row = new MReference();
+        row.ownerOid = ownerRow.oid;
+        return row;
     }
 }

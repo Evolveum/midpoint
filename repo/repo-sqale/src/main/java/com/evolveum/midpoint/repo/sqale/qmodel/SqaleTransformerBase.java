@@ -23,7 +23,6 @@ import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceOwner;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.ReferenceSqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
@@ -192,11 +191,11 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
         }
     }
 
-    protected <REF extends MReference> void storeRefs(
-            @NotNull MReferenceOwner<REF> ownerRow, @NotNull List<ObjectReferenceType> refs,
-            @NotNull QReferenceMapping<?, REF> mapping, @NotNull JdbcSession jdbcSession) {
+    protected <REF extends MReference, OR> void storeRefs(
+            @NotNull OR ownerRow, @NotNull List<ObjectReferenceType> refs,
+            @NotNull QReferenceMapping<?, REF, OR> mapping, @NotNull JdbcSession jdbcSession) {
         if (!refs.isEmpty()) {
-            ReferenceSqlTransformer<?, REF> transformer =
+            ReferenceSqlTransformer<?, REF, OR> transformer =
                     mapping.createTransformer(transformerSupport);
             refs.forEach(ref -> transformer.insert(ref, ownerRow, jdbcSession));
         }

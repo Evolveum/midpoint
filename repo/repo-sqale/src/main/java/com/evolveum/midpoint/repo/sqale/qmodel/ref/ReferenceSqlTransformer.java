@@ -13,22 +13,21 @@ import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTransformerBase;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 
-public class ReferenceSqlTransformer<Q extends QReference<R>, R extends MReference>
+public class ReferenceSqlTransformer<Q extends QReference<R>, R extends MReference, OR>
         extends SqaleTransformerBase<Referencable, Q, R> {
 
     public ReferenceSqlTransformer(
-            SqlTransformerSupport transformerSupport, QReferenceMapping<Q, R> mapping) {
+            SqlTransformerSupport transformerSupport, QReferenceMapping<Q, R, OR> mapping) {
         super(transformerSupport, mapping);
     }
 
     /**
-     * There is no need to override this as the {@link MReferenceOwner#createReference()} takes
-     * care of the FK-columns initialization directly on the owning row object.
+     * There is no need to override this, only reference creation is different and that is covered
+     * by {@link QReferenceMapping#newRowObject(Object)} including setting FK columns.
      * All the other columns are based on a single schema type, so there is no variation.
      */
-    public void insert(Referencable schemaObject,
-            MReferenceOwner<R> ownerRow, JdbcSession jdbcSession) {
-        R row = ownerRow.createReference();
+    public void insert(Referencable schemaObject, OR ownerRow, JdbcSession jdbcSession) {
+        R row = ((QReferenceMapping<Q, R, OR>) mapping).newRowObject(ownerRow);
         // row.referenceType is DB generated, must be kept NULL, but it will match referenceType
         row.relationId = processCacheableRelation(schemaObject.getRelation(), jdbcSession);
         row.targetOid = UUID.fromString(schemaObject.getOid());

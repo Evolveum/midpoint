@@ -8,20 +8,23 @@ package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Base mapping between {@link QReference} subclasses and {@link ObjectReferenceType}.
  * See subtypes for mapping instances for specific tables and see {@link MReferenceType} as well.
+ *
+ * @param <OR> row type of the reference owner
  */
-public class QReferenceMapping<Q extends QReference<R>, R extends MReference>
+public class QReferenceMapping<Q extends QReference<R>, R extends MReference, OR>
         extends SqaleTableMapping<Referencable, Q, R> {
 
     // see also subtype specific alias names defined for instances below
     public static final String DEFAULT_ALIAS_NAME = "ref";
 
-    public static final QReferenceMapping<QReference<MReference>, MReference> INSTANCE =
+    public static final QReferenceMapping<QReference<MReference>, MReference, MObject> INSTANCE =
             new QReferenceMapping<>(QReference.TABLE_NAME, DEFAULT_ALIAS_NAME, QReference.CLASS);
 
     protected QReferenceMapping(
@@ -46,14 +49,14 @@ public class QReferenceMapping<Q extends QReference<R>, R extends MReference>
     }
 
     @Override
-    public ReferenceSqlTransformer<Q, R> createTransformer(
+    public ReferenceSqlTransformer<Q, R, OR> createTransformer(
             SqlTransformerSupport transformerSupport) {
         return new ReferenceSqlTransformer<>(transformerSupport, this);
     }
 
-    @Override
-    public R newRowObject() {
-        //noinspection unchecked
-        return (R) new MReference();
+    /** Defines a contract for creating the reference for the provided owner row. */
+    public R newRowObject(OR ownerRow) {
+        throw new UnsupportedOperationException(
+                "Reference bean creation for owner row called on super-class level");
     }
 }
