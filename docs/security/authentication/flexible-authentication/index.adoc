@@ -2,7 +2,7 @@
 :page-wiki-name: Flexible Authentication
 :page-since: "4.1"
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 Authentication used to be quite simple back in 20th century.

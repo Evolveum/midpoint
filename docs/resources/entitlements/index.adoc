@@ -3,7 +3,7 @@
 :page-toc: top
 :page-since: "3.0"
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 == Introduction

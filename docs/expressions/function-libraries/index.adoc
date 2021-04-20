@@ -2,7 +2,7 @@
 :page-wiki-name: Function Libraries
 :page-since: "3.7"
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 == Overview

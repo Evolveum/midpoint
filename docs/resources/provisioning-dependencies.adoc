@@ -1,7 +1,7 @@
 = Provisioning Dependencies
 :page-wiki-name: Provisioning Dependencies
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 Usually each resource can be provisioned independently.

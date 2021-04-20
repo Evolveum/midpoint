@@ -1,7 +1,7 @@
 = Policy-based approvals
 :page-wiki-name: Policy-based approvals
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 MidPoint is identity management and governance system, therefore it is quite natural that it implements an wiki:Approval[approval] mechanism.

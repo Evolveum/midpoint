@@ -3,7 +3,7 @@
 :page-since: "3.5"
 :page-since-improved: [ "3.6" ]
 :page-midpoint-feature: true
-:page-alias: [ { "parent" : "/midpoint/features/" }, { "parent" : "/midpoint/reference/cases/" } ]
+:page-alias: [ { "parent" : "/midpoint/features/current/" }, { "parent" : "/midpoint/reference/cases/" } ]
 :page-upkeep-status: yellow
 
 

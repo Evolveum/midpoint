@@ -1,7 +1,7 @@
 = Authorization
 :page-wiki-name: Authorization
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 MidPoint has a very powerful and flexible authorization mechanism.

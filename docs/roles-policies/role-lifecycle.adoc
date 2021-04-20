@@ -2,7 +2,7 @@
 :page-wiki-name: Role Lifecycle
 :page-since: "3.5"
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 MidPoint contains mechanisms that can be used to manage lifecycle of the roles and role-like objects (wiki:RoleType[roles], wiki:OrgType[orgs], wiki:Services[services] and even wiki:UserType[users]). Lifecycle management means that midPoint can apply constraints and wiki:Policy+Rules[rules] to various lifecycle events such as creation of a new role, change of role definition, deletion and so on.

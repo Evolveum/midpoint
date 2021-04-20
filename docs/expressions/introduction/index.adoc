@@ -4,7 +4,7 @@
 :page-display-order: 20
 :page-upkeep-status: orange
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/", "slug" : "expressions",  "title" : "Mappings and Expressions", "display-order" : 100 }
+:page-alias: { "parent" : "/midpoint/features/current/", "slug" : "expressions",  "title" : "Mappings and Expressions", "display-order" : 100 }
 
 Expressions and mappings are very efficient way how to customize midPoint.
 They are short specifications how to transform source values to another value(s).

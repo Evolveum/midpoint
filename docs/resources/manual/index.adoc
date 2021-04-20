@@ -2,7 +2,7 @@
 :page-wiki-name: Manual Resource and ITSM Integration
 :page-since: "3.6"
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 == Manual Resource

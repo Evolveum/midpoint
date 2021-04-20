@@ -1,7 +1,7 @@
 = High Availability and Load Balancing
 :page-wiki-name: High Availability and Load Balancing
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: orange
 :page-upkeep-note: Merge with clustering-ha?
 

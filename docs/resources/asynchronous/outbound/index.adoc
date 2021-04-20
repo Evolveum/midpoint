@@ -5,7 +5,7 @@
 :page-experimental: true
 :page-experimental-since: "4.3"
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/", "title" : "Asynchronous (Messaging) Outbound Resources" }
+:page-alias: { "parent" : "/midpoint/features/current/", "title" : "Asynchronous (Messaging) Outbound Resources" }
 :page-upkeep-status: green
 
 There are situations where a target resource is not accessible in a direct, synchronous, CRUD-like way.

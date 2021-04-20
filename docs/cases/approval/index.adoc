@@ -1,7 +1,7 @@
 = Approval
 :page-wiki-name: Approval
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: red
 :page-upkeep-note: Old approvals vs new approvals
 

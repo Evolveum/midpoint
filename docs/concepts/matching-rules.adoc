@@ -1,7 +1,7 @@
 = Matching Rules
 :page-wiki-name: Matching Rules
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 
 Matching rules are short expressions that can normalize and match attribute values.
 Attributes values are normally compared literally, e.g. strings are compared as they come from the resource in a case-sensitive manner.

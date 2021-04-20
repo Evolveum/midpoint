@@ -1,7 +1,7 @@
 = Repository Database Support
 :page-wiki-name: Repository Database Support
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: green
 
 MidPoint was designed with a flexible implementation of its wiki:Repository+Subsystem[repository subsystem], which allows support for several types of storage technologies.

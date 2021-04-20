@@ -2,7 +2,7 @@
 :page-wiki-name: Workflowless
 :page-since: "4.0"
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 MidPoint 3.x and earlier were shipped with xref:workflow-3/[integrated Activiti workflow engine]. That is no longer the case.

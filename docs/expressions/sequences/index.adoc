@@ -2,7 +2,7 @@
 :page-wiki-name: Sequences
 :page-since: "3.3"
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: green
 
 Sequences are persistent objects in midPoint repository that maintain counters.

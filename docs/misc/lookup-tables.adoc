@@ -2,7 +2,7 @@
 :page-wiki-name: Lookup Tables
 :page-since: "3.1.1"
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: green
 
 Lookup tables are a mechanism how to manage selection and mapping of pre-defined value sets.

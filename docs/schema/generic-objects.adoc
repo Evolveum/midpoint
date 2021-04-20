@@ -1,7 +1,7 @@
 = Generic Objects
 :page-wiki-name: Generic Objects
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 Most IDM systems are limited to manage just users.

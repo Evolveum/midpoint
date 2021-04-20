@@ -5,7 +5,7 @@
 :page-experimental: true
 :page-experimental-description: This feature was contributed by the community. It was not thoroughly tested yet. Hence the experimental status.
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 MidPoint provides feature that puts Resource into maintenance mode by administrative decission.

@@ -2,7 +2,7 @@
 :page-wiki-name: Service Account Management
 :page-since: "3.9"
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 == Motivation

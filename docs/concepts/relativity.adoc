@@ -1,7 +1,7 @@
 = Relativity
 :page-wiki-name: Relativity
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: orange
 
 MidPoint is using internal mechanism based on relative changes.

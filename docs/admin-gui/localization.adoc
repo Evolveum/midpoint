@@ -1,7 +1,7 @@
 = Localization
 :page-wiki-name: Localization
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 MidPoint was born in Europe, therefore it is quite natural that it had support for multiple languages from its very beginning.

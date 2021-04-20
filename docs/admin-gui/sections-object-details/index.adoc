@@ -2,7 +2,7 @@
 :page-wiki-name: Sections (virtual containers) in object details
 :page-since: "4.0"
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 == Introduction

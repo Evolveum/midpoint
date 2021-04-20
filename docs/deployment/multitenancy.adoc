@@ -2,7 +2,7 @@
 :page-wiki-name: multi-tenancy
 :page-toc: top
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-keywords: [ 'multi-tenant', 'multitenant', 'multi-tenancy', 'multitenancy' ]
 :page-upkeep-status: yellow
 

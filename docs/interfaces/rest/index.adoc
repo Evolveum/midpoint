@@ -1,7 +1,7 @@
 = REST API
 :page-wiki-name: REST API
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: orange
 :page-toc: top
 

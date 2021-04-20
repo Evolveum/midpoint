@@ -2,7 +2,7 @@
 :page-wiki-name: Constants
 :page-since: "3.6"
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 MidPoint is often deployed in several environments: development environment, testing environment, production environment.

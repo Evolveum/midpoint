@@ -3,7 +3,7 @@
 :page-since: "3.8"
 :page-toc: top
 :page-midpoint-feature: true
-:page-alias: [ { "parent" : "/midpoint/features/" }, { "parent" : "/midpoint/reference/admin-gui/" } ]
+:page-alias: [ { "parent" : "/midpoint/features/current/" }, { "parent" : "/midpoint/reference/admin-gui/" } ]
 :page-upkeep-status: yellow
 
 == Introduction

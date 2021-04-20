@@ -2,7 +2,7 @@
 :page-wiki-name: Multi-Connector Resource
 :page-since: "3.6"
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: green
 
 

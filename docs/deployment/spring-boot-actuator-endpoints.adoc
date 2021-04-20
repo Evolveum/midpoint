@@ -2,7 +2,7 @@
 :page-wiki-name: Spring Boot Actuator Endpoints
 :page-since: "4.0.1"
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 Midpoint support six Spring Boot Actuator endpoint.

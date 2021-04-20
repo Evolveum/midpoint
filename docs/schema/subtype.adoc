@@ -3,7 +3,7 @@
 :page-deprecated: true
 :page-replaced-by: /midpoint/reference/schema/archetypes/
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 MidPoint has several built-in object types such as wiki:Advanced+Hybrid+RBAC[roles], wiki:Organizational+Structure[orgs], and wiki:Services[services]. Those object types may look innocent at the first sight.

@@ -1,7 +1,7 @@
 = Notifications
 :page-wiki-name: Notifications
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: orange
 
 == Introduction

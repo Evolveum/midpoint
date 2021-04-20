@@ -1,7 +1,7 @@
 = Iteration
 :page-wiki-name: Iteration
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: green
 
 Iteration is mechanism how to determine a unique value by several attempts.

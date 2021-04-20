@@ -2,7 +2,7 @@
 :page-wiki-name: Provisioning Propagation
 :page-since: "3.7.1"
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: green
 
 MidPoint is quite an eager system.

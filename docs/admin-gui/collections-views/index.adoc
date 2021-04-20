@@ -4,7 +4,7 @@
 :page-since-improved: [ "4.2", "4.3" ]
 :page-toc: top
 :page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/" }
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: orange
 :page-upkeep-note: Document recent improvements (4.2, 4.3)
 
