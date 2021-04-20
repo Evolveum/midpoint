@@ -1,0 +1,80 @@
+= Linked Objects Scenario 5: Deletion-Safe Organizations
+:page-nav-title: Scenario 5: Deletion-Safe Organizations
+:page-wiki-name: Linked objects scenario 5: Deletion-safe organizations
+:page-since: "4.2"
+:page-toc: top
+
+== Overview
+
+Is it possible to delete an organization in such a way that all its members (users, child orgs, and other objects) will not end up in an inconsistent state? I.e. that their assignments to the particular org will be deleted, instead of becoming hanging?
+
+Yes, using a simple policy rule this can be easily implemented.
+
+
+== An implementation
+
+Implementation of this scenario consists of a single global policy rule.
+
+.Global policy rule that ensures unassigning of org being deleted
+[source,xml]
+----
+<globalPolicyRule>
+    <focusSelector>
+        <type>OrgType</type>
+        <!-- finer selection (e.g. based on archetype) can be used here if needed -->
+    </focusSelector>
+    <name>unassign-children-on-org-deletion</name>
+    <documentation>
+        Unassigns members when an org is deleted.
+    </documentation>
+    <policyConstraints>
+        <modification>
+            <operation>delete</operation>
+        </modification>
+    </policyConstraints>
+    <policyActions>
+        <scriptExecution>
+            <object>
+                <linkSource/> <!-- all objects linked to the current focus -->
+            </object>
+            <executeScript>
+                <s:unassign>
+                    <s:filter>
+                        <q:ref>
+                            <!-- all assignments targeting the current focus -->
+                            <q:path>targetRef</q:path>
+                            <expression>
+                                <script>
+                                    <code>
+                                        import com.evolveum.midpoint.schema.util.ObjectTypeUtil
+                                        ObjectTypeUtil.createObjectRef(focus.oid)
+                                    </code>
+                                </script>
+                            </expression>
+                        </q:ref>
+                    </s:filter>
+                </s:unassign>
+            </executeScript>
+        </scriptExecution>
+    </policyActions>
+</globalPolicyRule>
+----
+
+Complete configuration for this scenario is in link:https://github.com/Evolveum/midpoint/tree/master/model/model-intest/src/test/resources/linked/orgs[https://github.com/Evolveum/midpoint/tree/master/model/model-intest/src/test/resources/linked/orgs] directory (and associated link:https://github.com/Evolveum/midpoint/blob/2ddd16ca4e482c26d5e95fd3bf1356bcf7a2b136/model/model-intest/src/test/resources/linked/system-configuration.xml#L109-L147[system configuration] file).
+
+
+== Limitations
+
+This scenario works in the majority of cases.
+More specifically, it assumes that "assigned" is the same as "linked":
+
+. All assignments are effective (valid and conditions evaluated to true), so they are reflected in links.
+
+. All links are backed by assignments, i.e. there are no links created by inducements or created manually (editing `parentOrgRef`).
+
+But the scenario can be extended and made more robust, by:
+
+. Replacing `linkSource` specification by custom query looking after `assignment/targetRef` filters.
+
+. Creating additional global policy rule that will clean up the inducements for organization being deleted.
+

@@ -1,0 +1,10 @@
+= Asynchronous (Messaging) Inbound Resources
+:page-nav-title: Inbound
+:page-wiki-name: Asynchronous (Messaging) Inbound Resources
+:page-experimental: true
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/", "title" : "Asynchronous (Messaging) Inbound Resources" }
+:page-upkeep-status: red
+:page-upkeep-note: This page is empty!
+
+TODO

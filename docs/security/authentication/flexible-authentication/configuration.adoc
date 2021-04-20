@@ -1,5 +1,5 @@
 = Flexible Authentication Configuration
-:page-nav-title: Flexible Authentication
+:page-nav-title: Configuration
 :page-wiki-name: Flexible Authentication Configuration
 :page-since: "4.1"
 :page-toc: top
