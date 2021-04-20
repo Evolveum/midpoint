@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>SystemConfiguration</name>
+    <logging>
+        <rootLoggerAppender>File Appender</rootLoggerAppender>
+        <rootLoggerLevel>INFO</rootLoggerLevel>
+        <appender xsi:type="c:FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+            <fileName>target/test.log</fileName>
+            <append>true</append>
+        </appender>
+        <classLogger>
+            <level>DEBUG</level> <!-- to see output of displayValue method calls -->
+            <package>com.evolveum.midpoint.prism.util.PrismTestUtil</package>
+        </classLogger>
+        <classLogger> <!-- PostgreSQL errors -->
+            <level>OFF</level>
+            <package>org.hibernate.engine.jdbc.spi.SqlExceptionHelper</package>
+        </classLogger>
+        <classLogger> <!-- PostgreSQL errors -->
+            <level>OFF</level>
+            <package>org.hibernate.internal.ExceptionMapperStandardImpl</package>
+        </classLogger>
+        <classLogger> <!-- PostgreSQL errors -->
+            <level>OFF</level>
+            <package>org.hibernate.engine.jdbc.batch.internal.AbstractBatchImpl</package>
+        </classLogger>
+        <classLogger> <!-- PostgreSQL errors -->
+            <level>OFF</level>
+            <package>org.hibernate.engine.jdbc.batch.internal.BatchingBatch</package>
+        </classLogger>
+    </logging>
+    <internals>
+        <repository>
+            <statistics>
+                <classification>perOperationAndObjectType</classification>
+                <collection>globallyAndLocally</collection>
+            </statistics>
+        </repository>
+    </internals>
+    <workflowConfiguration>
+        <useLegacyApproversSpecification>never</useLegacyApproversSpecification>
+        <useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>
+    </workflowConfiguration>
+</systemConfiguration>

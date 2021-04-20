@@ -24,7 +24,8 @@ public class TimestampItemDeltaProcessor<T extends Comparable<T>>
     }
 
     @Override
-    protected @Nullable T transformRealValue(Object realValue) {
+    @Nullable
+    public T convertRealValue(Object realValue) {
         return QuerydslUtils.convertTimestampToPathType(realValue, path);
     }
 }

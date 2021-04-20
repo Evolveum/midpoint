@@ -67,6 +67,7 @@ public class SqaleRepoContext extends SqlRepoContext {
     public void clearCaches() {
         try (JdbcSession jdbcSession = newJdbcSession().startReadOnlyTransaction()) {
             uriCache.initialize(jdbcSession);
+            jdbcSession.commit();
         }
     }
 
@@ -82,7 +83,7 @@ public class SqaleRepoContext extends SqlRepoContext {
     }
 
     /** @see UriCache#resolveUriToId(String) */
-    public Integer resolveUriToId(String uri) {
+    public @NotNull Integer resolveUriToId(String uri) {
         return uriCache.resolveUriToId(uri);
     }
 

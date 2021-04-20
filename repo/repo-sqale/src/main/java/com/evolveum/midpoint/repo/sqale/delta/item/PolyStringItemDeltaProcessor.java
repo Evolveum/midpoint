@@ -16,7 +16,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 
-public class PolyStringItemDeltaProcessor extends ItemDeltaValueProcessor<PolyString> {
+public class PolyStringItemDeltaProcessor extends ItemDeltaSingleValueProcessor<PolyString> {
 
     private final StringPath origPath;
     private final StringPath normPath;

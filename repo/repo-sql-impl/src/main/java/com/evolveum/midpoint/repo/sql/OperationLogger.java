@@ -11,6 +11,7 @@ import java.util.Collection;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.api.ModificationPrecondition;
+import com.evolveum.midpoint.repo.api.ModifyObjectResult;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -48,6 +49,19 @@ public class OperationLogger {
                 shortDumpOptions(options),
                 precondition == null ? "" : " precondition="+precondition+", ",
                 getStatus(subResult),
+                DebugUtil.debugDump(modifications, 1, false));
+    }
+
+    public static <O extends ObjectType> void logModifyDynamically(Class<O> type, String oid,
+            ModifyObjectResult<?> modifyObjectResult, Collection<SelectorOptions<GetOperationOptions>> getOptions,
+            RepoModifyOptions modifyOptions, OperationResult result) {
+        if (!LOGGER_OP.isDebugEnabled()) {
+            return;
+        }
+        Collection<? extends ItemDelta> modifications = modifyObjectResult != null ? modifyObjectResult.getModifications() : null;
+        LOGGER_OP.debug("{} modify dynamically {} {}{}: {}\n{}", PREFIX, type.getSimpleName(), oid,
+                shortDumpOptions(modifyOptions),
+                getStatus(result),
                 DebugUtil.debugDump(modifications, 1, false));
     }
 

@@ -49,6 +49,7 @@
             <waitingTasksCheckInterval>5</waitingTasksCheckInterval>
             <testMode>true</testMode>
             <useThreadInterrupt>whenNecessary</useThreadInterrupt> <!-- needed for task manager tests -->
+            <threads>50</threads> <!-- some performance tests use this -->
         </taskManager>
         <icf>
             <scanClasspath>true</scanClasspath>

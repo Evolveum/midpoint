@@ -111,6 +111,7 @@ public class DataSourceFactory {
         }
 
         config.setInitializationFailTimeout(configuration.getInitializationFailTimeout());
+        config.setAutoCommit(false);
 
         return config;
     }

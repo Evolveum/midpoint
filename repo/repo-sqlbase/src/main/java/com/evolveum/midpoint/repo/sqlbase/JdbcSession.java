@@ -40,12 +40,18 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * blocks each using new session (physical SQL connections are pooled, of course).
  *
  * Object is {@link AutoCloseable} and can be used in try-with-resource blocks (which is preferred).
- * If transaction is still active during closing the JDBC session, it commits the transaction.
+ * *Always commit the transaction explicitly* before the JDBC session is automatically closed,
+ * even for read-only transactions; *otherwise the transaction is just closed and default cleanup
+ * procedure of the underlying connection pool or driver is used (rollback for Hikari)*.
+ * Note: There is no simple way how to determine "active transaction" on the JDBC level,
+ * so we can't log a warning for this because it would happen every time.
+ *
  * If database does not support read-only transactions directly,
  * {@link #commit()} executes rollback instead.
- * <p>
- * Provides convenient methods for handling exceptions and {@link OperationResult}s.
- * <p>
+ *
+ * Object also provides convenient methods for handling exceptions and {@link OperationResult}s.
+ * TODO: this is for a discussion, some of it came when audit was reworked, may not be best for sqale as well.
+ *
  * All {@link SQLException}s are translated to {@link SystemException}.
  */
 public class JdbcSession implements AutoCloseable {
@@ -248,9 +254,6 @@ public class JdbcSession implements AutoCloseable {
     @Override
     public void close() {
         try {
-            if (!connection.getAutoCommit()) {
-                commit();
-            }
             connection.close();
         } catch (SQLException e) {
             throw new SystemException(e);

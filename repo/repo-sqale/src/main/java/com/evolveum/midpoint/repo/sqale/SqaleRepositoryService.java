@@ -26,7 +26,6 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.*;
@@ -45,7 +44,6 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -123,8 +121,9 @@ public class SqaleRepositoryService implements RepositoryService {
             try (JdbcSession jdbcSession =
                     sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
                 //noinspection unchecked
-                object = (PrismObject<T>) readByOid(
-                        jdbcSession, type, oidUuid, options).asPrismObject();
+                object = (PrismObject<T>) readByOid(jdbcSession, type, oidUuid, options)
+                        .asPrismObject();
+                jdbcSession.commit();
             }
 
             // "objectLocal" is here just to provide effectively final variable for the lambda below
@@ -158,18 +157,16 @@ public class SqaleRepositoryService implements RepositoryService {
     }
 
     /** Read object using provided {@link JdbcSession} as a part of already running transaction. */
-    private <S extends ObjectType, Q extends QObject<R>, R extends MObject> S readByOid(
+    private <S extends ObjectType, R extends MObject> S readByOid(
             @NotNull JdbcSession jdbcSession,
             @NotNull Class<S> schemaType,
             @NotNull UUID oid,
             Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException, ObjectNotFoundException {
 
-//        context.processOptions(options); TODO how to process option, is setting of select expressions enough?
-
-        SqaleTableMapping<S, Q, R> rootMapping =
+        SqaleTableMapping<S, QObject<MObject>, MObject> rootMapping =
                 sqlRepoContext.getMappingBySchemaType(schemaType);
-        Q root = rootMapping.defaultAlias();
+        QObject<MObject> root = rootMapping.defaultAlias();
 
         Tuple result = sqlRepoContext.newQuery(jdbcSession.connection())
                 .from(root)
@@ -178,8 +175,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 .fetchOne();
 
         if (result == null || result.get(root.fullObject) == null) {
-            String oidString = oid.toString();
-            throw new ObjectNotFoundException(schemaType, oidString);
+            throw new ObjectNotFoundException(schemaType, oid.toString());
         }
 
         return rootMapping.createTransformer(transformerSupport)
@@ -356,23 +352,27 @@ public class SqaleRepositoryService implements RepositoryService {
 
             logTraceModifications(modifications);
 
+            // TODO: THIS is real start of modifyObjectAttempt
             try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-                GetOperationOptionsBuilder getOptionsBuilder = schemaService.getOperationOptionsBuilder();
-                T object = readByOid(jdbcSession, type, oidUuid, getOptionsBuilder.build());
-                //noinspection unchecked
-                PrismObject<T> prismObject = (PrismObject<T>) object.asPrismObject();
+                SqaleUpdateContext<T, QObject<MObject>, MObject> updateContext =
+                        prepareUpdateContext(jdbcSession, type, oidUuid);
+                PrismObject<T> prismObject = updateContext.getPrismObject();
                 if (precondition != null && !precondition.holds(prismObject)) {
-                    throw new PreconditionViolationException("Modification precondition does not hold for " + prismObject);
+                    jdbcSession.rollback();
+                    throw new PreconditionViolationException(
+                            "Modification precondition does not hold for " + prismObject);
                 }
                 invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
-
-                PrismObject<T> originalObject = prismObject.clone();
 
                 // TODO is modifications cloning unavoidable? see the clone at the start of ObjectUpdater.modifyObjectAttempt
                 //  If cloning will be necessary, do it at the beginning of modifyObjectAttempt,
                 //  especially if called potentially multiple times.
                 // TODO replaces: RObject rObject = objectDeltaUpdater.modifyObject(type, oid, modifications, prismObject, modifyOptions, session, attemptContext);
-                modifications = modifyObjectAttempt(jdbcSession, prismObject, modifications);
+                PrismObject<T> originalObject = prismObject.clone();
+
+                modifications = updateContext.execute(modifications);
+                jdbcSession.commit();
+
                 LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
 
                 return new ModifyObjectResult<>(originalObject, prismObject, modifications);
@@ -387,49 +387,36 @@ public class SqaleRepositoryService implements RepositoryService {
         }
     }
 
-    /**
-     * Applies modifications, executes necessary updates and returns narrowed modifications.
-     *
-     * @param <S> schema type
-     * @param <Q> type of entity path
-     * @param <R> row type related to the {@link Q}
-     */
+    /** Read object for update and returns update context that contains it. */
     private <S extends ObjectType, Q extends QObject<R>, R extends MObject>
-    Collection<? extends ItemDelta<?, ?>> modifyObjectAttempt(
-            JdbcSession jdbcSession,
-            PrismObject<S> prismObject,
-            Collection<? extends ItemDelta<?, ?>> modifications)
-            throws SchemaException, RepositoryException {
+    SqaleUpdateContext<S, Q, R> prepareUpdateContext(
+            @NotNull JdbcSession jdbcSession,
+            @NotNull Class<S> schemaType,
+            @NotNull UUID oid)
+            throws SchemaException, ObjectNotFoundException {
 
-        // I reassign here, we DON'T want original modifications to be used further by accident
-        modifications = prismObject.narrowModifications(
-                modifications, EquivalenceStrategy.DATA,
-                EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS, true);
-        LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
+        SqaleTableMapping<S, QObject<R>, R> rootMapping =
+                sqlRepoContext.getMappingBySchemaType(schemaType);
+        QObject<R> root = rootMapping.defaultAlias();
 
-        if (modifications.isEmpty()) {
-            return modifications; // no need to execute any update
+        Tuple result = sqlRepoContext.newQuery(jdbcSession.connection())
+                .select(root.oid, root.fullObject, root.containerIdSeq)
+                .from(root)
+                .where(root.oid.eq(oid))
+                .forUpdate()
+                .fetchOne();
+
+        if (result == null || result.get(root.fullObject) == null) {
+            throw new ObjectNotFoundException(schemaType, oid.toString());
         }
 
-        SqaleUpdateContext<S, Q, R> updateContext = new SqaleUpdateContext<>(
-                transformerSupport, jdbcSession, prismObject);
-
-        // TODO APPLY modifications HERE (generate update/set clauses)
-        for (ItemDelta<?, ?> modification : modifications) {
-            try {
-                // TODO generate missing container IDs, see also old repo PrismIdentifierGenerator
-                //  BWT: it's not enough to do it in prism object, we need it for deltas adding containers too
-                modification.applyTo(prismObject);
-
-                updateContext.processModification(modification);
-            } catch (IllegalArgumentException e) {
-                LOGGER.warn("Modification failed/not implemented yet: {}", e.toString());
-            }
-        }
-
-        ObjectTypeUtil.normalizeAllRelations(prismObject, schemaService.relationRegistry());
-        updateContext.execute();
-        return modifications;
+        S object = rootMapping.createTransformer(transformerSupport)
+                .toSchemaObject(result, root, Collections.emptyList());
+        R rootRow = rootMapping.newRowObject();
+        rootRow.oid = oid;
+        rootRow.containerIdSeq = result.get(root.containerIdSeq);
+        // we don't care about full object in row
+        return new SqaleUpdateContext<>(transformerSupport, jdbcSession, object, rootRow);
     }
 
     private void logTraceModifications(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
@@ -469,6 +456,8 @@ public class SqaleRepositoryService implements RepositoryService {
             try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
                 DeleteObjectResult result = deleteObjectAttempt(type, oidUuid, jdbcSession);
                 invokeConflictWatchers((w) -> w.afterDeleteObject(oid));
+
+                jdbcSession.commit();
                 return result;
             }
         } catch (RuntimeException e) {
