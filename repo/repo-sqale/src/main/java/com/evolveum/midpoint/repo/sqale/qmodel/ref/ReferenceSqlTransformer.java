@@ -20,8 +20,13 @@ public class ReferenceSqlTransformer<Q extends QReference<R>, R extends MReferen
 
     public ReferenceSqlTransformer(
             SqlTransformerSupport transformerSupport, QReferenceMapping<Q, R, ?, OR> mapping) {
-        super(transformerSupport, mapping);
+        super(transformerSupport);
         this.mapping = mapping;
+    }
+
+    @Override
+    protected QReferenceMapping<Q, R, ?, OR> mapping() {
+        return mapping;
     }
 
     /**

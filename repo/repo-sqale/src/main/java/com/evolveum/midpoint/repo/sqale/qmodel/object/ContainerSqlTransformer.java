@@ -23,8 +23,13 @@ public class ContainerSqlTransformer
 
     public ContainerSqlTransformer(
             SqlTransformerSupport transformerSupport, QContainerMapping<S, Q, R> mapping) {
-        super(transformerSupport, mapping);
+        super(transformerSupport);
         this.mapping = mapping;
+    }
+
+    @Override
+    protected QContainerMapping<S, Q, R> mapping() {
+        return mapping;
     }
 
     /**

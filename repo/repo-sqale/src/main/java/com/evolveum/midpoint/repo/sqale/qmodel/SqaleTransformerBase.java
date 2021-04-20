@@ -44,7 +44,6 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected final SqaleTransformerSupport transformerSupport;
-    protected final QueryTableMapping<S, Q, R> mapping;
 
     /**
      * Constructor uses {@link SqlTransformerSupport} type even when it really is
@@ -53,16 +52,11 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
      * (Alternative is to parametrize {@link QueryTableMapping} with various {@link SqlTransformer}
      * types which is not convenient at all. This little downcast is low price to pay.)
      */
-    protected SqaleTransformerBase(
-            SqlTransformerSupport transformerSupport,
-            QueryTableMapping<S, Q, R> mapping) {
+    protected SqaleTransformerBase(SqlTransformerSupport transformerSupport) {
         this.transformerSupport = (SqaleTransformerSupport) transformerSupport;
-        this.mapping = mapping;
     }
 
-    public QueryTableMapping<S, Q, R> mapping() {
-        return mapping;
-    }
+    protected abstract QueryTableMapping<S, Q, R> mapping();
 
     @Override
     public S toSchemaObject(R row) {

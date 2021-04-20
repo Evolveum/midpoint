@@ -40,8 +40,13 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
     public ObjectSqlTransformer(
             SqlTransformerSupport transformerSupport,
             QObjectMapping<S, Q, R> mapping) {
-        super(transformerSupport, mapping);
+        super(transformerSupport);
         this.mapping = mapping;
+    }
+
+    @Override
+    protected QObjectMapping<S, Q, R> mapping() {
+        return mapping;
     }
 
     @Override
@@ -66,7 +71,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
             // This is a serious thing. We have corrupted XML in the repo. This may happen even
             // during system init. We want really loud and detailed error here.
             logger.error("Couldn't parse object {} {}: {}: {}\n{}",
-                    mapping().schemaType().getSimpleName(), row.get(entityPath.oid),
+                    mapping.schemaType().getSimpleName(), row.get(entityPath.oid),
                     e.getClass().getName(), e.getMessage(), serializedForm, e);
             throw e;
         }
@@ -88,7 +93,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
     @SuppressWarnings("DuplicatedCode") // see comment for metadata lower
     @NotNull
     public R toRowObjectWithoutFullObject(S schemaObject, JdbcSession jdbcSession) {
-        R row = mapping().newRowObject();
+        R row = mapping.newRowObject();
 
         row.oid = oidToUUid(schemaObject.getOid());
         // objectType MUST be left NULL, it's determined by PG
