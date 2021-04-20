@@ -175,9 +175,12 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     /**
      * Lambda "wrapper" that helps with the type inference (namely the current Q type).
      * Returned bi-function returns {@code ON} condition predicate for two entity paths.
+     *
+     * @param <TQ> query type for the JOINed (target) table
+     * @param <TR> row type related to the {@link TQ}
      */
-    protected <DQ extends EntityPath<DR>, DR> BiFunction<Q, DQ, Predicate> joinOn(
-            BiFunction<Q, DQ, Predicate> joinOnPredicateFunction) {
+    protected <TQ extends EntityPath<TR>, TR> BiFunction<Q, TQ, Predicate> joinOn(
+            BiFunction<Q, TQ, Predicate> joinOnPredicateFunction) {
         return joinOnPredicateFunction;
     }
 

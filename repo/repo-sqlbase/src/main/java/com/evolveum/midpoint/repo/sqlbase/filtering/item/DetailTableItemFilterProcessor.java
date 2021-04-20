@@ -38,7 +38,7 @@ public class DetailTableItemFilterProcessor
      * mapping is already relative to the query type representing the detail table.
      *
      * @param <Q> query type (entity path) from which we traverse to the detail table
-     * @param <DQ> query type for the detail table
+     * @param <DQ> query type for the detail (target) table
      * @param <DR> row type related to the {@link DQ}
      * @param detailQueryType class of the starting query type ({@link DQ})
      * @param joinOnPredicate bi-function producing Querydsl JOIN-ON {@link Predicate} for entity

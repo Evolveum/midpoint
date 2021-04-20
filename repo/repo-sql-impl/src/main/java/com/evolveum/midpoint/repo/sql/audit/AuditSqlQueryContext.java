@@ -47,8 +47,8 @@ public class AuditSqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     @Override
-    protected <DQ extends FlexibleRelationalPathBase<DR>, DR> SqlQueryContext<?, DQ, DR> deriveNew(
-            DQ newPath, QueryTableMapping<?, DQ, DR> newMapping) {
+    protected <TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<?, TQ, TR> deriveNew(
+            TQ newPath, QueryTableMapping<?, TQ, TR> newMapping) {
         return new AuditSqlQueryContext<>(
                 newPath, newMapping, sqlRepoContext, transformerSupport, sqlQuery);
     }

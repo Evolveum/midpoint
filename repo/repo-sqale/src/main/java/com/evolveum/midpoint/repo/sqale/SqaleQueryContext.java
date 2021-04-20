@@ -68,9 +68,9 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
-    protected <DQ extends FlexibleRelationalPathBase<DR>, DR> SqlQueryContext<?, DQ, DR>
-    deriveNew(DQ newPath, QueryTableMapping<?, DQ, DR> newMapping) {
-        return (SqlQueryContext<?, DQ, DR>) new SqaleQueryContext(
+    protected <TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<?, TQ, TR>
+    deriveNew(TQ newPath, QueryTableMapping<?, TQ, TR> newMapping) {
+        return (SqlQueryContext<?, TQ, TR>) new SqaleQueryContext(
                 newPath, (SqaleTableMapping<?, ?, ?>) newMapping,
                 transformerSupport(), sqlRepoContext, sqlQuery);
     }

@@ -211,32 +211,32 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     /**
      * Adds new LEFT JOIN to the query and returns {@link SqlQueryContext} for this join path.
      *
-     * @param <DQ> query type for the JOINed table
-     * @param <DR> row type related to the {@link DQ}
+     * @param <TQ> query type for the JOINed (target) table
+     * @param <TR> row type related to the {@link TQ}
      * @param joinType entity path type for the JOIN
      * @param joinOnPredicateFunction bi-function producing ON predicate for the JOIN
      */
-    public <DQ extends FlexibleRelationalPathBase<DR>, DR> SqlQueryContext<?, DQ, DR> leftJoin(
-            @NotNull Class<DQ> joinType,
-            @NotNull BiFunction<Q, DQ, Predicate> joinOnPredicateFunction) {
+    public <TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<?, TQ, TR> leftJoin(
+            @NotNull Class<TQ> joinType,
+            @NotNull BiFunction<Q, TQ, Predicate> joinOnPredicateFunction) {
         return leftJoin(sqlRepoContext.getMappingByQueryType(joinType), joinOnPredicateFunction);
     }
 
     /**
      * Adds new LEFT JOIN to the query and returns {@link SqlQueryContext} for this join path.
      *
-     * @param <DQ> query type for the JOINed table
-     * @param <DR> row type related to the {@link DQ}
+     * @param <TQ> query type for the JOINed (target) table
+     * @param <TR> row type related to the {@link TQ}
      * @param targetMapping mapping for the JOIN target query type
      * @param joinOnPredicateFunction bi-function producing ON predicate for the JOIN
      */
-    public <DQ extends FlexibleRelationalPathBase<DR>, DR> SqlQueryContext<?, DQ, DR> leftJoin(
-            @NotNull QueryTableMapping<?, DQ, DR> targetMapping,
-            @NotNull BiFunction<Q, DQ, Predicate> joinOnPredicateFunction) {
+    public <TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<?, TQ, TR> leftJoin(
+            @NotNull QueryTableMapping<?, TQ, TR> targetMapping,
+            @NotNull BiFunction<Q, TQ, Predicate> joinOnPredicateFunction) {
         String aliasName = uniqueAliasName(targetMapping.defaultAliasName());
-        DQ joinPath = targetMapping.newAlias(aliasName);
+        TQ joinPath = targetMapping.newAlias(aliasName);
         sqlQuery.leftJoin(joinPath).on(joinOnPredicateFunction.apply(path(), joinPath));
-        SqlQueryContext<?, DQ, DR> newQueryContext = deriveNew(joinPath, targetMapping);
+        SqlQueryContext<?, TQ, TR> newQueryContext = deriveNew(joinPath, targetMapping);
 
         // for JOINed context we want to preserve "NOT" status (unlike for subqueries)
         if (notFilterUsed) {
@@ -246,8 +246,14 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         return newQueryContext;
     }
 
-    protected abstract <DQ extends FlexibleRelationalPathBase<DR>, DR> SqlQueryContext<?, DQ, DR>
-    deriveNew(DQ newPath, QueryTableMapping<?, DQ, DR> newMapping);
+    /**
+     * Contract to implement to obtain derived (e.g. joined) query context.
+     *
+     * @param <TQ> query type for the JOINed (target) table
+     * @param <TR> row type related to the {@link TQ}
+     */
+    protected abstract <TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<?, TQ, TR>
+    deriveNew(TQ newPath, QueryTableMapping<?, TQ, TR> newMapping);
 
     public String uniqueAliasName(String baseAliasName) {
         Set<String> joinAliasNames =
