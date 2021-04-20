@@ -24,11 +24,11 @@ public class OperationExecutionSqlTransformer
 
         row.status = schemaObject.getStatus();
         row.recordType = schemaObject.getRecordType();
-        setReference(schemaObject.getInitiatorRef(), jdbcSession,
+        setReference(schemaObject.getInitiatorRef(),
                 o -> row.initiatorRefTargetOid = o,
                 t -> row.initiatorRefTargetType = t,
                 r -> row.initiatorRefRelationId = r);
-        setReference(schemaObject.getTaskRef(), jdbcSession,
+        setReference(schemaObject.getTaskRef(),
                 o -> row.taskRefTargetOid = o,
                 t -> row.taskRefTargetType = t,
                 r -> row.taskRefRelationId = r);

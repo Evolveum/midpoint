@@ -26,7 +26,7 @@ public class ReportDataSqlTransformer
             ReportDataType reportData, JdbcSession jdbcSession) {
         MReportData row = super.toRowObjectWithoutFullObject(reportData, jdbcSession);
 
-        setReference(reportData.getReportRef(), jdbcSession,
+        setReference(reportData.getReportRef(),
                 o -> row.reportRefTargetOid = o,
                 t -> row.reportRefTargetType = t,
                 r -> row.reportRefRelationId = r);

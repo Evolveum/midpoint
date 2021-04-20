@@ -22,7 +22,7 @@ public class TriggerSqlTransformer
     public void insert(TriggerType schemaObject, MObject ownerRow, JdbcSession jdbcSession) {
         MTrigger row = initRowObject(schemaObject, ownerRow.oid);
 
-        row.handlerUriId = processCacheableUri(schemaObject.getHandlerUri(), jdbcSession);
+        row.handlerUriId = processCacheableUri(schemaObject.getHandlerUri());
         row.timestampValue = MiscUtil.asInstant(schemaObject.getTimestamp());
 
         insert(row, jdbcSession);

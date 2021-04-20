@@ -136,21 +136,21 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
      * Relation is normalized before consulting the cache.
      * Never returns null, returns default ID for configured default relation.
      */
-    protected Integer processCacheableRelation(QName qName, JdbcSession jdbcSession) {
-        return transformerSupport.processCacheableRelation(qName, jdbcSession);
+    protected Integer processCacheableRelation(QName qName) {
+        return transformerSupport.processCacheableRelation(qName);
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
-    protected Integer processCacheableUri(String uri, JdbcSession jdbcSession) {
+    protected Integer processCacheableUri(String uri) {
         return uri != null
-                ? transformerSupport.processCacheableUri(uri, jdbcSession)
+                ? transformerSupport.processCacheableUri(uri)
                 : null;
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
-    protected Integer processCacheableUri(QName qName, JdbcSession jdbcSession) {
+    protected Integer processCacheableUri(QName qName) {
         return qName != null
-                ? transformerSupport.processCacheableUri(QNameUtil.qNameToUri(qName), jdbcSession)
+                ? transformerSupport.processCacheableUri(QNameUtil.qNameToUri(qName))
                 : null;
     }
 
@@ -158,12 +158,12 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
      * Returns IDs as Integer array for URI strings creating new cache row in DB as needed.
      * Returns null for null or empty list on input.
      */
-    protected Integer[] processCacheableUris(List<String> uris, JdbcSession jdbcSession) {
+    protected Integer[] processCacheableUris(List<String> uris) {
         if (uris == null || uris.isEmpty()) {
             return null;
         }
         return uris.stream()
-                .map(uri -> processCacheableUri(uri, jdbcSession))
+                .map(uri -> processCacheableUri(uri))
                 .toArray(Integer[]::new);
     }
 
@@ -185,13 +185,13 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
         }
     }
 
-    protected void setReference(ObjectReferenceType ref, JdbcSession jdbcSession,
+    protected void setReference(ObjectReferenceType ref,
             Consumer<UUID> targetOidConsumer, Consumer<MObjectType> targetTypeConsumer,
             Consumer<Integer> relationIdConsumer) {
         if (ref != null) {
             targetOidConsumer.accept(oidToUUid(ref.getOid()));
             targetTypeConsumer.accept(schemaTypeToObjectType(ref.getType()));
-            relationIdConsumer.accept(processCacheableRelation(ref.getRelation(), jdbcSession));
+            relationIdConsumer.accept(processCacheableRelation(ref.getRelation()));
         }
     }
 

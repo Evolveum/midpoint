@@ -40,7 +40,7 @@ public class ResourceSqlTransformer
                     operationalState.getLastAvailabilityStatus();
         }
 
-        setReference(schemaObject.getConnectorRef(), jdbcSession,
+        setReference(schemaObject.getConnectorRef(),
                 o -> row.connectorRefTargetOid = o,
                 t -> row.connectorRefTargetType = t,
                 r -> row.connectorRefRelationId = r);

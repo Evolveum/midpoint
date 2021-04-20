@@ -94,7 +94,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         // objectType MUST be left NULL, it's determined by PG
         setPolyString(schemaObject.getName(), o -> row.nameOrig = o, n -> row.nameNorm = n);
         // fullObject is managed outside of this method
-        setReference(schemaObject.getTenantRef(), jdbcSession,
+        setReference(schemaObject.getTenantRef(),
                 o -> row.tenantRefTargetOid = o,
                 t -> row.tenantRefTargetType = t,
                 r -> row.tenantRefRelationId = r);
@@ -103,7 +103,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         row.version = SqaleUtils.objectVersionAsInt(schemaObject);
 
         // complex DB fields
-        row.policySituations = processCacheableUris(schemaObject.getPolicySituation(), jdbcSession);
+        row.policySituations = processCacheableUris(schemaObject.getPolicySituation());
         row.subtypes = arrayFor(schemaObject.getSubtype());
         // TODO textInfo (fulltext support)
         //  repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, repositoryContext));
@@ -113,18 +113,18 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         // and needed setters (fields are not "interface-able") would create much more code.
         MetadataType metadata = schemaObject.getMetadata();
         if (metadata != null) {
-            setReference(metadata.getCreatorRef(), jdbcSession,
+            setReference(metadata.getCreatorRef(),
                     o -> row.creatorRefTargetOid = o,
                     t -> row.creatorRefTargetType = t,
                     r -> row.creatorRefRelationId = r);
-            row.createChannelId = processCacheableUri(metadata.getCreateChannel(), jdbcSession);
+            row.createChannelId = processCacheableUri(metadata.getCreateChannel());
             row.createTimestamp = MiscUtil.asInstant(metadata.getCreateTimestamp());
 
-            setReference(metadata.getModifierRef(), jdbcSession,
+            setReference(metadata.getModifierRef(),
                     o -> row.modifierRefTargetOid = o,
                     t -> row.modifierRefTargetType = t,
                     r -> row.modifierRefRelationId = r);
-            row.modifyChannelId = processCacheableUri(metadata.getModifyChannel(), jdbcSession);
+            row.modifyChannelId = processCacheableUri(metadata.getModifyChannel());
             row.modifyTimestamp = MiscUtil.asInstant(metadata.getModifyTimestamp());
         }
         return row;

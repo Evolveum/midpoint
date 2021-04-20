@@ -32,7 +32,7 @@ public class ReferenceSqlTransformer<Q extends QReference<R>, R extends MReferen
     public void insert(Referencable schemaObject, OR ownerRow, JdbcSession jdbcSession) {
         R row = mapping.newRowObject(ownerRow);
         // row.referenceType is DB generated, must be kept NULL, but it will match referenceType
-        row.relationId = processCacheableRelation(schemaObject.getRelation(), jdbcSession);
+        row.relationId = processCacheableRelation(schemaObject.getRelation());
         row.targetOid = UUID.fromString(schemaObject.getOid());
         row.targetType = schemaTypeToObjectType(schemaObject.getType());
 
