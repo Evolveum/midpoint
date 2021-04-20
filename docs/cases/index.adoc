@@ -1,4 +1,4 @@
-= MidPoint Case Management and Approval Configuration
+= MidPoint Case Management and Approvals
 :page-nav-title: Cases and Approvals
 :page-upkeep-status: green
 :page-liquid:

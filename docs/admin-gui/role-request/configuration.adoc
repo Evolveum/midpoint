@@ -1,8 +1,8 @@
 = Role Request and Shopping Cart Configuration
+:page-nav-title: Configuration
 :page-wiki-name: Role Request and Shopping Cart Configuration
 :page-since: "3.5"
 :page-since-improved: [ "3.6" ]
-:page-alias: { "parent" : "/midpoint/reference/cases/" }
 :page-upkeep-status: yellow
 
 == Role Catalog Configuration

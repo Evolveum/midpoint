@@ -1,5 +1,5 @@
 = Function Libraries Configuration
-:page-nav-title: Function Libraries
+:page-nav-title: Configuration
 :page-wiki-name: Function Libraries Configuration
 :page-since: "3.7"
 
@@ -10,7 +10,7 @@ Function libraries are dedicated midPoint objects that contain set of reusable f
 The functions can be used in other wiki:Mappings+and+Expressions[mappings and expressions] in midPoint.
 Function libraries can be used to group frequently-used parts of the code, therefore simplifying midPoint configuration and maintenance.
 
-TIP: Not to be confused with xref:expressions/script/functions/[built-in scripting functions].
+TIP: Not to be confused with xref:../expressions/script/functions/[built-in scripting functions].
 
 == Function Library
 
@@ -24,47 +24,47 @@ This name must be unique and should not be the same as one of the midpoint varia
 [source,xml]
 ----
 <functionLibrary oid="c0c010c0-d34d-b33f-f00d-999999999999"
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
     <name>myLib</name>
     <description>Custom functions</description>
     <function>
-    	<name>getName</name>
-    	<parameter>
-    		<name>name</name>
-    		<type>xsd:string</type>
-    	</parameter>
-    	<script>
-   		 	<code>
-   		 	    return name.toUpperCase();
-   		 	</code>
-	   	</script>
-    	<returnType>t:PolyStringType</returnType>
+        <name>getName</name>
+        <parameter>
+            <name>name</name>
+            <type>xsd:string</type>
+        </parameter>
+        <script>
+                <code>
+                    return name.toUpperCase();
+                </code>
+           </script>
+        <returnType>t:PolyStringType</returnType>
     </function>
     <function>
-    	<name>getLocality</name>
-    	<parameter>
-    		<name>location</name>
-    		<type>xsd:string</type>
-    	</parameter>
-    	<asIs/>
-    	<returnType>t:PolyStringType</returnType>
+        <name>getLocality</name>
+        <parameter>
+            <name>location</name>
+            <type>xsd:string</type>
+        </parameter>
+        <asIs/>
+        <returnType>t:PolyStringType</returnType>
     </function>
-	<function>
-		<name>addCountry</name>
-		<parameter>
-			<name>country</name>
-			<type>xsd:string</type>
-		</parameter>
-		<script>
-			<code>
-				return 'rum from ' + country;
-			</code>
-		</script>
-	</function>
+    <function>
+        <name>addCountry</name>
+        <parameter>
+            <name>country</name>
+            <type>xsd:string</type>
+        </parameter>
+        <script>
+            <code>
+                return 'rum from ' + country;
+            </code>
+        </script>
+    </function>
 </functionLibrary>
 
 
@@ -102,27 +102,27 @@ The example of the function evaluator is shown in the example below.
 [source,xml]
 ----
 <attribute>
-	<ref>ri:location</ref>
-	<displayName>Location</displayName>
-	<tolerant>false</tolerant>
-	<outbound>
-		<strength>strong</strength>
-		<source>
-			<path>locality</path>
-		</source>
-		<expression>
-			<function>
-				<libraryRef oid="c0c010c0-d34d-b33f-f00d-999999999999" type="FunctionLibraryType"/>
-				<name>getLocality</name>
-				<parameter>
-					<name>location</name>
-					<expression>
-						<path>locality</path>
-					</expression>
-				</parameter>
-			</function>
-		</expression>
-	</outbound>
+    <ref>ri:location</ref>
+    <displayName>Location</displayName>
+    <tolerant>false</tolerant>
+    <outbound>
+        <strength>strong</strength>
+        <source>
+            <path>locality</path>
+        </source>
+        <expression>
+            <function>
+                <libraryRef oid="c0c010c0-d34d-b33f-f00d-999999999999" type="FunctionLibraryType"/>
+                <name>getLocality</name>
+                <parameter>
+                    <name>location</name>
+                    <expression>
+                        <path>locality</path>
+                    </expression>
+                </parameter>
+            </function>
+        </expression>
+    </outbound>
 </attribute>
 ----
 
@@ -147,28 +147,28 @@ The example of usage is shown in the example bellow.
 [source,xml]
 ----
 <attribute>
-	<ref>ri:drink</ref>
-	<outbound>
-		<strength>strong</strength>
-		<source>
-			<path>locality</path>
-		</source>
-		<expression>
-			<script>
-				<code>
-					log.info("locality: "+locality)
-					fixedDrink ="";
-					if (locality != null) {
-						map = new HashMap()
-						map.put("country", locality)
-						fixedDrink = myLib.execute("addCountry", map)
-					}
-					log.info("drink: "+fixedDrink)
-					return fixedDrink
-				</code>
-			</script>
-		</expression>
-	</outbound>
+    <ref>ri:drink</ref>
+    <outbound>
+        <strength>strong</strength>
+        <source>
+            <path>locality</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    log.info("locality: "+locality)
+                    fixedDrink ="";
+                    if (locality != null) {
+                        map = new HashMap()
+                        map.put("country", locality)
+                        fixedDrink = myLib.execute("addCountry", map)
+                    }
+                    log.info("drink: "+fixedDrink)
+                    return fixedDrink
+                </code>
+            </script>
+        </expression>
+    </outbound>
 </attribute>
 ----
 

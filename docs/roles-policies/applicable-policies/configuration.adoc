@@ -1,4 +1,5 @@
 = Applicable Policy Configuration
+:page-nav-title: Configuration
 :page-wiki-name: Applicable Policy Configuration
 :page-since: "3.8"
 :page-upkeep-status: yellow

@@ -1,8 +1,8 @@
 = Expression Profile Configuration
-:page-nav-title: Expression Profiles
+:page-nav-title: Configuration
 :page-wiki-name: Expression Profile Configuration
 :page-since: "4.0"
-:page-alias: { "parent" : "/midpoint/reference/security/" }
+:page-upkeep-status: green
 
 [NOTE]
 .Limited feature

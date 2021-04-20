@@ -1,5 +1,5 @@
 = Configuration and Use of Constants
-:page-nav-title: Constants
+:page-nav-title: Configuration
 :page-wiki-name: Configuration and Use of Constants
 :page-since: "3.6"
 

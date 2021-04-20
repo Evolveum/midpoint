@@ -1,5 +1,5 @@
 = Provisioning Propagation Configuration
-:page-nav-title: Propagation
+:page-nav-title: Configuration
 :page-wiki-name: Provisioning Propagation Configuration
 :page-since: "3.7.1"
 :page-upkeep-status: green

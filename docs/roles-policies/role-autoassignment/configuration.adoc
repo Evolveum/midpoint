@@ -1,8 +1,9 @@
 = Role Autoassign Configuration
+:page-nav-title: Configuration
 :page-wiki-name: Role Autoassign Configuration
 :page-since: "3.7"
+:page-since-improved: [ "4.2" ]
 :page-upkeep-status: yellow
-:page-liquid:
 
 == Basic Mechanism
 
@@ -18,9 +19,9 @@ Each role can have a condition when it should be assigned:
     <autoassign>
         <enabled>true</enabled>
         <focus>
-			<selector>.  <!-- Since 4.2 -->
-				<type>UserType</type>
-			</selector>
+            <selector>.  <!-- Since 4.2 -->
+                <type>UserType</type>
+            </selector>
             <mapping>
                 <strength>strong</strength>
                 <source>
@@ -55,11 +56,11 @@ Using example bellow, autoassignment will be applied only for the user with arch
 <autoassign>
         <enabled>true</enabled>
         <focus>
-			<selector>
-				<type>UserType</type>
-				<archetypeRef oid="7135e68c-ee53-11e8-8025-170b77da3fd6" type="ArchetypeType"> <!-- Employee archetype -->
-				</archetypeRef>
-			</selector>
+            <selector>
+                <type>UserType</type>
+                <archetypeRef oid="7135e68c-ee53-11e8-8025-170b77da3fd6" type="ArchetypeType"> <!-- Employee archetype -->
+                </archetypeRef>
+            </selector>
             ....
         </focus>
 </autoassign>

@@ -1,0 +1,107 @@
+= Thresholds
+:page-wiki-name: Thresholds
+:page-since: "4.0"
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/" }
+:page-upkeep-status: yellow
+
+MidPoint provides a powerful mechanism to synchronize data among different resources.
+Usually, there is a resource which is authoritative and midPoint should take appropriate actions to keep the data consistent according to the authoritative resource.
+In most cases, authoritative resource is represented by HR system.
+However, there are situations when the data in HR are not 100% correct and midPoint should not propagate such data to other resources.
+
+For example, imagine that by the mistake, thousands of accounts was disabled in the HR system and there is a reconciliation task in midPoint scheduled to run every night.
+If no one noticed the mistake before the reconciliation run it would end up with disabling users across all connected systems.
+To prevent such situations midPoint has to know which changes are critical and what to do in the case they occur.
+
+
+== Setting Thresholds
+
+For now, it is possible to set up thresholds for different tasks (reconciliation, recomputation, synchronization,...). It is done by assigning role with defined policy rules to the task.
+Following is the example for setting thresholds for reconciliation task.
+
+.Policy rule settings
+[source,xml]
+----
+<role oid="00000000-role-0000-0000-999111111112">
+    <name>Stop on create user (4)</name>
+       <inducement>
+        <policyRule>
+            <name>Add user</name>
+            <policyConstraints>
+                <modification>
+                    <operation>add</operation>
+                </modification>
+            </policyConstraints>
+            <policyThreshold>
+                <lowWaterMark>
+                    <count>5</count>
+                </lowWaterMark>
+            </policyThreshold>
+            <policyActions>
+                <suspendTask/>
+            </policyActions>
+        </policyRule>
+        <order>2</order>
+    </inducement>
+</role>
+----
+
+Policy rule above specifies that midPoint should monitor creation of new users (specified by wiki:Policy+Constraints[policyConstraints]) and when the limit is reached (count=4), task execution is suspended (policyAction=suspendTask).
+After defining such role with policy rules, midPoint has to know that such role should be taken into account.
+Therefore, it is needed to assign this role to the task as in the example bellow.
+
+.Reconciliation task
+[source,xml]
+----
+<task oid="10335c7c-838f-11e8-93a6-4b1dd0ab58e4"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <name>Reconciliation: Dummy</name>
+    ...
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/lightweigth-partitioning/handler-3</handlerUri>
+
+    <workManagement>
+        <partitions>
+            <partition>
+                <index>2</index>
+                <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
+                <stage>execute</stage>
+                <errorCriticality>
+                    <policy>fatal</policy>
+                </errorCriticality>
+            </partition>
+            <partition>
+                <index>1</index>
+                <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
+                <stage>simulate</stage>
+                <errorCriticality>
+                    <policy>fatal</policy>
+                </errorCriticality>
+            </partition>
+        </partitions>
+    </workManagement>
+    ...
+    <assignment>
+        <targetRef oid="00000000-role-0000-0000-999111111112" type="RoleType"/>
+    </assignment>
+</task>
+----
+
+Additionally we have to add a part of configuration to the task itself regarding task partitioning. In this part we will specify that the task should fail based on a violation of the policy which we have defined above.
+
+We are capable of executing the task in multiple stages which we define with multiple partitions. The task can be executed first in a simulation stage where the task computes the resulting actions without applying them. In this stage we are capable of evaluating the thresholds specified in the policy and in the case of a violation the respective policy action can be initiated. If there is no violation of the threshold we are capable to continue to the execution stage where the computed actions will be applied.
+
+The configuration might as well contain only one partition, only with an execution stage. In this case the action will be applied up until the task reaches the threshold.
+
+== See Also
+
+* wiki:Policy+Rules[Policy Rules]
+
+* wiki:Task[Task]
+
+* wiki:Task+partitioning[Task partitioning]
+
