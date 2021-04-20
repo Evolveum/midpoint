@@ -15,14 +15,16 @@ import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.ReferenceSqlTransformer;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
-public class RefTableItemDeltaProcessor<Q extends QReference<?>, OR> extends ItemDeltaValueProcessor<Referencable> {
+public class RefTableItemDeltaProcessor<Q extends QReference<?>, OQ extends FlexibleRelationalPathBase<OR>, OR>
+        extends ItemDeltaValueProcessor<Referencable> {
 
-    private final QReferenceMapping<Q, ?, OR> refTableMapping;
+    private final QReferenceMapping<Q, ?, OQ, OR> refTableMapping;
 
     public RefTableItemDeltaProcessor(
             SqaleUpdateContext<?, ?, ?> context, // TODO OR as last here as well
-            QReferenceMapping<Q, ?, OR> refTableMapping) {
+            QReferenceMapping<Q, ?, OQ, OR> refTableMapping) {
         super(context);
         this.refTableMapping = refTableMapping;
     }

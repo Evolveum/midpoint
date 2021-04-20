@@ -80,9 +80,20 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
                 .addItemMapping(ActivationType.F_LOCKOUT_STATUS,
                         enumMapper(path(q -> q.lockoutStatus)));
 
-        addRefMapping(F_DELEGATED_REF, QObjectReferenceMapping.INSTANCE_DELEGATED);
-        addRefMapping(F_PERSONA_REF, QObjectReferenceMapping.INSTANCE_PERSONA);
-        addRefMapping(F_LINK_REF, QObjectReferenceMapping.INSTANCE_PROJECTION);
+        addRefMapping(F_PERSONA_REF, personaReferenceMapping());
+        addRefMapping(F_LINK_REF, projectionReferenceMapping());
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    public @NotNull QObjectReferenceMapping<Q, R> personaReferenceMapping() {
+        //noinspection unchecked
+        return (QObjectReferenceMapping<Q, R>) QObjectReferenceMapping.INSTANCE_PERSONA;
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    public @NotNull QObjectReferenceMapping<Q, R> projectionReferenceMapping() {
+        //noinspection unchecked
+        return (QObjectReferenceMapping<Q, R>) QObjectReferenceMapping.INSTANCE_PROJECTION;
     }
 
     @Override

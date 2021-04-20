@@ -6,9 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ARCHETYPE_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ROLE_MEMBERSHIP_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.*;
 
 import java.util.Collection;
 
@@ -77,19 +75,59 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
                         timestampMapper(path(q -> q.modifyTimestamp)))
                 .addRefMapping(MetadataType.F_CREATE_APPROVER_REF,
-                        QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER)
+                        objectCreateApproverReferenceMapping())
                 .addRefMapping(MetadataType.F_MODIFY_APPROVER_REF,
-                        QObjectReferenceMapping.INSTANCE_OBJECT_MODIFY_APPROVER);
+                        objectModifyApproverReferenceMapping());
 
-        // AssignmentHolderType
-        addRefMapping(F_ARCHETYPE_REF, QObjectReferenceMapping.INSTANCE_ARCHETYPE);
-        addRefMapping(F_PARENT_ORG_REF, QObjectReferenceMapping.INSTANCE_OBJECT_PARENT_ORG);
-        addRefMapping(F_ROLE_MEMBERSHIP_REF, QObjectReferenceMapping.INSTANCE_ROLE_MEMBERSHIP);
+        addRefMapping(F_PARENT_ORG_REF, objectParentOrgReferenceMapping());
 
         addContainerTableMapping(AssignmentHolderType.F_ASSIGNMENT, QAssignmentMapping.INSTANCE,
                 joinOn((o, a) -> o.oid.eq(a.ownerOid)));
         addContainerTableMapping(F_TRIGGER, QTriggerMapping.INSTANCE,
                 joinOn((o, trg) -> o.oid.eq(trg.ownerOid)));
+
+        // AssignmentHolderType
+        addRefMapping(F_ARCHETYPE_REF, archetypeReferenceMapping());
+        addRefMapping(F_DELEGATED_REF, delegatedReferenceMapping());
+        addRefMapping(F_ROLE_MEMBERSHIP_REF, roleMembershipReferenceMapping());
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    public @NotNull QObjectReferenceMapping<Q, R> archetypeReferenceMapping() {
+        //noinspection unchecked
+        return (QObjectReferenceMapping<Q, R>) QObjectReferenceMapping.INSTANCE_ARCHETYPE;
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    public @NotNull QObjectReferenceMapping<Q, R> delegatedReferenceMapping() {
+        //noinspection unchecked
+        return (QObjectReferenceMapping<Q, R>) QObjectReferenceMapping.INSTANCE_DELEGATED;
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    public @NotNull QObjectReferenceMapping<Q, R> objectCreateApproverReferenceMapping() {
+        //noinspection unchecked
+        return (QObjectReferenceMapping<Q, R>)
+                QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER;
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    public @NotNull QObjectReferenceMapping<Q, R> objectModifyApproverReferenceMapping() {
+        //noinspection unchecked
+        return (QObjectReferenceMapping<Q, R>)
+                QObjectReferenceMapping.INSTANCE_OBJECT_MODIFY_APPROVER;
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    public @NotNull QObjectReferenceMapping<Q, R> objectParentOrgReferenceMapping() {
+        //noinspection unchecked
+        return (QObjectReferenceMapping<Q, R>) QObjectReferenceMapping.INSTANCE_OBJECT_PARENT_ORG;
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    public @NotNull QObjectReferenceMapping<Q, R> roleMembershipReferenceMapping() {
+        //noinspection unchecked
+        return (QObjectReferenceMapping<Q, R>) QObjectReferenceMapping.INSTANCE_ROLE_MEMBERSHIP;
     }
 
     @Override

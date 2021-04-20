@@ -24,6 +24,9 @@ import com.evolveum.midpoint.repo.api.DeleteObjectResult;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.MAccessCertificationDefinition;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDefinition;
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.MAssignmentReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
@@ -79,6 +82,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         QUser u = aliasFor(QUser.class);
         MUser row = selectOne(u, u.nameOrig.eq(userName));
+        assertThat(row).isNotNull();
         assertThat(row.oid).isNotNull();
         assertThat(row.nameNorm).isNotNull(); // normalized name is stored
         assertThat(row.version).isEqualTo(1); // initial version is set
@@ -278,7 +282,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         when("adding it to the repository");
         repositoryService.addObject(user.asPrismObject(), null, result);
 
-        then("object and its container rows are created and container IDs are assigned");
+        then("object and its reference rows are created");
         assertThatOperationResult(result).isSuccess();
 
         QUser u = aliasFor(QUser.class);
@@ -301,6 +305,43 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         List<MReference> refs = select(r, r.ownerOid.eq(userOid));
         assertThat(refs).hasSize(2)
                 .allMatch(rRow -> rRow.referenceType == MReferenceType.PROJECTION);
+    }
+
+    @Test
+    public void test206AddObjectWithMultivalueRefsOnAssignment()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("user with ref");
+        String userName = "user" + getTestNumber();
+        UUID approverRef1 = UUID.randomUUID();
+        UUID approverRef2 = UUID.randomUUID();
+        QName approverRelation = QName.valueOf("{https://random.org/ns}conn-rel"); // TODO
+        UserType user = new UserType(prismContext)
+                .name(userName)
+                .assignment(new AssignmentType()
+                        .metadata(new MetadataType()
+                                .createApproverRef(approverRef1.toString(),
+                                        UserType.COMPLEX_TYPE, approverRelation)
+                                .createApproverRef(approverRef2.toString(), UserType.COMPLEX_TYPE)));
+
+        when("adding it to the repository");
+        String oid = repositoryService.addObject(user.asPrismObject(), null, result);
+
+        then("object and its reference rows are created");
+        assertThatOperationResult(result).isSuccess();
+
+        MUser userRow = selectObjectByOid(QUser.class, oid);
+        assertThat(userRow.oid).isNotNull();
+
+        QAssignmentReference ar =
+                QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_CREATE_APPROVER.defaultAlias();
+        List<MAssignmentReference> projectionRefs = select(ar, ar.ownerOid.eq(userRow.oid));
+        assertThat(projectionRefs).hasSize(2)
+                .allMatch(rRow -> rRow.referenceType == MReferenceType.ASSIGNMENT_CREATE_APPROVER)
+                .allMatch(rRow -> rRow.ownerOid.equals(userRow.oid))
+                .allMatch(rRow -> rRow.assignmentCid.equals(1L)) // there's just one container
+                .anyMatch(refRowMatcher(approverRef1, approverRelation));
     }
 
     @Test

@@ -18,9 +18,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 public class ObjectTemplateSqlTransformer
         extends ObjectSqlTransformer<ObjectTemplateType, QObjectTemplate, MObject> {
 
+    private final QObjectTemplateMapping mapping;
+
     public ObjectTemplateSqlTransformer(
             SqlTransformerSupport transformerSupport, QObjectTemplateMapping mapping) {
         super(transformerSupport, mapping);
+        this.mapping = mapping;
     }
 
     @Override

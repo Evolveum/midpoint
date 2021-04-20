@@ -15,7 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  * The mapping is the same for all subtypes, see different `INSTANCE_*` constants below.
  */
 public class QAssignmentReferenceMapping
-        extends QReferenceMapping<QAssignmentReference, MAssignmentReference, MAssignment> {
+        extends QReferenceMapping<QAssignmentReference, MAssignmentReference, QAssignment, MAssignment> {
 
     public static final QAssignmentReferenceMapping INSTANCE_ASSIGNMENT_CREATE_APPROVER =
             new QAssignmentReferenceMapping("m_assignment_ref_create_approver", "arefca");
@@ -30,7 +30,7 @@ public class QAssignmentReferenceMapping
 
     @Override
     protected QAssignmentReference newAliasInstance(String alias) {
-        return new QAssignmentReference(alias);
+        return new QAssignmentReference(alias, tableName());
     }
 
     @Override

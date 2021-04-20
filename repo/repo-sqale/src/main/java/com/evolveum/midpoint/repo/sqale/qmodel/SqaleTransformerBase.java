@@ -60,6 +60,10 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
         this.mapping = mapping;
     }
 
+    public QueryTableMapping<S, Q, R> mapping() {
+        return mapping;
+    }
+
     @Override
     public S toSchemaObject(R row) {
         throw new UnsupportedOperationException("Use toSchemaObject(Tuple,...)");
@@ -191,9 +195,9 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
         }
     }
 
-    protected <REF extends MReference, OR> void storeRefs(
+    protected <REF extends MReference, OQ extends FlexibleRelationalPathBase<OR>, OR> void storeRefs(
             @NotNull OR ownerRow, @NotNull List<ObjectReferenceType> refs,
-            @NotNull QReferenceMapping<?, REF, OR> mapping, @NotNull JdbcSession jdbcSession) {
+            @NotNull QReferenceMapping<?, REF, OQ, OR> mapping, @NotNull JdbcSession jdbcSession) {
         if (!refs.isEmpty()) {
             ReferenceSqlTransformer<?, REF, OR> transformer =
                     mapping.createTransformer(transformerSupport);
@@ -210,7 +214,7 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
 
     /** Convenient insert shortcut when the row is fully populated. */
     protected void insert(R row, JdbcSession jdbcSession) {
-        jdbcSession.newInsert(mapping.defaultAlias())
+        jdbcSession.newInsert(mapping().defaultAlias())
                 .populate(row)
                 .execute();
     }

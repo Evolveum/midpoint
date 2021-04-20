@@ -29,8 +29,8 @@ public class QAssignmentReference extends QReference<MAssignmentReference> {
     public final PrimaryKey<MAssignmentReference> pk =
             createPrimaryKey(ownerOid, assignmentCid, referenceType, relationId, targetOid);
 
-    public QAssignmentReference(String variable) {
-        this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
+    public QAssignmentReference(String variable, String tableName) {
+        this(variable, DEFAULT_SCHEMA_NAME, tableName);
     }
 
     public QAssignmentReference(String variable, String schema, String table) {

@@ -16,6 +16,7 @@ import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Predicate;
 import com.querydsl.sql.SQLQuery;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
@@ -143,7 +144,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         }
     }
 
-    protected <R, Q extends FlexibleRelationalPathBase<R>> R selectOne(
+    protected <R, Q extends FlexibleRelationalPathBase<R>> @Nullable R selectOne(
             Q path, Predicate... conditions) {
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()) {
             return jdbcSession.newQuery()

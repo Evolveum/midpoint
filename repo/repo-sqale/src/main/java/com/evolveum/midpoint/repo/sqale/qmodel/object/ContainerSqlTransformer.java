@@ -19,9 +19,12 @@ public class ContainerSqlTransformer
         <S extends Containerable, Q extends QContainer<R>, R extends MContainer>
         extends SqaleTransformerBase<S, Q, R> {
 
+    private final QContainerMapping<S, Q, R> mapping;
+
     public ContainerSqlTransformer(
             SqlTransformerSupport transformerSupport, QContainerMapping<S, Q, R> mapping) {
         super(transformerSupport, mapping);
+        this.mapping = mapping;
     }
 
     /**

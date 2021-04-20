@@ -6,10 +6,14 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
+import java.util.function.BiFunction;
+
+import com.querydsl.core.types.Predicate;
+
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
@@ -18,13 +22,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  *
  * @param <OR> row type of the reference owner
  */
-public class QReferenceMapping<Q extends QReference<R>, R extends MReference, OR>
+public class QReferenceMapping<Q extends QReference<R>, R extends MReference, OQ extends FlexibleRelationalPathBase<OR>, OR>
         extends SqaleTableMapping<Referencable, Q, R> {
 
     // see also subtype specific alias names defined for instances below
     public static final String DEFAULT_ALIAS_NAME = "ref";
 
-    public static final QReferenceMapping<QReference<MReference>, MReference, MObject> INSTANCE =
+    /** Top level "abstract" reference table, not really needed for normal queries. */
+    public static final QReferenceMapping<
+            QReference<MReference>, MReference, FlexibleRelationalPathBase<Object>, Object> INSTANCE =
             new QReferenceMapping<>(QReference.TABLE_NAME, DEFAULT_ALIAS_NAME, QReference.CLASS);
 
     protected QReferenceMapping(
@@ -58,5 +64,9 @@ public class QReferenceMapping<Q extends QReference<R>, R extends MReference, OR
     public R newRowObject(OR ownerRow) {
         throw new UnsupportedOperationException(
                 "Reference bean creation for owner row called on super-class level");
+    }
+
+    public BiFunction<OQ, Q, Predicate> joinOnPredicate() {
+        return null;
     }
 }

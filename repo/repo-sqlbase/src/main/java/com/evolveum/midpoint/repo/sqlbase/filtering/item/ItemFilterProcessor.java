@@ -112,8 +112,13 @@ public abstract class ItemFilterProcessor<O extends ObjectFilter>
      * This makes NOT truly complementary to non-NOT result.
      */
     protected Predicate predicateWithNotTreated(Path<?> path, Predicate predicate) {
-        return context.isNotFilterUsed()
+        return context().isNotFilterUsed()
                 ? ExpressionUtils.and(predicate, ExpressionUtils.predicate(Ops.IS_NOT_NULL, path))
                 : predicate;
+    }
+
+    // TODO make abstract
+    public SqlQueryContext<?, ?, ?> context() {
+        return context;
     }
 }

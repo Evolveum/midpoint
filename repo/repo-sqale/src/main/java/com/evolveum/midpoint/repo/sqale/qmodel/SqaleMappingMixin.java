@@ -18,7 +18,8 @@ import com.evolveum.midpoint.repo.sqale.mapping.TableRelationResolver;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
@@ -61,12 +62,20 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
         return nestedMapping;
     }
 
-    /** Defines reference mapping for both query and modifications. */
+    /**
+     * Defines reference mapping for both query and modifications.
+     * Reference mapping is assumed to be `QReferenceMapping<?, ?, Q, R>` really, but because
+     * the instances of reference mapping are not typed flexibly enough, wildcard is used for
+     * parameter for client code convenience.
+     */
     default SqaleMappingMixin<S, Q, R> addRefMapping(
-            @NotNull QName itemName, @NotNull QObjectReferenceMapping qReferenceMapping) {
+            @NotNull QName itemName, @NotNull QReferenceMapping<?, ?, Q, R> referenceMapping) {
+        //noinspection unchecked
         addItemMapping(itemName, new SqaleItemSqlMapper(
-                ctx -> new RefTableItemFilterProcessor(ctx, qReferenceMapping),
-                ctx -> new RefTableItemDeltaProcessor(ctx, qReferenceMapping)));
+                ctx -> new RefTableItemFilterProcessor<>(
+                        (SqlQueryContext<?, Q, R>) ctx, referenceMapping),
+                ctx -> new RefTableItemDeltaProcessor<>(ctx, referenceMapping)));
+
         // TODO add relation mapping too for reaching to the reference target
         return this;
     }
