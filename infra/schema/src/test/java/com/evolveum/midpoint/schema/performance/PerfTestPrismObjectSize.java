@@ -5,16 +5,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.evolveum.axiom.concepts.CheckedFunction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismParserNoIO;
 import com.evolveum.midpoint.prism.PrismSerializer;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.impl.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.impl.xnode.ListXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.PrimitiveXNodeImpl;
@@ -38,9 +40,9 @@ public class PerfTestPrismObjectSize extends AbstractSchemaPerformanceTest {
 
     private static final String[] FILE_FORMATS = new String[] {"xml","json","yaml"};
 
-    private static final int[] CONTAINER_COUNTS = new int[] { 0, 10, 20, 50, 100, 200, 500, 1000};
+    private static final int[] CONTAINER_COUNTS = new int[] { 10, 20, 50, 100, 200, 500, 1000};
 
-
+    private static final int[] DELTA_PERCENTS = new int[] {10,20,30};
 
 
     @Test(dataProvider = "combinations")
@@ -80,6 +82,87 @@ public class PerfTestPrismObjectSize extends AbstractSchemaPerformanceTest {
             String monitorId = monitorName("parse.xnode", config.monitorId(), format);
             String note = "Measures parsing of JSON/XML/YAML to XNodes. Test parameters: " + config;
             measure(monitorId, note, parser::parseToXNode);
+        }
+    }
+
+    private void measureDelta(ContainerTestParams config, String name,  CheckedFunction<List<AssignmentType>,ObjectDelta<UserType>,SchemaException> deltaFactory) throws SchemaException {
+        PrismObject<UserType> xnodeObj = getPrismContext().parserFor(config.testObject()).parse();
+        List<AssignmentType> existingAssignments = xnodeObj.asObjectable().getAssignment();
+        ObjectDelta<UserType> delta = deltaFactory.apply(existingAssignments);
+        String monitorId = monitorName("delta", name);
+        String note = "Application of delta " + name + " Test Params: " + config;
+        try {
+            measure(monitorId, note, () -> {
+                PrismObject<UserType> objClone = xnodeObj.clone();
+                delta.applyTo(objClone);
+                return objClone;
+            });
+        } catch (CommonException | IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @Test(dataProvider = "combinations")
+    public void replaceDelta(ContainerTestParams config) throws SchemaException {
+        for (int percent : DELTA_PERCENTS) {
+            int opCount = config.count * percent / 100;
+            measureDelta(config, monitorName("replace",config.monitorId(), Integer.toString(opCount)), assignments -> {
+                DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, getPrismContext());
+                for (int i = assignments.size() - 1 - opCount; i < assignments.size(); i++) {
+                    AssignmentType assignment = assignments.get(i).clone();
+                    assignment.description("Modified");
+                    delta = (DeltaBuilder<UserType>) delta.item(UserType.F_ASSIGNMENT).replace(assignment.asPrismContainerValue());
+                }
+                return delta.asObjectDelta("");
+            });
+        }
+    }
+
+    @Test(dataProvider = "combinations")
+    public void addDelta(ContainerTestParams config) throws SchemaException {
+        for (int percent : DELTA_PERCENTS) {
+            int opCount = config.count * percent / 100;
+            measureDelta(config, monitorName("add",config.monitorId(), Integer.toString(opCount)), assignments -> {
+                DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, getPrismContext());
+                for (int i = 0; i < opCount; i++) {
+                    AssignmentType assignment = assignments.get(i).clone();
+                    assignment.getConstruction().resourceRef(newUuid(), assignment.getConstruction().getResourceRef().getType());
+                    assignment.setId(null);
+                    delta = (DeltaBuilder<UserType>) delta.item(UserType.F_ASSIGNMENT).add(assignment.asPrismContainerValue());
+                }
+                return delta.asObjectDelta("");
+            });
+        }
+    }
+
+    @Test(dataProvider = "combinations")
+    public void deleteDelta(ContainerTestParams config) throws SchemaException {
+        for (int percent : DELTA_PERCENTS) {
+            int opCount = config.count * percent / 100;
+            measureDelta(config, monitorName("delete",config.monitorId(), Integer.toString(opCount)), assignments -> {
+                DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, getPrismContext());
+                for (int i = assignments.size() - 1 - opCount; i < assignments.size(); i++) {
+                    AssignmentType assignment = assignments.get(i).clone();
+                    delta = (DeltaBuilder<UserType>) delta.item(UserType.F_ASSIGNMENT).delete(assignment.asPrismContainerValue());
+                }
+                return delta.asObjectDelta("");
+            });
+        }
+    }
+
+
+    @Test(dataProvider = "combinations")
+    public void deleteNoIdDelta(ContainerTestParams config) throws SchemaException {
+        for (int percent : DELTA_PERCENTS) {
+            int opCount = config.count * percent / 100;
+            measureDelta(config, monitorName("delete.no.id",config.monitorId(), Integer.toString(opCount)), assignments -> {
+                DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, getPrismContext());
+                for (int i = assignments.size() - 1 - opCount; i < assignments.size(); i++) {
+                    AssignmentType assignment = assignments.get(i).clone();
+                    delta = (DeltaBuilder<UserType>) delta.item(UserType.F_ASSIGNMENT).delete(assignment.asPrismContainerValue());
+                }
+                return delta.asObjectDelta("");
+            });
         }
     }
 
