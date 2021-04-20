@@ -28,7 +28,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
  * to final type used for ordinal. Can be {@code null} if no mapping is needed.
  */
 public class EnumOrdinalItemFilterProcessor<E extends Enum<E>>
-        extends SinglePathItemFilterProcessor<PropertyValueFilter<E>, Path<Integer>> {
+        extends SinglePathItemFilterProcessor<E, Path<Integer>> {
 
     @Nullable
     private final Function<E, Integer> conversionFunction;

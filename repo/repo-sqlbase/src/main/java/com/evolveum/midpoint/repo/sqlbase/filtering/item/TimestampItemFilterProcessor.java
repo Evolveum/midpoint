@@ -28,7 +28,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
  * (what else do we want?) to paths of {@link Instant}, {@link Timestamp} and {@link Long}.
  */
 public class TimestampItemFilterProcessor<T extends Comparable<T>>
-        extends SinglePathItemFilterProcessor<PropertyValueFilter<?>, DateTimePath<T>> {
+        extends SinglePathItemFilterProcessor<Object, DateTimePath<T>> {
 
     public TimestampItemFilterProcessor(SqlQueryContext<?, ?, ?> context,
             Function<EntityPath<?>, DateTimePath<T>> rootToQueryItem) {
@@ -36,7 +36,7 @@ public class TimestampItemFilterProcessor<T extends Comparable<T>>
     }
 
     @Override
-    public Predicate process(PropertyValueFilter<?> filter) throws QueryException {
+    public Predicate process(PropertyValueFilter<Object> filter) throws QueryException {
         return createBinaryCondition(filter, path,
                 ValueFilterValues.from(filter, this::convertToPathType));
     }

@@ -20,7 +20,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  * Base mapping between {@link QReference} subclasses and {@link ObjectReferenceType}.
  * See subtypes for mapping instances for specific tables and see {@link MReferenceType} as well.
  *
- * @param <OR> row type of the reference owner
+ * @param <Q> type of entity path for the reference table
+ * @param <R> row type related to the {@link Q}
+ * @param <OQ> query type of the reference owner
+ * @param <OR> row type of the reference owner (related to {@link OQ})
  */
 public class QReferenceMapping<Q extends QReference<R>, R extends MReference, OQ extends FlexibleRelationalPathBase<OR>, OR>
         extends SqaleTableMapping<Referencable, Q, R> {

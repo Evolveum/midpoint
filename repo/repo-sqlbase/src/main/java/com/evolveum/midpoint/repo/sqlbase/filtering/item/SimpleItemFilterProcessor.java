@@ -21,7 +21,7 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
  * Filter processor for a single path with straightforward type mapping and no conversions.
  */
 public class SimpleItemFilterProcessor<T, P extends Path<T>>
-        extends SinglePathItemFilterProcessor<PropertyValueFilter<T>, P> {
+        extends SinglePathItemFilterProcessor<T, P> {
 
     public SimpleItemFilterProcessor(
             SqlQueryContext<?, ?, ?> context, Function<EntityPath<?>, P> rootToQueryItem) {

@@ -26,7 +26,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * @see com.evolveum.midpoint.prism.path.CanonicalItemPath
  */
 public class CanonicalItemPathItemFilterProcessor
-        extends SinglePathItemFilterProcessor<PropertyValueFilter<ItemPathType>, StringPath> {
+        extends SinglePathItemFilterProcessor<ItemPathType, StringPath> {
 
     /**
      * Returns the mapper creating the item path filter processor from the context.

@@ -27,7 +27,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
  * Each enum type must be registered in {@link QuerydslUtils#querydslConfiguration}.
  */
 public class EnumItemFilterProcessor<E extends Enum<E>>
-        extends SinglePathItemFilterProcessor<PropertyValueFilter<E>, EnumPath<E>> {
+        extends SinglePathItemFilterProcessor<E, EnumPath<E>> {
 
     public EnumItemFilterProcessor(
             SqlQueryContext<?, ?, ?> context,

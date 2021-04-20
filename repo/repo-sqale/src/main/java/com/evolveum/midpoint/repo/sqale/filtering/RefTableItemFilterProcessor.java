@@ -19,6 +19,11 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 /**
  * Filter processor for reference item paths resolved via {@link QReference} tables.
  * This just joins the reference table and then delegates to {@link RefItemFilterProcessor}.
+ *
+ * @param <Q> type of entity path for the reference table
+ * @param <R> row type related to the {@link Q}
+ * @param <OQ> query type of the reference owner
+ * @param <OR> row type of the reference owner
  */
 public class RefTableItemFilterProcessor<Q extends QReference<R>, R extends MReference,
         OQ extends FlexibleRelationalPathBase<OR>, OR>

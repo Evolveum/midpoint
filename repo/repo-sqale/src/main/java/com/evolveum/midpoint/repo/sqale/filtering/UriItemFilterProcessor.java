@@ -17,21 +17,19 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.SinglePathItemFilterProcessor;
 
 /**
  * Filter processor for URI item paths - represented by string/QName in schema and by int ID in DB.
  * These paths are generally not ordered by, which is a relief, otherwise JOIN would be needed.
  */
-public class UriItemFilterProcessor extends ItemFilterProcessor<PropertyValueFilter<String>> {
-
-    private final NumberPath<Integer> path;
+public class UriItemFilterProcessor
+        extends SinglePathItemFilterProcessor<String, NumberPath<Integer>> {
 
     public UriItemFilterProcessor(
             SqlQueryContext<?, ?, ?> context,
             Function<EntityPath<?>, NumberPath<Integer>> rootToPath) {
-        super(context);
-        this.path = rootToPath.apply(context.path());
+        super(context, rootToPath);
     }
 
     @Override
