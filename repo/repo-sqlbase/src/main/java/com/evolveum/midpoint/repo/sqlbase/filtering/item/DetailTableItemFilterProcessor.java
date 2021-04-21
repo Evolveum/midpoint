@@ -23,9 +23,14 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * Filter processor for a an attribute path (Prism item) that is stored in detail table.
  * Mapper using this processor defines how to get to the actual column on the detail table
  * and also takes the actual {@link ItemSqlMapper} producing the right type of {@link ItemFilterProcessor}.
+ *
+ * @param <S> schema type for the owner of the detail table mapping
+ * @param <Q> query type (entity path) from which we traverse to the detail table (owner)
+ * @param <DQ> query type for the detail (target) table
+ * @param <DR> row type related to the {@link DQ}
  */
 public class DetailTableItemFilterProcessor
-        <Q extends FlexibleRelationalPathBase<?>, DQ extends FlexibleRelationalPathBase<DR>, DR>
+        <S, Q extends FlexibleRelationalPathBase<?>, DQ extends FlexibleRelationalPathBase<DR>, DR>
         extends ItemFilterProcessor<PropertyValueFilter<String>> {
 
     /**
@@ -37,41 +42,43 @@ public class DetailTableItemFilterProcessor
      * Note that the nested mapper works in the context using the joined path, so any item path
      * mapping is already relative to the query type representing the detail table.
      *
-     * @param <Q> query type (entity path) from which we traverse to the detail table
-     * @param <DQ> query type for the detail (target) table
-     * @param <DR> row type related to the {@link DQ}
+     * See class javadoc for the meaning of other parametrized types.
+     *
+     * @param <R> row type related to the {@link Q}
      * @param detailQueryType class of the starting query type ({@link DQ})
      * @param joinOnPredicate bi-function producing Querydsl JOIN-ON {@link Predicate} for entity
      * paths of {@link Q} and {@link DQ}
      * @param nestedItemMapper {@link ItemSqlMapper} for the column on the detail table
      * that actually represents the target of the whole composition of mappers for the item path
      */
-    public static <Q extends FlexibleRelationalPathBase<?>, DQ extends FlexibleRelationalPathBase<DR>, DR>
-    ItemSqlMapper mapper(
+    public static <S, Q extends FlexibleRelationalPathBase<R>, R, DQ extends FlexibleRelationalPathBase<DR>, DR>
+    ItemSqlMapper<S, Q, R> mapper(
             @NotNull Class<DQ> detailQueryType,
             @NotNull BiFunction<Q, DQ, Predicate> joinOnPredicate,
-            @NotNull ItemSqlMapper nestedItemMapper) {
+            @NotNull ItemSqlMapper<?, DQ, DR> nestedItemMapper) {
         /*
          * Ctx here is the original context that leads to this mapping, not the inner context
          * describing the target detail table (which doesn't even have to have defined mapping).
          * We don't resolve any arguments in the lambda here because we need to throw checked
          * QueryException, so everything is done in process(filter).
          */
-        return new ItemSqlMapper(ctx ->
+        return new ItemSqlMapper<>(ctx ->
                 new DetailTableItemFilterProcessor<>(
                         ctx, detailQueryType, joinOnPredicate, nestedItemMapper));
     }
 
+    private final SqlQueryContext<S, Q, ?> context;
     private final Class<DQ> detailQueryType;
     private final BiFunction<Q, DQ, Predicate> joinOnPredicate;
-    private final ItemSqlMapper nestedItemMapper;
+    private final ItemSqlMapper<?, DQ, DR> nestedItemMapper;
 
     public DetailTableItemFilterProcessor(
-            SqlQueryContext<?, ?, ?> ctx,
+            SqlQueryContext<S, Q, ?> context,
             Class<DQ> detailQueryType,
             BiFunction<Q, DQ, Predicate> joinOnPredicate,
-            ItemSqlMapper nestedItemMapper) {
-        super(ctx);
+            ItemSqlMapper<?, DQ, DR> nestedItemMapper) {
+        super(context);
+        this.context = context;
         this.detailQueryType = detailQueryType;
         this.joinOnPredicate = joinOnPredicate;
         this.nestedItemMapper = nestedItemMapper;
@@ -79,11 +86,9 @@ public class DetailTableItemFilterProcessor
 
     @Override
     public Predicate process(PropertyValueFilter<String> filter) throws RepositoryException {
-        //noinspection unchecked
         SqlQueryContext<?, DQ, DR> joinContext =
-                ((SqlQueryContext<?, Q, ?>) context).leftJoin(detailQueryType, joinOnPredicate);
+                context.leftJoin(detailQueryType, joinOnPredicate);
 
-        // now we create the actual filter processor on the inner context
         FilterProcessor<ObjectFilter> filterProcessor =
                 nestedItemMapper.createFilterProcessor(joinContext);
         return filterProcessor.process(filter);

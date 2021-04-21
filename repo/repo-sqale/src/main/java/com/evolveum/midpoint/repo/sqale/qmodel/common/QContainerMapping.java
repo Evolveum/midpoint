@@ -33,7 +33,7 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R>,
         super(tableName, defaultAliasName, schemaType, queryType);
 
         // TODO how CID is mapped?
-//        addItemMapping(PrismConstants.T_ID, uuidMapper(path(q -> q.oid)));
+//        addItemMapping(PrismConstants.T_ID, uuidMapper(q -> q.oid));
     }
 
     @Override

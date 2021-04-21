@@ -25,7 +25,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * @param <OQ> query type of the reference owner
  * @param <OR> row type of the reference owner
  */
-public class RefTableItemFilterProcessor<Q extends QReference<R>, R extends MReference,
+public class RefTableItemFilterProcessor<Q extends QReference<R, OR>, R extends MReference,
         OQ extends FlexibleRelationalPathBase<OR>, OR>
         extends ItemFilterProcessor<RefFilter> {
 
@@ -43,7 +43,7 @@ public class RefTableItemFilterProcessor<Q extends QReference<R>, R extends MRef
     public Predicate process(RefFilter filter) {
         SqlQueryContext<?, Q, R> refContext =
                 context.leftJoin(referenceMapping, referenceMapping.joinOnPredicate());
-        QReference<?> ref = refContext.path();
+        QReference<?, ?> ref = refContext.path();
 
         return new RefItemFilterProcessor(context, ref.targetOid, ref.targetType, ref.relationId)
                 .process(filter);

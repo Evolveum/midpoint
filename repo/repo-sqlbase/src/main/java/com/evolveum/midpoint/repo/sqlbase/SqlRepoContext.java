@@ -59,7 +59,7 @@ public class SqlRepoContext {
      * @param <TQ> query type for the target table
      * @param <TR> row type related to the {@link TQ}
      */
-    public <TQ extends FlexibleRelationalPathBase<TR>, TR> QueryTableMapping<?, TQ, TR>
+    public <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> QueryTableMapping<TS, TQ, TR>
     getMappingByQueryType(Class<TQ> queryType) {
         return mappingRegistry.getByQueryType(queryType);
     }

@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel;
 
 import java.util.function.Function;
 
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.dsl.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,9 +47,9 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     /** Returns the mapper creating the string filter/delta processors from context. */
     @Override
-    protected SqaleItemSqlMapper stringMapper(
-            Function<EntityPath<?>, StringPath> rootToQueryItem) {
-        return new SqaleItemSqlMapper(
+    protected SqaleItemSqlMapper<S, Q, R> stringMapper(
+            Function<Q, StringPath> rootToQueryItem) {
+        return new SqaleItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
                 ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
@@ -58,9 +57,9 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     /** Returns the mapper creating the integer filter/delta processors from context. */
     @Override
-    public SqaleItemSqlMapper integerMapper(
-            Function<EntityPath<?>, NumberPath<Integer>> rootToQueryItem) {
-        return new SqaleItemSqlMapper(
+    public SqaleItemSqlMapper<S, Q, R> integerMapper(
+            Function<Q, NumberPath<Integer>> rootToQueryItem) {
+        return new SqaleItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
                 ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
@@ -68,8 +67,8 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     /** Returns the mapper creating the boolean filter/delta processors from context. */
     @Override
-    protected SqaleItemSqlMapper booleanMapper(Function<EntityPath<?>, BooleanPath> rootToQueryItem) {
-        return new SqaleItemSqlMapper(
+    protected SqaleItemSqlMapper<S, Q, R> booleanMapper(Function<Q, BooleanPath> rootToQueryItem) {
+        return new SqaleItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
                 ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
@@ -77,8 +76,8 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     /** Returns the mapper creating the UUID filter/delta processors from context. */
     @Override
-    protected SqaleItemSqlMapper uuidMapper(Function<EntityPath<?>, UuidPath> rootToQueryItem) {
-        return new SqaleItemSqlMapper(
+    protected SqaleItemSqlMapper<S, Q, R> uuidMapper(Function<Q, UuidPath> rootToQueryItem) {
+        return new SqaleItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
                 ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
@@ -86,9 +85,9 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     /** Returns the mapper creating the timestamp filter/delta processors from context. */
     @Override
-    protected <T extends Comparable<T>> SqaleItemSqlMapper timestampMapper(
-            Function<EntityPath<?>, DateTimePath<T>> rootToQueryItem) {
-        return new SqaleItemSqlMapper(
+    protected <T extends Comparable<T>> SqaleItemSqlMapper<S, Q, R> timestampMapper(
+            Function<Q, DateTimePath<T>> rootToQueryItem) {
+        return new SqaleItemSqlMapper<>(
                 ctx -> new TimestampItemFilterProcessor<>(ctx, rootToQueryItem),
                 ctx -> new TimestampItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
@@ -96,21 +95,21 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     /** Returns the mapper creating the polystring filter/delta processors from context. */
     @Override
-    protected SqaleItemSqlMapper polyStringMapper(
-            @NotNull Function<EntityPath<?>, StringPath> origMapping,
-            @NotNull Function<EntityPath<?>, StringPath> normMapping) {
-        return new SqaleItemSqlMapper(
+    protected SqaleItemSqlMapper<S, Q, R> polyStringMapper(
+            @NotNull Function<Q, StringPath> origMapping,
+            @NotNull Function<Q, StringPath> normMapping) {
+        return new SqaleItemSqlMapper<>(
                 ctx -> new PolyStringItemFilterProcessor(ctx, origMapping, normMapping),
                 ctx -> new PolyStringItemDeltaProcessor(ctx, origMapping, normMapping),
                 origMapping);
     }
 
     /** Returns the mapper creating the reference filter/delta processors from context. */
-    protected SqaleItemSqlMapper refMapper(
-            Function<EntityPath<?>, UuidPath> rootToOidPath,
-            Function<EntityPath<?>, EnumPath<MObjectType>> rootToTypePath,
-            Function<EntityPath<?>, NumberPath<Integer>> rootToRelationIdPath) {
-        return new SqaleItemSqlMapper(
+    protected SqaleItemSqlMapper<S, Q, R> refMapper(
+            Function<Q, UuidPath> rootToOidPath,
+            Function<Q, EnumPath<MObjectType>> rootToTypePath,
+            Function<Q, NumberPath<Integer>> rootToRelationIdPath) {
+        return new SqaleItemSqlMapper<>(
                 ctx -> new RefItemFilterProcessor(ctx,
                         rootToOidPath, rootToTypePath, rootToRelationIdPath),
                 ctx -> new RefItemDeltaProcessor(ctx,
@@ -118,17 +117,17 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /** Returns the mapper creating the cached URI filter/delta processors from context. */
-    protected SqaleItemSqlMapper uriMapper(
-            Function<EntityPath<?>, NumberPath<Integer>> rootToPath) {
-        return new SqaleItemSqlMapper(
+    protected SqaleItemSqlMapper<S, Q, R> uriMapper(
+            Function<Q, NumberPath<Integer>> rootToPath) {
+        return new SqaleItemSqlMapper<>(
                 ctx -> new UriItemFilterProcessor(ctx, rootToPath),
                 ctx -> new UriItemDeltaProcessor(ctx, rootToPath));
     }
 
     /** Returns the mapper creating the enum filter/delta processors from context. */
-    public <E extends Enum<E>> SqaleItemSqlMapper enumMapper(
-            @NotNull Function<EntityPath<?>, EnumPath<E>> rootToQueryItem) {
-        return new SqaleItemSqlMapper(
+    public <E extends Enum<E>> SqaleItemSqlMapper<S, Q, R> enumMapper(
+            @NotNull Function<Q, EnumPath<E>> rootToQueryItem) {
+        return new SqaleItemSqlMapper<>(
                 ctx -> new EnumItemFilterProcessor<>(ctx, rootToQueryItem),
                 ctx -> new EnumItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);

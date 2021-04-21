@@ -10,31 +10,39 @@ import java.util.Collection;
 import java.util.UUID;
 
 import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
+import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.ReferenceSqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
-public class RefTableItemDeltaProcessor<Q extends QReference<?>, OQ extends FlexibleRelationalPathBase<OR>, OR>
+/**
+ * @param <Q> type of entity path for the reference table
+ * @param <OQ> query type of the reference owner
+ * @param <OR> row type of the reference owner (related to {@link OQ})
+ */
+public class RefTableItemDeltaProcessor<Q extends QReference<?, OR>, OQ extends FlexibleRelationalPathBase<OR>, OR>
         extends ItemDeltaValueProcessor<Referencable> {
 
+    private final SqaleUpdateContext<?, OQ, OR> context;
     private final QReferenceMapping<Q, ?, OQ, OR> refTableMapping;
 
     public RefTableItemDeltaProcessor(
-            RootUpdateContext<?, OQ, OR> context, // TODO OR as last here as well
+            SqaleUpdateContext<?, OQ, OR> context,
             QReferenceMapping<Q, ?, OQ, OR> refTableMapping) {
         super(context);
+        this.context = context;
         this.refTableMapping = refTableMapping;
     }
 
     @Override
     public void addValues(Collection<Referencable> values) {
-        OR ownerRow = (OR) context.row(); // TODO cleanup when context has generic superclass
+        OR ownerRow = context.row();
         ReferenceSqlTransformer<?, ?, OR> transformer =
                 refTableMapping.createTransformer(context.transformerSupport());
 
+        // TODO fix after common insert "child" contract is in place for refs and containers
         // It looks like the insert belongs to context, but there is no common insert contract.
         // Each transformer has different types and needs. What? No, I don't want to introduce
         // owner row type as another parametrized type on the transformer, thank you.
@@ -47,7 +55,7 @@ public class RefTableItemDeltaProcessor<Q extends QReference<?>, OQ extends Flex
         for (Referencable ref : values) {
             Integer relId = context.transformerSupport().searchCachedRelationId(ref.getRelation());
             context.jdbcSession().newDelete(r)
-                    .where(r.ownerOid.eq(context.objectOid())
+                    .where(r.isOwnedBy(context.row())
                             .and(r.targetOid.eq(UUID.fromString(ref.getOid())))
                             .and(r.relationId.eq(relId)))
                     .execute();
@@ -58,7 +66,7 @@ public class RefTableItemDeltaProcessor<Q extends QReference<?>, OQ extends Flex
     public void delete() {
         Q r = refTableMapping.defaultAlias();
         context.jdbcSession().newDelete(r)
-                .where(r.ownerOid.eq(context.objectOid()))
+                .where(r.isOwnedBy(context.row()))
                 .execute();
     }
 }

@@ -9,38 +9,44 @@ package com.evolveum.midpoint.repo.sqale.mapping;
 import java.util.Objects;
 import java.util.function.Function;
 
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
+import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
  * Declarative information how an item (from schema/prism world) is to be processed
  * when interpreting query or applying delta (delta application is addition to sqlbase superclass).
+ *
+ * @param <S> schema type owning the mapped item (not the target type)
+ * @param <Q> entity path owning the mapped item (not the target type)
+ * @param <R> row type with the mapped item (not the target type)
  */
-public class SqaleItemSqlMapper extends ItemSqlMapper {
+public class SqaleItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R>
+        extends ItemSqlMapper<S, Q, R> {
 
     @NotNull private final
-    Function<RootUpdateContext<?, ?, ?>, ItemDeltaValueProcessor<?>> deltaProcessorFactory;
+    Function<SqaleUpdateContext<S, Q, R>, ItemDeltaValueProcessor<?>> deltaProcessorFactory;
 
     public <P extends Path<?>> SqaleItemSqlMapper(
-            @NotNull Function<SqlQueryContext<?, ?, ?>, ItemFilterProcessor<?>> filterProcessorFactory,
-            @NotNull Function<RootUpdateContext<?, ?, ?>, ItemDeltaValueProcessor<?>> deltaProcessorFactory,
-            @Nullable Function<EntityPath<?>, P> primaryItemMapping) {
+            @NotNull Function<SqlQueryContext<S, Q, R>, ItemFilterProcessor<?>> filterProcessorFactory,
+            @NotNull Function<SqaleUpdateContext<S, Q, R>, ItemDeltaValueProcessor<?>> deltaProcessorFactory,
+            @Nullable Function<Q, P> primaryItemMapping) {
         super(filterProcessorFactory, primaryItemMapping);
         this.deltaProcessorFactory = Objects.requireNonNull(deltaProcessorFactory);
     }
 
     public SqaleItemSqlMapper(
-            @NotNull Function<SqlQueryContext<?, ?, ?>, ItemFilterProcessor<?>> filterProcessorFactory,
-            @NotNull Function<RootUpdateContext<?, ?, ?>, ItemDeltaValueProcessor<?>> deltaProcessorFactory) {
+            @NotNull Function<SqlQueryContext<S, Q, R>, ItemFilterProcessor<?>> filterProcessorFactory,
+            @NotNull Function<SqaleUpdateContext<S, Q, R>, ItemDeltaValueProcessor<?>> deltaProcessorFactory) {
         super(filterProcessorFactory);
         this.deltaProcessorFactory = Objects.requireNonNull(deltaProcessorFactory);
     }
@@ -54,7 +60,7 @@ public class SqaleItemSqlMapper extends ItemSqlMapper {
      * The type of the returned filter is adapted to the client code needs for convenience.
      */
     public ItemDeltaValueProcessor<?> createItemDeltaProcessor(
-            RootUpdateContext<?, ?, ?> sqlUpdateContext) {
+            SqaleUpdateContext<S, Q, R> sqlUpdateContext) {
         return deltaProcessorFactory.apply(sqlUpdateContext);
     }
 }

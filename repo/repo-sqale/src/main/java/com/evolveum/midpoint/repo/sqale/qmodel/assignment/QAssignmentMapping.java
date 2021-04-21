@@ -31,65 +31,65 @@ public class QAssignmentMapping
 
         // TODO OWNER_TYPE is new thing and can help avoid join to concrete object table
         //  But this will likely require special treatment/heuristic.
-        addItemMapping(F_LIFECYCLE_STATE, stringMapper(path(q -> q.lifecycleState)));
-        addItemMapping(F_ORDER, integerMapper(path(q -> q.orderValue)));
+        addItemMapping(F_LIFECYCLE_STATE, stringMapper(q -> q.lifecycleState));
+        addItemMapping(F_ORDER, integerMapper(q -> q.orderValue));
         addItemMapping(F_ORG_REF, refMapper(
-                path(q -> q.orgRefTargetOid),
-                path(q -> q.orgRefTargetType),
-                path(q -> q.orgRefRelationId)));
+                q -> q.orgRefTargetOid,
+                q -> q.orgRefTargetType,
+                q -> q.orgRefRelationId));
         addItemMapping(F_TARGET_REF, refMapper(
-                path(q -> q.targetRefTargetOid),
-                path(q -> q.targetRefTargetType),
-                path(q -> q.targetRefRelationId)));
+                q -> q.targetRefTargetOid,
+                q -> q.targetRefTargetType,
+                q -> q.targetRefRelationId));
         addItemMapping(F_TENANT_REF, refMapper(
-                path(q -> q.tenantRefTargetOid),
-                path(q -> q.tenantRefTargetType),
-                path(q -> q.tenantRefRelationId)));
+                q -> q.tenantRefTargetOid,
+                q -> q.tenantRefTargetType,
+                q -> q.tenantRefRelationId));
         // TODO no idea how extId/Oid works, see RAssignment.getExtension
         // TODO ext mapping can't be done statically
         addNestedMapping(F_CONSTRUCTION, ConstructionType.class)
                 .addItemMapping(ConstructionType.F_RESOURCE_REF, refMapper(
-                        path(q -> q.resourceRefTargetOid),
-                        path(q -> q.resourceRefTargetType),
-                        path(q -> q.resourceRefRelationId)));
+                        q -> q.resourceRefTargetOid,
+                        q -> q.resourceRefTargetType,
+                        q -> q.resourceRefRelationId));
         addNestedMapping(F_ACTIVATION, ActivationType.class)
                 .addItemMapping(ActivationType.F_ADMINISTRATIVE_STATUS,
-                        enumMapper(path(q -> q.administrativeStatus)))
+                        enumMapper(q -> q.administrativeStatus))
                 .addItemMapping(ActivationType.F_EFFECTIVE_STATUS,
-                        enumMapper(path(q -> q.effectiveStatus)))
+                        enumMapper(q -> q.effectiveStatus))
                 .addItemMapping(ActivationType.F_ENABLE_TIMESTAMP,
-                        timestampMapper(path(q -> q.enableTimestamp)))
+                        timestampMapper(q -> q.enableTimestamp))
                 .addItemMapping(ActivationType.F_DISABLE_REASON,
-                        timestampMapper(path(q -> q.disableTimestamp)))
+                        timestampMapper(q -> q.disableTimestamp))
                 .addItemMapping(ActivationType.F_DISABLE_REASON,
-                        stringMapper(path(q -> q.disableReason)))
+                        stringMapper(q -> q.disableReason))
                 .addItemMapping(ActivationType.F_VALIDITY_STATUS,
-                        enumMapper(path(q -> q.validityStatus)))
+                        enumMapper(q -> q.validityStatus))
                 .addItemMapping(ActivationType.F_VALID_FROM,
-                        timestampMapper(path(q -> q.validFrom)))
+                        timestampMapper(q -> q.validFrom))
                 .addItemMapping(ActivationType.F_VALID_TO,
-                        timestampMapper(path(q -> q.validTo)))
+                        timestampMapper(q -> q.validTo))
                 .addItemMapping(ActivationType.F_VALIDITY_CHANGE_TIMESTAMP,
-                        timestampMapper(path(q -> q.validityChangeTimestamp)))
+                        timestampMapper(q -> q.validityChangeTimestamp))
                 .addItemMapping(ActivationType.F_ARCHIVE_TIMESTAMP,
-                        timestampMapper(path(q -> q.archiveTimestamp)));
+                        timestampMapper(q -> q.archiveTimestamp));
         addNestedMapping(F_METADATA, MetadataType.class)
                 .addItemMapping(MetadataType.F_CREATOR_REF, refMapper(
-                        path(q -> q.creatorRefTargetOid),
-                        path(q -> q.creatorRefTargetType),
-                        path(q -> q.creatorRefRelationId)))
+                        q -> q.creatorRefTargetOid,
+                        q -> q.creatorRefTargetType,
+                        q -> q.creatorRefRelationId))
                 .addItemMapping(MetadataType.F_CREATE_CHANNEL,
-                        uriMapper(path(q -> q.createChannelId)))
+                        uriMapper(q -> q.createChannelId))
                 .addItemMapping(MetadataType.F_CREATE_TIMESTAMP,
-                        timestampMapper(path(q -> q.createTimestamp)))
+                        timestampMapper(q -> q.createTimestamp))
                 .addItemMapping(MetadataType.F_MODIFIER_REF, refMapper(
-                        path(q -> q.modifierRefTargetOid),
-                        path(q -> q.modifierRefTargetType),
-                        path(q -> q.modifierRefRelationId)))
+                        q -> q.modifierRefTargetOid,
+                        q -> q.modifierRefTargetType,
+                        q -> q.modifierRefRelationId))
                 .addItemMapping(MetadataType.F_MODIFY_CHANNEL,
-                        uriMapper(path(q -> q.modifyChannelId)))
+                        uriMapper(q -> q.modifyChannelId))
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
-                        timestampMapper(path(q -> q.modifyTimestamp)))
+                        timestampMapper(q -> q.modifyTimestamp))
                 .addRefMapping(MetadataType.F_CREATE_APPROVER_REF,
                         QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_CREATE_APPROVER)
                 .addRefMapping(MetadataType.F_MODIFY_APPROVER_REF,

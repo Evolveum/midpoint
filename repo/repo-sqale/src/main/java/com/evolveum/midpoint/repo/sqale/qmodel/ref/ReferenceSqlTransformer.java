@@ -13,7 +13,12 @@ import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTransformerBase;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 
-public class ReferenceSqlTransformer<Q extends QReference<R>, R extends MReference, OR>
+/**
+ * @param <Q> type of entity path for the reference table
+ * @param <R> type of the transformed data, a row bean
+ * @param <OR> row type of the reference owner
+ */
+public class ReferenceSqlTransformer<Q extends QReference<R, OR>, R extends MReference, OR>
         extends SqaleTransformerBase<Referencable, Q, R> {
 
     private final QReferenceMapping<Q, R, ?, OR> mapping;

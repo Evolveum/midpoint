@@ -42,7 +42,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
     private final Class<S> schemaType;
     private final Class<Q> queryType;
 
-    private final Map<QName, ItemSqlMapper> itemMappings = new LinkedHashMap<>();
+    private final Map<QName, ItemSqlMapper<S, Q, R>> itemMappings = new LinkedHashMap<>();
     private final Map<QName, ItemRelationResolver> itemRelationResolvers = new HashMap<>();
 
     public QueryModelMapping(
@@ -88,7 +88,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
      */
     public QueryModelMapping<S, Q, R> addItemMapping(
             @NotNull QName itemName,
-            @NotNull ItemSqlMapper itemMapper) {
+            @NotNull ItemSqlMapper<S, Q, R> itemMapper) {
         itemMappings.put(itemName, itemMapper);
         return this;
     }
@@ -113,8 +113,8 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
      *
      * @throws QueryException if the mapper for the item is not found
      */
-    public final @NotNull ItemSqlMapper itemMapper(QName itemName) throws QueryException {
-        ItemSqlMapper itemMapping = getItemMapper(itemName);
+    public final @NotNull ItemSqlMapper<S, Q, R> itemMapper(QName itemName) throws QueryException {
+        ItemSqlMapper<S, Q, R> itemMapping = getItemMapper(itemName);
         if (itemMapping == null) {
             throw new QueryException("Missing item mapping for " + itemName
                     + " in mapping " + getClass().getSimpleName());
@@ -125,7 +125,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
     /**
      * Returns {@link ItemSqlMapper} for provided {@link ItemName} or `null`.
      */
-    public final @Nullable ItemSqlMapper getItemMapper(QName itemName) {
+    public final @Nullable ItemSqlMapper<S, Q, R> getItemMapper(QName itemName) {
         return QNameUtil.getByQName(this.itemMappings, itemName);
     }
 
@@ -153,7 +153,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
     }
 
     /** Returns copy of the map of the item mappings. */
-    public final @NotNull Map<QName, ItemSqlMapper> getItemMappings() {
+    public final @NotNull Map<QName, ItemSqlMapper<S, Q, R>> getItemMappings() {
         return new LinkedHashMap<>(itemMappings);
     }
 }

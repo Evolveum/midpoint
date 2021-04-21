@@ -24,10 +24,8 @@ public class QTriggerMapping
         super(QTrigger.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 TriggerType.class, QTrigger.class);
 
-        addItemMapping(TriggerType.F_HANDLER_URI,
-                uriMapper(path(q -> q.handlerUriId)));
-        addItemMapping(TriggerType.F_TIMESTAMP,
-                timestampMapper(path(q -> q.timestampValue)));
+        addItemMapping(TriggerType.F_HANDLER_URI, uriMapper(q -> q.handlerUriId));
+        addItemMapping(TriggerType.F_TIMESTAMP, timestampMapper(q -> q.timestampValue));
     }
 
     @Override

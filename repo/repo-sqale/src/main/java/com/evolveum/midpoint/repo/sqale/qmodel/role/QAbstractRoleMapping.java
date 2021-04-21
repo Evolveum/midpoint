@@ -17,6 +17,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignSpecificat
 
 /**
  * Mapping between {@link QAbstractRole} and {@link AbstractRoleType}.
+ *
+ * @param <S> schema type for the abstract role object
+ * @param <Q> type of entity path
+ * @param <R> row type related to the {@link Q}
  */
 public class QAbstractRoleMapping<
         S extends AbstractRoleType, Q extends QAbstractRole<R>, R extends MAbstractRole>
@@ -38,12 +42,12 @@ public class QAbstractRoleMapping<
 
         addNestedMapping(F_AUTOASSIGN, AutoassignSpecificationType.class)
                 .addItemMapping(AutoassignSpecificationType.F_ENABLED,
-                        booleanMapper(path(q -> q.autoAssignEnabled)));
-        addItemMapping(F_DISPLAY_NAME, polyStringMapper(
-                path(q -> q.displayNameOrig), path(q -> q.displayNameNorm)));
-        addItemMapping(F_IDENTIFIER, stringMapper(path(q -> q.identifier)));
-        addItemMapping(F_REQUESTABLE, booleanMapper(path(q -> q.requestable)));
-        addItemMapping(F_RISK_LEVEL, stringMapper(path(q -> q.riskLevel)));
+                        booleanMapper(q -> q.autoAssignEnabled));
+        addItemMapping(F_DISPLAY_NAME,
+                polyStringMapper(q -> q.displayNameOrig, q -> q.displayNameNorm));
+        addItemMapping(F_IDENTIFIER, stringMapper(q -> q.identifier));
+        addItemMapping(F_REQUESTABLE, booleanMapper(q -> q.requestable));
+        addItemMapping(F_RISK_LEVEL, stringMapper(q -> q.riskLevel));
     }
 
     @Override

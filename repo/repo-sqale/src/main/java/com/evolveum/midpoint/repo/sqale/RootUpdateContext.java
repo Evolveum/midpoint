@@ -10,7 +10,6 @@ import static com.evolveum.midpoint.repo.sqale.SqaleUtils.objectVersionAsInt;
 
 import java.util.Collection;
 import java.util.UUID;
-import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Path;
 import com.querydsl.sql.dml.SQLUpdateClause;
@@ -38,14 +37,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @param <Q> type of entity path
  * @param <R> row type related to the {@link Q}
  */
-public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R extends MObject> {
+public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R extends MObject>
+        extends SqaleUpdateContext<S, Q, R> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RootUpdateContext.class);
-
-    private final SqaleTransformerSupport transformerSupport;
-    private final JdbcSession jdbcSession;
-    private final S object;
-    private final R rootRow;
 
     private final SqaleTableMapping<S, Q, R> mapping;
     private final Q rootPath;
@@ -54,18 +49,16 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
 
     private ContainerValueIdGenerator cidGenerator;
 
-    public RootUpdateContext(SqaleTransformerSupport sqlTransformerSupport,
+    public RootUpdateContext(SqaleTransformerSupport transformerSupport,
             JdbcSession jdbcSession, S object, R rootRow) {
-        this.transformerSupport = sqlTransformerSupport;
-        this.jdbcSession = jdbcSession;
-        this.object = object;
-        this.rootRow = rootRow;
+        super(transformerSupport, jdbcSession, object, rootRow);
 
         //noinspection unchecked
-        this.mapping = transformerSupport.sqlRepoContext()
+        mapping = this.transformerSupport.sqlRepoContext()
                 .getMappingBySchemaType((Class<S>) object.getClass());
         rootPath = mapping.defaultAlias();
         objectVersion = objectVersionAsInt(object);
+        // root context always updates, at least version and full object, so we can create it early
         update = jdbcSession.newUpdate(rootPath)
                 .where(rootPath.oid.eq(rootRow.oid)
                         .and(rootPath.version.eq(objectVersion)));
@@ -93,7 +86,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
         }
 
         cidGenerator = new ContainerValueIdGenerator()
-                .forModifyObject(getPrismObject(), rootRow.containerIdSeq);
+                .forModifyObject(getPrismObject(), row.containerIdSeq);
 
         for (ItemDelta<?, ?> modification : modifications) {
             try {
@@ -150,31 +143,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
     }
 
     public UUID objectOid() {
-        return rootRow.oid;
-    }
-
-    public R row() {
-        return rootRow;
-    }
-
-    public SqaleTransformerSupport transformerSupport() {
-        return transformerSupport;
-    }
-
-    public Integer processCacheableRelation(QName relation) {
-        return transformerSupport.processCacheableRelation(relation);
-    }
-
-    public Integer processCacheableUri(String uri) {
-        return transformerSupport.processCacheableUri(uri);
-    }
-
-    public JdbcSession jdbcSession() {
-        return jdbcSession;
-    }
-
-    public S getObject() {
-        return object;
+        return row.oid;
     }
 
     public PrismObject<S> getPrismObject() {

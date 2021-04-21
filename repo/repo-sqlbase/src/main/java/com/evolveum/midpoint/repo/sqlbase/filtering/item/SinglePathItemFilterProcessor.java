@@ -8,11 +8,11 @@ package com.evolveum.midpoint.repo.sqlbase.filtering.item;
 
 import java.util.function.Function;
 
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
  * Typical item filter processor is related to one table column represented by the {@link #path}.
@@ -27,8 +27,8 @@ public abstract class SinglePathItemFilterProcessor<T, P extends Path<?>>
 
     protected final P path;
 
-    public SinglePathItemFilterProcessor(
-            SqlQueryContext<?, ?, ?> context, Function<EntityPath<?>, P> rootToQueryItem) {
+    public <Q extends FlexibleRelationalPathBase<R>, R> SinglePathItemFilterProcessor(
+            SqlQueryContext<?, Q, R> context, Function<Q, P> rootToQueryItem) {
         super(context);
         this.path = rootToQueryItem.apply(context.path());
     }

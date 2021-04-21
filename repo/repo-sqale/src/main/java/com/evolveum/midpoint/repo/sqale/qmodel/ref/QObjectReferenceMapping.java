@@ -21,10 +21,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  * Mapping between {@link QObjectReference} and {@link ObjectReferenceType}.
  * The mapping is the same for all subtypes, see different `INSTANCE_*` constants below.
  * These instances are not typed properly for non-leaf persistence types like object or focus,
- * so mappings for these have adapter methods to change type parameters to `<Q, R>`.
+ * so mappings for these have adapter methods to change type parameters to `<OQ, OR>`.
+ *
+ * @param <OQ> query type of the reference owner
+ * @param <OR> row type of the reference owner (related to {@link OQ})
  */
-public class QObjectReferenceMapping<Q extends QObject<R>, R extends MObject>
-        extends QReferenceMapping<QObjectReference, MReference, Q, R> {
+public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
+        extends QReferenceMapping<QObjectReference<OR>, MReference, OQ, OR> {
 
     public static final QObjectReferenceMapping<?, ?> INSTANCE_ARCHETYPE =
             new QObjectReferenceMapping<>("m_ref_archetype", "refa");
@@ -47,13 +50,15 @@ public class QObjectReferenceMapping<Q extends QObject<R>, R extends MObject>
     public static final QObjectReferenceMapping<?, ?> INSTANCE_ROLE_MEMBERSHIP =
             new QObjectReferenceMapping<>("m_ref_role_membership", "refrm");
 
+    // Sad but true, we can't declare Class<QObjectReference<OR>>.class, we declare defeat instead.
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private QObjectReferenceMapping(String tableName, String defaultAliasName) {
-        super(tableName, defaultAliasName, QObjectReference.class);
+        super(tableName, defaultAliasName, (Class) QObjectReference.class);
     }
 
     @Override
-    protected QObjectReference newAliasInstance(String alias) {
-        return new QObjectReference(alias, tableName());
+    protected QObjectReference<OR> newAliasInstance(String alias) {
+        return new QObjectReference<>(alias, tableName());
     }
 
     @Override
@@ -64,7 +69,7 @@ public class QObjectReferenceMapping<Q extends QObject<R>, R extends MObject>
     }
 
     @Override
-    public BiFunction<Q, QObjectReference, Predicate> joinOnPredicate() {
+    public BiFunction<OQ, QObjectReference<OR>, Predicate> joinOnPredicate() {
         return (o, r) -> o.oid.eq(r.ownerOid);
     }
 }

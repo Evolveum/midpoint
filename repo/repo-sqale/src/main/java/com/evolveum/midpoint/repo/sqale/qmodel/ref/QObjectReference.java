@@ -6,11 +6,17 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
+
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+
 /**
  * Querydsl query type for object owned references.
  * This actually points to super-table, concrete tables are partitioned by {@link MReferenceType}.
+ *
+ * @param <OR> type of the owner row
  */
-public class QObjectReference extends QReference<MReference> {
+public class QObjectReference<OR extends MObject> extends QReference<MReference, OR> {
 
     private static final long serialVersionUID = -4850458578494140921L;
 
@@ -20,5 +26,10 @@ public class QObjectReference extends QReference<MReference> {
 
     public QObjectReference(String variable, String schema, String table) {
         super(MReference.class, variable, schema, table);
+    }
+
+    @Override
+    public BooleanExpression isOwnedBy(OR row) {
+        return ownerOid.eq(row.oid);
     }
 }

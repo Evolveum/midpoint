@@ -12,21 +12,34 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
+import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleNestedMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
-/** Delta processor for embedded single-value containers. */
-public class EmbeddedContainerDeltaProcessor<T extends Containerable>
+/**
+ * Delta processor for embedded single-value containers.
+ *
+ * @param <T> type of the processed container (target)
+ * @param <OS> schema type of the owner of the embedded container
+ * @param <OQ> query type of the owner entity
+ * @param <OR> type of the owner row
+ */
+public class EmbeddedContainerDeltaProcessor<T extends Containerable,
+        OS, OQ extends FlexibleRelationalPathBase<OR>, OR>
         extends ItemDeltaSingleValueProcessor<T> {
 
-    private final SqaleNestedMapping<?, ?, ?> mapping;
+    // TODO: perhaps this could be <T, OQ, OR> but we need mechanism to create new instance for
+    //  embedded context on the same query type for that. The also <OS> can go away.
+    private final SqaleUpdateContext<OS, OQ, OR> context;
+    private final SqaleNestedMapping<T, OQ, OR> mapping;
 
     public EmbeddedContainerDeltaProcessor(
-            RootUpdateContext<?, ?, ?> context, SqaleNestedMapping<?, ?, ?> nestedMapping) {
+            SqaleUpdateContext<OS, OQ, OR> context, SqaleNestedMapping<T, OQ, OR> nestedMapping) {
         super(context);
+        this.context = context;
         this.mapping = nestedMapping;
     }
 
@@ -40,9 +53,9 @@ public class EmbeddedContainerDeltaProcessor<T extends Containerable>
             return;
         }
 
-        Map<QName, ItemSqlMapper> mappers = mapping.getItemMappings();
+        Map<QName, ItemSqlMapper<T, OQ, OR>> mappers = mapping.getItemMappings();
         for (Item<?, ?> item : pcv.getItems()) {
-            ItemSqlMapper mapper = mappers.remove(item.getElementName());
+            ItemSqlMapper<T, OQ, OR> mapper = mappers.remove(item.getElementName());
             if (mapper == null) {
                 continue; // ok, not mapped to database
             }
@@ -58,22 +71,24 @@ public class EmbeddedContainerDeltaProcessor<T extends Containerable>
 
     @Override
     public void delete() {
-        for (ItemSqlMapper mapper : mapping.getItemMappings().values()) {
+        for (ItemSqlMapper<T, OQ, OR> mapper : mapping.getItemMappings().values()) {
             deleteUsing(mapper);
         }
     }
 
-    private void deleteUsing(ItemSqlMapper mapper) {
+    private void deleteUsing(ItemSqlMapper<T, OQ, OR> mapper) {
         ItemDeltaValueProcessor<?> processor = createItemDeltaProcessor(mapper);
         processor.delete();
     }
 
-    private ItemDeltaValueProcessor<?> createItemDeltaProcessor(ItemSqlMapper mapper) {
+    private ItemDeltaValueProcessor<?> createItemDeltaProcessor(ItemSqlMapper<?, ?, ?> mapper) {
         if (!(mapper instanceof SqaleItemSqlMapper)) {
             throw new IllegalArgumentException("No delta processor available for " + mapper
                     + " in mapping " + mapping + "! (Only query mapping is available.)");
         }
-        SqaleItemSqlMapper sqaleMapper = (SqaleItemSqlMapper) mapper;
+        // TODO fix parametrized types? Is OS right here? it is required by the context, but
+        // this hints at some type misuse or missing one? the context serves both the owning and the embedded schema type
+        SqaleItemSqlMapper<OS, OQ, OR> sqaleMapper = (SqaleItemSqlMapper<OS, OQ, OR>) mapper;
         return sqaleMapper.createItemDeltaProcessor(context);
     }
 }

@@ -27,8 +27,8 @@ public class QConnectorHostMapping
         super(QConnectorHost.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 ConnectorHostType.class, QConnectorHost.class);
 
-        addItemMapping(F_HOSTNAME, stringMapper(path(q -> q.hostname)));
-        addItemMapping(F_PORT, stringMapper(path(q -> q.port)));
+        addItemMapping(F_HOSTNAME, stringMapper(q -> q.hostname));
+        addItemMapping(F_PORT, stringMapper(q -> q.port));
     }
 
     @Override

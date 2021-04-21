@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  * @param <OQ> query type of the reference owner
  * @param <OR> row type of the reference owner (related to {@link OQ})
  */
-public class QReferenceMapping<Q extends QReference<R>, R extends MReference, OQ extends FlexibleRelationalPathBase<OR>, OR>
+public class QReferenceMapping<Q extends QReference<R, OR>, R extends MReference, OQ extends FlexibleRelationalPathBase<OR>, OR>
         extends SqaleTableMapping<Referencable, Q, R> {
 
     // see also subtype specific alias names defined for instances below
@@ -33,7 +33,7 @@ public class QReferenceMapping<Q extends QReference<R>, R extends MReference, OQ
 
     /** Top level "abstract" reference table, not really needed for normal queries. */
     public static final QReferenceMapping<
-            QReference<MReference>, MReference, FlexibleRelationalPathBase<Object>, Object> INSTANCE =
+            QReference<MReference, Object>, MReference, FlexibleRelationalPathBase<Object>, Object> INSTANCE =
             new QReferenceMapping<>(QReference.TABLE_NAME, DEFAULT_ALIAS_NAME, QReference.CLASS);
 
     protected QReferenceMapping(
@@ -43,11 +43,11 @@ public class QReferenceMapping<Q extends QReference<R>, R extends MReference, OQ
         // TODO owner and reference type is not possible to query, probably OK
         //  not sure about this mapping yet, does it make sense to query ref components?
         /* REMOVE in 2022 if nothing is missing this
-        addItemMapping(ObjectReferenceType.F_OID, uuidMapper(path(q -> q.targetOid)));
+        addItemMapping(ObjectReferenceType.F_OID, uuidMapper(q -> q.targetOid));
         addItemMapping(ObjectReferenceType.F_TYPE,
-                EnumItemFilterProcessor.mapper(path(q -> q.targetType)));
+                EnumItemFilterProcessor.mapper(q -> q.targetType));
         addItemMapping(ObjectReferenceType.F_RELATION,
-                UriItemFilterProcessor.mapper(path(q -> q.relationId)));
+                UriItemFilterProcessor.mapper(q -> q.relationId));
          */
     }
 

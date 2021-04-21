@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqlbase.filtering.item;
 
 import java.util.function.Function;
 
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.EnumPath;
 
@@ -16,6 +15,7 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
 
 /**
@@ -29,9 +29,9 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
 public class EnumItemFilterProcessor<E extends Enum<E>>
         extends SinglePathItemFilterProcessor<E, EnumPath<E>> {
 
-    public EnumItemFilterProcessor(
-            SqlQueryContext<?, ?, ?> context,
-            Function<EntityPath<?>, EnumPath<E>> rootToQueryItem) {
+    public <S, Q extends FlexibleRelationalPathBase<R>, R> EnumItemFilterProcessor(
+            SqlQueryContext<S, Q, R> context,
+            Function<Q, EnumPath<E>> rootToQueryItem) {
         super(context, rootToQueryItem);
     }
 

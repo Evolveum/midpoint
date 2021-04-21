@@ -38,6 +38,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+/**
+ * @param <S> schema type
+ * @param <Q> type of entity path
+ * @param <R> type of the transformed data, a row bean
+ */
 public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBase<R>, R>
         implements SqlTransformer<S, Q, R> {
 

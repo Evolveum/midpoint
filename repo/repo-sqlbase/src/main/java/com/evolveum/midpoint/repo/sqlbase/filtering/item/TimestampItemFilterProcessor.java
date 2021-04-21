@@ -11,7 +11,6 @@ import java.time.Instant;
 import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.DateTimePath;
 import org.jetbrains.annotations.NotNull;
@@ -20,6 +19,7 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
 
 /**
@@ -30,8 +30,9 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
 public class TimestampItemFilterProcessor<T extends Comparable<T>>
         extends SinglePathItemFilterProcessor<Object, DateTimePath<T>> {
 
-    public TimestampItemFilterProcessor(SqlQueryContext<?, ?, ?> context,
-            Function<EntityPath<?>, DateTimePath<T>> rootToQueryItem) {
+    public <Q extends FlexibleRelationalPathBase<R>, R> TimestampItemFilterProcessor(
+            SqlQueryContext<?, Q, R> context,
+            Function<Q, DateTimePath<T>> rootToQueryItem) {
         super(context, rootToQueryItem);
     }
 

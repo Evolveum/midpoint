@@ -8,10 +8,10 @@ package com.evolveum.midpoint.repo.sqale.delta.item;
 
 import java.util.function.Function;
 
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 
-import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
+import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
  * @param <T> type of real value after optional conversion ({@link #convertRealValue(Object)}
@@ -23,8 +23,12 @@ public class SinglePathItemDeltaProcessor<T, P extends Path<T>>
 
     protected final P path;
 
-    public SinglePathItemDeltaProcessor(
-            RootUpdateContext<?, ?, ?> context, Function<EntityPath<?>, P> rootToQueryItem) {
+    /**
+     * @param <Q> entity query type from which the attribute is resolved
+     * @param <R> row type related to {@link Q}
+     */
+    public <Q extends FlexibleRelationalPathBase<R>, R> SinglePathItemDeltaProcessor(
+            SqaleUpdateContext<?, Q, R> context, Function<Q, P> rootToQueryItem) {
         super(context);
         this.path = rootToQueryItem.apply(context.path());
     }

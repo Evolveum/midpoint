@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqlbase.filtering.item;
 
 import java.util.function.Function;
 
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +18,7 @@ import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
  * Filter processor for a an attribute path (Prism item) of enum type that is mapped
@@ -37,27 +37,43 @@ public class EnumOrdinalItemFilterProcessor<E extends Enum<E>>
      * Returns the mapper creating the enum filter processor from context.
      * With no value conversion function the filter value must contain enum whose ordinal
      * numbers are used in the repository.
+     *
+     * @param <S> schema type of the mapping owner
+     * @param <Q> entity query type of the mapping
+     * @param <R> row type related to the {@link Q}
      */
-    public static ItemSqlMapper mapper(
-            @NotNull Function<EntityPath<?>, Path<Integer>> rootToQueryItem) {
+    public static <S, Q extends FlexibleRelationalPathBase<R>, R>
+    ItemSqlMapper<S, Q, R> mapper(
+            @NotNull Function<Q, Path<Integer>> rootToQueryItem) {
         return mapper(rootToQueryItem, null);
     }
 
     /**
      * Returns the mapper creating the enum filter processor from context
      * with enum value conversion function.
+     *
+     * @param <S> schema type of the mapping owner
+     * @param <Q> entity query type of the mapping
+     * @param <R> row type related to the {@link Q}
+     * @param <E> see class javadoc
      */
-    public static <E extends Enum<E>> ItemSqlMapper mapper(
-            @NotNull Function<EntityPath<?>, Path<Integer>> rootToQueryItem,
+    public static <S, Q extends FlexibleRelationalPathBase<R>, R, E extends Enum<E>>
+    ItemSqlMapper<S, Q, R> mapper(
+            @NotNull Function<Q, Path<Integer>> rootToQueryItem,
             @Nullable Function<E, Enum<?>> conversionFunction) {
-        return new ItemSqlMapper(ctx ->
-                new EnumOrdinalItemFilterProcessor<>(ctx, rootToQueryItem, conversionFunction),
+        return new ItemSqlMapper<>(
+                ctx -> new EnumOrdinalItemFilterProcessor<>(
+                        ctx, rootToQueryItem, conversionFunction),
                 rootToQueryItem);
     }
 
-    private EnumOrdinalItemFilterProcessor(
-            SqlQueryContext<?, ?, ?> context,
-            Function<EntityPath<?>, Path<Integer>> rootToQueryItem,
+    /**
+     * @param <Q> entity query type from which the attribute is resolved
+     * @param <R> row type related to {@link Q}
+     */
+    private <Q extends FlexibleRelationalPathBase<R>, R> EnumOrdinalItemFilterProcessor(
+            @NotNull SqlQueryContext<?, Q, R> context,
+            @NotNull Function<Q, Path<Integer>> rootToQueryItem,
             @Nullable Function<E, Enum<?>> conversionFunction) {
         super(context, rootToQueryItem);
         this.conversionFunction = conversionFunction != null

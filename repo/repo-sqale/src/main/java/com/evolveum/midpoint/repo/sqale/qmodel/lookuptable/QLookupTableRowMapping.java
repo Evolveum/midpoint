@@ -26,12 +26,12 @@ public class QLookupTableRowMapping
         super(QLookupTableRow.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 LookupTableRowType.class, QLookupTableRow.class);
 
-        addItemMapping(F_KEY, stringMapper(path(q -> q.key)));
+        addItemMapping(F_KEY, stringMapper(q -> q.key));
         addItemMapping(F_LABEL, polyStringMapper(
-                path(q -> q.labelOrig), path(q -> q.labelNorm)));
-        addItemMapping(F_VALUE, stringMapper(path(q -> q.value)));
+                q -> q.labelOrig, q -> q.labelNorm));
+        addItemMapping(F_VALUE, stringMapper(q -> q.value));
         addItemMapping(F_LAST_CHANGE_TIMESTAMP,
-                timestampMapper(path(q -> q.lastChangeTimestamp)));
+                timestampMapper(q -> q.lastChangeTimestamp));
     }
 
     @Override

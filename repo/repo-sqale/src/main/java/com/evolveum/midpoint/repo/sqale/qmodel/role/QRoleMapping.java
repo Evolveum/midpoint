@@ -25,7 +25,7 @@ public class QRoleMapping
         super(QRole.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 RoleType.class, QRole.class);
 
-        addItemMapping(F_ROLE_TYPE, stringMapper(path(q -> q.roleType)));
+        addItemMapping(F_ROLE_TYPE, stringMapper(q -> q.roleType));
     }
 
     @Override

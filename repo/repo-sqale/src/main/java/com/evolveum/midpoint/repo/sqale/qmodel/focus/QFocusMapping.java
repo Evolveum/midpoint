@@ -22,6 +22,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Mapping between {@link QFocus} and {@link FocusType}.
+ *
+ * @param <S> schema type for the focus object
+ * @param <Q> type of entity path
+ * @param <R> row type related to the {@link Q}
  */
 public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends MFocus>
         extends QObjectMapping<S, Q, R> {
@@ -39,46 +43,46 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
             @NotNull Class<Q> queryType) {
         super(tableName, defaultAliasName, schemaType, queryType);
 
-        addItemMapping(F_COST_CENTER, stringMapper(path(q -> q.costCenter)));
-        addItemMapping(F_EMAIL_ADDRESS, stringMapper(path(q -> q.emailAddress)));
+        addItemMapping(F_COST_CENTER, stringMapper(q -> q.costCenter));
+        addItemMapping(F_EMAIL_ADDRESS, stringMapper(q -> q.emailAddress));
         // TODO byte[] mapping for F_JPEG_PHOTO -> q.photo
-        addItemMapping(F_LOCALE, stringMapper(path(q -> q.locale)));
+        addItemMapping(F_LOCALE, stringMapper(q -> q.locale));
         addItemMapping(F_LOCALITY, polyStringMapper(
-                path(q -> q.localityOrig), path(q -> q.localityNorm)));
-        addItemMapping(F_PREFERRED_LANGUAGE, stringMapper(path(q -> q.preferredLanguage)));
-        addItemMapping(F_TIMEZONE, stringMapper(path(q -> q.timezone)));
-        addItemMapping(F_TELEPHONE_NUMBER, stringMapper(path(q -> q.telephoneNumber)));
+                q -> q.localityOrig, q -> q.localityNorm));
+        addItemMapping(F_PREFERRED_LANGUAGE, stringMapper(q -> q.preferredLanguage));
+        addItemMapping(F_TIMEZONE, stringMapper(q -> q.timezone));
+        addItemMapping(F_TELEPHONE_NUMBER, stringMapper(q -> q.telephoneNumber));
         // passwordModify/CreateTimestamps are just a bit deeper
         addNestedMapping(F_CREDENTIALS, CredentialsType.class)
                 .addNestedMapping(CredentialsType.F_PASSWORD, PasswordType.class)
                 .addNestedMapping(PasswordType.F_METADATA, MetadataType.class)
                 .addItemMapping(MetadataType.F_CREATE_TIMESTAMP,
-                        timestampMapper(path(q -> q.passwordCreateTimestamp)))
+                        timestampMapper(q -> q.passwordCreateTimestamp))
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
-                        timestampMapper(path(q -> q.passwordModifyTimestamp)));
+                        timestampMapper(q -> q.passwordModifyTimestamp));
         addNestedMapping(F_ACTIVATION, ActivationType.class)
                 .addItemMapping(ActivationType.F_ADMINISTRATIVE_STATUS,
-                        enumMapper(path(q -> q.administrativeStatus)))
+                        enumMapper(q -> q.administrativeStatus))
                 .addItemMapping(ActivationType.F_EFFECTIVE_STATUS,
-                        enumMapper(path(q -> q.effectiveStatus)))
+                        enumMapper(q -> q.effectiveStatus))
                 .addItemMapping(ActivationType.F_ENABLE_TIMESTAMP,
-                        timestampMapper(path(q -> q.enableTimestamp)))
+                        timestampMapper(q -> q.enableTimestamp))
                 .addItemMapping(ActivationType.F_DISABLE_REASON,
-                        timestampMapper(path(q -> q.disableTimestamp)))
+                        timestampMapper(q -> q.disableTimestamp))
                 .addItemMapping(ActivationType.F_DISABLE_REASON,
-                        stringMapper(path(q -> q.disableReason)))
+                        stringMapper(q -> q.disableReason))
                 .addItemMapping(ActivationType.F_VALIDITY_STATUS,
-                        enumMapper(path(q -> q.validityStatus)))
+                        enumMapper(q -> q.validityStatus))
                 .addItemMapping(ActivationType.F_VALID_FROM,
-                        timestampMapper(path(q -> q.validFrom)))
+                        timestampMapper(q -> q.validFrom))
                 .addItemMapping(ActivationType.F_VALID_TO,
-                        timestampMapper(path(q -> q.validTo)))
+                        timestampMapper(q -> q.validTo))
                 .addItemMapping(ActivationType.F_VALIDITY_CHANGE_TIMESTAMP,
-                        timestampMapper(path(q -> q.validityChangeTimestamp)))
+                        timestampMapper(q -> q.validityChangeTimestamp))
                 .addItemMapping(ActivationType.F_ARCHIVE_TIMESTAMP,
-                        timestampMapper(path(q -> q.archiveTimestamp)))
+                        timestampMapper(q -> q.archiveTimestamp))
                 .addItemMapping(ActivationType.F_LOCKOUT_STATUS,
-                        enumMapper(path(q -> q.lockoutStatus)));
+                        enumMapper(q -> q.lockoutStatus));
 
         addRefMapping(F_PERSONA_REF, personaReferenceMapping());
         addRefMapping(F_LINK_REF, projectionReferenceMapping());

@@ -27,6 +27,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Mapping between {@link QObject} and {@link ObjectType}.
+ *
+ * @param <S> schema type of the object
+ * @param <Q> type of entity path
+ * @param <R> row type related to the {@link Q}
  */
 public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extends MObject>
         extends SqaleTableMapping<S, Q, R> {
@@ -44,14 +48,14 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             @NotNull Class<Q> queryType) {
         super(tableName, defaultAliasName, schemaType, queryType);
 
-        addItemMapping(PrismConstants.T_ID, uuidMapper(path(q -> q.oid)));
+        addItemMapping(PrismConstants.T_ID, uuidMapper(q -> q.oid));
         addItemMapping(F_NAME, polyStringMapper(
-                path(q -> q.nameOrig), path(q -> q.nameNorm)));
+                q -> q.nameOrig, q -> q.nameNorm));
         addItemMapping(F_TENANT_REF, refMapper(
-                path(q -> q.tenantRefTargetOid),
-                path(q -> q.tenantRefTargetType),
-                path(q -> q.tenantRefRelationId)));
-        addItemMapping(F_LIFECYCLE_STATE, stringMapper(path(q -> q.lifecycleState)));
+                q -> q.tenantRefTargetOid,
+                q -> q.tenantRefTargetType,
+                q -> q.tenantRefRelationId));
+        addItemMapping(F_LIFECYCLE_STATE, stringMapper(q -> q.lifecycleState));
         // version/cid_seq is not mapped for queries or deltas, it's managed by repo explicitly
 
         // TODO mapper for policySituations and subtypes
@@ -59,21 +63,21 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
         addNestedMapping(F_METADATA, MetadataType.class)
                 .addItemMapping(MetadataType.F_CREATOR_REF, refMapper(
-                        path(q -> q.creatorRefTargetOid),
-                        path(q -> q.creatorRefTargetType),
-                        path(q -> q.creatorRefRelationId)))
+                        q -> q.creatorRefTargetOid,
+                        q -> q.creatorRefTargetType,
+                        q -> q.creatorRefRelationId))
                 .addItemMapping(MetadataType.F_CREATE_CHANNEL,
-                        uriMapper(path(q -> q.createChannelId)))
+                        uriMapper(q -> q.createChannelId))
                 .addItemMapping(MetadataType.F_CREATE_TIMESTAMP,
-                        timestampMapper(path(q -> q.createTimestamp)))
+                        timestampMapper(q -> q.createTimestamp))
                 .addItemMapping(MetadataType.F_MODIFIER_REF, refMapper(
-                        path(q -> q.modifierRefTargetOid),
-                        path(q -> q.modifierRefTargetType),
-                        path(q -> q.modifierRefRelationId)))
+                        q -> q.modifierRefTargetOid,
+                        q -> q.modifierRefTargetType,
+                        q -> q.modifierRefRelationId))
                 .addItemMapping(MetadataType.F_MODIFY_CHANNEL,
-                        uriMapper(path(q -> q.modifyChannelId)))
+                        uriMapper(q -> q.modifyChannelId))
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
-                        timestampMapper(path(q -> q.modifyTimestamp)))
+                        timestampMapper(q -> q.modifyTimestamp))
                 .addRefMapping(MetadataType.F_CREATE_APPROVER_REF,
                         objectCreateApproverReferenceMapping())
                 .addRefMapping(MetadataType.F_MODIFY_APPROVER_REF,

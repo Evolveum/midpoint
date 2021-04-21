@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqale.filtering;
 
 import java.util.function.Function;
 
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.NumberPath;
 
@@ -18,6 +17,7 @@ import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SinglePathItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
  * Filter processor for URI item paths - represented by string/QName in schema and by int ID in DB.
@@ -26,9 +26,9 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.item.SinglePathItemFilterPro
 public class UriItemFilterProcessor
         extends SinglePathItemFilterProcessor<String, NumberPath<Integer>> {
 
-    public UriItemFilterProcessor(
-            SqlQueryContext<?, ?, ?> context,
-            Function<EntityPath<?>, NumberPath<Integer>> rootToPath) {
+    public <Q extends FlexibleRelationalPathBase<R>, R> UriItemFilterProcessor(
+            SqlQueryContext<?, Q, R> context,
+            Function<Q, NumberPath<Integer>> rootToPath) {
         super(context, rootToPath);
     }
 

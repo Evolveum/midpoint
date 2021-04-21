@@ -19,7 +19,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
@@ -45,11 +44,13 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
             @NotNull ItemRelationResolver itemRelationResolver);
 
     QueryModelMapping<S, Q, R> addItemMapping(
-            @NotNull QName itemName, @NotNull ItemSqlMapper itemMapper);
+            @NotNull QName itemName, @NotNull ItemSqlMapper<S, Q, R> itemMapper);
 
     /**
      * Defines nested mapping for container embedded in the same table.
      * This includes path resolver for queries and delta processor for modifications.
+     *
+     * @param <N> schema type of the nested container
      */
     default <N extends Containerable> SqaleNestedMapping<N, Q, R> addNestedMapping(
             @NotNull ItemName itemName, @NotNull Class<N> nestedSchemaType) {
@@ -57,23 +58,17 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
                 new SqaleNestedMapping<>(nestedSchemaType, queryType());
         addRelationResolver(itemName, new NestedMappingResolver<>(nestedMapping));
         // first function for query doesn't matter, it just can't be null
-        addItemMapping(itemName, new SqaleItemSqlMapper(ctx -> null,
+        addItemMapping(itemName, new SqaleItemSqlMapper<>(
+                ctx -> null,
                 ctx -> new EmbeddedContainerDeltaProcessor<>(ctx, nestedMapping)));
         return nestedMapping;
     }
 
-    /**
-     * Defines reference mapping for both query and modifications.
-     * Reference mapping is assumed to be `QReferenceMapping<?, ?, Q, R>` really, but because
-     * the instances of reference mapping are not typed flexibly enough, wildcard is used for
-     * parameter for client code convenience.
-     */
+    /** Defines reference mapping for both query and modifications. */
     default SqaleMappingMixin<S, Q, R> addRefMapping(
             @NotNull QName itemName, @NotNull QReferenceMapping<?, ?, Q, R> referenceMapping) {
-        //noinspection unchecked
-        addItemMapping(itemName, new SqaleItemSqlMapper(
-                ctx -> new RefTableItemFilterProcessor<>(
-                        (SqlQueryContext<?, Q, R>) ctx, referenceMapping),
+        addItemMapping(itemName, new SqaleItemSqlMapper<>(
+                ctx -> new RefTableItemFilterProcessor<>(ctx, referenceMapping),
                 ctx -> new RefTableItemDeltaProcessor<>(ctx, referenceMapping)));
 
         // TODO add relation mapping too for reaching to the reference target
@@ -83,16 +78,20 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
     /**
      * Defines table mapping for multi-value container owned by an object or another container.
      * This includes path resolver for queries and delta processor for modifications.
+     *
+     * @param <C> schema type of the container mapped to the target table
+     * @param <TQ> entity query type of the container table
+     * @param <TR> row type of the container table, related to {@link TQ}
      */
-    default <TQ extends QContainer<TR>, TR extends MContainer>
+    default <C extends Containerable, TQ extends QContainer<TR>, TR extends MContainer>
     SqaleMappingMixin<S, Q, R> addContainerTableMapping(
             @NotNull ItemName itemName,
-            @NotNull QContainerMapping<?, TQ, TR> containerMapping,
+            @NotNull QContainerMapping<C, TQ, TR> containerMapping,
             @NotNull BiFunction<Q, TQ, Predicate> joinPredicate) {
         addRelationResolver(itemName,
                 new TableRelationResolver<>(containerMapping.queryType(), joinPredicate));
 
-        addItemMapping(itemName, new SqaleItemSqlMapper(
+        addItemMapping(itemName, new SqaleItemSqlMapper<>(
                 ctx -> null, // TODO query mapping later
                 ctx -> new TableContainerDeltaProcessor<>(ctx, containerMapping)));
         return this;

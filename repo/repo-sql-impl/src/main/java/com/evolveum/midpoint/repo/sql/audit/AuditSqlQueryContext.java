@@ -15,9 +15,15 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
+/**
+ * @param <S> schema type, used by encapsulated mapping
+ * @param <Q> type of entity path
+ * @param <R> row type related to the {@link Q}
+ */
 public class AuditSqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         extends SqlQueryContext<S, Q, R> {
 
+    // Type parameters the same as in the class documentation.
     public static <S, Q extends FlexibleRelationalPathBase<R>, R> AuditSqlQueryContext<S, Q, R> from(
             Class<S> schemaType, SqlTransformerSupport transformerSupport, SqlRepoContext sqlRepoContext) {
 
@@ -47,8 +53,8 @@ public class AuditSqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     @Override
-    protected <TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<?, TQ, TR> deriveNew(
-            TQ newPath, QueryTableMapping<?, TQ, TR> newMapping) {
+    protected <TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
+    SqlQueryContext<TS, TQ, TR> deriveNew(TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping) {
         return new AuditSqlQueryContext<>(
                 newPath, newMapping, sqlRepoContext, transformerSupport, sqlQuery);
     }

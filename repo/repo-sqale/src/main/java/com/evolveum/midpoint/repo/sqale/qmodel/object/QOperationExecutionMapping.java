@@ -26,18 +26,18 @@ public class QOperationExecutionMapping
         super(QOperationExecution.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 OperationExecutionType.class, QOperationExecution.class);
 
-        addItemMapping(F_STATUS, enumMapper(path(q -> q.status)));
-        addItemMapping(F_RECORD_TYPE, enumMapper(path(q -> q.recordType)));
+        addItemMapping(F_STATUS, enumMapper(q -> q.status));
+        addItemMapping(F_RECORD_TYPE, enumMapper(q -> q.recordType));
         addItemMapping(F_INITIATOR_REF, refMapper(
-                path(q -> q.initiatorRefTargetOid),
-                path(q -> q.initiatorRefTargetType),
-                path(q -> q.initiatorRefRelationId)));
+                q -> q.initiatorRefTargetOid,
+                q -> q.initiatorRefTargetType,
+                q -> q.initiatorRefRelationId));
         addItemMapping(F_TASK_REF, refMapper(
-                path(q -> q.taskRefTargetOid),
-                path(q -> q.taskRefTargetType),
-                path(q -> q.taskRefRelationId)));
+                q -> q.taskRefTargetOid,
+                q -> q.taskRefTargetType,
+                q -> q.taskRefRelationId));
         addItemMapping(OperationExecutionType.F_TIMESTAMP,
-                timestampMapper(path(q -> q.timestampValue)));
+                timestampMapper(q -> q.timestampValue));
     }
 
     @Override

@@ -216,7 +216,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
      * @param joinType entity path type for the JOIN
      * @param joinOnPredicateFunction bi-function producing ON predicate for the JOIN
      */
-    public <TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<?, TQ, TR> leftJoin(
+    public <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<TS, TQ, TR> leftJoin(
             @NotNull Class<TQ> joinType,
             @NotNull BiFunction<Q, TQ, Predicate> joinOnPredicateFunction) {
         return leftJoin(sqlRepoContext.getMappingByQueryType(joinType), joinOnPredicateFunction);
@@ -230,13 +230,13 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
      * @param targetMapping mapping for the JOIN target query type
      * @param joinOnPredicateFunction bi-function producing ON predicate for the JOIN
      */
-    public <TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<?, TQ, TR> leftJoin(
-            @NotNull QueryTableMapping<?, TQ, TR> targetMapping,
+    public <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<TS, TQ, TR> leftJoin(
+            @NotNull QueryTableMapping<TS, TQ, TR> targetMapping,
             @NotNull BiFunction<Q, TQ, Predicate> joinOnPredicateFunction) {
         String aliasName = uniqueAliasName(targetMapping.defaultAliasName());
         TQ joinPath = targetMapping.newAlias(aliasName);
         sqlQuery.leftJoin(joinPath).on(joinOnPredicateFunction.apply(path(), joinPath));
-        SqlQueryContext<?, TQ, TR> newQueryContext = deriveNew(joinPath, targetMapping);
+        SqlQueryContext<TS, TQ, TR> newQueryContext = deriveNew(joinPath, targetMapping);
 
         // for JOINed context we want to preserve "NOT" status (unlike for subqueries)
         if (notFilterUsed) {
@@ -252,8 +252,8 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
      * @param <TQ> query type for the JOINed (target) table
      * @param <TR> row type related to the {@link TQ}
      */
-    protected abstract <TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<?, TQ, TR>
-    deriveNew(TQ newPath, QueryTableMapping<?, TQ, TR> newMapping);
+    protected abstract <TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
+    SqlQueryContext<TS, TQ, TR> deriveNew(TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping);
 
     public String uniqueAliasName(String baseAliasName) {
         Set<String> joinAliasNames =

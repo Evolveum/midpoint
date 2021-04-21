@@ -52,8 +52,6 @@ import com.evolveum.midpoint.util.QNameUtil;
  * * It allows creating "aliases" (entity path instances) {@link #newAlias(String)}.
  * * It knows how to traverse to other related entities, defined by {@link #addRelationResolver}
  *
- * TODO: possible future use is to help with item delta applications (objectModify)
- *
  * @param <S> schema type
  * @param <Q> type of entity path
  * @param <R> row type related to the {@link Q}
@@ -94,46 +92,46 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /** Returns the mapper creating the string filter processor from context. */
-    protected ItemSqlMapper stringMapper(
-            Function<EntityPath<?>, StringPath> rootToQueryItem) {
-        return new ItemSqlMapper(
+    protected ItemSqlMapper<S, Q, R> stringMapper(
+            Function<Q, StringPath> rootToQueryItem) {
+        return new ItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
     }
 
     /** Returns the mapper creating the integer filter processor from context. */
-    public ItemSqlMapper integerMapper(
-            Function<EntityPath<?>, NumberPath<Integer>> rootToQueryItem) {
-        return new ItemSqlMapper(ctx ->
+    public ItemSqlMapper<S, Q, R> integerMapper(
+            Function<Q, NumberPath<Integer>> rootToQueryItem) {
+        return new ItemSqlMapper<>(ctx ->
                 new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
     }
 
     /** Returns the mapper creating the boolean filter processor from context. */
-    protected ItemSqlMapper booleanMapper(
-            Function<EntityPath<?>, BooleanPath> rootToQueryItem) {
-        return new ItemSqlMapper(ctx ->
+    protected ItemSqlMapper<S, Q, R> booleanMapper(
+            Function<Q, BooleanPath> rootToQueryItem) {
+        return new ItemSqlMapper<>(ctx ->
                 new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
     }
 
     /** Returns the mapper creating the OID (UUID) filter processor from context. */
-    protected ItemSqlMapper uuidMapper(
-            Function<EntityPath<?>, UuidPath> rootToQueryItem) {
-        return new ItemSqlMapper(ctx ->
+    protected ItemSqlMapper<S, Q, R> uuidMapper(
+            Function<Q, UuidPath> rootToQueryItem) {
+        return new ItemSqlMapper<>(ctx ->
                 new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
     }
 
     /** Returns the mapper function creating the timestamp filter processor from context. */
-    protected <T extends Comparable<T>> ItemSqlMapper timestampMapper(
-            Function<EntityPath<?>, DateTimePath<T>> rootToQueryItem) {
-        return new ItemSqlMapper(context ->
+    protected <T extends Comparable<T>> ItemSqlMapper<S, Q, R> timestampMapper(
+            Function<Q, DateTimePath<T>> rootToQueryItem) {
+        return new ItemSqlMapper<>(context ->
                 new TimestampItemFilterProcessor<>(context, rootToQueryItem), rootToQueryItem);
     }
 
     /** Returns the mapper creating the string filter processor from context. */
-    protected ItemSqlMapper polyStringMapper(
-            Function<EntityPath<?>, StringPath> origMapping,
-            Function<EntityPath<?>, StringPath> normMapping) {
-        return new ItemSqlMapper(ctx ->
+    protected ItemSqlMapper<S, Q, R> polyStringMapper(
+            Function<Q, StringPath> origMapping,
+            Function<Q, StringPath> normMapping) {
+        return new ItemSqlMapper<>(ctx ->
                 new PolyStringItemFilterProcessor(ctx, origMapping, normMapping), origMapping);
     }
 
@@ -153,39 +151,19 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
-     * Lambda "wrapper" that helps with type inference when mapping paths from entity path.
-     */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected <A extends Path<?>> Function<EntityPath<?>, A> path(
-            Function<Q, A> rootToQueryItem) {
-        return (Function) rootToQueryItem;
-    }
-
-    /**
-     * Lambda "wrapper" but this time with explicit query type (otherwise unused by the method)
-     * for paths not starting on the Q parameter used for this mapping instance.
-     */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected <OQ extends EntityPath<OR>, OR, A extends Path<?>> Function<EntityPath<?>, A> path(
-            @SuppressWarnings("unused") Class<OQ> queryType,
-            Function<OQ, A> entityToQueryItem) {
-        return (Function) entityToQueryItem;
-    }
-
-    /**
      * Lambda "wrapper" that helps with the type inference (namely the current Q type).
      * Returned bi-function returns {@code ON} condition predicate for two entity paths.
      *
      * @param <TQ> query type for the JOINed (target) table
      * @param <TR> row type related to the {@link TQ}
      */
-    protected <TQ extends EntityPath<TR>, TR> BiFunction<Q, TQ, Predicate> joinOn(
+    protected <TQ extends FlexibleRelationalPathBase<TR>, TR> BiFunction<Q, TQ, Predicate> joinOn(
             BiFunction<Q, TQ, Predicate> joinOnPredicateFunction) {
         return joinOnPredicateFunction;
     }
 
     public final @Nullable Path<?> primarySqlPath(
-            ItemName itemName, SqlQueryContext<?, ?, ?> context)
+            ItemName itemName, SqlQueryContext<S, Q, R> context)
             throws RepositoryException {
         return itemMapper(itemName).itemPrimaryPath(context.path());
     }

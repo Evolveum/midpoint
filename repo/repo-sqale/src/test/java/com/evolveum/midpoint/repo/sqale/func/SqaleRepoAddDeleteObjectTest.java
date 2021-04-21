@@ -293,7 +293,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(userRow.containerIdSeq).isEqualTo(1); // cid sequence is in initial state
 
         UUID userOid = UUID.fromString(user.getOid());
-        QObjectReference or = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        QObjectReference<?> or = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
         List<MReference> projectionRefs = select(or, or.ownerOid.eq(userOid));
         assertThat(projectionRefs).hasSize(2)
                 .allMatch(rRow -> rRow.referenceType == MReferenceType.PROJECTION)
@@ -301,7 +301,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .extracting(rRow -> rRow.targetOid.toString())
                 .containsExactlyInAnyOrder(targetRef1, targetRef2);
         // this is the same set of refs queried from the super-table
-        QReference<MReference> r = aliasFor(QReference.CLASS);
+        QReference<MReference, ?> r = aliasFor(QReference.CLASS);
         List<MReference> refs = select(r, r.ownerOid.eq(userOid));
         assertThat(refs).hasSize(2)
                 .allMatch(rRow -> rRow.referenceType == MReferenceType.PROJECTION);
@@ -628,7 +628,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.connectorRefTargetType).isEqualTo(MObjectType.CONNECTOR);
         assertCachedUri(row.connectorRefRelationId, connectorRelation);
 
-        QObjectReference ref = QObjectReferenceMapping
+        QObjectReference<?> ref = QObjectReferenceMapping
                 .INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER.defaultAlias();
         List<MReference> refs = select(ref, ref.ownerOid.eq(row.oid));
         assertThat(refs).hasSize(2);
