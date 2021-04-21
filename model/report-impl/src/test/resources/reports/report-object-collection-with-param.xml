@@ -22,6 +22,10 @@
                 </equal>
             </filter>
         </collection>
+        <parameter>
+            <name>givenName</name>
+            <type>string</type>
+        </parameter>
         <view>
             <type>UserType</type>
             <column>

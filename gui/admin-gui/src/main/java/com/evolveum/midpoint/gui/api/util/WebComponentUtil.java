@@ -5085,4 +5085,69 @@ public final class WebComponentUtil {
         }
         return Integer.toString(count);
     }
+
+    public static List<DisplayableValue<?>> getAllowedValues(SearchFilterParameterType parameter, PageBase pageBase) {
+        List<DisplayableValue<?>> allowedValues = new ArrayList<>();
+
+        if (parameter == null || parameter.getAllowedValuesExpression() == null) {
+            return allowedValues;
+        }
+        Task task = pageBase.createSimpleTask("evaluate expression for allowed values");
+        ExpressionType expression = parameter.getAllowedValuesExpression();
+        Object value = null;
+        try {
+
+            value = ExpressionUtil.evaluateExpression(new VariablesMap(), null,
+                    expression, MiscSchemaUtil.getExpressionProfile(),
+                    pageBase.getExpressionFactory(), "evaluate expression for allowed values", task, task.getResult());
+        } catch (Exception e) {
+            LOGGER.error("Couldn't execute expression " + expression, e);
+            pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.evaluateAllowedValuesExpression", expression).getString());
+            return allowedValues;
+        }
+        if (value instanceof PrismPropertyValue) {
+            value = ((PrismPropertyValue) value).getRealValue();
+        }
+
+        if (!(value instanceof List)) {
+            LOGGER.error("Exception return unexpected type, expected List<DisplayableValue>, but was " + (value == null ? null : value.getClass()));
+            pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.wrongType", expression).getString());
+            return allowedValues;
+        }
+
+        if (!((List<?>) value).isEmpty()) {
+            if (!(((List<?>) value).get(0) instanceof DisplayableValue)) {
+                LOGGER.error("Exception return unexpected type, expected List<DisplayableValue>, but was " + (value == null ? null : value.getClass()));
+                pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.wrongType", expression).getString());
+                return allowedValues;
+            }
+            return (List<DisplayableValue<?>>) value;
+        }
+        return allowedValues;
+    }
+
+    public static <T extends Object> DropDownChoicePanel createDropDownChoices(String id, IModel<T> model, IModel<List<DisplayableValue<T>>> choices,
+            boolean allowNull, PageBase pageBase) {
+        return new DropDownChoicePanel(id, model, choices, new IChoiceRenderer<DisplayableValue>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public Object getDisplayValue(DisplayableValue val) {
+                if (val.getValue() instanceof Enum) {
+                    return pageBase.createStringResource((Enum<?>) val.getValue()).getString();
+                }
+                return pageBase.createStringResource(val.getLabel()).getString();
+            }
+
+            @Override
+            public String getIdValue(DisplayableValue val, int index) {
+                return Integer.toString(index);
+            }
+
+            @Override
+            public DisplayableValue getObject(String id, IModel<? extends List<? extends DisplayableValue>> choices) {
+                return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
+            }
+        }, allowNull);
+    }
 }

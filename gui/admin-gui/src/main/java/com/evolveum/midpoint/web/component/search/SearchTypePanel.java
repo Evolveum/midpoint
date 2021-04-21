@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.component.search;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -42,7 +44,8 @@ public class SearchTypePanel<C extends Containerable> extends AbstractSearchItem
             List<DisplayableValue<Class<? extends C>>> allowedValues = item.getAllowedValues(getPageBase());
             if (allowedValues != null && !allowedValues.isEmpty()) {
                 IModel<List<DisplayableValue<?>>> choices = new ListModel(item.getAllowedValues(getPageBase()));
-                searchItemField = createDropDownChoices(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), ContainerTypeSearchItem.F_TYPE), choices, false);
+                searchItemField = WebComponentUtil.createDropDownChoices(
+                        ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), ContainerTypeSearchItem.F_TYPE), (IModel)choices, false, getPageBase());
             }
         }
 

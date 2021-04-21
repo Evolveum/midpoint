@@ -485,11 +485,9 @@ public class ReportServiceImpl implements ReportService {
             for (Item item : items) {
                 PrismProperty pp = (PrismProperty) item;
                 String paramName = pp.getPath().lastName().getLocalPart();
-                Object value;
-                if (item.isSingleValue()) {
+                Object value = null;
+                if (!pp.getRealValues().isEmpty()) {
                     value = pp.getRealValues().iterator().next();
-                } else {
-                    value = pp.getRealValues();
                 }
                 variables.put(paramName, new TypedValue(value, ((PrismProperty<?>) item).getValueClass()));
             }

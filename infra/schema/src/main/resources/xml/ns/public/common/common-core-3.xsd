@@ -27036,6 +27036,18 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="display" type="tns:DisplayType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Display properties of the parameter.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.4</a:since>
+                                <a:experimental>true</a:experimental>
+                                <a:displayName>SearchFilterParameterType.display</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

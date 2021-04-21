@@ -8,10 +8,15 @@ package com.evolveum.midpoint.report.impl.controller.fileformat;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Predicate;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.report.api.ReportConstants;
+
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.ObjectUtils;
@@ -440,6 +445,25 @@ public abstract class FileFormatController {
     }
 
     protected void cleanUpVariables() {
+        variables.clear();
         variables = null;
+    }
+
+    protected void initializationParameters(List<SearchFilterParameterType> parametersType, Task task) {
+        VariablesMap variables = getReportService().getParameters(task);
+        for (SearchFilterParameterType parameter : parametersType) {
+            if (!variables.containsKey(parameter.getName())) {
+                variables.put(parameter.getName(), null, String.class);
+            }
+        }
+        parameters = variables;
+    }
+
+    protected void searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter, Predicate<PrismContainer> handler,
+            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging paging, Task task, OperationResult result, boolean recordProgress)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        checkVariables(task);
+        getReportService().getModelInteractionService().searchObjectFromCollection(
+                collectionConfig, typeForFilter, handler, defaultOptions, paging, variables, task, result, recordProgress);
     }
 }

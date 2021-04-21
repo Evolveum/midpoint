@@ -94,7 +94,8 @@ public class SearchFilterPanel extends AbstractSearchItemPanel<FilterSearchItem>
                                 createEnumChoices((Class<? extends Enum>) inputClass) : Model.ofList(getModelObject().getAllowedValues(getPageBase()));
                     }
                     if (choices != null) {
-                        inputPanel = createDropDownChoices(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), FilterSearchItem.F_INPUT), choices, false);
+                        inputPanel = WebComponentUtil.createDropDownChoices(
+                                ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), FilterSearchItem.F_INPUT), (IModel)choices, false, getPageBase());
                         ((InputPanel) inputPanel).getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
                             @Override
                             protected void onUpdate(AjaxRequestTarget target) {

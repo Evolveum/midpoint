@@ -19,6 +19,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.task.api.RunningTask;
 
@@ -183,6 +184,8 @@ public class HtmlController extends FileFormatController {
                     .asObjectable();
         }
 
+        initializationParameters(collectionConfig.getParameter(), task);
+
         ClassLoader classLoader = getClass().getClassLoader();
         InputStream in = classLoader.getResourceAsStream(REPORT_CSS_STYLE_FILE_NAME);
         if (in == null) {
@@ -322,8 +325,8 @@ public class HtmlController extends FileFormatController {
             cleanUpVariables();
             return true;
         };
-        getReportService().getModelInteractionService().searchObjectFromCollection(collection, compiledCollection.getContainerType(), handler, options,
-                null, getReportService().getParameters(task), task, result, recordProgress);
+        searchObjectFromCollection(collection, compiledCollection.getContainerType(), handler, options,
+                null, task, result, recordProgress);
         if (tBody.getNumChildren() == 0 && !recordProgress) {
             return null;
         }

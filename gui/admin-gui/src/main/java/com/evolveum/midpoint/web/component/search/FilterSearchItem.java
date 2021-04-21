@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.component.search;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -131,43 +132,11 @@ public class FilterSearchItem extends SearchItem {
         if (allowedValues != null) {
             return allowedValues;
         }
-
-        if (predefinedFilter == null || predefinedFilter.getParameter() == null
-                || predefinedFilter.getParameter().getAllowedValuesExpression() == null) {
-            return null;
+        if (predefinedFilter == null) {
+            return Collections.EMPTY_LIST;
         }
-        Task task = pageBase.createSimpleTask("evaluate expression for allowed values");
-        ExpressionType expression = predefinedFilter.getParameter().getAllowedValuesExpression();
-        Object value = null;
-        try {
-
-            value = ExpressionUtil.evaluateExpression(new VariablesMap(), null,
-                    expression, MiscSchemaUtil.getExpressionProfile(),
-                    pageBase.getExpressionFactory(), "evaluate expression for allowed values", task, task.getResult());
-        } catch (Exception e) {
-            LOGGER.error("Couldn't execute expression " + expression, e);
-            pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.evaluateAllowedValuesExpression", expression).getString());
-            return null;
-        }
-        if (value instanceof PrismPropertyValue) {
-            value = ((PrismPropertyValue) value).getRealValue();
-        }
-
-        if (!(value instanceof List)) {
-            LOGGER.error("Exception return unexpected type, expected List<DisplayableValue>, but was " + (value == null ? null : value.getClass()));
-            pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.wrongType", expression).getString());
-            return null;
-        }
-
-        if (!((List<?>) value).isEmpty()) {
-            if (!(((List<?>) value).get(0) instanceof DisplayableValue)) {
-                LOGGER.error("Exception return unexpected type, expected List<DisplayableValue>, but was " + (value == null ? null : value.getClass()));
-                pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.wrongType", expression).getString());
-                return null;
-            }
-        }
-        this.allowedValues = (List<DisplayableValue<?>>) value;
-        return (List<DisplayableValue<?>>) value;
+        List<DisplayableValue<?>> values = WebComponentUtil.getAllowedValues(predefinedFilter.getParameter(), pageBase);
+        return values;
     }
 
     public LookupTableType getLookupTable(PageBase pageBase) {

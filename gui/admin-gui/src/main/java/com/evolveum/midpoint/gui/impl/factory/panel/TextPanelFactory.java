@@ -7,11 +7,24 @@
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.DisplayableValue;
+
+import com.evolveum.midpoint.web.component.search.FilterSearchItem;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.LocalizationService;
@@ -43,21 +56,44 @@ public class TextPanelFactory<T> extends AbstractInputGuiComponentFactory<T> imp
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<T> panelCtx) {
         LookupTableType lookupTable = panelCtx.getPredefinedValues();
-        if (lookupTable == null) {
-            return new TextPanel<>(panelCtx.getComponentId(),
-                    panelCtx.getRealValueModel(), panelCtx.getTypeClass(), false);
+        if (lookupTable != null) {
+            return new AutoCompleteTextPanel<T>(panelCtx.getComponentId(),
+                    panelCtx.getRealValueModel(), panelCtx.getTypeClass(), panelCtx.hasValueEnumerationRef(), lookupTable) {
+
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public Iterator<T> getIterator(String input) {
+                    return (Iterator<T>) prepareAutoCompleteList(input, lookupTable, panelCtx.getPageBase().getLocalizationService()).iterator();
+                }
+            };
         }
 
-        return new AutoCompleteTextPanel<T>(panelCtx.getComponentId(),
-                panelCtx.getRealValueModel(), panelCtx.getTypeClass(), panelCtx.hasValueEnumerationRef(), lookupTable) {
+        Collection<? extends DisplayableValue<T>> allowedValues = panelCtx.getAllowedValues();
+        if (CollectionUtils.isNotEmpty(allowedValues)) {
+            IModel<List<DisplayableValue<T>>> choices = Model.ofList(allowedValues.stream().collect(Collectors.toCollection(ArrayList::new)));
+            IModel convertModel = new IModel<DisplayableValue<T>>(){
+                @Override
+                public DisplayableValue<T> getObject() {
+                    Object value = panelCtx.getRealValueModel().getObject();
+                    for (DisplayableValue<T> dispValue : choices.getObject()) {
+                        if (dispValue.getValue().equals(value)) {
+                            return dispValue;
+                        }
+                    }
+                    return null;
+                }
 
-            private static final long serialVersionUID = 1L;
+                @Override
+                public void setObject(DisplayableValue<T> object) {
+                    panelCtx.getRealValueModel().setObject(object.getValue());
+                }
+            };
+            return WebComponentUtil.createDropDownChoices(panelCtx.getComponentId(), convertModel, choices, true, panelCtx.getPageBase());
+        }
 
-            @Override
-            public Iterator<T> getIterator(String input) {
-                return (Iterator<T>) prepareAutoCompleteList(input, lookupTable, panelCtx.getPageBase().getLocalizationService()).iterator();
-            }
-        };
+        return new TextPanel<>(panelCtx.getComponentId(),
+                panelCtx.getRealValueModel(), panelCtx.getTypeClass(), false);
     }
 
     protected List<String> prepareAutoCompleteList(String input, LookupTableType lookupTable, LocalizationService localizationService) {

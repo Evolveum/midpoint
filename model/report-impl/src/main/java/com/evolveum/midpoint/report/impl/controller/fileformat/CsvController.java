@@ -131,7 +131,7 @@ public class CsvController extends FileFormatController {
                     .getObject(type, ref.getOid(), null, task, result)
                     .asObjectable();
         }
-
+        initializationParameters(collectionConfig.getParameter(), task);
         CompiledObjectCollectionView compiledCollection = createCompiledView(collectionConfig, collection);
 
         return createTableBox(collectionRefSpecification, compiledCollection,
@@ -234,8 +234,8 @@ public class CsvController extends FileFormatController {
             cleanUpVariables();
             return true;
         };
-        getReportService().getModelInteractionService().searchObjectFromCollection(collection, compiledCollection.getContainerType(), handler,
-                options, null, getReportService().getParameters(task), task, result, true);
+        searchObjectFromCollection(collection, compiledCollection.getContainerType(), handler,
+                options, null, task, result, true);
 
         CSVFormat csvFormat = createCsvFormat();
         if (Boolean.TRUE.equals(isHeader())) {
