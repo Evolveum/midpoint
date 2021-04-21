@@ -1,5 +1,6 @@
 = MidPoint Interfaces and Integration
 :page-nav-title: Interfaces and Integration
+:page-wiki-name: Interfaces
 :page-display-order: 320
 :page-upkeep-status: green
 

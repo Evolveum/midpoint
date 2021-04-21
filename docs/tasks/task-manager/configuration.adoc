@@ -1,5 +1,5 @@
 = Task Manager Configuration
-:page-nav-title: Task Manager
+:page-nav-title: Configuration
 :page-wiki-name: Task Manager Configuration
 :page-upkeep-status: orange
 

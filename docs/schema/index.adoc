@@ -1,5 +1,6 @@
 = MidPoint Schema and Archetypes
 :page-nav-title: Schema and Archetypes
+:page-wiki-name: Data Model
 :page-display-order: 250
 :page-upkeep-status: green
 :page-liquid:

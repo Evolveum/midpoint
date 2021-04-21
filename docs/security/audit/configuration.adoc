@@ -1,5 +1,5 @@
 = MidPoint Audit Configuration
-:page-nav-title: Audit
+:page-nav-title: Configuration
 :page-wiki-name: Audit configuration
 :page-upkeep-status: orange
 :page-toc: top

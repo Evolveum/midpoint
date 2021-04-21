@@ -1,0 +1,42 @@
+= SQL Repository Evolution
+:page-wiki-name: SQL Repository Evolution
+:page-upkeep-status: green
+
+Random notes about current state of SQL repository implementation and the patch for future evolution.
+
+
+== Problem: long reads with old data
+
+JIRA: bug:MID-4414[]
+
+Long database reads (recompute, recon) can return data that are out of data.
+It seems that the databases using READ\_COMMITTED isolation will return the data as they were at the beginning of a transaction.
+Which is the beginning of a search.
+If the search runs for minutes or even hours, this causes a lot of problems.
+Firstly, there is a very long transaction.
+This transaction will (probably) not lock out too much data, but long transactions are problem anyway.
+Secondly, the data that we get at the end are desperately out of date.
+We are lucky that midPoint data usually do not change that often.
+But in case that they do we are in big trouble.
+
+Possible solutions:
+
+. Workaround: use the search to get only the OID.
+Then read each object explicitly at the beginning of clockwork run.
+Drawback: performance.
+
+. Limiting the problem: use shorter ranged searches instead of one big search.
+This will make the interval for getting objects out of date shorter.
+But it will not eliminate the problem.
+
+. Investigate possible database-based solutions.
+How does other deal with searches that run for a long time?
+
+. Optimistic locking: always use optimistic locking when updating object in clockwork.
+Drawback: complexity (need to restart whole operation).
+Difficult to test.
+And we have hoped that midPoint relative model will make locking superfluous.
+But is seems that we still need locking, at least for single-valued properties.
+Yet, this seems to be a systemic solution.
+And we will probably need it anyway (e.g. concurrency problems with shadows).
+
