@@ -11,7 +11,7 @@ import java.util.function.Function;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
 
 /**
  * @param <T> type of real value after optional conversion ({@link #convertRealValue(Object)}
@@ -24,7 +24,7 @@ public class SinglePathItemDeltaProcessor<T, P extends Path<T>>
     protected final P path;
 
     public SinglePathItemDeltaProcessor(
-            SqaleUpdateContext<?, ?, ?> context, Function<EntityPath<?>, P> rootToQueryItem) {
+            RootUpdateContext<?, ?, ?> context, Function<EntityPath<?>, P> rootToQueryItem) {
         super(context);
         this.path = rootToQueryItem.apply(context.path());
     }

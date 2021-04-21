@@ -38,9 +38,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @param <Q> type of entity path
  * @param <R> row type related to the {@link Q}
  */
-public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R extends MObject> {
+public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R extends MObject> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SqaleUpdateContext.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RootUpdateContext.class);
 
     private final SqaleTransformerSupport transformerSupport;
     private final JdbcSession jdbcSession;
@@ -54,7 +54,7 @@ public class SqaleUpdateContext<S extends ObjectType, Q extends QObject<R>, R ex
 
     private ContainerValueIdGenerator cidGenerator;
 
-    public SqaleUpdateContext(SqaleTransformerSupport sqlTransformerSupport,
+    public RootUpdateContext(SqaleTransformerSupport sqlTransformerSupport,
             JdbcSession jdbcSession, S object, R rootRow) {
         this.transformerSupport = sqlTransformerSupport;
         this.jdbcSession = jdbcSession;

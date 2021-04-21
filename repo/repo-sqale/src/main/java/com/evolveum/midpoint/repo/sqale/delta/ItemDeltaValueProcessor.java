@@ -13,7 +13,7 @@ import java.util.Collection;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 
 /**
@@ -29,9 +29,9 @@ import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
  */
 public abstract class ItemDeltaValueProcessor<T> implements ItemDeltaProcessor {
 
-    protected final SqaleUpdateContext<?, ?, ?> context;
+    protected final RootUpdateContext<?, ?, ?> context;
 
-    protected ItemDeltaValueProcessor(SqaleUpdateContext<?, ?, ?> context) {
+    protected ItemDeltaValueProcessor(RootUpdateContext<?, ?, ?> context) {
         this.context = context;
     }
 

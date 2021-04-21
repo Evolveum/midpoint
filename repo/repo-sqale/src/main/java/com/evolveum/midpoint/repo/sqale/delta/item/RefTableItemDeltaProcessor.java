@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.UUID;
 
 import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
@@ -23,7 +23,7 @@ public class RefTableItemDeltaProcessor<Q extends QReference<?>, OQ extends Flex
     private final QReferenceMapping<Q, ?, OQ, OR> refTableMapping;
 
     public RefTableItemDeltaProcessor(
-            SqaleUpdateContext<?, ?, ?> context, // TODO OR as last here as well
+            RootUpdateContext<?, OQ, OR> context, // TODO OR as last here as well
             QReferenceMapping<Q, ?, OQ, OR> refTableMapping) {
         super(context);
         this.refTableMapping = refTableMapping;

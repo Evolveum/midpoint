@@ -11,7 +11,7 @@ import java.util.function.BiFunction;
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
@@ -53,7 +53,7 @@ public class TableRelationResolver<
     }
 
     @Override
-    public UpdateResolutionResult resolve(SqaleUpdateContext<?, ?, ?> context) {
+    public UpdateResolutionResult resolve(RootUpdateContext<?, ?, ?> context) {
         // TODO for query above we can hop to another table with join, still using SqlQueryContext
         //  (just a new instance), but right now SqaleUpdateContext is not built for that.
         //  Options - superclass? Common interface? Parametrized to Flexible... instead of QObject?

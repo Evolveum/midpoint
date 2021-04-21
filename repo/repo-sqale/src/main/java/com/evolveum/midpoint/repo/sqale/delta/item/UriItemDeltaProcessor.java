@@ -12,12 +12,12 @@ import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.dsl.NumberPath;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
 
 public class UriItemDeltaProcessor
         extends SinglePathItemDeltaProcessor<Integer, NumberPath<Integer>> {
 
-    public UriItemDeltaProcessor(SqaleUpdateContext<?, ?, ?> context,
+    public UriItemDeltaProcessor(RootUpdateContext<?, ?, ?> context,
             Function<EntityPath<?>, NumberPath<Integer>> rootToQueryItem) {
         super(context, rootToQueryItem);
     }

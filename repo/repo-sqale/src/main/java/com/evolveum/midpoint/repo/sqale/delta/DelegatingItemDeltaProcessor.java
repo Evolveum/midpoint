@@ -11,7 +11,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemRelationResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
@@ -25,18 +25,18 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
  * If the modification has multi-part name then it resolves it to the last component first.
  *
  * *Implementation note:*
- * This is a separate component used by {@link SqaleUpdateContext} but while the context is
+ * This is a separate component used by {@link RootUpdateContext} but while the context is
  * one for all modifications this is instantiated for each modification (or even path resolution
  * step) which allows for state changes that don't affect processing of another modification.
  */
 public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
 
     /** Query context and mapping is not final as it can change during complex path resolution. */
-    private SqaleUpdateContext<?, ?, ?> context;
+    private RootUpdateContext<?, ?, ?> context;
     private QueryModelMapping<?, ?, ?> mapping;
 
     public DelegatingItemDeltaProcessor(
-            SqaleUpdateContext<?, ?, ?> context, QueryModelMapping<?, ?, ?> mapping) {
+            RootUpdateContext<?, ?, ?> context, QueryModelMapping<?, ?, ?> mapping) {
         this.context = context;
         this.mapping = mapping;
     }

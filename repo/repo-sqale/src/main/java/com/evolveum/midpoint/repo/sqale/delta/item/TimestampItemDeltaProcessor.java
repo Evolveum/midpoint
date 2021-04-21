@@ -12,13 +12,13 @@ import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.dsl.DateTimePath;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
 
 public class TimestampItemDeltaProcessor<T extends Comparable<T>>
         extends SinglePathItemDeltaProcessor<T, DateTimePath<T>> {
 
-    public TimestampItemDeltaProcessor(SqaleUpdateContext<?, ?, ?> context,
+    public TimestampItemDeltaProcessor(RootUpdateContext<?, ?, ?> context,
             Function<EntityPath<?>, DateTimePath<T>> rootToQueryItem) {
         super(context, rootToQueryItem);
     }

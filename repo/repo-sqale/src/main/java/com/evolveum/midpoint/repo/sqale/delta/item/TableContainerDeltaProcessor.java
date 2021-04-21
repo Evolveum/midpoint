@@ -11,7 +11,7 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
@@ -27,7 +27,7 @@ public class TableContainerDeltaProcessor<
     private final QContainerMapping<T, Q, R> containerTableMapping;
 
     public TableContainerDeltaProcessor(
-            @NotNull SqaleUpdateContext<?, ?, ?> context,
+            @NotNull RootUpdateContext<?, ?, ?> context,
             @NotNull QContainerMapping<T, Q, R> containerTableMapping) {
         super(context);
         this.containerTableMapping = containerTableMapping;

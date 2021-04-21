@@ -11,7 +11,7 @@ import java.util.function.Function;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.dsl.EnumPath;
 
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
 
 /**
  * Delta processor for an attribute path (Prism item) of enum type that is mapped to matching
@@ -20,7 +20,7 @@ import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 public class EnumItemDeltaProcessor<E extends Enum<E>>
         extends SinglePathItemDeltaProcessor<E, EnumPath<E>> {
 
-    public EnumItemDeltaProcessor(SqaleUpdateContext<?, ?, ?> context,
+    public EnumItemDeltaProcessor(RootUpdateContext<?, ?, ?> context,
             Function<EntityPath<?>, EnumPath<E>> rootToQueryItem) {
         super(context, rootToQueryItem);
     }

@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.mapping;
 
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -32,7 +32,7 @@ public class NestedMappingResolver<Q extends FlexibleRelationalPathBase<?>>
     }
 
     @Override
-    public UpdateResolutionResult resolve(SqaleUpdateContext<?, ?, ?> context) {
+    public UpdateResolutionResult resolve(RootUpdateContext<?, ?, ?> context) {
         return new UpdateResolutionResult(context, mapping);
     }
 }

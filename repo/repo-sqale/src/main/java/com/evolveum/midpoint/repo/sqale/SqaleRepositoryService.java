@@ -354,7 +354,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
             // TODO: THIS is real start of modifyObjectAttempt
             try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-                SqaleUpdateContext<T, QObject<MObject>, MObject> updateContext =
+                RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
                         prepareUpdateContext(jdbcSession, type, oidUuid);
                 PrismObject<T> prismObject = updateContext.getPrismObject();
                 if (precondition != null && !precondition.holds(prismObject)) {
@@ -389,7 +389,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
     /** Read object for update and returns update context that contains it. */
     private <S extends ObjectType, Q extends QObject<R>, R extends MObject>
-    SqaleUpdateContext<S, Q, R> prepareUpdateContext(
+    RootUpdateContext<S, Q, R> prepareUpdateContext(
             @NotNull JdbcSession jdbcSession,
             @NotNull Class<S> schemaType,
             @NotNull UUID oid)
@@ -416,7 +416,7 @@ public class SqaleRepositoryService implements RepositoryService {
         rootRow.oid = oid;
         rootRow.containerIdSeq = result.get(root.containerIdSeq);
         // we don't care about full object in row
-        return new SqaleUpdateContext<>(transformerSupport, jdbcSession, object, rootRow);
+        return new RootUpdateContext<>(transformerSupport, jdbcSession, object, rootRow);
     }
 
     private void logTraceModifications(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) {

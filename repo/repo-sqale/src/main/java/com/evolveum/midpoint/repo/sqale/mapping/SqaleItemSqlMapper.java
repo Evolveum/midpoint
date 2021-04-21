@@ -14,7 +14,7 @@ import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
@@ -28,11 +28,11 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 public class SqaleItemSqlMapper extends ItemSqlMapper {
 
     @NotNull private final
-    Function<SqaleUpdateContext<?, ?, ?>, ItemDeltaValueProcessor<?>> deltaProcessorFactory;
+    Function<RootUpdateContext<?, ?, ?>, ItemDeltaValueProcessor<?>> deltaProcessorFactory;
 
     public <P extends Path<?>> SqaleItemSqlMapper(
             @NotNull Function<SqlQueryContext<?, ?, ?>, ItemFilterProcessor<?>> filterProcessorFactory,
-            @NotNull Function<SqaleUpdateContext<?, ?, ?>, ItemDeltaValueProcessor<?>> deltaProcessorFactory,
+            @NotNull Function<RootUpdateContext<?, ?, ?>, ItemDeltaValueProcessor<?>> deltaProcessorFactory,
             @Nullable Function<EntityPath<?>, P> primaryItemMapping) {
         super(filterProcessorFactory, primaryItemMapping);
         this.deltaProcessorFactory = Objects.requireNonNull(deltaProcessorFactory);
@@ -40,21 +40,21 @@ public class SqaleItemSqlMapper extends ItemSqlMapper {
 
     public SqaleItemSqlMapper(
             @NotNull Function<SqlQueryContext<?, ?, ?>, ItemFilterProcessor<?>> filterProcessorFactory,
-            @NotNull Function<SqaleUpdateContext<?, ?, ?>, ItemDeltaValueProcessor<?>> deltaProcessorFactory) {
+            @NotNull Function<RootUpdateContext<?, ?, ?>, ItemDeltaValueProcessor<?>> deltaProcessorFactory) {
         super(filterProcessorFactory);
         this.deltaProcessorFactory = Objects.requireNonNull(deltaProcessorFactory);
     }
 
     /**
      * Creates {@link ItemDeltaProcessor} based on this mapping.
-     * Provided {@link SqaleUpdateContext} is used to figure out the query paths when this is
+     * Provided {@link RootUpdateContext} is used to figure out the query paths when this is
      * executed (as the entity path instance is not yet available when the mapping is configured
      * in a declarative manner).
      *
      * The type of the returned filter is adapted to the client code needs for convenience.
      */
     public ItemDeltaValueProcessor<?> createItemDeltaProcessor(
-            SqaleUpdateContext<?, ?, ?> sqlUpdateContext) {
+            RootUpdateContext<?, ?, ?> sqlUpdateContext) {
         return deltaProcessorFactory.apply(sqlUpdateContext);
     }
 }

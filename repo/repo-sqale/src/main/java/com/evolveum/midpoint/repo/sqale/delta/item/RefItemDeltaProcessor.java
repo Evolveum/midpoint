@@ -15,7 +15,7 @@ import com.querydsl.core.types.dsl.NumberPath;
 
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
@@ -28,7 +28,7 @@ public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<Referen
     private final NumberPath<Integer> relationIdPath;
 
     public RefItemDeltaProcessor(
-            SqaleUpdateContext<?, ?, ?> context,
+            RootUpdateContext<?, ?, ?> context,
             Function<EntityPath<?>, UuidPath> rootToOidPath,
             Function<EntityPath<?>, EnumPath<MObjectType>> rootToTypePath,
             Function<EntityPath<?>, NumberPath<Integer>> rootToRelationIdPath) {
@@ -39,7 +39,7 @@ public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<Referen
     }
 
     // exposed mainly for RefTableItemFilterProcessor
-    RefItemDeltaProcessor(SqaleUpdateContext<?, ?, ?> context,
+    RefItemDeltaProcessor(RootUpdateContext<?, ?, ?> context,
             UuidPath oidPath, EnumPath<MObjectType> typePath, NumberPath<Integer> relationIdPath) {
         super(context);
         this.oidPath = oidPath;

@@ -10,7 +10,7 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 
@@ -24,7 +24,7 @@ import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
  */
 public abstract class ItemDeltaSingleValueProcessor<T> extends ItemDeltaValueProcessor<T> {
 
-    protected ItemDeltaSingleValueProcessor(SqaleUpdateContext<?, ?, ?> context) {
+    protected ItemDeltaSingleValueProcessor(RootUpdateContext<?, ?, ?> context) {
         super(context);
     }
 

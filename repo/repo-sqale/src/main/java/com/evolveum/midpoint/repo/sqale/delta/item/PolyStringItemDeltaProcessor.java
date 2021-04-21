@@ -13,7 +13,7 @@ import com.querydsl.core.types.dsl.StringPath;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 
 public class PolyStringItemDeltaProcessor extends ItemDeltaSingleValueProcessor<PolyString> {
@@ -22,7 +22,7 @@ public class PolyStringItemDeltaProcessor extends ItemDeltaSingleValueProcessor<
     private final StringPath normPath;
 
     public PolyStringItemDeltaProcessor(
-            SqaleUpdateContext<?, ?, ?> context,
+            RootUpdateContext<?, ?, ?> context,
             Function<EntityPath<?>, StringPath> origMapping,
             Function<EntityPath<?>, StringPath> normMapping) {
         super(context);

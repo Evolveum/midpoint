@@ -12,7 +12,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleNestedMapping;
@@ -25,7 +25,7 @@ public class EmbeddedContainerDeltaProcessor<T extends Containerable>
     private final SqaleNestedMapping<?, ?, ?> mapping;
 
     public EmbeddedContainerDeltaProcessor(
-            SqaleUpdateContext<?, ?, ?> context, SqaleNestedMapping<?, ?, ?> nestedMapping) {
+            RootUpdateContext<?, ?, ?> context, SqaleNestedMapping<?, ?, ?> nestedMapping) {
         super(context);
         this.mapping = nestedMapping;
     }

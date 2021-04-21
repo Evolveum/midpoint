@@ -11,14 +11,14 @@ import java.util.function.Function;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
 
 // TODO necessary if this bare?
 public class SimpleItemDeltaProcessor<T, P extends Path<T>>
         extends SinglePathItemDeltaProcessor<T, P> {
 
     public SimpleItemDeltaProcessor(
-            SqaleUpdateContext<?, ?, ?> context, Function<EntityPath<?>, P> rootToQueryItem) {
+            RootUpdateContext<?, ?, ?> context, Function<EntityPath<?>, P> rootToQueryItem) {
         super(context, rootToQueryItem);
     }
 }
