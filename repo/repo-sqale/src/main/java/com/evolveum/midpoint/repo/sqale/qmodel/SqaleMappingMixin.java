@@ -57,9 +57,7 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
         SqaleNestedMapping<N, Q, R> nestedMapping =
                 new SqaleNestedMapping<>(nestedSchemaType, queryType());
         addRelationResolver(itemName, new NestedMappingResolver<>(nestedMapping));
-        // first function for query doesn't matter, it just can't be null
         addItemMapping(itemName, new SqaleItemSqlMapper<>(
-                ctx -> null,
                 ctx -> new EmbeddedContainerDeltaProcessor<>(ctx, nestedMapping)));
         return nestedMapping;
     }
@@ -92,7 +90,6 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
                 new TableRelationResolver<>(containerMapping.queryType(), joinPredicate));
 
         addItemMapping(itemName, new SqaleItemSqlMapper<>(
-                ctx -> null,
                 ctx -> new TableContainerDeltaProcessor<>(ctx, containerMapping)));
         return this;
     }

@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
@@ -91,6 +92,10 @@ public class DetailTableItemFilterProcessor
 
         FilterProcessor<ObjectFilter> filterProcessor =
                 nestedItemMapper.createFilterProcessor(joinContext);
+        if (filterProcessor == null) {
+            throw new QueryException("Filtering on " + filter.getPath() + " is not supported.");
+            // this should not even happen, we can't even create a Query that would cause this
+        }
         return filterProcessor.process(filter);
     }
 }

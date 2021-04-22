@@ -18,6 +18,7 @@ import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
@@ -47,6 +48,18 @@ public class SqaleItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R>
             @NotNull Function<SqlQueryContext<S, Q, R>, ItemFilterProcessor<?>> filterProcessorFactory,
             @NotNull Function<SqaleUpdateContext<S, Q, R>, ItemDeltaValueProcessor<?>> deltaProcessorFactory) {
         super(filterProcessorFactory);
+        this.deltaProcessorFactory = Objects.requireNonNull(deltaProcessorFactory);
+    }
+
+    /**
+     * Version of mapper supporting only delta processor, but not filter processor.
+     * Typical example is container which can't be used as a filter condition as a whole.
+     * This does not mean the inner part of the item can't be resolved and filtered by, but
+     * it's not job of this mapper (see {@link ItemRelationResolver}).
+     */
+    public SqaleItemSqlMapper(
+            @NotNull Function<SqaleUpdateContext<S, Q, R>, ItemDeltaValueProcessor<?>> deltaProcessorFactory) {
+        super(ctx -> null);
         this.deltaProcessorFactory = Objects.requireNonNull(deltaProcessorFactory);
     }
 

@@ -72,9 +72,13 @@ public class ItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R> {
      *
      * The type of the returned processor is adapted to the client code needs for convenience.
      * Also the type of the provided context is flexible, but with proper mapping it's all safe.
+     *
+     * [NOTE]
+     * This may return null if the subclass supports other type of mapping for this item,
+     * but not filtering for queries.
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public <T extends ObjectFilter> ItemFilterProcessor<T> createFilterProcessor(
+    public @Nullable <T extends ObjectFilter> ItemFilterProcessor<T> createFilterProcessor(
             SqlQueryContext<?, ?, ?> sqlQueryContext) {
         return (ItemFilterProcessor<T>) filterProcessorFactory
                 .apply((SqlQueryContext) sqlQueryContext);

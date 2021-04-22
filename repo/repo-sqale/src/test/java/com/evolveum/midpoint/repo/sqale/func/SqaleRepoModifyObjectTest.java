@@ -861,7 +861,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted to the dedicated table");
-        QObjectReference r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
         UUID ownerOid = UUID.fromString(user1Oid);
         List<MReference> refs = select(r, r.ownerOid.eq(ownerOid));
         assertThat(refs).hasSize(1)
@@ -905,7 +905,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted to the dedicated table");
-        QObjectReference r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
         List<MReference> refs = select(r, r.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(refs).hasSize(3)
                 .anyMatch(refRowMatcher(refTargetOid, refRelation1))
@@ -948,7 +948,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted to the dedicated table");
-        QObjectReference r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
         List<MReference> refs = select(r, r.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(refs).hasSize(2) // new added, previous three or so are gone
                 .anyMatch(refRowMatcher(refTargetOid, refRelation1))
@@ -1028,7 +1028,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted and deleted accordingly");
-        QObjectReference r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
         List<MReference> refs = select(r, r.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(refs).hasSize(6)
                 .anyMatch(refRowMatcher(refTargetOid1, refRelation2))
@@ -1068,7 +1068,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted and deleted accordingly");
-        QObjectReference r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
         assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
     }
 
@@ -1110,7 +1110,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted to the dedicated table");
-        QObjectReference r = QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER.defaultAlias();
         UUID ownerOid = UUID.fromString(user1Oid);
         List<MReference> refs = select(r, r.ownerOid.eq(ownerOid));
         assertThat(refs).hasSize(2)
@@ -1146,7 +1146,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
-        QObjectReference r = QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER.defaultAlias();
         assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
         r = QObjectReferenceMapping.INSTANCE_OBJECT_MODIFY_APPROVER.defaultAlias();
         assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();

@@ -12,6 +12,7 @@ import com.querydsl.core.types.Predicate;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
@@ -55,9 +56,14 @@ public class ValueFilterProcessor implements FilterProcessor<ValueFilter<?, ?>> 
 //        ItemDefinition definition = filter.getDefinition();
 
         QName itemName = resolvePath(filter.getPath());
-        return mapping.itemMapper(itemName)
-                .createFilterProcessor(context)
-                .process(filter);
+        ItemFilterProcessor<ObjectFilter> filterProcessor =
+                mapping.itemMapper(itemName)
+                        .createFilterProcessor(context);
+        if (filterProcessor == null) {
+            throw new QueryException("Filtering on " + filter.getPath() + " is not supported.");
+            // this should not even happen, we can't even create a Query that would cause this
+        }
+        return filterProcessor.process(filter);
     }
 
     /**
