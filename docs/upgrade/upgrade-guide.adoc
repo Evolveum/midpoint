@@ -1,6 +1,7 @@
 = MidPoint Upgrade Guide
 :page-nav-title: Upgrade Guide
 :page-wiki-name: Upgrade HOWTO
+:page-wiki-id: 7307832
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2013-02-14T14:54:20.631+01:00
 :page-wiki-metadata-modify-user: oscar

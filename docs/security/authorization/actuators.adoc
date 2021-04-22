@@ -1,6 +1,7 @@
 = Spring Boot Actuator Endpoints Authorizations
 :page-nav-title: Spring Boot Actuators
 :page-wiki-name: Spring Boot Actuator Endpoints Authorizations
+:page-wiki-id: 38764566
 :page-wiki-metadata-create-user: lskublik
 :page-wiki-metadata-create-date: 2019-09-18T10:10:34.628+02:00
 :page-wiki-metadata-modify-user: lskublik

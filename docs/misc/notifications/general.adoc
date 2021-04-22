@@ -1,5 +1,6 @@
 = General notification - role assignment example
 :page-wiki-name: General notification - role assignment example
+:page-wiki-id: 52003422
 :page-wiki-metadata-create-user: kjires
 :page-wiki-metadata-create-date: 2020-12-04T13:31:44.168+01:00
 :page-wiki-metadata-modify-user: kjires

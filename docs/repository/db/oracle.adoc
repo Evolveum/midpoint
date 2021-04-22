@@ -1,6 +1,7 @@
 = Oracle 12c
 :page-nav-title: Oracle
 :page-wiki-name: Oracle 12c
+:page-wiki-id: 15859773
 :page-wiki-metadata-create-user: lazyman
 :page-wiki-metadata-create-date: 2014-06-26T17:02:28.121+02:00
 :page-wiki-metadata-modify-user: virgo

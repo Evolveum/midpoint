@@ -1,5 +1,6 @@
 = CSRF Protection
 :page-wiki-name: CSRF Protection
+:page-wiki-id: 24677064
 :page-wiki-metadata-create-user: lazyman
 :page-wiki-metadata-create-date: 2018-05-24T20:15:41.575+02:00
 :page-wiki-metadata-modify-user: lazyman

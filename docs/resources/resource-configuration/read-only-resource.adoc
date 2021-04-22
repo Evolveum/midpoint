@@ -1,5 +1,6 @@
 = Read-Only Resource
 :page-wiki-name: Read-only Resource HOWTO
+:page-wiki-id: 13074555
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2013-10-25T16:19:14.993+02:00
 :page-wiki-metadata-modify-user: vix

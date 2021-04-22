@@ -1,5 +1,6 @@
 = Subtype
 :page-wiki-name: Subtype
+:page-wiki-id: 26411218
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2018-07-30T09:42:41.847+02:00
 :page-wiki-metadata-modify-user: semancik

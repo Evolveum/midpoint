@@ -1,5 +1,6 @@
 = Security Advisory: MidPoint user interface clickjacking
 :page-wiki-name: Security Advisory: MidPoint user interface clickjacking
+:page-wiki-id: 30245231
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2019-03-21T07:57:45.989+01:00
 :page-wiki-metadata-modify-user: semancik

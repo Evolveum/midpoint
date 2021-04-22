@@ -1,6 +1,7 @@
 = MidPoint Troubleshooting Guides
 :page-nav-title: Troubleshooting Guides
 :page-wiki-name: Troubleshooting
+:page-wiki-id: 4882523
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2012-08-08T10:48:15.794+02:00
 :page-wiki-metadata-modify-user: semancik

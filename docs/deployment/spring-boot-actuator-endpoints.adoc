@@ -1,5 +1,6 @@
 = Spring Boot Actuator Endpoints
 :page-wiki-name: Spring Boot Actuator Endpoints
+:page-wiki-id: 38764570
 :page-wiki-metadata-create-user: lskublik
 :page-wiki-metadata-create-date: 2019-09-18T10:28:40.011+02:00
 :page-wiki-metadata-modify-user: lskublik

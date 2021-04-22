@@ -1,5 +1,6 @@
 = ThingSpeak Resource
 :page-wiki-name: ThingSpeak Resource
+:page-wiki-id: 23167072
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2016-08-16T10:40:43.227+02:00
 :page-wiki-metadata-modify-user: mederly

@@ -1,6 +1,7 @@
 = MidPoint Synchronization Introduction
 :page-nav-title: Introduction
 :page-wiki-name: Synchronization
+:page-wiki-id: 3571885
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2012-01-28T17:49:09.511+01:00
 :page-wiki-metadata-modify-user: ppohja

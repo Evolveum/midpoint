@@ -1,6 +1,7 @@
 = Linked Objects Scenario 4: Clubs
 :page-nav-title: Scenario 4: Clubs
 :page-wiki-name: Linked objects scenario 4: Clubs
+:page-wiki-id: 52002959
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2020-06-02T11:28:14.487+02:00
 :page-wiki-metadata-modify-user: mederly

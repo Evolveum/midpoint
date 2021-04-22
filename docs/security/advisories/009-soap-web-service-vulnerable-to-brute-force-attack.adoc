@@ -1,5 +1,6 @@
 = Security Advisory: SOAP Web Service Vulnerable To Brute Force Attack
 :page-wiki-name: Security Advisory: SOAP Web Service Vulnerable To Brute Force Attack
+:page-wiki-id: 34570341
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2019-07-09T15:24:20.720+02:00
 :page-wiki-metadata-modify-user: semancik

@@ -1,5 +1,6 @@
 = Object Template
 :page-wiki-name: Object Template
+:page-wiki-id: 6881362
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2012-11-27T17:31:16.002+01:00
 :page-wiki-metadata-modify-user: ppohja

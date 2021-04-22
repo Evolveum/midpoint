@@ -1,6 +1,7 @@
 = Role Request and Shopping Cart Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Role Request and Shopping Cart Configuration
+:page-wiki-id: 24674672
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2017-07-10T14:26:50.466+02:00
 :page-wiki-metadata-modify-user: rpudil

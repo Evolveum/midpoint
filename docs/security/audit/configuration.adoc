@@ -1,6 +1,7 @@
 = MidPoint Audit Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Audit configuration
+:page-wiki-id: 4424122
 :page-wiki-metadata-create-user: lazyman
 :page-wiki-metadata-create-date: 2012-06-22T21:25:44.901+02:00
 :page-wiki-metadata-modify-user: virgo

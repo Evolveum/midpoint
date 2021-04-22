@@ -1,5 +1,6 @@
 = Authentication Configuration (Spring Security)
 :page-wiki-name: Authentication Configuration (Spring Security)
+:page-wiki-id: 23167000
 :page-wiki-metadata-create-user: restapi
 :page-wiki-metadata-create-date: 2016-08-08T15:30:07.352+02:00
 :page-wiki-metadata-modify-user: lskublik

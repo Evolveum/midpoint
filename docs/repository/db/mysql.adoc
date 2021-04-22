@@ -1,5 +1,6 @@
 = MySQL
 :page-wiki-name: MySQL
+:page-wiki-id: 13992012
 :page-wiki-metadata-create-user: lazyman
 :page-wiki-metadata-create-date: 2014-02-25T15:03:32.905+01:00
 :page-wiki-metadata-modify-user: virgo

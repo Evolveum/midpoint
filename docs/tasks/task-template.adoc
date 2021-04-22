@@ -1,5 +1,6 @@
 = Task Template
 :page-wiki-name: Task template HOWTO
+:page-wiki-id: 24675717
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2017-10-24T12:19:40.968+02:00
 :page-wiki-metadata-modify-user: semancik

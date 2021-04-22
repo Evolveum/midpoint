@@ -1,6 +1,7 @@
 = Example of new report: Comparing attributes of shadow and attributes of user in midPoint
 :page-nav-title: Comparing attributes of shadow and attributes of user in midPoint
 :page-wiki-name: Example of new report: Comparing attributes of shadow and attributes of user in mP
+:page-wiki-id: 52003075
 :page-wiki-metadata-create-user: lskublik
 :page-wiki-metadata-create-date: 2020-08-18T14:15:45.548+02:00
 :page-wiki-metadata-modify-user: lskublik

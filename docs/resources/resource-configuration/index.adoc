@@ -1,5 +1,6 @@
 = Resource Configuration
 :page-wiki-name: Resource Configuration
+:page-wiki-id: 7307276
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2013-01-11T21:05:06.201+01:00
 :page-wiki-metadata-modify-user: semancik

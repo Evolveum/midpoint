@@ -1,5 +1,6 @@
 = MidPoint and SSO (Legacy)
 :page-wiki-name: MidPoint and SSO HOWTO
+:page-wiki-id: 15859869
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2014-07-22T12:27:59.625+02:00
 :page-wiki-metadata-modify-user: semancik

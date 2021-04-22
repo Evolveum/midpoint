@@ -1,6 +1,7 @@
 = Example of dashboard report: Audit events which change administrativeStatus on resource
 :page-nav-title: Example: Audit, administrativeStatus
 :page-wiki-name: Example of dashboard report: Audit events which change administrativeStatus on resource
+:page-wiki-id: 52002844
 :page-wiki-metadata-create-user: lskublik
 :page-wiki-metadata-create-date: 2020-05-04T13:35:21.566+02:00
 :page-wiki-metadata-modify-user: lskublik

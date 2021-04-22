@@ -1,6 +1,7 @@
 = MidPoint Organizational Structure Introduction
 :page-nav-title: Introduction
 :page-wiki-name: Organizational Structure
+:page-wiki-id: 11370672
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2013-07-24T10:01:15.792+02:00
 :page-wiki-metadata-modify-user: semancik

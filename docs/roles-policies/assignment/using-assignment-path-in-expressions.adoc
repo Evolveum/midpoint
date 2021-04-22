@@ -1,5 +1,6 @@
 = Using Assignment Path in Expressions
 :page-wiki-name: Using Assignment Path in Expressions
+:page-wiki-id: 24675854
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2017-11-07T18:43:19.039+01:00
 :page-wiki-metadata-modify-user: martin.lizner

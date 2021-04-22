@@ -1,6 +1,7 @@
 = Linked Objects Scenario 2: Devices Owned By Users
 :page-nav-title: Scenario 2: Devices Owned By Users
 :page-wiki-name: Linked objects scenario 2: Devices owned by users
+:page-wiki-id: 52002879
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2020-05-21T10:33:55.623+02:00
 :page-wiki-metadata-modify-user: mederly

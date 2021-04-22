@@ -1,5 +1,6 @@
 = Named object links
 :page-wiki-name: Named object links
+:page-wiki-id: 52002926
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2020-06-01T22:55:47.937+02:00
 :page-wiki-metadata-modify-user: mederly

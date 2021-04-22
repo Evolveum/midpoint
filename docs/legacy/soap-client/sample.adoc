@@ -1,5 +1,6 @@
 = Model Web Service Client Sample
 :page-wiki-name: Model Web Service Client Sample
+:page-wiki-id: 8061000
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2013-03-15T14:08:57.914+01:00
 :page-wiki-metadata-modify-user: semancik

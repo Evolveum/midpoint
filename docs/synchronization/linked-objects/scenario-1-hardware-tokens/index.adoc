@@ -1,6 +1,7 @@
 = Linked Objects Scenario 1: Hardware Tokens
 :page-nav-title: Scenario 1: Hardware Tokens
 :page-wiki-name: Linked objects scenario 1: Hardware tokens
+:page-wiki-id: 52002920
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2020-06-01T17:13:24.555+02:00
 :page-wiki-metadata-modify-user: mederly

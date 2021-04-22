@@ -1,5 +1,6 @@
 = Ninja
 :page-wiki-name: Ninja
+:page-wiki-id: 24676171
 :page-wiki-metadata-create-user: lazyman
 :page-wiki-metadata-create-date: 2017-12-13T13:04:51.807+01:00
 :page-wiki-metadata-modify-user: vix

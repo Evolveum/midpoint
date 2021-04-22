@@ -1,6 +1,7 @@
 = Improved workflow configuration in midPoint 3.5 and above
 :page-nav-title: MidPoint 3.5
 :page-wiki-name: Improved workflow configuration in midPoint 3.5 and above
+:page-wiki-id: 24084611
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2016-11-29T17:35:22.274+01:00
 :page-wiki-metadata-modify-user: mederly

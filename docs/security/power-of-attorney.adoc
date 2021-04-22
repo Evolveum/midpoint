@@ -1,6 +1,7 @@
 = Power of Attorney Configuration
 :page-nav-title: Power of Attorney
 :page-wiki-name: Power of Attorney Configuration
+:page-wiki-id: 24675817
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2017-11-03T10:58:50.136+01:00
 :page-wiki-metadata-modify-user: vera

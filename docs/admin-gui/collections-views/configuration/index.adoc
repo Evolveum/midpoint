@@ -2,6 +2,7 @@
 :page-nav-title: Configuration
 :page-display-order: 50
 :page-wiki-name: Object Collections and Views Configuration
+:page-wiki-id: 30245468
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2019-04-24T14:36:12.315+02:00
 :page-wiki-metadata-modify-user: lskublik

@@ -1,5 +1,6 @@
 = Schema Notes
 :page-wiki-name: Schema Notes
+:page-wiki-id: 24674988
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2017-08-17T09:32:36.294+02:00
 :page-wiki-metadata-modify-user: semancik

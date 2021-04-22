@@ -1,6 +1,7 @@
 = Expression and Mapping Variables
 :page-nav-title: Variables
 :page-wiki-name: Expression Variables
+:page-wiki-id: 22741762
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2016-06-28T11:52:53.815+02:00
 :page-wiki-metadata-modify-user: katkav

@@ -1,5 +1,6 @@
 = Syslog Logging
 :page-wiki-name: Syslog Logging HOWTO
+:page-wiki-id: 24086119
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2017-05-17T19:05:09.560+02:00
 :page-wiki-metadata-modify-user: semancik

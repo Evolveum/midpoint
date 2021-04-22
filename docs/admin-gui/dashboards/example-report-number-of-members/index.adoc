@@ -1,6 +1,7 @@
 = Example of dashboard report: Number of members
 :page-nav-title: Example: Number of members
 :page-wiki-name: Example of dashboard report: Number of members
+:page-wiki-id: 52002832
 :page-wiki-metadata-create-user: lskublik
 :page-wiki-metadata-create-date: 2020-05-04T12:41:02.412+02:00
 :page-wiki-metadata-modify-user: lskublik

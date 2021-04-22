@@ -1,5 +1,6 @@
 = PostgreSQL
 :page-wiki-name: PostgreSQL
+:page-wiki-id: 15859783
 :page-wiki-metadata-create-user: lazyman
 :page-wiki-metadata-create-date: 2014-06-26T17:07:01.929+02:00
 :page-wiki-metadata-modify-user: virgo

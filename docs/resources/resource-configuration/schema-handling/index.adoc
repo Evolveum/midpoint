@@ -1,6 +1,7 @@
 = Resource Schema Handling
 :page-nav-title: Schema Handling
 :page-wiki-name: Resource Schema Handling
+:page-wiki-id: 655429
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2011-04-29T12:18:31.418+02:00
 :page-wiki-metadata-modify-user: semancik

@@ -1,5 +1,6 @@
 = Deputy
 :page-wiki-name: Deputy
+:page-wiki-id: 24084487
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2016-11-10T16:41:52.639+01:00
 :page-wiki-metadata-modify-user: mederly

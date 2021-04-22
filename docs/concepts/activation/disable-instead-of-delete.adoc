@@ -1,5 +1,6 @@
 = Disable instead of Delete
 :page-wiki-name: Disable instead of Delete
+:page-wiki-id: 23167026
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2016-08-10T18:09:09.966+02:00
 :page-wiki-metadata-modify-user: martin.lizner

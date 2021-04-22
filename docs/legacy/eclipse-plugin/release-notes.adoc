@@ -1,5 +1,6 @@
 = Eclipse Plugin Release Notes
 :page-wiki-name: Eclipse plugin release notes
+:page-wiki-id: 30245535
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2019-05-03T08:01:28.943+02:00
 :page-wiki-metadata-modify-user: semancik

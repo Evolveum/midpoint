@@ -1,5 +1,6 @@
 = Weird Resources
 :page-wiki-name: Attributes modification priority and read-replace mode HOWTO (and discussion on weirdness of some connectors)
+:page-wiki-id: 17760526
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2014-11-18T22:51:10.015+01:00
 :page-wiki-metadata-modify-user: mederly

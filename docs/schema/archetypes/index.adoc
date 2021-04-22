@@ -1,5 +1,6 @@
 = Archetypes
 :page-wiki-name: Archetypes
+:page-wiki-id: 24674933
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2017-08-10T11:04:15.590+02:00
 :page-wiki-metadata-modify-user: semancik

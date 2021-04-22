@@ -1,6 +1,7 @@
 = Legacy (pre-3.5) workflow configuration
 :page-nav-title: Pre-3.5
 :page-wiki-name: Legacy (pre-3.5) workflow configuration
+:page-wiki-id: 11370566
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2013-07-03T08:18:10.099+02:00
 :page-wiki-metadata-modify-user: mederly

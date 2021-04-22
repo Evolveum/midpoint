@@ -1,5 +1,6 @@
 = Redundant Objects Processing Elimination
 :page-wiki-name: Redundant objects processing elimination HOWTO
+:page-wiki-id: 24676774
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2018-04-04T20:03:06.088+02:00
 :page-wiki-metadata-modify-user: mederly

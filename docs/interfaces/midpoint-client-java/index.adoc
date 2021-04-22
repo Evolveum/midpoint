@@ -1,5 +1,6 @@
 = MidPoint Client Library (Java)
 :page-wiki-name: MidPoint Client Library
+:page-wiki-id: 24675324
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2017-09-13T10:41:55.941+02:00
 :page-wiki-metadata-modify-user: semancik

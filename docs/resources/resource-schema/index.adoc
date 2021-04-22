@@ -1,5 +1,6 @@
 = Resource Schema
 :page-wiki-name: Resource Schema
+:page-wiki-id: 655397
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2011-04-29T12:02:17.260+02:00
 :page-wiki-metadata-modify-user: peterkortvel@gmail.com

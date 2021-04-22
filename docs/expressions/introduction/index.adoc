@@ -1,5 +1,6 @@
 = Introduction to Mappings and Expressions
 :page-wiki-name: Mappings and Expressions
+:page-wiki-id: 655372
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2011-04-29T11:48:39.838+02:00
 :page-wiki-metadata-modify-user: semancik

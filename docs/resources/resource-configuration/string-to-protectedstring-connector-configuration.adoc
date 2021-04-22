@@ -1,5 +1,6 @@
 = String to ProtectedString Connector Configuration
 :page-wiki-name: String to ProtectedString Connector Configuration
+:page-wiki-id: 5341278
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2012-08-23T17:07:11.103+02:00
 :page-wiki-metadata-modify-user: maikeru

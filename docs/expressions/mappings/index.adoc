@@ -1,5 +1,6 @@
 = Mappings
 :page-wiki-name: Mapping
+:page-wiki-id: 5931015
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2012-09-18T11:01:45.947+02:00
 :page-wiki-metadata-modify-user: semancik

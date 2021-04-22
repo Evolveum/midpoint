@@ -1,5 +1,6 @@
 = Initial Logging Setup
 :page-wiki-name: Initial Logging Setup HOWTO
+:page-wiki-id: 17760376
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2014-10-28T17:02:10.687+01:00
 :page-wiki-metadata-modify-user: semancik

@@ -1,5 +1,6 @@
 = Full-Text Search
 :page-wiki-name: Full text search HOWTO
+:page-wiki-id: 24085323
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2017-02-27T11:45:43.315+01:00
 :page-wiki-metadata-modify-user: vix

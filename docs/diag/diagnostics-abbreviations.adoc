@@ -1,5 +1,6 @@
 = Diagnostics Abbreviations
 :page-wiki-name: Diagnostics Abbreviations
+:page-wiki-id: 4423720
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2012-04-18T16:24:30.882+02:00
 :page-wiki-metadata-modify-user: semancik

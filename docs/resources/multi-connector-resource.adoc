@@ -1,5 +1,6 @@
 = Multi-Connector Resource
 :page-wiki-name: Multi-Connector Resource
+:page-wiki-id: 24085904
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2017-04-24T13:27:26.944+02:00
 :page-wiki-metadata-modify-user: vera

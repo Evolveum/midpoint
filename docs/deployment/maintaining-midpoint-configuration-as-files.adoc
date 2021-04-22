@@ -1,5 +1,6 @@
 = Maintaining midPoint Configuration as Files
 :page-wiki-name: Maintaining midPoint Configuration as Files
+:page-wiki-id: 22741225
 :page-wiki-metadata-create-user: vix
 :page-wiki-metadata-create-date: 2016-04-25T18:26:51.221+02:00
 :page-wiki-metadata-modify-user: vix

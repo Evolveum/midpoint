@@ -1,5 +1,6 @@
 = Eclipse plugin installation HOWTO
 :page-wiki-name: Eclipse plugin installation HOWTO
+:page-wiki-id: 23167346
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2016-09-03T00:25:14.810+02:00
 :page-wiki-metadata-modify-user: semancik

@@ -1,5 +1,6 @@
 = Model Web Service SOAP Client
 :page-wiki-name: Model Web Service Client
+:page-wiki-id: 13074748
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2013-12-03T12:38:53.556+01:00
 :page-wiki-metadata-modify-user: semancik

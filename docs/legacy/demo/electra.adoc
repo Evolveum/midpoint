@@ -1,5 +1,6 @@
 = midPoint Demo electra localhost HOWTO
 :page-wiki-name: midPoint Demo electra localhost HOWTO
+:page-wiki-id: 17761660
 :page-wiki-metadata-create-user: oscar
 :page-wiki-metadata-create-date: 2015-07-09T20:14:52.814+02:00
 :page-wiki-metadata-modify-user: kristianS

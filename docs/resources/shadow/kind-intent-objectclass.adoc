@@ -1,5 +1,6 @@
 = Kind, Intent and ObjectClass
 :page-wiki-name: Kind, Intent and ObjectClass
+:page-wiki-id: 13598734
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2014-01-07T13:34:04.023+01:00
 :page-wiki-metadata-modify-user: semancik

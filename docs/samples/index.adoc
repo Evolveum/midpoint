@@ -1,6 +1,7 @@
 = MidPoint Configuration Samples
 :page-nav-title: Configuration Samples
 :page-wiki-name: Configuration Samples
+:page-wiki-id: 13598730
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2014-01-07T12:46:22.698+01:00
 :page-wiki-metadata-modify-user: semancik

@@ -1,5 +1,6 @@
 = Admin GUI Configuration
 :page-wiki-name: Admin GUI Configuration
+:page-wiki-id: 24085280
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2017-02-17T11:05:38.577+01:00
 :page-wiki-metadata-modify-user: honchar

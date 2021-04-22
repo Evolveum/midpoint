@@ -1,5 +1,6 @@
 = Resource Maintenance State
 :page-wiki-name: Resource Maintenance State
+:page-wiki-id: 52003100
 :page-wiki-metadata-create-user: martin.lizner
 :page-wiki-metadata-create-date: 2020-08-27T12:33:49.574+02:00
 :page-wiki-metadata-modify-user: martin.lizner

@@ -1,6 +1,7 @@
 = Resource Capabilities
 :page-nav-title: Capabilities
 :page-wiki-name: Resource Capabilities
+:page-wiki-id: 8060978
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2013-03-14T12:11:38.996+01:00
 :page-wiki-metadata-modify-user: mederly

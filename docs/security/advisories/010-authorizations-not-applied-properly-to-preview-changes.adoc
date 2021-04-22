@@ -1,5 +1,6 @@
 = Security Advisory: Authorizations not applied properly to preview changes
 :page-wiki-name: Security Advisory: Authorizations not applied properly to preview changes
+:page-wiki-id: 36569102
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2019-07-30T14:55:19.898+02:00
 :page-wiki-metadata-modify-user: semancik

@@ -1,5 +1,6 @@
 = Eclipse plugin HOWTO
 :page-wiki-name: Eclipse plugin HOWTO
+:page-wiki-id: 23167305
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2016-09-02T17:16:10.507+02:00
 :page-wiki-metadata-modify-user: semancik

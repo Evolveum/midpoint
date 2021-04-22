@@ -1,5 +1,6 @@
 = Shadow Objects
 :page-wiki-name: Shadow Objects
+:page-wiki-id: 655431
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2011-04-29T12:19:25.870+02:00
 :page-wiki-metadata-modify-user: semancik

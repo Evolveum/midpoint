@@ -1,5 +1,6 @@
 = Security Advisory: HTTP error codes used for SecQ REST authentication reveal user existence
 :page-wiki-name: Security Advisory: HTTP error codes used for SecQ REST authentication reveal user existence
+:page-wiki-id: 39583892
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2019-10-11T11:38:30.331+02:00
 :page-wiki-metadata-modify-user: semancik

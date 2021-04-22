@@ -1,5 +1,6 @@
 = Security Advisory: AD and LDAP connectors do not check certificate validity
 :page-wiki-name: Security Advisory: AD and LDAP connectors do not check certificate validity
+:page-wiki-id: 30245410
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2019-04-17T14:24:10.571+02:00
 :page-wiki-metadata-modify-user: mederly

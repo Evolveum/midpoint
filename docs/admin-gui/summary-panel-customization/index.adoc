@@ -1,5 +1,6 @@
 = Summary Panel Customization
 :page-wiki-name: Summary Panel Customization
+:page-wiki-id: 24674793
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2017-07-18T14:34:44.163+02:00
 :page-wiki-metadata-modify-user: vera

@@ -1,5 +1,6 @@
 = Midpoint and SSO using Gluu HOWTO
 :page-wiki-name: Midpoint and SSO using Gluu HOWTO
+:page-wiki-id: 24085947
 :page-wiki-metadata-create-user: mmacik
 :page-wiki-metadata-create-date: 2017-04-27T15:07:39.624+02:00
 :page-wiki-metadata-modify-user: ifarinic

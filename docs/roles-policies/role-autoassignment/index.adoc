@@ -1,5 +1,6 @@
 = Role Autoassignment
 :page-wiki-name: Role Autoassignment
+:page-wiki-id: 24675794
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2017-11-03T09:33:13.072+01:00
 :page-wiki-metadata-modify-user: katkav

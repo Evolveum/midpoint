@@ -1,5 +1,6 @@
 = MidPoint Object Attributes
 :page-wiki-name: MidPoint Object Attributes
+:page-wiki-id: 23167079
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2016-08-16T10:57:52.270+02:00
 :page-wiki-metadata-modify-user: mederly

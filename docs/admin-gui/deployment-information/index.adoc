@@ -1,5 +1,6 @@
 = Deployment Information
 :page-wiki-name: Deployment Information Type
+:page-wiki-id: 24085176
 :page-wiki-metadata-create-user: honchar
 :page-wiki-metadata-create-date: 2017-01-30T13:51:10.040+01:00
 :page-wiki-metadata-modify-user: vix

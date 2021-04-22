@@ -1,5 +1,6 @@
 = Paged Search on Resources
 :page-wiki-name: Paged search on resources HOWTO - UPDATED
+:page-wiki-id: 17760304
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2014-10-22T12:00:50.321+02:00
 :page-wiki-metadata-modify-user: mederly

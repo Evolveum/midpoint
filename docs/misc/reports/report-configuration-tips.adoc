@@ -1,5 +1,6 @@
 = Report Configuration Tips
 :page-wiki-name: Report Configuration Tips
+:page-wiki-id: 52003161
 :page-wiki-metadata-create-user: mmacik
 :page-wiki-metadata-create-date: 2020-09-23T13:35:05.973+02:00
 :page-wiki-metadata-modify-user: mmacik

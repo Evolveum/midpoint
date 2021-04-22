@@ -1,5 +1,6 @@
 = Resource and Connector Schema Explanation
 :page-wiki-name: Resource and Connector Schema Explanation
+:page-wiki-id: 3145800
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2011-09-26T18:27:12.073+02:00
 :page-wiki-metadata-modify-user: peterkortvel@gmail.com

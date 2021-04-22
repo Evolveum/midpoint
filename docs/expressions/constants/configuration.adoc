@@ -1,6 +1,7 @@
 = Configuration and Use of Constants
 :page-nav-title: Configuration
 :page-wiki-name: Configuration and Use of Constants
+:page-wiki-id: 24086079
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2017-05-16T10:31:20.283+02:00
 :page-wiki-metadata-modify-user: vera

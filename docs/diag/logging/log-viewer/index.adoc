@@ -1,5 +1,6 @@
 = Log Viewer
 :page-wiki-name: Log Viewer
+:page-wiki-id: 22282648
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2016-02-23T08:17:39.198+01:00
 :page-wiki-metadata-modify-user: oskar.butovic@ami.cz

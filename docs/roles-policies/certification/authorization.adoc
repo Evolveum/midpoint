@@ -1,6 +1,7 @@
 = Access Certification Authorization
 :page-nav-title: Authorization
 :page-wiki-name: Access Certification Security
+:page-wiki-id: 22282369
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2016-02-01T14:26:00.780+01:00
 :page-wiki-metadata-modify-user: mederly

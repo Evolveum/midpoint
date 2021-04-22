@@ -1,5 +1,6 @@
 = Logging
 :page-wiki-name: Logging
+:page-wiki-id: 7307677
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2013-02-07T17:51:22.159+01:00
 :page-wiki-metadata-modify-user: semancik

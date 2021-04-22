@@ -1,6 +1,7 @@
 = MidPoint Security Configuration
 :page-nav-title: Security
 :page-wiki-name: Security
+:page-wiki-id: 30245224
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2019-03-21T07:52:42.041+01:00
 :page-wiki-metadata-modify-user: semancik

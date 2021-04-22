@@ -1,5 +1,6 @@
 = Focus and Projections
 :page-wiki-name: Focus and Projections
+:page-wiki-id: 13598814
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2014-01-09T13:40:34.834+01:00
 :page-wiki-metadata-modify-user: petr.gasparik

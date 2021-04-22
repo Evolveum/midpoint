@@ -1,5 +1,6 @@
 = PolyString
 :page-wiki-name: PolyString
+:page-wiki-id: 4424110
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2012-06-21T11:40:22.867+02:00
 :page-wiki-metadata-modify-user: semancik

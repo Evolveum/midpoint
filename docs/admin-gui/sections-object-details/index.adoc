@@ -1,5 +1,6 @@
 = Sections (virtual containers) in object details
 :page-wiki-name: Sections (virtual containers) in object details
+:page-wiki-id: 39583763
 :page-wiki-metadata-create-user: katkav
 :page-wiki-metadata-create-date: 2019-09-25T10:04:09.739+02:00
 :page-wiki-metadata-modify-user: katkav

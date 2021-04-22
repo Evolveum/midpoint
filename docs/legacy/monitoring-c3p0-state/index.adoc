@@ -1,5 +1,6 @@
 = Monitoring c3p0 state HOWTO
 :page-wiki-name: Monitoring c3p0 state HOWTO
+:page-wiki-id: 23167726
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2016-09-23T00:21:47.128+02:00
 :page-wiki-metadata-modify-user: mederly

@@ -1,6 +1,7 @@
 = Using Velocity Templates for Notifications
 :page-nav-title: Velocity Templates
 :page-wiki-name: Using Velocity Templates for Notifications
+:page-wiki-id: 23167527
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2016-09-08T21:13:50.163+02:00
 :page-wiki-metadata-modify-user: mederly

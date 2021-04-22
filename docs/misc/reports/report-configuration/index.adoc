@@ -1,5 +1,6 @@
 = Report Configuration
 :page-wiki-name: Report Configuration
+:page-wiki-id: 17761609
 :page-wiki-metadata-create-user: katkav
 :page-wiki-metadata-create-date: 2015-07-06T10:16:32.230+02:00
 :page-wiki-metadata-modify-user: mmacik

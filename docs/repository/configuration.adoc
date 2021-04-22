@@ -1,5 +1,6 @@
 = Repository Configuration
 :page-wiki-name: Repository Configuration
+:page-wiki-id: 4882498
 :page-wiki-metadata-create-user: vix
 :page-wiki-metadata-create-date: 2012-08-06T14:55:55.920+02:00
 :page-wiki-metadata-modify-user: virgo

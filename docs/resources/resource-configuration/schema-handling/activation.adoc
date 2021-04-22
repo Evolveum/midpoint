@@ -1,6 +1,7 @@
 = Resource Schema Handling: Activation
 :page-nav-title: Activation
 :page-wiki-name: Resource Schema Handling: Activation
+:page-wiki-id: 9437190
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2013-05-13T14:22:40.969+02:00
 :page-wiki-metadata-modify-user: semancik

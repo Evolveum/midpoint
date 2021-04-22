@@ -1,5 +1,6 @@
 = Channel
 :page-wiki-name: Channels
+:page-wiki-id: 7667739
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2013-02-19T13:58:25.530+01:00
 :page-wiki-metadata-modify-user: rpudil

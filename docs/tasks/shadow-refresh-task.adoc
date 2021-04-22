@@ -1,5 +1,6 @@
 = Shadow Refresh Task
 :page-wiki-name: Shadow Refresh Task
+:page-wiki-id: 30245434
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2019-04-23T10:58:30.469+02:00
 :page-wiki-metadata-modify-user: vix

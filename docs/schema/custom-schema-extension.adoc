@@ -1,5 +1,6 @@
 = Custom Schema Extension
 :page-wiki-name: Custom Schema Extension
+:page-wiki-id: 4882516
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2012-08-07T11:29:21.707+02:00
 :page-wiki-metadata-modify-user: petr.gasparik

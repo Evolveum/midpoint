@@ -1,5 +1,6 @@
 = Solving Eclipse Certificate Problems
 :page-wiki-name: Solving Certificate Problems
+:page-wiki-id: 23167314
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2016-09-03T00:06:13.925+02:00
 :page-wiki-metadata-modify-user: vix

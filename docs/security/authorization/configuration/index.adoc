@@ -1,6 +1,7 @@
 = MidPoint Authorization Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Authorization Configuration
+:page-wiki-id: 15859795
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2014-06-30T12:21:47.603+02:00
 :page-wiki-metadata-modify-user: semancik

@@ -1,5 +1,6 @@
 = GUI Authorizations
 :page-wiki-name: GUI Authorizations
+:page-wiki-id: 15859800
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2014-06-30T12:30:36.256+02:00
 :page-wiki-metadata-modify-user: katkav

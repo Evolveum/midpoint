@@ -1,5 +1,6 @@
 = Reports via REST
 :page-wiki-name: Reports via REST HOWTO
+:page-wiki-id: 26870192
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2018-10-26T02:20:53.266+02:00
 :page-wiki-metadata-modify-user: mederly

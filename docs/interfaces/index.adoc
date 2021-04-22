@@ -1,6 +1,7 @@
 = MidPoint Interfaces and Integration
 :page-nav-title: Interfaces and Integration
 :page-wiki-name: Interfaces
+:page-wiki-id: 13074724
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2013-11-29T13:53:33.178+01:00
 :page-wiki-metadata-modify-user: virgo

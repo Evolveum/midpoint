@@ -1,5 +1,6 @@
 = Self Registration Configuration
 :page-wiki-name: Self Registration Configuration
+:page-wiki-id: 23691393
 :page-wiki-metadata-create-user: katkav
 :page-wiki-metadata-create-date: 2016-11-04T13:05:05.383+01:00
 :page-wiki-metadata-modify-user: khazelton

@@ -1,5 +1,6 @@
 = Service Authorizations
 :page-wiki-name: Service Authorizations
+:page-wiki-id: 15859829
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2014-06-30T16:22:35.956+02:00
 :page-wiki-metadata-modify-user: semancik

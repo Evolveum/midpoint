@@ -1,6 +1,7 @@
 = Example of new report: Long unchanged accounts
 :page-nav-title: Long unchanged accounts
 :page-wiki-name: Example of new report: Long unchanged accounts
+:page-wiki-id: 52003078
 :page-wiki-metadata-create-user: lskublik
 :page-wiki-metadata-create-date: 2020-08-18T14:55:17.864+02:00
 :page-wiki-metadata-modify-user: lskublik

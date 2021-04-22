@@ -1,5 +1,6 @@
 = Consistency mechanism
 :page-wiki-name: Consistency mechanism
+:page-wiki-id: 6881282
 :page-wiki-metadata-create-user: katkav
 :page-wiki-metadata-create-date: 2012-11-22T09:54:51.391+01:00
 :page-wiki-metadata-modify-user: rpudil

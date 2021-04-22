@@ -1,5 +1,6 @@
 = Shadow Integrity Check
 :page-wiki-name: Checking Shadow Integrity HOWTO
+:page-wiki-id: 20709493
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2015-08-29T00:08:10.423+02:00
 :page-wiki-metadata-modify-user: mspanik

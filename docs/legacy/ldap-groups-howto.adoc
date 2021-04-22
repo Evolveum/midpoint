@@ -1,5 +1,6 @@
 = LDAP Groups HOWTO (Obsolete)
 :page-wiki-name: LDAP Groups HOWTO
+:page-wiki-id: 7667719
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2013-02-15T16:58:55.475+01:00
 :page-wiki-metadata-modify-user: semancik

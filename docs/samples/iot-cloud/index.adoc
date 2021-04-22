@@ -1,5 +1,6 @@
 = Managing Consumer Devices (IoT) Connected to a Cloud IoT Platform
 :page-wiki-name: Managing Consumer Devices (IoT) Connected to a Cloud IoT Platform
+:page-wiki-id: 23166978
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2016-08-06T00:53:58.763+02:00
 :page-wiki-metadata-modify-user: semancik

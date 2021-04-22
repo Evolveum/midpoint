@@ -1,6 +1,7 @@
 = Example of new report: Audit report with changed attributes
 :page-nav-title: Audit report with changed attributes
 :page-wiki-name: Example of new report: Audit report with changed attributes
+:page-wiki-id: 52003081
 :page-wiki-metadata-create-user: lskublik
 :page-wiki-metadata-create-date: 2020-08-18T15:06:52.473+02:00
 :page-wiki-metadata-modify-user: lskublik

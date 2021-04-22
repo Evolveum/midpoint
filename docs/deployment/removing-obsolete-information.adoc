@@ -1,5 +1,6 @@
 = Removing obsolete information
 :page-wiki-name: Removing obsolete information
+:page-wiki-id: 11075722
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2013-06-25T18:03:53.167+02:00
 :page-wiki-metadata-modify-user: mederly

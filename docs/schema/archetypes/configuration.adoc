@@ -1,6 +1,7 @@
 = Archetype Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Archetype Configuration
+:page-wiki-id: 27361681
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2019-01-31T11:18:20.720+01:00
 :page-wiki-metadata-modify-user: katkav

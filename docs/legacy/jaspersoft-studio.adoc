@@ -1,5 +1,6 @@
 = Jaspersoft Studio - midPoint integration HOWTO
 :page-wiki-name: Jaspersoft Studio - midPoint integration HOWTO
+:page-wiki-id: 17761382
 :page-wiki-metadata-create-user: katkav
 :page-wiki-metadata-create-date: 2015-05-14T21:02:05.283+02:00
 :page-wiki-metadata-modify-user: semancik

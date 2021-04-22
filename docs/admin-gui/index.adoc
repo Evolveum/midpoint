@@ -1,6 +1,7 @@
 = MidPoint Administration User Interface
 :page-nav-title: Administration User Interface
 :page-wiki-name: User Interface
+:page-wiki-id: 22741879
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2016-07-14T15:38:02.683+02:00
 :page-wiki-metadata-modify-user: semancik

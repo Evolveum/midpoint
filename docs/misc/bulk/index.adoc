@@ -1,6 +1,7 @@
 = Bulk Actions (midPoint scripting language)
 :page-nav-title: Bulk Actions
 :page-wiki-name: Bulk actions (midPoint scripting language)
+:page-wiki-id: 13991970
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2014-02-19T23:20:19.958+01:00
 :page-wiki-metadata-modify-user: mederly

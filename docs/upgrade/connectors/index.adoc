@@ -1,5 +1,6 @@
 = Connector Upgrade
 :page-wiki-name: Connector Upgrade
+:page-wiki-id: 8061320
 :page-wiki-metadata-create-user: vix
 :page-wiki-metadata-create-date: 2013-05-06T17:14:00.867+02:00
 :page-wiki-metadata-modify-user: semancik

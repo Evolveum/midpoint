@@ -1,6 +1,7 @@
 = Configuring Certification Campaign Stages
 :page-nav-title: Stages
 :page-wiki-name: Configuring certification campaign stages
+:page-wiki-id: 22741204
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2016-04-22T09:00:58.728+02:00
 :page-wiki-metadata-modify-user: mederly

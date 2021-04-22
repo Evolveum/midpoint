@@ -1,5 +1,6 @@
 = MidPoint as CAS Client (Apache CAS Agent Method)
 :page-wiki-name: MidPoint as CAS Client (Apache CAS Agent Method)
+:page-wiki-id: 17760847
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2015-02-04T15:35:17.089+01:00
 :page-wiki-metadata-modify-user: semancik

@@ -1,5 +1,6 @@
 = SQL Schema Scripts
 :page-wiki-name: SQL Schema Scripts
+:page-wiki-id: 26869987
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2018-09-29T23:38:27.849+02:00
 :page-wiki-metadata-modify-user: virgo

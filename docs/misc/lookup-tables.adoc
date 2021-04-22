@@ -1,5 +1,6 @@
 = Lookup Tables
 :page-wiki-name: Lookup Tables
+:page-wiki-id: 22741619
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2016-06-23T17:12:09.952+02:00
 :page-wiki-metadata-modify-user: chris83527

@@ -1,6 +1,7 @@
 = Dashboard Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Dashboard configuration
+:page-wiki-id: 36569129
 :page-wiki-metadata-create-user: lskublik
 :page-wiki-metadata-create-date: 2019-08-06T13:26:25.499+02:00
 :page-wiki-metadata-modify-user: katkav

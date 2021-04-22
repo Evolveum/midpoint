@@ -1,6 +1,7 @@
 = MidPoint Upgrade And Migration
 :page-nav-title: Upgrade And Migration
 :page-wiki-name: Migration and Upgrades
+:page-wiki-id: 13074493
 :page-wiki-metadata-create-user: ifarinic
 :page-wiki-metadata-create-date: 2013-10-17T11:39:25.309+02:00
 :page-wiki-metadata-modify-user: ifarinic

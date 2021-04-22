@@ -1,5 +1,6 @@
 = Sending Custom Notifications
 :page-wiki-name: Sending custom notifications HOWTO
+:page-wiki-id: 23167747
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2016-09-24T00:02:03.564+02:00
 :page-wiki-metadata-modify-user: michael
