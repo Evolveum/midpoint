@@ -11,11 +11,11 @@ import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
 
-public class OperationExecutionSqlTransformer
-        extends ContainerSqlTransformer<OperationExecutionType, QOperationExecution, MOperationExecution> {
+public class OperationExecutionSqlTransformer<OR extends MObject>
+        extends ContainerSqlTransformer<OperationExecutionType, QOperationExecution<OR>, MOperationExecution, OR> {
 
     public OperationExecutionSqlTransformer(
-            SqlTransformerSupport transformerSupport, QOperationExecutionMapping mapping) {
+            SqlTransformerSupport transformerSupport, QOperationExecutionMapping<OR> mapping) {
         super(transformerSupport, mapping);
     }
 

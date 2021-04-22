@@ -29,7 +29,7 @@ public class QObjectReference<OR extends MObject> extends QReference<MReference,
     }
 
     @Override
-    public BooleanExpression isOwnedBy(OR row) {
-        return ownerOid.eq(row.oid);
+    public BooleanExpression isOwnedBy(OR ownerRow) {
+        return ownerOid.eq(ownerRow.oid);
     }
 }

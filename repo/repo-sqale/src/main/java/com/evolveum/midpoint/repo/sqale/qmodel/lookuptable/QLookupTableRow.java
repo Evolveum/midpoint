@@ -20,7 +20,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QLookupTableRow extends QContainer<MLookupTableRow> {
+public class QLookupTableRow extends QContainer<MLookupTableRow, MLookupTable> {
 
     private static final long serialVersionUID = -9105517154692783998L;
 

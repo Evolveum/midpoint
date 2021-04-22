@@ -29,16 +29,16 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * @param <OR> row type of the table owning this container, related to {@link OQ}
  */
 public class TableContainerDeltaProcessor<
-        T extends Containerable, Q extends QContainer<R>, R extends MContainer,
+        T extends Containerable, Q extends QContainer<R, OR>, R extends MContainer,
         OQ extends FlexibleRelationalPathBase<OR>, OR>
         extends ItemDeltaValueProcessor<T> {
 
     private final SqaleUpdateContext<?, OQ, OR> context;
-    private final QContainerMapping<T, Q, R> containerTableMapping;
+    private final QContainerMapping<T, Q, R, OR> containerTableMapping;
 
     public TableContainerDeltaProcessor(
             @NotNull SqaleUpdateContext<?, OQ, OR> context,
-            @NotNull QContainerMapping<T, Q, R> containerTableMapping) {
+            @NotNull QContainerMapping<T, Q, R, OR> containerTableMapping) {
         super(context);
         this.context = context;
         this.containerTableMapping = containerTableMapping;
@@ -46,8 +46,8 @@ public class TableContainerDeltaProcessor<
 
     @Override
     public void addValues(Collection<T> values) {
-        OR ownerRow = context.row(); // TODO what about other owner type?
-        ContainerSqlTransformer<T, Q, R> transformer =
+        OR ownerRow = context.row();
+        ContainerSqlTransformer<T, Q, R, OR> transformer =
                 containerTableMapping.createTransformer(context.transformerSupport());
 
         // It looks like the insert belongs to context, but there is no common insert contract.
@@ -62,24 +62,18 @@ public class TableContainerDeltaProcessor<
     public void deleteValues(Collection<T> values) {
         Q c = containerTableMapping.defaultAlias();
         for (T container : values) {
-            /*
             context.jdbcSession().newDelete(c)
-                    // TODO - this is ok for containers under object directly, but not under containers
-                    .where(c.ownerOid.eq(context.objectOid())
+                    .where(c.isOwnedBy(context.row())
                             .and(c.cid.eq(container.asPrismContainerValue().getId())))
                     .execute();
-             */
         }
     }
 
     @Override
     public void delete() {
-        QContainer<?> r = containerTableMapping.defaultAlias();
-        /*
-        context.jdbcSession().newDelete(r)
-                // TODO - this is ok for containers under object directly, but not under containers
-                .where(r.ownerOid.eq(context.objectOid()))
+        QContainer<R, OR> c = containerTableMapping.defaultAlias();
+        context.jdbcSession().newDelete(c)
+                .where(c.isOwnedBy(context.row()))
                 .execute();
-         */
     }
 }

@@ -15,6 +15,7 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
@@ -26,9 +27,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusTy
  * TODO: split to supertype for m_assignment_type and add QInducement too
  */
 @SuppressWarnings("unused")
-public class QAssignment extends QContainer<MAssignment> {
+public class QAssignment<OR extends MObject> extends QContainer<MAssignment, OR> {
 
     private static final long serialVersionUID = 7068031681581618788L;
+
+    /**
+     * If `QAssignment.class` is not enough because of generics, try `QAssignment.CLASS`.
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public static final Class<QAssignment<MObject>> CLASS = (Class) QContainer.class;
 
     public static final String TABLE_NAME = "m_assignment";
 

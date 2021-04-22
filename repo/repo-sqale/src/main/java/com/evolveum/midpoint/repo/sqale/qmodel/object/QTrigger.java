@@ -19,7 +19,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QTrigger extends QContainer<MTrigger> {
+public class QTrigger<OR extends MObject> extends QContainer<MTrigger, OR> {
 
     private static final long serialVersionUID = 2478404102829142213L;
 

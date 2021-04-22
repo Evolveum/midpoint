@@ -85,15 +85,38 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
         addRefMapping(F_PARENT_ORG_REF, objectParentOrgReferenceMapping());
 
-        addContainerTableMapping(AssignmentHolderType.F_ASSIGNMENT, QAssignmentMapping.INSTANCE,
+        addContainerTableMapping(AssignmentHolderType.F_ASSIGNMENT, assignmentMapping(),
                 joinOn((o, a) -> o.oid.eq(a.ownerOid)));
-        addContainerTableMapping(F_TRIGGER, QTriggerMapping.INSTANCE,
+        addContainerTableMapping(F_OPERATION_EXECUTION, operationExecutionMapping(),
+                joinOn((o, trg) -> o.oid.eq(trg.ownerOid)));
+        addContainerTableMapping(F_TRIGGER, triggerMapping(),
                 joinOn((o, trg) -> o.oid.eq(trg.ownerOid)));
 
         // AssignmentHolderType
         addRefMapping(F_ARCHETYPE_REF, archetypeReferenceMapping());
         addRefMapping(F_DELEGATED_REF, delegatedReferenceMapping());
         addRefMapping(F_ROLE_MEMBERSHIP_REF, roleMembershipReferenceMapping());
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    @NotNull
+    private QAssignmentMapping<R> assignmentMapping() {
+        //noinspection unchecked
+        return (QAssignmentMapping<R>) QAssignmentMapping.INSTANCE;
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    @NotNull
+    private QOperationExecutionMapping<R> operationExecutionMapping() {
+        //noinspection unchecked
+        return (QOperationExecutionMapping<R>) QOperationExecutionMapping.INSTANCE;
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    @NotNull
+    private QTriggerMapping<R> triggerMapping() {
+        //noinspection unchecked
+        return (QTriggerMapping<R>) QTriggerMapping.INSTANCE;
     }
 
     /** Fixes rigid parametric types of static mapping instance to this instance. */

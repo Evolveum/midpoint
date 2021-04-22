@@ -15,20 +15,26 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 
+/**
+ * @param <S> schema type
+ * @param <Q> type of entity path
+ * @param <R> type of the transformed data, a row bean
+ * @param <OR> type of the owner row (table owning the container)
+ */
 public class ContainerSqlTransformer
-        <S extends Containerable, Q extends QContainer<R>, R extends MContainer>
+        <S extends Containerable, Q extends QContainer<R, OR>, R extends MContainer, OR>
         extends SqaleTransformerBase<S, Q, R> {
 
-    private final QContainerMapping<S, Q, R> mapping;
+    private final QContainerMapping<S, Q, R, OR> mapping;
 
     public ContainerSqlTransformer(
-            SqlTransformerSupport transformerSupport, QContainerMapping<S, Q, R> mapping) {
+            SqlTransformerSupport transformerSupport, QContainerMapping<S, Q, R, OR> mapping) {
         super(transformerSupport);
         this.mapping = mapping;
     }
 
     @Override
-    protected QContainerMapping<S, Q, R> mapping() {
+    protected QContainerMapping<S, Q, R, OR> mapping() {
         return mapping;
     }
 

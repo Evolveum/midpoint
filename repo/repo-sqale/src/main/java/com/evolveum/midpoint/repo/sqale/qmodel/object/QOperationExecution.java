@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QOperationExecution extends QContainer<MOperationExecution> {
+public class QOperationExecution<OR extends MObject> extends QContainer<MOperationExecution, OR> {
 
     private static final long serialVersionUID = -6856661540710930040L;
 

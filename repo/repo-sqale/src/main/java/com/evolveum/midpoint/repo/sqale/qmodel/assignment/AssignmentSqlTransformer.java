@@ -16,11 +16,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
-public class AssignmentSqlTransformer
-        extends ContainerSqlTransformer<AssignmentType, QAssignment, MAssignment> {
+public class AssignmentSqlTransformer<OR extends MObject>
+        extends ContainerSqlTransformer<AssignmentType, QAssignment<OR>, MAssignment, OR> {
 
     public AssignmentSqlTransformer(
-            SqlTransformerSupport transformerSupport, QAssignmentMapping mapping) {
+            SqlTransformerSupport transformerSupport, QAssignmentMapping<OR> mapping) {
         super(transformerSupport, mapping);
     }
 

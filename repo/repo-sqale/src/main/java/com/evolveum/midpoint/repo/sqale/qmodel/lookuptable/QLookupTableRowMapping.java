@@ -16,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
  * Mapping between {@link QLookupTableRow} and {@link LookupTableRowType}.
  */
 public class QLookupTableRowMapping
-        extends QContainerMapping<LookupTableRowType, QLookupTableRow, MLookupTableRow> {
+        extends QContainerMapping<LookupTableRowType, QLookupTableRow, MLookupTableRow, MLookupTable> {
 
     public static final String DEFAULT_ALIAS_NAME = "ltr";
 

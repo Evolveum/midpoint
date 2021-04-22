@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.*;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -17,17 +19,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
 /**
  * Mapping between {@link QAssignment} and {@link AssignmentType}.
+ *
+ * @param <OR> type of the owner row
  */
-public class QAssignmentMapping
-        extends QContainerMapping<AssignmentType, QAssignment, MAssignment> {
+public class QAssignmentMapping<OR extends MObject>
+        extends QContainerMapping<AssignmentType, QAssignment<OR>, MAssignment, OR> {
 
     public static final String DEFAULT_ALIAS_NAME = "a";
 
-    public static final QAssignmentMapping INSTANCE = new QAssignmentMapping();
+    public static final QAssignmentMapping<MObject> INSTANCE = new QAssignmentMapping<>();
 
+    // We can't declare Class<QAssignment<OR>>.class, so we cheat a bit.
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private QAssignmentMapping() {
         super(QAssignment.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                AssignmentType.class, QAssignment.class);
+                AssignmentType.class, (Class) QAssignment.class);
 
         // TODO OWNER_TYPE is new thing and can help avoid join to concrete object table
         //  But this will likely require special treatment/heuristic.
@@ -90,20 +96,27 @@ public class QAssignmentMapping
                         uriMapper(q -> q.modifyChannelId))
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
                         timestampMapper(q -> q.modifyTimestamp))
-                .addRefMapping(MetadataType.F_CREATE_APPROVER_REF,
-                        QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_CREATE_APPROVER)
-                .addRefMapping(MetadataType.F_MODIFY_APPROVER_REF,
-                        QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_MODIFY_APPROVER);
+                .addRefMapping(MetadataType.F_CREATE_APPROVER_REF, referenceMapping(
+                        QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_CREATE_APPROVER))
+                .addRefMapping(MetadataType.F_MODIFY_APPROVER_REF, referenceMapping(
+                        QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_MODIFY_APPROVER));
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    private QReferenceMapping<?, ?, QAssignment<OR>, MAssignment> referenceMapping(
+            QAssignmentReferenceMapping<?> referenceMapping) {
+        //noinspection unchecked
+        return (QAssignmentReferenceMapping<OR>) referenceMapping;
     }
 
     @Override
-    protected QAssignment newAliasInstance(String alias) {
-        return new QAssignment(alias);
+    protected QAssignment<OR> newAliasInstance(String alias) {
+        return new QAssignment<>(alias);
     }
 
     @Override
-    public AssignmentSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
-        return new AssignmentSqlTransformer(transformerSupport, this);
+    public AssignmentSqlTransformer<OR> createTransformer(SqlTransformerSupport transformerSupport) {
+        return new AssignmentSqlTransformer<>(transformerSupport, this);
     }
 
     @Override

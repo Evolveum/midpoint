@@ -81,11 +81,12 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
      * @param <TQ> entity query type of the container table
      * @param <TR> row type of the container table, related to {@link TQ}
      */
-    default <C extends Containerable, TQ extends QContainer<TR>, TR extends MContainer>
+    default <C extends Containerable, TQ extends QContainer<TR, R>, TR extends MContainer>
     SqaleMappingMixin<S, Q, R> addContainerTableMapping(
             @NotNull ItemName itemName,
-            @NotNull QContainerMapping<C, TQ, TR> containerMapping,
+            @NotNull QContainerMapping<C, TQ, TR, R> containerMapping,
             @NotNull BiFunction<Q, TQ, Predicate> joinPredicate) {
+        // TODO join predicate can be constructed by Q or the mapping
         addRelationResolver(itemName,
                 new TableRelationResolver<>(containerMapping.queryType(), joinPredicate));
 

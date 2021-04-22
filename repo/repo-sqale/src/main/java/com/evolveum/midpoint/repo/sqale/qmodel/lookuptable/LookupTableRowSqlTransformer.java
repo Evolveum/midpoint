@@ -13,7 +13,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 
 public class LookupTableRowSqlTransformer
-        extends ContainerSqlTransformer<LookupTableRowType, QLookupTableRow, MLookupTableRow> {
+        extends ContainerSqlTransformer<LookupTableRowType, QLookupTableRow, MLookupTableRow, MLookupTable> {
 
     public LookupTableRowSqlTransformer(
             SqlTransformerSupport transformerSupport, QLookupTableRowMapping mapping) {
