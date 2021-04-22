@@ -505,7 +505,7 @@ public class TaskQuartzImpl implements Task {
         return isLiveRunningInstance() ? CloneUtil.clone(value) : value;
     }
 
-    private <X> X getProperty(ItemName name) {
+    private <X> X getProperty(ItemPath name) {
         synchronized (prismAccess) {
             PrismProperty<X> property = taskPrism.findProperty(name);
             return property != null ? property.getRealValue() : null;
@@ -675,7 +675,7 @@ public class TaskQuartzImpl implements Task {
 
     @Override
     public StructuredTaskProgressType getStructuredProgressOrClone() {
-        return getContainerableOrClone(TaskType.F_STRUCTURED_PROGRESS);
+        return null;// FIXME getContainerableOrClone(TaskType.F_STRUCTURED_PROGRESS);
     }
 
     @Override
@@ -697,11 +697,13 @@ public class TaskQuartzImpl implements Task {
     }
 
     public void setStructuredProgress(StructuredTaskProgressType value) {
-        setContainerable(TaskType.F_STRUCTURED_PROGRESS, value);
+        // FIXME
+        //setContainerable(TaskType.F_STRUCTURED_PROGRESS, value);
     }
 
     public void setStructuredProgressTransient(StructuredTaskProgressType value) {
-        setContainerableTransient(TaskType.F_STRUCTURED_PROGRESS, value);
+        // FIXME
+//        setContainerableTransient(TaskType.F_STRUCTURED_PROGRESS, value);
     }
 
     public void setOperationStatsTransient(OperationStatsType value) {
@@ -1755,8 +1757,15 @@ public class TaskQuartzImpl implements Task {
     @Override
     public TaskWorkManagementType getWorkManagement() {
         synchronized (prismAccess) {
-            return taskPrism.asObjectable().getWorkManagement();
+            // FIXME
+            return null;
+//            return taskPrism.asObjectable().getWorkManagement();
         }
+    }
+
+    @Override
+    public TaskPartsDefinitionType getPartsDefinitionOrClone() {
+        return getContainerableOrClone(TaskType.F_PARTS);
     }
 
     // todo thread safety (creating a clone?)
@@ -1765,6 +1774,11 @@ public class TaskQuartzImpl implements Task {
         synchronized (prismAccess) {
             return taskPrism.asObjectable().getWorkState();
         }
+    }
+
+    @Override
+    public TaskWorkStateType getWorkStateOrClone() {
+        return getContainerableOrClone(TaskType.F_WORK_STATE);
     }
 
     @Override
@@ -1834,13 +1848,6 @@ public class TaskQuartzImpl implements Task {
         setContainerable(TaskType.F_EXECUTION_ENVIRONMENT, value);
     }
 
-    @Override
-    public boolean isScavenger() {
-        synchronized (prismAccess) {
-            TaskWorkManagementType workManagement = taskPrism.asObjectable().getWorkManagement();
-            return workManagement != null && Boolean.TRUE.equals(workManagement.isScavenger());
-        }
-    }
     //endregion
 
     //region Tracing
@@ -2042,6 +2049,10 @@ public class TaskQuartzImpl implements Task {
     //endregion
 
     //region Trivia: dump, toString, equals, hashCode
+
+    /**
+     * FIXME: Not thread-safe because of taskResult access.
+     */
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
@@ -2199,5 +2210,14 @@ public class TaskQuartzImpl implements Task {
     public List<String> getLastFailures() {
         return statistics.getLastFailures();
     }
+    //endregion
+
+    //region TODO
+
+    @Override
+    public String getCurrentPartId() {
+        return getProperty(ItemPath.create(TaskType.F_WORK_STATE, TaskWorkStateType.F_CURRENT_PART_ID));
+    }
+
     //endregion
 }

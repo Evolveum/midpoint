@@ -17,15 +17,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericIntervalWorkBucketContentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
-/**
- * @author Pavol Mederly
- */
-public class NoOpTaskHandler implements WorkBucketAwareTaskHandler {
+public class NoOpTaskHandler implements TaskHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(NoOpTaskHandler.class);
 
@@ -47,8 +41,7 @@ public class NoOpTaskHandler implements WorkBucketAwareTaskHandler {
     }
 
     @Override
-    public TaskWorkBucketProcessingResult run(RunningTask task, WorkBucketType workBucket,
-            TaskPartitionDefinitionType taskPartition, TaskWorkBucketProcessingResult previousRunResult) {
+    public TaskWorkBucketProcessingResult run(RunningTask task) {
 
         String partition = task.getHandlerUri().substring(TaskConstants.NOOP_TASK_HANDLER_URI.length());  // empty or #1..#4
 
@@ -91,19 +84,22 @@ public class NoOpTaskHandler implements WorkBucketAwareTaskHandler {
             steps = 1;
         }
 
+        // TODO bucket
         LOGGER.info("NoOpTaskHandler run starting; progress = {}, steps to be executed = {}, delay for one step = {},"
-                + " partition = '{}', work bucket = {}, in task {}", task.getProgress(), steps, delay, partition, workBucket, task);
+                + " partition = '{}', work bucket = {}, in task {}", task.getProgress(), steps, delay, partition, null, task);
 
-        int objectFrom;
-        int objectTo;
-        if (workBucket.getContent() instanceof NumericIntervalWorkBucketContentType) {
-            NumericIntervalWorkBucketContentType interval = (NumericIntervalWorkBucketContentType) workBucket.getContent();
-            objectFrom = interval.getFrom() != null ? interval.getFrom().intValue() : 0;
-            objectTo = interval.getTo() != null ? interval.getTo().intValue() - 1 : objectFrom;
-        } else {
-            objectFrom = 0;
-            objectTo = 0;
-        }
+        int objectFrom = 0;
+        int objectTo = 0;
+
+        // TODO
+//        if (workBucket.getContent() instanceof NumericIntervalWorkBucketContentType) {
+//            NumericIntervalWorkBucketContentType interval = (NumericIntervalWorkBucketContentType) workBucket.getContent();
+//            objectFrom = interval.getFrom() != null ? interval.getFrom().intValue() : 0;
+//            objectTo = interval.getTo() != null ? interval.getTo().intValue() - 1 : objectFrom;
+//        } else {
+//            objectFrom = 0;
+//            objectTo = 0;
+//        }
 
 outer:  for (int o = objectFrom; o <= objectTo; o++) {
             for (int i = 0; i < steps; i++) {

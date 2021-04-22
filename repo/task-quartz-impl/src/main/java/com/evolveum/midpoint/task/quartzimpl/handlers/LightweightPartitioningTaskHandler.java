@@ -64,86 +64,87 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
         taskManager.registerDeprecatedHandlerUri(TaskConstants.LIGHTWEIGHT_PARTITIONING_TASK_HANDLER_URI_DEPRECATED, this);
     }
 
-    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType taskPartition) {
-        OperationResult opResult = new OperationResult(LightweightPartitioningTaskHandler.class.getName()+".run");
-        TaskRunResult runResult = new TaskRunResult();
-
-        runResult.setProgress(task.getProgress());
-        runResult.setOperationResult(opResult);
-
-        if (taskPartition != null && taskPartition.getWorkManagement() != null) {
-            throw new UnsupportedOperationException("Work management not supported in partitions for lightweight partitioning task");
-        }
-
-        TaskPartitionsDefinitionType partitionsDefinition = task.getWorkManagement().getPartitions();
-        List<TaskPartitionDefinitionType> partitions = new ArrayList<>(partitionsDefinition.getPartition());
-        Comparator<TaskPartitionDefinitionType> comparator =
-                (partition1, partition2) -> {
-
-                    Validate.notNull(partition1);
-                    Validate.notNull(partition2);
-
-                    Integer index1 = partition1.getIndex();
-                    Integer index2 = partition2.getIndex();
-
-                    if (index1 == null) {
-                        if (index2 == null) {
-                            return 0;
-                        }
-                        return -1;
-                    }
-
-                    if (index2 == null) {
-                        return -1;
-                    }
-
-                    return index1.compareTo(index2);
-                };
-
-        partitions.sort(comparator);
-
-        Iterator<TaskPartitionDefinitionType> partitionsIterator = partitions.iterator();
-        while (partitionsIterator.hasNext()) {
-            TaskPartitionDefinitionType partition = partitionsIterator.next();
-            TaskHandler handler = taskManager.getHandler(partition.getHandlerUri());
-            LOGGER.trace("Starting to execute handler {} defined in partition {}", handler, partition);
-
-            if (task.getChannel() == null) {
-                task.setChannel(handler.getDefaultChannel());
-            }
-
-            TaskRunResult subHandlerResult = handlerExecutor.executeHandler((RunningTaskQuartzImpl) task, partition, handler, opResult);
-            OperationResult subHandlerOpResult = subHandlerResult.getOperationResult();
-            opResult.addSubresult(subHandlerOpResult);
-            runResult = subHandlerResult;
-            runResult.setProgress(task.getProgress());
-
-            if (!canContinue(task, subHandlerResult)) {
-                break;
-            }
-
-            if (subHandlerOpResult.isError()) {
-                break;
-            }
-
-            try {
-                LOGGER.trace("Cleaning up work state in task {}, workState: {}", task, task.getWorkState());
-                cleanupWorkState(task, runResult.getOperationResult());
-            } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
-                LOGGER.error("Unexpected error during cleaning work state: " + e.getMessage(), e);
-                throw new IllegalStateException(e);
-            }
-
-            if (partitionsIterator.hasNext()) {
-                counterManager.resetCounters(task.getOid());
-            }
-
-        }
-
-        opResult.computeStatusIfUnknown();
-        counterManager.cleanupCounters(task.getOid());
-
-        return runResult;
+    public TaskRunResult run(RunningTask task) {
+//        OperationResult opResult = new OperationResult(LightweightPartitioningTaskHandler.class.getName()+".run");
+//        TaskRunResult runResult = new TaskRunResult();
+//
+//        runResult.setProgress(task.getProgress());
+//        runResult.setOperationResult(opResult);
+//
+//        if (taskPartition != null && taskPartition.getWorkManagement() != null) {
+//            throw new UnsupportedOperationException("Work management not supported in partitions for lightweight partitioning task");
+//        }
+//
+//        TaskPartitionsDefinitionType partitionsDefinition = task.getWorkManagement().getPartitions();
+//        List<TaskPartitionDefinitionType> partitions = new ArrayList<>(partitionsDefinition.getPartition());
+//        Comparator<TaskPartitionDefinitionType> comparator =
+//                (partition1, partition2) -> {
+//
+//                    Validate.notNull(partition1);
+//                    Validate.notNull(partition2);
+//
+//                    Integer index1 = partition1.getIndex();
+//                    Integer index2 = partition2.getIndex();
+//
+//                    if (index1 == null) {
+//                        if (index2 == null) {
+//                            return 0;
+//                        }
+//                        return -1;
+//                    }
+//
+//                    if (index2 == null) {
+//                        return -1;
+//                    }
+//
+//                    return index1.compareTo(index2);
+//                };
+//
+//        partitions.sort(comparator);
+//
+//        Iterator<TaskPartitionDefinitionType> partitionsIterator = partitions.iterator();
+//        while (partitionsIterator.hasNext()) {
+//            TaskPartitionDefinitionType partition = partitionsIterator.next();
+//            TaskHandler handler = taskManager.getHandler(partition.getHandlerUri());
+//            LOGGER.trace("Starting to execute handler {} defined in partition {}", handler, partition);
+//
+//            if (task.getChannel() == null) {
+//                task.setChannel(handler.getDefaultChannel());
+//            }
+//
+//            TaskRunResult subHandlerResult = handlerExecutor.executeHandler((RunningTaskQuartzImpl) task, handler, opResult);
+//            OperationResult subHandlerOpResult = subHandlerResult.getOperationResult();
+//            opResult.addSubresult(subHandlerOpResult);
+//            runResult = subHandlerResult;
+//            runResult.setProgress(task.getProgress());
+//
+//            if (!canContinue(task, subHandlerResult)) {
+//                break;
+//            }
+//
+//            if (subHandlerOpResult.isError()) {
+//                break;
+//            }
+//
+//            try {
+//                LOGGER.trace("Cleaning up work state in task {}, workState: {}", task, task.getWorkState());
+//                cleanupWorkState(task, runResult.getOperationResult());
+//            } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
+//                LOGGER.error("Unexpected error during cleaning work state: " + e.getMessage(), e);
+//                throw new IllegalStateException(e);
+//            }
+//
+//            if (partitionsIterator.hasNext()) {
+//                counterManager.resetCounters(task.getOid());
+//            }
+//
+//        }
+//
+//        opResult.computeStatusIfUnknown();
+//        counterManager.cleanupCounters(task.getOid());
+//
+//        return runResult;
+        return null;
     }
 
     private void cleanupWorkState(RunningTask runningTask, OperationResult parentResult)

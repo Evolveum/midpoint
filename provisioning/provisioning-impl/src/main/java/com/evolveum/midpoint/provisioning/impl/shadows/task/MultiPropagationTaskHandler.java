@@ -24,10 +24,7 @@ import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
  * Task handler for provisioning propagation of many resources.
@@ -89,11 +86,8 @@ public class MultiPropagationTaskHandler
     protected static class TaskExecution
             extends AbstractTaskExecution<MultiPropagationTaskHandler, TaskExecution> {
 
-        public TaskExecution(MultiPropagationTaskHandler taskHandler,
-                RunningTask localCoordinatorTask, WorkBucketType workBucket,
-                TaskPartitionDefinitionType partDefinition,
-                TaskWorkBucketProcessingResult previousRunResult) {
-            super(taskHandler, localCoordinatorTask, workBucket, partDefinition, previousRunResult);
+        public TaskExecution(MultiPropagationTaskHandler taskHandler, RunningTask localCoordinatorTask) {
+            super(taskHandler, localCoordinatorTask);
         }
     }
 }

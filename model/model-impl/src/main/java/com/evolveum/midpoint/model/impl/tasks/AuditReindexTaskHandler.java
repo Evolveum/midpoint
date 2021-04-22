@@ -33,7 +33,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 @Component
 public class AuditReindexTaskHandler implements TaskHandler {
@@ -55,7 +54,7 @@ public class AuditReindexTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask coordinatorTask, TaskPartitionDefinitionType partition) {
+    public TaskRunResult run(RunningTask coordinatorTask) {
         OperationResult opResult = new OperationResult(OperationConstants.AUDIT_REINDEX + ".run");
         opResult.setStatus(OperationResultStatus.IN_PROGRESS);
         TaskRunResult runResult = new TaskRunResult();

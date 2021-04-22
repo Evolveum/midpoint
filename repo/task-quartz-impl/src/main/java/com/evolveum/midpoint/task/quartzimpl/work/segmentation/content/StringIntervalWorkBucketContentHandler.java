@@ -13,9 +13,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
-/**
- * @author mederly
- */
 @Component
 public class StringIntervalWorkBucketContentHandler extends IntervalWorkBucketContentHandler {
 

@@ -25,9 +25,6 @@ import java.util.function.Function;
 
 import static java.util.Collections.emptyList;
 
-/**
- * @author mederly
- */
 @Component
 public class StringPrefixWorkBucketContentHandler extends BaseWorkBucketContentHandler {
 

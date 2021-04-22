@@ -638,8 +638,8 @@ public interface TaskManager {
     /**
      * TODO. EXPERIMENTAL.
      */
-    ObjectQuery narrowQueryForWorkBucket(ObjectQuery query, Class<? extends ObjectType> type,
-            Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider, Task workerTask,
+    ObjectQuery narrowQueryForWorkBucket(Class<? extends ObjectType> type, ObjectQuery query,
+            Task workerTask, Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider,
             WorkBucketType workBucket, OperationResult opResult) throws SchemaException, ObjectNotFoundException;
 
     TaskHandler createAndRegisterPartitioningTaskHandler(String handlerUri, Function<Task, TaskPartitionsDefinition> partitioningStrategy);

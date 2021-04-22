@@ -47,8 +47,6 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * The task handler for writing assignment/object metadata.
- *
- * @author mederly
  */
 @Component
 public class AccessCertificationClosingTaskHandler implements TaskHandler {
@@ -80,7 +78,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+    public TaskRunResult run(RunningTask task) {
         LOGGER.debug("Task run starting");
 
         OperationResult opResult = new OperationResult(CLASS_DOT+"run");

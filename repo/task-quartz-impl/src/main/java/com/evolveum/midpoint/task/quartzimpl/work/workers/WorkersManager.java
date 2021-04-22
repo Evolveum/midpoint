@@ -284,7 +284,7 @@ public class WorkersManager {
             if (keyToCreate.group != null) {
                 worker.beginExecutionConstraints().group(keyToCreate.group).end();
             }
-            worker.setHandlerUri(workersCfg.getHandlerUri());
+            //worker.setHandlerUri(workersCfg.getHandlerUri()); // TODO
 
             applyDeltas(worker, workersCfg.getOtherDeltas());
             applyDeltas(worker, perNodeConfigurationMap.get(keyToCreate).getOtherDeltas());
@@ -297,10 +297,11 @@ public class WorkersManager {
             worker.setRecurrence(TaskRecurrenceType.SINGLE);
             worker.setParent(coordinatorTask.getTaskIdentifier());
             worker.setExecutionEnvironment(CloneUtil.clone(coordinatorTask.getExecutionEnvironment()));
-            TaskWorkManagementType workManagement = worker.beginWorkManagement().taskKind(TaskKindType.WORKER);
-            if (keyToCreate.scavenger) {
-                workManagement.setScavenger(true);
-            }
+            // TODO
+//            TaskWorkManagementType workManagement = worker.beginWorkManagement().taskKind(TaskKindType.WORKER);
+//            if (keyToCreate.scavenger) {
+//                workManagement.setScavenger(true);
+//            }
             PrismContainer<?> coordinatorExtension = coordinatorTask.getExtensionClone();
             if (coordinatorExtension != null) {
                 worker.asPrismObject().add(coordinatorExtension);
@@ -364,7 +365,8 @@ public class WorkersManager {
     }
 
     private static boolean isScavenger(Task task) {
-        return Boolean.TRUE.equals(task.getWorkManagement().isScavenger());
+        return false;// TODO
+//        return Boolean.TRUE.equals(task.getWorkManagement().isScavenger());
     }
 
     private MultiValuedMap<String, WorkerKey> createWorkerKeys(Task task,

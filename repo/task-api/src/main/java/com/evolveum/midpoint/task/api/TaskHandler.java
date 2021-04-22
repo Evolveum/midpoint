@@ -11,7 +11,6 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 /**
  * @author Radovan Semancik
@@ -19,12 +18,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinit
  */
 public interface TaskHandler {
 
-    default TaskRunResult run(RunningTask task) {
-        return run(task, null);
-    }
-
     @Experimental
-    TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partitionDefinition);
+    TaskRunResult run(RunningTask task) throws ExitExecutionException;
 
     default Long heartbeat(Task task) {
         return null;

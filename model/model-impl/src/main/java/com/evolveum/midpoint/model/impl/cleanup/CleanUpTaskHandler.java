@@ -41,7 +41,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class CleanUpTaskHandler implements TaskHandler {
 
     public static final String HANDLER_URI = ModelPublicConstants.CLEANUP_TASK_HANDLER_URI;
-    public static final String CLEANUP_TASK = "Cleanup task";
+
+    private static final String CLEANUP_TASK = "Cleanup task";
 
     @Autowired private TaskManager taskManager;
     @Autowired private RepositoryService repositoryService;
@@ -69,14 +70,14 @@ public class CleanUpTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partitionDefinition) {
+    public TaskRunResult run(RunningTask task) {
         TaskRunResult runResult = createRunResult();
         ErrorState errorState = new ErrorState(); // currently not used
         try {
             runInternal(task, runResult);
-            return processFinish(LOGGER, partitionDefinition, CLEANUP_TASK, runResult, errorState);
+            return processFinish(LOGGER, null, CLEANUP_TASK, runResult, errorState);
         } catch (Throwable t) {
-            return processException(t, LOGGER, partitionDefinition, CLEANUP_TASK, runResult);
+            return processException(t, LOGGER, null, CLEANUP_TASK, runResult);
         }
     }
 
@@ -87,7 +88,7 @@ public class CleanUpTaskHandler implements TaskHandler {
         return runResult;
     }
 
-    public void runInternal(RunningTask task, TaskRunResult runResult) throws TaskException {
+    private void runInternal(RunningTask task, TaskRunResult runResult) throws TaskException {
         LOGGER.trace("CleanUpTaskHandler.run starting");
         OperationResult result = runResult.getOperationResult();
 

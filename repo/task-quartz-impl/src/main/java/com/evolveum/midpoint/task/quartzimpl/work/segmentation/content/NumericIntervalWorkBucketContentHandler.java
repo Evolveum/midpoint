@@ -14,9 +14,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.math.BigInteger;
 
-/**
- * @author mederly
- */
 @Component
 public class NumericIntervalWorkBucketContentHandler extends IntervalWorkBucketContentHandler {
 

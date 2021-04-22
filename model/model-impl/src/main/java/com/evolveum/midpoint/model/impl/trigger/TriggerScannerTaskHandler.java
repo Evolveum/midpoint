@@ -23,10 +23,7 @@ import com.evolveum.midpoint.repo.common.task.PartExecutionClass;
 import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
  * Task handler for the trigger scanner.
@@ -83,11 +80,8 @@ public class TriggerScannerTaskHandler
     protected static class TaskExecution
             extends AbstractScannerTaskExecution<TriggerScannerTaskHandler, TriggerScannerTaskHandler.TaskExecution> {
 
-        public TaskExecution(TriggerScannerTaskHandler taskHandler,
-                RunningTask localCoordinatorTask, WorkBucketType workBucket,
-                TaskPartitionDefinitionType partDefinition,
-                TaskWorkBucketProcessingResult previousRunResult) {
-            super(taskHandler, localCoordinatorTask, workBucket, partDefinition, previousRunResult);
+        public TaskExecution(TriggerScannerTaskHandler taskHandler, RunningTask localCoordinatorTask) {
+            super(taskHandler, localCoordinatorTask);
         }
     }
 }

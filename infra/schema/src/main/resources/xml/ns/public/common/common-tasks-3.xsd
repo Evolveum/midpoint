@@ -21,7 +21,7 @@
 
     <xsd:annotation>
         <xsd:documentation>
-            TODO
+            Part of common-3 schema that deals with tasks and nodes.
         </xsd:documentation>
     </xsd:annotation>
 
@@ -49,6 +49,16 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:otherHandlersUriStack</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:structuredProgress</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -62,7 +72,6 @@
                                     regardless whether it is persistent or transient (cf. OID). Therefore this can be used
                                     to identify all tasks, e.g. for the purposes of auditing and logging.
                                 </p>
-
                                 <p>
                                     Task identifier is assigned automatically when the task is created. It is immutable.
                                     It is formally set as optional, however it is mandatory for any task to work. Setting
@@ -237,6 +246,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>TaskType.category</a:displayName>
+                                <a:deprecated>true</a:deprecated>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -248,18 +258,6 @@
                                 execute reaction to a task lifecycle events such as executing the task, task heartbeat,
                                 etc.
                             </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="otherHandlersUriStack" type="tns:UriStack" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                A stack of handlers that should be called after the primary one (handlerUri) finishes.
-                                DEPRECATED. Not applied any more.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.3</a:deprecatedSince>
-                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="result" type="tns:OperationResultType" minOccurs="0">
@@ -368,23 +366,22 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="structuredProgress" type="tns:StructuredTaskProgressType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Process of the task in the structured form.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>TaskType.structuredProgress</a:displayName>
-                                <a:since>4.3</a:since>
-                                <a:experimental>true</a:experimental>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="operationStats" type="tns:OperationStatsType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Operation statistics/state.
                             </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="parts" type="tns:TaskPartsDefinitionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Definition of task parts.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.4</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="workState" type="tns:TaskWorkStateType" minOccurs="0">
@@ -399,13 +396,13 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="workManagement" type="tns:TaskWorkManagementType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Configuration of how the work should be managed: segmented into buckets and processed by workers.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
+                    <!--<xsd:element name="workManagement" type="tns:TaskWorkManagementType" minOccurs="0">-->
+                    <!--    <xsd:annotation>-->
+                    <!--        <xsd:documentation>-->
+                    <!--            Configuration of how the work should be managed: segmented into buckets and processed by workers.-->
+                    <!--        </xsd:documentation>-->
+                    <!--    </xsd:annotation>-->
+                    <!--</xsd:element>-->
                     <xsd:element name="stalledSince" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -665,9 +662,7 @@
     <xsd:complexType name="StructuredTaskProgressType">
         <xsd:annotation>
             <xsd:documentation>
-                Task progress information in a structured form. It considers task parts and buckets.
-                It is named "structured" as opposed to single progress counter that has been present
-                in the task since early ages.
+                DELETE ASAP
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -700,7 +695,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="part" type="tns:TaskPartProgressType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="part" type="tns:TaskPartProgressOldType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Progress in individual parts.
@@ -712,7 +707,7 @@
     </xsd:complexType>
     <xsd:element name="structuredTaskProgress" type="tns:StructuredTaskProgressType" />
 
-    <xsd:complexType name="TaskPartProgressType">
+    <xsd:complexType name="TaskPartProgressOldType">
         <xsd:annotation>
             <xsd:documentation>
                 Progress of a given task part.
@@ -753,6 +748,40 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         True if this part is complete.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="TaskPartProgressType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Progress of a given task part.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:experimentaL>true</a:experimentaL>
+                <a:since>4.3</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="closed" type="tns:OutcomeKeyedCounterType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Counters representing items that were processed and are stored in closed buckets.
+                        These items will not be re-processed if the task would start over.
+                        TODO better name
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="open" type="tns:OutcomeKeyedCounterType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Counters representing items that were processed but their bucket is not closed yet.
+                        In the case of task restart, these will be re-processed.
+                        TODO better name
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1544,78 +1573,6 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="UriStack">
-        <xsd:annotation>
-            <xsd:documentation>
-                A stack of URIs (used e.g. for managing a stack of handlers to be called when a task is to be run).
-                Last URI is considered to be the top of the stack (i.e. the one that will be retrieved first).
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:deprecated>true</a:deprecated>
-                <a:deprecatedSince>4.3</a:deprecatedSince>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="uriStackEntry" type="tns:UriStackEntry" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        An entry of the URI stack.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="UriStackEntry">
-        <xsd:annotation>
-            <xsd:documentation>
-                An entry of the URI stack. It contains the handler URI as well as the schedule under which the handler should be run.
-                This allows e.g. to run a "main" handler once, and then run a sub-handler under a different schedule (e.g. cyclically).
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:deprecated>true</a:deprecated>
-                <a:deprecatedSince>4.3</a:deprecatedSince>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="handlerUri" type="xsd:anyURI">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        URI of the task handler.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="recurrence" type="tns:TaskRecurrenceType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Recurrence type of this task (may be null - in that case it is guessed from the schedule).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="schedule" type="tns:ScheduleType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Schedule under which this handler should be executed (may be null).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="binding" type="tns:TaskBindingType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Binding with which this handler should be executed (default = derived from schedule)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="extensionDelta" type="t:ItemDeltaType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        List of deltas that should be put into extension when starting this handler.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-
     <xsd:complexType name="WorkersManagementType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1634,13 +1591,6 @@
                         {node} and {index} here. CoordinatorTaskName is the name of the coordinator task, node is the node
                         identifier and index numbers workers created for particular node, starting at 1. The default value is
                         "{coordinatorTaskName} ({node}:{index})".
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Worker tasks handler URI. Default value might be known from the context.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1725,7 +1675,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="TaskPartitionsDefinitionType">
+    <xsd:complexType name="TaskPartsDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
                 Describes how to partition the work into subtasks.
@@ -1738,81 +1688,26 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="count" type="xsd:int" minOccurs="0">
+            <xsd:element name="part" type="tns:TaskPartDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Number of partitions to create. Optional. The default is the number of partition item values.
+                        Definition of individual parts.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="sequentialExecution" type="xsd:boolean" minOccurs="0" default="true">
+            <xsd:element name="ignoreDefaultParts" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Whether the subtasks should be executed sequentially.
+                        If true, we ignore any default task parts (e.g. for reconciliation or validity scanning tasks),
+                        and replace them with explicitly-defined ones.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="durablePartitions" type="xsd:boolean" minOccurs="0" default="false">
+            <xsd:element name="subtasks" type="tns:PartsSubtasksRealizationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Whether the partitions should be durable i.e. whether they should persist through master task restarts.
-                        This is useful e.g. for partitioned validity scanner because each partition keeps its own last
-                        scan timestamp. (EXPERIMENTAL)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="taskName" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        How to derive names for partition tasks. It is possible to use substitution strings of {masterTaskName},
-                        {masterTaskHandlerUri} and {index} here.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Partition tasks handler URI. The default is {masterTaskHandlerUri}#{index} or
-                        http://midpoint.evolveum.com/xml/ns/public/task/workers-creation/handler-3 for subtasks that are
-                        coordinators themselves.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="workManagement" type="tns:TaskWorkManagementType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Work management configuration to use for partition task.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:elaborate>true</a:elaborate>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="executionEnvironment" type="tns:TaskExecutionEnvironmentType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Execution environment configuration to use for partition task.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="copyMasterExtension" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Whether to copy task extension from the master task.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="otherDeltas" type="t:ItemDeltaType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Other deltas to be applied to newly created partition tasks.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="partition" type="tns:TaskPartitionDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Definition of the partition(s).
+                        Parameters describing the realization of parts via subtasks.
+                        Can be empty - in that case it simply denotes that we want to use subtasks for parts realization.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1820,7 +1715,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="TaskPartitionDefinitionType">
+    <xsd:complexType name="TaskPartDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
                 Describes how to create a single task partition.
@@ -1839,49 +1734,25 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="taskName" type="xsd:string" minOccurs="0">
+            <xsd:element name="identifier" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How to derive names for the partition task. It is possible to use substitution strings of {masterTaskName},
-                        {masterTaskHandlerUri} and {index} here. Overrides the name specified in the parent element.
+                        Identifier of the partition. The default is given by the master task, if applicable.
+                        Otherwise, a unique value is generated.
                     </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Partition task handler URI. The default is {masterTaskHandlerUri}#{index}.
-                        Overrides the handler URI specified in the parent element.
-                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="workManagement" type="tns:TaskWorkManagementType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Work management configuration to use for partition task.
-                        Overrides the value specified in the parent element.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:elaborate>true</a:elaborate>
+                        <a:elaborate>true</a:elaborate> <!-- TODO -->
                     </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="executionEnvironment" type="tns:TaskExecutionEnvironmentType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Execution environment configuration to use for partition task.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.0</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="copyMasterExtension" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Whether to copy task extension from the master task.
-                        Overrides the value specified in the parent element.
-                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="extension" type="tns:ExtensionType" minOccurs="0">
@@ -1901,14 +1772,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="dependents" type="xsd:int" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Dependents of this subtask, i.e. subtasks that should be started only after this subtask has finished.
-                        Provided as indices starting at 1.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="stage" type="tns:ExecutionModeType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1923,10 +1786,166 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="errorHandlingStrategy" type="tns:TaskErrorHandlingStrategyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Error handling strategy for this task. If present, supersedes errorCriticality. EXPERIMENTAL.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                        <a:since>4.4</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="processingOption" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic">
                 <xsd:annotation>
                     <xsd:documentation>
                         Define if the specified stage is executed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="precondition" type="tns:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Precondition: an expression that governs whether the part should be executed or skipped,
+                        or whether the task should stop altogether. Should return a single value
+                        of TaskPartPreconditionOutputType.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="subtask" type="tns:PartSubtaskRealizationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Parameters describing the realization of this part via subtask.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="parts" type="tns:TaskPartsDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of children of this part.
+                        Highly experimental.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="PartsSubtasksRealizationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How parts are realized via subtasks.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="sequentialExecution" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether the subtasks should be executed sequentially.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="durable" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether the subtasks for parts should be durable i.e. whether they should persist
+                        through master task restarts. This is useful e.g. for partitioned validity scanner
+                        because each partition keeps its own last scan timestamp.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="taskName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to derive names for individual subtasks. It is possible to use substitution strings of
+                        {masterTaskName}, {masterTaskHandlerUri} and {index} here.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Subtasks handler URI pattern.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="copyMasterExtension" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether to copy task extension from the master task.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="PartSubtaskRealizationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How the part is realized via subtask.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="taskName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to derive names for the partition task. It is possible to use substitution strings of {masterTaskName},
+                        {masterTaskHandlerUri} and {index} here. Overrides the pattern specified for all parts.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Partition task handler URI. The default is {masterTaskHandlerUri}#{index}.
+                        Overrides the handler URI specified for all parts.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="executionEnvironment" type="tns:TaskExecutionEnvironmentType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Execution environment configuration to use for partition task.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="copyMasterExtension" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether to copy task extension from the master task.
+                        Overrides the value specified in the parent element.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="dependents" type="xsd:int" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Dependents of this subtask, i.e. subtasks that should be started only after this subtask has finished.
+                        Provided as indices starting at 1.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1987,6 +2006,68 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:simpleType name="TaskPartPreconditionOutputType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Output of task part precondition expression. Describes how to continue with task execution.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="execute">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Part should be executed. This is the default value.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXECUTE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="skip">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Part evaluation should be skipped.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SKIP"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="permanentError">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Task should stop with a permanent error.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PERMANENT_ERROR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="temporaryError">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Task should stop with a temporary error.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TEMPORARY_ERROR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:complexType name="SchedulerInformationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -2026,9 +2107,67 @@
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>3.8</a:since>
+                <a:schemaMigration>
+                    <a:element>tns:bucket</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:numberOfBuckets</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="currentPartId" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Current part identifier.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="part" type="tns:TaskPartWorkStateType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Work state for individual parts.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="allWorkComplete" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        True if all the work is complete. This means that on next run the task should start from
+                        the beginning. (We do not simply erase workState because of progress reporting needs.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="TaskPartWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes the work state of a task part.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="partId" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identifier of the task part.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="bucket" type="tns:WorkBucketType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2045,29 +2184,86 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         How many buckets are there? This is an indicative information, e.g. to be used when
-                        estimating total progress.
+                        estimating total progress. Relevant only for coordinator and standalone tasks.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="allWorkComplete" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="progress" type="tns:TaskPartProgressType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        True if all the work is complete. This means that on next run the task should start from
-                        the beginning. (We do not simply erase workState because of progress reporting needs.)
+                        Progress of this part. Relevant for worker and standalone tasks.
+                        (Can be copied to coordinator e.g. if workers are deleted.)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!--<xsd:element name="completePartitionRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">-->
-            <!--<xsd:annotation>-->
-            <!--<xsd:documentation>-->
-            <!--References of complete partitions. Used to quickly assess the progress of the whole task-->
-            <!--without the need for fetching all partitions (subtasks).-->
-            <!--</xsd:documentation>-->
-            <!--</xsd:annotation>-->
-            <!--</xsd:element>-->
+            <xsd:element name="taskKind" type="tns:TaskKindType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Kind of task with respect to the work management (standalone, coordinator, worker).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="bucketsProcessingRole" type="tns:BucketsProcessingRoleType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Role of this task in the processing of the buckets: standalone executor, coordinator, or worker.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="scavenger" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is this task a scavenger i.e. will it wait until the work is done, looking
+                        for buckets that could be reclaimed? Applicable only to worker tasks.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="complete" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        True if all the work in this part is complete.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="part" type="tns:TaskPartWorkStateType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Work state of child parts.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <!--<xsd:complexType name="TaskWorkDefinitionType">-->
+    <!--    <xsd:annotation>-->
+    <!--        <xsd:documentation>-->
+    <!--            Describes the actual work that is to be done, divided into parts.-->
+    <!--        </xsd:documentation>-->
+    <!--        <xsd:appinfo>-->
+    <!--            <a:since>4.4</a:since>-->
+    <!--            <a:container>true</a:container>-->
+    <!--            <a:experimental>true</a:experimental>-->
+    <!--        </xsd:appinfo>-->
+    <!--    </xsd:annotation>-->
+    <!--    <xsd:sequence>-->
+    <!--        <xsd:element name="parts" type="tns:TaskPartsDefinitionType" minOccurs="0">-->
+    <!--            <xsd:annotation>-->
+    <!--                <xsd:documentation>-->
+    <!--                    How to create and manage partitions.-->
+    <!--                </xsd:documentation>-->
+    <!--            </xsd:annotation>-->
+    <!--        </xsd:element>-->
+    <!--    </xsd:sequence>-->
+    <!--    <xsd:attribute name="id" type="xsd:long"/>-->
+    <!--</xsd:complexType>-->
 
     <xsd:complexType name="TaskWorkManagementType">
         <xsd:annotation>
@@ -2088,24 +2284,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="scavenger" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Is this task a scavenger i.e. will it wait until the work is done, looking for buckets that could be reclaimed?
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.0</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="partitionSequentialNumber" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        If this is a partition task executed sequentially under a partitioned master,
-                        this is its sequential number.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="buckets" type="tns:WorkBucketsManagementType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2117,13 +2295,6 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         How to create and manage workers.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="partitions" type="tns:TaskPartitionsDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        How to create and manage partitions.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2764,6 +2935,65 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+
+    <xsd:complexType name="NullWorkBucketContentType">
+        <xsd:annotation>
+            <xsd:documentation>
+                "Null" work bucket content: does not restrict the query in any way.
+                Used when no bucketing configuration is specified. In that case, a single "null" bucket is created.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkBucketContentType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:simpleType name="BucketsProcessingRoleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Role in the work buckets processing.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="standalone">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The task is standalone: it executes all the work itself (single- or multi-threaded).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="STANDALONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="coordinator">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The task is a coordinator task in a multi-node execution.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="COORDINATOR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="worker">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The task is a worker task in a multi-node execution.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WORKER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:simpleType name="TaskKindType">
         <xsd:annotation>
@@ -4384,5 +4614,4 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-
 </xsd:schema>

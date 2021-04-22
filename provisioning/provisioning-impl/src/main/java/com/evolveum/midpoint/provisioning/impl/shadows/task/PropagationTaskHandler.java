@@ -81,11 +81,8 @@ public class PropagationTaskHandler extends AbstractTaskHandler
     protected static class TaskExecution
             extends AbstractTaskExecution<PropagationTaskHandler, TaskExecution> {
 
-        public TaskExecution(PropagationTaskHandler taskHandler,
-                RunningTask localCoordinatorTask, WorkBucketType workBucket,
-                TaskPartitionDefinitionType partDefinition,
-                TaskWorkBucketProcessingResult previousRunResult) {
-            super(taskHandler, localCoordinatorTask, workBucket, partDefinition, previousRunResult);
+        public TaskExecution(PropagationTaskHandler taskHandler, RunningTask localCoordinatorTask) {
+            super(taskHandler, localCoordinatorTask);
         }
     }
 }

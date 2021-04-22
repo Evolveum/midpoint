@@ -235,7 +235,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     public void storeStatisticsIntoRepository(OperationResult result) {
         try {
             addPendingModification(createContainerDeltaIfPersistent(TaskType.F_OPERATION_STATS, getStoredOperationStatsOrClone()));
-            addPendingModification(createContainerDeltaIfPersistent(TaskType.F_STRUCTURED_PROGRESS, getStructuredProgressOrClone()));
+            // FIXME addPendingModification(createContainerDeltaIfPersistent(TaskType.F_STRUCTURED_PROGRESS, getStructuredProgressOrClone()));
             addPendingModification(createPropertyDeltaIfPersistent(TaskType.F_PROGRESS, getProgress()));
             addPendingModification(createPropertyDeltaIfPersistent(TaskType.F_EXPECTED_TOTAL, getExpectedTotal()));
             flushPendingModifications(result);

@@ -10,6 +10,7 @@ package com.evolveum.midpoint.schema.util.task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartProgressOldType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartProgressType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
@@ -63,7 +64,7 @@ public class TaskPartProgressInformation implements DebugDumpable, Serializable 
     /**
      * Owning task is internally partitioned. We assume no buckets nor subtasks here.
      */
-    public static TaskPartProgressInformation fromPartProgress(TaskPartProgressType progress, Integer expectedTotal) {
+    public static TaskPartProgressInformation fromPartProgress(TaskPartProgressOldType progress, Integer expectedTotal) {
         String partUri = progress.getPartUri();
         boolean complete = Boolean.TRUE.equals(progress.isComplete());
         int totalProgress = TaskProgressUtil.getTotalProgress(progress);

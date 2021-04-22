@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkSegmentationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NullWorkBucketContentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import org.jetbrains.annotations.NotNull;
@@ -22,15 +23,13 @@ import java.util.function.Function;
 
 import static java.util.Collections.emptyList;
 
-/**
- * @author mederly
- */
 @Component
 public class NullWorkBucketContentHandler extends BaseWorkBucketContentHandler {
 
     @PostConstruct
     public void register() {
         registry.registerHandler(null, this);
+        registry.registerHandler(NullWorkBucketContentType.class, this);
     }
 
     @NotNull

@@ -114,7 +114,7 @@ public class RecomputeTaskHandler
             LensContext<FocusType> syncContext = contextFactory.createRecomputeContext(object, ctx.executeOptions, workerTask, result);
             LOGGER.trace("Recomputing object {}: context:\n{}", object, syncContext.debugDumpLazily());
 
-            TaskPartitionDefinitionType partDef = ctx.getPartDefinition();
+            TaskPartDefinitionType partDef = ctx.getPartDefinition();
             if (partDef != null && partDef.getStage() == ExecutionModeType.SIMULATE) {
                 clockwork.previewChanges(syncContext, null, workerTask, result);
             } else {

@@ -128,7 +128,7 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+    public TaskRunResult run(RunningTask task) {
         OperationResult parentResult = task.getResult();
         OperationResult result = parentResult.createSubresult(ReportJasperCreateTaskHandler.class.getSimpleName() + ".run");
 

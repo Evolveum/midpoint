@@ -184,13 +184,14 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     }
 
     public StructuredTaskProgressAsserter<TaskAsserter<RA>> structuredProgress() {
-        StructuredTaskProgressType progress = getObject().asObjectable().getStructuredProgress();
-        if (progress == null) {
-            progress = new StructuredTaskProgressType(getPrismContext());
-        }
-        StructuredTaskProgressAsserter<TaskAsserter<RA>> asserter = new StructuredTaskProgressAsserter<>(progress, this, getDetails());
-        copySetupTo(asserter);
-        return asserter;
+        throw new UnsupportedOperationException();
+//        StructuredTaskProgressType progress = getObject().asObjectable().getStructuredProgress();
+//        if (progress == null) {
+//            progress = new StructuredTaskProgressType(getPrismContext());
+//        }
+//        StructuredTaskProgressAsserter<TaskAsserter<RA>> asserter = new StructuredTaskProgressAsserter<>(progress, this, getDetails());
+//        copySetupTo(asserter);
+//        return asserter;
     }
 
     public ActionsExecutedInfoAsserter<TaskAsserter<RA>> actionsExecutedInformation() {

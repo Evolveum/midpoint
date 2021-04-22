@@ -16,8 +16,6 @@ import java.util.Map;
 
 /**
  * Responsible for creation of configured work bucket content handlers.
- *
- * @author mederly
  */
 @Component
 public class WorkBucketContentHandlerRegistry {

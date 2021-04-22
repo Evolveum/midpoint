@@ -150,6 +150,11 @@ public abstract class AbstractIterativeTaskPartExecution<I,
     @Experimental
     private int expectedParts;
 
+    /**
+     * TODO initialize correctly
+     */
+    protected final TaskPartDefinitionType partDefinition = null;
+
     protected AbstractIterativeTaskPartExecution(@NotNull TE taskExecution) {
         this.taskHandler = taskExecution.taskHandler;
         this.taskExecution = taskExecution;
@@ -170,8 +175,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
             SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
             TaskException, ObjectAlreadyExistsException, PolicyViolationException, PreconditionViolationException {
 
-        logger.trace("{} run starting: local coordinator task {}, previous run result {}",
-                processShortNameCapitalized, localCoordinatorTask, taskExecution.previousRunResult);
+        logger.trace("{} run starting: local coordinator task {}", processShortNameCapitalized, localCoordinatorTask);
 
         checkTaskPersistence();
 
@@ -478,7 +482,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
     }
 
     public boolean isSimulate() {
-        TaskPartitionDefinitionType partDefinition = taskExecution.partDefinition;
+        // TODO
         return partDefinition != null && partDefinition.getStage() == ExecutionModeType.SIMULATE;
     }
 
@@ -514,6 +518,10 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
     public void setPartNumber(int partNumber) {
         this.partNumber = partNumber;
+    }
+
+    public TaskPartDefinitionType getPartDefinition() {
+        return partDefinition;
     }
 
     public int getExpectedParts() {

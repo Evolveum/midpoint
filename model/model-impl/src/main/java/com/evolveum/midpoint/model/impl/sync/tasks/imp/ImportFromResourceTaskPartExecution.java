@@ -62,7 +62,7 @@ public class ImportFromResourceTaskPartExecution
                 taskExecution.getObjectsFilter(),
                 taskHandler.getObjectChangeListener(),
                 SchemaConstants.CHANNEL_IMPORT,
-                taskExecution.partDefinition,
+                partDefinition,
                 true);
     }
 

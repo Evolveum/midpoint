@@ -34,10 +34,11 @@ public class GenericPartitioningTaskHandlerCreator {
     }
 
     private TaskPartitionsDefinition createPartitionsDefinition(Task masterTask) {
-        if (masterTask.getWorkManagement() == null || masterTask.getWorkManagement().getPartitions() == null) {
-            throw new IllegalStateException("No partitions definition in task " + masterTask);
-        }
-        return new StaticTaskPartitionsDefinition(masterTask.getWorkManagement().getPartitions(),
-                prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class));
+        throw new UnsupportedOperationException(); //TODO
+//        if (masterTask.getWorkManagement() == null || masterTask.getWorkManagement().getPartitions() == null) {
+//            throw new IllegalStateException("No partitions definition in task " + masterTask);
+//        }
+//        return new StaticTaskPartitionsDefinition(masterTask.getWorkManagement().getPartitions(),
+//                prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class));
     }
 }

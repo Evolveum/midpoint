@@ -66,7 +66,7 @@ public class ReportTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partitionDefinition) {
+    public TaskRunResult run(RunningTask task) {
         OperationResult parentResult = task.getResult();
         OperationResult result = parentResult
                 .createSubresult(ReportTaskHandler.class.getSimpleName() + ".run");

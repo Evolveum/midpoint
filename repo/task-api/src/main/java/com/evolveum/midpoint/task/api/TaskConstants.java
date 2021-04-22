@@ -38,4 +38,7 @@ public class TaskConstants {
     public static final String STOP_LOCAL_TASK_REST_PATH_SUFFIX = "/stop";
 
     public static final String GET_TASK_REST_PATH = "/tasks/";
+
+    // TODO decide what to do with this
+    public static final String OP_EXECUTE_HANDLER = "com.evolveum.midpoint.task.quartzimpl.run.HandlerExecutor.executeHandler";
 }

@@ -781,16 +781,28 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     //region Work management
     /** Gets work management information. NOT THREAD SAFE! */
+    @Deprecated
     TaskWorkManagementType getWorkManagement();
 
-    /** Gets task work state. NOT THREAD SAFE! */
+    /**
+     * Retrieves the definition of task parts.
+     */
+    TaskPartsDefinitionType getPartsDefinitionOrClone();
+
+    /**
+     * Gets task work state. NOT THREAD SAFE!
+     *
+     * TODO throw exception for RunningTask. (After revising of all uses.)
+     */
     TaskWorkStateType getWorkState();
+
+    /**
+     * Gets task work state or its clone (for running tasks).
+     */
+    TaskWorkStateType getWorkStateOrClone();
 
     /** Gets task kind (related to work management) */
     TaskKindType getKind();
-
-    /** Returns true if the task is a scavenger (workManagement/scavenger). */
-    boolean isScavenger();
     //endregion
 
     //region Task tree related methods
@@ -864,5 +876,9 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     /** Gets the policy rule defined for the task (for running task the returned value is a clone). */
     PolicyRuleType getPolicyRule();
+    //endregion
+
+    //region TODO
+    String getCurrentPartId();
     //endregion
 }

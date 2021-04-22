@@ -35,8 +35,6 @@ import java.util.stream.Collectors;
 /**
  * Task that partitions the work into subtasks.
  * Partitioning is driven by a TaskPartitionsDefinition.
- *
- * @author mederly
  */
 public class PartitioningTaskHandler implements TaskHandler {
 
@@ -53,7 +51,7 @@ public class PartitioningTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask masterTaskUntyped, TaskPartitionDefinitionType partition) {
+    public TaskRunResult run(RunningTask masterTaskUntyped) {
 
         RunningTaskQuartzImpl masterTask = (RunningTaskQuartzImpl) masterTaskUntyped;
 
@@ -103,17 +101,18 @@ public class PartitioningTaskHandler implements TaskHandler {
 
     private void setOrCheckTaskKind(Task masterTask, OperationResult opResult)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        TaskKindType taskKind = masterTask.getWorkManagement() != null ? masterTask.getWorkManagement().getTaskKind() : null;
-        if (taskKind == null) {
-            ItemDelta<?, ?> itemDelta = getPrismContext().deltaFor(TaskType.class)
-                    .item(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_TASK_KIND)
-                    .replace(TaskKindType.PARTITIONED_MASTER)
-                    .asItemDelta();
-            masterTask.modify(itemDelta);
-            masterTask.flushPendingModifications(opResult);
-        } else if (taskKind != TaskKindType.PARTITIONED_MASTER) {
-            throw new IllegalStateException("Partitioned task has incompatible task kind: " + masterTask.getWorkManagement() + " in " + masterTask);
-        }
+        throw new UnsupportedOperationException();
+//        TaskKindType taskKind = masterTask.getWorkManagement() != null ? masterTask.getWorkManagement().getTaskKind() : null;
+//        if (taskKind == null) {
+//            ItemDelta<?, ?> itemDelta = getPrismContext().deltaFor(TaskType.class)
+//                    .item(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_TASK_KIND)
+//                    .replace(TaskKindType.PARTITIONED_MASTER)
+//                    .asItemDelta();
+//            masterTask.modify(itemDelta);
+//            masterTask.flushPendingModifications(opResult);
+//        } else if (taskKind != TaskKindType.PARTITIONED_MASTER) {
+//            throw new IllegalStateException("Partitioned task has incompatible task kind: " + masterTask.getWorkManagement() + " in " + masterTask);
+//        }
     }
 
     /**
@@ -239,93 +238,96 @@ public class PartitioningTaskHandler implements TaskHandler {
 
     private String createSubtask(int index, TaskPartitionsDefinition partitionsDefinition,
             boolean sequential, Task masterTask, OperationResult opResult) throws SchemaException, ObjectAlreadyExistsException {
-        Map<String, String> replacements = new HashMap<>();
-        replacements.put("index", String.valueOf(index));
-        replacements.put("masterTaskName", String.valueOf(masterTask.getName().getOrig()));
-        replacements.put("masterTaskHandlerUri", masterTask.getHandlerUri());
 
-        TaskPartitionDefinition partition = partitionsDefinition.getPartition(masterTask, index);
-
-        TaskType subtask = new TaskType(getPrismContext());
-
-        String nameTemplate = applyDefaults(
-                p -> p.getName(masterTask),
-                ps -> ps.getName(masterTask),
-                "{masterTaskName} ({index})", partition, partitionsDefinition);
-        String name = StringSubstitutorUtil.simpleExpand(nameTemplate, replacements);
-        subtask.setName(PolyStringType.fromOrig(name));
-
-        TaskWorkManagementType workManagement = applyDefaults(
-                p -> p.getWorkManagement(masterTask),
-                ps -> ps.getWorkManagement(masterTask),
-                null, partition, partitionsDefinition);
-        // work management is updated and stored into subtask later
-
-        TaskExecutionEnvironmentType executionEnvironment = applyDefaults(
-                p -> p.getExecutionEnvironment(masterTask),
-                ps -> ps.getExecutionEnvironment(masterTask),
-                masterTask.getExecutionEnvironment(), partition, partitionsDefinition);
-        subtask.setExecutionEnvironment(CloneUtil.clone(executionEnvironment));
-
-        String handlerUriTemplate = applyDefaults(
-                p -> p.getHandlerUri(masterTask),
-                ps -> ps.getHandlerUri(masterTask),
-                null,
-                partition, partitionsDefinition);
-        String handlerUri = StringSubstitutorUtil.simpleExpand(handlerUriTemplate, replacements);
-        if (handlerUri == null) {
-            // The default for coordinator-based partitions is to put default handler into workers configuration
-            // - but only if both partition and workers handler URIs are null. This is to be revisited some day.
-            if (isCoordinator(workManagement)) {
-                handlerUri = TaskConstants.WORKERS_CREATION_TASK_HANDLER_URI;
-                if (workManagement.getWorkers() != null && workManagement.getWorkers().getHandlerUri() == null) {
-                    workManagement = workManagement.clone();
-                    workManagement.getWorkers().setHandlerUri(
-                            StringSubstitutorUtil.simpleExpand(DEFAULT_HANDLER_URI, replacements));
-                }
-            } else {
-                handlerUri = StringSubstitutorUtil.simpleExpand(DEFAULT_HANDLER_URI, replacements);
-            }
-        }
-        subtask.setHandlerUri(handlerUri);
-        subtask.setWorkManagement(workManagement);
-
-        subtask.setExecutionStatus(TaskExecutionStateType.SUSPENDED);
-        subtask.setSchedulingState(TaskSchedulingStateType.SUSPENDED);
-        subtask.setOwnerRef(CloneUtil.clone(masterTask.getOwnerRef()));
-        subtask.setCategory(masterTask.getCategory());
-        subtask.setObjectRef(CloneUtil.clone(masterTask.getObjectRefOrClone()));
-        subtask.setRecurrence(TaskRecurrenceType.SINGLE);
-        subtask.setParent(masterTask.getTaskIdentifier());
-        boolean copyMasterExtension = applyDefaults(
-                p -> p.isCopyMasterExtension(masterTask),
-                ps -> ps.isCopyMasterExtension(masterTask),
-                false, partition, partitionsDefinition);
-        if (copyMasterExtension) {
-            PrismContainer<?> masterExtension = masterTask.getExtensionClone();
-            if (masterExtension != null) {
-                subtask.asPrismObject().add(masterExtension);
-            }
-        }
-        ExtensionType extensionFromPartition = partition.getExtension(masterTask);
-        if (extensionFromPartition != null) {
-            //noinspection unchecked
-            subtask.asPrismContainerValue().findOrCreateContainer(TaskType.F_EXTENSION).getValue()
-                    .mergeContent(extensionFromPartition.asPrismContainerValue(), Collections.emptyList());
-        }
-
-        applyDeltas(subtask, partition.getOtherDeltas(masterTask));
-        applyDeltas(subtask, partitionsDefinition.getOtherDeltas(masterTask));
-
-        if (sequential) {
-            if (subtask.getWorkManagement() == null) {
-                subtask.setWorkManagement(new TaskWorkManagementType(getPrismContext()));
-            }
-            subtask.getWorkManagement().setPartitionSequentialNumber(index);
-        }
-        LOGGER.debug("Partitioned subtask to be created:\n{}", subtask.asPrismObject().debugDumpLazily());
-
-        return taskManager.addTask(subtask.asPrismObject(), opResult);
+        throw new UnsupportedOperationException();
+//
+//        Map<String, String> replacements = new HashMap<>();
+//        replacements.put("index", String.valueOf(index));
+//        replacements.put("masterTaskName", String.valueOf(masterTask.getName().getOrig()));
+//        replacements.put("masterTaskHandlerUri", masterTask.getHandlerUri());
+//
+//        TaskPartitionDefinition partition = partitionsDefinition.getPartition(masterTask, index);
+//
+//        TaskType subtask = new TaskType(getPrismContext());
+//
+//        String nameTemplate = applyDefaults(
+//                p -> p.getName(masterTask),
+//                ps -> ps.getName(masterTask),
+//                "{masterTaskName} ({index})", partition, partitionsDefinition);
+//        String name = StringSubstitutorUtil.simpleExpand(nameTemplate, replacements);
+//        subtask.setName(PolyStringType.fromOrig(name));
+//
+//        TaskWorkManagementType workManagement = applyDefaults(
+//                p -> p.getWorkManagement(masterTask),
+//                ps -> ps.getWorkManagement(masterTask),
+//                null, partition, partitionsDefinition);
+//        // work management is updated and stored into subtask later
+//
+//        TaskExecutionEnvironmentType executionEnvironment = applyDefaults(
+//                p -> p.getExecutionEnvironment(masterTask),
+//                ps -> ps.getExecutionEnvironment(masterTask),
+//                masterTask.getExecutionEnvironment(), partition, partitionsDefinition);
+//        subtask.setExecutionEnvironment(CloneUtil.clone(executionEnvironment));
+//
+//        String handlerUriTemplate = applyDefaults(
+//                p -> p.getHandlerUri(masterTask),
+//                ps -> ps.getHandlerUri(masterTask),
+//                null,
+//                partition, partitionsDefinition);
+//        String handlerUri = StringSubstitutorUtil.simpleExpand(handlerUriTemplate, replacements);
+//        if (handlerUri == null) {
+//            // The default for coordinator-based partitions is to put default handler into workers configuration
+//            // - but only if both partition and workers handler URIs are null. This is to be revisited some day.
+//            if (isCoordinator(workManagement)) {
+//                handlerUri = TaskConstants.WORKERS_CREATION_TASK_HANDLER_URI;
+//                if (workManagement.getWorkers() != null && workManagement.getWorkers().getHandlerUri() == null) {
+//                    workManagement = workManagement.clone();
+//                    workManagement.getWorkers().setHandlerUri(
+//                            StringSubstitutorUtil.simpleExpand(DEFAULT_HANDLER_URI, replacements));
+//                }
+//            } else {
+//                handlerUri = StringSubstitutorUtil.simpleExpand(DEFAULT_HANDLER_URI, replacements);
+//            }
+//        }
+//        subtask.setHandlerUri(handlerUri);
+//        subtask.setWorkManagement(workManagement);
+//
+//        subtask.setExecutionStatus(TaskExecutionStateType.SUSPENDED);
+//        subtask.setSchedulingState(TaskSchedulingStateType.SUSPENDED);
+//        subtask.setOwnerRef(CloneUtil.clone(masterTask.getOwnerRef()));
+//        subtask.setCategory(masterTask.getCategory());
+//        subtask.setObjectRef(CloneUtil.clone(masterTask.getObjectRefOrClone()));
+//        subtask.setRecurrence(TaskRecurrenceType.SINGLE);
+//        subtask.setParent(masterTask.getTaskIdentifier());
+//        boolean copyMasterExtension = applyDefaults(
+//                p -> p.isCopyMasterExtension(masterTask),
+//                ps -> ps.isCopyMasterExtension(masterTask),
+//                false, partition, partitionsDefinition);
+//        if (copyMasterExtension) {
+//            PrismContainer<?> masterExtension = masterTask.getExtensionClone();
+//            if (masterExtension != null) {
+//                subtask.asPrismObject().add(masterExtension);
+//            }
+//        }
+//        ExtensionType extensionFromPartition = partition.getExtension(masterTask);
+//        if (extensionFromPartition != null) {
+//            //noinspection unchecked
+//            subtask.asPrismContainerValue().findOrCreateContainer(TaskType.F_EXTENSION).getValue()
+//                    .mergeContent(extensionFromPartition.asPrismContainerValue(), Collections.emptyList());
+//        }
+//
+//        applyDeltas(subtask, partition.getOtherDeltas(masterTask));
+//        applyDeltas(subtask, partitionsDefinition.getOtherDeltas(masterTask));
+//
+//        if (sequential) {
+//            if (subtask.getWorkManagement() == null) {
+//                subtask.setWorkManagement(new TaskWorkManagementType(getPrismContext()));
+//            }
+//            subtask.getWorkManagement().setPartitionSequentialNumber(index);
+//        }
+//        LOGGER.debug("Partitioned subtask to be created:\n{}", subtask.asPrismObject().debugDumpLazily());
+//
+//        return taskManager.addTask(subtask.asPrismObject(), opResult);
     }
 
     private boolean isCoordinator(TaskWorkManagementType workManagement) {

@@ -24,7 +24,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +32,9 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 
 /**
- * @author mederly
+ * Legacy script (bulk action) execution task handler.
+ *
+ * The error handling is only rudimentary here.
  */
 @Component
 public class ScriptExecutionTaskHandler implements TaskHandler {
@@ -54,7 +55,7 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+    public TaskRunResult run(RunningTask task) {
         OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
         TaskRunResult runResult = new TaskRunResult();
 
@@ -66,7 +67,8 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
             LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());
             result.computeStatus();
             runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
-        } catch (ScriptExecutionException | SecurityViolationException | SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
+        } catch (ScriptExecutionException | SecurityViolationException | SchemaException | ObjectNotFoundException |
+                ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't execute script: " + e.getMessage(), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute script", e);
             runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR);

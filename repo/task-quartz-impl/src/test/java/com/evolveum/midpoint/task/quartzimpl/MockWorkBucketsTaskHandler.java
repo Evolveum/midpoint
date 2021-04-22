@@ -73,7 +73,7 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 
     @Override
     public TaskWorkBucketProcessingResult run(RunningTask task, WorkBucketType workBucket,
-            TaskPartitionDefinitionType partition, TaskWorkBucketProcessingResult previousRunResult) {
+            TaskPartDefinitionType partition, TaskWorkBucketProcessingResult previousRunResult) {
         LOGGER.info("Run starting (id = {}); task = {}", id, task);
         task.setStructuredProgressPartInformation(PART_URI, 1, 1);
 
@@ -93,7 +93,7 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
         if (defaultQuery != null) {
             ObjectQuery narrowedQuery;
             try {
-                narrowedQuery = taskManager.narrowQueryForWorkBucket(defaultQuery, UserType.class, null, task, workBucket, opResult);
+                narrowedQuery = taskManager.narrowQueryForWorkBucket(UserType.class, defaultQuery, task, null, workBucket, opResult);
             } catch (SchemaException | ObjectNotFoundException e) {
                 throw new SystemException("Couldn't narrow query for work bucket", e);
             }

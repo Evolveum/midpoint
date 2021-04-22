@@ -12,7 +12,7 @@ import com.evolveum.midpoint.task.api.RunningTask;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -25,18 +25,24 @@ import org.jetbrains.annotations.NotNull;
 public abstract class ExecutionContext {
 
     private SimpleIterativeTaskHandler<?, ?, ?>.TaskExecution taskExecution;
+    private SimpleIterativeTaskHandler<?, ?, ?>.PartExecution partExecution;
 
-    protected abstract void initialize(OperationResult opResult) throws SchemaException, CommunicationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException;
+    protected abstract void initialize(OperationResult opResult) throws SchemaException, CommunicationException,
+            ObjectNotFoundException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException;
 
     public void setTaskExecution(SimpleIterativeTaskHandler<?, ?, ?>.TaskExecution taskExecution) {
         this.taskExecution = taskExecution;
+    }
+
+    public void setPartExecution(SimpleIterativeTaskHandler<?, ?, ?>.PartExecution partExecution) {
+        this.partExecution = partExecution;
     }
 
     public @NotNull RunningTask getLocalCoordinationTask() {
         return taskExecution.localCoordinatorTask;
     }
 
-    public TaskPartitionDefinitionType getPartDefinition() {
-        return taskExecution.partDefinition;
+    public TaskPartDefinitionType getPartDefinition() {
+        return partExecution.getPartDefinition();
     }
 }

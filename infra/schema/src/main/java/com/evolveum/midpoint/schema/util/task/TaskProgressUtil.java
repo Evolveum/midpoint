@@ -37,7 +37,7 @@ public class TaskProgressUtil {
         }
     }
 
-    public static int getProgressForOutcome(TaskPartProgressType part, ItemProcessingOutcomeType outcome, boolean open) {
+    public static int getProgressForOutcome(TaskPartProgressOldType part, ItemProcessingOutcomeType outcome, boolean open) {
         if (part != null) {
             return getCounts(singleton(part), getCounterFilter(outcome), open);
         } else {
@@ -45,7 +45,7 @@ public class TaskProgressUtil {
         }
     }
 
-    private static int getCounts(Collection<TaskPartProgressType> parts,
+    private static int getCounts(Collection<TaskPartProgressOldType> parts,
             Predicate<OutcomeKeyedCounterType> counterFilter, boolean open) {
         return parts.stream()
                 .flatMap(part -> (open ? part.getOpen() : part.getClosed()).stream())
@@ -85,7 +85,7 @@ public class TaskProgressUtil {
     }
 
     private static Integer getExpectedBuckets(TaskType taskType) {
-        return taskType.getWorkState() != null ? taskType.getWorkState().getNumberOfBuckets() : null;
+        return null;//taskType.getWorkState() != null ? taskType.getWorkState().getNumberOfBuckets() : null;
     }
 
     private static Integer getCompleteBuckets(TaskType taskType) {
@@ -123,15 +123,15 @@ public class TaskProgressUtil {
         }
     }
 
-    public static int getTotalProgress(TaskPartProgressType progress) {
+    public static int getTotalProgress(TaskPartProgressOldType progress) {
         return getTotalProgressOpen(progress) + getTotalProgressClosed(progress);
     }
 
-    private static int getTotalProgressClosed(TaskPartProgressType progress) {
+    private static int getTotalProgressClosed(TaskPartProgressOldType progress) {
         return getCounts(singleton(progress), c -> true, false);
     }
 
-    public static int getTotalProgressOpen(TaskPartProgressType progress) {
+    public static int getTotalProgressOpen(TaskPartProgressOldType progress) {
         return getCounts(singleton(progress), c -> true, true);
     }
 
@@ -149,7 +149,7 @@ public class TaskProgressUtil {
         return getCounts(progress.getPart(), c -> true, true);
     }
 
-    public static TaskPartProgressType getForCurrentPart(StructuredTaskProgressType progress) {
+    public static TaskPartProgressOldType getForCurrentPart(StructuredTaskProgressType progress) {
         if (progress == null) {
             return null;
         } else {
@@ -157,7 +157,7 @@ public class TaskProgressUtil {
         }
     }
 
-    public static TaskPartProgressType getForPart(StructuredTaskProgressType progress, String partUri) {
+    public static TaskPartProgressOldType getForPart(StructuredTaskProgressType progress, String partUri) {
         if (progress == null) {
             return null;
         } else {
@@ -168,12 +168,12 @@ public class TaskProgressUtil {
     }
 
     public static int getTotalProgressForCurrentPart(StructuredTaskProgressType progress) {
-        TaskPartProgressType currentPart = getForCurrentPart(progress);
+        TaskPartProgressOldType currentPart = getForCurrentPart(progress);
         return currentPart != null ? getTotalProgress(currentPart) : 0;
     }
 
     public static int getTotalProgressForPart(StructuredTaskProgressType progress, String partUri) {
-        TaskPartProgressType forPart = getForPart(progress, partUri);
+        TaskPartProgressOldType forPart = getForPart(progress, partUri);
         return forPart != null ? getTotalProgress(forPart) : 0;
     }
 
@@ -193,7 +193,7 @@ public class TaskProgressUtil {
         StructuredTaskProgressType aggregate = new StructuredTaskProgressType(PrismContext.get());
         Stream<TaskType> subTasks = TaskTreeUtil.getAllTasksStream(task);
         subTasks.forEach(subTask -> {
-            StructuredTaskProgressType progress = subTask.getStructuredProgress();
+            StructuredTaskProgressType progress = null;//subTask.getStructuredProgress();
             if (progress != null) {
                 StructuredTaskProgress.addTo(aggregate, progress);
             }

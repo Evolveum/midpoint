@@ -30,107 +30,117 @@ import java.util.List;
  */
 public class StaticTaskPartitionsDefinition implements TaskPartitionsDefinition {
 
-    @NotNull private final TaskPartitionsDefinitionType data;
+    @NotNull private final TaskPartsDefinitionType data;
     @NotNull private final List<TaskPartitionDefinition> partitions;
     @NotNull private final PrismObjectDefinition<TaskType> taskDefinition;
 
-    public StaticTaskPartitionsDefinition(@NotNull TaskPartitionsDefinitionType data,
+    public StaticTaskPartitionsDefinition(@NotNull TaskPartsDefinitionType data,
             @Nullable List<TaskPartitionDefinition> partitionsOverride, @NotNull PrismObjectDefinition<TaskType> taskDefinition) {
         this.data = data;
         this.partitions = partitionsOverride != null ? partitionsOverride : createPartitionDefinitions(data);
         this.taskDefinition = taskDefinition;
     }
 
-    public StaticTaskPartitionsDefinition(@NotNull TaskPartitionsDefinitionType definition,
+    public StaticTaskPartitionsDefinition(@NotNull TaskPartsDefinitionType definition,
             @NotNull PrismObjectDefinition<TaskType> taskDefinition) {
         this(definition, null, taskDefinition);
     }
 
-    private List<TaskPartitionDefinition> createPartitionDefinitions(TaskPartitionsDefinitionType data) {
-        int count;
-        if (data.getCount() != null) {
-            count = data.getCount();
-            if (count < data.getPartition().size()) {
-                throw new SystemException("There are more partitions defined (" + data.getPartition() + ") than declared"
-                        + " by partition count item (" + count + ")");
-            }
-        } else {
-            count = data.getPartition().size();
-        }
-        List<TaskPartitionDefinition> rv = new ArrayList<>(Collections.nCopies(count, null));
-        boolean hasNumbered = false;
-        int lastUnnumbered = 0;
-        for (TaskPartitionDefinitionType definition : data.getPartition()) {
-            Integer index = definition.getIndex();
-            if (index != null) {
-                hasNumbered = true;
-                if (rv.get(index-1) != null) {
-                    throw new SystemException("Multiple partitions definitions with index=" + index);
-                }
-                rv.set(index-1, new StaticTaskPartition(definition));
-            } else {
-                rv.set(lastUnnumbered++, new StaticTaskPartition(definition));
-            }
-            if (hasNumbered && lastUnnumbered > 0) {
-                throw new SystemException("Both numbered and unnumbered partition definitions found");
-            }
-        }
-        for (int i = 0; i < rv.size(); i++) {
-            if (rv.get(i) == null) {
-                rv.set(i, new StaticTaskPartition(new TaskPartitionDefinitionType()));
-            }
-        }
-        return rv;
+    private List<TaskPartitionDefinition> createPartitionDefinitions(TaskPartsDefinitionType data) {
+        throw new UnsupportedOperationException();//FIXME
+//        int count;
+//        if (data.getCount() != null) {
+//            count = data.getCount();
+//            if (count < data.getPartition().size()) {
+//                throw new SystemException("There are more partitions defined (" + data.getPartition() + ") than declared"
+//                        + " by partition count item (" + count + ")");
+//            }
+//        } else {
+//            count = data.getPartition().size();
+//        }
+//        List<TaskPartitionDefinition> rv = new ArrayList<>(Collections.nCopies(count, null));
+//        boolean hasNumbered = false;
+//        int lastUnnumbered = 0;
+//        for (TaskPartDefinitionType definition : data.getPartition()) {
+//            Integer index = definition.getIndex();
+//            if (index != null) {
+//                hasNumbered = true;
+//                if (rv.get(index-1) != null) {
+//                    throw new SystemException("Multiple partitions definitions with index=" + index);
+//                }
+//                rv.set(index-1, new StaticTaskPartition(definition));
+//            } else {
+//                rv.set(lastUnnumbered++, new StaticTaskPartition(definition));
+//            }
+//            if (hasNumbered && lastUnnumbered > 0) {
+//                throw new SystemException("Both numbered and unnumbered partition definitions found");
+//            }
+//        }
+//        for (int i = 0; i < rv.size(); i++) {
+//            if (rv.get(i) == null) {
+//                rv.set(i, new StaticTaskPartition(new TaskPartDefinitionType()));
+//            }
+//        }
+//        return rv;
     }
 
     @Override
     public int getCount(Task masterTask) {
-        if (data.getCount() != null) {
-            return data.getCount();
-        } else {
-            return partitions.size();
-        }
+        throw new UnsupportedOperationException();//FIXME
+//        if (data.getCount() != null) {
+//            return data.getCount();
+//        } else {
+//            return partitions.size();
+//        }
     }
 
     @Override
     public boolean isSequentialExecution(Task masterTask) {
-        return data.isSequentialExecution() != null ? data.isSequentialExecution() : true;
+        throw new UnsupportedOperationException();//FIXME
+//        return data.isSequentialExecution() != null ? data.isSequentialExecution() : true;
     }
 
     @Override
     public boolean isDurablePartitions(Task masterTask) {
-        return Boolean.TRUE.equals(data.isDurablePartitions());
+        throw new UnsupportedOperationException();//FIXME
+//        return Boolean.TRUE.equals(data.isDurablePartitions());
     }
 
     @Override
     public String getName(Task masterTask) {
-        return data.getTaskName();
+        throw new UnsupportedOperationException();//FIXME
+//        return data.getTaskName();
     }
 
     @Override
     public String getHandlerUri(Task masterTask) {
-        return data.getHandlerUri();
+        throw new UnsupportedOperationException();//FIXME
+//        return data.getHandlerUri();
     }
 
     @Override
     public TaskWorkManagementType getWorkManagement(Task masterTask) {
-        return data.getWorkManagement();
+        throw new UnsupportedOperationException();//FIXME
+//        return data.getWorkManagement();
     }
 
     @Override
     public TaskExecutionEnvironmentType getExecutionEnvironment(Task masterTask) {
-        return data.getExecutionEnvironment();
+        throw new UnsupportedOperationException();//FIXME
+//        return data.getExecutionEnvironment();
     }
 
     @Override
     public Boolean isCopyMasterExtension(Task masterTask) {
-        return data.isCopyMasterExtension();
+        throw new UnsupportedOperationException();//FIXME
+//        return data.isCopyMasterExtension();
     }
 
     @Override
     @NotNull
     public Collection<ItemDelta<?, ?>> getOtherDeltas(Task masterTask) {
-        return parseDeltas(data.getOtherDeltas());
+        throw new UnsupportedOperationException();//FIXME
+//        return parseDeltas(data.getOtherDeltas());
     }
 
     private Collection<ItemDelta<?, ?>> parseDeltas(List<ItemDeltaType> deltas) {
@@ -142,56 +152,56 @@ public class StaticTaskPartitionsDefinition implements TaskPartitionsDefinition 
         }
     }
 
-    public class StaticTaskPartition implements TaskPartitionDefinition {
-
-        @NotNull private final TaskPartitionDefinitionType data;
-
-        public StaticTaskPartition(@NotNull TaskPartitionDefinitionType data) {
-            this.data = data;
-        }
-
-        @Override
-        public String getName(Task masterTask) {
-            return data.getTaskName();
-        }
-
-        @Override
-        public String getHandlerUri(Task masterTask) {
-            return data.getHandlerUri();
-        }
-
-        @Override
-        public TaskWorkManagementType getWorkManagement(Task masterTask) {
-            return data.getWorkManagement();
-        }
-
-        @Override
-        public TaskExecutionEnvironmentType getExecutionEnvironment(Task masterTask) {
-            return data.getExecutionEnvironment();
-        }
-
-        @Override
-        public ExtensionType getExtension(Task masterTask) {
-            return data.getExtension();
-        }
-
-        @Override
-        public Boolean isCopyMasterExtension(Task masterTask) {
-            return data.isCopyMasterExtension();
-        }
-
-        @Override
-        @NotNull
-        public Collection<ItemDelta<?, ?>> getOtherDeltas(Task masterTask) {
-            return parseDeltas(data.getOtherDeltas());
-        }
-
-        @Override
-        @NotNull
-        public Collection<Integer> getDependents() {
-            return data.getDependents();
-        }
-    }
+//    public class StaticTaskPartition implements TaskPartitionDefinition {
+//
+//        @NotNull private final TaskPartDefinitionType data;
+//
+//        public StaticTaskPartition(@NotNull TaskPartDefinitionType data) {
+//            this.data = data;
+//        }
+//
+//        @Override
+//        public String getName(Task masterTask) {
+//            return data.getTaskName();
+//        }
+//
+//        @Override
+//        public String getHandlerUri(Task masterTask) {
+//            return data.getHandlerUri();
+//        }
+//
+//        @Override
+//        public TaskWorkManagementType getWorkManagement(Task masterTask) {
+//            return data.getWorkManagement();
+//        }
+//
+//        @Override
+//        public TaskExecutionEnvironmentType getExecutionEnvironment(Task masterTask) {
+//            return data.getExecutionEnvironment();
+//        }
+//
+//        @Override
+//        public ExtensionType getExtension(Task masterTask) {
+//            return data.getExtension();
+//        }
+//
+//        @Override
+//        public Boolean isCopyMasterExtension(Task masterTask) {
+//            return data.isCopyMasterExtension();
+//        }
+//
+//        @Override
+//        @NotNull
+//        public Collection<ItemDelta<?, ?>> getOtherDeltas(Task masterTask) {
+//            return parseDeltas(data.getOtherDeltas());
+//        }
+//
+//        @Override
+//        @NotNull
+//        public Collection<Integer> getDependents() {
+//            return data.getDependents();
+//        }
+//    }
 
     @NotNull
     @Override

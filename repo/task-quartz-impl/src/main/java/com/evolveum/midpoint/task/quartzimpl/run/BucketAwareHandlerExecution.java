@@ -9,6 +9,7 @@ package com.evolveum.midpoint.task.quartzimpl.run;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.ExitExecutionException;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
 import com.evolveum.midpoint.task.api.WorkBucketAwareTaskHandler;
@@ -20,7 +21,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartDefinitionType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
@@ -31,12 +32,16 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.evolveum.midpoint.task.api.TaskRunResult.createInterruptedTaskRunResult;
+import static com.evolveum.midpoint.task.api.TaskRunResult.createSuccessTaskRunResult;
 import static com.evolveum.midpoint.task.quartzimpl.run.HandlerExecutor.*;
 
 /**
  * An execution of bucket-aware task handler.
  *
  * This execution has quite a lot of internal state, so it deserves a separate class: this one.
+ *
+ * TODO REMOVE. Keeping this class only to preserve the code, before it's moved somewhere into AbstractTaskPartExecution.
  */
 class BucketAwareHandlerExecution {
     private static final Trace LOGGER = TraceManager.getTrace(BucketAwareHandlerExecution.class);
@@ -46,7 +51,7 @@ class BucketAwareHandlerExecution {
     @NotNull private final RunningTaskQuartzImpl task;
     @NotNull private final WorkBucketAwareTaskHandler handler;
     @NotNull private final TaskBeans beans;
-    @Nullable private final TaskPartitionDefinitionType partition;
+    @Nullable private final TaskPartDefinitionType partition;
 
     /**
      * Current task run result.
@@ -59,7 +64,7 @@ class BucketAwareHandlerExecution {
     private boolean initialExecution = true;
 
     BucketAwareHandlerExecution(@NotNull RunningTaskQuartzImpl task, @NotNull WorkBucketAwareTaskHandler handler,
-            @Nullable TaskPartitionDefinitionType partition, @NotNull TaskBeans beans) {
+                                @Nullable TaskPartDefinitionType partition, @NotNull TaskBeans beans) {
         this.task = task;
         this.partition = partition;
         this.handler = handler;
@@ -180,7 +185,6 @@ class BucketAwareHandlerExecution {
                     itemDeltas.addAll(
                             beans.prismContext.deltaFor(TaskType.class)
                                     .item(TaskType.F_PROGRESS).replace()
-                                    .item(TaskType.F_STRUCTURED_PROGRESS).replace()
                                     .item(TaskType.F_OPERATION_STATS).replace()
                                     .asItemDeltas());
                 }

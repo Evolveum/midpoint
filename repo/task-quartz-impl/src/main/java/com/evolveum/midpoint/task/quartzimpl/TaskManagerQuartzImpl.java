@@ -1074,11 +1074,11 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     }
 
     @Override
-    public ObjectQuery narrowQueryForWorkBucket(ObjectQuery query, Class<? extends ObjectType> type,
-            Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider, Task workerTask,
+    public ObjectQuery narrowQueryForWorkBucket(Class<? extends ObjectType> type, ObjectQuery query,
+            Task workerTask, Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider,
             WorkBucketType workBucket, OperationResult opResult)
             throws SchemaException, ObjectNotFoundException {
-        return workStateManager.narrowQueryForWorkBucket(workerTask, query, type, itemDefinitionProvider, workBucket, opResult);
+        return workStateManager.narrowQueryForWorkBucket(type, query, workerTask, itemDefinitionProvider, workBucket, opResult);
     }
 
     @Override

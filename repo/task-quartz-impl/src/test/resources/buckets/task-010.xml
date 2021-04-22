@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="758f79bb-800c-42b2-8d85-44416a29d956"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>task-010</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>suspended</executionStatus>
+    <parts>
+        <part>
+            <workManagement>
+                <buckets>
+                    <stringSegmentation>
+                        <discriminator>name</discriminator>
+                        <matchingRule>polyStringNorm</matchingRule>
+                        <!-- legacy specification -->
+                        <boundaryCharacters>a</boundaryCharacters>
+                        <boundaryCharacters>\0-\1\a-\c</boundaryCharacters>
+                        <boundaryCharacters>01abc</boundaryCharacters>
+                        <comparisonMethod>prefix</comparisonMethod>
+                    </stringSegmentation>
+                </buckets>
+            </workManagement>
+        </part>
+    </parts>
+    <recurrence>single</recurrence>
+</task>

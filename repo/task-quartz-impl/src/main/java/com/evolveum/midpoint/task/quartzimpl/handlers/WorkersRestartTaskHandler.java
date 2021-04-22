@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @author mederly
+ * TODO consider if this still needed
  */
 @Component
 public class WorkersRestartTaskHandler implements TaskHandler {
@@ -48,7 +48,7 @@ public class WorkersRestartTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+    public TaskRunResult run(RunningTask task) {
 
         OperationResult opResult = new OperationResult(WorkersRestartTaskHandler.class.getName()+".run");
         TaskRunResult runResult = new TaskRunResult();
@@ -93,10 +93,11 @@ public class WorkersRestartTaskHandler implements TaskHandler {
     }
 
     private void deleteBuckets(Task task, OperationResult opResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
-                .item(TaskType.F_WORK_STATE, TaskWorkStateType.F_BUCKET).replace()
-                .asItemDeltas();
-        repositoryService.modifyObject(TaskType.class, task.getOid(), itemDeltas, opResult);
+        throw new UnsupportedOperationException();
+//        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
+//                .item(TaskType.F_WORK_STATE, TaskWorkStateType.F_BUCKET).replace()
+//                .asItemDeltas();
+//        repositoryService.modifyObject(TaskType.class, task.getOid(), itemDeltas, opResult);
     }
 
     @Override

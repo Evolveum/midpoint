@@ -38,8 +38,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
  * The task handler for a live synchronization.
@@ -99,9 +97,8 @@ public class LiveSyncTaskHandler
         private TargetInfo targetInfo;
         private SynchronizationResult syncResult;
 
-        public TaskExecution(RunningTask localCoordinatorTask, WorkBucketType workBucket,
-                TaskPartitionDefinitionType partDefinition, TaskWorkBucketProcessingResult previousRunResult) {
-            super(LiveSyncTaskHandler.this, localCoordinatorTask, workBucket, partDefinition, previousRunResult);
+        public TaskExecution(RunningTask localCoordinatorTask) {
+            super(LiveSyncTaskHandler.this, localCoordinatorTask);
         }
 
         @Override
@@ -149,7 +146,7 @@ public class LiveSyncTaskHandler
 
             ModelImplUtils.clearRequestee(localCoordinatorTask);
             taskExecution.syncResult = provisioningService.synchronize(taskExecution.targetInfo.coords,
-                    localCoordinatorTask, taskExecution.partDefinition, handler, opResult);
+                    localCoordinatorTask, partDefinition, handler, opResult);
         }
 
         @Override

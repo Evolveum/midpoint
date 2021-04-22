@@ -18,8 +18,6 @@ import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskException;
 import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -46,15 +44,6 @@ public abstract class AbstractTaskExecution
     /** Worker task scheduled by Quartz. Can have worker threads. */
     public final RunningTask localCoordinatorTask;
 
-    /** Bucket currently processed. Provided by task manager. */
-    protected final WorkBucketType workBucket;
-
-    /** Definition of task part currently processed. Provided by task manager. */
-    public final TaskPartitionDefinitionType partDefinition;
-
-    /** TODO */
-    final TaskWorkBucketProcessingResult previousRunResult;
-
     /**
      * "Root" operation result that will be eventually returned in runResult.
      */
@@ -80,14 +69,9 @@ public abstract class AbstractTaskExecution
     private final AtomicReference<AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> currentTaskPartExecution
             = new AtomicReference<>();
 
-    public AbstractTaskExecution(@NotNull TH taskHandler,
-            RunningTask localCoordinatorTask, WorkBucketType workBucket, TaskPartitionDefinitionType partDefinition,
-            TaskWorkBucketProcessingResult previousRunResult) {
+    public AbstractTaskExecution(@NotNull TH taskHandler, RunningTask localCoordinatorTask) {
         this.taskHandler = taskHandler;
         this.localCoordinatorTask = localCoordinatorTask;
-        this.workBucket = workBucket;
-        this.partDefinition = partDefinition;
-        this.previousRunResult = previousRunResult;
         this.taskOperationResult = createOperationResult();
         this.currentRunResult = createRunResult();
     }

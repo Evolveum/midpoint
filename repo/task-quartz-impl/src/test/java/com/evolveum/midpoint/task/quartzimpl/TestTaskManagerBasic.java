@@ -321,12 +321,6 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         assertEquals("Bad type of 'dead' property (from repo)", DOMUtil.XSD_INT, deadPropertyRepo.getDefinition().getTypeName());
     }
 
-    private void assertSuccess(Task task) {
-        OperationResult taskResult = task.getResult();
-        assertNotNull("Task result is null", taskResult);
-        assertTrue("Task did not yield 'success' status: it is " + taskResult.getStatus(), taskResult.isSuccess());
-    }
-
     private void assertSuccessOrInProgress(Task task) {
         OperationResult taskResult = task.getResult();
         assertNotNull("Task result is null", taskResult);

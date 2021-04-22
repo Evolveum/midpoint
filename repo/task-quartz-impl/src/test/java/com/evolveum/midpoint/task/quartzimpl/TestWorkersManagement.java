@@ -148,7 +148,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             displayDumpable("coordinator task after re-run", coordinatorTask);
             displayDumpable("worker task after re-run", workers.get(0));
 
-            Thread.sleep(1000);         // if workers would be started again, we would get some more processing here
+            Thread.sleep(1000); // if workers would be started again, we would get some more processing here
             assertEquals("Wrong # of items processed", 8, workBucketsTaskHandler.getItemsProcessed());
         } finally {
             suspendAndDeleteTasks(coordinatorTaskOid);

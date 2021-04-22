@@ -24,9 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-/**
- * @author mederly
- */
 @Component
 public class FilterWorkBucketContentHandler extends BaseWorkBucketContentHandler {
 

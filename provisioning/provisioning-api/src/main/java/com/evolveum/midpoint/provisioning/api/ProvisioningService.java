@@ -164,8 +164,8 @@ public interface ProvisioningService {
      *
      * TODO: Better description
      *
-     * @param resourceOid
-     *            OID of the resource for which to attempt synchronization
+     * @param shadowCoordinates
+     *            where to attempt synchronization
      * @param parentResult
      *            parent OperationResult (in/out)
      * @return the number of processed changes
@@ -181,7 +181,7 @@ public interface ProvisioningService {
      * @throws GenericConnectorException
      *             unknown connector framework error
      */
-    @NotNull SynchronizationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartitionDefinitionType taskPartition,
+    @NotNull SynchronizationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartDefinitionType taskPartition,
             LiveSyncEventHandler handler, OperationResult parentResult) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException;

@@ -8,8 +8,6 @@ package com.evolveum.midpoint.model.impl.sync.tasks;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -46,7 +44,7 @@ public class Synchronizer {
     @NotNull private final SynchronizationObjectsFilter objectsFilter;
     @NotNull private final ResourceObjectChangeListener objectChangeListener;
     @NotNull private final QName sourceChannel;
-    private final TaskPartitionDefinitionType partDefinition;
+    private final TaskPartDefinitionType partDefinition;
     private final boolean forceAdd;
 
     public Synchronizer(@NotNull ResourceType resource,
@@ -54,7 +52,7 @@ public class Synchronizer {
             @NotNull SynchronizationObjectsFilter objectsFilter,
             @NotNull ResourceObjectChangeListener objectChangeListener,
             @NotNull QName sourceChannel,
-            TaskPartitionDefinitionType partDefinition,
+            TaskPartDefinitionType partDefinition,
             boolean forceAdd) {
         this.resource = resource;
         this.objectClassDef = objectClassDef;

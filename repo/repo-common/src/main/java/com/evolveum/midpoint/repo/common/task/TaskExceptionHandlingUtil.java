@@ -16,7 +16,7 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartDefinitionType;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
@@ -34,7 +34,7 @@ public class TaskExceptionHandlingUtil {
     /**
      * General method that processes any exceptions from a task.
      */
-    public static TaskException convertException(Throwable t, TaskPartitionDefinitionType partition) {
+    public static TaskException convertException(Throwable t, TaskPartDefinitionType partition) {
         if (t instanceof TaskException) {
             return (TaskException) t;
         } else if (t instanceof ObjectNotFoundException) {
@@ -76,7 +76,7 @@ public class TaskExceptionHandlingUtil {
         }
     }
 
-    private static TaskRunResult.TaskRunResultStatus getRunStatus(Throwable ex, TaskPartitionDefinitionType partition, CriticalityType defaultCriticality) {
+    private static TaskRunResult.TaskRunResultStatus getRunStatus(Throwable ex, TaskPartDefinitionType partition, CriticalityType defaultCriticality) {
         CriticalityType criticality;
         if (partition == null) {
             criticality = defaultCriticality;
@@ -93,8 +93,9 @@ public class TaskExceptionHandlingUtil {
         }
     }
 
+    // TODO partition is currently always null
     public static <TRR extends TaskRunResult> TRR processFinish(Trace logger,
-            TaskPartitionDefinitionType partition, String ctx, TRR runResult, ErrorState errorState) {
+            TaskPartDefinitionType partition, String ctx, TRR runResult, ErrorState errorState) {
 
         if (errorState.isPermanentErrorEncountered()) {
             return processException(errorState.getPermanentErrorException(), logger, partition, ctx, runResult);
@@ -119,7 +120,7 @@ public class TaskExceptionHandlingUtil {
      * Here we do the error handling.
      */
     public static <TRR extends TaskRunResult> TRR processException(Throwable t, Trace logger,
-            TaskPartitionDefinitionType partition, String ctx, TRR runResult) {
+                                                                   TaskPartDefinitionType partition, String ctx, TRR runResult) {
         TaskException taskException = convertException(t, partition);
         return processTaskException(taskException, logger, ctx, runResult);
     }

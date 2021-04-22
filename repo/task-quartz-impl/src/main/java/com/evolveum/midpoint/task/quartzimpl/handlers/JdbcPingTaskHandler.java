@@ -26,7 +26,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 @Component
 public class JdbcPingTaskHandler implements TaskHandler {
@@ -75,7 +74,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+    public TaskRunResult run(RunningTask task) {
 
         OperationResult opResult = new OperationResult(JdbcPingTaskHandler.class.getName() + ".run");
 

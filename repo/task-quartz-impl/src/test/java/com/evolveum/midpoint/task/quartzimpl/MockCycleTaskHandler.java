@@ -12,7 +12,6 @@ import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 /**
  * @author Radovan Semancik
@@ -23,7 +22,7 @@ public class MockCycleTaskHandler implements TaskHandler {
     private static final Trace LOGGER = TraceManager.getTrace(MockCycleTaskHandler.class);
 
     @Override
-    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+    public TaskRunResult run(RunningTask task) {
 
         LOGGER.info("MockCycle.run starting");
 

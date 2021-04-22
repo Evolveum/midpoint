@@ -23,8 +23,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -60,9 +58,8 @@ public class AsyncUpdateTaskHandler
 
         private TargetInfo targetInfo;
 
-        public TaskExecution(RunningTask localCoordinatorTask, WorkBucketType workBucket,
-                TaskPartitionDefinitionType partDefinition, TaskWorkBucketProcessingResult previousRunResult) {
-            super(AsyncUpdateTaskHandler.this, localCoordinatorTask, workBucket, partDefinition, previousRunResult);
+        public TaskExecution(RunningTask localCoordinatorTask) {
+            super(AsyncUpdateTaskHandler.this, localCoordinatorTask);
         }
 
         @Override

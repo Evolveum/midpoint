@@ -8,6 +8,8 @@ package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -121,6 +123,43 @@ public class TaskRunResult implements Serializable {
         return "TaskRunResult(progress=" + progress + ", status="
                 + runResultStatus + ", result=" + operationResult
                 + ")";
+    }
+
+    @NotNull public static TaskRunResult createFailureTaskRunResult(RunningTask task, String message, Throwable t) {
+        TaskRunResult runResult = createRunResult(task);
+        if (t != null) {
+            runResult.getOperationResult().recordFatalError(message, t);
+        } else {
+            runResult.getOperationResult().recordFatalError(message);
+        }
+        runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+        return runResult;
+    }
+
+    @NotNull public static TaskRunResult createSuccessTaskRunResult(RunningTask task) {
+        TaskRunResult runResult = createRunResult(task);
+        runResult.getOperationResult().recordSuccess();
+        runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
+        return runResult;
+    }
+
+    @NotNull public static TaskRunResult createInterruptedTaskRunResult(RunningTask task) {
+        TaskRunResult runResult = createRunResult(task);
+        runResult.getOperationResult().recordSuccess();
+        runResult.setRunResultStatus(TaskRunResultStatus.INTERRUPTED);
+        return runResult;
+    }
+
+    private static TaskRunResult createRunResult(RunningTask task) {
+        TaskRunResult runResult = new TaskRunResult();
+        OperationResult opResult;
+        if (task.getResult() != null) {
+            opResult = task.getResult();
+        } else {
+            opResult = new OperationResult(TaskConstants.OP_EXECUTE_HANDLER);
+        }
+        runResult.setOperationResult(opResult);
+        return runResult;
     }
 
 }

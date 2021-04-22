@@ -21,10 +21,7 @@ import java.util.function.Function;
 
 /**
  * Handles various aspects of work bucket content e.g. creating filters for work space segmentation.
- *
- * @author mederly
  */
-
 public interface WorkBucketContentHandler {
 
     // TODO experimental

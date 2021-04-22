@@ -63,7 +63,7 @@ class ReconciliationTaskSecondPartExecution
                 taskExecution.getObjectsFilter(),
                 taskHandler.getObjectChangeListener(),
                 SchemaConstants.CHANNEL_RECON,
-                taskExecution.partDefinition,
+                partDefinition,
                 false);
     }
 

@@ -28,28 +28,23 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
 
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/lightweigth-partitioning/handler-3</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
 
-    <workManagement>
-        <partitions>
-            <partition>
-                <index>2</index>
-                <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
-                <stage>execute</stage>
-                <errorCriticality>
-                    <policy>fatal</policy>
-                </errorCriticality>
-            </partition>
-            <partition>
-                <index>1</index>
-                <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
-                <stage>simulate</stage>
-                <errorCriticality>
-                    <policy>fatal</policy>
-                </errorCriticality>
-            </partition>
-        </partitions>
-    </workManagement>
+    <parts>
+        <ignoreDefaultParts>true</ignoreDefaultParts>
+        <part>
+            <index>1</index>
+            <partTypeUri>operationCompletion</partTypeUri>
+        </part>
+        <part>
+            <index>2</index>
+            <partTypeUri>resourceObjects</partTypeUri>
+            <executionMode>simulate</executionMode>
+            <errorCriticality>
+                <policy>fatal</policy> <!-- TODO What about policy issues other than thresholds? -->
+            </errorCriticality>
+        </part>
+    </parts>
 
     <threadStopAction>suspend</threadStopAction>
     <objectRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>

@@ -6,6 +6,12 @@
  */
 package com.evolveum.midpoint.test;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType.SUCCESS;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -14,6 +20,7 @@ import static com.evolveum.midpoint.test.PredefinedTestMethodTracing.OFF;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.math.BigInteger;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -36,6 +43,12 @@ import javax.xml.namespace.QName;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
+import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
+import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
+import com.evolveum.midpoint.task.api.TaskDebugUtil;
+
 import org.apache.commons.lang.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -145,6 +158,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     private static final String MACRO_TEST_NAME_SHORT_TRACER_PARAM = "testNameShort";
 
     private static final float FLOAT_EPSILON = 0.001f;
+
+    // TODO make configurable. Due to a race condition there can be a small number of unoptimized complete buckets
+    //  (it should not exceed the number of workers ... at least not by much)
+    private static final int OPTIMIZED_BUCKETS_THRESHOLD = 8;
 
     // Values used to check if something is unchanged or changed properly
 
@@ -439,7 +456,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return repoAddObjectFromFile(file, false, parentResult);
     }
 
-    protected <T extends ObjectType> PrismObject<T> repoAdd(TestResource resource, OperationResult parentResult)
+    protected <T extends ObjectType> PrismObject<T> repoAdd(TestResource<T> resource, OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
         PrismObject<T> object = repoAddObjectFromFile(resource.file, parentResult);
         resource.object = object;
@@ -3016,5 +3033,243 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .filter(a -> name.equals(a.getName().getOrig()))
                 .findAny()
                 .orElseThrow(() -> new AssertionError("Account '" + name + "' was not found"));
+    }
+
+    protected void waitForTaskClose(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval)
+            throws CommonException {
+        waitFor("Waiting for task to close", () -> {
+            Task task = taskManager.getTaskWithResult(taskOid, result);
+            IntegrationTestTools.display("Task while waiting for it to close", task);
+            return task.getSchedulingState() == TaskSchedulingStateType.CLOSED;
+        }, timeoutInterval, sleepInterval);
+    }
+
+    protected void waitForTaskSuspend(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval)
+            throws CommonException {
+        waitFor("Waiting for task to close", () -> {
+            Task task = taskManager.getTaskWithResult(taskOid, result);
+            IntegrationTestTools.display("Task while waiting for it to close", task);
+            return task.getSchedulingState() == TaskSchedulingStateType.SUSPENDED;
+        }, timeoutInterval, sleepInterval);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    protected void waitForTaskCloseOrDelete(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval)
+            throws CommonException {
+        waitFor("Waiting for task to close", () -> {
+            try {
+                Task task = taskManager.getTaskWithResult(taskOid, result);
+                IntegrationTestTools.display("Task while waiting for it to close", task);
+                return task.getSchedulingState() == TaskSchedulingStateType.CLOSED;
+            } catch (ObjectNotFoundException e) {
+                return true;
+            }
+        }, timeoutInterval, sleepInterval);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    protected void waitForTaskReady(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval) throws
+            CommonException {
+        waitFor("Waiting for task to become ready", () -> {
+            Task task = taskManager.getTaskWithResult(taskOid, result);
+            IntegrationTestTools.display("Task while waiting for it to become ready", task);
+            return task.isReady();
+        }, timeoutInterval, sleepInterval);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    protected void waitForTaskWaiting(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval) throws
+            CommonException {
+        waitFor("Waiting for task to become waiting", () -> {
+            Task task = taskManager.getTaskWithResult(taskOid, result);
+            IntegrationTestTools.display("Task while waiting for it to become waiting", task);
+            return task.isWaiting();
+        }, timeoutInterval, sleepInterval);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    protected void waitForTaskCloseCheckingSubtasks(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval) throws
+            CommonException {
+        waitFor("Waiting for task manager to execute the task", () -> {
+            Task task = taskManager.getTaskWithResult(taskOid, result);
+            displayValue("Task tree while waiting", TaskDebugUtil.dumpTaskTree(task, result));
+            if (task.isClosed()) {
+                display("Task is closed, finishing waiting: " + task);
+                return true;
+            }
+            List<? extends Task> subtasks = task.listSubtasksDeeply(result);
+            for (Task subtask : subtasks) {
+                if (subtask.getResultStatus() == OperationResultStatusType.FATAL_ERROR
+                        || subtask.getResultStatus() == OperationResultStatusType.PARTIAL_ERROR) {
+                    display("Error detected in subtask, finishing waiting: " + subtask);
+                    return true;
+                }
+            }
+            return false;
+        }, timeoutInterval, sleepInterval);
+    }
+
+    protected void waitForTaskStart(String oid, OperationResult result, long timeoutInterval, long sleepInterval) throws CommonException {
+        waitFor("Waiting for task manager to start the task", () -> {
+            Task task = taskManager.getTaskWithResult(oid, result);
+            IntegrationTestTools.display("Task while waiting for task manager to start the task", task);
+            return task.getLastRunStartTimestamp() != null && task.getLastRunStartTimestamp() != 0L;
+        }, timeoutInterval, sleepInterval);
+    }
+
+    protected void waitForTaskProgress(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval,
+            int threshold) throws CommonException {
+        waitFor("Waiting for task progress reaching " + threshold, () -> {
+            Task task = taskManager.getTaskWithResult(taskOid, result);
+            IntegrationTestTools.display("Task while waiting for progress reaching " + threshold, task);
+            return task.getProgress() >= threshold;
+        }, timeoutInterval, sleepInterval);
+    }
+
+    protected void waitForTaskRunFinish(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval,
+            long laterThan) throws CommonException {
+        waitFor("Waiting for task run finish later than " + laterThan, () -> {
+            Task task = taskManager.getTaskWithResult(taskOid, result);
+            IntegrationTestTools.display("Task while waiting for run finish later than " + laterThan, task);
+            return or0(task.getLastRunFinishTimestamp()) > laterThan;
+        }, timeoutInterval, sleepInterval);
+    }
+
+    protected void suspendAndDeleteTasks(String... oids) {
+        taskManager.suspendAndDeleteTasks(Arrays.asList(oids), 20000L, true, new OperationResult("dummy"));
+    }
+
+    protected void sleepChecked(long delay) {
+        try {
+            Thread.sleep(delay);
+        } catch (InterruptedException e) {
+            // nothing to do here
+        }
+    }
+
+    protected void assertTotalSuccessCountInIterativeInfo(int expectedCount, Collection<? extends Task> workers) {
+        int successCount = workers.stream()
+                .mapToInt(w -> TaskOperationStatsUtil.getItemsProcessedWithSuccess(w.getStoredOperationStatsOrClone()))
+                .sum();
+        assertThat(successCount).isEqualTo(expectedCount);
+    }
+
+    protected void assertTotalSuccessCountInProgress(int expectedClosed, int expectedOpen, Collection<? extends Task> workers) {
+        int successClosed = getSuccessClosed(workers);
+        assertThat(successClosed).isEqualTo(expectedClosed);
+        int successOpen = workers.stream()
+                .mapToInt(w -> TaskProgressUtil.getProgressForOutcome(w.getStructuredProgressOrClone(), SUCCESS, true))
+                .sum();
+        assertThat(successOpen).isEqualTo(expectedOpen);
+    }
+
+    private int getSuccessClosed(Collection<? extends Task> workers) {
+        return workers.stream()
+                .mapToInt(w -> TaskProgressUtil.getProgressForOutcome(w.getStructuredProgressOrClone(), SUCCESS, false))
+                .sum();
+    }
+
+    protected void assertNoWorkBuckets(TaskPartWorkStateType ws) {
+        assertTrue(ws == null || ws.getBucket().isEmpty());
+    }
+
+    protected void assertNumericBucket(WorkBucketType bucket, WorkBucketStateType state, int seqNumber, Integer start, Integer end) {
+        assertBucket(bucket, state, seqNumber);
+        AbstractWorkBucketContentType content = bucket.getContent();
+        assertEquals("Wrong bucket content class", NumericIntervalWorkBucketContentType.class, content.getClass());
+        NumericIntervalWorkBucketContentType numContent = (NumericIntervalWorkBucketContentType) content;
+        assertEquals("Wrong bucket start", toBig(start), numContent.getFrom());
+        assertEquals("Wrong bucket end", toBig(end), numContent.getTo());
+    }
+
+    protected void assertBucket(WorkBucketType bucket, WorkBucketStateType state, int seqNumber) {
+        if (state != null) {
+            assertEquals("Wrong bucket state", state, bucket.getState());
+        }
+        assertBucketWorkerRefSanity(bucket);
+        assertEquals("Wrong bucket seq number", seqNumber, bucket.getSequentialNumber());
+    }
+
+    private void assertBucketWorkerRefSanity(WorkBucketType bucket) {
+        switch (defaultIfNull(bucket.getState(), WorkBucketStateType.READY)) {
+            case READY:
+                assertNull("workerRef present in " + bucket, bucket.getWorkerRef());
+                break;
+            case DELEGATED:
+                assertNotNull("workerRef not present in " + bucket, bucket.getWorkerRef());
+                break;
+            case COMPLETE:
+                break; // either one is OK
+            default:
+                fail("Wrong state: " + bucket.getState());
+        }
+    }
+
+    private BigInteger toBig(Integer integer) {
+        return integer != null ? BigInteger.valueOf(integer) : null;
+    }
+
+    protected void assertOptimizedCompletedBuckets(Task task) {
+        TaskPartWorkStateType partWorkState = TaskWorkStateUtil.getCurrentPartWorkState(task.getWorkState());
+        if (partWorkState == null) {
+            return;
+        }
+        long completed = partWorkState.getBucket().stream()
+                .filter(b -> b.getState() == WorkBucketStateType.COMPLETE)
+                .count();
+        if (completed > OPTIMIZED_BUCKETS_THRESHOLD) {
+            displayDumpable("Task with more than one completed bucket", task);
+            fail("More than one completed bucket found in task: " + completed + " in " + task);
+        }
+    }
+
+    protected int getTotalItemsProcessed(String coordinatorTaskOid) {
+        OperationResult result = new OperationResult("getTotalItemsProcessed");
+        try {
+            Task coordinatorTask = taskManager.getTaskPlain(coordinatorTaskOid, result);
+            List<? extends Task> tasks = coordinatorTask.listSubtasks(result);
+            int total = 0;
+            for (Task task : tasks) {
+                int count = or0(TaskOperationStatsUtil.getItemsProcessed(task.getStoredOperationStatsOrClone()));
+                display("Task " + task + ": " + count + " items processed");
+                total += count;
+            }
+            return total;
+        } catch (Throwable t) {
+            throw new AssertionError("Unexpected exception", t);
+        }
+    }
+
+    protected int getTotalSuccessClosed(String coordinatorTaskOid) {
+        OperationResult result = new OperationResult("getTotalSuccessClosed");
+        try {
+            Task coordinatorTask = taskManager.getTaskPlain(coordinatorTaskOid, result);
+            List<? extends Task> tasks = coordinatorTask.listSubtasks(result);
+            int totalSuccessClosed = getSuccessClosed(tasks);
+            System.out.println("Total success closed: " + totalSuccessClosed);
+            return totalSuccessClosed;
+        } catch (Throwable t) {
+            throw new AssertionError("Unexpected exception", t);
+        }
+    }
+
+    protected void assertNumberOfBuckets(Task task, Integer expectedNumber) {
+        TaskPartWorkStateType partWorkState = TaskWorkStateUtil.getCurrentPartWorkState(task.getWorkState());
+        assert partWorkState != null;
+        assertEquals("Wrong # of expected buckets", expectedNumber, partWorkState.getNumberOfBuckets());
+    }
+
+    protected void assertCachingProfiles(Task task, String... expectedProfiles) {
+        Set<String> realProfiles = getCachingProfiles(task);
+        assertEquals("Wrong caching profiles in " + task, new HashSet<>(Arrays.asList(expectedProfiles)), realProfiles);
+    }
+
+    private Set<String> getCachingProfiles(Task task) {
+        TaskExecutionEnvironmentType env = task.getExecutionEnvironment();
+        return env != null ? new HashSet<>(env.getCachingProfile()) : Collections.emptySet();
+    }
+
+    protected void assertSchedulingState(Task task, TaskSchedulingStateType expected) {
+        assertThat(task.getSchedulingState()).as("task scheduling state").isEqualTo(expected);
     }
 }

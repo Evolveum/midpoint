@@ -21,12 +21,9 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskException;
-import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -57,11 +54,9 @@ public abstract class SimpleIterativeTaskHandler<O extends ObjectType, EC extend
     }
 
     @Override
-    protected @NotNull SimpleIterativeTaskHandler<O, EC, P>.TaskExecution createTaskExecution(
-            RunningTask localCoordinatorTask, WorkBucketType workBucket,
-            TaskPartitionDefinitionType partition, TaskWorkBucketProcessingResult previousRunResult) {
+    protected @NotNull SimpleIterativeTaskHandler<O, EC, P>.TaskExecution createTaskExecution(RunningTask localCoordinatorTask) {
         EC executionContext = createExecutionContext();
-        return new TaskExecution(this, localCoordinatorTask, workBucket, partition, previousRunResult, executionContext);
+        return new TaskExecution(this, localCoordinatorTask, executionContext);
     }
 
     protected abstract EC createExecutionContext();
@@ -69,16 +64,13 @@ public abstract class SimpleIterativeTaskHandler<O extends ObjectType, EC extend
     protected abstract P createProcessing(EC ctx);
 
     protected class TaskExecution
-            extends AbstractTaskExecution
-            <SimpleIterativeTaskHandler<O, EC, P>,
-                                            TaskExecution> {
+            extends AbstractTaskExecution<SimpleIterativeTaskHandler<O, EC, P>, TaskExecution> {
 
         private final EC executionContext;
 
         public TaskExecution(SimpleIterativeTaskHandler<O, EC, P> taskHandler, RunningTask localCoordinatorTask,
-                WorkBucketType workBucket, TaskPartitionDefinitionType partDefinition,
-                TaskWorkBucketProcessingResult previousRunResult, EC executionContext) {
-            super(taskHandler, localCoordinatorTask, workBucket, partDefinition, previousRunResult);
+                EC executionContext) {
+            super(taskHandler, localCoordinatorTask);
             this.executionContext = executionContext;
             executionContext.setTaskExecution(this);
         }
@@ -99,17 +91,18 @@ public abstract class SimpleIterativeTaskHandler<O extends ObjectType, EC extend
     protected class PartExecution
             extends AbstractIterativeModelTaskPartExecution
             <O, SimpleIterativeTaskHandler<O, EC, P>,
-                                            TaskExecution, PartExecution, ItemProcessor> {
+                    TaskExecution, PartExecution, ItemProcessor> {
 
         private final P processing;
 
         public PartExecution(TaskExecution taskExecution) {
             super(taskExecution);
             processing = createProcessing(taskExecution.executionContext);
+            taskExecution.executionContext.setPartExecution(this);
         }
 
         @Override
-        protected @NotNull SimpleIterativeTaskHandler.ItemProcessor createItemProcessor(OperationResult opResult)
+        protected @NotNull SimpleIterativeTaskHandler<O, EC, P>.ItemProcessor createItemProcessor(OperationResult opResult)
                 throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
                 CommunicationException, ConfigurationException {
             return new ItemProcessor(this);

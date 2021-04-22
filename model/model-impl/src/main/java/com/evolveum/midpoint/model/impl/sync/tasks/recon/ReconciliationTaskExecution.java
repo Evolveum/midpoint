@@ -30,14 +30,11 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskException;
-import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
@@ -82,10 +79,8 @@ public class ReconciliationTaskExecution
 
     final ReconciliationTaskResult reconResult;
 
-    public ReconciliationTaskExecution(ReconciliationTaskHandler taskHandler, RunningTask localCoordinatorTask,
-            WorkBucketType workBucket, TaskPartitionDefinitionType partDefinition,
-            TaskWorkBucketProcessingResult previousRunResult) {
-        super(taskHandler, localCoordinatorTask, workBucket, partDefinition, previousRunResult);
+    public ReconciliationTaskExecution(ReconciliationTaskHandler taskHandler, RunningTask localCoordinatorTask) {
+        super(taskHandler, localCoordinatorTask);
         this.stage = determineStage();
         this.reconResult = new ReconciliationTaskResult();
     }
@@ -153,11 +148,7 @@ public class ReconciliationTaskExecution
     }
 
     private String getHandlerUri() {
-        if (partDefinition != null && partDefinition.getHandlerUri() != null) {
-            return partDefinition.getHandlerUri();
-        } else {
-            return localCoordinatorTask.getHandlerUri();
-        }
+        return localCoordinatorTask.getHandlerUri();
     }
 
     private @NotNull Stage getStage(String handlerUri) {
@@ -177,7 +168,7 @@ public class ReconciliationTaskExecution
     private void auditStart(OperationResult opResult) {
         AuditEventRecord record = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.REQUEST);
         record.setTarget(getResourceObject(), getPrismContext());
-        record.setMessage("Stage: " + stage + ", Work bucket: " + workBucket);
+        record.setMessage("Stage: " + stage);
         taskHandler.auditHelper.audit(record, null, localCoordinatorTask, opResult);
     }
 

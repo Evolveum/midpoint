@@ -12,7 +12,7 @@ import com.evolveum.midpoint.task.api.StaticTaskPartitionsDefinition;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskPartitionsDefinition;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionsDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartsDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -35,14 +35,15 @@ public class PartitionedFocusValidityScannerTaskHandlerCreator {
     }
 
     private TaskPartitionsDefinition createPartitionsDefinition(Task masterTask) {
-        TaskPartitionsDefinitionType definitionInTask = masterTask.getWorkManagement() != null ?
-                masterTask.getWorkManagement().getPartitions() : null;
-        TaskPartitionsDefinitionType partitionsDefinition = definitionInTask != null ?
-                definitionInTask.clone() : new TaskPartitionsDefinitionType();
-        partitionsDefinition.setCount(2);
-        partitionsDefinition.setDurablePartitions(true);
-        partitionsDefinition.setCopyMasterExtension(true);
-        return new StaticTaskPartitionsDefinition(partitionsDefinition,
-                prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class));
+        throw new UnsupportedOperationException();
+//        TaskPartsDefinitionType definitionInTask = masterTask.getWorkManagement() != null ?
+//                masterTask.getWorkManagement().getPartitions() : null;
+//        TaskPartsDefinitionType partitionsDefinition = definitionInTask != null ?
+//                definitionInTask.clone() : new TaskPartsDefinitionType();
+//        partitionsDefinition.setCount(2);
+//        partitionsDefinition.setDurablePartitions(true);
+//        partitionsDefinition.setCopyMasterExtension(true);
+//        return new StaticTaskPartitionsDefinition(partitionsDefinition,
+//                prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class));
     }
 }

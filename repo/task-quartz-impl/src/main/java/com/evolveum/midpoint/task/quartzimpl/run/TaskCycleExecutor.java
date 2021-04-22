@@ -138,7 +138,7 @@ class TaskCycleExecutor {
 
         TaskRunResult runResult;
         try {
-            runResult = beans.handlerExecutor.executeHandler(task, null, handler, result);
+            runResult = beans.handlerExecutor.executeHandler(task, handler, result);
         } finally {
             // TEMPORARY see MID-6343; TODO implement correctly!
             beans.counterManager.cleanupCounters(task.getOid());

@@ -18,15 +18,12 @@ import java.util.Objects;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartProgressType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StructuredTaskProgressType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class TaskProgressInformation implements DebugDumpable, Serializable {
 
@@ -120,7 +117,7 @@ public class TaskProgressInformation implements DebugDumpable, Serializable {
      */
     @NotNull
     private static TaskProgressInformation fromSimpleTask(@NotNull TaskType task) {
-        StructuredTaskProgressType progress = task.getStructuredProgress();
+        StructuredTaskProgressType progress = null;//task.getStructuredProgress();
         if (progress != null && progress.getExpectedParts() != null && progress.getExpectedParts() > 1) {
             return fromInternallyPartitionedTask(task);
         } else {
@@ -133,13 +130,13 @@ public class TaskProgressInformation implements DebugDumpable, Serializable {
      */
     @NotNull
     private static TaskProgressInformation fromInternallyPartitionedTask(@NotNull TaskType task) {
-        StructuredTaskProgressType progress = task.getStructuredProgress();
+        StructuredTaskProgressType progress = null;//task.getStructuredProgress();
         int allPartsCount = progress.getExpectedParts();
         int currentPartNumber = progress.getCurrentPartNumber() != null ? progress.getCurrentPartNumber() : 1;
         String currentPartUri = progress.getCurrentPartUri();
         TaskProgressInformation info = new TaskProgressInformation(allPartsCount, currentPartNumber, currentPartUri);
         Integer currentPartExpectedTotal = task.getExpectedTotal() != null ? task.getExpectedTotal().intValue() : null;
-        for (TaskPartProgressType partProgress : progress.getPart()) {
+        for (TaskPartProgressOldType partProgress : progress.getPart()) {
             boolean isCurrent = Objects.equals(currentPartUri, partProgress.getPartUri());
             Integer expectedTotal = isCurrent ? currentPartExpectedTotal : null;
             TaskPartProgressInformation taskPartProgressInformation =

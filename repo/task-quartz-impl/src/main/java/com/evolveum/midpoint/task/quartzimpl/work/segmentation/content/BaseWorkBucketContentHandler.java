@@ -24,8 +24,7 @@ public abstract class BaseWorkBucketContentHandler implements WorkBucketContentH
     @Autowired protected WorkBucketContentHandlerRegistry registry;
     @Autowired protected PrismContext prismContext;
 
-    @NotNull
-    protected ItemPath getDiscriminator(AbstractWorkSegmentationType configuration, AbstractWorkBucketContentType content) {
+    @NotNull ItemPath getDiscriminator(AbstractWorkSegmentationType configuration, AbstractWorkBucketContentType content) {
         ItemPathType discriminatorPathType = configuration.getDiscriminator();
         if (discriminatorPathType != null) {
             return discriminatorPathType.getItemPath();

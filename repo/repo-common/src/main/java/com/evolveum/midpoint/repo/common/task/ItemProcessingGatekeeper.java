@@ -318,7 +318,7 @@ class ItemProcessingGatekeeper<I> {
 
         Throwable exception = processingResult.getExceptionRequired();
 
-        TaskPartitionDefinitionType partDef = taskExecution.partDefinition;
+        TaskPartDefinitionType partDef = partExecution.partDefinition;
         if (partDef == null) {
             return getContinueOnError(result.getStatus(), exception, request, result);
         }

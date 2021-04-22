@@ -660,7 +660,17 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public TaskPartsDefinitionType getPartsDefinitionOrClone() {
+        return null;
+    }
+
+    @Override
     public TaskWorkStateType getWorkState() {
+        return null;
+    }
+
+    @Override
+    public TaskWorkStateType getWorkStateOrClone() {
         return null;
     }
 
@@ -713,11 +723,6 @@ public class NullTaskImpl implements Task {
     public void setExecutionEnvironment(TaskExecutionEnvironmentType value) {
     }
 
-    @Override
-    public boolean isScavenger() {
-        return false;
-    }
-
     @NotNull
     @Override
     public Collection<TracingRootType> getTracingRequestedFor() {
@@ -745,5 +750,10 @@ public class NullTaskImpl implements Task {
     @Override
     public boolean hasAssignments() {
         return false;
+    }
+
+    @Override
+    public String getCurrentPartId() {
+        return null;
     }
 }

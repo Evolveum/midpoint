@@ -75,7 +75,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
      * Current bucket that is being processed.
      * It is used to narrow the search query.
      */
-    @Nullable protected final WorkBucketType workBucket;
+    @Nullable protected WorkBucketType workBucket; // TODO initialize correctly
 
     /**
      * Object type provided when counting and retrieving objects. Set up in {@link #prepareItemSource(OperationResult)}.
@@ -134,7 +134,6 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
 
     public AbstractSearchIterativeTaskPartExecution(TE taskExecution) {
         super(taskExecution);
-        this.workBucket = taskExecution.workBucket;
     }
 
     @Override
@@ -228,9 +227,8 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
 
             ObjectQuery failureNarrowedQuery = narrowQueryToProcessFailedObjectsOnly(queryFromHandler); // logging is inside
 
-            ObjectQuery bucketNarrowedQuery = getTaskManager().narrowQueryForWorkBucket(failureNarrowedQuery, objectType,
-                    createItemDefinitionProvider(), localCoordinatorTask,
-                    workBucket, opResult);
+            ObjectQuery bucketNarrowedQuery = getTaskManager().narrowQueryForWorkBucket(objectType, failureNarrowedQuery,
+                    localCoordinatorTask, createItemDefinitionProvider(), workBucket, opResult);
 
             logger.trace("{}: using a query (after applying work bucket, before evaluating expressions):\n{}", getTaskTypeName(),
                     DebugUtil.debugDumpLazily(bucketNarrowedQuery));
@@ -546,9 +544,10 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
     }
 
     private boolean isNonScavengingWorker() {
-        return localCoordinatorTask.getWorkManagement() != null &&
-                localCoordinatorTask.getWorkManagement().getTaskKind() == TaskKindType.WORKER &&
-                !Boolean.TRUE.equals(localCoordinatorTask.getWorkManagement().isScavenger());
+        throw new UnsupportedOperationException();//FIXME
+//        return localCoordinatorTask.getWorkManagement() != null &&
+//                localCoordinatorTask.getWorkManagement().getTaskKind() == TaskKindType.WORKER &&
+//                !Boolean.TRUE.equals(localCoordinatorTask.getWorkManagement().isScavenger());
     }
 
     @Override

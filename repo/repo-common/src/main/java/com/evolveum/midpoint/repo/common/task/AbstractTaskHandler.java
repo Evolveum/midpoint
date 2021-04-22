@@ -19,47 +19,39 @@ import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.evolveum.midpoint.util.logging.Trace;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartDefinitionType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 import static com.evolveum.midpoint.repo.common.task.TaskExceptionHandlingUtil.processException;
 import static com.evolveum.midpoint.repo.common.task.TaskExceptionHandlingUtil.processFinish;
 
 /**
- * Task handler for iterative tasks.
+ * Abstract base task handler for any non-trivial (mostly iterative) tasks.
  *
- * This class fulfills rudimentary duties only:
+ * The whole structure looks like this:
  *
- *  1. holds autowired beans (as it is a Spring component, unlike related classes),
- *  2. provides {@link WorkBucketAwareTaskHandler} interface to the task manager.
- *
- * *WARNING!* The task handler is effectively singleton! It is a Spring bean and it is
- * supposed to handle all search task instances. Therefore it must not have task-specific fields.
- * It can only contain fields specific to all tasks of a specified type.
- *
- * All of the work is delegated to {@link AbstractTaskExecution} which in turn uses other classes to do the work.
- *
- * The whole structure then looks like this:
- *
- * 1. {@link AbstractTaskHandler} is the main entry point. It instantiates {@link AbstractTaskExecution}
- *    that is responsible for the execution of the iterative task.
- * 2. Then, {@link AbstractTaskExecution} represents the specific execution of the task. It should contain all the
+ * 1. {@link AbstractTaskHandler} is the main entry point: it provides {@link TaskHandler} interface to the task manager.
+ *    After its {@link TaskHandler#run(RunningTask)} method is invoked, it instantiates {@link AbstractTaskExecution} and
+ *    passes the control to it. Its other responsibility is to hold autowired beans (as it is a Spring component, unlike
+ *    related classes).
+ * 2. The {@link AbstractTaskExecution} represents the specific execution of the task. It should contain all the
  *    fields that are specific to given task instance, like fetched resource definition object (for synchronization tasks),
- *    timestamps (for scanner tasks), and so on. Also data provided by the {@link TaskManager} when starting the task execution
- *    (like current task part definition, current bucket, and so on) are kept there.
+ *    timestamps (for scanner tasks), and so on.
  * 3. The task execution object then instantiates - via {@link AbstractTaskExecution#createPartExecutions()}
- *    method - objects that are responsible for execution of individual <i>task parts</i>. For example, a reconciliation
+ *    method - objects that are responsible for execution of individual _task parts_. For example, a reconciliation
  *    task consists of three such parts: processing unfinished shadows, resource objects reconciliation, and (remaining)
- *    shadows reconciliation. Majority of task parts are search-iterative. Each such part execution class contains code
- *    to construct a query, search options, and instantiates _item processor_: a subclass of {@link AbstractSearchIterativeItemProcessor}.
- * 4. Task parts that are not based on search method call are used for live sync and async update tasks. Please see
- *    the appropriate task handlers for more information.
+ *    shadows reconciliation. Currently these parts are subclasses of {@link AbstractIterativeTaskPartExecution}.
+ * 4. Each part issues an iteration process, typically by starting a search by providing an object type, a query,
+ *    and search options. (An alternative way is to start iteration in other way, e.g. by starting a live sync
+ *    or async update.) Then the part instantiates _item processor_.
+ * 5. Item processor is a subclass of {@link AbstractIterativeItemProcessor} and is responsible for processing
+ *    items found (objects or events) under the control of {@link ItemProcessingGatekeeper}.
  *
  * *TODO Specify responsibilities of individual components w.r.t. multithreading, error handling,
  *   progress and error reporting, and so on.*
@@ -75,12 +67,16 @@ import static com.evolveum.midpoint.repo.common.task.TaskExceptionHandlingUtil.p
  * *TODO: Generalize this class a bit. In fact, there is nothing specific to the iterative nature
  *        of the processing here.*
  *
+ * *WARNING!* The task handler is effectively singleton! It is a Spring bean and it is
+ * supposed to handle all search task instances. Therefore it must not have task-specific fields.
+ * It can only contain fields specific to all tasks of a specified type.
+ *
  * @author semancik
  */
 public abstract class AbstractTaskHandler<
         TH extends AbstractTaskHandler<TH, TE>,
         TE extends AbstractTaskExecution<TH, TE>>
-        implements WorkBucketAwareTaskHandler {
+        implements TaskHandler {
 
     /**
      * Logger that is specific to the concrete task handler class. This is to avoid logging everything under
@@ -98,13 +94,14 @@ public abstract class AbstractTaskHandler<
 
     /**
      * Prefix for the task's operation result operation name.
-     * E.g. "com.evolveum.midpoint.common.operation.reconciliation"
+     * E.g. `com.evolveum.midpoint.common.operation.reconciliation`.
      */
     @NotNull final String taskOperationPrefix;
 
     /**
      * Options that govern how various aspects of task execution (progress, errors, statistics, and so on)
-     * are reported - into the log or by other means.
+     * are reported - into the log or by other means. These are "global", i.e. applicable to all tasks
+     * handled by this task handler. They may be fine-tuned for specific tasks by configuration means.
      */
     @NotNull protected final TaskReportingOptions globalReportingOptions;
 
@@ -112,7 +109,7 @@ public abstract class AbstractTaskHandler<
      * Executions (instances) of the current task handler. Used to delegate {@link #heartbeat(Task)} method calls.
      * Note: the future of this method is unclear.
      */
-    private final Map<String, TE> currentTaskExecutions = Collections.synchronizedMap(new HashMap<>());
+    @NotNull private final Map<String, TE> currentTaskExecutions = Collections.synchronizedMap(new HashMap<>());
 
     // Various useful beans.
 
@@ -162,18 +159,17 @@ public abstract class AbstractTaskHandler<
      * Main entry point.
      *
      * We basically delegate all the processing to a TaskExecution object.
-     * Error handling is delegated to {@link TaskExceptionHandlingUtil#processException(Throwable, Trace, TaskPartitionDefinitionType, String, TaskRunResult)}
+     * Error handling is delegated to {@link TaskExceptionHandlingUtil#processException(Throwable, Trace, TaskPartDefinitionType, String, TaskRunResult)}
      * method.
      */
     @Override
-    public TaskWorkBucketProcessingResult run(RunningTask localCoordinatorTask, WorkBucketType workBucket,
-            TaskPartitionDefinitionType partition, TaskWorkBucketProcessingResult previousRunResult) {
-        TE taskExecution = createTaskExecution(localCoordinatorTask, workBucket, partition, previousRunResult);
+    public TaskWorkBucketProcessingResult run(RunningTask localCoordinatorTask) {
+        TE taskExecution = createTaskExecution(localCoordinatorTask);
         try {
             taskExecution.run();
-            return processFinish(logger, partition, taskTypeName, taskExecution.getCurrentRunResult(), taskExecution.getErrorState());
+            return processFinish(logger, null, taskTypeName, taskExecution.getCurrentRunResult(), taskExecution.getErrorState());
         } catch (Throwable t) {
-            return processException(t, logger, partition, taskTypeName, taskExecution.getCurrentRunResult());
+            return processException(t, logger, null, taskTypeName, taskExecution.getCurrentRunResult());
         }
     }
 
@@ -181,20 +177,17 @@ public abstract class AbstractTaskHandler<
      * Method to create the task execution. Can be overridden.
      */
     @NotNull
-    protected TE createTaskExecution(RunningTask localCoordinatorTask, WorkBucketType workBucket,
-            TaskPartitionDefinitionType partition, TaskWorkBucketProcessingResult previousRunResult) {
-        return createTaskExecutionFromAnnotation(localCoordinatorTask, workBucket, partition, previousRunResult);
+    protected TE createTaskExecution(RunningTask localCoordinatorTask) {
+        return createTaskExecutionFromAnnotation(localCoordinatorTask);
     }
 
     @NotNull
-    private TE createTaskExecutionFromAnnotation(RunningTask localCoordinatorTask, WorkBucketType workBucket,
-            TaskPartitionDefinitionType partition, TaskWorkBucketProcessingResult previousRunResult) {
+    private TE createTaskExecutionFromAnnotation(RunningTask localCoordinatorTask) {
         try {
             TaskExecutionClass annotation = AnnotationSupportUtil.getRequiredAnnotation(this, TaskExecutionClass.class);
-            Constructor<?> constructor = annotation.value().getDeclaredConstructor(this.getClass(), RunningTask.class,
-                    WorkBucketType.class, TaskPartitionDefinitionType.class, TaskWorkBucketProcessingResult.class);
+            Constructor<?> constructor = annotation.value().getDeclaredConstructor(this.getClass(), RunningTask.class);
             //noinspection unchecked
-            return (TE) constructor.newInstance(this, localCoordinatorTask, workBucket, partition, previousRunResult);
+            return (TE) constructor.newInstance(this, localCoordinatorTask);
         } catch (Throwable t) {
             throw new SystemException("Cannot create task execution instance for " + this.getClass() + ": " + t.getMessage(), t);
         }

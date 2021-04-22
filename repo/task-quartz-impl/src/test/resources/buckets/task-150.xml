@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="0a278190-ba8e-4684-b95a-57f5198ac8b3"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>task-150</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>suspended</executionStatus>
+    <parts>
+        <part>
+            <workManagement>
+                <buckets>
+                    <numericSegmentation>
+                        <numberOfBuckets>1000</numberOfBuckets>
+                    </numericSegmentation>
+                </buckets>
+            </workManagement>
+        </part>
+    </parts>
+    <recurrence>single</recurrence>
+</task>

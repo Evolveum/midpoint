@@ -10,14 +10,12 @@ package com.evolveum.midpoint.model.impl.tasks.scanner;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections.CollectionUtils;
 
 import javax.xml.datatype.Duration;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static com.evolveum.midpoint.model.impl.tasks.scanner.FocusValidityScannerTaskExecution.QueryScope.*;
 
@@ -38,12 +36,8 @@ public class FocusValidityScannerTaskExecution
     /** Do we have notification actions to invoke when validity constraint is met? */
     private final boolean notificationActionsPresent;
 
-    public FocusValidityScannerTaskExecution(FocusValidityScannerTaskHandler taskHandler,
-            RunningTask localCoordinatorTask,
-            WorkBucketType workBucket,
-            TaskPartitionDefinitionType partDefinition,
-            TaskWorkBucketProcessingResult previousRunResult) {
-        super(taskHandler, localCoordinatorTask, workBucket, partDefinition, previousRunResult);
+    public FocusValidityScannerTaskExecution(FocusValidityScannerTaskHandler taskHandler, RunningTask localCoordinatorTask) {
+        super(taskHandler, localCoordinatorTask);
         this.validityConstraint = getValidityPolicyConstraintFromTask();
         this.notificationActionsPresent = areNotificationActionsPresentInTask();
     }
