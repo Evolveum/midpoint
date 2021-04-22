@@ -1,5 +1,5 @@
 = Multi-tenancy
-:page-wiki-name: multi-tenancy
+:page-wiki-name: Multitenancy
 :page-toc: top
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }

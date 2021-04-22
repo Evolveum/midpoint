@@ -1,6 +1,8 @@
 = Custom forms
 :page-wiki-name: Custom forms
 :page-since: "3.6"
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-toc: top
 :page-upkeep-status: yellow
 

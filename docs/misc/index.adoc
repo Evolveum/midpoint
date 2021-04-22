@@ -1,5 +1,6 @@
 = Miscellaneous MidPoint Configuration
 :page-nav-title: Misc
+:page-wiki-name: Miscellaneous Configuration
 :page-display-order: 950
 :page-upkeep-status: green
 :page-liquid:

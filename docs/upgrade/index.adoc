@@ -1,5 +1,6 @@
 = MidPoint Upgrade And Migration
 :page-nav-title: Upgrade And Migration
+:page-wiki-name: Migration and Upgrades
 :page-display-order: 600
 :page-upkeep-status: green
 

@@ -1,5 +1,6 @@
 = MidPoint Authentication Configuration
 :page-nav-title: Authentication
+:page-wiki-name: Security And Authentication Configuration
 :page-upkeep-status: yellow
 
 // TODO: introduction

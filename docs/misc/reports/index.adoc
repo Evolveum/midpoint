@@ -1,5 +1,6 @@
 = Reports Configuration
 :page-nav-title: Reports
+:page-wiki-name: Reporting
 :page-upkeep-status: orange
 
 Following pages describe configuration of midPoint reports.

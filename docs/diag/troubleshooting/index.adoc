@@ -1,5 +1,6 @@
 = MidPoint Troubleshooting Guides
 :page-nav-title: Troubleshooting Guides
+:page-wiki-name: Troubleshooting
 :page-display-order: 800
 :page-alias: { "parent" : "/midpoint/guides/" }
 :page-tag: guide

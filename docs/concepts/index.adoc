@@ -1,5 +1,6 @@
 = Basic MidPoint Concepts
 :page-nav-title: Concepts
+:page-wiki-name: Identity Administration
 :page-display-order: 10
 :page-upkeep-status: green
 :page-liquid:
