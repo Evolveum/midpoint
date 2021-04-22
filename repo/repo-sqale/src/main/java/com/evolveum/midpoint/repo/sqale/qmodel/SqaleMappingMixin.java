@@ -92,7 +92,7 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
                 new TableRelationResolver<>(containerMapping.queryType(), joinPredicate));
 
         addItemMapping(itemName, new SqaleItemSqlMapper<>(
-                ctx -> null, // TODO query mapping later
+                ctx -> null,
                 ctx -> new TableContainerDeltaProcessor<>(ctx, containerMapping)));
         return this;
     }

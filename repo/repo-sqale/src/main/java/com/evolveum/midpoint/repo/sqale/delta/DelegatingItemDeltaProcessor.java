@@ -11,11 +11,12 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
+import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemRelationResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
+import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
@@ -24,19 +25,16 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
  * This is default item delta processor that decides what to do with the modification.
  * If the modification has multi-part name then it resolves it to the last component first.
  *
- * *Implementation note:*
- * This is a separate component used by {@link RootUpdateContext} but while the context is
- * one for all modifications this is instantiated for each modification (or even path resolution
- * step) which allows for state changes that don't affect processing of another modification.
+ * This component is for delta processing what {@link ValueFilterProcessor} is for filters.
  */
 public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
 
     /** Query context and mapping is not final as it can change during complex path resolution. */
-    private RootUpdateContext<?, ?, ?> context;
+    private SqaleUpdateContext<?, ?, ?> context;
     private QueryModelMapping<?, ?, ?> mapping;
 
     public DelegatingItemDeltaProcessor(
-            RootUpdateContext<?, ?, ?> context, QueryModelMapping<?, ?, ?> mapping) {
+            SqaleUpdateContext<?, ?, ?> context, QueryModelMapping<?, ?, ?> mapping) {
         this.context = context;
         this.mapping = mapping;
     }
@@ -55,9 +53,9 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
             return;
         }
 
-        ItemSqlMapper itemSqlMapper = mapping.getItemMapper(itemName);
+        ItemSqlMapper<?, ?, ?> itemSqlMapper = mapping.getItemMapper(itemName);
         if (itemSqlMapper instanceof SqaleItemSqlMapper) {
-            ((SqaleItemSqlMapper) itemSqlMapper)
+            ((SqaleItemSqlMapper<?, ?, ?>) itemSqlMapper)
                     .createItemDeltaProcessor(context)
                     .process(modification);
         } else if (itemSqlMapper != null) {

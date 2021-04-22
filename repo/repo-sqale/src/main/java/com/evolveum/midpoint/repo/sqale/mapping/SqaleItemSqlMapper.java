@@ -13,7 +13,6 @@ import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.repo.sqale.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
@@ -53,14 +52,16 @@ public class SqaleItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R>
 
     /**
      * Creates {@link ItemDeltaProcessor} based on this mapping.
-     * Provided {@link RootUpdateContext} is used to figure out the query paths when this is
+     * Provided {@link SqaleUpdateContext} is used to figure out the query paths when this is
      * executed (as the entity path instance is not yet available when the mapping is configured
      * in a declarative manner).
      *
-     * The type of the returned filter is adapted to the client code needs for convenience.
+     * The type of the returned processor is adapted to the client code needs for convenience.
+     * Also the type of the provided context is flexible, but with proper mapping it's all safe.
      */
-    public ItemDeltaValueProcessor<?> createItemDeltaProcessor(
-            SqaleUpdateContext<S, Q, R> sqlUpdateContext) {
-        return deltaProcessorFactory.apply(sqlUpdateContext);
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public <T> ItemDeltaValueProcessor<T> createItemDeltaProcessor(
+            SqaleUpdateContext<?, ?, ?> sqlUpdateContext) {
+        return deltaProcessorFactory.apply((SqaleUpdateContext) sqlUpdateContext);
     }
 }

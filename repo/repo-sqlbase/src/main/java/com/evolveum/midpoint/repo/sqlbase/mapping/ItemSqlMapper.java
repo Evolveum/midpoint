@@ -70,7 +70,7 @@ public class ItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R> {
      * (as the entity path instance is not yet available when the mapping is configured
      * in a declarative manner).
      *
-     * The type of the returned filter is adapted to the client code needs for convenience.
+     * The type of the returned processor is adapted to the client code needs for convenience.
      * Also the type of the provided context is flexible, but with proper mapping it's all safe.
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
