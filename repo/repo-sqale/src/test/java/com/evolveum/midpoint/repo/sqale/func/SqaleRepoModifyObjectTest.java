@@ -1663,7 +1663,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
-        QAssignment a = QAssignmentMapping.INSTANCE.defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
         List<MAssignment> assRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(assRows).hasSize(1);
 

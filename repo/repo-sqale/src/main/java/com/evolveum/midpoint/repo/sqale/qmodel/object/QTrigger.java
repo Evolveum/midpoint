@@ -23,6 +23,12 @@ public class QTrigger<OR extends MObject> extends QContainer<MTrigger, OR> {
 
     private static final long serialVersionUID = 2478404102829142213L;
 
+    /**
+     * If `QTrigger.class` is not enough because of generics, try `QTrigger.CLASS`.
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public static final Class<QTrigger<MObject>> CLASS = (Class) QTrigger.class;
+
     public static final String TABLE_NAME = "m_trigger";
 
     public static final ColumnMetadata HANDLER_URI_ID =

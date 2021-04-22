@@ -26,7 +26,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  * @param <OR> row type of the reference owner (related to {@link OQ})
  */
 public class QReferenceMapping<Q extends QReference<R, OR>, R extends MReference, OQ extends FlexibleRelationalPathBase<OR>, OR>
-        extends SqaleTableMapping<Referencable, Q, R> {
+        extends SqaleTableMapping<Referencable, Q, R>
+        implements QOwnedByMapping<Referencable, R, OR> {
 
     // see also subtype specific alias names defined for instances below
     public static final String DEFAULT_ALIAS_NAME = "ref";

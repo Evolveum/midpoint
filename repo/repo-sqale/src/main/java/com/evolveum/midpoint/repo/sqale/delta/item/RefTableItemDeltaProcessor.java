@@ -14,7 +14,6 @@ import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.ReferenceSqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
@@ -38,15 +37,7 @@ public class RefTableItemDeltaProcessor<Q extends QReference<?, OR>, OQ extends 
 
     @Override
     public void addValues(Collection<Referencable> values) {
-        OR ownerRow = context.row();
-        ReferenceSqlTransformer<?, ?, OR> transformer =
-                refTableMapping.createTransformer(context.transformerSupport());
-
-        // TODO fix after common insert "child" contract is in place for refs and containers
-        // It looks like the insert belongs to context, but there is no common insert contract.
-        // Each transformer has different types and needs. What? No, I don't want to introduce
-        // owner row type as another parametrized type on the transformer, thank you.
-        values.forEach(ref -> transformer.insert(ref, ownerRow, context.jdbcSession()));
+        values.forEach(ref -> context.insertOwnedRow(refTableMapping, ref));
     }
 
     @Override

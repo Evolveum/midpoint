@@ -461,7 +461,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         then("it is stored with its persisted trigger containers");
         assertThatOperationResult(result).isSuccess();
 
-        QTrigger t = aliasFor(QTrigger.class);
+        QTrigger<?> t = aliasFor(QTrigger.CLASS);
         List<MTrigger> containers = select(t, t.ownerOid.eq(UUID.fromString(systemConfiguration.getOid())));
         assertThat(containers).hasSize(2);
 
@@ -509,7 +509,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         then("it is stored with its persisted trigger containers");
         assertThatOperationResult(result).isSuccess();
 
-        QOperationExecution oe = aliasFor(QOperationExecution.class);
+        QOperationExecution<?> oe = aliasFor(QOperationExecution.CLASS);
         List<MOperationExecution> containers =
                 select(oe, oe.ownerOid.eq(UUID.fromString(systemConfiguration.getOid())));
         assertThat(containers).hasSize(2);

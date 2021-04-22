@@ -100,21 +100,21 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
     /** Fixes rigid parametric types of static mapping instance to this instance. */
     @NotNull
-    private QAssignmentMapping<R> assignmentMapping() {
+    public QAssignmentMapping<R> assignmentMapping() {
         //noinspection unchecked
         return (QAssignmentMapping<R>) QAssignmentMapping.INSTANCE;
     }
 
     /** Fixes rigid parametric types of static mapping instance to this instance. */
     @NotNull
-    private QOperationExecutionMapping<R> operationExecutionMapping() {
+    public QOperationExecutionMapping<R> operationExecutionMapping() {
         //noinspection unchecked
         return (QOperationExecutionMapping<R>) QOperationExecutionMapping.INSTANCE;
     }
 
     /** Fixes rigid parametric types of static mapping instance to this instance. */
     @NotNull
-    private QTriggerMapping<R> triggerMapping() {
+    public QTriggerMapping<R> triggerMapping() {
         //noinspection unchecked
         return (QTriggerMapping<R>) QTriggerMapping.INSTANCE;
     }

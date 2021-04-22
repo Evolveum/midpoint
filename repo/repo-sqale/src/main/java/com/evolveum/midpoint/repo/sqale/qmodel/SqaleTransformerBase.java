@@ -41,7 +41,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 /**
  * @param <S> schema type
  * @param <Q> type of entity path
- * @param <R> type of the transformed data, a row bean
+ * @param <R> type of the row bean for the table
  */
 public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBase<R>, R>
         implements SqlTransformer<S, Q, R> {

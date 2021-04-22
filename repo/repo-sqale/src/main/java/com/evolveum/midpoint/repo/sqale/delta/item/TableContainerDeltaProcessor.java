@@ -16,7 +16,6 @@ import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ContainerSqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
@@ -46,16 +45,7 @@ public class TableContainerDeltaProcessor<
 
     @Override
     public void addValues(Collection<T> values) {
-        OR ownerRow = context.row();
-        ContainerSqlTransformer<T, Q, R, OR> transformer =
-                containerTableMapping.createTransformer(context.transformerSupport());
-
-        // It looks like the insert belongs to context, but there is no common insert contract.
-        // Each transformer has different types and needs. What? No, I don't want to introduce
-        // owner row type as another parametrized type on the transformer, thank you.
-        // TODO introduce owner type to sub-tables and revisit also RefTableItemDeltaProcessor
-        //  perhaps it can go under context after all?
-//        values.forEach(ref -> transformer.insert(ref, ownerRow, context.jdbcSession()));
+        values.forEach(ref -> context.insertOwnedRow(containerTableMapping, ref));
     }
 
     @Override

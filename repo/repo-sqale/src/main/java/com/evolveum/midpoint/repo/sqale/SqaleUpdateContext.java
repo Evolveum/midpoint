@@ -10,6 +10,8 @@ import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Path;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QOwnedByMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.TransformerForOwnedBy;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
@@ -55,4 +57,11 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
     public abstract Q path();
 
     public abstract <P extends Path<T>, T> void set(P path, T value);
+
+    @SuppressWarnings("UnusedReturnValue")
+    public <TS, TR> TR insertOwnedRow(QOwnedByMapping<TS, TR, R> mapping, TS schemaObject) {
+        TransformerForOwnedBy<TS, TR, R> transformer =
+                mapping.createTransformer(transformerSupport());
+        return transformer.insert(schemaObject, row, jdbcSession);
+    }
 }

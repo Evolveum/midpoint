@@ -27,6 +27,14 @@ public class QOperationExecution<OR extends MObject> extends QContainer<MOperati
 
     private static final long serialVersionUID = -6856661540710930040L;
 
+    /**
+     * If `QOperationExecution.class` is not enough because of generics,
+     * try `QOperationExecution.CLASS`.
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public static final Class<QOperationExecution<MObject>> CLASS =
+            (Class) QOperationExecution.class;
+
     public static final String TABLE_NAME = "m_operation_execution";
 
     public static final ColumnMetadata STATUS =

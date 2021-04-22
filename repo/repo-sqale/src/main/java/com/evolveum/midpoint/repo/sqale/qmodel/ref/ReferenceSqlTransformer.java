@@ -19,7 +19,8 @@ import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
  * @param <OR> row type of the reference owner
  */
 public class ReferenceSqlTransformer<Q extends QReference<R, OR>, R extends MReference, OR>
-        extends SqaleTransformerBase<Referencable, Q, R> {
+        extends SqaleTransformerBase<Referencable, Q, R>
+        implements TransformerForOwnedBy<Referencable, R, OR> {
 
     private final QReferenceMapping<Q, R, ?, OR> mapping;
 
@@ -39,7 +40,8 @@ public class ReferenceSqlTransformer<Q extends QReference<R, OR>, R extends MRef
      * by {@link QReferenceMapping#newRowObject(Object)} including setting FK columns.
      * All the other columns are based on a single schema type, so there is no variation.
      */
-    public void insert(Referencable schemaObject, OR ownerRow, JdbcSession jdbcSession) {
+    @Override
+    public R insert(Referencable schemaObject, OR ownerRow, JdbcSession jdbcSession) {
         R row = mapping.newRowObject(ownerRow);
         // row.referenceType is DB generated, must be kept NULL, but it will match referenceType
         row.relationId = processCacheableRelation(schemaObject.getRelation());
@@ -47,5 +49,6 @@ public class ReferenceSqlTransformer<Q extends QReference<R, OR>, R extends MRef
         row.targetType = schemaTypeToObjectType(schemaObject.getType());
 
         insert(row, jdbcSession);
+        return row;
     }
 }

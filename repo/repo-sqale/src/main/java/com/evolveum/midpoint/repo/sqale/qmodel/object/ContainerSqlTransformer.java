@@ -13,17 +13,20 @@ import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTransformerBase;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.TransformerForOwnedBy;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 
 /**
  * @param <S> schema type
  * @param <Q> type of entity path
- * @param <R> type of the transformed data, a row bean
+ * @param <R> type of the row bean for the table
  * @param <OR> type of the owner row (table owning the container)
  */
 public class ContainerSqlTransformer
         <S extends Containerable, Q extends QContainer<R, OR>, R extends MContainer, OR>
-        extends SqaleTransformerBase<S, Q, R> {
+        extends SqaleTransformerBase<S, Q, R>
+        implements TransformerForOwnedBy<S, R, OR> {
 
     private final QContainerMapping<S, Q, R, OR> mapping;
 
@@ -47,5 +50,10 @@ public class ContainerSqlTransformer
         row.cid = schemaObject.asPrismContainerValue().getId();
         // containerType is generated in DB, must be left null!
         return row;
+    }
+
+    @Override
+    public R insert(S schemaObject, OR ownerRow, JdbcSession jdbcSession) {
+        throw new UnsupportedOperationException("insert not implemented in the subclass");
     }
 }

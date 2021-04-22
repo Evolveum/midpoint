@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTransformerBase;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.AssignmentSqlTransformer;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
@@ -96,7 +95,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         R row = mapping.newRowObject();
 
         row.oid = oidToUUid(schemaObject.getOid());
-        // objectType MUST be left NULL, it's determined by PG
+        // objectType MUST be left NULL for INSERT, it's determined by PG
         setPolyString(schemaObject.getName(), o -> row.nameOrig = o, n -> row.nameNorm = n);
         // fullObject is managed outside of this method
         setReference(schemaObject.getTenantRef(),
@@ -150,6 +149,9 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
             @NotNull R row, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) {
         Objects.requireNonNull(row.oid);
 
+        // We're after insert, we can set this for the needs of owned entities (assignments).
+        row.objectType = MObjectType.fromSchemaType(schemaObject.getClass());
+
         MetadataType metadata = schemaObject.getMetadata();
         if (metadata != null) {
             storeRefs(row, metadata.getCreateApproverRef(),
@@ -160,15 +162,15 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
 
         List<TriggerType> triggers = schemaObject.getTrigger();
         if (!triggers.isEmpty()) {
-            TriggerSqlTransformer transformer =
-                    QTriggerMapping.INSTANCE.createTransformer(transformerSupport);
+            TriggerSqlTransformer<R> transformer =
+                    mapping.triggerMapping().createTransformer(transformerSupport);
             triggers.forEach(t -> transformer.insert(t, row, jdbcSession));
         }
 
         List<OperationExecutionType> operationExecutions = schemaObject.getOperationExecution();
         if (!operationExecutions.isEmpty()) {
-            OperationExecutionSqlTransformer transformer =
-                    QOperationExecutionMapping.INSTANCE.createTransformer(transformerSupport);
+            OperationExecutionSqlTransformer<R> transformer =
+                    mapping.operationExecutionMapping().createTransformer(transformerSupport);
             operationExecutions.forEach(oe -> transformer.insert(oe, row, jdbcSession));
         }
 
@@ -190,8 +192,8 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
             R row, AssignmentHolderType schemaObject, JdbcSession jdbcSession) {
         List<AssignmentType> assignments = schemaObject.getAssignment();
         if (!assignments.isEmpty()) {
-            AssignmentSqlTransformer transformer =
-                    QAssignmentMapping.INSTANCE.createTransformer(transformerSupport);
+            AssignmentSqlTransformer<R> transformer =
+                    mapping.assignmentMapping().createTransformer(transformerSupport);
             assignments.forEach(assignment ->
                     transformer.insert(assignment, row, jdbcSession));
         }

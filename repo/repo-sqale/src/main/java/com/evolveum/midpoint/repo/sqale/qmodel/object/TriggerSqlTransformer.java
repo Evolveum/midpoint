@@ -19,12 +19,14 @@ public class TriggerSqlTransformer<OR extends MObject>
         super(transformerSupport, mapping);
     }
 
-    public void insert(TriggerType schemaObject, MObject ownerRow, JdbcSession jdbcSession) {
+    @Override
+    public MTrigger insert(TriggerType schemaObject, OR ownerRow, JdbcSession jdbcSession) {
         MTrigger row = initRowObject(schemaObject, ownerRow.oid);
 
         row.handlerUriId = processCacheableUri(schemaObject.getHandlerUri());
         row.timestampValue = MiscUtil.asInstant(schemaObject.getTimestamp());
 
         insert(row, jdbcSession);
+        return row;
     }
 }

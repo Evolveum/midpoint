@@ -26,8 +26,8 @@ public class AssignmentSqlTransformer<OR extends MObject>
 
     // about duplication see the comment in ObjectSqlTransformer.toRowObjectWithoutFullObject
     @SuppressWarnings("DuplicatedCode")
-    public MAssignment insert(
-            AssignmentType assignment, MObject ownerRow, JdbcSession jdbcSession) {
+    @Override
+    public MAssignment insert(AssignmentType assignment, OR ownerRow, JdbcSession jdbcSession) {
         MAssignment row = initRowObject(assignment, ownerRow.oid);
 
         row.ownerType = ownerRow.objectType;

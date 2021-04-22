@@ -20,7 +20,8 @@ public class LookupTableRowSqlTransformer
         super(transformerSupport, mapping);
     }
 
-    public void insert(LookupTableRowType lookupTableRow,
+    @Override
+    public MLookupTableRow insert(LookupTableRowType lookupTableRow,
             MLookupTable ownerRow, JdbcSession jdbcSession) {
 
         MLookupTableRow row = initRowObject(lookupTableRow, ownerRow.oid);
@@ -30,5 +31,6 @@ public class LookupTableRowSqlTransformer
         row.lastChangeTimestamp = MiscUtil.asInstant(lookupTableRow.getLastChangeTimestamp());
 
         insert(row, jdbcSession);
+        return row;
     }
 }

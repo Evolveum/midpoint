@@ -34,6 +34,7 @@ import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.sqale.operations.AddObjectOperation;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.*;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
@@ -412,10 +413,14 @@ public class SqaleRepositoryService implements RepositoryService {
 
         S object = rootMapping.createTransformer(transformerSupport)
                 .toSchemaObject(result, root, Collections.emptyList());
+
         R rootRow = rootMapping.newRowObject();
         rootRow.oid = oid;
         rootRow.containerIdSeq = result.get(root.containerIdSeq);
+        // This column is generated, some sub-entities need it, but we can't push it to DB.
+        rootRow.objectType = MObjectType.fromSchemaType(object.getClass());
         // we don't care about full object in row
+
         return new RootUpdateContext<>(transformerSupport, jdbcSession, object, rootRow);
     }
 

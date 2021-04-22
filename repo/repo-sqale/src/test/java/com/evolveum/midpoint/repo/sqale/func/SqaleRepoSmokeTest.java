@@ -96,6 +96,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         }
 
         MUser row = selectOne(u, u.nameNorm.eq(userName));
+        assertThat(row).isNotNull();
         assertThat(row.policySituations).contains(1, 2);
         assertThat(row.subtypes).contains("subtype1", "subtype2");
         assertThat(row.ext.value).isEqualTo("{\"key\": \"value\", \"number\": 47}"); // normalized
@@ -115,6 +116,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         }
 
         row = selectOne(u, u.nameNorm.eq(userName));
+        assertThat(row).isNotNull();
         assertThat(row.policySituations).isNull();
         assertThat(row.subtypes).isNull();
         assertThat(row.ext).isNull();

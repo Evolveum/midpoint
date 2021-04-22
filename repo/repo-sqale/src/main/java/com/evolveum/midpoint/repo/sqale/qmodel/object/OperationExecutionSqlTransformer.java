@@ -19,7 +19,9 @@ public class OperationExecutionSqlTransformer<OR extends MObject>
         super(transformerSupport, mapping);
     }
 
-    public void insert(OperationExecutionType schemaObject, MObject ownerRow, JdbcSession jdbcSession) {
+    @Override
+    public MOperationExecution insert(
+            OperationExecutionType schemaObject, OR ownerRow, JdbcSession jdbcSession) {
         MOperationExecution row = initRowObject(schemaObject, ownerRow.oid);
 
         row.status = schemaObject.getStatus();
@@ -35,5 +37,6 @@ public class OperationExecutionSqlTransformer<OR extends MObject>
         row.timestampValue = MiscUtil.asInstant(schemaObject.getTimestamp());
 
         insert(row, jdbcSession);
+        return row;
     }
 }

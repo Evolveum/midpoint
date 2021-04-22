@@ -109,7 +109,7 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
                     .populate(row)
                     .executeWithKey(root.oid);
 
-            row.objectType = objectType;
+            row.objectType = objectType; // sub-entities can use it, now it's safe to set it
             transformer.storeRelatedEntities(row, schemaObject, jdbcSession);
 
             jdbcSession.commit();
@@ -144,7 +144,7 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
                     .execute();
 
             row.oid = oid;
-            row.objectType = objectType;
+            row.objectType = objectType; // sub-entities can use it, now it's safe to set it
             transformer.storeRelatedEntities(row, schemaObject, jdbcSession);
 
             jdbcSession.commit();

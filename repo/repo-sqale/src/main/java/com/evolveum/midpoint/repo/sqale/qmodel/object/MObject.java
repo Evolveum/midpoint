@@ -19,7 +19,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 public class MObject {
 
     public UUID oid;
-    // objectType is read-only, it must be null before insert/updates of the whole M-bean
+    // generated column must be null for insert/updates, but trigger fixes it, so we can use it!
     public MObjectType objectType;
     public String nameOrig;
     public String nameNorm;

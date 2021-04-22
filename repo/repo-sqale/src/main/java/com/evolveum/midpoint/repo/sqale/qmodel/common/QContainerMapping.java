@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ContainerSqlTransformer;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QOwnedByMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 
 /**
@@ -22,7 +23,8 @@ import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
  * @param <OR> type of the owner row
  */
 public class QContainerMapping<S extends Containerable, Q extends QContainer<R, OR>, R extends MContainer, OR>
-        extends SqaleTableMapping<S, Q, R> {
+        extends SqaleTableMapping<S, Q, R>
+        implements QOwnedByMapping<S, R, OR> {
 
     public static final String DEFAULT_ALIAS_NAME = "c";
 
