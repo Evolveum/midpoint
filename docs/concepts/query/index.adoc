@@ -1,6 +1,10 @@
 = MidPoint Query Mechanisms
 :page-nav-title: Query
 :page-wiki-name: Object Query
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-12-03T14:09:37.917+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-10-09T11:35:35.793+02:00
 
 MidPoint repository implements an abstraction of an object-oriented data store.
 The data may be stored in several types of relational databases (with even more possibility for future).

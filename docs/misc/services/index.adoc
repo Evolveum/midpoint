@@ -1,5 +1,9 @@
 = Services
 :page-wiki-name: Services
+:page-wiki-metadata-create-user: katkav
+:page-wiki-metadata-create-date: 2016-08-16T11:51:42.847+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2016-08-18T19:10:33.466+02:00
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
@@ -92,10 +96,3 @@ The brief comparison which object type to use in which situation can be also fin
 * wiki:Organizational+Structure[Organizational Structure]
 
 * wiki:Roles,+Services+and+Orgs[Roles, Services and Orgs]
-
-
-
-
-
-
-

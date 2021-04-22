@@ -1,6 +1,10 @@
 = Function Libraries Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Function Libraries Configuration
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-10-23T11:46:48.979+02:00
+:page-wiki-metadata-modify-user: vix
+:page-wiki-metadata-modify-date: 2019-03-07T10:00:33.886+01:00
 :page-since: "3.7"
 
 
@@ -187,4 +191,3 @@ Each time you want to call function defined in your function library, you must d
 * wiki:Mappings+and+Expressions[Mappings and Expressions]
 
 * wiki:Expression[Expression]
-

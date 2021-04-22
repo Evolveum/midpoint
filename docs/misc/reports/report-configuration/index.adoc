@@ -1,5 +1,9 @@
 = Report Configuration
 :page-wiki-name: Report Configuration
+:page-wiki-metadata-create-user: katkav
+:page-wiki-metadata-create-date: 2015-07-06T10:16:32.230+02:00
+:page-wiki-metadata-modify-user: mmacik
+:page-wiki-metadata-modify-date: 2020-12-04T09:35:19.721+01:00
 :page-upkeep-status: orange
 :page-toc: top
 
@@ -1096,4 +1100,3 @@ Target of assignment define via name of role variable _role_name_.  Variables _v
 * wiki:Expression+Profiles[Expression Profiles]
 
 * wiki:Security+Guide[Security Guide]
-

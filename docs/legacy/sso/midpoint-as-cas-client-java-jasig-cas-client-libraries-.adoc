@@ -1,5 +1,9 @@
 = MidPoint as CAS Client (Java Jasig CAS Client libraries)
 :page-wiki-name: MidPoint as CAS Client (Java Jasig CAS Client libraries)
+:page-wiki-metadata-create-user: katkav
+:page-wiki-metadata-create-date: 2015-02-05T15:35:23.553+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-04-03T15:12:28.774+02:00
 :page-obsolete: true
 
 

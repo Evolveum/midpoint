@@ -1,5 +1,9 @@
 = Maintaining midPoint Configuration as Files
 :page-wiki-name: Maintaining midPoint Configuration as Files
+:page-wiki-metadata-create-user: vix
+:page-wiki-metadata-create-date: 2016-04-25T18:26:51.221+02:00
+:page-wiki-metadata-modify-user: vix
+:page-wiki-metadata-modify-date: 2016-04-26T22:42:00.903+02:00
 :page-alias: { "parent" : "/midpoint/guides/" }
 :page-upkeep-status: orange
 
@@ -225,4 +229,3 @@ That's why we intend to further change and simplify the resource wizard in the f
 
 Best practice is using the resource wizard for basic resource configuration.
 If you need to configure schema handling with complex mappings and especially with multiple object types, then we recommend to export the resource to XML and maintain as XML file.
-

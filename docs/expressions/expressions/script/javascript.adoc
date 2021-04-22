@@ -1,6 +1,10 @@
 = JavaScript Expressions
 :page-nav-title: JavaScript
 :page-wiki-name: ECMAScript Expressions
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-04-17T19:12:53.219+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2012-10-01T12:39:34.082+02:00
 :page-upkeep-status: green
 
 ECMAScript (JavaScript) is a supported expression language in midPoint.
@@ -29,4 +33,3 @@ user == null ? null : user.getName();
 ----
 user.getGivenName() + ' ' + user.getFamilyName();
 ----
-

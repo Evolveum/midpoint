@@ -1,6 +1,10 @@
 = Security Policy Customization - DEPRECATED
 :page-nav-title: Deprecated Configuration
 :page-wiki-name: Security Policy Customization - DEPRECATED
+:page-wiki-metadata-create-user: vix
+:page-wiki-metadata-create-date: 2011-11-15T12:24:34.788+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-03-30T13:51:19.882+02:00
 :page-deprecated: true
 :page-replaced-by: ../
 :page-upkeep-status: green
@@ -56,4 +60,3 @@ You have to restart the application server after this change.
 ====
 Do not change anything else unless you know what you are doing.
 ====
-

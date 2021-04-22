@@ -1,5 +1,9 @@
 = IDM Model Interface
 :page-wiki-name: IDM Model Interface
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-09-27T10:53:12.691+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-09-08T14:02:14.858+02:00
 :page-upkeep-status: orange
 :page-upkeep-note: is this s right concept to describe interfaces?
 
@@ -260,4 +264,3 @@ development)
 == See Also
 
 * wiki:IDM+Model+Interface+Introduction[IDM Model Interface Introduction]
-

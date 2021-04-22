@@ -1,6 +1,10 @@
 = Configuring Notifications
 :page-nav-title: Configuration
 :page-wiki-name: Configuring notifications
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2013-06-27T17:18:41.087+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2019-08-06T13:19:38.073+02:00
 :page-toc: top
 :page-upkeep-status: yellow
 

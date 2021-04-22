@@ -1,5 +1,9 @@
 = Repo Ninja
 :page-wiki-name: Repo Ninja
+:page-wiki-metadata-create-user: lazyman
+:page-wiki-metadata-create-date: 2013-02-28T15:50:12.374+01:00
+:page-wiki-metadata-modify-user: lazyman
+:page-wiki-metadata-modify-date: 2017-12-13T16:48:07.108+01:00
 :page-obsolete: true
 :page-obsolete-since: "3.7"
 :page-replaced-by: /midpoint/reference/deployment/ninja/
@@ -151,4 +155,3 @@ The binary distribution scripts set this property for all invocations.
 
 . JDBC drivers (mysql, postgresql, h2) are already bundled.
 If you use Ninja with Oracle or MS SQL Server you have to add jdbc driver jar libraries to lib folder before you run this application.
-

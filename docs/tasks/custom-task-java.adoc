@@ -1,5 +1,9 @@
 = Create Custom Task (Java)
 :page-wiki-name: Create Custom Task
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2015-01-08T11:26:34.864+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-12-21T11:19:23.799+01:00
 :page-upkeep-status: yellow
 
 MidPoint wiki:Task+Manager[Task Manager] is designed for extensibility.
@@ -105,4 +109,3 @@ The task instance is passed as a parameter.
 * wiki:Task+Manager+Interface[Task Manager Interface]
 
 * wiki:Task+Manager+Configuration[Task Manager Configuration]
-

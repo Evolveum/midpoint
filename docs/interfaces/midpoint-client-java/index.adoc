@@ -1,5 +1,9 @@
 = MidPoint Client Library (Java)
 :page-wiki-name: MidPoint Client Library
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-09-13T10:41:55.941+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2020-04-20T12:43:12.719+02:00
 :page-alias: { "parent" : "/midpoint/devel/" }
 :page-upkeep-status: yellow
 :page-toc: top
@@ -272,4 +276,3 @@ Stabilization, final release, full compatibility.
 == See Also
 
 * wiki:REST+API[REST API]
-

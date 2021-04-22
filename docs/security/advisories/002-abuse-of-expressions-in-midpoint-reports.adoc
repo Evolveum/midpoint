@@ -3,6 +3,10 @@
 :page-display-order: 2
 :page-upkeep-status: green
 :page-wiki-name: Security Advisory: Abuse of expressions in midPoint reports
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-04-08T16:00:42.996+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-04-08T16:46:05.667+02:00
 
 *Date:* 8 Apr 2019
 
@@ -101,4 +105,3 @@ This bug was reported by Martin Lizner by the means of link:https://joinup.ec.eu
 * bug:MID-5193[]
 
 * link:https://hackerone.com/midpoint_h1c?view_policy=true[MidPoint page at Hackerone]
-

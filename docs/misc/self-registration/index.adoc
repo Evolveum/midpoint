@@ -1,5 +1,9 @@
 = Self Registration Configuration
 :page-wiki-name: Self Registration Configuration
+:page-wiki-metadata-create-user: katkav
+:page-wiki-metadata-create-date: 2016-11-04T13:05:05.383+01:00
+:page-wiki-metadata-modify-user: khazelton
+:page-wiki-metadata-modify-date: 2021-02-23T15:21:40.478+01:00
 :page-toc: top
 :page-since: "3.5"
 :page-upkeep-status: yellow
@@ -360,4 +364,3 @@ image::confirmation-success.png[]
 * wiki:Custom+forms[Custom Forms]
 
 * wiki:Password+Policy[Password Policy]
-

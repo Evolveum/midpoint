@@ -1,6 +1,10 @@
 = REST Authentication
 :page-nav-title: Authentication
 :page-wiki-name: REST Authentication
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-03-17T14:35:11.808+01:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2020-06-02T10:29:25.618+02:00
 :page-toc: top
 
 
@@ -162,4 +166,3 @@ Support for OAuth2 is planned in midPoint 3.7.
 == See Also
 
 * wiki:REST+API[REST API]
-

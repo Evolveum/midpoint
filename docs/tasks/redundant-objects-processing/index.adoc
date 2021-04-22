@@ -1,5 +1,9 @@
 = Redundant Objects Processing Elimination
 :page-wiki-name: Redundant objects processing elimination HOWTO
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2018-04-04T20:03:06.088+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2018-04-04T20:19:04.502+02:00
 :page-upkeep-status: orange
 
 It often happens that a query yields multiple occurrences of the same object.
@@ -469,4 +473,3 @@ When doing recomputation (or basically any iterative task), `mext:searchOptions`
 
 The `distinct` option may have some effects on performance, perhaps depending on DBMS used and other circumstances.
 (It has to be tried in a particular environment to find out.)
-

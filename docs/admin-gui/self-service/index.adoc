@@ -1,5 +1,9 @@
 = Self-Service
 :page-wiki-name: Self Services
+:page-wiki-metadata-create-user: honchar
+:page-wiki-metadata-create-date: 2016-07-14T11:08:23.035+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2021-02-26T14:36:14.168+01:00
 :page-upkeep-status: orange
 
 To make midPoint GUI more user friendly, especially for usual (not administrator) users, a separate section of Self Services was created.

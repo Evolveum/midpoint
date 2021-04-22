@@ -1,5 +1,9 @@
 = Thread Dump Collection And Inspection
 :page-wiki-name: Thread dump collection and inspection HOWTO
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2019-02-11T11:47:17.431+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2019-02-11T11:47:17.431+01:00
 :page-since: "4.0"
 :page-upkeep-status: yellow
 
@@ -59,4 +63,3 @@ Current midPoint setting is that as soon as it detects that the task is stalled,
 This is repeated each hour until the task starts making progress or is stopped.
 
 The current (hard-wired) setting is that the last 5 dumps are kept for each task.
-

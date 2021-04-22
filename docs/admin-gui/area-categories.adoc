@@ -1,6 +1,10 @@
 = User Interface Area Categories
 :page-nav-title: Area Categories
 :page-wiki-name: User Interface Area Categories
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-07-13T10:49:08.177+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2018-07-13T11:06:55.455+02:00
 
 ++++
 {% include missing-incomplete.html %}
@@ -59,4 +63,3 @@ Functionality available to a common identity administrator.
 == See Also
 
 * wiki:Relation+Configuration[Relation Configuration]
-

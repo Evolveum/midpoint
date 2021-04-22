@@ -1,5 +1,9 @@
 = Recompute Task
 :page-wiki-name: Recompute Task
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-03-03T14:58:32.782+01:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2020-11-23T22:06:56.489+01:00
 :page-upkeep-status: yellow
 
 The responsibility of the recompute task is to process the focal objects (e.g. users), recompute their state with respect to all applicable policies and update any data that need to be updated.
@@ -91,4 +95,3 @@ The following example shows configuration for _light recompute_ - recompute proc
 * wiki:Synchronization+Tasks[Synchronization Tasks]
 
 * wiki:Connector+Development+Guide[Connector Development Guide - DiscoverySupport]
-

@@ -1,5 +1,9 @@
 = Post-Report Script
 :page-wiki-name: Post report script HOWTO
+:page-wiki-metadata-create-user: mmacik
+:page-wiki-metadata-create-date: 2017-11-09T13:21:37.350+01:00
+:page-wiki-metadata-modify-user: martin.lizner
+:page-wiki-metadata-modify-date: 2018-01-30T18:24:13.288+01:00
 :page-upkeep-status: yellow
 
 == Introduction
@@ -106,6 +110,3 @@ The report will be generated even if there is an error during the execution of t
 == See Also
 
 ** wiki:Report+Configuration[Report configuration]
-
-
-

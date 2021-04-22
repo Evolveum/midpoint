@@ -1,5 +1,9 @@
 = Task Template
 :page-wiki-name: Task template HOWTO
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-10-24T12:19:40.968+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-10-26T14:30:43.173+02:00
 :page-since: "3.7"
 :page-upkeep-status: yellow
 
@@ -129,4 +133,3 @@ This property can be set explicitly to force task cleanup after a specific inter
 * wiki:Variables+in+bulk+actions[Variables in bulk actions]
 
 * wiki:Task+Manager[Task Manager]
-

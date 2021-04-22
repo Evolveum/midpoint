@@ -1,5 +1,9 @@
 = Unix Story Test
 :page-wiki-name: Unix Story Test
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2015-09-30T12:26:09.493+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2015-09-30T12:26:09.493+02:00
 :page-upkeep-status: orange
 :page-toc: top
 
@@ -113,4 +117,3 @@ It is assumed that this is both general-purpose directory system and also a dire
 * wiki:Configuration+Samples[Configuration Sample]
 
 * wiki:Sequences[Sequences]
-

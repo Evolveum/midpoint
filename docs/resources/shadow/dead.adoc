@@ -1,5 +1,9 @@
 = Pending Operations and Dead Shadows
 :page-wiki-name: Pending Operations and Dead Shadows
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-08-02T09:26:03.946+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2018-08-06T14:25:39.119+02:00
 :page-upkeep-status: yellow
 
 * There must be at most one "live" shadow for each resource object (account).
@@ -204,4 +208,3 @@ Provisioning will stop playing Schroedinger here.
 Dead shadow will remain dead.
 And provisioning will create new live shadow for the account.
 Discovery will run and all that usual stuff.
-

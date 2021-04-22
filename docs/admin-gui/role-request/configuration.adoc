@@ -1,6 +1,10 @@
 = Role Request and Shopping Cart Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Role Request and Shopping Cart Configuration
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-07-10T14:26:50.466+02:00
+:page-wiki-metadata-modify-user: rpudil
+:page-wiki-metadata-modify-date: 2018-08-29T14:47:31.137+02:00
 :page-since: "3.5"
 :page-since-improved: [ "3.6" ]
 :page-upkeep-status: yellow
@@ -119,4 +123,3 @@ The constraints can be used to enforce single-assignment role policy like this:
 * wiki:Role+Catalog+Configuration[Role Catalog Configuration]
 
 * wiki:Role+Request+and+Shopping+Cart[Role Request and Shopping Cart]
-

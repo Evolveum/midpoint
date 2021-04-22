@@ -1,5 +1,9 @@
 = Migrating encryption keys
 :page-wiki-name: Migrating encryption keys
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2018-10-16T18:36:49.744+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2018-10-16T18:58:52.421+02:00
 :page-since: 3.9
 :page-upkeep-status: yellow
 
@@ -247,4 +251,3 @@ This is to be tested yet.
 
 Schema-less items (e.g. improperly configured resources that contain encrypted data in the configuration section but there are no definitions available for those data) will *not* be processed.
 They will not be listed among encryption keys used nor reencrypted.
-

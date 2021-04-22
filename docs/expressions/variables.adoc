@@ -1,6 +1,10 @@
 = Expression and Mapping Variables
 :page-nav-title: Variables
 :page-wiki-name: Expression Variables
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-06-28T11:52:53.815+02:00
+:page-wiki-metadata-modify-user: katkav
+:page-wiki-metadata-modify-date: 2017-11-27T09:47:53.529+01:00
 
 There are many variables that can be used in midPoint expressions and mappings.
 Some of the variables are available in all the expressions, some are specific to some places.
@@ -313,4 +317,3 @@ Please wiki:Creating+a+Bug+Report[report the bug]. We will fix that.
 * wiki:Mapping[Mapping]
 
 * wiki:Troubleshooting+Mappings[Troubleshooting Mappings]
-

@@ -1,5 +1,9 @@
 = Query API
 :page-wiki-name: Query API
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2015-11-17T12:49:52.756+01:00
+:page-wiki-metadata-modify-user: katkav
+:page-wiki-metadata-modify-date: 2020-03-30T11:27:33.062+02:00
 :page-display-order: 500
 :page-toc: top
 
@@ -1231,5 +1235,3 @@ ObjectQuery query = prismContext.queryFor(UserType.class)
 		ShadowType.F_RESOURCE_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME)
 	.containsPoly("CSV").matchingNorm().build();
 ----
-
-

@@ -1,6 +1,10 @@
 = MidPoint Authorization Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Authorization Configuration
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-06-30T12:21:47.603+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-04-23T15:03:48.764+02:00
 :page-upkeep-status: green
 :page-toc: top
 
@@ -1209,4 +1213,3 @@ The bottom line is that the specifics of password change interactions are implem
 * wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
 
 * wiki:Organizational+Structure[Organizational Structure]
-

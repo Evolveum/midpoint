@@ -1,5 +1,9 @@
 = MidPoint Home Directory
 :page-wiki-name: MidPoint Home Directory
+:page-wiki-metadata-create-user: mamut
+:page-wiki-metadata-create-date: 2011-07-22T08:27:58.545+02:00
+:page-wiki-metadata-modify-user: vix
+:page-wiki-metadata-modify-date: 2018-10-18T08:59:01.798+02:00
 
 MidPoint Home Directory is a filesystem directory that provides a _home_ to midPoint installation.
 It is a directory that midPoint uses to store initial configuration, cryptographic keys, log files and similar "variable" content.
@@ -80,4 +84,3 @@ MidPoint will try to create the `midpoint.home` directory if it does not already
 == See Also
 
 * wiki:Stand-Alone+Deployment[Stand-Alone Deployment]
-

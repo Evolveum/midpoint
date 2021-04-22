@@ -1,5 +1,9 @@
 = Workflow security (authorizations)
 :page-wiki-name: Workflow security (authorizations)
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-05-24T11:21:14.676+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2019-10-16T19:46:24.251+02:00
 :page-obsolete: true
 :page-obsolete-since: "4.0"
 

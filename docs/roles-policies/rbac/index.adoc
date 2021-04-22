@@ -1,6 +1,10 @@
 = Advanced Hybrid RBAC
 :page-nav-title: RBAC
 :page-wiki-name: Advanced Hybrid RBAC
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-05-03T19:25:24.059+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-09-20T13:12:53.208+02:00
 :page-toc: top
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }

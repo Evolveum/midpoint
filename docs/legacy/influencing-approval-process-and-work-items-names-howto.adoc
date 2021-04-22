@@ -1,5 +1,9 @@
 = Influencing approval process and work items names HOWTO
 :page-wiki-name: Influencing approval process and work items names HOWTO
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-10-18T17:16:40.454+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-10-18T17:16:40.454+02:00
 :page-since: "3.7"
 :page-obsolete: true
 
@@ -74,4 +78,3 @@ This is an example:
 ----
 
 TODO we need to add role name to the message, in order to provide meaningful information in the work item or process list.
-

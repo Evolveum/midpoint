@@ -1,5 +1,9 @@
 = Role Lifecycle
 :page-wiki-name: Role Lifecycle
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-11-28T14:27:36.604+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-11-30T11:46:44.461+01:00
 :page-since: "3.5"
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
@@ -70,4 +74,3 @@ See wiki:Object+Lifecycle[Object Lifecycle] page for more details.
 * wiki:Policy+Rules[Policy Rules]
 
 * wiki:Object+Lifecycle[Object Lifecycle]
-

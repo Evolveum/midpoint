@@ -1,5 +1,9 @@
 = User-Friendly Policy Selection
 :page-wiki-name: User-Friendly Policy Selection
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-03-26T15:34:19.547+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2018-04-09T18:34:20.259+02:00
 :page-since: "3.8"
 :page-toc: top
 :page-midpoint-feature: true
@@ -106,4 +110,3 @@ Global policy rules can be used to apply the rules to all selected objects based
 * wiki:Using+Metaroles+for+Policy+Configuration[Using Metaroles for Policy Configuration]
 
 * wiki:Policy+Rules[Policy Rules]
-

@@ -1,5 +1,9 @@
 = Repository Objects Inspection
 :page-wiki-name: Repository objects inspection HOWTO
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-07-06T15:22:10.924+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-07-06T19:32:39.446+02:00
 :page-upkeep-status: orange
 
 MidPoint performance can be sometimes lower than expected from quite unusual reason: objects in repository could grow too large.
@@ -242,4 +246,3 @@ Histogram:
 
 2017-07-06 19:32:00,205 [] [midPointScheduler_Worker-1] INFO (com.evolveum.midpoint.model.impl.integrity.ObjectIntegrityCheckResultHandler): Objects processed with errors: 0
 ----
-

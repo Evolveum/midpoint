@@ -1,5 +1,9 @@
 = Post-authentication configuration
 :page-wiki-name: Post-authentication configuration
+:page-wiki-metadata-create-user: katkav
+:page-wiki-metadata-create-date: 2018-06-08T16:17:09.351+02:00
+:page-wiki-metadata-modify-user: katkav
+:page-wiki-metadata-modify-date: 2018-09-25T10:01:53.249+02:00
 :page-since: "3.8.1"
 :page-upkeep-status: yellow
 :page-toc: top
@@ -124,4 +128,3 @@ After successful post-authentication normal assignments are taken into account.
 * wiki:Authorization+Configuration[Authorization Configuration]
 
 * wiki:GUI+Authorizations[GUI Authorizations]
-

@@ -1,5 +1,9 @@
 = CSVFile Connector Migration
 :page-wiki-name: CSVFile Connector Migration
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-12-09T17:00:08.049+01:00
+:page-wiki-metadata-modify-user: lazyman
+:page-wiki-metadata-modify-date: 2017-07-17T14:36:38.961+02:00
 :page-obsolete: true
 
 [WARNING]
@@ -282,4 +286,3 @@ Therefore please plan the migration to the new connector accordingly.
 * wiki:ICF+Issues[ICF Issues]
 
 * wiki:Release+3.6[Release 3.6]
-

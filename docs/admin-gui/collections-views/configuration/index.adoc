@@ -2,6 +2,10 @@
 :page-nav-title: Configuration
 :page-display-order: 50
 :page-wiki-name: Object Collections and Views Configuration
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-04-24T14:36:12.315+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2021-02-26T14:25:04.587+01:00
 :page-since: "4.0"
 :page-toc: top
 
@@ -431,4 +435,3 @@ Therefore *link:https://evolveum.com/services/professional-support/[midPoint Pla
 * wiki:Compliance[Compliance]
 
 * wiki:Customizable+Dashboards[Customizable Dashboards]
-

@@ -1,5 +1,9 @@
 = Usual Troubleshooting Steps
 :page-wiki-name: Usual Troubleshooting Steps
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-08-08T11:09:59.494+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2015-05-14T16:34:31.842+02:00
 :page-display-order: 20
 :page-tag: guide
 :page-upkeep-status: yellow
@@ -103,4 +107,3 @@ There are some occasions when all these steps are not enough to diagnose the pro
 Such (relative rare) occasions usually hits about a programming bug: wrong exception handling, wrong error reporting a wild variety (usually stupid) programming mistakes.
 This is a time for a brutal solution.
 Please see wiki:Aggressive+Log+Report[Aggressive Log Report] for more instructions.
-

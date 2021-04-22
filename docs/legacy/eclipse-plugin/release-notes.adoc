@@ -1,5 +1,9 @@
 = Eclipse Plugin Release Notes
 :page-wiki-name: Eclipse plugin release notes
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2019-05-03T08:01:28.943+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2020-09-25T14:29:07.339+02:00
 :page-obsolete: true
 :page-replaced-by: /midpoint/tools/studio/
 
@@ -46,6 +50,3 @@ Archetype names require `v4.0devel-1060-gfa96a3d`  or later.
 
 
 |===
-
-
-

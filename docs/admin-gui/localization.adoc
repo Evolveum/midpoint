@@ -1,5 +1,9 @@
 = Localization
 :page-wiki-name: Localization
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-04-24T08:13:11.429+02:00
+:page-wiki-metadata-modify-user: petr.gasparik
+:page-wiki-metadata-modify-date: 2021-01-27T10:31:25.054+01:00
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
@@ -114,4 +118,3 @@ MidPoint does not fully support such deployment and it is expected that a wiki:S
 * wiki:PolyString[PolyString]
 
 * wiki:Participation[Participation]
-

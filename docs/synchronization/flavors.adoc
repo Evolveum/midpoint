@@ -1,6 +1,10 @@
 = Synchronization Flavors
 :page-nav-title: Flavors
 :page-wiki-name: Synchronization Flavors
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-02-02T14:45:46.241+01:00
+:page-wiki-metadata-modify-user: rpudil
+:page-wiki-metadata-modify-date: 2019-12-06T10:15:49.946+01:00
 :page-upkeep-status: red
 
 Synchronization routine is executed any time that midPoint has a chance to do it.
@@ -75,4 +79,3 @@ More mechanisms may be be added in the future (such as password synchronization)
 * wiki:Synchronization+Examples[Synchronization Examples]
 
 * wiki:Connector+Development+Guide[Connector Development Guide - DiscoverySupport]
-

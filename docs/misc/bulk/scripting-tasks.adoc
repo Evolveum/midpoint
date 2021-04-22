@@ -1,5 +1,9 @@
 = Scripting Tasks
 :page-wiki-name: Scripting tasks
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2018-03-28T14:11:52.623+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-03-03T13:35:28.883+01:00
 :page-upkeep-status: yellow
 :page-alias: { "parent" : "/midpoint/reference/tasks/", "slug" : "bulk",  "title" : "Scripting Tasks (Bulk Actions)" }
 
@@ -164,4 +168,3 @@ An example of distribution on cluster nodes is shown below:
 
 Here the work to be done is segmented into 16^3^ = 4096 buckets that are processed by two worker tasks on each node.
 (This number of buckets is appropriate for - let's say - 40.000-400.000 users, having 100-1000 users in one bucket.)
-

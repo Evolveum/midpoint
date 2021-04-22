@@ -1,5 +1,9 @@
 = Resource Schema
 :page-wiki-name: Resource Schema
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T12:02:17.260+02:00
+:page-wiki-metadata-modify-user: peterkortvel@gmail.com
+:page-wiki-metadata-modify-date: 2016-02-20T15:45:44.635+01:00
 :page-toc: top
 :page-upkeep-status: orange
 
@@ -410,4 +414,3 @@ TODO
 * wiki:Resource+and+Connector+Schema+Explanation[Resource and Connector Schema Explanation]
 
 * wiki:Resource+Schema+Mapping[Resource Schema Mapping]
-

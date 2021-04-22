@@ -1,6 +1,10 @@
 = Task Manager Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Task Manager Configuration
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-12-21T10:21:45.151+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-01-28T19:18:01.617+01:00
 :page-upkeep-status: orange
 
 == Basic information
@@ -175,6 +179,3 @@ An additional approximate check that task is not started at two nodes at once.
 |
 
 |===
-
-
-

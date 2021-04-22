@@ -1,5 +1,9 @@
 = Roles, Metaroles and Generic Synchronization
 :page-wiki-name: Roles, Metaroles and Generic Synchronization
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-07-23T12:09:36.668+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-10-30T15:00:01.326+01:00
 :page-upkeep-status: yellow
 :page-liquid:
 :page-toc: top
@@ -261,4 +265,3 @@ index -2 is the one before and so on.
 * wiki:Roles+and+Policies+Configuration[Roles and Policies Configuration]
 
 * wiki:Assignment+vs+Inducement[Assignment vs Inducement]
-

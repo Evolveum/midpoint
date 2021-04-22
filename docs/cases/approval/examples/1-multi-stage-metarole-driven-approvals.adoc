@@ -1,5 +1,9 @@
 = Approval sample scenario 1: Multi-stage, metarole-driven approvals
 :page-wiki-name: Approval sample scenario 1: Multi-stage, metarole-driven approvals
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-01-13T15:50:29.462+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2019-09-16T16:42:49.058+02:00
 :page-upkeep-status: yellow
 
 In this scenario we'll show four-stage approvals for role assignments.
@@ -347,4 +351,3 @@ We see that there were two approvers found (`cheese`, `chef`). Out of them, `che
 ----
 
 The process here ends; the request is not approved.
-

@@ -1,5 +1,9 @@
 = Access Certification
 :page-wiki-name: Access Certification
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2015-09-08T10:37:07.596+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-06-18T07:37:54.090+02:00
 :page-toc: top
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
@@ -275,5 +279,3 @@ More information can be found on wiki:Access+Certification+Notifications[Access 
 
 Individual operations are authorized in a specific way.
 For detailed information, please see wiki:Access+Certification+Security[Access Certification Security] page.
-
-

@@ -1,5 +1,9 @@
 = Constants
 :page-wiki-name: Constants
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-05-16T10:28:58.038+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-05-16T10:37:25.198+02:00
 :page-since: "3.6"
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }

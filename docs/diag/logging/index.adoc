@@ -1,5 +1,9 @@
 = Logging
 :page-wiki-name: Logging
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-02-07T17:51:22.159+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2013-11-28T14:28:37.080+01:00
 :page-upkeep-status: red
 :page-upkeep-note: This is pathetic excuse for a logging page ...
 
@@ -32,4 +36,3 @@ expect4j.Expect4j.level = ALL
 == See Also
 
 * wiki:Useful+Loggers[Useful Loggers]
-

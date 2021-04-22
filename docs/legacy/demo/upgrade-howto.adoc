@@ -1,5 +1,9 @@
 = midPoint Demo Upgrade HOWTO
 :page-wiki-name: midPoint Demo Upgrade HOWTO
+:page-wiki-metadata-create-user: mdevecka
+:page-wiki-metadata-create-date: 2014-08-21T19:10:14.612+02:00
+:page-wiki-metadata-modify-user: ifarinic
+:page-wiki-metadata-modify-date: 2015-07-07T17:30:47.103+02:00
 :page-obsolete: true
 
 == midPoint demo migration guide
@@ -322,6 +326,3 @@ link:[xsi:type="xsd:int]">97</link:http://gen51token[gen51:token]> +
     </extension> +
  +
     \=================================================================================================================================================================
-
-
-

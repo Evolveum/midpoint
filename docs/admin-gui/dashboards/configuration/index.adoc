@@ -1,6 +1,10 @@
 = Dashboard Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Dashboard configuration
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2019-08-06T13:26:25.499+02:00
+:page-wiki-metadata-modify-user: katkav
+:page-wiki-metadata-modify-date: 2020-12-10T12:36:51.667+01:00
 :page-since: "4.2"
 :page-toc: top
 
@@ -518,4 +522,3 @@ wiki:Example+of+dashboard+report:+Audit+events+which+change+administrativeStatus
 '''
 
 For whole sample please see link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/dashboard[dashboard-system-status].
-

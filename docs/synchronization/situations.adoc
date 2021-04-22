@@ -1,6 +1,10 @@
 = Synchronization Situations
 :page-nav-title: Situations
 :page-wiki-name: Synchronization Situations
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T12:34:21.434+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2014-01-07T15:56:54.069+01:00
 
 When midPoint detects an synchronization event it  is categorized into one of the _situations_. The _situation_ describes how the change relates to the midPoint state regarding the changed resource object (account), user and the midPoint policies.
 
@@ -143,4 +147,3 @@ h| 2 or more
 * wiki:Synchronization+Configuration[Synchronization Configuration]
 
 * wiki:Correlation+and+Confirmation+Expressions[Correlation and Confirmation Expressions]
-

@@ -1,6 +1,10 @@
 = Resource Consistency Configuration
 :page-nav-title: Consistency
 :page-wiki-name: Resource Consistency Configuration
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-09-27T10:31:10.624+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-09-27T10:35:07.440+02:00
 :page-upkeep-status: red
 
 [TIP]
@@ -63,4 +67,3 @@ But even avoidDuplicateValues is OK, despite the theoretical limitations. The  a
 * wiki:Resource+Configuration[Resource Configuration]
 
 * wiki:LDAP+Explanation[LDAP Explanation]
-

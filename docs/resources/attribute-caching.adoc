@@ -1,5 +1,9 @@
 = Attribute Caching
 :page-wiki-name: Attribute Caching
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-10-26T18:11:44.898+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2016-10-26T18:11:44.898+02:00
 :page-since: "3.5"
 :page-experimental: true
 :page-midpoint-feature: true
@@ -99,4 +103,3 @@ Therefore use this feature with care.
 == See Also
 
 * wiki:Resource+Configuration[Resource Configuration]
-

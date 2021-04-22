@@ -1,5 +1,9 @@
 = SchemaDoc
 :page-wiki-name: SchemaDoc
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-01-09T11:59:22.051+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2021-01-28T18:07:48.011+01:00
 :page-upkeep-status: yellow
 
 SchemaDoc is a custom system to generate data model documentation directly from the schema definition files.

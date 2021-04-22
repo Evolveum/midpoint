@@ -1,5 +1,9 @@
 = Pipeline
 :page-wiki-name: Pipeline
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-05-11T19:01:09.418+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-05-11T19:08:41.885+02:00
 :page-upkeep-status: yellow
 
 == Description
@@ -54,4 +58,3 @@ Output of the last expression.
     </action>
 </pipeline>
 ----
-

@@ -1,6 +1,10 @@
 = Groovy Expressions
 :page-nav-title: Groovy
 :page-wiki-name: Groovy Expressions
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-04-17T19:12:08.185+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2012-10-01T12:39:11.464+02:00
 :page-upkeep-status: green
 
 Groovy is a supported expression language in midPoint.
@@ -28,4 +32,3 @@ user?.getName();
 ----
 user.getGivenName() + " " + user.getFamilyName();
 ----
-

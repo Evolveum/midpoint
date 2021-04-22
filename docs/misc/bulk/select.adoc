@@ -1,5 +1,9 @@
 = Select
 :page-wiki-name: Select
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-05-11T18:46:41.723+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-05-15T14:08:01.987+02:00
 :page-upkeep-status: yellow
 
 == Description
@@ -40,4 +44,3 @@ Values of selected item(s) in input values.
   <path>linkRef</path>
 </select>
 ----
-

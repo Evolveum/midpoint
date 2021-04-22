@@ -1,5 +1,9 @@
 = Object Lifecycle
 :page-wiki-name: Object Lifecycle
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-11-28T18:57:31.417+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-01-30T20:39:14.801+01:00
 :page-since: "3.5"
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
@@ -147,8 +151,3 @@ I.e. midPoint is not storing proposed assignments for requested assignments yet.
 * wiki:Activation[Activation]
 
 * wiki:Role+Lifecycle[Role Lifecycle]
-
-
-
-
-

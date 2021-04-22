@@ -1,5 +1,9 @@
 = Model Web Service SOAP Client
 :page-wiki-name: Model Web Service Client
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-12-03T12:38:53.556+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-06-25T06:53:35.403+02:00
 :page-obsolete: true
 
 [WARNING]
@@ -28,4 +32,3 @@ The semantics of model web service client library corresponds to the definition 
 * wiki:Model+Web+Service+Client+Sample[Model Web Service Client Sample]
 
 * wiki:IDM+Model+Web+Service+Interface[IDM Model Web Service Interface]
-

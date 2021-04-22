@@ -1,5 +1,9 @@
 = Spring Boot Actuator Endpoints
 :page-wiki-name: Spring Boot Actuator Endpoints
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2019-09-18T10:28:40.011+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2019-09-24T10:30:28.100+02:00
 :page-since: "4.0.1"
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }

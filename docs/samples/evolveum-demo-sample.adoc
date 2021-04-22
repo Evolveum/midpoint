@@ -1,5 +1,9 @@
 = Evolveum Demo Sample
 :page-wiki-name: Evolveum Demo Sample
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-03-13T11:19:14.855+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-06-05T15:29:06.534+02:00
 :page-toc: top
 :page-upkeep-status: orange
 
@@ -151,8 +155,3 @@ The aditor roles are not requestable at all.
 
 
 |===
-
-
-
-
-

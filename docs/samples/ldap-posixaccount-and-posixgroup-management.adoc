@@ -1,5 +1,9 @@
 = LDAP PosixAccount and PosixGroup Management
 :page-wiki-name: LDAP PosixAccount and PosixGroup Management
+:page-wiki-metadata-create-user: vix
+:page-wiki-metadata-create-date: 2016-07-14T18:51:15.704+02:00
+:page-wiki-metadata-modify-user: vix
+:page-wiki-metadata-modify-date: 2016-07-25T13:32:35.601+02:00
 :page-upkeep-status: yellow
 :page-toc: top
 
@@ -331,4 +335,3 @@ So all you need is to do is create roles which will have projections - posixGrou
 == See Also
 
 * wiki:Configuration+Samples[Configuration Samples]
-

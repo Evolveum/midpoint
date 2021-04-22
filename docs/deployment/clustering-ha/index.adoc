@@ -1,5 +1,9 @@
 = Clustering / high availability setup
 :page-wiki-name: Clustering / high availability setup
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2013-06-28T10:24:03.273+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-09-23T16:15:32.817+02:00
 :page-upkeep-status: yellow
 :page-toc: top
 
@@ -345,4 +349,3 @@ To do that, you can use e.g. this command line:
 ----
 java -jar h2-1.3.171.jar -tcp -tcpPort 6000 -tcpAllowOthers
 ----
-

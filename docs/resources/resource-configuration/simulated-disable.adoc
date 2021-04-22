@@ -1,5 +1,9 @@
 = Simulated Disable
 :page-wiki-name: Simulated Disable HOWTO
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-03-25T10:34:33.785+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2014-03-25T10:34:34.785+01:00
 :page-keywords: [ 'activation', 'capabilities' ]
 :page-alias: { "parent" : "/midpoint/guides/" }
 :page-upkeep-status: yellow
@@ -145,4 +149,3 @@ The rest is the same as in previous example.
 * wiki:Resource+Capabilities[Resource Capabilities]
 
 * wiki:Resource+Schema+Handling:+Activation[Resource Schema Handling: Activation]
-

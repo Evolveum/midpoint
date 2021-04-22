@@ -1,6 +1,10 @@
 = Expressions
 :page-display-order: 60
 :page-wiki-name: Expression
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-10-01T12:37:54.576+02:00
+:page-wiki-metadata-modify-user: katkav
+:page-wiki-metadata-modify-date: 2020-03-09T18:49:02.372+01:00
 :page-upkeep-status: yellow
 :page-toc: top
 
@@ -608,4 +612,3 @@ See wiki:Script+Expression+Sandboxing[Script Expression Sandboxing] for more det
 == See Also
 
 * wiki:Expression+Variables[Expression Variables]
-

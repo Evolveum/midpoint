@@ -1,6 +1,10 @@
 = Oracle 12c
 :page-nav-title: Oracle
 :page-wiki-name: Oracle 12c
+:page-wiki-metadata-create-user: lazyman
+:page-wiki-metadata-create-date: 2014-06-26T17:02:28.121+02:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2020-12-03T11:27:46.749+01:00
 :page-toc: top
 :page-upkeep-status: orange
 
@@ -63,4 +67,3 @@ When required files are prepared inside *tmp* directory, one *vagrant up* (and w
 
 Configuration sample above can be used, only *jdbcUrl* must be changed.
 Enjoy.
-

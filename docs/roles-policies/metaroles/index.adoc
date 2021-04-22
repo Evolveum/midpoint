@@ -1,5 +1,9 @@
 = Meta-roles
 :page-wiki-name: Metaroles
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-07-09T08:27:27.521+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-07-09T08:34:41.528+02:00
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-keywords: [ 'metarole', 'meta-role', 'metaroles', 'meta-roles', 'meta' ]
@@ -72,4 +76,3 @@ Thats what metarole can do.
 * wiki:Using+Metaroles+for+Policy+Configuration[Using Metaroles for Policy Configuration]
 
 * wiki:Archetypes[Archetypes]
-

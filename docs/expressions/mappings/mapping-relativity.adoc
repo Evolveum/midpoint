@@ -1,5 +1,9 @@
 = Mapping Relativity
 :page-wiki-name: Mapping Relativity
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-07-16T10:16:53.589+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-04-01T13:43:27.766+02:00
 :page-upkeep-status: orange
 :page-toc: top
 
@@ -229,4 +233,3 @@ Please see wiki:Complete+Relativity[Complete Relativity] page for more details.
 * wiki:Mappings+and+Expressions[Mappings and Expressions]
 
 * wiki:Complete+Relativity[Complete Relativity]
-

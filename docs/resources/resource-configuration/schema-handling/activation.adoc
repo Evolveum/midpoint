@@ -1,6 +1,10 @@
 = Resource Schema Handling: Activation
 :page-nav-title: Activation
 :page-wiki-name: Resource Schema Handling: Activation
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-05-13T14:22:40.969+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2018-04-12T11:43:29.820+02:00
 :page-upkeep-status: orange
 :page-toc: top
 
@@ -485,4 +489,3 @@ E.g. the following mapping will pre-provision a disabled account 5 days before u
 * wiki:Assignment+Configuration[Assignment Configuration]
 
 * wiki:Resource+Schema+Handling[Resource Schema Handling]
-

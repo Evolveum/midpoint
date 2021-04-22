@@ -1,6 +1,10 @@
 = On Certification Campaigns Iteration
 :page-nav-title: Iteration
 :page-wiki-name: On Certification Campaigns Iteration
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2018-06-15T09:55:43.162+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2018-09-17T13:32:56.839+02:00
 :page-since: "3.9"
 :page-upkeep-status: yellow
 
@@ -225,4 +229,3 @@ Note that if we would ask for stage earlier than the current one, the rule would
 In fact, this is how it is implemented.
 
 The campaigns report currently displays *decided cases, computed over all stages and all iterations*.
-

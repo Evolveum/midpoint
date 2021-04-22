@@ -1,6 +1,10 @@
 = Legacy Consistency mechanism (3.8 and earlier)
 :page-nav-title: Legacy
 :page-wiki-name: Consistency mechanism (3.8 and earlier)
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-03-19T17:00:43.539+01:00
+:page-wiki-metadata-modify-user: rpudil
+:page-wiki-metadata-modify-date: 2019-12-06T10:15:36.500+01:00
 :page-obsolete: true
 :page-obsolete-since: "3.9"
 :page-toc: top
@@ -179,4 +183,3 @@ Consistency mechanism was significantly improved in midPoint 3.9. Please see wik
 * wiki:Synchronization[Reconciliation process]
 
 * wiki:Connector+Development+Guide[Connector Development Guide - DiscoverySupport]
-

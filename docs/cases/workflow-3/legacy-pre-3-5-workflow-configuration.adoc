@@ -1,6 +1,10 @@
 = Legacy (pre-3.5) workflow configuration
 :page-nav-title: Pre-3.5
 :page-wiki-name: Legacy (pre-3.5) workflow configuration
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2013-07-03T08:18:10.099+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-12-14T18:07:21.403+01:00
 :page-obsolete: true
 :page-toc: top
 
@@ -255,4 +259,3 @@ Concluding notes (important):
 
 Fine-grained configuration of approvals is done at the level of individual objects, e.g. roles.
 For more information, see wiki:Approvals+examples+(legacy)[these examples].
-

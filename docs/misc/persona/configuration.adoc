@@ -1,6 +1,10 @@
 = Persona Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Persona Configuration
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-05-04T12:50:53.247+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2020-05-13T15:25:19.748+02:00
 :page-since: "3.6"
 :page-upkeep-status: yellow
 :page-toc: top
@@ -306,4 +310,3 @@ If you are midPoint platform subscriber and this feature is withing the goals of
 == See Also
 
 * wiki:Personas[Personas]
-

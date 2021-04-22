@@ -1,5 +1,9 @@
 = Escalation in Approval Processes
 :page-wiki-name: Escalation in workflows HOWTO
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-02-15T20:41:10.297+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-02-15T21:19:20.003+01:00
 :page-since: "3.6"
 :page-upkeep-status: orange
 
@@ -227,4 +231,3 @@ It this case, the configuration can be read as:
 . There are notifications sent 2 and 1 days before the escalation occurs (lines 28 and 29).
 
 This configuration can be seen "in action" in the link:https://github.com/Evolveum/midpoint/tree/master/testing/story/src/test/resources/strings[Strings story test].
-

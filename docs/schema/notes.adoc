@@ -1,5 +1,9 @@
 = Schema Notes
 :page-wiki-name: Schema Notes
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-08-17T09:32:36.294+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2018-08-15T16:41:05.122+02:00
 :page-upkeep-status: orange
 
 This page contains miscellaneous notes and explanation of midPoint schema concepts.
@@ -72,4 +76,3 @@ Therefore perhaps the only such case in midPoint schemas is the "objects" elemen
 == See Also
 
 * wiki:Data+Model[Data Model]
-

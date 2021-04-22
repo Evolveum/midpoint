@@ -1,5 +1,9 @@
 = MidPoint Script Library
 :page-wiki-name: MidPoint Script Library
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-12-06T17:44:19.709+01:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2021-02-24T10:42:46.079+01:00
 
 MidPoint function library provides access to midPoint internals.
 It provides complex functions that contain IDM-specific and midPoint-specific logic.
@@ -112,4 +116,3 @@ columns:
 == See Also
 
 * wiki:IDM+Model+Interface+Introduction[IDM Model Interface Introduction]
-

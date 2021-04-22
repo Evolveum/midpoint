@@ -1,5 +1,9 @@
 = Service Authorizations
 :page-wiki-name: Service Authorizations
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-06-30T16:22:35.956+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-05-10T17:57:53.249+02:00
 
 == REST Service Authorizations
 
@@ -80,4 +84,3 @@ Without these authorizations the WS/REST authorizations are almost useless.
 == See Also
 
 * xref:../[Authorization]
-

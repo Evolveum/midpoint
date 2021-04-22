@@ -1,5 +1,9 @@
 = Monitoring c3p0 state HOWTO
 :page-wiki-name: Monitoring c3p0 state HOWTO
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-09-23T00:21:47.128+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-09-23T00:21:47.128+02:00
 :page-obsolete: true
 
 If you need to monitor the state of c3p0 connection pool, you can do it e.g. via JMX.
@@ -25,8 +29,3 @@ image::image2016-9-23-0-18-38.png[]
 It should look like this:
 
 image::image2016-9-23-0-20-58.png[]
-
-
-
-
-

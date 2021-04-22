@@ -1,5 +1,9 @@
 = Log Levels
 :page-wiki-name: Log Levels
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T14:36:50.558+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-08-16T18:30:53.218+02:00
 :page-upkeep-status: orange
 :page-alias: { "parent" : "/midpoint/devel/guides/" }
 
@@ -128,4 +132,3 @@ Error resolving a reference: Object not found
 ----
 Error resolving variable "foo" in outbound expression processing for variable "cn", resource "ldap42": Object not found (OID:123456-123456-...)
 ----
-

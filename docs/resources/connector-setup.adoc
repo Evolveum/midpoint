@@ -1,5 +1,9 @@
 = Connector Setup
 :page-wiki-name: Connector Setup
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-01-06T11:47:45.224+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2016-01-06T13:10:02.242+01:00
 :page-upkeep-status: red
 :page-toc: top
 
@@ -194,4 +198,3 @@ See wiki:Connector+Upgrade[Connector Upgrade] page.
 * wiki:Connector+Upgrade[Connector Upgrade]
 
 * wiki:Connector+Server[Connector Server]
-

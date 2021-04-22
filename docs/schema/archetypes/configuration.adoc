@@ -1,6 +1,10 @@
 = Archetype Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Archetype Configuration
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-01-31T11:18:20.720+01:00
+:page-wiki-metadata-modify-user: katkav
+:page-wiki-metadata-modify-date: 2020-09-10T20:30:23.449+02:00
 :page-since: "4.0"
 :page-since-improved: [ "4.1", "4.2" ]
 :page-upkeep-status: green
@@ -778,4 +782,3 @@ Please see wiki:Archetype+Improvements+(Planned+Feature)[Archetype Improvements 
 * wiki:Object+Collections+and+Views[Object Collections and Views]
 
 * wiki:Archetype+Improvements+(Planned+Feature)[Archetype Improvements (Planned Feature)]
-

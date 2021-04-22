@@ -1,5 +1,9 @@
 = Resource Maintenance State
 :page-wiki-name: Resource Maintenance State
+:page-wiki-metadata-create-user: martin.lizner
+:page-wiki-metadata-create-date: 2020-08-27T12:33:49.574+02:00
+:page-wiki-metadata-modify-user: martin.lizner
+:page-wiki-metadata-modify-date: 2020-09-02T18:02:15.307+02:00
 :page-since: "4.2"
 :page-experimental-since: "4.2"
 :page-experimental: true
@@ -42,4 +46,3 @@ It was not tested for authoritative sources with inbound mappings (e.g. HR resou
 * Background tasks that were fitted for the administrative operational state of the resource are Reconciliation and LiveSync tasks. The rest of the task handlers may or may not work well when resource is in the maintenance state. The recompute task is compatible with resourceadministrative operational state by default since it launches individual user reconciles, which are supported.
 
 * Some midPoint screens do not make use of administrative operational state, this is e.g. case of Resource detail - Accounts tab - Search In: Resource. These screens invoke resource connector operations regardless of the maintenance setting.
-

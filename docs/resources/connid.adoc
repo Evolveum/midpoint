@@ -1,5 +1,9 @@
 = ConnId
 :page-wiki-name: ConnId
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2015-08-05T15:09:05.249+02:00
+:page-wiki-metadata-modify-user: martin.lizner
+:page-wiki-metadata-modify-date: 2019-01-29T13:54:46.148+01:00
 :page-upkeep-status: red
 
 // TODO: Probably move/merge with /connectors/connid/1.x/framework/
@@ -141,4 +145,3 @@ It can be enabled by setting the logging to:
 * wiki:ICF+Issues[ICF Issues]
 
 * wiki:Connector+Development+Guide[Connector Development Guide]
-

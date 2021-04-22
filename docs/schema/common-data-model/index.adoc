@@ -1,5 +1,9 @@
 = Common Data Model
 :page-wiki-name: Common Data Model
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-06-07T10:32:44.226+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2012-06-25T12:06:15.192+02:00
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: orange
@@ -135,4 +139,3 @@ It was used as a guiding principle while creating a specific midPoint data model
 * wiki:Data+Model[Data Model]
 
 * wiki:IDM+Means+Integration[IDM Means Integration]
-

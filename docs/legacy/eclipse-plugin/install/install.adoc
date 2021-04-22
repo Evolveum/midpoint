@@ -1,5 +1,9 @@
 = Eclipse plugin installation HOWTO
 :page-wiki-name: Eclipse plugin installation HOWTO
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-09-03T00:25:14.810+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2020-09-25T14:27:29.615+02:00
 :page-obsolete: true
 :page-replaced-by: /midpoint/tools/studio/
 
@@ -93,4 +97,3 @@ Then click *Next...*
 . Finally, answer "_Yes_" on question about restarting Eclipse
 
 Note: For older Eclipse version _Neon.1 Release (4.6.1)_ use the link:http://dist.springsource.org/snapshot/GRECLIPSE/e4.5/[http://dist.springsource.org/snapshot/GRECLIPSE/e4.5/] link.
-

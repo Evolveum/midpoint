@@ -1,5 +1,9 @@
 = Automatic Role Assignment
 :page-wiki-name: Automatic Role Assignment HOWTO
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-05-25T12:40:16.298+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-05-25T12:42:55.877+02:00
 :page-upkeep-status: orange
 
 Assignment of orgs and roles is one the fundamental midPoint functionalities.
@@ -141,4 +145,3 @@ And so on.
 * wiki:Assignment[Assignment]
 
 * wiki:Object+Template[Object Template]
-

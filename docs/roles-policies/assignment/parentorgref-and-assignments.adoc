@@ -1,5 +1,9 @@
 = parentOrgRef and assignments
 :page-wiki-name: parentOrgRef and assignments
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2015-10-20T15:15:32.427+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2016-09-23T12:00:45.076+02:00
 :page-upkeep-status: orange
 
 The correct way to create organizational structure is by using assignments.
@@ -30,4 +34,3 @@ e.g.:
 ----
 
 ====
-

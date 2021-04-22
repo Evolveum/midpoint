@@ -1,5 +1,9 @@
 = Customizable Dashboards
 :page-wiki-name: Customizable Dashboards
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-01-31T11:38:34.604+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-02-01T13:16:14.087+01:00
 :page-nav-title: Dashboards
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
@@ -74,4 +78,3 @@ See xref:configuration/[] page for more details.
 * wiki:Compliance[Compliance]
 
 * wiki:Archetypes[Archetypes]
-

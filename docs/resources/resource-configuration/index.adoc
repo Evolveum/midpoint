@@ -1,5 +1,9 @@
 = Resource Configuration
 :page-wiki-name: Resource Configuration
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-01-11T21:05:06.201+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-06-29T10:37:26.952+02:00
 :page-upkeep-status: red
 :page-toc: top
 
@@ -806,4 +810,3 @@ The samples have in-line comments to make it easier to understand them.
 * What is link:https://evolveum.com/midpoint/[midPoint Open Source Identity & Access Management]
 
 * link:https://evolveum.com/[Evolveum] - Team of IAM professionals who developed midPoint
-

@@ -1,6 +1,10 @@
 = Essential Concepts of MidPoint Data Model
 :page-nav-title: Data Model Essentials
 :page-wiki-name: Basic Data Model
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-01-16T13:21:42.376+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2015-03-23T15:00:55.128+01:00
 :page-upkeep-status: orange
 
 == MidPoint Repository
@@ -367,4 +371,3 @@ The wiki:SchemaDoc[SchemaDoc] page contains links to data model documentation th
 * wiki:Shadow+Objects[Shadow Objects]
 
 * wiki:SchemaDoc[SchemaDoc]
-

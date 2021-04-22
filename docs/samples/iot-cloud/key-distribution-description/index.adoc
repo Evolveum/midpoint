@@ -1,5 +1,9 @@
 = Key Distribution Description
 :page-wiki-name: Key Distribution Description
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-08-18T20:12:45.393+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-08-18T20:46:27.407+02:00
 :page-upkeep-status: orange
 :page-upkeep-note: What to do with this? Palo will probably never finish it.
 :page-toc: top
@@ -113,8 +117,3 @@ TODO
 * how to deal with transitional periods (key change)
 
 * manual vs automated key renewal
-
-
-
-
-

@@ -1,5 +1,9 @@
 = Sections (virtual containers) in object details
 :page-wiki-name: Sections (virtual containers) in object details
+:page-wiki-metadata-create-user: katkav
+:page-wiki-metadata-create-date: 2019-09-25T10:04:09.739+02:00
+:page-wiki-metadata-modify-user: katkav
+:page-wiki-metadata-modify-date: 2019-09-25T14:15:16.269+02:00
 :page-since: "4.0"
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
@@ -89,4 +93,3 @@ The result of the configuration above is, that on the details page, there will b
 The screenshot bellow shows the impact in the GUI.
 
 image::screenshot-sections.png[]
-

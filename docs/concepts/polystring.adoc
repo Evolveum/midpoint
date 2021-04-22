@@ -1,5 +1,9 @@
 = PolyString
 :page-wiki-name: PolyString
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-06-21T11:40:22.867+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-03-26T11:35:30.352+01:00
 :page-toc: top
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
@@ -66,4 +70,3 @@ See wiki:PolyString+Improvements[PolyString Improvements] page to learn about pl
 * wiki:PolyString+Normalization+Configuration[PolyString Normalization Configuration]
 
 * wiki:PolyString+Improvements[PolyString Improvements]
-

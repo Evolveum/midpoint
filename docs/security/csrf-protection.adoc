@@ -1,5 +1,9 @@
 = CSRF Protection
 :page-wiki-name: CSRF Protection
+:page-wiki-metadata-create-user: lazyman
+:page-wiki-metadata-create-date: 2018-05-24T20:15:41.575+02:00
+:page-wiki-metadata-modify-user: lazyman
+:page-wiki-metadata-modify-date: 2018-06-06T10:12:10.565+02:00
 :page-upkeep-status: green
 
 According to OWASP Cross-Site Request Forgery (CSRF) is an attack that forces an end user to execute unwanted actions on a web application in which they're currently authenticated.
@@ -38,4 +42,3 @@ Add following key to this configuration file.
 security:
    enable-csrf: false
 ----
-

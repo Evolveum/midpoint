@@ -1,5 +1,9 @@
 = Consistency Theory
 :page-wiki-name: Consistency Theory
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-11-23T09:52:05.642+01:00
+:page-wiki-metadata-modify-user: ifarinic
+:page-wiki-metadata-modify-date: 2012-11-23T10:16:05.998+01:00
 :page-upkeep-status: yellow
 
 == Introduction
@@ -146,4 +150,3 @@ We can link the found object to the user or delete the found object and create t
 
 This error is processable only partially what means we cannot still react to eliminate the error.
 We use this error to indicate that the midPoint work with incomplete shadow (account was not created because of previous resource unavailability) and in this case we try to complete the previously failed operation.
-

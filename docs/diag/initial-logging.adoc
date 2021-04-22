@@ -1,5 +1,9 @@
 = Initial Logging Setup
 :page-wiki-name: Initial Logging Setup HOWTO
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-10-28T17:02:10.687+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-05-22T15:03:54.788+02:00
 :page-upkeep-status: yellow
 
 MidPoint logging is usually configured using the administration GUI.
@@ -48,4 +52,3 @@ Therefore there is a config.xml setting that forces midPoint to skip the applica
 == See Also
 
 * wiki:MidPoint+Home+Directory[MidPoint Home Directory]
-

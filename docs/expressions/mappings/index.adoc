@@ -1,5 +1,9 @@
 = Mappings
 :page-wiki-name: Mapping
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-09-18T11:01:45.947+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2020-11-18T15:35:10.215+01:00
 :page-display-order: 70
 :page-upkeep-status: red
 :page-toc: top
@@ -1195,4 +1199,3 @@ If you are midPoint link:https://evolveum.com/services/[subscriber], you can req
 * wiki:Mappings+and+Expressions[Mappings and Expressions]
 
 * wiki:Mapping+Evaluation+Examples[Mapping Evaluation Examples]
-

@@ -1,5 +1,9 @@
 = Common Problems
 :page-wiki-name: Common Problems
+:page-wiki-metadata-create-user: mamut
+:page-wiki-metadata-create-date: 2011-06-23T09:44:17.480+02:00
+:page-wiki-metadata-modify-user: ifarinic
+:page-wiki-metadata-modify-date: 2017-01-20T16:20:07.424+01:00
 :page-upkeep-status: orange
 
 This pages describes common problems encountered during deployment and operation of the system.
@@ -54,6 +58,3 @@ For example you are using value of some user attributes in the password.
 
 ** User is trying to use his/her name/surname/loginname as part of the password.
 bug:MID-1657[]
-
-
-

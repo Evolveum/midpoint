@@ -1,5 +1,9 @@
 = generate-value
 :page-wiki-name: generate-value
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-05-25T10:34:35.773+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-05-25T10:45:24.477+02:00
 :page-since: "3.6"
 :page-upkeep-status: orange
 
@@ -115,4 +119,3 @@ Meaning that the item generated is the password value using user or system-wide 
     </s:options>
 </s:executeScript>
 ----
-

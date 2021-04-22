@@ -1,5 +1,9 @@
 = SQL Repository Evolution
 :page-wiki-name: SQL Repository Evolution
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-05-21T10:31:46.063+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2018-05-23T15:03:31.795+02:00
 :page-upkeep-status: green
 
 Random notes about current state of SQL repository implementation and the patch for future evolution.
@@ -39,4 +43,3 @@ And we have hoped that midPoint relative model will make locking superfluous.
 But is seems that we still need locking, at least for single-valued properties.
 Yet, this seems to be a systemic solution.
 And we will probably need it anyway (e.g. concurrency problems with shadows).
-

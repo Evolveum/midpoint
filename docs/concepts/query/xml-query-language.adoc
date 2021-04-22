@@ -1,5 +1,9 @@
 = XML Query Language
 :page-wiki-name: XML Object Query
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T11:52:35.673+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-04-23T10:51:03.770+02:00
 
 This is a XML-based query language that was used in midPoint for years.
 It is still a supported option.

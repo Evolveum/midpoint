@@ -1,5 +1,9 @@
 = Unique property value HOWTO
 :page-wiki-name: Unique property value HOWTO
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2014-09-08T23:09:07.449+02:00
+:page-wiki-metadata-modify-user: martin.lizner
+:page-wiki-metadata-modify-date: 2018-09-18T18:21:21.780+02:00
 :page-alias: { "parent" : "/midpoint/guides/" }
 :page-toc: top
 :page-upkeep-status: yellow
@@ -76,8 +80,3 @@ if (isNew &amp;&amp; emailAddresses != null) {
     }
 }
 ----
-
-
-
-
-

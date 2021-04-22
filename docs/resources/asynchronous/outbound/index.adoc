@@ -1,6 +1,10 @@
 = Asynchronous (Messaging) Outbound Resources
 :page-nav-title: Outbound
 :page-wiki-name: Asynchronous (Messaging) Outbound Resources
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2020-11-27T16:29:29.843+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-12-01T15:50:43.643+01:00
 :page-since: "4.3"
 :page-experimental: true
 :page-experimental-since: "4.3"
@@ -94,4 +98,3 @@ But the current implementation was created and tested with a particular target i
 Other JMS 2.0 providers should be pluggable.
 JMS 1.1 might work as well but there can be some classloading issues.
 It looks like some engineering effort will be needed to be able to use them with midPoint.
-

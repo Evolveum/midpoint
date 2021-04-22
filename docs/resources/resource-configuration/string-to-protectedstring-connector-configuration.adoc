@@ -1,5 +1,9 @@
 = String to ProtectedString Connector Configuration
 :page-wiki-name: String to ProtectedString Connector Configuration
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-08-23T17:07:11.103+02:00
+:page-wiki-metadata-modify-user: maikeru
+:page-wiki-metadata-modify-date: 2013-05-29T13:32:21.476+02:00
 :page-tag: workaround
 :page-upkeep-status: yellow
 
@@ -99,4 +103,3 @@ Instead of using string in the resource definition use protected strings as usua
 ----
 
 The value will be encrypted as usual when such resource definition in imported.
-

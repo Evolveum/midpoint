@@ -1,6 +1,10 @@
 = Troubleshooting Authorizations
 :page-nav-title: Authorizations
 :page-wiki-name: Troubleshooting Authorizations
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-01-23T14:37:47.131+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-08-19T17:12:59.127+02:00
 :page-alias: { "parent" : "/midpoint/reference/security/authorization/", "title" : "Troubleshooting", "display-order" : 800 }
 :page-tag: guide
 :page-toc: top
@@ -258,4 +262,3 @@ The default end user role is a good example for this:
 * xref:/midpoint/reference/security/authorization/[]
 
 * wiki:Authorization+Configuration[Authorization Configuration]
-

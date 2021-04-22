@@ -1,5 +1,9 @@
 = Connector Upgrade
 :page-wiki-name: Connector Upgrade
+:page-wiki-metadata-create-user: vix
+:page-wiki-metadata-create-date: 2013-05-06T17:14:00.867+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2018-06-13T17:12:34.296+02:00
 :page-alias: { "parent" : "/connectors/connid/", "slug" : "upgrade" }
 :page-upkeep-status: yellow
 
@@ -203,4 +207,3 @@ Evolveum offers wiki:Subscriptions+and+Sponsoring[subscription programs] that ca
 * wiki:Connector+Setup[Connector Setup]
 
 * wiki:Resource+and+Connector+Schema+Explanation[Resource and Connector Schema Explanation]
-

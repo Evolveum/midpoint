@@ -1,6 +1,10 @@
 = Relation Configuration
 :page-since: "3.9"
 :page-wiki-name: Relation Configuration
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-07-13T10:22:44.798+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2018-09-17T11:44:57.263+02:00
 
 
 xref:index.adoc[Relation] is an important mechanism that is used at many places in midPoint.
@@ -207,4 +211,3 @@ Changing existing (hardcoded) relations is *wiki:Experimental+Functionality[expe
 * wiki:System+Configuration+Object[System Configuration Object]
 
 * wiki:Relation+Repository[Relation Repository]
-

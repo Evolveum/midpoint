@@ -1,6 +1,10 @@
 = Example of dashboard report: Audit events which change administrativeStatus on resource
 :page-nav-title: Example: Audit, administrativeStatus
 :page-wiki-name: Example of dashboard report: Audit events which change administrativeStatus on resource
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2020-05-04T13:35:21.566+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2020-09-04T08:41:08.212+02:00
 
 Please see wiki:Dashboard+configuration[Dashboard configuration] for basic information about configuration variables and Auditing-Custom column for steps how to add custom column.
 
@@ -206,5 +210,3 @@ We want report with table of audit events, so we import dashboard report.
 
 Now we can run report in report menu, show task, and download report.
 Every report from dashboard is in HTML format.
-
-

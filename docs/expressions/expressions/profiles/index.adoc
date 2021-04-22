@@ -1,5 +1,9 @@
 = Expression Profiles
 :page-wiki-name: Expression Profiles
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-04-08T13:48:53.764+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-04-08T14:36:26.158+02:00
 :page-since: "4.0"
 :page-midpoint-feature: true
 :page-alias: [ { "parent" : "/midpoint/features/current/" }, { "parent" : "/midpoint/reference/security/" } ]

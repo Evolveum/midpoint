@@ -1,5 +1,9 @@
 = Syslog Logging
 :page-wiki-name: Syslog Logging HOWTO
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-05-17T19:05:09.560+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-05-17T19:28:15.845+02:00
 :page-since: "3.6"
 :page-upkeep-status: yellow
 
@@ -96,4 +100,3 @@ In case that you are running midPoint cluster this configuration needs to be app
 * wiki:Initial+Logging+Setup+HOWTO[Initial Logging Setup HOWTO]
 
 * wiki:System+Configuration+Object[System Configuration Object]
-

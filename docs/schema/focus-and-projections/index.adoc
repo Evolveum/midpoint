@@ -1,5 +1,9 @@
 = Focus and Projections
 :page-wiki-name: Focus and Projections
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-01-09T13:40:34.834+01:00
+:page-wiki-metadata-modify-user: petr.gasparik
+:page-wiki-metadata-modify-date: 2016-11-29T22:01:25.954+01:00
 :page-alias: { "parent" : "/midpoint/reference/concepts/clockwork/" }
 :page-upkeep-status: yellow
 :page-toc: top
@@ -87,4 +91,3 @@ Projections are simply resource objects represented by wiki:Shadow+Objects[shado
 * wiki:Clockwork+and+Projector[Clockwork and Projector]
 
 * wiki:Model+Context[Model Context]
-

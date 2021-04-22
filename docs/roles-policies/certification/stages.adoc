@@ -1,6 +1,10 @@
 = Configuring Certification Campaign Stages
 :page-nav-title: Stages
 :page-wiki-name: Configuring certification campaign stages
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-04-22T09:00:58.728+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-04-23T01:35:31.626+02:00
 :page-upkeep-status: yellow
 
 Campaign consists of one or more review stages.
@@ -241,4 +245,3 @@ However, this behavior can be configured: you can list stage outcomes that would
 However, for most situations it suffices to use default values.
 
 More information about determining stage-level outcome based on responses of individual reviewers can be found wiki:Determining+Certification+Case+Outcome[in this document].
-

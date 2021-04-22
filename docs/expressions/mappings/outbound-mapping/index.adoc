@@ -1,5 +1,9 @@
 = Outbound Mapping
 :page-wiki-name: Outbound Mapping
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-06-07T10:41:15.785+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-07-13T15:02:00.069+02:00
 :page-upkeep-status: orange
 
 Outbound mapping define how the data are wiki:Synchronization[synchronized] from the user to accounts or, in other words, when the data *out* of midPoint.
@@ -96,4 +100,3 @@ TODO
 * wiki:Inbound+Mapping[Inbound Mapping]
 
 * wiki:Unique+Account+Username+HOWTO[Unique Account Username HOWTO]
-

@@ -1,5 +1,9 @@
 = Repository Configuration
 :page-wiki-name: Repository Configuration
+:page-wiki-metadata-create-user: vix
+:page-wiki-metadata-create-date: 2012-08-06T14:55:55.920+02:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2020-12-03T19:19:37.315+01:00
 :page-toc: top
 
 By default, the repository configuration is stored in the `$HOME/midpoint` directory of the user the application server runs as.

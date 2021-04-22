@@ -1,6 +1,10 @@
 = MidPoint Synchronization Introduction
 :page-nav-title: Introduction
 :page-wiki-name: Synchronization
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-01-28T17:49:09.511+01:00
+:page-wiki-metadata-modify-user: ppohja
+:page-wiki-metadata-modify-date: 2015-12-21T13:15:52.390+01:00
 :page-display-order: 20
 :page-upkeep-status: orange
 :page-midpoint-feature: true

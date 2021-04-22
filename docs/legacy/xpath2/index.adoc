@@ -1,5 +1,9 @@
 = XPath2 Tutorial
 :page-wiki-name: XPath2 Tutorial
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T11:49:22.963+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2013-01-11T20:25:48.032+01:00
 :page-obsolete: true
 
 This page provides a tutorial-like introduction to using XPath version 2 expressions in midPoint, especially for the purpose of implementing parts of synchronization logic.
@@ -221,4 +225,3 @@ image::xpath-debug-page-if.png[]
 * link:http://www.w3schools.com/xpath/default.asp[XPath Tutorial at W3CScools]: XPath v1, but still useful
 
 * link:http://nwalsh.com/docs/tutorials/extreme04/slides.pdf[Norman Walsh: XPath 2 and XSLT 2 tutorial slides]
-

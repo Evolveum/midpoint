@@ -1,5 +1,9 @@
 = Auditing
 :page-wiki-name: Auditing
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T12:15:15.316+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2021-03-02T17:24:07.458+01:00
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: orange

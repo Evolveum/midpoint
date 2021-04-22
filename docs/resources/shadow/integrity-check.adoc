@@ -1,5 +1,9 @@
 = Shadow Integrity Check
 :page-wiki-name: Checking Shadow Integrity HOWTO
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2015-08-29T00:08:10.423+02:00
+:page-wiki-metadata-modify-user: mspanik
+:page-wiki-metadata-modify-date: 2021-01-22T15:26:59.446+01:00
 :page-upkeep-status: yellow
 
 In order to diagnose and fix specific problems with shadow objects in repository, a new task type was created: Shadow Integrity Check Task.

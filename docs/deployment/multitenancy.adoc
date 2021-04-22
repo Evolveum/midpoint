@@ -1,5 +1,9 @@
 = Multi-tenancy
 :page-wiki-name: Multitenancy
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-09-12T18:20:16.746+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2018-10-08T10:36:09.083+02:00
 :page-toc: top
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
@@ -173,4 +177,3 @@ In case that you are interested in any of those improvements you can use wiki:Su
 * wiki:Authorization[Authorization]
 
 * wiki:Authorization+Configuration[Authorization Configuration]
-

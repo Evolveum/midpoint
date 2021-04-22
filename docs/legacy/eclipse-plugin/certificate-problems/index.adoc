@@ -1,5 +1,9 @@
 = Solving Eclipse Certificate Problems
 :page-wiki-name: Solving Certificate Problems
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-09-03T00:06:13.925+02:00
+:page-wiki-metadata-modify-user: vix
+:page-wiki-metadata-modify-date: 2019-03-28T15:22:11.190+01:00
 :page-obsolete: true
 :page-replaced-by: /midpoint/tools/studio/
 
@@ -42,4 +46,3 @@ c:\java\jdk1.8.0_102\bin\keytool -keystore cacerts -importcert -alias startcom -
 The cacerts file password is "changeit".
 
 After restarting Eclipse everything should work.
-

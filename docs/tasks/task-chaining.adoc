@@ -1,5 +1,9 @@
 = Task Chaining
 :page-wiki-name: Task chaining HOWTO
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-05-15T17:16:04.235+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2018-09-27T12:33:17.749+02:00
 :page-experimental: true
 :page-upkeep-status: yellow
 
@@ -169,4 +173,3 @@ So, to see the status in an accurate way, you have to display subtasks along wit
 
 The advantage is that the re-execution of such composite task is quite simple.
 It can be done either manually, or you can even make the master task recurring.
-

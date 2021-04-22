@@ -1,5 +1,9 @@
 = Role Catalog
 :page-wiki-name: Role Catalog
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-02-16T09:19:52.585+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-07-10T14:09:49.121+02:00
 :page-since: "3.5"
 :page-midpoint-feature: true
 :page-alias:  [ { "parent" : "/midpoint/features/current/" }, { "parent" : "/midpoint/reference/roles-policies/" } ]
@@ -52,4 +56,3 @@ See wiki:Role+Catalog+Configuration[Role Catalog Configuration] page for descrip
 * wiki:Role+Catalog+Configuration[Role Catalog Configuration]
 
 * wiki:Role+Request+and+Shopping+Cart[Role Request and Shopping Cart]
-

@@ -1,5 +1,9 @@
 = Object Template
 :page-wiki-name: Object Template
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-11-27T17:31:16.002+01:00
+:page-wiki-metadata-modify-user: ppohja
+:page-wiki-metadata-modify-date: 2015-12-22T13:01:25.815+01:00
 :page-upkeep-status: orange
 :page-toc: top
 :page-midpoint-feature: true

@@ -1,5 +1,9 @@
 = H2
 :page-wiki-name: H2
+:page-wiki-metadata-create-user: lazyman
+:page-wiki-metadata-create-date: 2014-06-26T17:11:04.715+02:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2020-10-01T15:19:23.231+02:00
 :page-toc: top
 :page-upkeep-status: orange
 
@@ -86,4 +90,3 @@ There was no will left to test other versions between 193 and 197, and there is 
 We're standing by for some fresh development with versions above 1.4.200.
 SQL unification with PostgreSQL in *OrgClosureManager* would be actually nice and other changes are not a problem.
 But there must be some reliability, at least for a few weeks worth of tests.
-

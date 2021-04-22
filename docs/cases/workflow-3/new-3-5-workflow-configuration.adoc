@@ -1,5 +1,9 @@
 = New (3.5+) workflow configuration
 :page-wiki-name: New (3.5+) workflow configuration
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-12-14T18:13:53.772+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-12-14T23:13:49.096+01:00
 :page-obsolete: true
 
 Starting in midPoint 3.5, configuration of workflows is done like this:

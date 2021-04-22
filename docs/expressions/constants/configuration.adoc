@@ -1,6 +1,10 @@
 = Configuration and Use of Constants
 :page-nav-title: Configuration
 :page-wiki-name: Configuration and Use of Constants
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-05-16T10:31:20.283+02:00
+:page-wiki-metadata-modify-user: vera
+:page-wiki-metadata-modify-date: 2018-01-29T15:25:42.588+01:00
 :page-since: "3.6"
 
 == Introduction
@@ -117,4 +121,3 @@ One such method may be specification of constant values in wiki:System+Configura
 * wiki:Constants[Constants]
 
 * wiki:Expression[Expression]
-

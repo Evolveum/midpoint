@@ -1,5 +1,9 @@
 = Notifications
 :page-wiki-name: Notifications
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2013-05-24T17:23:00.357+02:00
+:page-wiki-metadata-modify-user: kjires
+:page-wiki-metadata-modify-date: 2020-12-04T14:29:08.100+01:00
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: orange
@@ -596,4 +600,3 @@ These are briefly described in the wiki:Sending+custom+notifications+HOWTO[Sendi
 * wiki:Configuring+notifications[Configuring notifications]
 
 * wiki:Using+Velocity+Templates+for+Notifications[Using Velocity Templates for Notifications]
-

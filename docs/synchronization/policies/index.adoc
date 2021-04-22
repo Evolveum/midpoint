@@ -1,5 +1,9 @@
 = Synchronization Policies
 :page-wiki-name: Synchronization Policies
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-12-11T17:04:44.158+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2012-12-11T19:22:04.076+01:00
 :page-upkeep-status: red
 :page-nav-title: Policies
 
@@ -60,6 +64,3 @@ image::synchronization-phase-user.png[]
 == Outbound Phase
 
 image::synchronization-phase-outbound.png[]
-
-
-

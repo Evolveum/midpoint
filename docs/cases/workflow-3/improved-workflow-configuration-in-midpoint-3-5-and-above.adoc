@@ -1,6 +1,10 @@
 = Improved workflow configuration in midPoint 3.5 and above
 :page-nav-title: MidPoint 3.5
 :page-wiki-name: Improved workflow configuration in midPoint 3.5 and above
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-11-29T17:35:22.274+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-11-29T17:35:22.274+01:00
 :page-obsolete: true
 
 Besides legacy approval configuration (described wiki:Legacy+(pre-3.5)+workflow+configuration[in a separate document]), midPoint 3.5 provides much more flexible approach to configuring approvals: _the policy rule-based configuration_.
@@ -30,4 +34,3 @@ The configuration looks like this:
     </primaryChangeProcessor>
   </workflowConfiguration>
 ----
-

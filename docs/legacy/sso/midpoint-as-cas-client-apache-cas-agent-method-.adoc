@@ -1,5 +1,9 @@
 = MidPoint as CAS Client (Apache CAS Agent Method)
 :page-wiki-name: MidPoint as CAS Client (Apache CAS Agent Method)
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2015-02-04T15:35:17.089+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-04-03T15:11:16.310+02:00
 :page-obsolete: true
 :page-toc: top
 
@@ -174,4 +178,3 @@ User can now login to midPoint using CAS
 == See Also
 
 ** wiki:MidPoint+and+SSO+HOWTO[MidPoint and SSO HOWTO]
-

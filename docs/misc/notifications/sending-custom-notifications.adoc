@@ -1,5 +1,9 @@
 = Sending Custom Notifications
 :page-wiki-name: Sending custom notifications HOWTO
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-09-24T00:02:03.564+02:00
+:page-wiki-metadata-modify-user: michael
+:page-wiki-metadata-modify-date: 2017-01-12T16:43:34.438+01:00
 :page-upkeep-status: yellow
 
 Notifications are used to send information about events that occur within midPoint.
@@ -149,6 +153,3 @@ notificationManager.processEvent(event, task, result);
 ----
 
 Just have a look at link:https://github.com/Evolveum/midpoint/blob/master/model/model-impl/src/main/java/com/evolveum/midpoint/model/impl/scripting/actions/NotifyExecutor.java[NotifyExecutor Java class] (implementing "notify" bulk action).
-
-
-

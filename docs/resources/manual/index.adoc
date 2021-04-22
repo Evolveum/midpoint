@@ -1,5 +1,9 @@
 = Manual Resource and ITSM Integration
 :page-wiki-name: Manual Resource and ITSM Integration
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-04-24T11:59:19.577+02:00
+:page-wiki-metadata-modify-user: vera
+:page-wiki-metadata-modify-date: 2018-01-29T14:07:01.936+01:00
 :page-since: "3.6"
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
@@ -164,6 +168,3 @@ Contributed ITSM sample plugin can be found in our link:https://github.com/Evolv
 * wiki:Manual+Resource+Configuration[Manual Resource Configuration]
 
 * wiki:Multi-Connector+Resource[Multi-Connector Resource]
-
-
-

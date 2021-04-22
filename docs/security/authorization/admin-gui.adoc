@@ -1,5 +1,9 @@
 = GUI Authorizations
 :page-wiki-name: GUI Authorizations
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-06-30T12:30:36.256+02:00
+:page-wiki-metadata-modify-user: katkav
+:page-wiki-metadata-modify-date: 2020-03-27T20:17:57.504+01:00
 :page-upkeep-status: yellow
 :page-toc: top
 
@@ -741,5 +745,3 @@ wiki:Admin+GUI+Configuration[Admin GUI Configuration] is used to control this be
 == See also:
 
 * wiki:Admin+GUI+Configuration[Admin GUI Configuration]
-
-

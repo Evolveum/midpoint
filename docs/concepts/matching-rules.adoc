@@ -1,5 +1,9 @@
 = Matching Rules
 :page-wiki-name: Matching Rules
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-06-12T17:09:21.626+02:00
+:page-wiki-metadata-modify-user: martin.lizner
+:page-wiki-metadata-modify-date: 2017-01-02T13:10:02.801+01:00
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
 
@@ -174,4 +178,3 @@ Only the normalized part is compared.
 
 *Note:* "yes; in repo only" means that this matching rule is quite special, and can be used really in repository queries.
 (Technically, there are no corresponding `MatchingRule` classes.)
-

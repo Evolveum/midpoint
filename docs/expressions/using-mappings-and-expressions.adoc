@@ -1,6 +1,10 @@
 = Using Mappings and Expressions
 :page-display-order: 50
 :page-wiki-name: Using Mappings and Expressions
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-06-26T10:47:30.826+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2018-04-27T17:02:17.627+02:00
 :page-upkeep-status: yellow
 
 Expressions and mappings are very efficient way how to customize midPoint.
@@ -53,4 +57,3 @@ See wiki:Expression[Expression] page for more details.
 * wiki:Expression[Expression]
 
 * wiki:Mapping+Evaluation+Examples[Mapping Evaluation Examples]
-

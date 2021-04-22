@@ -1,5 +1,9 @@
 = Model context serialization
 :page-wiki-name: Model context serialization
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2013-06-25T17:31:45.004+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2013-06-25T17:35:39.079+02:00
 :page-upkeep-status: yellow
 
 Although in most cases the model context lives in memory only, there are situations where it has to be stored persistently.
@@ -151,4 +155,3 @@ The serialized context in principle reflects the structure of native Java object
          <m:executionWave>0</m:executionWave>
       </m:modelContext>
 ----
-

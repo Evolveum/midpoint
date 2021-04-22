@@ -1,5 +1,9 @@
 = Creating a Bug Report
 :page-wiki-name: Creating a Bug Report
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-08-08T12:07:41.364+02:00
+:page-wiki-metadata-modify-user: mmacik
+:page-wiki-metadata-modify-date: 2016-12-12T10:27:13.732+01:00
 :page-keywords: [ 'logging', 'log', 'bug', 'bugreport', 'troubleticket', 'trouble', 'bugtracking', 'troubleshooting' ]
 :page-alias: { "parent" : "/midpoint/guides/" }
 :page-tag: guide

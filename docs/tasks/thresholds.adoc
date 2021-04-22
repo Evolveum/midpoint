@@ -1,5 +1,9 @@
 = Thresholds
 :page-wiki-name: Thresholds
+:page-wiki-metadata-create-user: katkav
+:page-wiki-metadata-create-date: 2018-12-27T19:31:20.556+01:00
+:page-wiki-metadata-modify-user: mmacik
+:page-wiki-metadata-modify-date: 2019-04-23T12:40:41.357+02:00
 :page-since: "4.0"
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
@@ -104,4 +108,3 @@ The configuration might as well contain only one partition, only with an executi
 * wiki:Task[Task]
 
 * wiki:Task+partitioning[Task partitioning]
-

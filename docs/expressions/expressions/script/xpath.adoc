@@ -1,6 +1,10 @@
 = XPath Expressions
 :page-nav-title: XPath
 :page-wiki-name: XPath Expressions
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-04-17T18:44:27.069+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2012-10-01T12:38:48.572+02:00
 :page-obsolete: true
 :page-upkeep-status: green
 
@@ -141,4 +145,3 @@ However, it may be the only feasible approach when XML normalization is used.
 == See Also
 
 * wiki:XPath2+Tutorial[XPath2 Tutorial]
-

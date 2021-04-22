@@ -1,6 +1,10 @@
 = Linked Objects Scenario 5: Deletion-Safe Organizations
 :page-nav-title: Scenario 5: Deletion-Safe Organizations
 :page-wiki-name: Linked objects scenario 5: Deletion-safe organizations
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2020-10-13T21:29:38.557+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-10-13T21:51:06.837+02:00
 :page-since: "4.2"
 :page-toc: top
 
@@ -77,4 +81,3 @@ But the scenario can be extended and made more robust, by:
 . Replacing `linkSource` specification by custom query looking after `assignment/targetRef` filters.
 
 . Creating additional global policy rule that will clean up the inducements for organization being deleted.
-

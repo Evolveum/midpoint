@@ -1,5 +1,9 @@
 = Roles, Services and Orgs
 :page-wiki-name: Roles, Services and Orgs
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-07-21T12:39:38.542+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2016-08-18T19:21:45.668+02:00
 :page-upkeep-status: yellow
 
 == Introduction
@@ -121,4 +125,3 @@ If a sub-org belongs to a super-org this does *not* mean that the sub-org automa
 * wiki:Organizational+Structure[Organizational Structure]
 
 * wiki:Services[Services]
-

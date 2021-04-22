@@ -1,6 +1,10 @@
 = Migrating from Tomcat to Standalone midPoint Deployment
 :page-nav-title: Tomcat to Standalone Deployment
 :page-wiki-name: Migrating from Tomcat to Standalone midPoint Deployment
+:page-wiki-metadata-create-user: vix
+:page-wiki-metadata-create-date: 2017-12-11T15:21:04.550+01:00
+:page-wiki-metadata-modify-user: vix
+:page-wiki-metadata-modify-date: 2018-08-21T15:19:14.874+02:00
 :page-upkeep-status: yellow
 
 == Introduction

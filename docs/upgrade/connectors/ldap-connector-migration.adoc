@@ -1,5 +1,9 @@
 = LDAP Connector Migration
 :page-wiki-name: LDAP Connector Migration
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2015-08-05T10:20:10.438+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2015-08-05T13:52:10.707+02:00
 :page-obsolete: true
 
 == Motivation
@@ -356,4 +360,3 @@ Therefore please plan the migration to the new connector accordingly.
 * wiki:Legacy+LDAP+Connector[Legacy LDAP Connector]
 
 * wiki:ICF+Issues[ICF Issues]
-

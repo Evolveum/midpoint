@@ -1,5 +1,9 @@
 = Assignment Path Variables Example
 :page-wiki-name: Assignment Path Variables Example
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-03-21T18:33:15.789+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-05-23T09:39:02.330+02:00
 
 To better illustrate meaning of variouswiki:Assignment+Configuration#AssignmentConfiguration-ConstructionVariables[ assignment-related variables] let us present an example.
 
@@ -341,8 +345,3 @@ image::assignments-variables-human-s.png[]
 
 
 |===
-
-
-
-
-

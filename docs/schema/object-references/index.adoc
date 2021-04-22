@@ -1,5 +1,9 @@
 = Object References
 :page-wiki-name: Object References
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-09-23T17:47:13.330+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-04-03T09:16:31.153+02:00
 :page-upkeep-status: yellow
 
 The wiki:Data+Model[data model] consists of numerous objects that represents common identity management concepts such as user or account.
@@ -148,4 +152,3 @@ We rather chose to allow for some inconsistency - and create processes that shou
 * What is link:https://evolveum.com/midpoint/[midPoint Open Source Identity & Access Management]
 
 * link:https://evolveum.com/[Evolveum] - Team of IAM professionals who developed midPoint
-

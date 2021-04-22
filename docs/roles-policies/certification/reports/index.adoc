@@ -1,6 +1,10 @@
 = Access Certification Reports
 :page-nav-title: Reports
 :page-wiki-name: Access Certification Reports
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-02-03T21:58:53.027+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-02-09T08:31:14.273+01:00
 :page-upkeep-status: red
 :page-alias: { "parent" : "/midpoint/reference/misc/reports/", "slug" : "certification",  "title" : "Access Certification" }
 
@@ -72,12 +76,3 @@ Depending on the wiki:Determining+Certification+Case+Outcome[review strategy], s
 . "Comments" are joined comments from all reviewers that have provided them.
 
 image::image2016-2-3-22-55-31.png[]
-
-
-
-
-
-
-
-
-

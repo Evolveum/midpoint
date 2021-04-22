@@ -1,6 +1,10 @@
 = Microsoft SQL Server
 :page-nav-title: MS SQL
 :page-wiki-name: MS SQL Server 2008, 2014 and 2016
+:page-wiki-metadata-create-user: lazyman
+:page-wiki-metadata-create-date: 2014-06-26T17:05:59.962+02:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2020-07-28T13:51:49.292+02:00
 :page-upkeep-status: orange
 
 // TODO: disclaimer that MySQL is deprecated
@@ -94,4 +98,3 @@ bug:MID-5880[]
 link:http://www.microsoft.com/en-us/download/details.aspx?displaylang=en&id=11774[Download MS SQL JDBC Driver]
 
 When installing the driver, please use sqljdbc4.jar when your application must run on JRE 6.0 or 7.0, even if your application does not use JDBC 4.0 API features. (Quote from link:http://msdn.microsoft.com/en-us/library/ms378422.aspx[(MS) System requirements for the JDBC Driver].)
-

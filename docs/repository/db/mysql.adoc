@@ -1,5 +1,9 @@
 = MySQL
 :page-wiki-name: MySQL
+:page-wiki-metadata-create-user: lazyman
+:page-wiki-metadata-create-date: 2014-02-25T15:03:32.905+01:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2020-09-10T22:25:13.190+02:00
 :page-upkeep-status: orange
 
 // TODO: disclaimer that MySQL is deprecated
@@ -165,4 +169,3 @@ max_allowed_packet = 256M
 
 You need to restart MySQL after changing this configuration.
 Reload will not work.
-

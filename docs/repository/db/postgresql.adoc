@@ -1,5 +1,9 @@
 = PostgreSQL
 :page-wiki-name: PostgreSQL
+:page-wiki-metadata-create-user: lazyman
+:page-wiki-metadata-create-date: 2014-06-26T17:07:01.929+02:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2020-09-25T16:38:05.724+02:00
 :page-toc: top
 :page-upkeep-status: orange
 

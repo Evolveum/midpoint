@@ -1,5 +1,9 @@
 = SQL Repository Implementation
 :page-wiki-name: SQL Repository Implementation
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-06-18T10:16:38.030+02:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2020-10-30T16:45:12.599+01:00
 :page-upkeep-status: green
 
 SQL repository implements both repository and audit API.
@@ -133,4 +137,3 @@ todo
 * SqlRepositoryConfiguration - sql repository configuration, handles config.xml and such
 
 * DataSourceFactory - connection pool initialisation and configuration
-

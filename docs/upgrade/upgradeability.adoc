@@ -1,5 +1,9 @@
 = Upgradeability
 :page-wiki-name: Upgradeability
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-04-11T09:53:44.417+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2020-03-11T17:14:31.311+01:00
 :page-upkeep-status: orange
 :page-upkeep-note: Reword? Restructure?
 
@@ -100,4 +104,3 @@ Such fixes may be included in the next maintenance release.
 * wiki:Release+Process[Release Process]
 
 * wiki:Upgrade+HOWTO[Upgrade HOWTO]
-

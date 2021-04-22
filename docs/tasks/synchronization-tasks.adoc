@@ -1,5 +1,9 @@
 = Synchronization Tasks
 :page-wiki-name: Synchronization Tasks
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2015-09-02T11:48:29.791+02:00
+:page-wiki-metadata-modify-user: rpudil
+:page-wiki-metadata-modify-date: 2019-12-06T10:14:33.583+01:00
 :page-upkeep-status: orange
 
 Synchronization tasks are midPoint wiki:Task[server tasks] that handle bulk wiki:Synchronization[synchronization] of midpoint objects.
@@ -108,4 +112,3 @@ The following task will import all objects of `inetOrgPerson` object class from 
 * wiki:Recompute+Task[Recompute Task]
 
 * wiki:Connector+Development+Guide[Connector Development Guide - DiscoverySupport]
-

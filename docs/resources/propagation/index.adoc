@@ -1,5 +1,9 @@
 = Provisioning Propagation
 :page-wiki-name: Provisioning Propagation
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-01-05T15:46:25.794+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2018-01-05T16:00:16.907+01:00
 :page-since: "3.7.1"
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
@@ -27,4 +31,3 @@ See xref:configuration/[] page for configuration details.
 * xref:configuration/[]
 
 * wiki:Manual+Resource+and+ITSM+Integration[Manual Resource and ITSM Integration]
-

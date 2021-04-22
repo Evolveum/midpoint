@@ -1,5 +1,9 @@
 = Generic Synchronization
 :page-wiki-name: Generic Synchronization
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-01-07T14:08:05.801+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2014-04-02T10:50:42.822+02:00
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-since: 3.0
@@ -62,4 +66,3 @@ This simple mechanism is introducing a completely new dimension to midPoint RBAC
 * wiki:Assignment[Assignment]
 
 * wiki:Focus+and+Projections[Focus and Projections]
-

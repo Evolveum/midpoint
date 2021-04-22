@@ -1,5 +1,9 @@
 = Security Guide
 :page-wiki-name: Security Guide
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-03-21T07:53:00.834+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2021-01-12T18:13:24.430+01:00
 :page-tag: guide
 :page-toc: top
 :page-upkeep-status: green
@@ -332,4 +336,3 @@ The bug bounty program was very successful, resulting in discovery and mitigatio
 * wiki:Security+Advisories[Security Advisories]
 
 * wiki:Ports+80+and+443[Ports 80 and 443]
-

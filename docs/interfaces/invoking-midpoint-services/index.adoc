@@ -1,5 +1,9 @@
 = Invoking MidPoint Services
 :page-wiki-name: Invoking MidPoint Services HOWTO
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-11-29T14:03:56.783+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2014-11-03T20:33:55.527+01:00
 :page-upkeep-status: red
 
 // TODO: SOAP is out
@@ -213,4 +217,3 @@ REST interface is *WORK IN PROGRESS*. It will be released in midPoint version 3.
 * wiki:IDM+Model+Web+Service+Interface[IDM Model Web Service Interface]
 
 * wiki:REST+API[REST API]
-

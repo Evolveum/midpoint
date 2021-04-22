@@ -1,6 +1,10 @@
 = Example of Audit search panel configuration
 :page-nav-title: Example: audit search
 :page-wiki-name: Example of Audit search panel configuration
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2021-01-19T12:49:53.940+01:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2021-01-19T13:15:49.441+01:00
 
 This example describe how to configure time interval search item.
 
@@ -77,6 +81,3 @@ Adding next code to systemConfiguration.
 ----
 
 image::image2021-1-19_13-15-0.png[]
-
-
-

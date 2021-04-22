@@ -1,5 +1,9 @@
 = System Configuration Object
 :page-wiki-name: System Configuration Object
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-12-06T14:45:13.514+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2013-12-06T14:45:14.514+01:00
 :page-upkeep-status: orange
 
 System Configuration object is a midPoint object that represents global system configuration applicable for the system itself, logging, profiling, all the resources, tasks, processes and all other aspects of the system.
@@ -24,4 +28,3 @@ It has fixed wiki:Object+ID[OID]`00000000-0000-0000-0000-000000000001`.
     </logging>
 </systemConfiguration>
 ----
-

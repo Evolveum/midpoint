@@ -1,5 +1,9 @@
 = Auxiliary Object Classes
 :page-wiki-name: Auxiliary Object Classes
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-09-15T11:54:10.595+02:00
+:page-wiki-metadata-modify-user: adavenp4
+:page-wiki-metadata-modify-date: 2018-05-11T21:03:00.489+02:00
 :page-toc: top
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
@@ -175,4 +179,3 @@ To preserve them, it is possible to use the tolerant flag set to true within the
 == See Also
 
 * wiki:Unix+Story+Test[Unix Story Test]
-

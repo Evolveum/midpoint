@@ -1,6 +1,10 @@
 = Linked Objects Scenario 2: Devices Owned By Users
 :page-nav-title: Scenario 2: Devices Owned By Users
 :page-wiki-name: Linked objects scenario 2: Devices owned by users
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2020-05-21T10:33:55.623+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-06-02T11:19:17.563+02:00
 :page-experimental: true
 :page-toc: top
 
@@ -398,4 +402,3 @@ And then there will be a task that will look for such devices, unassigning them 
 . Really not: we do not want to allow regular device deletion if it has an owner.
 
 Complete configuration for this scenario is in link:https://github.com/Evolveum/midpoint/tree/master/model/model-intest/src/test/resources/linked/gummi[https://github.com/Evolveum/midpoint/tree/master/model/model-intest/src/test/resources/linked/gummi] directory (and system configuration in the parent one).
-

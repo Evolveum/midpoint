@@ -1,5 +1,9 @@
 = Assignment
 :page-wiki-name: Assignment
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-05-03T19:21:25.854+02:00
+:page-wiki-metadata-modify-user: vskocenova
+:page-wiki-metadata-modify-date: 2019-07-10T13:25:40.634+02:00
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: orange
@@ -135,4 +139,3 @@ The wiki:Assignment+Configuration[Assignment Configuration] page provides exampl
 * wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
 
 * wiki:Assigning+vs+Linking[Assigning vs Linking]
-

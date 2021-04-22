@@ -1,5 +1,9 @@
 = Midpoint and SSO using Gluu HOWTO
 :page-wiki-name: Midpoint and SSO using Gluu HOWTO
+:page-wiki-metadata-create-user: mmacik
+:page-wiki-metadata-create-date: 2017-04-27T15:07:39.624+02:00
+:page-wiki-metadata-modify-user: ifarinic
+:page-wiki-metadata-modify-date: 2017-04-28T17:24:07.034+02:00
 :page-obsolete: true
 
 == Introduction
@@ -138,4 +142,3 @@ sudo service tomcat8 restart
 * wiki:midPoint+on+Ubuntu%2C+Tomcat%2C+PostgreSQL+HOWTO[midPoint on Ubuntu, Tomcat, PostgreSQL HOWTO]
 
 * link:https://gluu.org/docs/ce/latest/integration/openidc-rp/[mod_auth_openidc RP Integration]
-

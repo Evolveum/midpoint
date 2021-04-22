@@ -1,6 +1,10 @@
 = Example of new report: Audit report with changed attributes
 :page-nav-title: Audit report with changed attributes
 :page-wiki-name: Example of new report: Audit report with changed attributes
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2020-08-18T15:06:52.473+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2020-09-07T09:26:13.342+02:00
 :page-upkeep-status: yellow
 
 Please see wiki:Report+Configuration#ReportConfiguration-Newreport[Report configuration] for basic information about configuration variables.
@@ -107,4 +111,3 @@ We need import only report, because we use object collection from initial object
     </objectCollection>
 </report>
 ----
-

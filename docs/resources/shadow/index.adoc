@@ -1,5 +1,9 @@
 = Shadow Objects
 :page-wiki-name: Shadow Objects
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T12:19:25.870+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2013-02-04T19:17:24.173+01:00
 :page-upkeep-status: orange
 
 midPoint works with two distinct concepts that represent objects on the resources such as accounts, groups, permissions, etc.
@@ -195,4 +199,3 @@ The connector will announce the identification mechanism in the wiki:Resource+Sc
 * wiki:Resource+Schema+Handling[Resource Schema Handling]
 
 * wiki:Resource+and+Connector+Schema+Explanation[Resource and Connector Schema Explanation]
-

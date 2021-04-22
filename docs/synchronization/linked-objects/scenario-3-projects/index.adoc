@@ -1,6 +1,10 @@
 = Linked Objects Scenario 3: Projects
 :page-nav-title: Scenario 3: Projects
 :page-wiki-name: Linked objects scenario 3: Projects
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2020-06-02T01:10:26.344+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-06-02T11:25:15.965+02:00
 :page-toc: top
 
 
@@ -329,4 +333,3 @@ It is quite self-describing.
 Only a small note here: `<namedLinkSource>X</namedLinkSource>` element is, in fact, a shortcut for `<linkSource><linkType>X</linkType></linkSource>`. We'll see if it should be preserved in the future or if it will be discontinued because of redundancy.
 
 Complete configuration for this scenario is in link:https://github.com/Evolveum/midpoint/tree/master/model/model-intest/src/test/resources/linked/projects[https://github.com/Evolveum/midpoint/tree/master/model/model-intest/src/test/resources/linked/projects] directory (and system configuration in the parent one).
-

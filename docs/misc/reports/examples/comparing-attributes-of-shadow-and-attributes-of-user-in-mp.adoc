@@ -1,6 +1,10 @@
 = Example of new report: Comparing attributes of shadow and attributes of user in midPoint
 :page-nav-title: Comparing attributes of shadow and attributes of user in midPoint
 :page-wiki-name: Example of new report: Comparing attributes of shadow and attributes of user in mP
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2020-08-18T14:15:45.548+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2020-08-18T15:03:38.032+02:00
 :page-upkeep-status: yellow
 
 Please see wiki:Report+Configuration#ReportConfiguration-Newreport[Report configuration] for basic information about configuration variables.
@@ -162,4 +166,3 @@ Please replace '----OID_OF_YOUR_RESOURCE----' with oid of your resource.
     </objectCollection>
 </report>
 ----
-

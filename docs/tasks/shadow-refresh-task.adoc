@@ -1,5 +1,9 @@
 = Shadow Refresh Task
 :page-wiki-name: Shadow Refresh Task
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-04-23T10:58:30.469+02:00
+:page-wiki-metadata-modify-user: vix
+:page-wiki-metadata-modify-date: 2021-03-17T14:07:43.550+01:00
 :page-since: "3.9"
 :page-toc: top
 :page-upkeep-status: green
@@ -127,5 +131,3 @@ Therefore it can usually be scheduled for quite a frequent execution, usually ex
 * wiki:Manual+Resource+and+ITSM+Integration[Manual Resource and ITSM Integration]
 
 * wiki:Consistency+mechanism[Consistency mechanism]
-
-

@@ -1,5 +1,9 @@
 = Eclipse plugin HOWTO
 :page-wiki-name: Eclipse plugin HOWTO
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-09-02T17:16:10.507+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2020-09-25T14:28:25.404+02:00
 :page-toc: top
 :page-obsolete: true
 :page-replaced-by: /midpoint/tools/studio/
@@ -544,4 +548,3 @@ Custom list of ignored items is not working; and the management of resulting fil
 But this will hopefully change soon.
 
 We would like to hear any experiences and suggestions regarding this plugin.
-

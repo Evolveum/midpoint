@@ -1,5 +1,9 @@
 = TLS Connections (Client Side)
 :page-wiki-name: SSL Connections (Client Side)
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-06-05T16:44:05.712+02:00
+:page-wiki-metadata-modify-user: vix
+:page-wiki-metadata-modify-date: 2019-07-11T15:38:24.423+02:00
 :page-keywords: [ 'SSL', 'TLS', 'openssl' ]
 :page-upkeep-status: green
 
@@ -127,4 +131,3 @@ openssl pkcs7 -inform der -in mycert.p7b -out myconvertedcert.cer
 == See Also
 
 * wiki:Keystore+Configuration[Keystore Configuration]
-

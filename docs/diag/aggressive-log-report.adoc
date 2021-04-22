@@ -1,5 +1,9 @@
 = Aggressive Log Report
 :page-wiki-name: Aggressive Log Report
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-08-08T10:47:25.250+02:00
+:page-wiki-metadata-modify-user: honchar
+:page-wiki-metadata-modify-date: 2020-10-07T12:34:27.674+02:00
 :page-keywords: [ 'logging', 'log', 'troubleshooting' ]
 :page-upkeep-status: yellow
 
@@ -146,4 +150,3 @@ Send the gathered logfiles to the midPoint team with all the other relevant deta
 
 Turn the logging back to normal using *Configuration  Logging* page.
 Turn the threads on using the dialog in *Server Tasks* page.
-

@@ -1,5 +1,9 @@
 = Escalation in Certification Campaigns
 :page-wiki-name: Escalation in certification campaigns HOWTO
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-04-19T11:57:52.623+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-04-19T12:03:10.715+02:00
 :page-since: "3.6"
 :page-upkeep-status: yellow
 
@@ -89,4 +93,3 @@ The new escalation level is named "Level1", and its effect is that an reviewer o
 Then, as defined on line 39, ten days after campaign stage opening ("P10D"), i.e. three days after this escalation, another one takes place.
 It is named "Level2", and it replaces all existing reviewers (`replaceAssignees` - line 44) with the `42b48a07-e167-4fdc-baca-8eaa13d4eaad` (line 43).
 Exactly as in approvals, the chaining of escalation levels is done using constraining of timed actions to some levels using `escalationLevelFrom`/`escalationLevelTo` clauses (lines 48-49).
-

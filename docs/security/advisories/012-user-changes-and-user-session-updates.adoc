@@ -1,5 +1,9 @@
 = Security Advisory: User changes and user session updates
 :page-wiki-name: Security Advisory: User changes and user session updates
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-09-09T18:01:43.275+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-09-09T18:24:01.149+02:00
 :page-nav-title: User changes and user session updates
 :page-display-order: 12
 :page-upkeep-status: green
@@ -60,4 +64,3 @@ This issue was reported by Tauheed Khan by the means of link:https://joinup.ec.e
 * bug:MID-5737[]
 
 * link:https://hackerone.com/midpoint_h1c?view_policy=true[MidPoint page at Hackerone]
-

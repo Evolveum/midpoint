@@ -1,5 +1,9 @@
 = Script Expressions
 :page-wiki-name: Script Expression
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-10-01T12:38:14.659+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-03-11T15:07:34.248+01:00
 :page-upkeep-status: yellow
 :page-toc: top
 
@@ -172,4 +176,3 @@ New expression languages may come in the future if there is a demand for them.
 * wiki:Mapping[Mapping]
 
 * wiki:XPath2+Tutorial[XPath2 Tutorial]
-

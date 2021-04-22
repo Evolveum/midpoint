@@ -1,5 +1,9 @@
 = ThingSpeak Resource
 :page-wiki-name: ThingSpeak Resource
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-08-16T10:40:43.227+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-08-16T10:49:14.704+02:00
 :page-upkeep-status: orange
 :page-upkeep-note: What to do with this? Palo will probably never finish it.
 
@@ -67,4 +71,3 @@ We need to configure only one:
 (You might ask what about the login.
 The answer is that ThingSpeak does not use login when authenticating access.
 Since the ScriptedREST connector requires the presence of _login_ property, it can be set to any non-empty value and is ignored.)
-

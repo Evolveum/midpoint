@@ -1,5 +1,9 @@
 = RBAC Best Practice
 :page-wiki-name: RBAC Best Practice
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-01-10T13:00:16.639+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2014-01-10T13:00:16.639+01:00
 :page-upkeep-status: orange
 
 Do not create role that correspond to a single resource, such as "AD" or "Oracle".

@@ -1,5 +1,9 @@
 = Non-Tolerant Induced Focus Mappings
 :page-wiki-name: Non-tolerant induced focus mappings HOWTO (experimental)
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2018-02-14T14:24:28.283+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2018-02-16T10:44:19.889+01:00
 :page-experimenta: true
 :page-since: "3.7.1"
 :page-upkeep-status: yellow
@@ -113,4 +117,3 @@ Note: if the target attribute is multivalued, the following template mapping sho
     </mapping>
 </item>
 ----
-

@@ -1,5 +1,9 @@
 = Paged Search on Resources
 :page-wiki-name: Paged search on resources HOWTO - UPDATED
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2014-10-22T12:00:50.321+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2014-12-16T19:17:55.492+01:00
 :page-upkeep-status: orange
 
 There is a feature of the ConnId framework since version 1.4: *paged search*. The client can specify that it would like to retrieve not all query results in one operation, but only a part of it - specified by an offset and an item count.
@@ -132,4 +136,3 @@ So, in order to work, the VLV must not be disabled (see e.g. link:http://technet
 
 
 . If you encounter problems with queries with large result sets, you might want to link:http://support2.microsoft.com/kb/2009267[tune your server's LDAP parameters].
-

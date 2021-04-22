@@ -1,6 +1,10 @@
 = Power of Attorney Configuration
 :page-nav-title: Power of Attorney
 :page-wiki-name: Power of Attorney Configuration
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-11-03T10:58:50.136+01:00
+:page-wiki-metadata-modify-user: vera
+:page-wiki-metadata-modify-date: 2018-01-16T16:06:25.423+01:00
 :page-since: "3.7"
 :page-upkeep-status: green
 
@@ -58,4 +62,3 @@ The attorney will only see a new menu item in the workitem section that allows t
 == See Also
 
 * xref:authorization/[Authorization]
-

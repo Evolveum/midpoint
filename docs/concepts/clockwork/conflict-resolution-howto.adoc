@@ -1,5 +1,9 @@
 = Conflict Resolution
 :page-wiki-name: Conflict resolution HOWTO
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-08-18T10:39:44.732+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-08-18T10:55:27.002+02:00
 :page-experimental: true
 :page-upkeep-status: green
 
@@ -100,4 +104,3 @@ An example:
       </conflictResolution>
    </defaultObjectPolicyConfiguration>
 ----
-

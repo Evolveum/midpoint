@@ -1,5 +1,9 @@
 = Flexible Authentication
 :page-wiki-name: Flexible Authentication
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-05-28T09:38:46.493+02:00
+:page-wiki-metadata-modify-user: petr.gasparik
+:page-wiki-metadata-modify-date: 2020-04-06T12:59:25.118+02:00
 :page-since: "4.1"
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
@@ -83,4 +87,3 @@ Which also means that the unofficial way to use Spring Security modules with mid
 * wiki:Flexible+Authentication+Configuration[Flexible Authentication Configuration]
 
 * wiki:Flexible+Authentication+Improvements[Flexible Authentication Improvements]
-

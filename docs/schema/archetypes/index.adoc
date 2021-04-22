@@ -1,5 +1,9 @@
 = Archetypes
 :page-wiki-name: Archetypes
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-08-10T11:04:15.590+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-05-06T08:28:05.280+02:00
 :page-since: "4.0"
 :page-since-improved: [ "4.1", "4.2" ]
 :page-midpoint-feature: true
@@ -146,4 +150,3 @@ See wiki:Archetype+Improvements+(Planned+Feature)[Archetype Improvements (Planne
 * wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
 
 * wiki:Services[Services]
-

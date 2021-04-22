@@ -1,5 +1,9 @@
 = Introduction to Mappings and Expressions
 :page-wiki-name: Mappings and Expressions
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T11:48:39.838+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-07-13T15:00:55.639+02:00
 :page-nav-title: Introduction
 :page-display-order: 20
 :page-upkeep-status: orange
@@ -65,4 +69,3 @@ See wiki:Expression[Expression] page for more details.
 * wiki:Expression[Expression]
 
 * wiki:Mapping+Evaluation+Examples[Mapping Evaluation Examples]
-

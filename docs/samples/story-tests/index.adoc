@@ -1,5 +1,9 @@
 = Story Tests
 :page-wiki-name: Story Tests
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-07-21T14:41:59.415+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2016-07-21T15:58:08.039+02:00
 :page-upkeep-status: orange
 
 MidPoint contains a set of "story tests".
@@ -69,4 +73,3 @@ You will be expected to fix the test if it fails.
 == See Also
 
 ** wiki:Integration+Tests[Integration Tests]
-

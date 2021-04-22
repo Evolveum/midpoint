@@ -1,5 +1,9 @@
 = Ports 80 and 443
 :page-wiki-name: Ports 80 and 443
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-10-22T08:53:05.563+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-10-22T08:59:42.348+02:00
 :page-upkeep-status: yellow
 
 MidPoint is often deployed as a wiki:Stand-Alone+Deployment[stand-alone server] with an embedded Apache Tomcat container.
@@ -16,4 +20,3 @@ Therefore midPoint does not support this method.
 
 Recommended solution is to let midPoint run on non-privileged ports and use a reverse proxy, e.g. Apache HTTP Server or NGINX.
 There is also an added value as those servers provide much better network robustness and network access control mechanisms than Apache Tomcat.
-

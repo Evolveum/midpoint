@@ -1,5 +1,9 @@
 = Search
 :page-wiki-name: Search
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-05-11T18:04:23.244+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2018-02-27T17:06:03.050+01:00
 :page-upkeep-status: yellow
 :page-toc: top
 
@@ -215,6 +219,3 @@ The difference is mainly in the memory requirements for executing the script on 
 However, if there would be any need to work with all objects at once (e.g. to select a user with maximum number of accounts), the second option is preferable.
 
 In usual conditions, i.e. no special requirements, and reasonably-sized data, you can use any of the options.
-
-
-

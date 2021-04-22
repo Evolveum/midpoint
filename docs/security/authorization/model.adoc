@@ -1,6 +1,10 @@
 = IDM Model Authorizations
 :page-nav-title: Model Authorizations
 :page-wiki-name: IDM Model Authorizations
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-06-30T17:55:50.755+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2014-06-30T18:03:28.784+02:00
 :page-upkeep-status: yellow
 
 [%autowidth]
@@ -97,4 +101,3 @@ The `assign` and `unassign` authorizations work only in the request phase.
 They are not effective in the execution phase.
 Therefore `modify` authorization is still needed in the execution phase.
 However as the operation needs to pass both phases to be allowed this is a sufficient set-up.
-

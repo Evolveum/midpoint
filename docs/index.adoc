@@ -1,6 +1,10 @@
 = MidPoint Configuration Reference
 :page-nav-title: Configuration Reference
 :page-wiki-name: Administration and Configuration Guide
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-01-11T19:38:42.700+01:00
+:page-wiki-metadata-modify-user: peterkortvel@gmail.com
+:page-wiki-metadata-modify-date: 2016-02-20T16:09:12.144+01:00
 :page-display-order: 90
 :page-upkeep-status: green
 :page-liquid:

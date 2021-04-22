@@ -1,5 +1,9 @@
 = Channel
 :page-wiki-name: Channels
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-02-19T13:58:25.530+01:00
+:page-wiki-metadata-modify-user: rpudil
+:page-wiki-metadata-modify-date: 2019-04-11T08:18:54.229+02:00
 :page-upkeep-status: orange
 
 Concept of a _channel_ defines a way or purpose of information passing in midPoint.
@@ -72,4 +76,3 @@ link:http://midpoint.evolveum.com/xml/ns/public/model/channels-3#rest[http://mid
 * wiki:Synchronization+Flavors[Synchronization Flavors]
 
 * wiki:Synchronization+Configuration[Synchronization Configuration]
-

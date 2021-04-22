@@ -1,5 +1,9 @@
 = Generic Objects
 :page-wiki-name: Generic Objects
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-07-30T09:53:48.634+02:00
+:page-wiki-metadata-modify-user: petr.gasparik
+:page-wiki-metadata-modify-date: 2020-01-06T10:31:33.277+01:00
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
@@ -157,4 +161,3 @@ Simply speaking, midPoint does not really need the concept of special generic ob
 * wiki:Generic+Synchronization[Generic Synchronization]
 
 * wiki:Subtype[Subtype]
-

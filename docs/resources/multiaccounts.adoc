@@ -1,5 +1,9 @@
 = Multiaccounts
 :page-wiki-name: Multiaccounts HOWTO
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-05-03T15:17:22.252+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2020-05-20T14:18:40.227+02:00
 :page-since: "4.0"
 :page-toc: top
 
@@ -327,4 +331,3 @@ All those limitations can be removed with appropriate wiki:Subscriptions+and+Spo
 * wiki:Kind,+Intent+and+ObjectClass[Kind, Intent and ObjectClass]
 
 * wiki:Inbound+Mapping[Inbound Mapping]
-

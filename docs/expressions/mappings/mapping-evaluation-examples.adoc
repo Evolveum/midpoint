@@ -1,5 +1,9 @@
 = Mapping Evaluation Examples
 :page-wiki-name: Mapping Evaluation Examples
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-07-13T14:59:26.975+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-07-13T14:59:26.975+02:00
 
 
 == Resource and Role Attribute Mappings
@@ -216,4 +220,3 @@ See xref:/community/[community section of this site] to see how the community ca
 * wiki:Mapping[Mapping]
 
 * wiki:Resource+Schema+Handling[Resource Schema Handling]
-

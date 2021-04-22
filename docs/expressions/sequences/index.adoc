@@ -1,5 +1,9 @@
 = Sequences
 :page-wiki-name: Sequences
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2015-09-30T11:36:47.227+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2015-09-30T12:34:09.959+02:00
 :page-since: "3.3"
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
@@ -52,4 +56,3 @@ See wiki:Using+Sequences[Using Sequences] page for more details.
 * xref:configuration.adoc[]
 
 * wiki:Unix+Story+Test[Unix Story Test]
-

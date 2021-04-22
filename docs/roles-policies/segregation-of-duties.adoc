@@ -1,5 +1,9 @@
 = Segregation of Duties
 :page-wiki-name: Segregation of Duties
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-04-18T15:57:03.768+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2021-03-02T23:37:12.075+01:00
 :page-since: "3.5"
 :page-since-improved: [ "3.6" ]
 :page-midpoint-feature: true
@@ -143,5 +147,3 @@ The other policy actions are available since midPoint 3.6.
 == See Also
 
 * wiki:Policy+Rules[Policy Rules]
-
-

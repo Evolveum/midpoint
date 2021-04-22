@@ -1,5 +1,9 @@
 = Lookup Tables
 :page-wiki-name: Lookup Tables
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-06-23T17:12:09.952+02:00
+:page-wiki-metadata-modify-user: chris83527
+:page-wiki-metadata-modify-date: 2019-07-03T15:56:56.460+02:00
 :page-since: "3.1.1"
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
@@ -54,4 +58,3 @@ Lookup table can be bound to any property of any (wiki:Focus+and+Projections[foc
 
 This definition binds the (user) property `preferredLanguage` to the lookup table defined above.
 When that object template is made active then the midPoint user interface will display a selection with the labels specified in the lookup table.
-

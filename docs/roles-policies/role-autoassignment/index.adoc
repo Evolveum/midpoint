@@ -1,5 +1,9 @@
 = Role Autoassignment
 :page-wiki-name: Role Autoassignment
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-11-03T09:33:13.072+01:00
+:page-wiki-metadata-modify-user: katkav
+:page-wiki-metadata-modify-date: 2020-06-10T10:38:42.679+02:00
 :page-since: "3.7"
 :page-since-improved: [ "4.2" ]
 :page-midpoint-feature: true
@@ -117,4 +121,3 @@ MidPoint is a thorough system and it does not like conflicting policies.
 * wiki:Expression[Expression]
 
 * wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
-

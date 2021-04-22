@@ -1,5 +1,9 @@
 = Service Account Management
 :page-wiki-name: Service Account Management
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-12-18T15:36:33.921+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-02-08T13:29:52.467+01:00
 :page-since: "3.9"
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
@@ -105,6 +109,3 @@ See wiki:Service+Account+Management+Improvements[Service Account Management Impr
 * wiki:Protected+Accounts[Protected Accounts]
 
 * wiki:Synchronization+Sorter[Synchronization Sorter]
-
-
-

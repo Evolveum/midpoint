@@ -1,5 +1,9 @@
 = Migration from Sun IdM
 :page-wiki-name: Migration from Sun IdM
+:page-wiki-metadata-create-user: ifarinic
+:page-wiki-metadata-create-date: 2013-10-17T11:39:52.335+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2014-01-09T18:41:35.380+01:00
 :page-toc: top
 :page-upkeep-status: orange
 :page-upkeep-note: Are we going to maintain this?
@@ -334,4 +338,3 @@ Other roles then haven't included the resource directly but included the "login 
 Do not use this approach in midPoint.
 MidPoint has an elegant mechanism of wiki:Outbound+Mapping[outbound mappings] that can be used to set resource-global attribute values.
 The ability of a login role to "hold" the account in a disabled state can be done in a much easier way by using wiki:Resource+Schema+Handling:+Activation[activation existence mapping].
-

@@ -1,5 +1,9 @@
 = Parallelized background tasks
 :page-wiki-name: Parallelized background tasks
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2014-11-12T19:24:59.012+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2019-03-05T17:01:30.834+01:00
 :page-upkeep-status: yellow
 
 Some background tasks, namely initial import and reconciliation could take a considerable time.

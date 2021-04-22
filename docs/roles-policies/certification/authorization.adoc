@@ -1,6 +1,10 @@
 = Access Certification Authorization
 :page-nav-title: Authorization
 :page-wiki-name: Access Certification Security
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-02-01T14:26:00.780+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-02-01T19:27:02.512+01:00
 :page-upkeep-status: orange
 :page-alias: { "parent" : "/midpoint/reference/security/authorization/", "slug" : "certification",  "title" : "Access Certification" }
 
@@ -191,4 +195,3 @@ The last privilege could be added by adding action URI #closeCertificationCampai
 
 Alternatively, we might want to specify the second authorization in a way of "all campaigns whose owner is currently logged-in user".
 But the implementation of owner = self is not quite finished yet (see link:https://jira.evolveum.com/browse/MID-2789[MID-2789]).
-

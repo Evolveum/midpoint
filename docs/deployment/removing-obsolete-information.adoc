@@ -1,5 +1,9 @@
 = Removing obsolete information
 :page-wiki-name: Removing obsolete information
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2013-06-25T18:03:53.167+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2013-06-25T18:03:54.167+02:00
 :page-keywords: [ 'cleanup' ]
 
 During midPoint operation, some data items gradually gather in the repository.

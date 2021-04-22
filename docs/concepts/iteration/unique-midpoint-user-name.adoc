@@ -1,5 +1,9 @@
 = Unique midPoint User Name
 :page-wiki-name: Unique midPoint User Name
+:page-wiki-metadata-create-user: vix
+:page-wiki-metadata-create-date: 2014-10-23T15:29:58.536+02:00
+:page-wiki-metadata-modify-user: vix
+:page-wiki-metadata-modify-date: 2014-10-23T15:30:36.303+02:00
 :page-alias: { "parent" : "/midpoint/guides/" }
 :page-toc: top
 :page-upkeep-status: yellow
@@ -197,6 +201,3 @@ This expression might result in the following username sequence:
 * `john.smith.381`
 
 * ...
-
-
-

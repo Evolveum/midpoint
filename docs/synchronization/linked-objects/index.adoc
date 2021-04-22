@@ -1,5 +1,9 @@
 = Linked Objects
 :page-wiki-name: Linked objects
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2020-04-23T15:14:47.128+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-10-26T18:10:54.988+01:00
 :page-since: "4.2"
 :page-toc: top
 :page-midpoint-feature: true

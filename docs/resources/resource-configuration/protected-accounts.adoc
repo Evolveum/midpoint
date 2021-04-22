@@ -1,5 +1,9 @@
 = Protected Accounts
 :page-wiki-name: Protected Accounts
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-04-17T18:32:42.796+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-08-27T15:11:47.967+02:00
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
 
@@ -118,4 +122,3 @@ Support for this notation was removed in midPoint 4.0.
 == See Also
 
 * wiki:Resource+Configuration[Resource Configuration]
-

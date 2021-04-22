@@ -1,5 +1,9 @@
 = Custom forms
 :page-wiki-name: Custom forms
+:page-wiki-metadata-create-user: katkav
+:page-wiki-metadata-create-date: 2017-01-27T09:41:41.417+01:00
+:page-wiki-metadata-modify-user: katkav
+:page-wiki-metadata-modify-date: 2017-01-30T11:42:47.269+01:00
 :page-since: "3.6"
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
@@ -160,4 +164,3 @@ image::Screenshot-2017-01-27-10.16.55.png[]
 * wiki:Self+Registration+Configuration[Configuring self-registraion]
 
 * wiki:Reset+Password+Configuration[Configuring reset password]
-

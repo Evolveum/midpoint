@@ -1,5 +1,9 @@
 = Overriding config.xml parameters
 :page-wiki-name: Overriding config.xml parameters
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2018-08-09T17:12:25.521+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2018-08-09T17:12:25.521+02:00
 :page-since: "3.9"
 
 
@@ -27,4 +31,3 @@ CMD java -Xmx2048M -Xms2048M -Dfile.encoding=UTF8 \
        -Dmidpoint.repository.initializationFailTimeout=60000 \
        -jar $MP_DIR/lib/midpoint.war
 ----
-

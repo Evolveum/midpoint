@@ -1,5 +1,9 @@
 = Data Representation Formats
 :page-wiki-name: Objects, XML, JSON and others
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T11:53:33.141+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-03-02T16:47:35.263+01:00
 :page-description: Use of XML, JSON, YAML and other formats in midPoint.
 :page-upkeep-status: green
 

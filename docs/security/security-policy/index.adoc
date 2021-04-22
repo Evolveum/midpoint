@@ -1,6 +1,10 @@
 = Security Policy Configuration
 :page-nav-title: Security Policy
 :page-wiki-name: Security Policy Configuration
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-03-16T16:49:07.028+01:00
+:page-wiki-metadata-modify-user: rpudil
+:page-wiki-metadata-modify-date: 2020-05-12T12:11:56.222+02:00
 :page-upkeep-status: yellow
 :page-toc: top
 
@@ -236,4 +240,3 @@ Since midPoint 3.6 the security policy may also be specified for each wiki:Organ
 * wiki:Password-Related+Configuration[Password-Related Configuration]
 
 * wiki:Password+Policy[Password Policy]
-

@@ -1,5 +1,9 @@
 = Look & Feel Customization HOWTO
 :page-wiki-name: Look & Feel Customization HOWTO
+:page-wiki-metadata-create-user: lazyman
+:page-wiki-metadata-create-date: 2015-10-19T19:44:29.416+02:00
+:page-wiki-metadata-modify-user: lazyman
+:page-wiki-metadata-modify-date: 2017-10-31T13:02:42.551+01:00
 :page-since: "3.5.1"
 :page-upkeep-status: yellow
 
@@ -124,4 +128,3 @@ Best way to change them is using wiki:Customization+With+Overlay+Project[maven o
 == Javascript files description
 
 Javascript files are located in `admin-gui/src/main/webapp/js/...` . Most of the MidPoint specific code is located in `midpoint-theme.js`.
-

@@ -1,6 +1,10 @@
 = Example of new report: Long unchanged accounts
 :page-nav-title: Long unchanged accounts
 :page-wiki-name: Example of new report: Long unchanged accounts
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2020-08-18T14:55:17.864+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2020-08-18T15:06:44.581+02:00
 :page-upkeep-status: yellow
 
 Please see wiki:Report+Configuration#ReportConfiguration-Newreport[Report configuration] for basic information about configuration variables.
@@ -105,4 +109,3 @@ Please replace '----OID_OF_YOUR_RESOURCE----' with oid of your resource.
     </objectCollection>
 </report>
 ----
-

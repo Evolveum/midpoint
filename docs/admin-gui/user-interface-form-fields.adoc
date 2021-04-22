@@ -1,5 +1,9 @@
 = User Interface Form Fields
 :page-wiki-name: User Interface Form Fields
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2015-07-08T10:45:27.661+02:00
+:page-wiki-metadata-modify-user: vix
+:page-wiki-metadata-modify-date: 2020-01-29T15:59:46.285+01:00
 :page-toc: top
 
 == MidPoint is Schema-Driven
@@ -301,4 +305,3 @@ Large number of authorizations might cause a scalability problem.
 * wiki:Basic+Data+Model[Basic Data Model]
 
 * wiki:Authorization+Configuration[Authorization Configuration]
-

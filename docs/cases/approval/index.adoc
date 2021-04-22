@@ -1,5 +1,9 @@
 = Approval
 :page-wiki-name: Approval
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-11-28T14:20:31.930+01:00
+:page-wiki-metadata-modify-user: vera
+:page-wiki-metadata-modify-date: 2020-03-31T15:04:51.194+02:00
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: red
@@ -100,4 +104,3 @@ Although it was - in some form - present also in midPoint 3.4.1 and earlier (usi
 * wiki:Role+Lifecycle[Role Lifecycle]
 
 * wiki:Deputy[Deputy]
-

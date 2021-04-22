@@ -1,6 +1,10 @@
 = Example of dashboard report: Using policySituation for report
 :page-nav-title: Example: policySituation
 :page-wiki-name: Example of dashboard report: Using policySituation for report
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2020-05-04T13:00:25.101+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2020-05-04T14:37:22.496+02:00
 
 Please see wiki:Dashboard+configuration[Dashboard configuration] for basic information about configuration variables.
 
@@ -136,6 +140,3 @@ Every report from dashboard is in HTML format.
 Report:
 
 image::image2020-5-4_13-34-2.png[]
-
-
-

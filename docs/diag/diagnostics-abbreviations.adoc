@@ -1,5 +1,9 @@
 = Diagnostics Abbreviations
 :page-wiki-name: Diagnostics Abbreviations
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-04-18T16:24:30.882+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2013-01-11T20:19:48.496+01:00
 :page-upkeep-status: orange
 
 == Prism
@@ -65,4 +69,3 @@ Used to distinguish between shadows belonging to the same user, e.g. different a
 == See Also
 
 * wiki:Prism+Objects[Prism Objects]
-

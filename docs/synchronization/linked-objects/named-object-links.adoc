@@ -1,5 +1,9 @@
 = Named object links
 :page-wiki-name: Named object links
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2020-06-01T22:55:47.937+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-06-02T11:38:07.236+02:00
 :page-experimental: true
 :page-toc: top
 
@@ -81,4 +85,3 @@ But we'll be able to sort these questions out eventually.)
 We seem to be approaching the state where assignments (and links as their execution-time counterparts) will be first-class citizens in midPoint, just like objects are.
 
 _Named object links_ feature is a step towards this goal.
-

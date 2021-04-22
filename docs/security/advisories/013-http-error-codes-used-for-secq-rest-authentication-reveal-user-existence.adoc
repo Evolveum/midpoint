@@ -1,5 +1,9 @@
 = Security Advisory: HTTP error codes used for SecQ REST authentication reveal user existence
 :page-wiki-name: Security Advisory: HTTP error codes used for SecQ REST authentication reveal user existence
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-10-11T11:38:30.331+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-10-11T11:43:56.858+02:00
 :page-nav-title: HTTP error codes used for SecQ REST authentication reveal user existence
 :page-display-order: 13
 :page-upkeep-status: green
@@ -42,4 +46,3 @@ This issue was reported by Nicolas Destor by the means of link:https://joinup.ec
 * bug:MID-5725[]
 
 * link:https://hackerone.com/midpoint_h1c?view_policy=true[MidPoint page at Hackerone]
-

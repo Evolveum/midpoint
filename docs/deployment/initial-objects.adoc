@@ -1,5 +1,9 @@
 = Initial Objects
 :page-wiki-name: Default MidPoint Configuration
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-02-27T18:34:45.999+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-02-27T18:36:55.190+01:00
 :page-upkeep-status: orange
 
 When midPoint is installed it applies default minimum configuration, also known as _initial objects_.

@@ -1,5 +1,9 @@
 = Expression and Mapping Trace
 :page-wiki-name: Expression Trace
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-05-11T16:40:09.549+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2016-08-08T14:58:17.417+02:00
 
 MidPoint has ability to trace mappings, expressions and scripts.
 These three mechanism for a hierarchy: mappings may contain expressions, expressions may contain scripts.
@@ -143,4 +147,3 @@ In fact it is ignored by most expression languages.
 == See Also
 
 * wiki:Diagnostics+Abbreviations[Diagnostics Abbreviations]
-

@@ -1,6 +1,10 @@
 = Example of new report: Users without account
 :page-nav-title: Users without account
 :page-wiki-name: Example of new report: Users without account
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2020-08-18T13:56:23.128+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2020-08-20T08:16:17.750+02:00
 :page-upkeep-status: yellow
 
 Please see wiki:Report+Configuration#ReportConfiguration-Newreport[Report configuration] for basic information about configuration variables.
@@ -80,4 +84,3 @@ We need only report configuration with condition.
 ----
 
 Please replace_ '----OID_OF_YOUR_ROLE----'_ with oid of your role and '----OID\_OF\_YOUR\_RESOURCE----' with oid of your resource.
-

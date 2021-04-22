@@ -1,5 +1,9 @@
 = Correlation and Confirmation Expressions
 :page-wiki-name: Correlation and Confirmation Expressions
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-06-07T17:09:24.531+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2012-11-26T15:27:58.648+01:00
 :page-upkeep-status: orange
 
 wiki:Synchronization[Synchronization] mechanism makes sure that the state of accounts corresponds to the state of the user that owns them with respect to the configured policies.
@@ -80,4 +84,3 @@ Following table summarizes the resulting situation with respect to the number of
 
 The correlation and confirmation expressions are *not* used for accounts that are already linked to a user.
 In such case the link is assumed to be authoritative and this situation is resolved as `linked`.
-

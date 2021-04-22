@@ -1,5 +1,9 @@
 = ITSM Plugin
 :page-wiki-name: ITSM Plugin
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-04-24T14:15:18.845+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-09-25T15:23:15.103+02:00
 :page-since: "3.6"
 :page-experimental: true
 :page-upkeep-status: green
@@ -26,4 +30,3 @@ In fact it is a subclass of midPoint abstract manual connector using wiki:Unifie
 * wiki:Manual+Resource+Configuration[Manual Resource Configuration]
 
 * wiki:Unified+Connector+Framework+Interfaces[Unified Connector Framework Interfaces]
-

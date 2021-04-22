@@ -1,5 +1,9 @@
 = Approvals examples (legacy)
 :page-wiki-name: Approvals examples (legacy)
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2012-07-30T11:09:56.277+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-01-13T15:34:14.127+01:00
 :page-obsolete: true
 :page-obsolete-since: "3.5"
 
@@ -226,4 +230,3 @@ unit, or what if his org.
 unit has no manager.
 In this example, the role addition is automatically approved in such cases.
 The final answer depends on the concrete circumstances of particular midPoint deployment.
-

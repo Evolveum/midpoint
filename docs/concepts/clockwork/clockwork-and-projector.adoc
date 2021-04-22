@@ -1,5 +1,9 @@
 = Clockwork and Projector
 :page-wiki-name: Clockwork and Projector
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-12-06T14:47:36.766+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-05-29T10:11:16.019+02:00
 :page-upkeep-status: orange
 
 Clockwork and Projector are two sophisticated component that work together to compute the changes to objects that midPoint manages and to control the execution of these changes.
@@ -84,4 +88,3 @@ TODO: more details
 * wiki:Hooks[Hooks]
 
 * wiki:Projector+and+clockwork+internals[Projector and clockwork internals] (only some sketches there - yet)
-

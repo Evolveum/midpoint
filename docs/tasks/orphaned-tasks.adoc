@@ -1,5 +1,9 @@
 = Orphaned Tasks
 :page-wiki-name: Orphaned tasks HOWTO
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2020-10-07T17:45:27.758+02:00
+:page-wiki-metadata-modify-user: honchar
+:page-wiki-metadata-modify-date: 2020-10-08T18:01:13.764+02:00
 :page-since: "4.2"
 :page-upkeep-status: green
 
@@ -156,5 +160,3 @@ To add menu item for Orphaned tasks collection to the Server tasks section, add 
                 </adminGuiConfiguration>
 </systemConfiguration>
 ----
-
-

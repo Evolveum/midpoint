@@ -1,5 +1,9 @@
 = Kind, Intent and ObjectClass
 :page-wiki-name: Kind, Intent and ObjectClass
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-01-07T13:34:04.023+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-05-03T15:29:01.975+02:00
 :page-upkeep-status: yellow
 :page-liquid:
 :page-toc: top
@@ -193,4 +197,3 @@ Therefore midPoint allows the two grouping mechanisms to coexist (and may keep t
 * wiki:Resource+Schema[Resource Schema]
 
 * wiki:Entitlements[Entitlements]
-

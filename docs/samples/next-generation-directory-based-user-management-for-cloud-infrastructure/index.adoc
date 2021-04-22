@@ -1,5 +1,9 @@
 = Next Generation Directory-based User Management for Cloud Infrastructure
 :page-wiki-name: Next Generation Directory-based User Management for Cloud Infrastructure
+:page-wiki-metadata-create-user: katkav
+:page-wiki-metadata-create-date: 2016-09-20T16:25:20.666+02:00
+:page-wiki-metadata-modify-user: katkav
+:page-wiki-metadata-modify-date: 2016-09-23T18:47:56.585+02:00
 :page-upkeep-status: orange
 :page-upkeep-note: What to do with this? Palo will probably never finish it.
 :page-toc: top
@@ -708,6 +712,3 @@ Check groups for Machine Set 1, in any of them there is no memberUid with value 
 == See also
 
 * wiki:Configuration+Samples[Configuration samples] (directory stories/unix-ldap-advanced)
-
-
-

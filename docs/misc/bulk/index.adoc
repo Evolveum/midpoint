@@ -1,6 +1,10 @@
 = Bulk Actions (midPoint scripting language)
 :page-nav-title: Bulk Actions
 :page-wiki-name: Bulk actions (midPoint scripting language)
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2014-02-19T23:20:19.958+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2019-05-22T09:49:49.794+02:00
 :page-toc: top
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
@@ -465,4 +469,3 @@ Also this behavior could be made configurable in the future.
 == Tools
 
 TODO (GUI, Eclipse plugin, command-line client)
-

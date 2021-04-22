@@ -1,5 +1,9 @@
 = Security Advisory: AD and LDAP connectors do not check certificate validity
 :page-wiki-name: Security Advisory: AD and LDAP connectors do not check certificate validity
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-04-17T14:24:10.571+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2019-04-18T09:28:47.469+02:00
 :page-nav-title: AD and LDAP connectors do not check certificate validity
 :page-display-order: 4
 :page-upkeep-status: green
@@ -68,4 +72,3 @@ Variants of this issue were reported by Martin Lizner, who has also contributed 
 == See Also
 
 * link:https://hackerone.com/midpoint_h1c?view_policy=true[MidPoint page at Hackerone]
-

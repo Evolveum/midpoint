@@ -1,5 +1,9 @@
 = Assignment Configuration
 :page-wiki-name: Assignment Configuration
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-05-13T14:45:44.992+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-04-03T09:22:26.276+02:00
 :page-upkeep-status: yellow
 :page-toc: top
 
@@ -665,4 +669,3 @@ See wiki:Relaxed+Referential+Integrity[Relaxed Referential Integrity] page for m
 * wiki:Expression[Expression], especially part about assignment expressions
 
 * wiki:Relaxed+Referential+Integrity[Relaxed Referential Integrity]
-

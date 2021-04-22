@@ -1,6 +1,10 @@
 = MidPoint Organizational Structure Introduction
 :page-nav-title: Introduction
 :page-wiki-name: Organizational Structure
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-07-24T10:01:15.792+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2016-09-16T11:33:44.628+02:00
 :page-upkeep-status: yellow
 
 == Introduction
@@ -260,4 +264,3 @@ If a user is assigned to such org the org behaves as a role and automatically co
 * wiki:Assignment[Assignment]
 
 * wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
-

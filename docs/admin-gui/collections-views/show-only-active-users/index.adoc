@@ -1,5 +1,9 @@
 = Show Only Active Users HOWTO
 :page-wiki-name: Show Only Active Users HOWTO
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-06-21T15:39:42.654+02:00
+:page-wiki-metadata-modify-user: vix
+:page-wiki-metadata-modify-date: 2019-04-03T14:06:39.695+02:00
 :page-since: "3.9"
 :page-upkeep-status: yellow
 :page-alias: { "parent" : "/midpoint/guides/" }
@@ -76,4 +80,3 @@ Make sure that users do *not* have authorization to access "All users" page ([.u
 * wiki:Object+Collections+and+Views[Object Collections and Views]
 
 * bug:MID-4654[]
-

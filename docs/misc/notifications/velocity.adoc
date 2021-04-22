@@ -1,6 +1,10 @@
 = Using Velocity Templates for Notifications
 :page-nav-title: Velocity Templates
 :page-wiki-name: Using Velocity Templates for Notifications
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-09-08T21:13:50.163+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-09-08T21:14:54.826+02:00
 :page-upkeep-status: yellow
 
 Starting with midPoint 3.4.1 it is possible to use Apache Velocity templates for writing notifications.
@@ -89,4 +93,3 @@ Channel: $!event.channel</code>
 ----
 
 TODO more detailed explanation
-

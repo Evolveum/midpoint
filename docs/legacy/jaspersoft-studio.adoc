@@ -1,5 +1,9 @@
 = Jaspersoft Studio - midPoint integration HOWTO
 :page-wiki-name: Jaspersoft Studio - midPoint integration HOWTO
+:page-wiki-metadata-create-user: katkav
+:page-wiki-metadata-create-date: 2015-05-14T21:02:05.283+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2020-09-25T14:32:40.385+02:00
 :page-obsolete: true
 :page-toc: top
 
@@ -178,4 +182,3 @@ Starting with <style>...
 * To force report refresh/recompile, try closing the report tab and open jrxml again.
 
 * java.net.SocketTimeoutException: Read timed out - increase timeouts in client.properties
-

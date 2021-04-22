@@ -1,5 +1,9 @@
 = LDAP Groups HOWTO (Obsolete)
 :page-wiki-name: LDAP Groups HOWTO
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-02-15T16:58:55.475+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2015-09-03T16:00:38.570+02:00
 :page-obsolete: true
 
 [NOTE]
@@ -104,4 +108,3 @@ Also make sure that you have correctly set up the group membership attribute in 
             ....
             <icfcldap:groupMemberAttribute>member</icfcldap:groupMemberAttribute>
 ----
-

@@ -1,6 +1,10 @@
 = PolyString Normalization Configuration
 :page-nav-title: PolyString Normalization
 :page-wiki-name: PolyString Normalization Configuration
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-02-22T16:25:02.749+01:00
+:page-wiki-metadata-modify-user: dantrob
+:page-wiki-metadata-modify-date: 2019-07-15T16:32:44.297+02:00
 :page-upkeep-status: green
 :page-since: "3.8"
 
@@ -133,4 +137,3 @@ Therefore for the change to take a full effect all the data need to be updated (
 * wiki:PolyString[PolyString]
 
 * wiki:System+Configuration+Object[System Configuration Object]
-

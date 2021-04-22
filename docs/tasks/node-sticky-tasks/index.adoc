@@ -1,5 +1,9 @@
 = Node-Sticky Tasks
 :page-wiki-name: Node-sticky tasks HOWTO
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-07-28T17:17:00.521+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2019-07-20T01:31:45.773+02:00
 :page-since: "3.7"
 :page-upkeep-status: yellow
 
@@ -190,5 +194,3 @@ So, the above example of `admin-node:2,sync-jobs,#:13,_:40`  means:
 * plus the default setting of 0 threads in any other named group.
 
 Example 2: The usual default settings can be written as `_,#,*:0` or, perhaps more expressively, as `_:*,#:*,*:0`.
-
-

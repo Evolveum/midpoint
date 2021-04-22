@@ -1,5 +1,9 @@
 = runscript command line tool
 :page-wiki-name: runscript command line tool
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2014-03-06T12:02:26.672+01:00
+:page-wiki-metadata-modify-user: peterkortvel@gmail.com
+:page-wiki-metadata-modify-date: 2016-02-20T15:47:26.391+01:00
 :page-upkeep-status: yellow
 
 == Intro / Examples

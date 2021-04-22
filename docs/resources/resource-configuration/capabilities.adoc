@@ -1,6 +1,10 @@
 = Resource Capabilities
 :page-nav-title: Capabilities
 :page-wiki-name: Resource Capabilities
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-03-14T12:11:38.996+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2019-08-06T14:19:49.581+02:00
 :page-upkeep-status: orange
 :page-liquid:
 
@@ -113,4 +117,3 @@ If this information is not present, midPoint restarts live synchronization (in c
 
 Some resources are known to provide precise token values, others are known of not doing so (e.g. for performance reasons).
 Others - e.g. those served by ScriptedSQL connector - depend on particular configuration of the connector.
-

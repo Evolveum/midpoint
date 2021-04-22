@@ -1,5 +1,9 @@
 = Using Metaroles for Policy Configuration
 :page-wiki-name: Using Metaroles for Policy Configuration
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-04-09T17:27:41.988+02:00
+:page-wiki-metadata-modify-user: petr.gasparik
+:page-wiki-metadata-modify-date: 2020-09-02T11:50:47.537+02:00
 :page-upkeep-status: yellow
 
 == Introduction

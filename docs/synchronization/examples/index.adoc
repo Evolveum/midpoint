@@ -1,6 +1,10 @@
 = Synchronization Examples
 :page-nav-title: Examples
 :page-wiki-name: Synchronization Examples
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T12:27:03.203+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2018-04-27T17:01:28.813+02:00
 :page-toc: top
 :page-upkeep-status: orange
 
@@ -520,4 +524,3 @@ See wiki:Synchronization+Flavors[Synchronization Flavors] page for more details.
 * wiki:XML+Object+Query[XML Object Query]
 
 * wiki:User+Synchronizer[User Synchronizer]
-

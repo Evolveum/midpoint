@@ -1,5 +1,9 @@
 = Model Web Service Client Sample
 :page-wiki-name: Model Web Service Client Sample
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-03-15T14:08:57.914+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-06-25T06:51:40.107+02:00
 :page-obsolete: true
 
 This is a short description how to use `model-client-sample` which demonstrates the use of Java client based on JAX-WS.
@@ -201,4 +205,3 @@ mvn exec:java -Dexec.mainClass="com.evolveum.midpoint.testing.model.client.sampl
 ----
 
 Do not forget that initialized and configued midPoint instance must be running before successfully executing the client sample.
-

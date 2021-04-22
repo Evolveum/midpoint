@@ -1,5 +1,9 @@
 = Managing cluster nodes
 :page-wiki-name: Managing cluster nodes
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2019-12-12T12:06:43.846+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-01-13T12:07:35.715+01:00
 :page-since: [ "4.1", "4.0.2" ]
 
 // also available in 4.0.2
@@ -195,4 +199,3 @@ Default parameter values:
 If you'd like to enable this feature, you can set this parameter to e.g. 1 day.
 Note that cleanup task runs - by default - once per day.
 But you can change this interval or you can schedule other cleanup task, devoted specifically to cleaning up dead nodes.
-

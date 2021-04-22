@@ -1,5 +1,9 @@
 = Model Context
 :page-wiki-name: Model Context
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-12-06T14:49:11.032+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2014-01-09T16:41:44.983+01:00
 :page-upkeep-status: yellow
 
 Model context is a complex data structure that describes the context of computation in wiki:Clockwork+and+Projector[Clockwork and Projector] components.
@@ -72,4 +76,3 @@ It is serialized in an upgradeable data format (currently XML) which allows runn
 * wiki:Clockwork+and+Projector[Clockwork and Projector]
 
 * wiki:Focus+and+Projections[Focus and Projections]
-

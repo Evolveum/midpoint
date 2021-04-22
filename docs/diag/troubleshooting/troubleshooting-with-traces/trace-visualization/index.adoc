@@ -1,5 +1,9 @@
 = Trace visualization
 :page-wiki-name: Trace visualization
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2020-03-26T19:23:04.479+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-03-27T10:11:51.163+01:00
 :page-experimental: true
 :page-tag: guide
 :page-upkeep-status: yellow
@@ -135,4 +139,3 @@ So if you are trying to diagnose performance, use "performance" tracing profile.
 A final note: There's much more to show than was possible to implement in this prototype text-based visualizer.
 More information can be found either manually in trace files, or using IDEA or Eclipse trace viewer.
 In the future we might be able to improve this text-based viewer, or add maybe HTML-based or graphical one.
-

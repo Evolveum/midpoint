@@ -1,5 +1,9 @@
 = OrgSync Story Test
 :page-wiki-name: OrgSync Story Test
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-01-22T15:36:28.722+01:00
+:page-wiki-metadata-modify-user: garbika
+:page-wiki-metadata-modify-date: 2014-05-29T13:09:15.209+02:00
 :page-upkeep-status: yellow
 :page-toc: top
 
@@ -528,4 +532,3 @@ Therefore you can have roles, meta-roles, meta-meta-roles, ....
 == See Also
 
 * wiki:Configuration+Samples[Configuration Samples]
-

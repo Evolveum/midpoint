@@ -1,5 +1,9 @@
 = Deployment Information
 :page-wiki-name: Deployment Information Type
+:page-wiki-metadata-create-user: honchar
+:page-wiki-metadata-create-date: 2017-01-30T13:51:10.040+01:00
+:page-wiki-metadata-modify-user: vix
+:page-wiki-metadata-modify-date: 2019-10-24T13:16:53.820+02:00
 :page-upkeep-status: yellow
 
 Intended to store the  information about midPoint deployment: subscription information, deployment name, description, color and so on.

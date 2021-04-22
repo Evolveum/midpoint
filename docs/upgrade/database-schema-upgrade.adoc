@@ -1,5 +1,9 @@
 = Database Schema Upgrade
 :page-wiki-name: Database Schema Upgrade
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2015-04-16T19:47:06.934+02:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2020-10-27T17:08:38.510+01:00
 :page-alias: { "parent" : "/midpoint/reference/repository/", "display-order" : 800 }
 :page-upkeep-status: orange
 

@@ -1,6 +1,10 @@
 = Determining Certification Case Outcome
 :page-nav-title: Determining Case Outcome
 :page-wiki-name: Determining Certification Case Outcome
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-02-04T15:35:26.459+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-04-21T16:57:58.966+02:00
 :page-upkeep-status: yellow
 
 Each case is reviewed in one or more stages, by zero, one, or more reviewers.
@@ -350,8 +354,3 @@ So e.g. if nobody says anything, the case is approved.
 
 
 |===
-
-
-
-
-

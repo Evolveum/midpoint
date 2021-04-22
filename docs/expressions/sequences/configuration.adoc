@@ -1,6 +1,10 @@
 = Using Sequences
 :page-nav-title: Configuration
 :page-wiki-name: Using Sequences
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2015-09-30T11:37:49.516+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2015-09-30T12:46:22.296+02:00
 :page-since: "3.3"
 
 == Sequences
@@ -118,4 +122,3 @@ The test is using sequences to assign Unix UID and GID numbers.
 * wiki:Mappings+and+Expressions[Mappings and Expressions]
 
 * wiki:Unix+Story+Test[Unix Story Test]
-

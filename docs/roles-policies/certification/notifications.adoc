@@ -1,6 +1,10 @@
 = Access Certification Notifications
 :page-nav-title: Notifications
 :page-wiki-name: Access Certification Notifications
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-02-03T18:48:10.282+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-02-03T21:57:13.280+01:00
 :page-upkeep-status: orange
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/reference/misc/notifications/", "slug" : "certification",  "title" : "Access Certification" }
@@ -410,4 +414,3 @@ No response:           6
 Requester: midPoint Administrator (administrator)
 Channel: null
 ----
-

@@ -1,5 +1,9 @@
 = Filter Content
 :page-wiki-name: Filter Content
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-05-15T14:07:47.874+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-05-15T14:07:47.874+02:00
 :page-upkeep-status: yellow
 
 == Description
@@ -47,4 +51,3 @@ These properties are mutually exclusive.
   <keep>credentials/password/value</keep>
 </filterContent>
 ----
-

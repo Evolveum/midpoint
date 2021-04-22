@@ -1,5 +1,9 @@
 = Synchronization Sorter
 :page-wiki-name: Synchronization Sorter
+:page-wiki-metadata-create-user: katkav
+:page-wiki-metadata-create-date: 2018-08-07T09:31:29.746+02:00
+:page-wiki-metadata-modify-user: katkav
+:page-wiki-metadata-modify-date: 2018-08-07T09:47:37.950+02:00
 :page-since: "3.9"
 
 
@@ -121,4 +125,3 @@ If set, reaction for the situation is found and the actions are run.
 
 All properties are optional.
 If they are not set by the expression, they are computed by original way using object synchronization parts..
-

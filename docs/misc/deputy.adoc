@@ -1,5 +1,9 @@
 = Deputy
 :page-wiki-name: Deputy
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-11-10T16:41:52.639+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-07-26T09:44:59.224+02:00
 :page-since: "3.5"
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
@@ -166,4 +170,3 @@ Yet.
 * wiki:Relation[Relation]
 
 * wiki:Roles,+Metaroles+and+Generic+Synchronization[Roles, Metaroles and Generic Synchronization]
-

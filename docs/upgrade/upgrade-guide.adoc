@@ -1,6 +1,10 @@
 = MidPoint Upgrade Guide
 :page-nav-title: Upgrade Guide
 :page-wiki-name: Upgrade HOWTO
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-02-14T14:54:20.631+01:00
+:page-wiki-metadata-modify-user: oscar
+:page-wiki-metadata-modify-date: 2016-12-22T06:53:59.773+01:00
 :page-alias: { "parent" : "/midpoint/guides/" }
 :page-upkeep-status: green
 :page-toc: top
@@ -298,4 +302,3 @@ The recommendation for inexperienced engineers is to use long-term support (LTS)
 * wiki:Database+Schema+Upgrade[Database Schema Upgrade]
 
 * wiki:Upgradeability[Upgradeability]
-

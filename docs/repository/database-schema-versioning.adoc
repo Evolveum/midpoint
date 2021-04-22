@@ -1,5 +1,9 @@
 = Database schema versioning
 :page-wiki-name: Database schema versioning
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2020-03-30T11:27:17.266+02:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2021-02-26T14:38:25.234+01:00
 :page-upkeep-status: green
 
 [TIP]
@@ -101,4 +105,3 @@ Leave the line updating *m_global_metadata* key *databaseSchemaVersion*, prefera
 * Update *SchemaActionComputer.REQUIRED_DATABASE_SCHEMA_VERSION* and *AUTOMATICALLY_UPGRADEABLE* map.
 
 Enjoy! ☺
-

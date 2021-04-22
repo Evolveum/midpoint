@@ -1,5 +1,9 @@
 = Report Configuration Tips
 :page-wiki-name: Report Configuration Tips
+:page-wiki-metadata-create-user: mmacik
+:page-wiki-metadata-create-date: 2020-09-23T13:35:05.973+02:00
+:page-wiki-metadata-modify-user: mmacik
+:page-wiki-metadata-modify-date: 2020-09-23T13:59:12.532+02:00
 
 
 == Collection Set Up
@@ -85,4 +89,3 @@ We then might want to react in for instance not printing the row in the report b
 The errors will still be present in the Errors and Result tabs of the task.
 
 TODO add more ...
-

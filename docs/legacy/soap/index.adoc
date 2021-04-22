@@ -1,5 +1,9 @@
 = IDM Model Web Service Interface
 :page-wiki-name: IDM Model Web Service Interface
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-05-03T19:32:42.656+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2020-10-23T14:29:16.478+02:00
 :page-obsolete: true
 :page-obsolete-since: "4.2"
 :page-replaced-by: /midpoint/reference/interfaces/rest/
@@ -326,4 +330,3 @@ link:http://hostnameport[http://hostname:port/midpoint/ws/model-3]link:http://ho
 * wiki:Model+Web+Service+Client+Sample[Model Web Service Client Sample]
 
 * wiki:A+few+notes+on+C#+web+service+clients[A few notes on C# web service clients]
-

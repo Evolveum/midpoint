@@ -1,5 +1,9 @@
 = Authentication Configuration (Spring Security)
 :page-wiki-name: Authentication Configuration (Spring Security)
+:page-wiki-metadata-create-user: restapi
+:page-wiki-metadata-create-date: 2016-08-08T15:30:07.352+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2020-02-17T16:00:15.392+01:00
 :page-since: 3.7
 :page-obsolete: true
 :page-obsolete-since: 4.0
@@ -158,4 +162,3 @@ Then, in the midpoint-config.properties set up the concrete values, e.g. the hos
 * wiki:MidPoint+as+CAS+Client+(Apache+CAS+Agent+Method)[MidPoint as CAS Client (Apache CAS Agent Method)]
 
 * wiki:MidPoint+as+CAS+Client+(Java+Jasig+CAS+Client+libraries)[MidPoint as CAS Client (Java Jasig CAS Client libraries)]
-

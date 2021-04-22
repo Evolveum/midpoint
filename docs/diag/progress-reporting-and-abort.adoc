@@ -1,5 +1,9 @@
 = Operation Progress Reporting and Abort
 :page-wiki-name: Configuring progress reporting and abort functionality HOWTO
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2014-09-17T12:34:34.186+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2014-09-17T12:34:35.186+02:00
 :page-upkeep-status: yellow
 
 Progress reporting and abort functionality are experimental features in midPoint GUI.
@@ -43,4 +47,3 @@ The default value of 400 should be OK for most cases.
 If you have slower lines, you might consider increasing the value.
 
 |===
-

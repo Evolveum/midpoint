@@ -1,5 +1,9 @@
 = Workflow notifications
 :page-wiki-name: Workflow notifications
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-06-10T10:08:20.092+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-11-14T16:59:32.330+01:00
 :page-obsolete: true
 :page-obsolete-since: "4.0"
 :page-toc: top
@@ -575,4 +579,3 @@ Reason: Timed action
 
 Deadline: Thu Nov 23 12:50:31 CET 2017 (in 9 days)
 ----
-

@@ -1,5 +1,9 @@
 = MidPoint Object Attributes
 :page-wiki-name: MidPoint Object Attributes
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-08-16T10:57:52.270+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-08-16T19:19:12.379+02:00
 :page-upkeep-status: orange
 :page-upkeep-note: What to do with this? Palo will probably never finish it.
 
@@ -265,4 +269,3 @@ Like this:
 channel=145736
 writeKey=N35UIE4V3O1WMKH6
 ----
-

@@ -1,5 +1,9 @@
 = Security Advisory: XXE Vulnerabilities
 :page-wiki-name: Security Advisory: XXE Vulnerabilities
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-04-17T11:36:58.286+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-05-23T07:47:21.191+02:00
 :page-nav-title: XXE Vulnerabilities
 :page-display-order: 3
 :page-upkeep-status: green
@@ -57,4 +61,3 @@ Variants of this issue were reported by testers known as A855 and XiaoX by the m
 * bug:MID-5285[]
 
 * link:https://hackerone.com/midpoint_h1c?view_policy=true[MidPoint page at Hackerone]
-

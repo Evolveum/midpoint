@@ -1,6 +1,10 @@
 = MidPoint Customization With Maven Overlay Project
 :page-nav-title: Overlay Project
 :page-wiki-name: Customization With Overlay Project
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-01-15T20:40:02.928+01:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2020-10-19T16:46:49.426+02:00
 :page-upkeep-status: yellow
 :page-toc: top
 
@@ -73,4 +77,3 @@ The document also includes link:https://github.com/Evolveum/midpoint-overlay-exa
 * wiki:GUI+Development+Guide[GUI Development Guide]
 
 * wiki:Look+&+Feel+Customization+HOWTO[Look & Feel Customization HOWTO]
-

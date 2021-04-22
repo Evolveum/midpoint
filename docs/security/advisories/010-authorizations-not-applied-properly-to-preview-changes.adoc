@@ -1,5 +1,9 @@
 = Security Advisory: Authorizations not applied properly to preview changes
 :page-wiki-name: Security Advisory: Authorizations not applied properly to preview changes
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-07-30T14:55:19.898+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-07-30T15:09:30.748+02:00
 :page-nav-title: Authorizations not applied properly to preview changes
 :page-display-order: 10
 :page-upkeep-status: green
@@ -57,4 +61,3 @@ This issue was reported by Petr Gašpark by the means of link:https://joinup.ec.
 * bug:MID-5595[]
 
 * link:https://hackerone.com/midpoint_h1c?view_policy=true[MidPoint page at Hackerone]
-

@@ -1,5 +1,9 @@
 = General notification - role assignment example
 :page-wiki-name: General notification - role assignment example
+:page-wiki-metadata-create-user: kjires
+:page-wiki-metadata-create-date: 2020-12-04T13:31:44.168+01:00
+:page-wiki-metadata-modify-user: kjires
+:page-wiki-metadata-modify-date: 2020-12-04T14:22:39.493+01:00
 :page-toc: top
 :page-upkeep-status: yellow
 
@@ -400,4 +404,3 @@ If you want to have some role which will be covered by this notification rule, i
 If you want to cover additional role, those two "requirements" have to be met.
 To stop using role description for notification generation clear `Identifier` field is enough.
 To change the content of the notification, edit the description field on role object.
-

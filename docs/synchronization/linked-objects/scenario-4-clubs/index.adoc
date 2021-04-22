@@ -1,6 +1,10 @@
 = Linked Objects Scenario 4: Clubs
 :page-nav-title: Scenario 4: Clubs
 :page-wiki-name: Linked objects scenario 4: Clubs
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2020-06-02T11:28:14.487+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-06-02T12:09:26.542+02:00
 :page-since: "4.2"
 :page-toc: top
 
@@ -279,4 +283,3 @@ The synchronization reaction would look like this:
 (Although it should be perhaps more logical to make member recomputation enabled by default, so it would be applied even when changes come e.g. from GUI or REST or other sources.
 
 Complete configuration for this scenario is in link:https://github.com/Evolveum/midpoint/tree/master/model/model-intest/src/test/resources/member-recompute[https://github.com/Evolveum/midpoint/tree/master/model/model-intest/src/test/resources/member-recompute] directory.
-

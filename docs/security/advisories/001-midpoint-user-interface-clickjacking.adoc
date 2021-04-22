@@ -1,5 +1,9 @@
 = Security Advisory: MidPoint user interface clickjacking
 :page-wiki-name: Security Advisory: MidPoint user interface clickjacking
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-03-21T07:57:45.989+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-05-23T07:46:49.911+02:00
 :page-nav-title: MidPoint user interface clickjacking
 :page-display-order: 1
 :page-upkeep-status: green
@@ -52,4 +56,3 @@ This bug was reported by Yash Sodha (yashrs) by the means of link:https://joinup
 * bug:MID-5216[]
 
 * link:https://hackerone.com/midpoint_h1c?view_policy=true[MidPoint page at Hackerone]
-

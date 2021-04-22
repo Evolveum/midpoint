@@ -1,5 +1,9 @@
 = Workflowless
 :page-wiki-name: Workflowless
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-10-08T14:50:40.938+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-10-08T15:34:15.645+02:00
 :page-since: "4.0"
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
@@ -86,5 +90,3 @@ See wiki:Workflow+Integration[Workflow Integration] page for more details.
 * wiki:Policy-based+approvals[Policy-based approvals]
 
 * wiki:Workflow+Integration[Workflow Integration]
-
-
