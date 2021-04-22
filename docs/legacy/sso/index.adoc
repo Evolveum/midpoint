@@ -115,4 +115,4 @@ However do not forget to specify SSO enforcement exceptions (e.g. non-enforcemen
 
 * wiki:Installing+midPoint+from+Source+Code+v3.0[Installing midPoint from Source Code v3.0]
 
-* wiki:midPoint+Development+Snapshot[midPoint Development Snapshot]
+* midPoint Development Snapshot

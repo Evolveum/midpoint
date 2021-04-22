@@ -127,7 +127,8 @@ This may affect the way how some of the expression languages evaluate the expres
 | Variables
 | Detailed dump of variable content.
 Each variable dump starts with variable name.
-The dump format of prism objects is usual wiki:Prism+Dump+Format[Prism Dump Format]. Variable names are QNames and they are dumped as such.
+The dump format of prism objects is usual Prism Dump Format.
+Variable names are QNames and they are dumped as such.
 However, some expression languages may use only the local part of the variable name.
 Variable with `null` name is a _root node_ variable.
 It is used by expression languages that support a kind of default variable or context (such as XPath).
@@ -139,7 +140,7 @@ In fact it is ignored by most expression languages.
 
 
 | Result
-| Expression evaluation result in a wiki:Prism+Dump+Format[Prism Dump Format].
+| Expression evaluation result in a Prism Dump Format.
 
 
 |===

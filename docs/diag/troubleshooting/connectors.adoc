@@ -310,7 +310,7 @@ And maybe logging of the underlying libraries.
 Try to figure out what is going on.
 
 . If everything fails then you can wiki:Creating+a+Bug+Report[report the issue]. However at this point it is almost sure that the issue will be very tricky.
-It is unlikely that the midPoint team will have time to address that issue unless you have an active wiki:Subscriptions+&+Services[subscription].
+It is unlikely that the midPoint team will have time to address that issue unless you have an active xref:/support/subscription-sponsoring/[subscription].
 
 
 == Extra Tips

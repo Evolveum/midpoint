@@ -8,7 +8,7 @@
 :page-keywords: [ 'logging', 'log', 'troubleshooting' ]
 :page-upkeep-status: yellow
 
-Although we have quite nice wiki:Error+Message+Dialog[Error Message Dialog] in midPoint there are some occasions when this is not enough to diagnose the problem.
+Although we have quite nice error message dialog in midPoint, there are some occasions when this is not enough to diagnose the problem.
 Such (relative rare) occasions usually hits about a programming bug: wrong exception handling, wrong error reporting a wild variety (usually stupid) programming mistakes.
 If the wiki:Usual+Troubleshooting+Steps[usual troubleshooting steps] do not work, there is a time for a brutal solution.
 

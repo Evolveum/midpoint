@@ -12,7 +12,7 @@ Every time midPoint distributes information from users to account (or vice versa
 They denote *why* is the change being executed and *how* was the change detected in the first place.
 
 Channels can be used to fine-tune midPoint functionality.
-E.g. channels can be used to limit execution of certain wiki:Mappings[mappings] to specific situations.
+E.g. channels can be used to limit execution of certain xref:/midpoint/reference/expressions/mappings/[mappings] to specific situations.
 The typical case is to limit application of wiki:Inbound+Mapping[inbound mappings] only to import.
 This is done by limiting the mapping to an _import channel_ and therefore it will be executed only when the accounts are imported and will not be executed for common synchronization.
 

@@ -9,7 +9,7 @@
 
 MidPoint wiki:Task+Manager[Task Manager] is designed for extensibility.
 It can manage any kind of task.
-Each task has two parts: The definition (wiki:TaskType[TaskType] object) and the code.
+Each task has two parts: The definition (TaskType object) and the code.
 
 
 == Custom Task Definition

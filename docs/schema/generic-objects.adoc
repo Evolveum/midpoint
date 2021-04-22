@@ -75,7 +75,7 @@ E.g. midPoint knows that user's personal data are provisioned to system X becaus
 Therefore midPoint can show which users currently hold particular job position or qualification.
 
 * Governance principles can also be applied.
-Job positions may have an owner and they may be subject to wiki:Certification[certification].
+Job positions may have an owner and they may be subject to xref:/midpoint/reference/roles-policies/certification/[certification].
 
 In addition to that org-based types can form hierarchies:
 
