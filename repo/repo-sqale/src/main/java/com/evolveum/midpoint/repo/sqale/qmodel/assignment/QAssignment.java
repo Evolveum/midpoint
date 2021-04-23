@@ -204,4 +204,9 @@ public class QAssignment<OR extends MObject> extends QContainer<MAssignment, OR>
     public QAssignment(String variable, String schema, String table) {
         super(MAssignment.class, variable, schema, table);
     }
+
+    @Override
+    public BooleanExpression isOwnedBy(OR ownerRow) {
+        return ownerOid.eq(ownerRow.oid);
+    }
 }

@@ -82,7 +82,6 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         QUser u = aliasFor(QUser.class);
         MUser row = selectOne(u, u.nameOrig.eq(userName));
-        assertThat(row).isNotNull();
         assertThat(row.oid).isNotNull();
         assertThat(row.nameNorm).isNotNull(); // normalized name is stored
         assertThat(row.version).isEqualTo(1); // initial version is set
@@ -413,7 +412,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         then("it is stored and relevant attributes are in columns");
         assertThatOperationResult(result).isSuccess();
 
-        MObject row = selectObjectByOid(QSystemConfiguration.class, systemConfiguration.getOid());
+        MObject row = selectObjectByOid(
+                QSystemConfiguration.class, systemConfiguration.getOid());
         display("FULL OBJECT: " + new String(row.fullObject, StandardCharsets.UTF_8));
         assertThat(row.nameOrig).isEqualTo(objectName);
         assertThat(row.nameNorm).isEqualTo(objectName); // nothing to normalize here
@@ -476,7 +476,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertCachedUri(containerRow.handlerUriId, "trigger-2-handler-uri");
         assertThat(containerRow.timestampValue).isEqualTo(Instant.ofEpochMilli(2));
 
-        MObject objectRow = selectObjectByOid(QSystemConfiguration.class, systemConfiguration.getOid());
+        MObject objectRow = selectObjectByOid(
+                QSystemConfiguration.class, systemConfiguration.getOid());
         assertThat(objectRow.containerIdSeq).isEqualTo(5); // next free CID
     }
 
@@ -1002,7 +1003,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(deleteResult).isNotNull();
         assertThat(deleteResult.getObjectTextRepresentation()).isNotNull();
 
-        assertThat(selectObjectByOid(QUser.class, userOid)).isNull();
+        assertThat(selectNullableObjectByOid(QUser.class, userOid)).isNull();
     }
 
     // slight variation of the above, but using lower-level abstract table
@@ -1024,7 +1025,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(deleteResult).isNotNull();
         assertThat(deleteResult.getObjectTextRepresentation()).isNotNull();
 
-        assertThat(selectObjectByOid(QUser.class, userOid)).isNull();
+        assertThat(selectNullableObjectByOid(QUser.class, userOid)).isNull();
     }
 
     @Test

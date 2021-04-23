@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.lookuptable;
 import java.sql.Types;
 import java.time.Instant;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
@@ -52,5 +53,10 @@ public class QLookupTableRow extends QContainer<MLookupTableRow, MLookupTable> {
 
     public QLookupTableRow(String variable, String schema, String table) {
         super(MLookupTableRow.class, variable, schema, table);
+    }
+
+    @Override
+    public BooleanExpression isOwnedBy(MLookupTable ownerRow) {
+        return ownerOid.eq(ownerRow.oid);
     }
 }

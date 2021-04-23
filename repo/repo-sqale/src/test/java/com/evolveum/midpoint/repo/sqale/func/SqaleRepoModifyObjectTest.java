@@ -22,7 +22,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.MAssignment;
@@ -1162,7 +1161,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata/createChannel (multi-part path) change for task 1 adding value");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL))
+                .item(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
                 .add("any://channel")
                 .asObjectDelta(task1Oid);
 
@@ -1191,7 +1190,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata/createChannel status replace to null ('delete') for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL))
+                .item(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
                 .replace()
                 .asObjectDelta(task1Oid);
 
@@ -1225,7 +1224,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata/createChannel (multi-part path) change for task 1 adding value");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL))
+                .item(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
                 .replace("any://channel")
                 .asObjectDelta(task1Oid);
 
@@ -1258,7 +1257,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata add with no value for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA)).add()
+                .item(ObjectType.F_METADATA).add()
                 .asObjectDelta(task1Oid);
 
         and("task row previously having some value in metadata container");
@@ -1293,7 +1292,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UUID modifierRefOid = UUID.randomUUID();
         QName modifierRelation = QName.valueOf("{https://random.org/ns}modifier-rel");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA)).add(new MetadataType()
+                .item(ObjectType.F_METADATA).add(new MetadataType()
                         .modifyChannel("any://modify-channel")
                         .modifierRef(modifierRefOid.toString(),
                                 UserType.COMPLEX_TYPE, modifierRelation))
@@ -1337,7 +1336,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UUID creatorRefOid = UUID.randomUUID();
         QName creatorRelation = QName.valueOf("{https://random.org/ns}modifier-rel");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA)).replace(new MetadataType()
+                .item(ObjectType.F_METADATA).replace(new MetadataType()
                         .createChannel("any://create-channel")
                         .modifyChannel("any://modify2-channel")
                         .creatorRef(creatorRefOid.toString(),
@@ -1380,7 +1379,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata replaced with no value for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA)).replace()
+                .item(ObjectType.F_METADATA).replace()
                 .asObjectDelta(task1Oid);
 
         when("modifyObject is called");
@@ -1418,7 +1417,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata replaced with no value for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA)).replace(new MetadataType())
+                .item(ObjectType.F_METADATA).replace(new MetadataType())
                 .asObjectDelta(task1Oid);
 
         when("modifyObject is called");
@@ -1456,7 +1455,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with empty metadata added for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA)).add(new MetadataType())
+                .item(ObjectType.F_METADATA).add(new MetadataType())
                 .asObjectDelta(task1Oid);
 
         when("modifyObject is called");
@@ -1496,8 +1495,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta adding credential/password/metadata/createTimestamp value for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
-                        PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
+                .item(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
+                        PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP)
                 .add(MiscUtil.asXMLGregorianCalendar(1L))
                 .asObjectDelta(user1Oid);
 
@@ -1527,8 +1526,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata/createChannel status replace to null ('delete') for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
-                        PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
+                .item(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
+                        PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP)
                 .replace()
                 .asObjectDelta(user1Oid);
 
@@ -1566,7 +1565,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta adding whole credential/password container user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD))
+                .item(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD)
                 .replace(new PasswordType(prismContext)
                         .metadata(new MetadataType(prismContext)
                                 .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(1L))))
@@ -1600,7 +1599,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta adding whole credential/password container user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(ItemPath.create(FocusType.F_CREDENTIALS))
+                .item(FocusType.F_CREDENTIALS)
                 .replace(new CredentialsType(prismContext)
                         .password(new PasswordType(prismContext)
                                 .metadata(new MetadataType(prismContext)
@@ -1640,7 +1639,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta adding assignment for user 1");
         UUID roleOid = UUID.randomUUID();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(ItemPath.create(UserType.F_ASSIGNMENT))
+                .item(UserType.F_ASSIGNMENT)
                 .add(new AssignmentType(prismContext)
                         .targetRef(roleOid.toString(), RoleType.COMPLEX_TYPE)) // default relation
                 .asObjectDelta(user1Oid);
@@ -1657,21 +1656,52 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(UserObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
         List<AssignmentType> assignments = UserObject.getAssignment();
         assertThat(assignments).isNotNull();
-        assertThat(assignments.get(0).getId()).isNotNull(); // CID was assigned
+        // next free CID was assigned
+        assertThat(assignments.get(0).getId()).isEqualTo(originalRow.containerIdSeq);
+
+        and("assignment row is created");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRow.cid).isEqualTo(originalRow.containerIdSeq);
+        assertThat(aRow.targetRefTargetOid).isEqualTo(roleOid);
+        assertThat(aRow.targetRefTargetType).isEqualTo(MObjectType.ROLE);
+        assertCachedUri(aRow.targetRefRelationId, relationRegistry.getDefaultRelation());
+    }
+
+    @Test
+    public void test309DeleteAssignmentDeletesItFromTable()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta deleting assignment from user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .delete(new AssignmentType(prismContext).id(1L))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and has no assignment now");
+        UserType UserObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(UserObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = UserObject.getAssignment();
+        assertThat(assignments).isEmpty();
 
         and("externalized column is updated");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
-        List<MAssignment> assRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
-        assertThat(assRows).hasSize(1);
-
-        MAssignment aRow = assRows.get(0);
-        assertThat(aRow.cid).isNotNull();
-        assertThat(aRow.targetRefTargetOid).isEqualTo(roleOid);
-        assertThat(aRow.targetRefTargetType).isEqualTo(MObjectType.ROLE);
-        assertCachedUri(aRow.targetRefRelationId, relationRegistry.getDefaultRelation());
+        assertThat(select(a, a.ownerOid.eq(UUID.fromString(user1Oid)))).isEmpty();
     }
 
     // TODO: "indexed" containers: .item(ItemPath.create(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))

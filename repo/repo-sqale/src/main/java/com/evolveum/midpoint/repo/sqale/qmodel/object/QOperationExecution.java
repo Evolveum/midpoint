@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 import java.sql.Types;
 import java.time.Instant;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
@@ -83,5 +84,10 @@ public class QOperationExecution<OR extends MObject> extends QContainer<MOperati
 
     public QOperationExecution(String variable, String schema, String table) {
         super(MOperationExecution.class, variable, schema, table);
+    }
+
+    @Override
+    public BooleanExpression isOwnedBy(OR ownerRow) {
+        return ownerOid.eq(ownerRow.oid);
     }
 }
