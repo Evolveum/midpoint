@@ -45,8 +45,8 @@ public class TestRelDiagram {
     ArrayList<Definition> selectedDefinitions = new ArrayList<>(); //maybe with id so there will be more options where there are multiple types in path.
     int index = 0;
 
-    public TestRelDiagram(String filePath, String diagramName, SchemaRegistry schemaRegistry) throws IOException {
-        this.schemaRegistry = schemaRegistry;
+    public TestRelDiagram(String filePath, String diagramName, SchemaRegistry registry) throws IOException {
+        this.schemaRegistry = registry;
         this.diagramName = diagramName;
         this.myObj = new File(filePath);
         this.myWriter = new FileWriter(myObj);
@@ -476,7 +476,10 @@ public class TestRelDiagram {
 
                         description += "</ul></li><li><ul><li><h1><a href=\"" + BASE_URL + subDefinitionDef.getTypeName().getLocalPart() + ".html\">" + subDefinitionName + "</a></h1></li>"; // "level" + level + "ncu" + notClosedUls + "parent is higher" +
                         mapOfNotClosedUls.put(subDefinition, notClosedUls);
-                        description += writeProperties(def,null).substring(4);
+                        String propertiesOfSubType = writeProperties(def,null);
+                        if (propertiesOfSubType.length() > 4) {
+                            description += propertiesOfSubType.substring(4);
+                        }
                     }
                     parentLevel = level;
                 }

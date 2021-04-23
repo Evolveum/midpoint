@@ -7,27 +7,13 @@
 
 package com.evolveum.midpoint.prism.maven;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.impl.PrismContextImpl;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.impl.schema.SchemaDefinitionFactory;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
-import com.evolveum.midpoint.prism.impl.xml.GlobalDynamicNamespacePrefixMapper;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import java.io.*;
+
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Component;
-import org.apache.maven.plugins.annotations.Execute;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.plugins.annotations.*;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -38,7 +24,17 @@ import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
 
-import java.io.*;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.impl.PrismContextImpl;
+import com.evolveum.midpoint.prism.impl.schema.SchemaDefinitionFactory;
+import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
+import com.evolveum.midpoint.prism.impl.xml.GlobalDynamicNamespacePrefixMapper;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 @Mojo(name="schemadoc", requiresDependencyResolution = ResolutionScope.COMPILE)
 @Execute(goal="schemadoc", phase = LifecyclePhase.PACKAGE)
@@ -170,6 +166,22 @@ public class SchemaDocMojo extends AbstractMojo {
             renderComplexTypeDefinition(typeDefinition, schema, prismContext, velocityEngine, pathGenerator);
         }
 
+    }
+
+    public void renderRelationDiagram(PrismSchema schema, SchemaRegistry schemaRegistry, String diagramName, String path) throws IOException { // Default value for path is resourceDir
+        if (path == null) {
+            path = resourcesDir.getAbsolutePath();
+        }
+
+        WriteHTMLandCSSForDiagram writeDiagram = new WriteHTMLandCSSForDiagram();
+        writeDiagram.writeDocument(path, diagramName + ".html", diagramName + ".js", diagramName + ".css"); // todo create option to choose file name
+
+        try {
+            TestRelDiagram testSchema = new TestRelDiagram(path, diagramName, schemaRegistry); //ObjectType.class, "/home/jan/example.js"
+            testSchema.testSchema2(schema);
+        } catch (IOException | SchemaException e) {
+            e.printStackTrace();
+        }
     }
 
     private void renderObjectDefinition(PrismObjectDefinition objectDefinition, PrismSchema schema, PrismContext prismContext, VelocityEngine velocityEngine, PathGenerator pathGenerator) throws IOException {
