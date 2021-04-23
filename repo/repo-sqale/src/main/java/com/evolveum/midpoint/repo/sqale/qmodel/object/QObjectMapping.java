@@ -16,9 +16,8 @@ import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.repo.sqale.mapping.TableRelationResolver;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
@@ -87,12 +86,10 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         addRefMapping(F_PARENT_ORG_REF, QObjectReferenceMapping.INSTANCE_OBJECT_PARENT_ORG);
         addRefMapping(F_ROLE_MEMBERSHIP_REF, QObjectReferenceMapping.INSTANCE_ROLE_MEMBERSHIP);
 
-        addRelationResolver(AssignmentHolderType.F_ASSIGNMENT,
-                new TableRelationResolver<>(QAssignment.class,
-                        joinOn((o, a) -> o.oid.eq(a.ownerOid))));
-        addRelationResolver(F_TRIGGER,
-                new TableRelationResolver<>(QTrigger.class,
-                        joinOn((o, t) -> o.oid.eq(t.ownerOid))));
+        addContainerTableMapping(AssignmentHolderType.F_ASSIGNMENT, QAssignmentMapping.INSTANCE,
+                joinOn((o, a) -> o.oid.eq(a.ownerOid)));
+        addContainerTableMapping(F_TRIGGER, QTriggerMapping.INSTANCE,
+                joinOn((o, trg) -> o.oid.eq(trg.ownerOid)));
     }
 
     @Override

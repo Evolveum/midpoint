@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -15,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  * See subtypes for mapping instances for specific tables and see {@link MReferenceType} as well.
  */
 public class QReferenceMapping<Q extends QReference<R>, R extends MReference>
-        extends SqaleTableMapping<ObjectReferenceType, Q, R> {
+        extends SqaleTableMapping<Referencable, Q, R> {
 
     // see also subtype specific alias names defined for instances below
     public static final String DEFAULT_ALIAS_NAME = "ref";
@@ -25,7 +26,7 @@ public class QReferenceMapping<Q extends QReference<R>, R extends MReference>
 
     protected QReferenceMapping(
             String tableName, String defaultAliasName, Class<Q> queryType) {
-        super(tableName, defaultAliasName, ObjectReferenceType.class, queryType);
+        super(tableName, defaultAliasName, Referencable.class, queryType);
 
         // TODO owner and reference type is not possible to query, probably OK
         //  not sure about this mapping yet, does it make sense to query ref components?

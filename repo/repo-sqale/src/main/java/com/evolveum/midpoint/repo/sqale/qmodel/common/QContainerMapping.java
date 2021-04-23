@@ -10,6 +10,8 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.ContainerSqlTransformer;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 
 /**
  * Mapping between {@link QContainer} and {@link Containerable}.
@@ -38,6 +40,12 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R>,
     protected Q newAliasInstance(String alias) {
         //noinspection unchecked
         return (Q) new QContainer<>(MContainer.class, alias);
+    }
+
+    @Override
+    public ContainerSqlTransformer<S, Q, R> createTransformer(
+            SqlTransformerSupport transformerSupport) {
+        return new ContainerSqlTransformer<>(transformerSupport, this);
     }
 
     @Override

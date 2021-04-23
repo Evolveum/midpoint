@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale;
+package com.evolveum.midpoint.repo.sqale.func;
 
 import static java.util.Comparator.comparing;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.MAccessCertificationDefinition;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDefinition;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
@@ -77,10 +78,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(result).isSuccess();
 
         QUser u = aliasFor(QUser.class);
-        List<MUser> users = select(u, u.nameOrig.eq(userName));
-        assertThat(users).hasSize(1);
-
-        MUser row = users.get(0);
+        MUser row = selectOne(u, u.nameOrig.eq(userName));
         assertThat(row.oid).isNotNull();
         assertThat(row.nameNorm).isNotNull(); // normalized name is stored
         assertThat(row.version).isEqualTo(1); // initial version is set
@@ -320,17 +318,21 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     @Test
     public void test291DuplicateCidInDifferentContainersIsCaughtByRepo() {
         OperationResult result = createOperationResult();
+        long previousUserCount = count(QUser.class);
 
         given("object with duplicate CID in different containers");
         UserType user = new UserType(prismContext)
-                .name("any name")
+                .name("user" + getTestNumber())
                 .assignment(new AssignmentType().id(1L))
                 .operationExecution(new OperationExecutionType().id(1L));
 
         expect("adding object to repository throws exception");
         assertThatThrownBy(() -> repositoryService.addObject(user.asPrismObject(), null, result))
                 .isInstanceOf(SchemaException.class)
-                .hasMessage("CID 1 is used repeatedly in the object!");
+                .hasMessageStartingWith("CID 1 is used repeatedly in the object:");
+
+        and("no new object is created in the database (transaction is rolled back)");
+        assertThat(count(QUser.class)).isEqualTo(previousUserCount);
     }
 
     // region insertion of various types

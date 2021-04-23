@@ -10,7 +10,6 @@ import java.util.function.Function;
 
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.dsl.EnumPath;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 
@@ -24,11 +23,5 @@ public class EnumItemDeltaProcessor<E extends Enum<E>>
     public EnumItemDeltaProcessor(SqaleUpdateContext<?, ?, ?> context,
             Function<EntityPath<?>, EnumPath<E>> rootToQueryItem) {
         super(context, rootToQueryItem);
-    }
-
-    @Override
-    protected @Nullable E transformRealValue(Object realValue) {
-        //noinspection unchecked
-        return (E) realValue;
     }
 }

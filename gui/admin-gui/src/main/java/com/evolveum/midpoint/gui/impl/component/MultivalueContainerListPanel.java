@@ -283,7 +283,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (getRowModel() == null) {
-                    deleteItemPerformed(target, new ArrayList<>());
+                    deleteItemPerformed(target, getSelectedItems());
                 } else {
                     List<PrismContainerValueWrapper<C>> toDelete = new ArrayList<>();
                     toDelete.add(getRowModel().getObject());

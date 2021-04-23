@@ -20,7 +20,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
-public class RefItemDeltaProcessor extends ItemDeltaValueProcessor<Referencable> {
+public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<Referencable> {
 
     // only oidPath is strictly not-null, but then the filter better not ask for type or relation
     private final UuidPath oidPath;

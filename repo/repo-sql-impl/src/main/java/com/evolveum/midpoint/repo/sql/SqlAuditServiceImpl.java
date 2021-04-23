@@ -161,6 +161,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 insertProperties(jdbcSession, recordId, record.getProperties());
                 insertReferences(jdbcSession, recordId, record.getReferences());
                 insertResourceOids(jdbcSession, recordId, record.getResourceOids());
+                jdbcSession.commit();
             } catch (RuntimeException ex) {
                 jdbcSession.handleGeneralException(ex, null);
             }
@@ -957,6 +958,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 LOGGER.debug("Audit cleanup batch finishing successfully in {} milliseconds; total count = {}",
                         System.currentTimeMillis() - batchStart, totalCount);
 
+                jdbcSession.commit();
                 return count;
             } catch (RuntimeException ex) {
                 LOGGER.debug("Audit cleanup batch finishing with exception in {} milliseconds; exception = {}",

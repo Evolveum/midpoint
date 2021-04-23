@@ -19,7 +19,7 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
@@ -84,8 +84,8 @@ public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
             predicate = oidPath.isNull();
         }
         if (ref.getRelation() == null || !ref.getRelation().equals(PrismConstants.Q_ANY)) {
-            Integer relationId = ((SqaleRepoContext) context.sqlRepoContext())
-                    .searchCachedUriId(context.normalizeRelation(ref.getRelation()));
+            Integer relationId = ((SqaleQueryContext<?, ?, ?>) context)
+                    .searchCachedRelationId(ref.getRelation());
             predicate = ExpressionUtils.and(predicate,
                     predicateWithNotTreated(relationIdPath, relationIdPath.eq(relationId)));
         } else {
