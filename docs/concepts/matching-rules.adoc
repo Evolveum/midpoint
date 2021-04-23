@@ -49,7 +49,7 @@ However currently the set of matching rules is built-in in midPoint product.
 
 == Query matching
 
-Note that besides in attribute definitions, matching rules can also be used in wiki:Updated+Query+API[queries] using the tag _<matching>_. An example:
+Note that besides in attribute definitions, matching rules can also be used in queries using the tag _<matching>_. An example:
 
 .Matching rule specification
 [source,xml]

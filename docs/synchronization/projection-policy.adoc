@@ -88,18 +88,17 @@ Overrides system configuration
 * wiki:Resource+Schema+Handling[Resource Schema Handling] per objectType definition.
 Overrides resource and system configuration.
 
-The options can be set in wiki:SystemConfigurationType[System Configuration object] as illustrated by following example:
+The options can be set in System Configuration object as illustrated by following example:
 
 [source,xml]
 ----
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001">
     <name>SystemConfiguration</name>
-	<metadata>...</metadata>
+    <metadata>...</metadata>
     <globalAccountSynchronizationSettings>
         <assignmentPolicyEnforcement>full</assignmentPolicyEnforcement>
     </globalAccountSynchronizationSettings>
 </systemConfiguration>
-
 ----
 
 The option can be set in wiki:ResourceType[resource definition]:

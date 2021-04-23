@@ -19,7 +19,7 @@ E.g. the user interface will display a selection instead of an ordinary test inp
 
 == Lookup Table Definition
 
-There is a special object type for lookup tables (wiki:LookupTableType[LookupTableType]). The entire table can be represented as midPoint object and imported into the midPoint repository:
+There is a special object type for lookup tables (`LookupTableType`). The entire table can be represented as midPoint object and imported into the midPoint repository:
 
 .Lookup Table
 [source,xml]

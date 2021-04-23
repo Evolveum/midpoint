@@ -49,7 +49,7 @@ Or even if you purchase a midPoint subscription you can use your influence to pr
 == Setup
 
 In order to enable SSO support in current midPoint you need to modify a couple of files in midPoint source code and rebuilt it.
-Therefore please make sure you can wiki:Installing+midPoint+from+Source+Code+v3.0[installing midPoint from source code].
+Therefore please make sure you can installing midPoint from source code.
 
 Currently midPoint has no SSO plugin of its own.
 The recommended way is to use an SSO agent in front of midPoint.
@@ -112,7 +112,5 @@ However do not forget to specify SSO enforcement exceptions (e.g. non-enforcemen
 == See Also
 
 * wiki:MidPoint+as+CAS+Client+(Apache+CAS+Agent+Method)[MidPoint as CAS Client (Apache CAS Agent Method)]
-
-* wiki:Installing+midPoint+from+Source+Code+v3.0[Installing midPoint from Source Code v3.0]
 
 * midPoint Development Snapshot

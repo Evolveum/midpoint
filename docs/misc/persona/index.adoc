@@ -32,7 +32,7 @@ The persona user is active, the physical user is passive.
 
 == Links and Mappings
 
-The personal links are not just simple links between user objects (wiki:UserType[UserType]). These links may be couples with wiki:Mappings[mappings]. E.g. the mappings may be used to propagate the changes from the physical user to the personas.
+The personal links are not just simple links between user objects (`UserType`). These links may be couples with xref:/midpoint/reference/expressions/mappings/[mappings]. E.g. the mappings may be used to propagate the changes from the physical user to the personas.
 The physical user identity may be linked to the HR system or a similar system that is an authoritative source for user legal name.
 MidPoint can use ordinary wiki:Inbound+Mapping[inbound mappings] to get the data from the HR system to the physical user object.
 The persona link mappings can then be used to propagate these changes to all the linked persona users.

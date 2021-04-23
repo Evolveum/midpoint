@@ -56,7 +56,6 @@ Connectors are midPoint workhorses.
 They provide connectivity to target and source systems that are called _resources_ in midPoint terminology.
 Connectors are usually quite short and simple pieces of code that needs to be "deployed" to midPoint.
 The deployment is usually just copy of the connector package to the appropriate directory and restarting midPoint.
-The wiki:Connector+Deployment[Connector Deployment] page provides all the details.
 
 image::Complex-Deployment.png[]
 

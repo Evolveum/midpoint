@@ -334,13 +334,13 @@ Significant part of midPoint functionality is controlled by wiki:Resource+Config
 
 Main article: link:http://wiki.evolveum.com/display/midPoint/Identity+Connectors[Identity Connectors]
 
-wiki:Connector[Connector] is a piece of code that is used to access the resource (target or source system).
+xref:/connectors/[Connector] is a piece of code that is used to access the resource (target or source system).
 It is kind of a "driver" that talk to the resource using its native protocol and translates that to the data structures that are understood by midPoint.
 The connector is a piece of code in a form of Java JAR file that needs to be deployed together with midPoint.
 However there is also a corresponding object in midPoint repository that describes the connector.
 This object is known as wiki:ConnectorType[ConnectorType]. It is used in similar way as shadow objects are used.
 It identifies the connector and indirectly assigns an OID to it.
-This is necessary especially for wiki:Remote+Connectors[remote connectors].
+This is necessary especially for remote connectors.
 
 image::schemas-datamodel-connector.png[]
 

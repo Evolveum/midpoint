@@ -89,7 +89,6 @@ Unlike most IDM systems, there is no difference in setup of live sync, reconcili
 If really necessary, the policies can be configured individually for each mechanism.
 
 The policy configuration is essentially just a set of defined reactions for each synchronization situation.
-See the wiki:Synchronization+Policy[Synchronization Policy] page for more details.
 
 == See Also
 

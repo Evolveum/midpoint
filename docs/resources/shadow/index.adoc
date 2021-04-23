@@ -188,14 +188,14 @@ We cannot really dictate any fixed identifier type, format or scheme.
 
 Therefore we have chosen not choose a common identifier.
 Every connector will choose or suggest an identification mechanism for each resource object type.
-The connector will announce the identification mechanism in the wiki:Resource+Schema[Resource Schema] using the wiki:Schema+Handling[Resource Schema Annotations].
+The connector will announce the identification mechanism in the xref:/midpoint/reference/resources/resource-schema/[Resource Schema] using the xref:/midpoint/reference/resources/resource-schema/[Resource Schema Annotations].
 
 [.red]#TODO: maybe an example?#
 
 
 == See Also
 
-* wiki:Resource+Schema[Resource Schema]
+* xref:/midpoint/reference/resources/resource-schema/[]
 
 * wiki:Resource+Schema+Handling[Resource Schema Handling]
 

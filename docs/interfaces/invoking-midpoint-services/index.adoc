@@ -176,8 +176,6 @@ There is also a wiki:Model+Web+Service+Client[Model Web Service Client] library 
 
 There are few examples of the interface use:
 
-* wiki:IDM+Model+Web+Service+Interface+Examples[IDM Model Web Service Interface Examples] describe some SOAP requests and responses
-
 * wiki:Model+Web+Service+Client+Sample[Model Web Service Client Sample] describes a sample code which is part of midPoint source code.
 This sample code is using model client library to invoke midPoint web service.
 

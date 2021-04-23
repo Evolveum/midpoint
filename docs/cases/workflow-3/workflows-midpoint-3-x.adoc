@@ -71,27 +71,19 @@ However, this option should be needed to use in only rare situations.
 
 == For more information
 
-. wiki:Current+status+and+future+plans[Current status and future plans]
-
 . wiki:Approval+examples[Approval examples]
 
 . wiki:Approvals+examples+(legacy)[Approvals examples (legacy)]
 
 . wiki:Workflow+Management[Architectural description of the Workflow component]
 
-.. wiki:How+to+develop+your+own+approval+processes+-+case+1+-+using+primary+change+processor+and+general+item+approval+process[Information on implementing customer-specific workflows]
-
 .. wiki:Workflow+Auditing[Workflow auditing]
-
-
 
 . wiki:Legacy+(pre-3.5)+workflow+configuration[System manager's view on workflows (i.e. workflow configuration)]
 
 . Notes
 
 .. wiki:How+to+use+workflows+in+a+self-service+scenario[How to use workflows in a self-service scenario]
-
-
 
 
 == See Also

@@ -29,7 +29,7 @@ We will refer to parts of the dynamic resource schema using a slightly different
 While the static XSD types in midPoint use `Type` suffix in their XSD names, dynamic resource schema is using a `ObjectClass` suffix for the XSD types.
 This naming distinction avoid confusion between the static parts of midPoint and the dynamic resource schema.
 
-Resource schema works together with another dynamic schema: wiki:Connector+Schema[Connector Schema]. The wiki:Resource+and+Connector+Schema+Explanation[Resource and Connector Schema Explanation] describes how these two fits together.
+Resource schema works together with another dynamic schema: Connector Schema. The wiki:Resource+and+Connector+Schema+Explanation[Resource and Connector Schema Explanation] describes how these two fits together.
 
 
 == Motivation

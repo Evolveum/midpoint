@@ -166,10 +166,8 @@ So, by listing change aspects in the configuration, you specified what kinds of 
 However, in midPoint 3.5 we have introduced _policy-based approvals_. These are no longer configured by specifying list of aspects and their parameters.
 Nevertheless, legacy aspects are still present in midPoint (at least in version 3.5).
 All of them are disabled by default, but can be enabled if needed.
-Their list is available wiki:Legacy+%28pre-3.5%29+workflow+configuration#Legacy(pre-3.5)workflowconfiguration-Aspects[here].
 
 If needed, policy-based approvals can be disabled by setting `enabled` to `false` for `policyRuleBasedAspect`. You might be in such a situation e.g. if there would be some issue with this new mechanism and you'd like to stay with original (although obsolete) code.
-More information on various options is available on wiki:Migrating+workflows+from+3.4.x+to+3.5[wiki page on workflow migration].
 
 
 == Concluding notes

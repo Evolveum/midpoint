@@ -153,7 +153,7 @@ This is the way how mapping fully and correctly supports relative changes.
 == Source and Target Definitions
 
 Source and target definitions have similar syntax.
-The most important part of the definitions is specification of the *path*. The path is in a form of usual wiki:Prism+Path[prism path] and can be either relative or absolute variable-based path.
+The most important part of the definitions is specification of the *path*. The path is in a form of usual prism path and can be either relative or absolute variable-based path.
 The variable-based paths are bound to the specific context in which the mapping is executed.
 But the `$user` variable is almost always present.
 The relative paths are interpreted as relative to source or target _contexts_ of the mapping.

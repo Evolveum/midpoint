@@ -20,7 +20,7 @@ The connectors often significantly lack behind the framework capabilities.
 
 === Old LDAP Connector
 
-wiki:Legacy+LDAP+Connector[Original Sun LDAP connector] is one of the connectors that is falling behind.There have been efforts from Evolveum and also from the OpenICF project to improve this connector - and some were quite successful.
+Legacy+JNDI+LDAP+Connector[Original Sun LDAP connector] is one of the connectors that is falling behind.There have been efforts from Evolveum and also from the OpenICF project to improve this connector - and some were quite successful.
 But now it is clear that the original Sun LDAP connector is a development dead end.
 It can be maintained, but there is very little potential of future development.
 The *old LDAP connector* has many fundamental problems:
@@ -78,13 +78,13 @@ Therefore the schema will not be polluted by the unfortunate ICF concepts of wik
 
 == LDAP Connectors in midPoint
 
-All midPoint versions up to wiki:Release+3.1.1[Release 3.1.1] used the wiki:Legacy+LDAP+Connector[legacy SunICF/OpenICF LDAP connector]. This connector was bundled inside midPoint.
+All midPoint versions up to wiki:Release+3.1.1[Release 3.1.1] used the Legacy+JNDI+LDAP+Connector[legacy SunICF/OpenICF LDAP connector]. This connector was bundled inside midPoint.
 
 All midPoint versions starting from wiki:Release+3.2[Release 3.2] are using the new wiki:LDAP+Connector[LDAP Connector]. This connector is bundled inside midPoint.
 
 Starting from wiki:Release+3.2[Release 3.2] the legacy connector is no longer included inside midPoint.
 But it still can be used if the connector JAR file is downloaded and deployed.
-See wiki:Legacy+LDAP+Connector[Legacy LDAP Connector] page for supported versions and download locations.
+See Legacy+JNDI+LDAP+Connector[Legacy LDAP Connector] page for supported versions and download locations.
 The legacy LDAP connector will not be extended or developed any more.
 But it will be maintained in a working state during a reasonable migration period.
 
@@ -358,6 +358,6 @@ Therefore please plan the migration to the new connector accordingly.
 
 * wiki:LDAP+Connector[LDAP Connector]
 
-* wiki:Legacy+LDAP+Connector[Legacy LDAP Connector]
+* Legacy+JNDI+LDAP+Connector[Legacy LDAP Connector]
 
 * wiki:ICF+Issues[ICF Issues]

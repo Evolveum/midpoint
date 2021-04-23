@@ -44,10 +44,6 @@ The expression definition is inside attribute definition which is inside account
 
 ----
 
-Outbound expressions are in fact wiki:Value+Construction[value constructions] therefore there are many options to use.
-One of the expressions (scripting) languages may be used, the source value can be referenced directly, it may generated, etc.
-See wiki:Value+Construction[Value Construction] page for more detail how to construct them.
-
 
 == Variables
 
@@ -83,9 +79,9 @@ The actual value is determined by the iteration settings.
 |===
 
 
-== Examples
-
-TODO
+//== Examples
+//
+//TODO
 
 
 == See Also

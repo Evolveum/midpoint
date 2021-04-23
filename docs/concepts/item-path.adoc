@@ -20,7 +20,7 @@ $variableName/segment[id]/segment[id]/....
 
 The `variableName` and the `[id]` parts are optional.
 If `variableName` is not present then the path is assumed to be _relative_ and its interpretation depends on the context in which it is used.
-If the `wiki:id[id]` part is missing then it is assumed that there is only a single segment of such name or that the path addresses all the segments of that name (depends on context).
+If the `id` part is missing then it is assumed that there is only a single segment of such name or that the path addresses all the segments of that name (depends on context).
 Variable names and segment names are assumed to be QNames (see Namespaces section below).
 
 The following table provides example paths and their meaning.

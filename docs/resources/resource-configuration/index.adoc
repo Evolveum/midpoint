@@ -104,7 +104,7 @@ Using filters in smart references make it easy to define connector by type or ve
 [source,xml]
 ----
 <connectorRef type="ConnectorType">
-    	<description>Reference to the ICF LDAP connector by connectorType</description>
+        <description>Reference to the ICF LDAP connector by connectorType</description>
         <filter>
             <q:equal>
                 <q:path>connectorType</q:path>
@@ -135,7 +135,7 @@ Configuration properties are different for each connector type.
 The names and types of the properties are defined by the wiki:Resource+and+Connector+Schema+Explanation[connector schema] that is stored in wiki:ConnectorType[connector object].
 
 It may not be easy to create correct resource configuration by hand.
-Probably the best way is to start from the wiki:Samples[samples].
+Probably the best way is to start from samples.
 
 .LDAP Resource Configuration Example
 [source,xml]
@@ -150,9 +150,9 @@ Probably the best way is to start from the wiki:Samples[samples].
                 <clearValue>secret</clearValue>
             </icfcldap:credentials>
             <icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
-            <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-            <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
-            <icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
+              <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+              <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
+              <icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
         </icfc:configurationProperties>
 </connectorConfiguration>
 
@@ -222,9 +222,9 @@ There are used for internal midPoint optimizations.
                     ...
                 </xsd:complexType>
                 ...
-		</xsd:schema>
-	  </definition>
-	</schema>
+        </xsd:schema>
+      </definition>
+    </schema>
 
 ----
 
@@ -287,24 +287,24 @@ The configuration for "sn" (surname) resource attribute is configured as follows
 [source,xml]
 ----
 <attribute>
-		<ref>ri:sn</ref>
-		<displayName>Surname</displayName>
-		<access>create</access>
-		<access>read</access>
-		<access>update</access>
-		<outbound>
-			<source>
-			     <!-- The path can be shortened like this. $user is a default source "context" in outbound -->
-			     <path>familyName</path>
-			</source>
-		</outbound>
-		<inbound>
-			<target>
-	   		      <!-- The path can be shortened like this. $user is a default target "context" in inbound -->
-	 		      <path>familyName</path>
-			</target>
-		</inbound>
-	</attribute>
+        <ref>ri:sn</ref>
+        <displayName>Surname</displayName>
+        <access>create</access>
+        <access>read</access>
+        <access>update</access>
+        <outbound>
+            <source>
+                 <!-- The path can be shortened like this. $user is a default source "context" in outbound -->
+                 <path>familyName</path>
+            </source>
+        </outbound>
+        <inbound>
+            <target>
+                     <!-- The path can be shortened like this. $user is a default target "context" in inbound -->
+                   <path>familyName</path>
+            </target>
+        </inbound>
+    </attribute>
 
 ----
 
@@ -321,13 +321,13 @@ The configuration for "description" resource attribute is configured as follows:
 ----
 <attribute>
         <ref>ri:description</ref>
-	<outbound>
-	        <strength>weak</strength>
-		<expression>
-			<description>Expression that assigns a fixed value</description>
-			<value>Created by IDM</value>
-		</expression>
-	</outbound>
+    <outbound>
+            <strength>weak</strength>
+        <expression>
+            <description>Expression that assigns a fixed value</description>
+            <value>Created by IDM</value>
+        </expression>
+    </outbound>
 </attribute>
 
 ----
@@ -372,9 +372,9 @@ The following is an example of "icf:uid" attribute configuration from OpenDJ adv
 [source,xml]
 ----
 <attribute>
-	<ref>icfs:uid</ref>
-	<displayName>Entry UUID</displayName>
-	<access>read</access>
+    <ref>icfs:uid</ref>
+    <displayName>Entry UUID</displayName>
+    <access>read</access>
 </attribute>
 
 ----
@@ -391,23 +391,23 @@ The following is an example of "icfs:name" attribute configuration from OpenDJ a
 ----
 <attribute>
         <ref>icfs:name</ref>
-	<displayName>Distinguished Name</displayName>
-	<access>create</access>
-	<access>read</access>
-	<outbound>
-		<strength>weak</strength>
-		<source>
-			<path>$user/name</path>
-		</source>
-		<expression>
-			<script>
-				<!-- No explicit script language was specified. It means that this is Groovy -->
-				<code>
-					'uid=' + name + iterationToken + ',ou=people,dc=example,dc=com'
-				</code>
-			</script>
-		</expression>
-	</outbound>
+    <displayName>Distinguished Name</displayName>
+    <access>create</access>
+    <access>read</access>
+    <outbound>
+        <strength>weak</strength>
+        <source>
+            <path>$user/name</path>
+        </source>
+        <expression>
+            <script>
+                <!-- No explicit script language was specified. It means that this is Groovy -->
+                <code>
+                    'uid=' + name + iterationToken + ',ou=people,dc=example,dc=com'
+                </code>
+            </script>
+        </expression>
+    </outbound>
 </attribute>
 
 ----
@@ -415,7 +415,7 @@ The following is an example of "icfs:name" attribute configuration from OpenDJ a
 
 ==== Credentials Handling
 
-Credentials (password and password-related information) handling is a special part of wiki:Schema+Handling[#Schema Handling] and allows you to define how user's credentials will be synchronized.
+Credentials (password and password-related information) handling is a special part of Schema Handling and allows you to define how user's credentials will be synchronized.
 The credentials can be synchronized from midPoint user to resource account (outbound) or the opposite way (inbound) or both.
 You can also specify that the password should be generated - this is very useful for synchronizing resource accounts to midPoint to make sure that the password will be set even if the resource account password can't be used (e.g. is encrypted).
 
@@ -436,7 +436,7 @@ The "target" parameter is omitted, because it will be the midPoint password attr
               </expression>
           </outbound>
           <inbound>
-          	<strength>weak</strength>
+              <strength>weak</strength>
                  <expression>
                       <generate/>
                   </expression>
@@ -455,7 +455,7 @@ The configurable password policy implementation used for generated password is i
 
 ==== Activation Handling
 
-The activation/deactivation (account enabled/disabled) handling is a special part of wiki:Schema+Handling[#Schema Handling] and allows you to define how user's state will be synchronized.
+The activation/deactivation (account enabled/disabled) handling is a special part of Schema Handling and allows you to define how user's state will be synchronized.
 The user state can be synchronized from midPoint user to resource account (outbound) or the opposite way (inbound) or both.
 
 The following is an example of activation configuration from OpenDJ advanced sync sample:
@@ -552,7 +552,7 @@ You have to have imported OpenDJ advanced sync sample (Configuration->Import obj
                     <cap:disableValue>true</cap:disableValue>
                 </cap:enableDisable>
             </cap:activation>
-    	</configured>
+        </configured>
     </capabilities>
 
 ----
@@ -617,7 +617,7 @@ The following is an example of synchronization configuration from OpenDJ advance
 * for situation unlinked (the correlation expression found exactly one owner in midPoint but he/she has no reference to this account) the response action is about to set link between the account and the owner
 
 * for situation unmatched (the correlation expression found no owner in midPoint) the response action is about to create a new midPoint user.
-The midPoint user attributes will be set using the inbound expressions for resource attributes and a specified wiki:User+Template[] object.
+The midPoint user attributes will be set using the inbound expressions for resource attributes and a specified wiki:Object+Template[] object.
 In addition, the resource account will be linked to the midPoint user.
 
 * for situation linked (the correlation expression found one owner in midPoint that has reference to this account) the response action is about to set attributes in midPoint shadow to values on resource.
@@ -628,70 +628,70 @@ In addition, the resource account will be linked to the midPoint user.
 [source,xml]
 ----
 <synchronization>
-        	<objectSynchronization>
-	            <!--
-	                The synchronization for this resource is enabled.
-	                It means that the synchronization will react to changes detected by
-	                the system (live sync task, discovery or reconciliation) -->
-	            <enabled>true</enabled>
+            <objectSynchronization>
+                <!--
+                    The synchronization for this resource is enabled.
+                    It means that the synchronization will react to changes detected by
+                    the system (live sync task, discovery or reconciliation) -->
+                <enabled>true</enabled>
 
-	            <correlation>
-	                <q:description>
-	                    Correlation expression is a search query.
-	                    Following search queury will look for users that have "name"
-	                    equal to the "uid" attribute of the account. Simply speaking,
-	                    it will look for match in usernames in the IDM and the resource.
-	                    The correlation rule always looks for users, so it will not match
-	                    any other object type.
-	                </q:description>
-	                <q:equal>
-	                    <q:path>c:name</q:path>
-	                    <expression>
-	                        <ref>name</ref>
-							<path>$account/attributes/ri:uid</path>
-	                    </expression>
-	                </q:equal>
-	            </correlation>
+                <correlation>
+                    <q:description>
+                        Correlation expression is a search query.
+                        Following search queury will look for users that have "name"
+                        equal to the "uid" attribute of the account. Simply speaking,
+                        it will look for match in usernames in the IDM and the resource.
+                        The correlation rule always looks for users, so it will not match
+                        any other object type.
+                    </q:description>
+                    <q:equal>
+                        <q:path>c:name</q:path>
+                        <expression>
+                            <ref>name</ref>
+                            <path>$account/attributes/ri:uid</path>
+                        </expression>
+                    </q:equal>
+                </correlation>
 
-	            <!-- Confirmation rule may be here, but as the search above will
-	                 always return at most one match, the confirmation rule is not needed. -->
+                <!-- Confirmation rule may be here, but as the search above will
+                     always return at most one match, the confirmation rule is not needed. -->
 
-	            <!-- Following section describes reactions to a situations.
-	                 The setting here assumes that this resource is authoritative,
-	                 therefore all accounts created on the resource should be
-	                 reflected as new users in IDM.
-	                 See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
-	             -->
+                <!-- Following section describes reactions to a situations.
+                     The setting here assumes that this resource is authoritative,
+                     therefore all accounts created on the resource should be
+                     reflected as new users in IDM.
+                     See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
+                 -->
 
-	            <reaction>
-	                <situation>linked</situation>
-	                <action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser</handlerUri>
-					</action>
-				</reaction>
-	            <reaction>
-	                <situation>deleted</situation>
-	                <action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount</handlerUri>
-	            </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <action>
+                        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser</handlerUri>
+                    </action>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <action>
+                        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount</handlerUri>
+                </reaction>
 
-	            <reaction>
-	                <situation>unlinked</situation>
-	                <action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount</handlerUri>
-	            </reaction>
-	            <reaction>
-	                <situation>unmatched</situation>
-	                <action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser</handlerUri>
-	                    <!-- Reference to the User Template is here. If the user would be
-	                         created as a result of this action, it will be created according
-	                         to this template. -->
+                <reaction>
+                    <situation>unlinked</situation>
+                    <action>
+                        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount</handlerUri>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <action>
+                        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser</handlerUri>
+                        <!-- Reference to the User Template is here. If the user would be
+                             created as a result of this action, it will be created according
+                             to this template. -->
 
-	                    <userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
-	                </action>
-	            </reaction>
-		</objectSynchronization>
+                        <userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
+                    </action>
+                </reaction>
+        </objectSynchronization>
 </synchronization>
 
 ----
@@ -705,7 +705,7 @@ Main article: wiki:Projection+Policy[Projection Policy]
 
 It has been mentioned elsewhere that the assignment relates to state that should be while the link relates to state that is.
 Account synchronization settings are about dealing situations when an user has an assignment but a corresponding account does not exist and when an account on a resource was created but a correspondent user does not exist.
-There are global account synchronization settings in wiki:SystemConfigurationType[System Configuration object] to set this behavior globally for all resources.
+There are global account synchronization settings in System Configuration object to set this behavior globally for all resources.
 To change these properties for individual resource the account synchronization settings in resource object can be customized as you can see in following code:
 
 [source,xml]
@@ -713,14 +713,13 @@ To change these properties for individual resource the account synchronization s
 <c:AccountSynchronizationSettings>
     <assignmentPolicyEnforcement>full</assignmentPolicyEnforcement>
 </c:AccountSynchronizationSettings>
-
 ----
 
 
 ==== User Template
 
 The user template can be used in synchronization actions to compute midPoint user attributes and/or assign default account on other resources.
-It will be used in addition to wiki:Schema+Handling[inbound] expression processing.
+It will be used in addition to inbound expression processing.
 
 The following is an example of user template from OpenDJ advanced sync sample:
 
@@ -741,31 +740,31 @@ This can be utilized to have a last resort value for the "fullName" attribute if
         </description>
 
         <mapping>
-	    <description>
+        <description>
                 Property mapping.
                 Defines how properties of user object are set up.
                 This specific definition sets a full name as a concatenation
                 of givenName and familyName.
             </description>
-			<strength>weak</strength>
-			<source>
-				<path>$user/givenName</path>
-			</source>
-			<source>
-				<path>$user/familyName</path>
-			</source>
-			<expression>
-				<script>
-					<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-					<code>
-						givenName + ' ' + familyName
-					</code>
-				</script>
-			</expression>
-			<target>
-				<path>fullName</path>
-			</target>
-	</mapping>
+            <strength>weak</strength>
+            <source>
+                <path>$user/givenName</path>
+            </source>
+            <source>
+                <path>$user/familyName</path>
+            </source>
+            <expression>
+                <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                    <code>
+                        givenName + ' ' + familyName
+                    </code>
+                </script>
+            </expression>
+            <target>
+                <path>fullName</path>
+            </target>
+    </mapping>
 
         <accountConstruction>
             <description>

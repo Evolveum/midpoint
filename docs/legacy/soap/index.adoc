@@ -321,13 +321,3 @@ link:http://hostnameport[http://hostname:port/midpoint/ws/model-3]link:http://ho
 
 |===
 
-
-== See Also
-
-* wiki:IDM+Model+Web+Service+Interface+Examples[IDM Model Web Service Interface Examples]
-
-* wiki:Model+Web+Service+Client[Model Web Service Client]
-
-* wiki:Model+Web+Service+Client+Sample[Model Web Service Client Sample]
-
-* wiki:A+few+notes+on+C#+web+service+clients[A few notes on C# web service clients]

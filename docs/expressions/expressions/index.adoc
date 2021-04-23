@@ -141,7 +141,7 @@ The As Is expression evaluator is the default evaluator that will be used if no 
 === Path
 
 Path expression is the most reliable and most efficient way to reference a property or a variable.
-The expression simply takes wiki:Prism+Path[path] to the desired value.
+The expression simply takes path to the desired value.
 
 Following constructor is referencing the `name` property in the object stored in `user` variable.
 
@@ -151,7 +151,6 @@ Following constructor is referencing the `name` property in the object stored in
 <expression>
     <path>$user/name</path>
 </expression>
-
 ----
 
 The path expression may seem equivalent to the XPath script expression (see below).

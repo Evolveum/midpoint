@@ -140,6 +140,4 @@ sudo service tomcat8 restart
 
 * wiki:MidPoint+and+SSO+HOWTO[MidPoint and SSO HOWTO]
 
-* wiki:midPoint+on+Ubuntu%2C+Tomcat%2C+PostgreSQL+HOWTO[midPoint on Ubuntu, Tomcat, PostgreSQL HOWTO]
-
 * link:https://gluu.org/docs/ce/latest/integration/openidc-rp/[mod_auth_openidc RP Integration]

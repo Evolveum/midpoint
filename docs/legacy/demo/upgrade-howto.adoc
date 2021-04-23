@@ -84,7 +84,7 @@ Set up settings, especially motherboard base memory with 2048 MB. +
     sudo apt-get update +
     \=================================================================================================================================================================
 
-. *Tomcat**installation and configuration* on VM (check also:  wiki:midPoint+on+Ubuntu%2C+Tomcat%2C+PostgreSQL+HOWTO[https://wiki.evolveum.com/display/midPoint/midPoint+on+Ubuntu%2C+Tomcat%2C+PostgreSQL+HOWTO] and link:https://www.digitalocean.com/community/tutorials/how-to-install-apache-tomcat-7-on-ubuntu-14-04-via-apt-get[https://www.digitalocean.com/community/tutorials/how-to-install-apache-tomcat-7-on-ubuntu-14-04-via-apt-get]) via commands: +
+. *Tomcat**installation and configuration* on VM (check also:      xref:/midpoint/guides/midpoint-on-ubuntu-tomcat-postgresql-howto/[] and link:https://www.digitalocean.com/community/tutorials/how-to-install-apache-tomcat-7-on-ubuntu-14-04-via-apt-get[https://www.digitalocean.com/community/tutorials/how-to-install-apache-tomcat-7-on-ubuntu-14-04-via-apt-get]) via commands: +
     sudo apt-get install tomcat7 +
     sudo apt-get install tomcat7-docs tomcat7-admin tomcat7-examples +
     sudo apt-get install ant git +
@@ -102,7 +102,7 @@ Set up settings, especially motherboard base memory with 2048 MB. +
 Once installed, you can access the manager webapp and the host-manager webapp entering username administrator and password 5ecr3t. +
     \=================================================================================================================================================================
 
-. *PostgreSQL**installation.* Check  wiki:midPoint+on+Ubuntu%2C+Tomcat%2C+PostgreSQL+HOWTO[https://wiki.evolveum.com/display/midPoint/midPoint+on+Ubuntu%2C+Tomcat%2C+PostgreSQL+HOWTO] +
+. *PostgreSQL**installation.* Check      xref:/midpoint/guides/midpoint-on-ubuntu-tomcat-postgresql-howto/[] +
     To install PostgreSQL, run the following command:    sudo apt-get install postgresql +
     \=================================================================================================================================================================
 
@@ -119,7 +119,7 @@ Once installed, you can access the manager webapp and the host-manager webapp en
     ldapsearch -x -LLL -H link:ldap://wiki.evolveum.com/[ldap:///] -b dc=example,dc=com dn +
     \=================================================================================================================================================================
 
-. *Midpoint 3.0**installation.* Check also: wiki:midPoint+on+Ubuntu%2C+Tomcat%2C+PostgreSQL+HOWTO[https://wiki.evolveum.com/display/midPoint/midPoint+on+Ubuntu%2C+Tomcat%2C+PostgreSQL+HOWTO] +
+. *Midpoint 3.0**installation.* Check also:     xref:/midpoint/guides/midpoint-on-ubuntu-tomcat-postgresql-howto/[] +
     Download midpoint last recent version via command: +
     sudo wget "link:http://athena.evolveum.com/builds/master/build2781-v3.0.1devel-15-g0c62837/midpoint-3.1-SNAPSHOT-dist.tar.gz[athena.evolveum.com/builds/master/build2781-v3.0.1devel-15-g0c62837/midpoint-3.1-SNAPSHOT-dist.tar.gz]" +
  +
@@ -146,7 +146,7 @@ Once installed, you can access the manager webapp and the host-manager webapp en
     - and download it via link:http://athena.evolveum.com/builds/master/[http://athena.evolveum.com/builds/master/] where .zip file should be selected (midpoint-3.1-SNAPSHOT-dist.zip). +
     \=================================================================================================================================================================
 
-. *Apache**install.* Check also: wiki:midPoint+on+Ubuntu%2C+Tomcat%2C+PostgreSQL+HOWTO[https://wiki.evolveum.com/display/midPoint/midPoint+on+Ubuntu%2C+Tomcat%2C+PostgreSQL+HOWTO] +
+. *Apache**install.* Check also:     xref:/midpoint/guides/midpoint-on-ubuntu-tomcat-postgresql-howto/[] +
     Install apache2 via command:    sudo apt-get install apache2 +
     \=================================================================================================================================================================
 
@@ -169,7 +169,7 @@ Once installed, you can access the manager webapp and the host-manager webapp en
     </repository> +
     \=================================================================================================================================================================
 
-. *Create postgreSQL database.* Check: wiki:midPoint+on+Ubuntu%2C+Tomcat%2C+PostgreSQL+HOWTO[https://wiki.evolveum.com/display/midPoint/midPoint+on+Ubuntu%2C+Tomcat%2C+PostgreSQL+HOWTO]    Example for create a database: ubuntu@ubuntu-i386:/$ sudo -u postgres createdb --owner=midpoint midpoint        Example to execute the script to create database: ubuntu@ubuntu-i386:/$ psql --host=localhost --username=midpoint -d midpoint < /midpoint-2.3-SNAPSHOT/config/sql/midpoint/2.3/postgresql/postgresql-2.3.sql        Check if database was created correctly:    ubuntu@ubuntu-i386:/$ sudo su - postgres    postgres@ubuntu-i386:~$ psql -U postgres    postgres=# \l +
+. *Create postgreSQL database.* Check:     xref:/midpoint/guides/midpoint-on-ubuntu-tomcat-postgresql-howto/[]    Example for create a database: ubuntu@ubuntu-i386:/$ sudo -u postgres createdb --owner=midpoint midpoint        Example to execute the script to create database: ubuntu@ubuntu-i386:/$ psql --host=localhost --username=midpoint -d midpoint < /midpoint-2.3-SNAPSHOT/config/sql/midpoint/2.3/postgresql/postgresql-2.3.sql        Check if database was created correctly:    ubuntu@ubuntu-i386:/$ sudo su - postgres    postgres@ubuntu-i386:~$ psql -U postgres    postgres=# \l +
     \=================================================================================================================================================================
 
 . *Download, unzip and copy Java Cryptography Extension (JCE)* version 6, 7, 8 local\_policy.jar and US\_export\_policy.jar files into /usr/lib/jvm/java.../jre/lib/security file located in midpoint VM. +
@@ -187,7 +187,7 @@ Once installed, you can access the manager webapp and the host-manager webapp en
     Create new directory via command: sudo mkdir /opt/OpenDJ +
     Copy OpenDJ-2.5.0-Xpress1 into /opt/OpenDJ and set access rights if necessary (sudo chmod 777 ...). +
  +
-    Start installation (wiki:OpenDJ+Installation+and+Configuration[https://wiki.evolveum.com/display/midPoint/OpenDJ+Installation+and+Configuration]) of OpenDJ via command (taking into account your path and OpenDJ version):  +
+    Start installation (    xref:/connectors/resources/ldap/opendj/[]) of OpenDJ via command (taking into account your path and OpenDJ version):  +
     ubuntu@ubuntu-i386:/$ sudo /opt/opendj/OpenDj.\*/./setup --cli +
  +
     Import exportPhpLdapAdminDemo3.ldif or .ldif by your desire (Option 3 for populating the database).

@@ -106,7 +106,7 @@ Note: auxiliary object class support is available since midPoint 3.2.
 This is an optional feature that is only applicable to resources that have hierarchical structure (such as LDAP directories).
 Note: base context support is available since midPoint 3.4 and 3.3.1.
 
-* *wiki:Attribute+Definitions[Attribute definitions]* are definition that provide more details about handling of attributes that form a particular object type.
+* *Attribute definitions* are definition that provide more details about handling of attributes that form a particular object type.
 The administrator can define a specific data and behavior for each attribute:
 
 ** *Display name* of the attribute.

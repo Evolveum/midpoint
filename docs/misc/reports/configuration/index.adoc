@@ -37,7 +37,7 @@ I recommend to do only small modification in queries or parameters in midPoint.
 
 
 . Report parameters - you can add/remove or modify report parameters.
-Support for wiki:multivalue[multi-value parameters] exists since 3.6. If you check 'For prompting' attribute, it means that this parameter is shown in the pop-up panel when you run report.
+Support for multi-value parameters exists since 3.6. If you check 'For prompting' attribute, it means that this parameter is shown in the pop-up panel when you run report.
 Report parameters are used as input values to the query.
 +
 image::Screenshot-2017-04-07-16.14.10.png[]
@@ -47,7 +47,7 @@ image::Screenshot-2017-04-07-16.14.10.png[]
 .. There is a special column Properties.
 After clicking on the Configure link, new popup is shown.
 In this popup you can define additional properties describing the parameters.
-These properties are then used for customization of run popup such as wiki:lookup[lookup tables].
+These properties are then used for customization of run popup such as lookup tables.
 +
 image::Screenshot-2017-04-07-15.53.08.png[]
 

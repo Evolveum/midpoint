@@ -199,7 +199,7 @@ Therefore, if such a query is used in bulk action task or recomputation task or 
 == Limiting the redundancy, step 1: Exists filter
 
 The above has been known for some time.
-In order to limit the redundancies, midPoint 3.4 introduced a special filter: wiki:Updated+Query+API#UpdatedQueryAPI-Existsfilter[exists]. When used it looks like this:
+In order to limit the redundancies, midPoint 3.4 introduced a special filter: `exists`. When used it looks like this:
 
 [source,xml]
 ----

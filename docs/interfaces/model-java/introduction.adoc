@@ -47,12 +47,10 @@ And the implementation will take care of merging the data from several sources, 
 Almost all business data are represented in midPoint in a form of wiki:Prism+Objects[Prism Objects]. wiki:Prism+Objects[Prism] is somehow lightweight and very powerful data representation framework.
 It can be used to access the data using a variety of interfaces, parse and serialize using multiple data formats (e.g. XML and JSON) and so on.
 This is the basic framework of midPoint data therefore it is also used in all midPoint Java interfaces.
-Please have a look at wiki:Prism+Objects[Prism Objects] page to get a generic introduction to the framework.
-The wiki:Using+Prism+Objects[Using Prism Objects] page provides practical examples how to use prism objects.
+Please have a look at xref:/midpoint/devel/prism/[Prism] page to get a generic introduction to the framework.
 
 MidPoint is designed to work with wiki:Relativity[relative change model.] This model is built deeply into the basic midPoint functionality.
-Therefore it is obvious that also midPoint interfaces will work with wiki:Deltas[deltas]. Similarly to the objects the Java interfaces to midPoint are using deltas provided by wiki:Prism+Objects[prism framework]. Prism deltas are designed especially to work with prism objects and together they work a complete and elegant data representation and management solution.
-The wiki:Using+Prism+Deltas[Using Prism Deltas] page describes how to construct and use the deltas.
+Therefore it is obvious that also midPoint interfaces will work with wiki:Deltas[deltas]. Similarly to the objects the Java interfaces to midPoint are using deltas provided by xref:/midpoint/devel/prism/[prism framework]. Prism deltas are designed especially to work with prism objects and together they work a complete and elegant data representation and management solution.
 
 As midPoint is heavily relying on prism framework an instance of _prism context_ is sometimes needed to complete some tasks.
 One of the important responsibilities of prism context is to maintain pre-parsed schemas of all midPoint objects and also schemas of user extensions.
@@ -65,7 +63,6 @@ Please note that most objects are using wiki:PolyString[PolyString] instead of p
 The use of wiki:PolyString[PolyString] provides important advantage in internationalized environment.
 E.g. it provides ability for database-independent searches that are quite close to an internationalized full-text search.
 While PolyString values are almost transparent when used for reading they require some attention when constructing objects and deltas.
-The page wiki:Using+Prism+Objects[Using Prism Objects] provides discussion of PolyString usage.
 
 
 === Interface and Implementation
@@ -131,7 +128,7 @@ As midPoint objects are identified by wiki:Object+ID[OID] it is also the most im
  PrismObject<UserType> user = modelService.getObject(UserType.class, "6bb5c524-5c18-11e3-979a-001e8c717e5b", null, task, result);
 ----
 
-Once retrieved the object can be manipulated using any of the wiki:Prism+Objects[prism] "facets" (see wiki:Using+Prism+Objects[Using Prism Objects]):
+Once retrieved the object can be manipulated using any of the wiki:Prism+Objects[prism] "facets":
 
 [source,java]
 ----
@@ -156,7 +153,6 @@ In fact these methods are often used to find out OID of an object to be used in 
 
 The key to search methods is wiki:Object+Query[midPoint query language]. This query language is specific to midPoint and it describes an abstract tree of search criteria.
 It may be slightly complex to construct but there are convenient factory methods that can be used for this purpose.
-See wiki:Query+API+(legacy)[Query API (legacy)] for more details.
 The following example shows how a simple query is constructed and used in a search.
 Factory methods `createObjectQuery` and `createEqual` are used to construct a simple query.
 The query describes objects for which the `name` property (specified as `ResourceType.F_NAME`) equals to wiki:PolyString[PolyString]`"My Resource`". Once executed this will return all such wiki:ResourceType[ResourceType] objects (which obviously is at most one object as `name` property is unique across all the resources).
@@ -164,7 +160,7 @@ The query describes objects for which the `name` property (specified as `Resourc
 [source,java]
 ----
 ObjectQuery query = ObjectQuery.createObjectQuery(
-		EqualsFilter.createEqual(ResourceType.class, prismContext, ResourceType.F_NAME, new PolyString("My Resource")));
+        EqualsFilter.createEqual(ResourceType.class, prismContext, ResourceType.F_NAME, new PolyString("My Resource")));
 Collection<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, query, null, task, result);
 ----
 
@@ -195,16 +191,15 @@ Unlike other interfaces the MidPoint Java API uses a single method for all chang
 The method is called `executeChanges` and it takes a collection of wiki:Deltas[deltas] as its argument.
 The trick is to correctly construct the deltas.
 Deltas are part of the wiki:Prism+Objects[Prism] framework that is used in midPoint to represent data.
-The wiki:Using+Prism+Deltas[Using Prism Deltas] page describes what deltas mean and how are they constructed.
 
 
 === Creating Objects
 
 To create an object in midPoint you need to do the following
 
-. Create a prism object (see wiki:Using+Prism+Objects[Using Prism Objects])
+. Create a prism object
 
-. Create an ADD delta from the object (see wiki:Using+Prism+Deltas[Using Prism Deltas])
+. Create an ADD delta from the object
 
 . Put the delta into a collection
 
@@ -229,7 +224,7 @@ The OID will be set back to the original (input) delta.
 
 Object modification is also using similar process, just the delta construction is different:
 
-. Create a MODIFY delta using appropriate factory methods (see wiki:Using+Prism+Deltas[Using Prism Deltas])
+. Create a MODIFY delta using appropriate factory methods
 
 . Put the delta into a collection
 
@@ -248,14 +243,14 @@ modelService.executeChanges(deltas, null, task, result);
 ----
 
 The modification is much more powerful than just this simple example.
-A modify delta can contain several modifications of various modify types (see wiki:Deltas[Deltas] and wiki:Using+Prism+Deltas[Using Prism Deltas]). There may also be more than one object delta in the collection, e.g. to modify user and its accounts in a single midPoint operation (but see limitations below).
+A modify delta can contain several modifications of various modify types (see wiki:Deltas[Deltas]). There may also be more than one object delta in the collection, e.g. to modify user and its accounts in a single midPoint operation (but see limitations below).
 
 
 === Deleting Objects
 
 Object deletion is quite simple and it is also using similar process:
 
-. Create a DELETE delta using a factory method (see wiki:Using+Prism+Deltas[Using Prism Deltas])
+. Create a DELETE delta using a factory method
 
 . Put the delta into a collection
 
@@ -310,9 +305,5 @@ TODO: options: partial reads, resolve, paging, ...
 * wiki:Prism+Objects[Prism Objects]
 
 * wiki:Using+Prism+Objects[Using Prism Objects]
-
-* wiki:Using+Prism+Deltas[Using Prism Deltas]
-
-* wiki:Query+API+(legacy)[Query API (legacy)]
 
 * wiki:Invoking+MidPoint+Services+HOWTO[Invoking MidPoint Services HOWTO]

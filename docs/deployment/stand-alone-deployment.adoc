@@ -22,7 +22,7 @@ Therefore all that is needed to run midPoint is to download it, unpack it and st
 MidPoint server process will start up.
 It will listen on HTTP port 8080.
 
-Please have a look at the wiki:Trying+MidPoint[Trying MidPoint] page for basic installation instruction for the purposes of midPoint evaluation or demo.
+Please have a look at the xref:/midpoint/quickstart/[] page for basic installation instruction for the purposes of midPoint evaluation or demo.
 See wiki:Installing+MidPoint+Server[Installing MidPoint Server] page for full installation instructions.
 
 == Run Control

@@ -77,7 +77,7 @@ This is the host name corresponding to a network interface that accepted the HTT
 
 | Remote Host Address
 | `raddr`
-| wiki:DeterminingRemoteHostAddress[Network address of a remote host] that originated the request causing this event.
+| Network address of a remote host that originated the request causing this event.
 
 
 | Initiator
@@ -106,7 +106,7 @@ Deltas contain detailed information about the operation.
 
 | Channel
 | `ch`
-| The wiki:Channel[channel] that was the source of the operation that this record describes
+| The wiki:Channels[channel] that was the source of the operation that this record describes
 
 
 | Outcome

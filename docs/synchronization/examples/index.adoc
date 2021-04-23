@@ -279,7 +279,6 @@ In this case the new account was created, therefore it does not have an owner.
 The model will execute _correlation expression_, passing the created account as an parameter.
 The goal of correlation expression is to (quickly and efficiently) find a list of candidate owners.
 Correlation expression is in fact just a (parametric) search query.
-See wiki:midPoint+Query+Language[midPoint Query Language] page for more details.
 
 Following XML snippet shows a simple correlation expression that will look up user, comparing user attribute `name` and account attribute `name`.
 
@@ -294,7 +293,6 @@ Following XML snippet shows a simple correlation expression that will look up us
         </expression>
     </q:equal>
 </correlation>
-
 ----
 
 This expression will never return more than one entry, therefore no confirmation rule is necessary.

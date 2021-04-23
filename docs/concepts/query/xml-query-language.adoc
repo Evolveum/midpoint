@@ -100,7 +100,7 @@ However, it is gradually replaced by xref:axiom-query-language/[Axiom query lang
 
 ----
 
-The search filter language definition is part of wiki:Query+Schema[Query Schema]. See the `FilterType` and derived types in the XSD file for more details.
+The search filter language definition is part of Query Schema. See the `FilterType` and derived types in the XSD file for more details.
 
 
 == Filters with Expressions

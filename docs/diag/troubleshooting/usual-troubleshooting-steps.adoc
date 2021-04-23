@@ -14,8 +14,8 @@ This page describes the usual steps to try when something does not work as expec
 
 == Error Message
 
-MidPoint has quite a nice system of wiki:Error+Message+Dialog[error messages]. In addition to usual text message they contain a lot more information.
-The error messages are in fact wiki:Error+Message+Dialog[dialogs] that can be expanded by clicking on them.
+MidPoint has quite a nice system of error messages. In addition to usual text message they contain a lot more information.
+The error messages are in fact dialogs that can be expanded by clicking on them.
 They show a hierarchical internal structure of the operation indicating the result of each important step.
 Each of the step can be further expanded to show more information.
 This should usually provide all the information that is needed to diagnose the problem.
@@ -34,7 +34,6 @@ This should usually provide enough information to assist in troubleshooting seri
 The wiki:Useful+Loggers[Useful Loggers] page provides some hints how to get the most useful information in the log files.
 
 The logfiles are usually placed in the `logs` directory of you application server or web container.
-See wiki:Logfiles[Logfiles] page for more details.
 
 The logging configuration can be managed in *Configuration > Logging* GUI page.
 The dialog allows to set many logging options.

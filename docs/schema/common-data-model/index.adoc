@@ -63,7 +63,7 @@ This can be done in quite an elegant way in XML or JSON data representation.
 
 Accounts, groups and similar data structures reside on the resource.
 E.g. LDAP account is an LDAP object stored in the LDAP server datastore.
-MidPoint can access such objects (using wiki:Connectors[Connectors]) and work with them.
+MidPoint can access such objects (using xref:/connectors/[connectors]) and work with them.
 But working with such objects is difficult.
 E.g. they do not have wiki:Object+ID[OID] and therefore cannot be directly linked to other objects in midPoint repository.
 Even identification of such objects is difficult as every resource may use different type of identifier.

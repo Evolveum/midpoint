@@ -60,7 +60,7 @@ If confirmation expression is not present then it is assumed that it would retur
 
 The result of correlation and confirmation expression does not directly means linking of the account and the user.
 The result simply determines wiki:Synchronization+Situations[synchronization situation] of the account.
-The wiki:Synchronization+Policy[synchronization policy] determines what will be the actual reaction.
+The synchronization policy determines what will be the actual reaction.
 The combined correlation and confirmation expression should return `true` for at most one user.
 That will result in `unlinked`wiki:Synchronization+Situations[synchronization situation]. The usual reaction to this situation is that such user and the account will be wiki:Assigning+vs+Linking[linked]. However that may not necessarily be the case.
 Following table summarizes the resulting situation with respect to the number of correlation/confirmation results.
