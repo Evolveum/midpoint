@@ -54,7 +54,8 @@ public abstract class SimpleIterativeTaskHandler<O extends ObjectType, EC extend
     }
 
     @Override
-    protected @NotNull SimpleIterativeTaskHandler<O, EC, P>.TaskExecution createTaskExecution(RunningTask localCoordinatorTask) {
+    protected @NotNull SimpleIterativeTaskHandler<O, EC, P>.TaskExecution createTaskExecution(
+            @NotNull RunningTask localCoordinatorTask) {
         EC executionContext = createExecutionContext();
         return new TaskExecution(this, localCoordinatorTask, executionContext);
     }
@@ -68,7 +69,7 @@ public abstract class SimpleIterativeTaskHandler<O extends ObjectType, EC extend
 
         private final EC executionContext;
 
-        public TaskExecution(SimpleIterativeTaskHandler<O, EC, P> taskHandler, RunningTask localCoordinatorTask,
+        public TaskExecution(SimpleIterativeTaskHandler<O, EC, P> taskHandler, @NotNull RunningTask localCoordinatorTask,
                 EC executionContext) {
             super(taskHandler, localCoordinatorTask);
             this.executionContext = executionContext;

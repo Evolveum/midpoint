@@ -1645,6 +1645,28 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     }
 
     @Override
+    public boolean isAssignableFromGeneral(@NotNull QName superType, @NotNull QName subType) {
+        if (QNameUtil.match(superType, subType) || QNameUtil.match(DOMUtil.XSD_ANYTYPE, superType)) {
+            return true;
+        }
+        if (QNameUtil.match(DOMUtil.XSD_ANYTYPE, subType)) {
+            return false;
+        }
+        return isAssignableFromGeneral(superType, getSuperType(subType));
+    }
+
+    // TODO or should we return null if there is no explicit supertype?
+    private QName getSuperType(QName subType) {
+        TypeDefinition definition = MiscUtil.requireNonNull(findTypeDefinitionByType(subType),
+                () -> new IllegalArgumentException("Unknown type " + subType));
+        if (definition.getSuperType() != null) {
+            return definition.getSuperType();
+        } else {
+            return DOMUtil.XSD_ANYTYPE;
+        }
+    }
+
+    @Override
     public boolean isAssignableFrom(@NotNull Class<?> superClass, @NotNull QName subType) {
         Class<?> subClass = determineClassForType(subType);
         // TODO consider implementing "strict mode" that would throw an exception in the case of nullness

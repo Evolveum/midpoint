@@ -55,7 +55,7 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task) {
+    public TaskRunResult run(@NotNull RunningTask task) {
         OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
         TaskRunResult runResult = new TaskRunResult();
 

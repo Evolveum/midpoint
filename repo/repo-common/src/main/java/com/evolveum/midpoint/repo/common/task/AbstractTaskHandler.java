@@ -163,10 +163,10 @@ public abstract class AbstractTaskHandler<
      * method.
      */
     @Override
-    public TaskWorkBucketProcessingResult run(RunningTask localCoordinatorTask) {
+    public TaskRunResult run(@NotNull RunningTask localCoordinatorTask) {
         TE taskExecution = createTaskExecution(localCoordinatorTask);
         try {
-            taskExecution.run();
+            taskExecution.run(localCoordinatorTask.getResult());
             return processFinish(logger, null, taskTypeName, taskExecution.getCurrentRunResult(), taskExecution.getErrorState());
         } catch (Throwable t) {
             return processException(t, logger, null, taskTypeName, taskExecution.getCurrentRunResult());
@@ -177,7 +177,7 @@ public abstract class AbstractTaskHandler<
      * Method to create the task execution. Can be overridden.
      */
     @NotNull
-    protected TE createTaskExecution(RunningTask localCoordinatorTask) {
+    protected TE createTaskExecution(@NotNull RunningTask localCoordinatorTask) {
         return createTaskExecutionFromAnnotation(localCoordinatorTask);
     }
 

@@ -19,6 +19,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
+import org.jetbrains.annotations.NotNull;
+
 public class NoOpTaskHandler implements TaskHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(NoOpTaskHandler.class);
@@ -41,7 +43,7 @@ public class NoOpTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskWorkBucketProcessingResult run(RunningTask task) {
+    public TaskWorkBucketProcessingResult run(@NotNull RunningTask task) {
 
         String partition = task.getHandlerUri().substring(TaskConstants.NOOP_TASK_HANDLER_URI.length());  // empty or #1..#4
 

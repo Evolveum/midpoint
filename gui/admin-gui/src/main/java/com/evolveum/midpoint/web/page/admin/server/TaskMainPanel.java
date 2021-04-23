@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -147,7 +146,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 // TODO FIX THIS after task schema change
-                return new SingleContainerPanel<TaskWorkManagementType>(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_PARTS), TaskWorkManagementType.COMPLEX_TYPE) {
+                return new SingleContainerPanel<TaskWorkDistributionType>(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_PARTS), TaskWorkDistributionType.COMPLEX_TYPE) {
 
                     @Override
                     protected ItemVisibility getVisibility(ItemPath itemPath) {

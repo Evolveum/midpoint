@@ -13,11 +13,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
 
 /**
  * Utility methods related to task work state and work state management.
@@ -35,7 +37,7 @@ public class TaskWorkStateUtil {
         buckets.sort(Comparator.comparingInt(WorkBucketType::getSequentialNumber));
     }
 
-    public static AbstractWorkSegmentationType getWorkSegmentationConfiguration(TaskWorkManagementType cfg) {
+    public static AbstractWorkSegmentationType getWorkSegmentationConfiguration(TaskWorkDistributionType cfg) {
         if (cfg != null) {
             return getWorkSegmentationConfiguration(cfg.getBuckets());
         } else {
@@ -241,15 +243,20 @@ public class TaskWorkStateUtil {
         return null;
     }
 
-    public static TaskPartDefinitionType getPartDefinition(TaskPartsDefinitionType parts, String partId) {
-        if (parts == null) {
+    public static TaskPartDefinitionType getPartDefinition(TaskPartDefinitionType part, String partId) {
+        if (part == null) {
             return null;
+        } else {
+            return getPartDefinition(singleton(part), partId);
         }
-        for (TaskPartDefinitionType partDef : parts.getPart()) {
+    }
+
+    public static TaskPartDefinitionType getPartDefinition(Collection<TaskPartDefinitionType> parts, String partId) {
+        for (TaskPartDefinitionType partDef : parts) {
             if (java.util.Objects.equals(partDef.getIdentifier(), partId)) {
                 return partDef;
             }
-            TaskPartDefinitionType inChildren = getPartDefinition(partDef.getParts(), partId);
+            TaskPartDefinitionType inChildren = getPartDefinition(partDef.getPart(), partId);
             if (inChildren != null) {
                 return inChildren;
             }
@@ -267,14 +274,9 @@ public class TaskWorkStateUtil {
         return partWorkState != null ? partWorkState.getBucketsProcessingRole() : null;
     }
 
-    public static WorkBucketsManagementType getBucketsManagement(TaskPartsDefinitionType parts, String partId) {
-        TaskWorkManagementType workManagement = getWorkManagement(parts, partId);
-        return workManagement != null ? workManagement.getBuckets() : null;
-    }
-
-    public static TaskWorkManagementType getWorkManagement(TaskPartsDefinitionType parts, String partId) {
-        TaskPartDefinitionType partDef = getPartDefinition(parts, partId);
-        return partDef != null ? partDef.getWorkManagement() : null;
+    public static TaskWorkDistributionType getWorkDistribution(TaskPartDefinitionType work, String partId) {
+        TaskPartDefinitionType partDef = getPartDefinition(work, partId);
+        return partDef != null ? partDef.getDistribution() : null;
     }
 
     public static String getCurrentPartId(TaskWorkStateType workState) {

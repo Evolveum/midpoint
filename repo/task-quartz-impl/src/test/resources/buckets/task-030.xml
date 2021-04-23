@@ -7,30 +7,28 @@
   -->
 
 <task oid="6fdcfd71-ded8-4ce1-8197-0a785695fe70"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>task-030</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
-    <parts>
-        <part>
-            <workManagement>
-                <buckets>
-                    <stringSegmentation>
-                        <discriminator>name</discriminator>
-                        <matchingRule>polyStringNorm</matchingRule>
-                        <boundary>
-                            <position>1</position>
-                            <characters>05am</characters>
-                        </boundary>
-                        <boundary>
-                            <position>2</position>
-                            <characters>0am</characters>
-                        </boundary>
-                        <comparisonMethod>interval</comparisonMethod>
-                    </stringSegmentation>
-                </buckets>
-            </workManagement>
-        </part>
-    </parts>
+    <work>
+        <distribution>
+            <buckets>
+                <stringSegmentation>
+                    <discriminator>name</discriminator>
+                    <matchingRule>polyStringNorm</matchingRule>
+                    <boundary>
+                        <position>1</position>
+                        <characters>05am</characters>
+                    </boundary>
+                    <boundary>
+                        <position>2</position>
+                        <characters>0am</characters>
+                    </boundary>
+                    <comparisonMethod>interval</comparisonMethod>
+                </stringSegmentation>
+            </buckets>
+        </distribution>
+    </work>
     <recurrence>single</recurrence>
 </task>

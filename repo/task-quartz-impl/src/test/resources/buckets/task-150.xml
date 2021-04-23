@@ -7,20 +7,18 @@
   -->
 
 <task oid="0a278190-ba8e-4684-b95a-57f5198ac8b3"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>task-150</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
-    <parts>
-        <part>
-            <workManagement>
-                <buckets>
-                    <numericSegmentation>
-                        <numberOfBuckets>1000</numberOfBuckets>
-                    </numericSegmentation>
-                </buckets>
-            </workManagement>
-        </part>
-    </parts>
+    <work>
+        <distribution>
+            <buckets>
+                <numericSegmentation>
+                    <numberOfBuckets>1000</numberOfBuckets>
+                </numericSegmentation>
+            </buckets>
+        </distribution>
+    </work>
     <recurrence>single</recurrence>
 </task>

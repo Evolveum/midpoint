@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
@@ -216,6 +217,12 @@ public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, Gl
      * BEWARE: works only with statically-defined types!
      */
     boolean isAssignableFrom(@NotNull QName superType, @NotNull QName subType);
+
+    /**
+     * Crawls through the type definition tree. May be slower.
+     */
+    @Experimental
+    boolean isAssignableFromGeneral(@NotNull QName superType, @NotNull QName subType);
 
     /**
      * Returns most specific common supertype for these two. If any of input params is null, it means it is ignored

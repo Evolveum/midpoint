@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskException;
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -36,18 +37,20 @@ import static java.util.Collections.singletonList;
  */
 public abstract class AbstractTaskExecution
         <TH extends AbstractTaskHandler<TH, TE>,
-                TE extends AbstractTaskExecution<TH, TE>> {
+                TE extends AbstractTaskExecution<TH, TE>> implements TaskExecution {
 
     /** The task handler. Used mainly to access Spring beans. */
     @NotNull public final TH taskHandler;
 
     /** Worker task scheduled by Quartz. Can have worker threads. */
-    public final RunningTask localCoordinatorTask;
+    @NotNull public final RunningTask localCoordinatorTask;
 
     /**
      * "Root" operation result that will be eventually returned in runResult.
+     *
+     * TODO clarify
      */
-    @NotNull private final OperationResult taskOperationResult;
+    private OperationResult taskOperationResult;
 
     /**
      * Current task run result. It will be returned from the task handler run method.
@@ -62,17 +65,16 @@ public abstract class AbstractTaskExecution
     @NotNull private final ErrorState errorState = new ErrorState();
 
     /**
-     * Part executions. Initialized in the {@link #run()} method.
+     * Part executions. Initialized in the {@link TaskExecution#run(OperationResult)} method.
      */
     private List<? extends AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> partExecutions;
 
     private final AtomicReference<AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> currentTaskPartExecution
             = new AtomicReference<>();
 
-    public AbstractTaskExecution(@NotNull TH taskHandler, RunningTask localCoordinatorTask) {
+    public AbstractTaskExecution(@NotNull TH taskHandler, @NotNull RunningTask localCoordinatorTask) {
         this.taskHandler = taskHandler;
         this.localCoordinatorTask = localCoordinatorTask;
-        this.taskOperationResult = createOperationResult();
         this.currentRunResult = createRunResult();
     }
 
@@ -86,23 +88,26 @@ public abstract class AbstractTaskExecution
         return runResult;
     }
 
-    @NotNull
-    private OperationResult createOperationResult() {
-        OperationResult opResult = new OperationResult(taskHandler.taskOperationPrefix + ".run");
-        opResult.setStatus(OperationResultStatus.IN_PROGRESS);
-        return opResult;
-    }
+//    @NotNull
+//    private OperationResult createOperationResult() {
+//        OperationResult opResult = new OperationResult(taskHandler.taskOperationPrefix + ".run");
+//        opResult.setStatus(OperationResultStatus.IN_PROGRESS);
+//        return opResult;
+//    }
 
     /**
      * Main execution method. Iterates through all the part executions, running each of them
      * until finished or until the execution stops.
      *
      * Note that the final handling of exceptions is NOT done here, but within the task handler.
+     * @param result
      */
-    public TaskWorkBucketProcessingResult run() throws SchemaException, TaskException, CommunicationException,
+    public @NotNull TaskRunResult run(OperationResult result) throws SchemaException, TaskException, CommunicationException,
             ConfigurationException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException,
             ObjectAlreadyExistsException, PolicyViolationException, PreconditionViolationException {
         try {
+            taskOperationResult = result;
+
             //noinspection unchecked
             taskHandler.registerExecution(localCoordinatorTask, (TE) this);
 
@@ -234,5 +239,10 @@ public abstract class AbstractTaskExecution
     public boolean isInternallyMultipart() {
         return Objects.requireNonNull(partExecutions, "Part executions were not initialized yet")
                 .size() > 1;
+    }
+
+    @Override
+    public @NotNull RunningTask getTask() {
+        return localCoordinatorTask;
     }
 }

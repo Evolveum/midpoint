@@ -8,12 +8,9 @@ package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.task.api.StaticTaskPartitionsDefinition;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskPartitionsDefinition;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartsDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

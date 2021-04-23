@@ -7,27 +7,25 @@
   -->
 
 <task oid="336e4ded-82a6-432c-ade0-43844e59c3e4"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>task-210-c</name>
     <taskIdentifier>336e4ded-82a6-432c-ade0-43844e59c3e4</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
-    <parts>
-        <part>
-            <workManagement>
-                <buckets>
-                    <numericSegmentation>
-                        <numberOfBuckets>5</numberOfBuckets>
-                        <bucketSize>1</bucketSize>
-                    </numericSegmentation>
-                    <allocation>
-                        <bucketCreationBatch>3</bucketCreationBatch>
-                        <allocateFirst>true</allocateFirst>
-                    </allocation>
-                </buckets>
-            </workManagement>
-        </part>
-    </parts>
+    <work>
+        <distribution>
+            <buckets>
+                <numericSegmentation>
+                    <numberOfBuckets>5</numberOfBuckets>
+                    <bucketSize>1</bucketSize>
+                </numericSegmentation>
+                <allocation>
+                    <bucketCreationBatch>3</bucketCreationBatch>
+                    <allocateFirst>true</allocateFirst>
+                </allocation>
+            </buckets>
+        </distribution>
+    </work>
     <workState>
         <part>
             <bucketsProcessingRole>coordinator</bucketsProcessingRole>

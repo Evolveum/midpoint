@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import javax.annotation.PostConstruct;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -74,7 +75,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task) {
+    public TaskRunResult run(@NotNull RunningTask task) {
 
         OperationResult opResult = new OperationResult(JdbcPingTaskHandler.class.getName() + ".run");
 

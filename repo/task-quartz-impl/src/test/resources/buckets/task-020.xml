@@ -7,34 +7,32 @@
   -->
 
 <task oid="62490d1d-244c-4f36-b0d1-cc3a8df26743"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>task-020</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
-    <parts>
-        <part>
-            <workManagement>
-                <buckets>
-                    <stringSegmentation>
-                        <discriminator>name</discriminator>
-                        <matchingRule>polyStringNorm</matchingRule>
-                        <boundary>
-                            <position>1</position>
-                            <characters>a</characters>
-                        </boundary>
-                        <boundary>
-                            <position>2</position>
-                            <characters>\0-\1\a-\c</characters>
-                        </boundary>
-                        <boundary>
-                            <position>3</position>
-                            <characters>01abc</characters>
-                        </boundary>
-                        <comparisonMethod>exactMatch</comparisonMethod>
-                    </stringSegmentation>
-                </buckets>
-            </workManagement>
-        </part>
-    </parts>
+    <work>
+        <distribution>
+            <buckets>
+                <stringSegmentation>
+                    <discriminator>name</discriminator>
+                    <matchingRule>polyStringNorm</matchingRule>
+                    <boundary>
+                        <position>1</position>
+                        <characters>a</characters>
+                    </boundary>
+                    <boundary>
+                        <position>2</position>
+                        <characters>\0-\1\a-\c</characters>
+                    </boundary>
+                    <boundary>
+                        <position>3</position>
+                        <characters>01abc</characters>
+                    </boundary>
+                    <comparisonMethod>exactMatch</comparisonMethod>
+                </stringSegmentation>
+            </buckets>
+        </distribution>
+    </work>
     <recurrence>single</recurrence>
 </task>

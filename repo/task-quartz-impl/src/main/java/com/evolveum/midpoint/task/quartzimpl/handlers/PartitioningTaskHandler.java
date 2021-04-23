@@ -6,11 +6,9 @@
  */
 package com.evolveum.midpoint.task.quartzimpl.handlers;
 
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskPartitionsDefinition.TaskPartitionDefinition;
@@ -18,7 +16,6 @@ import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
-import com.evolveum.midpoint.util.template.StringSubstitutorUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -26,7 +23,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Function;
@@ -51,7 +49,7 @@ public class PartitioningTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask masterTaskUntyped) {
+    public TaskRunResult run(@NotNull RunningTask masterTaskUntyped) {
 
         RunningTaskQuartzImpl masterTask = (RunningTaskQuartzImpl) masterTaskUntyped;
 
@@ -330,9 +328,9 @@ public class PartitioningTaskHandler implements TaskHandler {
 //        return taskManager.addTask(subtask.asPrismObject(), opResult);
     }
 
-    private boolean isCoordinator(TaskWorkManagementType workManagement) {
-        return workManagement != null && workManagement.getTaskKind() == TaskKindType.COORDINATOR;
-    }
+//    private boolean isCoordinator(TaskWorkDistributionType workManagement) {
+//        return workManagement != null && workManagement.getTaskKind() == TaskKindType.COORDINATOR;
+//    }
 
     private <T> T applyDefaults(Function<TaskPartitionDefinition, T> localGetter, Function<TaskPartitionsDefinition, T> globalGetter,
             T defaultValue, TaskPartitionDefinition localDef, TaskPartitionsDefinition globalDef) {

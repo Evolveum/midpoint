@@ -13,6 +13,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.io.FilenameUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -66,7 +67,7 @@ public class ReportTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task) {
+    public TaskRunResult run(@NotNull RunningTask task) {
         OperationResult parentResult = task.getResult();
         OperationResult result = parentResult
                 .createSubresult(ReportTaskHandler.class.getSimpleName() + ".run");

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,7 +49,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task) throws ExitExecutionException {
+    public TaskRunResult run(@NotNull RunningTask task) throws ExitExecutionException {
         OperationResult opResult = new OperationResult(OP_RUN);
         TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(opResult);

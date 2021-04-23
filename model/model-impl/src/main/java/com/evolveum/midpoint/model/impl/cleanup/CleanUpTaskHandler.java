@@ -70,7 +70,7 @@ public class CleanUpTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task) {
+    public TaskRunResult run(@NotNull RunningTask task) {
         TaskRunResult runResult = createRunResult();
         ErrorState errorState = new ErrorState(); // currently not used
         try {

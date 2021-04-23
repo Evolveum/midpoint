@@ -936,7 +936,7 @@ public class TestBucketManagement extends AbstractTaskManagerTest {
     }
 
     private TaskPartDefinitionType getPartDefinition(TaskQuartzImpl task) {
-        return task.getPartsDefinitionOrClone().getPart().get(0);
+        return task.getWorkDefinitionOrClone();
     }
 
     private void assertBoundariesAndBucketCount(BucketContentFactory contentFactory,

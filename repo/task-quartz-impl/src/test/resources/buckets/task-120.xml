@@ -7,7 +7,7 @@
   -->
 
 <task oid="ec87b7cf-b7ee-43ce-92a2-4bc08c137b72"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>task-120</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>

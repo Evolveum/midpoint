@@ -7,7 +7,7 @@
   -->
 
 <task oid="f9298cc6-174f-4a20-8703-bacc500fc53e"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>task-210-3</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <parent>336e4ded-82a6-432c-ade0-43844e59c3e4</parent>

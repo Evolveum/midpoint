@@ -9,11 +9,9 @@
 <!--Reconciliation task definition for dummy resource -->
 
 <task oid="20335c7c-838f-11e8-93a6-4b1dd0ab58e4"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
     <name>Reconciliation Full: Dummy</name>
 
@@ -23,29 +21,31 @@
         <mext:intent>default</mext:intent>
     </extension>
 
+    <assignment>
+        <targetRef oid="00000000-role-0000-0000-999111111112" type="RoleType"/>
+    </assignment>
+
     <taskIdentifier>20335c7c-838f-11e8-93a6-4b1dd0ab58e4</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
 
-    <parts>
-        <part>
-            <index>2</index>
-            <stage>execute</stage>
-            <errorCriticality>
-                <policy>fatal</policy>
-            </errorCriticality>
-        </part>
-    </parts>
-
     <objectRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
+
+    <work>
+        <executionMode>execute</executionMode>
+        <partOverride>
+            <index>2</index>
+            <distribution>
+                <workerThreads>4</workerThreads>
+            </distribution>
+        </partOverride>
+    </work>
+
     <recurrence>recurring</recurrence>
     <schedule>
         <interval>3</interval>
     </schedule>
 
-    <assignment>
-        <targetRef oid="00000000-role-0000-0000-999111111112" type="RoleType"/>
-    </assignment>
 </task>

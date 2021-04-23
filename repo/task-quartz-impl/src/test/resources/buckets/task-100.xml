@@ -7,31 +7,29 @@
   -->
 
 <task oid="b19b16ff-fe18-40ac-bf70-859f546a67ea"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <name>task-100</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
-    <parts>
-        <part>
-            <workManagement>
-                <buckets>
-                    <explicitSegmentation>
-                        <discriminator>iteration</discriminator>
-                        <content xsi:type="NumericIntervalWorkBucketContentType">
-                            <to>123</to>
-                        </content>
-                        <content xsi:type="NumericIntervalWorkBucketContentType">
-                            <from>123</from>
-                            <to>200</to>
-                        </content>
-                        <content xsi:type="NumericIntervalWorkBucketContentType">
-                            <from>200</from>
-                        </content>
-                    </explicitSegmentation>
-                </buckets>
-            </workManagement>
-        </part>
-    </parts>
+    <work>
+        <distribution>
+            <buckets>
+                <explicitSegmentation>
+                    <discriminator>iteration</discriminator>
+                    <content xsi:type="NumericIntervalWorkBucketContentType">
+                        <to>123</to>
+                    </content>
+                    <content xsi:type="NumericIntervalWorkBucketContentType">
+                        <from>123</from>
+                        <to>200</to>
+                    </content>
+                    <content xsi:type="NumericIntervalWorkBucketContentType">
+                        <from>200</from>
+                    </content>
+                </explicitSegmentation>
+            </buckets>
+        </distribution>
+    </work>
     <recurrence>single</recurrence>
 </task>

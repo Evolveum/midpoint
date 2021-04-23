@@ -10,7 +10,8 @@ package com.evolveum.midpoint.task.api;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionEnvironmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkDistributionType;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -66,7 +67,7 @@ public interface TaskPartitionsDefinition {
     /**
      * Work management for the subtasks.
      */
-    default TaskWorkManagementType getWorkManagement(Task masterTask) {
+    default TaskWorkDistributionType getWorkManagement(Task masterTask) {
         return null;
     }
 
@@ -120,7 +121,7 @@ public interface TaskPartitionsDefinition {
         /**
          * Work state configuration to be planted into subtask, if copyWorkStateConfiguration is not true.
          */
-        default TaskWorkManagementType getWorkManagement(Task masterTask) {
+        default TaskWorkDistributionType getWorkManagement(Task masterTask) {
             return null;
         }
 

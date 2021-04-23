@@ -111,7 +111,7 @@ public class MockParallelTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task) {
+    public TaskRunResult run(@NotNull RunningTask task) {
         LOGGER.info("MockParallelTaskHandler.run starting (id = " + id + ")");
 
         OperationResult opResult = new OperationResult(MockParallelTaskHandler.class.getName()+".run");

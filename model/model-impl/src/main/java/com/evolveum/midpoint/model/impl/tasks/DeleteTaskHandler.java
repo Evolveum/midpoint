@@ -79,7 +79,7 @@ public class DeleteTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task) {
+    public TaskRunResult run(@NotNull RunningTask task) {
         return runInternal(task);
     }
 

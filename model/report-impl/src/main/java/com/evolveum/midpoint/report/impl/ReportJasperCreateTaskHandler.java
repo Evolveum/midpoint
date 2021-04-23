@@ -50,6 +50,7 @@ import net.sf.jasperreports.export.SimpleWriterExporterOutput;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -128,7 +129,7 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task) {
+    public TaskRunResult run(@NotNull RunningTask task) {
         OperationResult parentResult = task.getResult();
         OperationResult result = parentResult.createSubresult(ReportJasperCreateTaskHandler.class.getSimpleName() + ".run");
 

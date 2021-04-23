@@ -17,9 +17,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -28,26 +26,26 @@ import java.util.List;
  *
  * @author mederly
  */
-public class StaticTaskPartitionsDefinition implements TaskPartitionsDefinition {
+public class StaticTaskPartitionsDefinition /* implements TaskPartitionsDefinition */ {
 
-    @NotNull private final TaskPartsDefinitionType data;
-    @NotNull private final List<TaskPartitionDefinition> partitions;
-    @NotNull private final PrismObjectDefinition<TaskType> taskDefinition;
+//    @NotNull private final TaskPartsDefinitionType data;
+//    @NotNull private final List<TaskPartitionDefinition> partitions;
+//    @NotNull private final PrismObjectDefinition<TaskType> taskDefinition;
 
-    public StaticTaskPartitionsDefinition(@NotNull TaskPartsDefinitionType data,
-            @Nullable List<TaskPartitionDefinition> partitionsOverride, @NotNull PrismObjectDefinition<TaskType> taskDefinition) {
-        this.data = data;
-        this.partitions = partitionsOverride != null ? partitionsOverride : createPartitionDefinitions(data);
-        this.taskDefinition = taskDefinition;
-    }
+//    public StaticTaskPartitionsDefinition(@NotNull TaskPartsDefinitionType data,
+//            @Nullable List<TaskPartitionDefinition> partitionsOverride, @NotNull PrismObjectDefinition<TaskType> taskDefinition) {
+//        this.data = data;
+//        this.partitions = partitionsOverride != null ? partitionsOverride : createPartitionDefinitions(data);
+//        this.taskDefinition = taskDefinition;
+//    }
+//
+//    public StaticTaskPartitionsDefinition(@NotNull TaskPartsDefinitionType definition,
+//            @NotNull PrismObjectDefinition<TaskType> taskDefinition) {
+//        this(definition, null, taskDefinition);
+//    }
 
-    public StaticTaskPartitionsDefinition(@NotNull TaskPartsDefinitionType definition,
-            @NotNull PrismObjectDefinition<TaskType> taskDefinition) {
-        this(definition, null, taskDefinition);
-    }
-
-    private List<TaskPartitionDefinition> createPartitionDefinitions(TaskPartsDefinitionType data) {
-        throw new UnsupportedOperationException();//FIXME
+//    private List<TaskPartitionDefinition> createPartitionDefinitions(TaskPartsDefinitionType data) {
+//        throw new UnsupportedOperationException();//FIXME
 //        int count;
 //        if (data.getCount() != null) {
 //            count = data.getCount();
@@ -82,75 +80,75 @@ public class StaticTaskPartitionsDefinition implements TaskPartitionsDefinition 
 //            }
 //        }
 //        return rv;
-    }
+//    }
 
-    @Override
-    public int getCount(Task masterTask) {
-        throw new UnsupportedOperationException();//FIXME
-//        if (data.getCount() != null) {
-//            return data.getCount();
-//        } else {
-//            return partitions.size();
+//    @Override
+//    public int getCount(Task masterTask) {
+//        throw new UnsupportedOperationException();//FIXME
+////        if (data.getCount() != null) {
+////            return data.getCount();
+////        } else {
+////            return partitions.size();
+////        }
+//    }
+//
+//    @Override
+//    public boolean isSequentialExecution(Task masterTask) {
+//        throw new UnsupportedOperationException();//FIXME
+////        return data.isSequentialExecution() != null ? data.isSequentialExecution() : true;
+//    }
+//
+//    @Override
+//    public boolean isDurablePartitions(Task masterTask) {
+//        throw new UnsupportedOperationException();//FIXME
+////        return Boolean.TRUE.equals(data.isDurablePartitions());
+//    }
+//
+//    @Override
+//    public String getName(Task masterTask) {
+//        throw new UnsupportedOperationException();//FIXME
+////        return data.getTaskName();
+//    }
+//
+//    @Override
+//    public String getHandlerUri(Task masterTask) {
+//        throw new UnsupportedOperationException();//FIXME
+////        return data.getHandlerUri();
+//    }
+//
+//    @Override
+//    public TaskWorkDistributionType getWorkManagement(Task masterTask) {
+//        throw new UnsupportedOperationException();//FIXME
+////        return data.getWorkManagement();
+//    }
+//
+//    @Override
+//    public TaskExecutionEnvironmentType getExecutionEnvironment(Task masterTask) {
+//        throw new UnsupportedOperationException();//FIXME
+////        return data.getExecutionEnvironment();
+//    }
+//
+//    @Override
+//    public Boolean isCopyMasterExtension(Task masterTask) {
+//        throw new UnsupportedOperationException();//FIXME
+////        return data.isCopyMasterExtension();
+//    }
+//
+//    @Override
+//    @NotNull
+//    public Collection<ItemDelta<?, ?>> getOtherDeltas(Task masterTask) {
+//        throw new UnsupportedOperationException();//FIXME
+////        return parseDeltas(data.getOtherDeltas());
+//    }
+
+//    private Collection<ItemDelta<?, ?>> parseDeltas(List<ItemDeltaType> deltas) {
+//        try {
+//            //noinspection unchecked
+//            return (Collection<ItemDelta<?, ?>>) DeltaConvertor.toModifications(deltas, taskDefinition);
+//        } catch (SchemaException e) {
+//            throw new SystemException("Couldn't parse task item deltas: " + e.getMessage(), e);
 //        }
-    }
-
-    @Override
-    public boolean isSequentialExecution(Task masterTask) {
-        throw new UnsupportedOperationException();//FIXME
-//        return data.isSequentialExecution() != null ? data.isSequentialExecution() : true;
-    }
-
-    @Override
-    public boolean isDurablePartitions(Task masterTask) {
-        throw new UnsupportedOperationException();//FIXME
-//        return Boolean.TRUE.equals(data.isDurablePartitions());
-    }
-
-    @Override
-    public String getName(Task masterTask) {
-        throw new UnsupportedOperationException();//FIXME
-//        return data.getTaskName();
-    }
-
-    @Override
-    public String getHandlerUri(Task masterTask) {
-        throw new UnsupportedOperationException();//FIXME
-//        return data.getHandlerUri();
-    }
-
-    @Override
-    public TaskWorkManagementType getWorkManagement(Task masterTask) {
-        throw new UnsupportedOperationException();//FIXME
-//        return data.getWorkManagement();
-    }
-
-    @Override
-    public TaskExecutionEnvironmentType getExecutionEnvironment(Task masterTask) {
-        throw new UnsupportedOperationException();//FIXME
-//        return data.getExecutionEnvironment();
-    }
-
-    @Override
-    public Boolean isCopyMasterExtension(Task masterTask) {
-        throw new UnsupportedOperationException();//FIXME
-//        return data.isCopyMasterExtension();
-    }
-
-    @Override
-    @NotNull
-    public Collection<ItemDelta<?, ?>> getOtherDeltas(Task masterTask) {
-        throw new UnsupportedOperationException();//FIXME
-//        return parseDeltas(data.getOtherDeltas());
-    }
-
-    private Collection<ItemDelta<?, ?>> parseDeltas(List<ItemDeltaType> deltas) {
-        try {
-            //noinspection unchecked
-            return (Collection<ItemDelta<?, ?>>) DeltaConvertor.toModifications(deltas, taskDefinition);
-        } catch (SchemaException e) {
-            throw new SystemException("Couldn't parse task item deltas: " + e.getMessage(), e);
-        }
-    }
+//    }
 
 //    public class StaticTaskPartition implements TaskPartitionDefinition {
 //
@@ -203,9 +201,9 @@ public class StaticTaskPartitionsDefinition implements TaskPartitionsDefinition 
 //        }
 //    }
 
-    @NotNull
-    @Override
-    public TaskPartitionDefinition getPartition(Task masterTask, int index) {
-        return partitions.get(index - 1);
-    }
+//    @NotNull
+//    @Override
+//    public TaskPartitionDefinition getPartition(Task masterTask, int index) {
+//        return partitions.get(index - 1);
+//    }
 }

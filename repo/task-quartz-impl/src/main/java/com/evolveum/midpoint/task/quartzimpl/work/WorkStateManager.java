@@ -114,7 +114,7 @@ public class WorkStateManager {
 
         TaskPartDefinitionType partDef = getCurrentPartDefinition(workerTask, result);
         AbstractWorkSegmentationType segmentationConfig =
-                TaskWorkStateUtil.getWorkSegmentationConfiguration(partDef.getWorkManagement());
+                TaskWorkStateUtil.getWorkSegmentationConfiguration(partDef.getDistribution());
 
         List<ObjectFilter> conjunctionMembers = new ArrayList<>(
                 contentHandler.createSpecificFilters(workBucket, segmentationConfig, type, itemDefinitionProvider));
@@ -128,13 +128,13 @@ public class WorkStateManager {
 
         boolean standalone = TaskWorkStateUtil.isStandalone(workerTask.getWorkStateOrClone());
         if (standalone) {
-            partDef = TaskWorkStateUtil.getPartDefinition(workerTask.getPartsDefinitionOrClone(), workerTask.getCurrentPartId());
+            partDef = TaskWorkStateUtil.getPartDefinition(workerTask.getWorkDefinitionOrClone(), workerTask.getCurrentPartId());
             stateCheck(partDef != null, "No current part definition for standalone task %s", workerTask);
         } else {
             Task coordinatorTask = workerTask.getParentTask(result);
             stateCheck(coordinatorTask != null, "No coordinator task for worker %s", workerTask);
 
-            partDef = TaskWorkStateUtil.getPartDefinition(coordinatorTask.getPartsDefinitionOrClone(),
+            partDef = TaskWorkStateUtil.getPartDefinition(coordinatorTask.getWorkDefinitionOrClone(),
                     coordinatorTask.getCurrentPartId());
             stateCheck(partDef != null, "No current part definition for coordinator %s (worker is %s)",
                     coordinatorTask, workerTask);

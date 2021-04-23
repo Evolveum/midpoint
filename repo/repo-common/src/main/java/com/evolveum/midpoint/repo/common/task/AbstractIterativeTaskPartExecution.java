@@ -483,7 +483,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
     public boolean isSimulate() {
         // TODO
-        return partDefinition != null && partDefinition.getStage() == ExecutionModeType.SIMULATE;
+        return partDefinition != null && partDefinition.getExecutionMode() == ExecutionModeType.SIMULATE;
     }
 
     public @NotNull String getRootTaskOid() {

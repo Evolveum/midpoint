@@ -7,51 +7,49 @@
   -->
 
 <task oid="a4de3ebf-c9bb-4d25-bbaf-e73d89eea873"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>task-110</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
-    <parts>
-        <part>
-            <workManagement>
-                <buckets>
-                    <explicitSegmentation>
-                        <content xsi:type="FilterWorkBucketContentType">
-                            <q:filter>
-                                <q:less>
-                                    <q:path>name</q:path>
-                                    <q:value>a</q:value>
-                                </q:less>
-                            </q:filter>
-                        </content>
-                        <content xsi:type="FilterWorkBucketContentType">
-                            <q:filter>
-                                <q:greaterOrEqual>
-                                    <q:path>name</q:path>
-                                    <q:value>a</q:value>
-                                </q:greaterOrEqual>
-                            </q:filter>
-                            <q:filter>
-                                <q:less>
-                                    <q:path>name</q:path>
-                                    <q:value>m</q:value>
-                                </q:less>
-                            </q:filter>
-                        </content>
-                        <content xsi:type="FilterWorkBucketContentType">
-                            <q:filter>
-                                <q:greaterOrEqual>
-                                    <q:path>name</q:path>
-                                    <q:value>m</q:value>
-                                </q:greaterOrEqual>
-                            </q:filter>
-                        </content>
-                    </explicitSegmentation>
-                </buckets>
-            </workManagement>
-        </part>
-    </parts>
+    <work>
+        <distribution>
+            <buckets>
+                <explicitSegmentation>
+                    <content xsi:type="FilterWorkBucketContentType">
+                        <q:filter>
+                            <q:less>
+                                <q:path>name</q:path>
+                                <q:value>a</q:value>
+                            </q:less>
+                        </q:filter>
+                    </content>
+                    <content xsi:type="FilterWorkBucketContentType">
+                        <q:filter>
+                            <q:greaterOrEqual>
+                                <q:path>name</q:path>
+                                <q:value>a</q:value>
+                            </q:greaterOrEqual>
+                        </q:filter>
+                        <q:filter>
+                            <q:less>
+                                <q:path>name</q:path>
+                                <q:value>m</q:value>
+                            </q:less>
+                        </q:filter>
+                    </content>
+                    <content xsi:type="FilterWorkBucketContentType">
+                        <q:filter>
+                            <q:greaterOrEqual>
+                                <q:path>name</q:path>
+                                <q:value>m</q:value>
+                            </q:greaterOrEqual>
+                        </q:filter>
+                    </content>
+                </explicitSegmentation>
+            </buckets>
+        </distribution>
+    </work>
     <recurrence>single</recurrence>
 </task>

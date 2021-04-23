@@ -11,6 +11,7 @@ import javax.annotation.PostConstruct;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +44,7 @@ public class MockTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task) {
+    public TaskRunResult run(@NotNull RunningTask task) {
         LOGGER.trace("MockTaskHandler.run starting");
 
         OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION);

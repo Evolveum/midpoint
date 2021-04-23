@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -63,8 +64,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
  * Both in coordinator-worker and standalone tasks.
  */
 
-@ContextConfiguration(locations = { "classpath:ctx-task-test.xml" })
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ContextConfiguration(locations = "classpath:ctx-repo-common-test-main.xml")
+@DirtiesContext
+@Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestWorkDistribution extends AbstractIntegrationTest {
 
     // TODO enable

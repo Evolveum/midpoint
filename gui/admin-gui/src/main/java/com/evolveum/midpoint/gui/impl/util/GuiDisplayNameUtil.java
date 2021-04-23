@@ -221,19 +221,20 @@ public class GuiDisplayNameUtil {
     //TODO improve
     public static String getDisplayName(TaskPartDefinitionType partitionDefinition) {
         Integer index = partitionDefinition.getIndex();
-        TaskWorkManagementType workManagementType = partitionDefinition.getWorkManagement();
+        TaskWorkDistributionType workManagementType = partitionDefinition.getWorkManagement();
 
         String string = "";
         if (index != null) {
             string += "Partition " + index;
         }
 
-        if (workManagementType != null) {
-            TaskKindType taskKindType = workManagementType.getTaskKind();
-            if (taskKindType != null) {
-                string = appendKind(string, taskKindType);
-            }
-        }
+        // FIXME
+//        if (workManagementType != null) {
+//            TaskKindType taskKindType = workManagementType.getTaskKind();
+//            if (taskKindType != null) {
+//                string = appendKind(string, taskKindType);
+//            }
+//        }
         return string;
     }
 

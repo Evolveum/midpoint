@@ -15,6 +15,7 @@ import javax.annotation.PostConstruct;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -54,7 +55,7 @@ public class AuditReindexTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask coordinatorTask) {
+    public TaskRunResult run(@NotNull RunningTask coordinatorTask) {
         OperationResult opResult = new OperationResult(OperationConstants.AUDIT_REINDEX + ".run");
         opResult.setStatus(OperationResultStatus.IN_PROGRESS);
         TaskRunResult runResult = new TaskRunResult();

@@ -64,7 +64,7 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
         taskManager.registerDeprecatedHandlerUri(TaskConstants.LIGHTWEIGHT_PARTITIONING_TASK_HANDLER_URI_DEPRECATED, this);
     }
 
-    public TaskRunResult run(RunningTask task) {
+    public TaskRunResult run(@NotNull RunningTask task) {
 //        OperationResult opResult = new OperationResult(LightweightPartitioningTaskHandler.class.getName()+".run");
 //        TaskRunResult runResult = new TaskRunResult();
 //

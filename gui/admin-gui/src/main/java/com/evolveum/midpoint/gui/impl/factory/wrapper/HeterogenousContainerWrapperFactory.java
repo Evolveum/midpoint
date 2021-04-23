@@ -13,7 +13,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartsDefinitionType;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
@@ -62,9 +61,10 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> extend
             return true;
         }
 
-        if (TaskPartsDefinitionType.COMPLEX_TYPE.equals(defName)) {
-            return true;
-        }
+        // TODO
+//        if (TaskPartsDefinitionType.COMPLEX_TYPE.equals(defName)) {
+//            return true;
+//        }
 
         if (!(def instanceof PrismContainerDefinition)) {
             return false;

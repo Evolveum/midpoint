@@ -463,6 +463,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return object;
     }
 
+    protected Task taskAdd(TestResource<TaskType> resource, OperationResult parentResult)
+            throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException, ObjectNotFoundException {
+        PrismObject<TaskType> task = prismContext.parseObject(resource.file);
+        String oid = taskManager.addTask(task, parentResult);
+        return taskManager.getTaskPlain(oid, parentResult);
+    }
+
     protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(
             File file, @SuppressWarnings("unused") Class<T> type, OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {

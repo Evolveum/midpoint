@@ -655,12 +655,12 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public TaskWorkManagementType getWorkManagement() {
+    public TaskWorkDistributionType getWorkManagement() {
         return null;
     }
 
     @Override
-    public TaskPartsDefinitionType getPartsDefinitionOrClone() {
+    public TaskPartDefinitionType getWorkDefinitionOrClone() {
         return null;
     }
 

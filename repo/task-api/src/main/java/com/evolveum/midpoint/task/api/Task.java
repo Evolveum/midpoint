@@ -782,12 +782,13 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     //region Work management
     /** Gets work management information. NOT THREAD SAFE! */
     @Deprecated
-    TaskWorkManagementType getWorkManagement();
+    TaskWorkDistributionType getWorkManagement();
 
     /**
      * Retrieves the definition of task parts.
+     * @return
      */
-    TaskPartsDefinitionType getPartsDefinitionOrClone();
+    TaskPartDefinitionType getWorkDefinitionOrClone();
 
     /**
      * Gets task work state. NOT THREAD SAFE!
@@ -802,6 +803,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     TaskWorkStateType getWorkStateOrClone();
 
     /** Gets task kind (related to work management) */
+    @Deprecated
     TaskKindType getKind();
     //endregion
 

@@ -78,7 +78,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task) {
+    public TaskRunResult run(@NotNull RunningTask task) {
         LOGGER.debug("Task run starting");
 
         OperationResult opResult = new OperationResult(CLASS_DOT+"run");
