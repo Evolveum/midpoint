@@ -86,7 +86,10 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
             @NotNull ItemName itemName,
             @NotNull QContainerMapping<C, TQ, TR, R> containerMapping,
             @NotNull BiFunction<Q, TQ, Predicate> joinPredicate) {
-        // TODO join predicate can be constructed by Q or the mapping
+        // TODO join predicate can be constructed by Q or the mapping,
+        //  perhaps with QOwnedBy<OQ, OR> instead of just <OR>, but that may mean QContainer<R, OQ, OR>...?
+        //  of course the join would be implemented in QOwnedBy
+        //  BTW: adding OQ on refs is messy, we already have AOR and we would need AOQ for QAssignmentReferenceMapping too.
         addRelationResolver(itemName,
                 new TableRelationResolver<>(containerMapping.queryType(), joinPredicate));
 

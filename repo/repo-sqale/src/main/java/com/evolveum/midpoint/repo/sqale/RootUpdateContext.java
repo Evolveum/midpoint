@@ -26,12 +26,11 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * TODO
+ * Adds execute that processes the modifications and finalizes the update of root entity.
  *
  * @param <S> schema type
  * @param <Q> type of entity path
@@ -39,8 +38,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R extends MObject>
         extends SqaleUpdateContext<S, Q, R> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(RootUpdateContext.class);
 
     private final SqaleTableMapping<S, Q, R> mapping;
     private final Q rootPath;
@@ -79,7 +76,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
         modifications = prismObject.narrowModifications(
                 modifications, EquivalenceStrategy.DATA,
                 EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS, true);
-        LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
+        logger.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
 
         if (modifications.isEmpty()) {
             return modifications; // no need to execute any update
@@ -92,7 +89,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
             try {
                 processModification(modification);
             } catch (IllegalArgumentException e) {
-                LOGGER.warn("Modification failed/not implemented yet: {}", e.toString());
+                logger.warn("Modification failed/not implemented yet: {}", e.toString());
             }
         }
 

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.MAssignment;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
@@ -1666,9 +1667,49 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
         MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRow.cid).isEqualTo(originalRow.containerIdSeq);
+        assertThat(aRow.containerType).isEqualTo(MContainerType.ASSIGNMENT);
         assertThat(aRow.targetRefTargetOid).isEqualTo(roleOid);
         assertThat(aRow.targetRefTargetType).isEqualTo(MObjectType.ROLE);
         assertCachedUri(aRow.targetRefRelationId, relationRegistry.getDefaultRelation());
+    }
+
+    @Test
+    public void test301ReplaceItemUnderMultiValueAssignment()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta replacing single-value item inside assignment for user 1");
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        MAssignment origAssignmentRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(origAssignmentRow.orderValue).isNull(); // wasn't previously set
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, origAssignmentRow.cid, AssignmentType.F_ORDER)
+                .replace(47)
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType UserObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(UserObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = UserObject.getAssignment();
+        assertThat(assignments).isNotNull();
+        assertThat(assignments.get(0).getOrder()).isEqualTo(47);
+
+        and("assignment row is created");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRow.cid).isEqualTo(origAssignmentRow.cid); // CID should not change
+        assertThat(aRow.orderValue).isEqualTo(47);
+        assertThat(aRow.targetRefTargetOid).isNotNull(); // target ref is still present
     }
 
     @Test

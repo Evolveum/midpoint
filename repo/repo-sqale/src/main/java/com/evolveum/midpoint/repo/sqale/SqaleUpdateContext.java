@@ -14,8 +14,12 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.QOwnedByMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.TransformerForOwnedBy;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase<R>, R> {
+
+    protected final Trace logger = TraceManager.getTrace(getClass());
 
     protected final SqaleTransformerSupport transformerSupport;
     protected final JdbcSession jdbcSession;

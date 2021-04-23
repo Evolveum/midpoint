@@ -22,6 +22,8 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * @param <TQ> type of target entity path
  * @param <TR> row type related to the target entity path {@link TQ}
  */
+// TODO: Can we have just this one time for both container and references?
+//  If not (probably because of modify), subclass it.
 public class TableRelationResolver<
         Q extends FlexibleRelationalPathBase<?>, TQ extends FlexibleRelationalPathBase<TR>, TR>
         implements SqaleItemRelationResolver {
