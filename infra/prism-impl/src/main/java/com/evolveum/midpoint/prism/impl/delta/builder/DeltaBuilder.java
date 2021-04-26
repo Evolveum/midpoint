@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
+import com.evolveum.midpoint.prism.delta.builder.S_MaybeAdd;
 import com.evolveum.midpoint.prism.delta.builder.S_MaybeDelete;
 import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
@@ -30,12 +31,15 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * <p>
  * ObjectDelta ::= (ItemDelta)* ( 'OBJECT-DELTA(oid)' | 'ITEM-DELTA' | 'ITEM-DELTAS' )
  * <p>
- * ItemDelta ::= 'ITEM(...)' ( ( 'ADD-VALUES(...)' 'DELETE-VALUES(...)'? ) | 'DELETE-VALUES(...)' | 'REPLACE-VALUES(...)' )
+ * ItemDelta ::= 'ITEM(...)' ( ( 'ADD-VALUES(...)' 'DELETE-VALUES(...)'? ) |
+ * ( 'DELETE-VALUES(...)' 'ADD-VALUES(...)'? ) | 'REPLACE-VALUES(...)' )
  * <p>
- * EXPERIMENTAL IMPLEMENTATION.
+ * When combining DELETE and ADD prefer using DELETE first to match the actual behavior.
+ * It is not possible to
  */
 @Experimental
-public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
+public class DeltaBuilder<T extends Containerable>
+        implements S_ItemEntry, S_MaybeDelete, S_MaybeAdd, S_ValuesEntry {
 
     private final Class<T> objectClass;
     private final ComplexTypeDefinition containerCTD;
@@ -257,12 +261,12 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
     }
 
     @Override
-    public S_ItemEntry delete(Object... realValues) {
+    public S_MaybeAdd delete(Object... realValues) {
         return deleteRealValues(Arrays.asList(realValues));
     }
 
     @Override
-    public S_ItemEntry deleteRealValues(Collection<?> realValues) {
+    public S_MaybeAdd deleteRealValues(Collection<?> realValues) {
         for (Object v : realValues) {
             if (v != null) {
                 currentDelta.addValueToDelete(toPrismValue(currentDelta, v));
@@ -278,7 +282,7 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
 //    }
 
     @Override
-    public S_ItemEntry delete(PrismValue... values) {
+    public S_MaybeAdd delete(PrismValue... values) {
         for (PrismValue v : values) {
             if (v != null) {
                 currentDelta.addValueToDelete(v);
@@ -288,7 +292,7 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
     }
 
     @Override
-    public S_ItemEntry delete(Collection<? extends PrismValue> values) {
+    public S_MaybeAdd delete(Collection<? extends PrismValue> values) {
         for (PrismValue v : values) {
             if (v != null) {
                 currentDelta.addValueToDelete(v);

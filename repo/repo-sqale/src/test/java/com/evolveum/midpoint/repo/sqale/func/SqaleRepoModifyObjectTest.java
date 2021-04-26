@@ -983,24 +983,23 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UUID refTargetOid4 = UUID.randomUUID();
         delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_LINK_REF)
-                // add must go first here, even though it overrules conflicting delete later
-                .add(new ObjectReferenceType().oid(refTargetOid3.toString())
-                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation1),
-                        // delete of this lower will be "narrowed" out, this WILL be added
-                        new ObjectReferenceType().oid(refTargetOid3.toString())
-                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation2),
-                        new ObjectReferenceType().oid(refTargetOid4.toString())
-                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation1),
-                        new ObjectReferenceType().oid(refTargetOid4.toString())
-                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation2))
                 .delete(new ObjectReferenceType() // type is ignored/ignorable
                                 .oid(refTargetOid1.toString()).relation(refRelation1),
                         new ObjectReferenceType()
                                 .oid(refTargetOid2.toString()).relation(refRelation2),
                         new ObjectReferenceType() // nonexistent anyway
                                 .oid(refTargetOid3.toString()).relation(refRelation2),
-                        new ObjectReferenceType() // from add above, will be "narrowed" out
+                        new ObjectReferenceType() // like add bellow, will be "narrowed" out
                                 .oid(refTargetOid3.toString()).relation(refRelation1))
+                .add(new ObjectReferenceType().oid(refTargetOid3.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation1),
+                        // delete above will be "narrowed" out, this WILL be added
+                        new ObjectReferenceType().oid(refTargetOid3.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation2),
+                        new ObjectReferenceType().oid(refTargetOid4.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation1),
+                        new ObjectReferenceType().oid(refTargetOid4.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation2))
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
