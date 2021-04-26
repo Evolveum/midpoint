@@ -10,10 +10,8 @@ import java.util.function.Function;
 
 import com.querydsl.core.types.dsl.StringPath;
 
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
-import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 public class PolyStringItemDeltaProcessor extends ItemDeltaSingleValueProcessor<PolyString> {
@@ -32,17 +30,6 @@ public class PolyStringItemDeltaProcessor extends ItemDeltaSingleValueProcessor<
         super(context);
         this.origPath = origMapping.apply(context.path());
         this.normPath = normMapping.apply(context.path());
-    }
-
-    @Override
-    public void process(ItemDelta<?, ?> modification) throws RepositoryException {
-        // See implementation comments in SinglePathItemDeltaProcessor#process for logic details.
-        PolyString polyString = getAnyValue(modification);
-        if (modification.isDelete() || polyString == null) {
-            delete();
-        } else {
-            setValue(polyString);
-        }
     }
 
     @Override

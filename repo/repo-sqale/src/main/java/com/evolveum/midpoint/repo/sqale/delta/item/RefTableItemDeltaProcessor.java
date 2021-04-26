@@ -17,6 +17,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
+ * Delta value processor for multi-value references stored in separate tables.
+ *
  * @param <Q> type of entity path for the reference table
  * @param <OQ> query type of the reference owner
  * @param <OR> row type of the reference owner (related to {@link OQ})

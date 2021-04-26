@@ -13,10 +13,8 @@ import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 
 import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
-import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
@@ -53,18 +51,6 @@ public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<Referen
         this.oidPath = oidPath;
         this.typePath = typePath;
         this.relationIdPath = relationIdPath;
-    }
-
-    @Override
-    public void process(ItemDelta<?, ?> modification) throws RepositoryException {
-        Referencable ref = getAnyValue(modification);
-
-        // See implementation comments in SinglePathItemDeltaProcessor#process for logic details.
-        if (modification.isDelete() || ref == null) {
-            delete();
-        } else {
-            setValue(ref);
-        }
     }
 
     @Override

@@ -10,7 +10,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqale.delta.item.EmbeddedContainerDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.RefTableItemDeltaProcessor;
-import com.evolveum.midpoint.repo.sqale.delta.item.TableContainerDeltaProcessor;
+import com.evolveum.midpoint.repo.sqale.delta.item.ContainerTableDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.RefTableItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.NestedMappingResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
@@ -94,7 +94,7 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
                 new TableRelationResolver<>(containerMapping.queryType(), joinPredicate));
 
         addItemMapping(itemName, new SqaleItemSqlMapper<>(
-                ctx -> new TableContainerDeltaProcessor<>(ctx, containerMapping)));
+                ctx -> new ContainerTableDeltaProcessor<>(ctx, containerMapping)));
         return this;
     }
 }

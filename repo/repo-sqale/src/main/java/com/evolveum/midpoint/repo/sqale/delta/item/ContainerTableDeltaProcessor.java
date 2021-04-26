@@ -19,7 +19,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
- * Delta processor for multi-value containers stored in separate tables.
+ * Delta value processor for multi-value containers stored in separate tables.
  *
  * @param <T> schema type for container
  * @param <Q> query type for container table
@@ -27,7 +27,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * @param <OQ> query type of the table owning this container
  * @param <OR> row type of the table owning this container, related to {@link OQ}
  */
-public class TableContainerDeltaProcessor<
+public class ContainerTableDeltaProcessor<
         T extends Containerable, Q extends QContainer<R, OR>, R extends MContainer,
         OQ extends FlexibleRelationalPathBase<OR>, OR>
         extends ItemDeltaValueProcessor<T> {
@@ -35,7 +35,7 @@ public class TableContainerDeltaProcessor<
     private final SqaleUpdateContext<?, OQ, OR> context;
     private final QContainerMapping<T, Q, R, OR> containerTableMapping;
 
-    public TableContainerDeltaProcessor(
+    public ContainerTableDeltaProcessor(
             @NotNull SqaleUpdateContext<?, OQ, OR> context,
             @NotNull QContainerMapping<T, Q, R, OR> containerTableMapping) {
         super(context);
