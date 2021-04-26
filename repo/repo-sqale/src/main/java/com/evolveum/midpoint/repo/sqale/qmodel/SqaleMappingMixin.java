@@ -8,9 +8,9 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.repo.sqale.delta.item.ContainerTableDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.EmbeddedContainerDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.RefTableItemDeltaProcessor;
-import com.evolveum.midpoint.repo.sqale.delta.item.ContainerTableDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.RefTableItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.NestedMappingResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
@@ -41,7 +41,7 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
     @SuppressWarnings("UnusedReturnValue")
     QueryModelMapping<S, Q, R> addRelationResolver(
             @NotNull ItemName itemName,
-            @NotNull ItemRelationResolver itemRelationResolver);
+            @NotNull ItemRelationResolver<Q, R> itemRelationResolver);
 
     QueryModelMapping<S, Q, R> addItemMapping(
             @NotNull QName itemName, @NotNull ItemSqlMapper<S, Q, R> itemMapper);
@@ -91,7 +91,7 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
         //  of course the join would be implemented in QOwnedBy
         //  BTW: adding OQ on refs is messy, we already have AOR and we would need AOQ for QAssignmentReferenceMapping too.
         addRelationResolver(itemName,
-                new TableRelationResolver<>(containerMapping.queryType(), joinPredicate));
+                new TableRelationResolver<>(containerMapping, joinPredicate));
 
         addItemMapping(itemName, new SqaleItemSqlMapper<>(
                 ctx -> new ContainerTableDeltaProcessor<>(ctx, containerMapping)));

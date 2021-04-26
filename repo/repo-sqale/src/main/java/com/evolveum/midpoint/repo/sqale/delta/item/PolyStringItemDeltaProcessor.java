@@ -11,7 +11,7 @@ import java.util.function.Function;
 import com.querydsl.core.types.dsl.StringPath;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 public class PolyStringItemDeltaProcessor extends ItemDeltaSingleValueProcessor<PolyString> {

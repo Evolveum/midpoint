@@ -10,7 +10,7 @@ import java.util.function.Function;
 
 import com.querydsl.core.types.dsl.EnumPath;
 
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**

@@ -38,4 +38,10 @@ public class SqaleUtils {
             throw new IllegalArgumentException("Version must be a number: " + version);
         }
     }
+
+    /** Parametrized type friendly version of {@link Object#getClass()}. */
+    public static <S> Class<S> getClass(S object) {
+        //noinspection unchecked
+        return (Class<S>) object.getClass();
+    }
 }

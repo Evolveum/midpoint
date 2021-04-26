@@ -13,7 +13,7 @@ import java.util.Collection;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 
 /**

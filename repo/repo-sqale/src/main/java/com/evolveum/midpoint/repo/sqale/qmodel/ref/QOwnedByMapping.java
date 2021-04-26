@@ -11,6 +11,11 @@ import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 
 /**
  * Marks mappings for {@link QOwnedBy} entities.
+ *
+ * @param <S> schema type or the mapped object, typically a container owned by
+ * either an object or another container
+ * @param <R> row type of the mapped object
+ * @param <OR> row type of the owner object
  */
 public interface QOwnedByMapping<S, R, OR> {
 

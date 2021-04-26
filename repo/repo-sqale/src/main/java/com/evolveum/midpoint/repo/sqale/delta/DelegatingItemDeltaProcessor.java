@@ -11,10 +11,9 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemRelationResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
@@ -68,12 +67,12 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
         // It's a similar case like the fast return after resolving the path.
     }
 
-    private QName resolvePath(ItemPath path) throws QueryException {
+    private QName resolvePath(ItemPath path) {
         while (!path.isSingleName()) {
             ItemName firstName = path.firstName();
             path = path.rest();
 
-            ItemRelationResolver relationResolver = mapping.getRelationResolver(firstName);
+            ItemRelationResolver<?, ?> relationResolver = mapping.getRelationResolver(firstName);
             if (relationResolver == null) {
                 return null; // unmapped, not persisted, nothing to do
             }
@@ -83,8 +82,11 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
                 throw new IllegalArgumentException("Relation resolver for " + firstName
                         + " in mapping " + mapping + " does not support delta modifications!");
             }
-            SqaleItemRelationResolver resolver = (SqaleItemRelationResolver) relationResolver;
-            SqaleItemRelationResolver.UpdateResolutionResult resolution = resolver.resolve(context);
+
+            // we know nothing about context and resolver types, so we have to ignore it
+            @SuppressWarnings({ "rawtypes", "unchecked" })
+            SqaleItemRelationResolver.UpdateResolutionResult resolution =
+                    ((SqaleItemRelationResolver) relationResolver).resolve(context);
             context = resolution.context;
             mapping = resolution.mapping;
         }

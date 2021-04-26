@@ -24,7 +24,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QContainer<T extends MContainer, OR> extends FlexibleRelationalPathBase<T>
+public class QContainer<R extends MContainer, OR> extends FlexibleRelationalPathBase<R>
         implements QOwnedBy<OR> {
 
     private static final long serialVersionUID = 1033484385814003347L;
@@ -48,16 +48,16 @@ public class QContainer<T extends MContainer, OR> extends FlexibleRelationalPath
     public final EnumPath<MContainerType> containerType =
             createEnum("containerType", MContainerType.class, CONTAINER_TYPE);
 
-    public final PrimaryKey<T> pk = createPrimaryKey(ownerOid, cid);
+    public final PrimaryKey<R> pk = createPrimaryKey(ownerOid, cid);
 
     public final ForeignKey<QObject<?>> objectOidIdFk =
             createForeignKey(ownerOid, QObject.OID.getName());
 
-    public QContainer(Class<T> type, String variable) {
+    public QContainer(Class<R> type, String variable) {
         this(type, variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
-    public QContainer(Class<? extends T> type, String variable, String schema, String table) {
+    public QContainer(Class<? extends R> type, String variable, String schema, String table) {
         super(type, variable, schema, table);
     }
 

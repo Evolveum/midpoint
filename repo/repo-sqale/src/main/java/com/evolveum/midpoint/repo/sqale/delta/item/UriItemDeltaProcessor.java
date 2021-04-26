@@ -11,7 +11,7 @@ import java.util.function.Function;
 import com.querydsl.core.types.dsl.NumberPath;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 public class UriItemDeltaProcessor

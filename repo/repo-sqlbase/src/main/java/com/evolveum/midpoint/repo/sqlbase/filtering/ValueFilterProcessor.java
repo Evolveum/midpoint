@@ -80,7 +80,10 @@ public class ValueFilterProcessor implements FilterProcessor<ValueFilter<?, ?>> 
             ItemName firstName = path.firstName();
             path = path.rest();
 
+            // we know nothing about context and resolver types, so we have to ignore it
+            //noinspection rawtypes
             ItemRelationResolver resolver = mapping.relationResolver(firstName);
+            //noinspection unchecked
             ItemRelationResolver.ResolutionResult resolution = resolver.resolve(context);
             context = resolution.context;
             mapping = resolution.mapping;

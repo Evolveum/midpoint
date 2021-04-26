@@ -27,7 +27,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
  * @param <OR> type of the owner row
  */
 public class QReference<R extends MReference, OR> extends FlexibleRelationalPathBase<R>
-    implements QOwnedBy<OR> {
+        implements QOwnedBy<OR> {
 
     private static final long serialVersionUID = -466419569179455042L;
 

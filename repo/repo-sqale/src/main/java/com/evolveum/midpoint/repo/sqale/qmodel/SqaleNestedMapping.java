@@ -38,7 +38,7 @@ public class SqaleNestedMapping<S extends Containerable, Q extends FlexibleRelat
 
     @Override
     public SqaleNestedMapping<S, Q, R> addItemMapping(
-            @NotNull QName itemName, @NotNull ItemSqlMapper itemMapper) {
+            @NotNull QName itemName, @NotNull ItemSqlMapper<S, Q, R> itemMapper) {
         super.addItemMapping(itemName, itemMapper);
         return this;
     }

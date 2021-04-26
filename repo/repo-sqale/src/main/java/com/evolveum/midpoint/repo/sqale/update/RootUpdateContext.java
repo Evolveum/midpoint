@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale;
+package com.evolveum.midpoint.repo.sqale.update;
 
 import static com.evolveum.midpoint.repo.sqale.SqaleUtils.objectVersionAsInt;
 
@@ -17,8 +17,10 @@ import com.querydsl.sql.dml.SQLUpdateClause;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.repo.sqale.ContainerValueIdGenerator;
+import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.delta.DelegatingItemDeltaProcessor;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
@@ -39,7 +41,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R extends MObject>
         extends SqaleUpdateContext<S, Q, R> {
 
-    private final SqaleTableMapping<S, Q, R> mapping;
     private final Q rootPath;
     private final SQLUpdateClause update;
     private final int objectVersion;
@@ -48,11 +49,11 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
 
     public RootUpdateContext(SqaleTransformerSupport transformerSupport,
             JdbcSession jdbcSession, S object, R rootRow) {
-        super(transformerSupport, jdbcSession, object, rootRow);
+        super(transformerSupport,
+                transformerSupport.sqlRepoContext()
+                        .getMappingBySchemaType(SqaleUtils.getClass(object)),
+                jdbcSession, object, rootRow);
 
-        //noinspection unchecked
-        mapping = this.transformerSupport.sqlRepoContext()
-                .getMappingBySchemaType((Class<S>) object.getClass());
         rootPath = mapping.defaultAlias();
         objectVersion = objectVersionAsInt(object);
         // root context always updates, at least version and full object, so we can create it early

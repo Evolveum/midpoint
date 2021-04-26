@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.mapping;
 
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -14,25 +14,29 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 /**
  * Resolver that maps the nested items (next component of the path) to the same query type columns.
  *
- * @param <Q> type of source entity path
+ * @param <Q> query type of source entity (where the mapping is declared)
+ * @param <R> row type of {@link Q}
  */
-public class NestedMappingResolver<Q extends FlexibleRelationalPathBase<?>>
-        implements SqaleItemRelationResolver {
+public class NestedMappingResolver<Q extends FlexibleRelationalPathBase<R>, R>
+        implements SqaleItemRelationResolver<Q, R> {
 
-    private final QueryModelMapping<?, Q, ?> mapping;
+    private final QueryModelMapping<?, Q, R> mapping;
 
-    public NestedMappingResolver(QueryModelMapping<?, Q, ?> mapping) {
+    public NestedMappingResolver(QueryModelMapping<?, Q, R> mapping) {
         this.mapping = mapping;
     }
 
     /** Returns the same context and nested mapping. */
     @Override
-    public ResolutionResult resolve(SqlQueryContext<?, ?, ?> context) {
+    public ResolutionResult resolve(SqlQueryContext<?, Q, R> context) {
         return new ResolutionResult(context, mapping);
     }
 
     @Override
-    public UpdateResolutionResult resolve(SqaleUpdateContext<?, ?, ?> context) {
+    public UpdateResolutionResult resolve(SqaleUpdateContext<?, Q, R> context) {
+        // TODO this is OK unless we need to capture new schema object, e.g. nested metadata,
+        //  in the context (SqaleUpdateContext#object). Row stays still the same, update clause
+        //  doesn't change either, that's OK. Currently we're just losing type information.
         return new UpdateResolutionResult(context, mapping);
     }
 }

@@ -52,6 +52,13 @@ import com.evolveum.midpoint.util.QNameUtil;
  * * It allows creating "aliases" (entity path instances) {@link #newAlias(String)}.
  * * It knows how to traverse to other related entities, defined by {@link #addRelationResolver}
  *
+ * Mapper factory methods like {@link #stringMapper} return mappers that may or may not be bound
+ * to the same schema type because of the nested mappings.
+ * E.g. attribute `name` is part of the `S` object, but `metadata/createChannel` is based on nested
+ * mapping for `metadata` for which `S` is `MetadataType`.
+ * That's why these methods have flexible schema type parameter.
+ * Because such nested mapping still uses the same table, types `Q` and `R` remain the same.
+ *
  * @param <S> schema type
  * @param <Q> type of entity path
  * @param <R> row type related to the {@link Q}
@@ -91,44 +98,69 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
         this.defaultAliasName = defaultAliasName;
     }
 
-    /** Returns the mapper creating the string filter processor from context. */
-    protected ItemSqlMapper<S, Q, R> stringMapper(
+    /**
+     * Returns the mapper creating the string filter processor from context.
+     *
+     * @param <MS> mapped schema type, see javadoc for the class
+     */
+    protected <MS> ItemSqlMapper<MS, Q, R> stringMapper(
             Function<Q, StringPath> rootToQueryItem) {
         return new ItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
     }
 
-    /** Returns the mapper creating the integer filter processor from context. */
-    public ItemSqlMapper<S, Q, R> integerMapper(
+    /**
+     * Returns the mapper creating the integer filter processor from context.
+     *
+     * @param <MS> mapped schema type, see javadoc for the class
+     */
+    public <MS> ItemSqlMapper<MS, Q, R> integerMapper(
             Function<Q, NumberPath<Integer>> rootToQueryItem) {
         return new ItemSqlMapper<>(ctx ->
                 new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
     }
 
-    /** Returns the mapper creating the boolean filter processor from context. */
-    protected ItemSqlMapper<S, Q, R> booleanMapper(
+    /**
+     * Returns the mapper creating the boolean filter processor from context.
+     *
+     * @param <MS> mapped schema type, see javadoc for the class
+     */
+    protected <MS> ItemSqlMapper<MS, Q, R> booleanMapper(
             Function<Q, BooleanPath> rootToQueryItem) {
         return new ItemSqlMapper<>(ctx ->
                 new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
     }
 
-    /** Returns the mapper creating the OID (UUID) filter processor from context. */
-    protected ItemSqlMapper<S, Q, R> uuidMapper(
+    /**
+     * Returns the mapper creating the OID (UUID) filter processor from context.
+     *
+     * @param <MS> mapped schema type, see javadoc for the class
+     */
+    protected <MS> ItemSqlMapper<MS, Q, R> uuidMapper(
             Function<Q, UuidPath> rootToQueryItem) {
         return new ItemSqlMapper<>(ctx ->
                 new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
     }
 
-    /** Returns the mapper function creating the timestamp filter processor from context. */
-    protected <T extends Comparable<T>> ItemSqlMapper<S, Q, R> timestampMapper(
+    /**
+     * Returns the mapper function creating the timestamp filter processor from context.
+     *
+     * @param <MS> mapped schema type, see javadoc for the class
+     * @param <T> actual data type of the query path storing the timestamp
+     */
+    protected <MS, T extends Comparable<T>> ItemSqlMapper<MS, Q, R> timestampMapper(
             Function<Q, DateTimePath<T>> rootToQueryItem) {
         return new ItemSqlMapper<>(context ->
                 new TimestampItemFilterProcessor<>(context, rootToQueryItem), rootToQueryItem);
     }
 
-    /** Returns the mapper creating the string filter processor from context. */
-    protected ItemSqlMapper<S, Q, R> polyStringMapper(
+    /**
+     * Returns the mapper creating the string filter processor from context.
+     *
+     * @param <MS> mapped schema type, see javadoc for the class
+     */
+    protected <MS> ItemSqlMapper<MS, Q, R> polyStringMapper(
             Function<Q, StringPath> origMapping,
             Function<Q, StringPath> normMapping) {
         return new ItemSqlMapper<>(ctx ->

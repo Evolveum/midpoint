@@ -43,7 +43,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
     private final Class<Q> queryType;
 
     private final Map<QName, ItemSqlMapper<S, Q, R>> itemMappings = new LinkedHashMap<>();
-    private final Map<QName, ItemRelationResolver> itemRelationResolvers = new HashMap<>();
+    private final Map<QName, ItemRelationResolver<Q, R>> itemRelationResolvers = new HashMap<>();
 
     public QueryModelMapping(
             @NotNull Class<S> schemaType,
@@ -102,7 +102,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
     // TODO add "to-many" option so the interpreter can use WHERE EXISTS instead of JOIN
     public QueryModelMapping<S, Q, R> addRelationResolver(
             @NotNull ItemName itemName,
-            @NotNull ItemRelationResolver itemRelationResolver) {
+            @NotNull ItemRelationResolver<Q, R> itemRelationResolver) {
         itemRelationResolvers.put(itemName, itemRelationResolver);
         return this;
     }
@@ -135,9 +135,9 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
      *
      * @throws QueryException if the resolver for the item is not found
      */
-    public final @NotNull ItemRelationResolver relationResolver(ItemName itemName)
+    public final @NotNull ItemRelationResolver<Q, R> relationResolver(ItemName itemName)
             throws QueryException {
-        ItemRelationResolver resolver = getRelationResolver(itemName);
+        ItemRelationResolver<Q, R> resolver = getRelationResolver(itemName);
         if (resolver == null) {
             throw new QueryException("Missing relation resolver for " + itemName
                     + " in mapping " + getClass().getSimpleName());
@@ -148,7 +148,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
     /**
      * Returns {@link ItemRelationResolver} for provided {@link ItemName} or `null`.
      */
-    public final @Nullable ItemRelationResolver getRelationResolver(ItemName itemName) {
+    public final @Nullable ItemRelationResolver<Q, R> getRelationResolver(ItemName itemName) {
         return QNameUtil.getByQName(itemRelationResolvers, itemName);
     }
 
