@@ -61,13 +61,12 @@ public class TableRelationResolver<
     }
 
     @Override
-    public UpdateResolutionResult resolve(SqaleUpdateContext<?, Q, R> context) {
+    public SqaleUpdateContext<TS, TQ, TR> resolve(SqaleUpdateContext<?, Q, R> context) {
         // TODO for query above we can hop to another table with join, still using SqlQueryContext
         //  (just a new instance), but right now SqaleUpdateContext is not built for that.
         //  Options - superclass? Common interface? Parametrized to Flexible... instead of QObject?
 
-//        return null; // TODO: now fails outside with NPE
+        return null; // TODO: now fails outside with NPE
 //        new ContainerTableDeltaProcessor<>
-        return new UpdateResolutionResult(context, targetMapping);
     }
 }

@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqale.mapping;
 
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
@@ -20,20 +19,9 @@ public interface SqaleItemRelationResolver<Q extends FlexibleRelationalPathBase<
         extends ItemRelationResolver<Q, R> {
 
     /**
-     * Resolves current query context to {@link ResolutionResult} with new context and mapping.
+     * Resolves current query context to a new context (mapping is always part of context).
      * The information about the resolved item is captured in the instance resolver already
      * in a manner that is specific for various types of resolution (JOIN or nested mapping).
      */
-    UpdateResolutionResult resolve(SqaleUpdateContext<?, Q, R> context);
-
-    class UpdateResolutionResult {
-        public final SqaleUpdateContext<?, ?, ?> context;
-        public final QueryModelMapping<?, ?, ?> mapping;
-
-        public UpdateResolutionResult(
-                SqaleUpdateContext<?, ?, ?> context, QueryModelMapping<?, ?, ?> mapping) {
-            this.context = context;
-            this.mapping = mapping;
-        }
-    }
+    SqaleUpdateContext<?, ?, ?> resolve(SqaleUpdateContext<?, Q, R> context);
 }

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -41,6 +42,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R extends MObject>
         extends SqaleUpdateContext<S, Q, R> {
 
+    private final S object;
+    protected final QueryTableMapping<S, Q, R> mapping;
     private final Q rootPath;
     private final SQLUpdateClause update;
     private final int objectVersion;
@@ -49,11 +52,11 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
 
     public RootUpdateContext(SqaleTransformerSupport transformerSupport,
             JdbcSession jdbcSession, S object, R rootRow) {
-        super(transformerSupport,
-                transformerSupport.sqlRepoContext()
-                        .getMappingBySchemaType(SqaleUtils.getClass(object)),
-                jdbcSession, object, rootRow);
+        super(transformerSupport, jdbcSession, rootRow);
 
+        this.object = object;
+        mapping = transformerSupport.sqlRepoContext()
+                .getMappingBySchemaType(SqaleUtils.getClass(object));
         rootPath = mapping.defaultAlias();
         objectVersion = objectVersionAsInt(object);
         // root context always updates, at least version and full object, so we can create it early
@@ -64,6 +67,11 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
 
     public Q path() {
         return rootPath;
+    }
+
+    @Override
+    public QueryTableMapping<S, Q, R> mapping() {
+        return mapping;
     }
 
     /** Applies modifications, executes necessary updates and returns narrowed modifications. */
@@ -105,8 +113,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
         cidGenerator.processModification(modification);
         modification.applyTo(getPrismObject());
 
-        new DelegatingItemDeltaProcessor(this, mapping)
-                .process(modification);
+        new DelegatingItemDeltaProcessor(this).process(modification);
     }
 
     /**
@@ -114,7 +121,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
      * for the enclosed {@link #object}.
      * This also increments the version information and serializes `fullObject`.
      */
-    public void finishExecution() throws SchemaException, RepositoryException {
+    protected void finishExecutionOwn() throws SchemaException, RepositoryException {
         int newVersion = objectVersionAsInt(object) + 1;
         object.setVersion(String.valueOf(newVersion));
         update.set(rootPath.version, newVersion);
