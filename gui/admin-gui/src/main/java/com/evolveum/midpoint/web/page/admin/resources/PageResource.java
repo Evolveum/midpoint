@@ -398,6 +398,15 @@ public class PageResource extends PageAdmin {
             }
         });
 
+        tabs.add(new PanelTab(createStringResource("PageResource.tab.schemaHandling")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return new ResourceConnectorPanel(panelId, null, resourceModel, PageResource.this);
+            }
+        });
+
         AjaxTabbedPanel<ITab> resourceTabs = new AjaxTabbedPanel<ITab>(ID_TAB_PANEL, tabs) {
             private static final long serialVersionUID = 1L;
 

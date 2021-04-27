@@ -70,8 +70,8 @@ public class ResourceAttributePanel extends BasePanel<PrismContainerWrapper<Reso
             protected List<IColumn<PrismContainerValueWrapper<ResourceAttributeDefinitionType>, String>> createDefaultColumns() {
                 List<IColumn<PrismContainerValueWrapper<ResourceAttributeDefinitionType>, String>> columns = new ArrayList<>();
 
-                columns.add(new PrismPropertyWrapperColumn<>(getModel(), ResourceAttributeDefinitionType.F_REF, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
-                columns.add(new PrismPropertyWrapperColumn<>(getModel(), ResourceAttributeDefinitionType.F_DISPLAY_NAME, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
+                columns.add(new PrismPropertyWrapperColumn<>(ResourceAttributePanel.this.getModel(), ResourceAttributeDefinitionType.F_REF, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
+                columns.add(new PrismPropertyWrapperColumn<>(ResourceAttributePanel.this.getModel(), ResourceAttributeDefinitionType.F_DISPLAY_NAME, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
                 return columns;
             }
         };

@@ -133,14 +133,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return null;
     }
 
-//    protected boolean isNewObjectButtonEnabled(){
-//        return true;
-//    }
-//
-//    protected boolean getNewObjectGenericButtonVisibility(){
-//        return true;
-//    }
-
     protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
 
     }
