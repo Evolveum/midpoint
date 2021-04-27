@@ -106,6 +106,13 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
                 new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
     }
 
+    /** Returns the mapper creating the integer filter processor from context. */
+    public ItemSqlMapper longMapper(
+            Function<EntityPath<?>, NumberPath<Long>> rootToQueryItem) {
+        return new ItemSqlMapper(ctx ->
+                new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
+    }
+
     /** Returns the mapper function creating the timestamp filter processor from context. */
     protected <T extends Comparable<T>> ItemSqlMapper timestampMapper(
             Function<EntityPath<?>, DateTimePath<T>> rootToQueryItem) {

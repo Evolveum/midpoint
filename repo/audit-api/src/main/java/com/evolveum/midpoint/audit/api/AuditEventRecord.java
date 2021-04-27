@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.audit.api;
 
-import java.beans.Transient;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -451,7 +450,6 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         this.parameter = parameter;
     }
 
-    @Transient
     public Long getRepoId() {
         return repoId;
     }
@@ -542,6 +540,7 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
 
     public AuditEventRecordType createAuditEventRecordType(boolean tolerateInconsistencies) {
         AuditEventRecordType auditRecordType = new AuditEventRecordType();
+        auditRecordType.setRepoId(repoId);
         auditRecordType.setChannel(channel);
         auditRecordType.setEventIdentifier(eventIdentifier);
         auditRecordType.setEventStage(AuditEventStage.toSchemaValue(eventStage));
@@ -615,6 +614,7 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
     @SuppressWarnings("MethodDoesntCallSuperMethod") // it's wrong, but intended
     public AuditEventRecord clone() {
         AuditEventRecord clone = new AuditEventRecord();
+        clone.repoId = this.repoId;
         clone.channel = this.channel;
         clone.deltas.addAll(MiscSchemaUtil.cloneObjectDeltaOperationCollection(this.deltas));
         clone.eventIdentifier = this.eventIdentifier;

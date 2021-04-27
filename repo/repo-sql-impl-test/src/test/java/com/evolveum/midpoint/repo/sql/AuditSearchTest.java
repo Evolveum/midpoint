@@ -59,6 +59,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     private String targetOid;
     private String targetOwnerOid;
     private String record1EventIdentifier;
+    private Long record1RepoId;
 
     @Override
     public void initSystem() throws Exception {
@@ -204,7 +205,9 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
         then("all audit events are returned");
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getEventIdentifier()).isEqualTo(record1EventIdentifier);
+        AuditEventRecordType auditEventRecord1 = result.get(0);
+        assertThat(auditEventRecord1.getEventIdentifier()).isEqualTo(record1EventIdentifier);
+        record1RepoId = auditEventRecord1.getRepoId();
     }
 
     @Test
@@ -1231,6 +1234,18 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         assertThat(result.get(0).getCustomColumnProperty())
                 .filteredOn(p -> p.getName().equals("foo") && p.getValue() != null)
                 .isEmpty();
+    }
+
+    @Test
+    public void test600SearchById() throws SchemaException {
+        when("searching audit using ALL filter");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_REPO_ID).eq(record1RepoId)
+                .build());
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getEventIdentifier()).isEqualTo(record1EventIdentifier);
     }
 
     @Test
