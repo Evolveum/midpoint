@@ -8,8 +8,6 @@ package com.evolveum.midpoint.report;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -37,7 +35,7 @@ import static org.testng.AssertJUnit.*;
  * @author skublik
  */
 
-public class TestCsvReport extends BasicNewReportTest {
+public class TestCsvReport extends AbstractReportIntegrationTest {
 
     public static final File REPORT_IMPORT_OBJECT_COLLECTION_WITH_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-import-object-collection-with-view.xml");
 
@@ -184,8 +182,25 @@ public class TestCsvReport extends BasicNewReportTest {
         expectedColumns = 2;
         expectedRow = 2;
         lastLine = "\"will\";\"TestRole1230,TestRole123010\"";
-        super.test119CreateObjectCollectionWithSubreportParamReport();
-        lastLine = null;
+        try {
+            super.test119CreateObjectCollectionWithSubreportParamReport();
+        } finally {
+            lastLine = null;
+        }
+    }
+
+    @Test
+    public void test120RunMidpointUsers() throws Exception {
+        expectedColumns = 6;
+        expectedRow = 4;
+        super.test120RunMidpointUsers();
+    }
+
+    @Test
+    public void test121RunMidpointUsersScript() throws Exception {
+        expectedColumns = 6;
+        expectedRow = 4;
+        super.test121RunMidpointUsersScript();
     }
 
     @Test
@@ -220,7 +235,7 @@ public class TestCsvReport extends BasicNewReportTest {
     }
 
     @Test(dependsOnMethods = {"test115CreateObjectCollectionReportWithCondition"})
-    public void test201ImportReportfromExportedReport() throws Exception {
+    public void test201ImportReportFromExportedReport() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_WITH_CONDITION_OID);
         runReport(report, false);
         File outputFile = findOutputFile(report);
