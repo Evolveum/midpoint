@@ -3521,7 +3521,7 @@ public final class WebComponentUtil {
         }
 
         if (suppressTrailingZeroElements) {
-            tmp = StringUtils.replaceOnce(duration, " 0 miliseconds", "");
+            tmp = StringUtils.replaceOnce(duration, " 000 miliseconds", "");
             if (tmp.length() != duration.length()) {
                 duration = tmp;
                 tmp = StringUtils.replaceOnce(duration, " 0 seconds", "");
