@@ -122,6 +122,17 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
+     * Returns the mapper creating the long filter processor from context.
+     *
+     * @param <MS> mapped schema type, see javadoc for the class
+     */
+    public <MS> ItemSqlMapper<MS, Q, R> longMapper(
+            Function<Q, NumberPath<Long>> rootToQueryItem) {
+        return new ItemSqlMapper<>(ctx ->
+                new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
+    }
+
+    /**
      * Returns the mapper creating the boolean filter processor from context.
      *
      * @param <MS> mapped schema type, see javadoc for the class

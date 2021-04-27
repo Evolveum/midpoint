@@ -37,6 +37,7 @@ public class QAuditEventRecordMapping
         super(TABLE_NAME, DEFAULT_ALIAS_NAME,
                 AuditEventRecordType.class, QAuditEventRecord.class);
 
+        addItemMapping(F_REPO_ID, longMapper(q -> q.id));
         addItemMapping(F_CHANNEL, stringMapper(q -> q.channel));
         addItemMapping(F_EVENT_IDENTIFIER, stringMapper(q -> q.eventIdentifier));
         addItemMapping(F_EVENT_STAGE, EnumOrdinalItemFilterProcessor.mapper(
