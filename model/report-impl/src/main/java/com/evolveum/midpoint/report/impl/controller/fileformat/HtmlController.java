@@ -12,16 +12,18 @@ import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.report.api.ReportConstants;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.PagingConvertor;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.task.api.RunningTask;
+
+import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
 import j2html.TagCreator;
 import j2html.tags.ContainerTag;
@@ -140,7 +142,7 @@ public class HtmlController extends FileFormatController {
 //                            break;
                         case OBJECT_COLLECTION:
                             tableBox = createTableBox(widgetData.getLabel(), collectionRefSpecification, compiledCollection,
-                                    null, Collections.emptyList(), task, result, false);
+                                    null, Collections.emptyList(), null, result, false, task);
                             break;
                     }
                     if (tableBox != null) {
@@ -226,7 +228,8 @@ public class HtmlController extends FileFormatController {
         }
 
         ContainerTag tableBox = createTableBox(label, collectionRefSpecification, compiledCollection,
-                collectionConfig.getCondition(), collectionConfig.getSubreport(), task, result, true);
+                collectionConfig.getCondition(), collectionConfig.getSubreport(),
+                PagingConvertor.createObjectPaging(collectionConfig.getPaging(), getReportService().getPrismContext()), result, true, task);
 
         body.append(tableBox.render());
 
@@ -258,7 +261,7 @@ public class HtmlController extends FileFormatController {
     }
 
     private ContainerTag createTableBox(String tableLabel, CollectionRefSpecificationType collection, @NotNull CompiledObjectCollectionView compiledCollection,
-            ExpressionType condition, List<SubreportParameterType> subreports, Task task, OperationResult result, boolean recordProgress) throws ObjectNotFoundException, SchemaException, CommunicationException,
+            ExpressionType condition, List<SubreportParameterType> subreports, ObjectPaging paging, OperationResult result, boolean recordProgress, Task task) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         long startMillis = getReportService().getClock().currentTimeMillis();
         Class<Containerable> type = resolveType(collection, compiledCollection);
@@ -326,7 +329,7 @@ public class HtmlController extends FileFormatController {
             return true;
         };
         searchObjectFromCollection(collection, compiledCollection.getContainerType(), handler, options,
-                null, task, result, recordProgress);
+                paging, task, result, recordProgress);
         if (tBody.getNumChildren() == 0 && !recordProgress) {
             return null;
         }

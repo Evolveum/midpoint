@@ -1989,22 +1989,32 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             long count;
             if (AuditEventRecordType.class.equals(type)) {
                 count = auditService.countObjects(query, options, result);
+            } else if (Containerable.class.isAssignableFrom(type)) {
+                count = modelService.countContainers(type, query, options, task, result);
             } else {
                 count = modelService.countObjects((Class<ObjectType>) type, query, options, task, result);
             }
+
             task.setExpectedTotal(count);
         }
         if (AuditEventRecordType.class.equals(type)) {
             @NotNull SearchResultList<AuditEventRecordType> auditRecords = auditService.searchObjects(query, options, result);
-            for (AuditEventRecordType auditRecord : auditRecords){
-                PrismContainerValue prismValue = auditRecord.asPrismContainerValue();
-                prismValue.setPrismContext(prismContext);
-                PrismContainer container = prismValue.asSingleValuedContainer(AuditEventRecordType.COMPLEX_TYPE);
-                handler.test(container);
-            }
+            processContainerByHandler(auditRecords, handler);
+        } else if (Containerable.class.isAssignableFrom(type)) {
+            SearchResultList<? extends Containerable> containers = modelService.searchContainers(type, query, options, task, result);
+            processContainerByHandler(containers, handler);
         } else {
             ResultHandler<ObjectType> resultHandler = (value, operationResult) -> handler.test((PrismContainer)value);
             modelService.searchObjectsIterative((Class<ObjectType>) type, query, resultHandler, options, task, result);
+        }
+    }
+
+    private void processContainerByHandler(SearchResultList<? extends Containerable> containers, Predicate<PrismContainer> handler) throws SchemaException {
+        for (Containerable container : containers){
+            PrismContainerValue prismValue = container.asPrismContainerValue();
+            prismValue.setPrismContext(prismContext);
+            PrismContainer prismContainer = prismValue.asSingleValuedContainer(prismValue.getTypeName());
+            handler.test(prismContainer);
         }
     }
 

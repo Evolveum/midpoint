@@ -87,14 +87,6 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected Class<O> getReferenceTargetObjectType() {
-                if (getModelObject().getType() == null) {
-                    return (Class<O>) ObjectType.class;
-                }
-                return (Class<O>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), getModelObject().getType());
-            }
-
-            @Override
             protected boolean isAllowedNotFoundObjectRef() {
                 return ReferenceValueSearchPopupPanel.this.isAllowedNotFoundObjectRef();
             }

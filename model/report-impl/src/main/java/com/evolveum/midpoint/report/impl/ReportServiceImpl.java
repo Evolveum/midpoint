@@ -26,6 +26,8 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -483,13 +485,21 @@ public class ReportServiceImpl implements ReportService {
             PrismContainerValue<ReportParameterType> reportParamsValues = reportParams.getValue();
             Collection<Item<?, ?>> items = reportParamsValues.getItems();
             for (Item item : items) {
-                PrismProperty pp = (PrismProperty) item;
-                String paramName = pp.getPath().lastName().getLocalPart();
+                String paramName = item.getPath().lastName().getLocalPart();
                 Object value = null;
-                if (!pp.getRealValues().isEmpty()) {
-                    value = pp.getRealValues().iterator().next();
+                if (!item.getRealValues().isEmpty()) {
+                    value = item.getRealValues().iterator().next();
                 }
-                variables.put(paramName, new TypedValue(value, ((PrismProperty<?>) item).getValueClass()));
+                if (item.getRealValue() instanceof RawType){
+                    try {
+                        ObjectReferenceType parsedRealValue = ((RawType) item.getRealValue()).getParsedRealValue(ObjectReferenceType.class);
+                        variables.put(paramName, new TypedValue(parsedRealValue, ObjectReferenceType.class));
+                    } catch (SchemaException e) {
+                        LOGGER.error("Couldn't parse ObjectReferenceType from raw type. " + item.getRealValue());
+                    }
+                } else {
+                    variables.put(paramName, new TypedValue(value, item.getRealValue().getClass()));
+                }
             }
         }
         return variables;

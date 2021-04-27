@@ -96,53 +96,63 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
     }
 
     private void initParameters() {
-        PrismContainerDefinition<ReportParameterType> paramContainerDef = getPrismContext().getSchemaRegistry().findContainerDefinitionByElementName(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
+        PrismContainerValue<ReportParameterType> reportParamValue;
+        try {
+            PrismContainerDefinition<ReportParameterType> paramContainerDef = getPrismContext().getSchemaRegistry()
+                    .findContainerDefinitionByElementName(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
+            paramContainer = paramContainerDef.instantiate();
+
+            ReportParameterType reportParam = new ReportParameterType();
+            reportParamValue = reportParam.asPrismContainerValue();
+            reportParamValue.revive(getPrismContext());
+            paramContainer.add(reportParamValue);
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't create container for report parameters");
+            return;
+        }
         for (SearchFilterParameterType parameter : reportType.getObjectCollection().getParameter()) {
-            try {
-                paramContainer = paramContainerDef.instantiate();
-
-                ReportParameterType reportParam = new ReportParameterType();
-                PrismContainerValue<ReportParameterType> reportParamValue = reportParam.asPrismContainerValue();
-                reportParamValue.revive(getPrismContext());
-                paramContainer.add(reportParamValue);
-
-                Class<?> clazz = getPrismContext().getSchemaRegistry().determineClassForType(parameter.getType());
-                QName type = getPrismContext().getSchemaRegistry().determineTypeForClass(clazz);
-                if (Containerable.class.isAssignableFrom(clazz)) {
-                    LOGGER.error("Couldn't create container item for parameter " + parameter);
-                    continue;
-                }
-                MutableItemDefinition def;
-                if (Referencable.class.isAssignableFrom(clazz)) {
-                    def = getPrismContext().definitionFactory().createReferenceDefinition(
-                            new QName(ReportConstants.NS_EXTENSION, parameter.getName()), type);
-                    ((MutablePrismReferenceDefinition)def).setTargetTypeName(parameter.getTargetType());
+            Class<?> clazz = getPrismContext().getSchemaRegistry().determineClassForType(parameter.getType());
+            QName type = getPrismContext().getSchemaRegistry().determineTypeForClass(clazz);
+            if (Containerable.class.isAssignableFrom(clazz)) {
+                LOGGER.error("Couldn't create container item for parameter " + parameter);
+                continue;
+            }
+            MutableItemDefinition def;
+            if (Referencable.class.isAssignableFrom(clazz)) {
+                def = getPrismContext().definitionFactory().createReferenceDefinition(
+                        new QName(ReportConstants.NS_EXTENSION, parameter.getName()), type);
+                ((MutablePrismReferenceDefinition) def).setTargetTypeName(parameter.getTargetType());
+            } else {
+                List values = WebComponentUtil.getAllowedValues(parameter, getPageBase());
+                if (CollectionUtils.isNotEmpty(values)) {
+                    def = (MutableItemDefinition) getPrismContext().definitionFactory().createPropertyDefinition(
+                            new QName(ReportConstants.NS_EXTENSION, parameter.getName()), type, values, null);
                 } else {
-                    List values = WebComponentUtil.getAllowedValues(parameter, getPageBase());
-                    if (CollectionUtils.isNotEmpty(values)) {
-                        def = (MutableItemDefinition) getPrismContext().definitionFactory().createPropertyDefinition(
-                                new QName(ReportConstants.NS_EXTENSION, parameter.getName()), type, values, null);
-                    } else {
-                        def = getPrismContext().definitionFactory().createPropertyDefinition(
-                                new QName(ReportConstants.NS_EXTENSION, parameter.getName()), type);
-                    }
+                    def = getPrismContext().definitionFactory().createPropertyDefinition(
+                            new QName(ReportConstants.NS_EXTENSION, parameter.getName()), type);
                 }
-                def.setDynamic(true);
-                def.setRuntimeSchema(true);
-                def.setMaxOccurs(1);
-                def.setMinOccurs(0);
-                if (parameter.getDisplay() != null) {
-                    String displayName = WebComponentUtil.getTranslatedPolyString(parameter.getDisplay().getLabel());
-                    def.setDisplayName(displayName);
-                    String help = WebComponentUtil.getTranslatedPolyString(parameter.getDisplay().getHelp());
-                    def.setHelp(help);
+            }
+            def.setDynamic(true);
+            def.setRuntimeSchema(true);
+            def.setMaxOccurs(1);
+            def.setMinOccurs(0);
+            if (parameter.getDisplay() != null) {
+                String displayName = WebComponentUtil.getTranslatedPolyString(parameter.getDisplay().getLabel());
+                def.setDisplayName(displayName);
+                String help = WebComponentUtil.getTranslatedPolyString(parameter.getDisplay().getHelp());
+                def.setHelp(help);
+            }
+            if (parameter.getAllowedValuesLookupTable() != null) {
+                def.setValueEnumerationRef(parameter.getAllowedValuesLookupTable().asReferenceValue());
+            }
+            try {
+                Item item = def.instantiate();
+                if (item instanceof PrismReference){
+                    ObjectReferenceType ref = new ObjectReferenceType();
+                    ref.setType(parameter.getTargetType());
+                    item.add(ref.asReferenceValue());
                 }
-                if (parameter.getAllowedValuesLookupTable() != null) {
-                    def.setValueEnumerationRef(parameter.getAllowedValuesLookupTable().asReferenceValue());
-                }
-
-                Item prop = def.instantiate();
-                reportParamValue.add(prop);
+                reportParamValue.add(item);
 
             } catch (SchemaException e) {
                 LOGGER.error("Couldn't create item for parameter " + parameter);
@@ -349,7 +359,8 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         PrismContainer<ReportParameterType> parameterContainer = paramContainer.clone();
         List<Item> itemForRemoving = new ArrayList<>();
         parameterContainer.getValue().getItems().forEach((item) -> {
-            if (item.isEmpty() || item.getRealValue() == null){
+            if (item.isEmpty() || item.getRealValue() == null
+                    || (item instanceof PrismReference && ((PrismReference) item).getRealValue() != null && ((PrismReference) item).getRealValue().getOid() == null)) {
                 itemForRemoving.add(item);
             }
         });

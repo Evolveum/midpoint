@@ -6,16 +6,16 @@
  */
 package com.evolveum.midpoint.report.impl.controller.fileformat;
 
-import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.PagingConvertor;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.expression.TypedValue;
@@ -27,7 +27,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -135,7 +134,8 @@ public class CsvController extends FileFormatController {
         CompiledObjectCollectionView compiledCollection = createCompiledView(collectionConfig, collection);
 
         return createTableBox(collectionRefSpecification, compiledCollection,
-                    collectionConfig.getCondition(), collectionConfig.getSubreport(), task, result);
+                    collectionConfig.getCondition(), collectionConfig.getSubreport(),
+                PagingConvertor.createObjectPaging(collectionConfig.getPaging(), getReportService().getPrismContext()), result, task);
     }
 
     private CompiledObjectCollectionView createCompiledView(ObjectCollectionReportEngineConfigurationType collectionConfig, boolean useDefaultView, Task task, OperationResult result)
@@ -185,7 +185,7 @@ public class CsvController extends FileFormatController {
     }
 
     private byte[] createTableBox(CollectionRefSpecificationType collection, CompiledObjectCollectionView compiledCollection, ExpressionType condition,
-            List<SubreportParameterType> subreports, Task task, OperationResult result)
+            List<SubreportParameterType> subreports, ObjectPaging paging, OperationResult result, Task task)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
         Class<Containerable> type = resolveType(collection, compiledCollection);
@@ -235,7 +235,7 @@ public class CsvController extends FileFormatController {
             return true;
         };
         searchObjectFromCollection(collection, compiledCollection.getContainerType(), handler,
-                options, null, task, result, true);
+                options, paging, task, result, true);
 
         CSVFormat csvFormat = createCsvFormat();
         if (Boolean.TRUE.equals(isHeader())) {

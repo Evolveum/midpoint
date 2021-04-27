@@ -290,7 +290,7 @@ public class PageReports extends PageAdmin {
 
     protected void runReportPerformed(AjaxRequestTarget target, ReportType report) {
 
-        if(report.getObjectCollection() == null) {
+        if(report.getObjectCollection() == null || report.getObjectCollection().getParameter().isEmpty()) {
             runConfirmPerformed(target, report, null);
             return;
         }

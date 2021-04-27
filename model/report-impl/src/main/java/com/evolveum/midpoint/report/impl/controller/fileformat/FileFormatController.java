@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -151,8 +152,20 @@ public abstract class FileFormatController {
         }
         if (expression != null) {
             Object value = evaluateExportExpression(expression, valueObject, task, result);
-            if (value instanceof List) {
-                return processListOfRealValues((List) value);
+            if (value instanceof Collection) {
+                if (DisplayValueType.NUMBER.equals(column.getDisplayValue())) {
+                    return String.valueOf(((Collection) value).size());
+                }
+                return processListOfRealValues((Collection) value);
+            }
+            if (DisplayValueType.NUMBER.equals(column.getDisplayValue())) {
+                if (value == null) {
+                    return "0";
+                }
+                if (value instanceof PrismValue && ((PrismValue)value).getRealValue() instanceof Collection){
+                    return String.valueOf(((Collection<?>) ((PrismValue)value).getRealValue()).size());
+                }
+                return "1";
             }
             return processListOfRealValues(Collections.singletonList(value));
         }
@@ -249,12 +262,13 @@ public abstract class FileFormatController {
 
     private Object evaluateExportExpression(ExpressionType expression, Object valueObject, Task task, OperationResult result) {
         checkVariables(task);
-        if (!variables.containsKey(ExpressionConstants.VAR_OBJECT)) {
-            if (valueObject == null) {
-                variables.put(ExpressionConstants.VAR_OBJECT, null, Object.class);
-            } else {
-                variables.put(ExpressionConstants.VAR_OBJECT, valueObject, valueObject.getClass());
-            }
+        if (variables.containsKey(ExpressionConstants.VAR_OBJECT)) {
+            variables.remove(ExpressionConstants.VAR_OBJECT);
+        }
+        if (valueObject == null) {
+            variables.put(ExpressionConstants.VAR_OBJECT, null, Object.class);
+        } else {
+            variables.put(ExpressionConstants.VAR_OBJECT, valueObject, valueObject.getClass());
         }
         Object values = null;
         try {
@@ -311,12 +325,16 @@ public abstract class FileFormatController {
         } else {
 
             String name = column.getName();
+            String displayName = null;
             if (path != null) {
                 ItemDefinition def = objectDefinition.findItemDefinition(path);
                 if (def == null) {
                     throw new IllegalArgumentException("Could'n find item for path " + path);
                 }
-                String displayName = def.getDisplayName();
+                displayName = def.getDisplayName();
+
+            }
+            if (StringUtils.isNotEmpty(displayName)) {
                 label = getMessage(displayName);
             } else {
                 label = name;
@@ -445,15 +463,18 @@ public abstract class FileFormatController {
     }
 
     protected void cleanUpVariables() {
-        variables.clear();
-        variables = null;
+        if (variables != null) {
+            variables.clear();
+            variables = null;
+        }
     }
 
     protected void initializationParameters(List<SearchFilterParameterType> parametersType, Task task) {
         VariablesMap variables = getReportService().getParameters(task);
         for (SearchFilterParameterType parameter : parametersType) {
             if (!variables.containsKey(parameter.getName())) {
-                variables.put(parameter.getName(), null, String.class);
+                Class<?> clazz = getReportService().getPrismContext().getSchemaRegistry().determineClassForType(parameter.getType());
+                variables.put(parameter.getName(), null, clazz);
             }
         }
         parameters = variables;

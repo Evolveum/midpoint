@@ -10,25 +10,20 @@
 <wicket:panel>
     <form wicket:id="mainForm">
 
-    <div class="feedbackContainer">
-        <div wicket:id="popupFeedback" class="messagePanel"/>
-    </div>
+        <div class="feedbackContainer">
+            <div wicket:id="popupFeedback" class="messagePanel"/>
+        </div>
         <h3 style="margin-left: 20px;">
             <wicket:message key="RunReportPopupPanel.title"/>
         </h3>
 
-        <div class="box boxed-table">
-            <div class="box-header">
-
-            </div>
-            <div  class="box-body no-padding">
-                <div wicket:id="parameters">
-                    <div wicket:id="parameter"/>
-                </div>
+        <div class="prism-properties">
+            <div wicket:id="parameters">
+                <div class="row prism-property" wicket:id="parameter"/>
             </div>
         </div>
         <p align="center">
-            <a class="btn btn-success" wicket:id="runReport" />
+            <a class="btn btn-success" wicket:id="runReport"/>
         </p>
     </form>
 </wicket:panel>

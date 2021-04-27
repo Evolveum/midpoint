@@ -490,47 +490,6 @@ public class DashboardServiceImpl implements DashboardService {
         }
     }
 
-//    @Override
-//    public void searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, AuditResultHandler handler,
-//            ObjectPaging paging, Task task, OperationResult result, boolean recordProgress)
-//            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-//
-//        if (collectionConfig.getCollectionRef() != null && collectionConfig.getFilter() != null) {
-//            LOGGER.error("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
-//            throw new IllegalArgumentException("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
-//        }
-//        CompiledObjectCollectionView compiledCollection = modelInteractionService.compileObjectCollectionView(
-//                collectionConfig, AuditEventRecordType.class, task, task.getResult());
-//
-//        VariablesMap variables = new VariablesMap();
-//        ObjectFilter filter = ExpressionUtil.evaluateFilterExpressions(compiledCollection.getFilter(), variables, MiscSchemaUtil.getExpressionProfile(),
-//                expressionFactory, prismContext, "collection filter", task, result);
-//        if (filter == null) {
-//            LOGGER.error("Couldn't find filter");
-//            throw new ConfigurationException("Couldn't find filter");
-//        }
-//
-//        ObjectQuery query = prismContext.queryFactory().createQuery();
-//        query.setFilter(filter);
-//        query.setPaging(paging);
-//        ObjectCollectionType collection = null;
-//        if (collectionConfig.getCollectionRef() != null) {
-//            ObjectReferenceType ref = collectionConfig.getCollectionRef();
-//            Class<ObjectType> refType = prismContext.getSchemaRegistry().determineClassForType(ref.getType());
-//            collection = (ObjectCollectionType) modelService
-//                    .getObject(refType, ref.getOid(), null, task, result).asObjectable();
-//        }
-//        @NotNull Collection<SelectorOptions<GetOperationOptions>> options = combineAuditOption(collectionConfig, collection, task, result);
-//        if (recordProgress) {
-//            long count = auditService.countObjects(query, options, result);
-//            task.setExpectedTotal(count);
-//        }
-//        @NotNull SearchResultList<AuditEventRecordType> auditRecords = auditService.searchObjects(query, options, result);
-//        auditRecords.forEach(audit -> {
-//            handler.handle(audit);
-//        });
-//    }
-
     @Override
     public ObjectCollectionType getObjectCollectionType(DashboardWidgetType widget, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
