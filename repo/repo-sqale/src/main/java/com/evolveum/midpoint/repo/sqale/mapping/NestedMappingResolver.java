@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sqale.mapping;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleNestedMapping;
 import com.evolveum.midpoint.repo.sqale.update.NestedContainerUpdateContext;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
@@ -36,7 +37,8 @@ public class NestedMappingResolver<S extends Containerable, Q extends FlexibleRe
     }
 
     @Override
-    public NestedContainerUpdateContext<S, Q, R> resolve(SqaleUpdateContext<?, Q, R> context) {
+    public NestedContainerUpdateContext<S, Q, R> resolve(
+            SqaleUpdateContext<?, Q, R> context, ItemPath ignored) {
         return new NestedContainerUpdateContext<>(context, mapping);
     }
 }

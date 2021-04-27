@@ -52,6 +52,5 @@ public class NestedContainerUpdateContext<S extends Containerable, Q extends Fle
     @Override
     protected void finishExecutionOwn() {
         // nothing to do, parent context has all the updates
-        System.out.println("NestedContainerUpdateContext EXECUTE");
     }
 }

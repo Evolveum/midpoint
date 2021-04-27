@@ -10,10 +10,9 @@ import com.querydsl.core.types.Path;
 import com.querydsl.sql.dml.SQLUpdateClause;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
-import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 
 /**
  * Update context for owned containers stored in tables.
@@ -32,15 +31,19 @@ public class ContainerTableUpdateContext<S extends Containerable, Q extends QCon
 
     private final Q path;
     private final SQLUpdateClause update;
+    private final SqaleTableMapping<S, Q, R> mapping;
 
-    public ContainerTableUpdateContext(SqaleUpdateContext<?, ?, OR> parentContext,
-            JdbcSession jdbcSession, R row) {
-        super(parentContext, row);
+    public ContainerTableUpdateContext(
+            SqaleUpdateContext<?, ?, OR> parentContext,
+            SqaleTableMapping<S, Q, R> mapping) {
+        super(parentContext, null); // TODO what is row? fake row with owner + id
+        this.mapping = mapping;
 
-        path = null; // TODO mapping.defaultAlias(); mapping missing
+        path = mapping.defaultAlias();
         // we create the update, but only use it if set methods are used
         update = jdbcSession.newUpdate(path)
                 .where(path.isOwnedBy(parentContext.row()));
+        // TODO add CID condition after writing test that checks only the right container is changed :-)
     }
 
     public Q path() {
@@ -48,8 +51,8 @@ public class ContainerTableUpdateContext<S extends Containerable, Q extends QCon
     }
 
     @Override
-    public QueryModelMapping<S, Q, R> mapping() {
-        return null; // TODO
+    public SqaleTableMapping<S, Q, R> mapping() {
+        return mapping;
     }
 
     public SQLUpdateClause update() {
@@ -63,7 +66,6 @@ public class ContainerTableUpdateContext<S extends Containerable, Q extends QCon
     /** Executes updates if applicable, nothing is done if set methods were not used. */
     @Override
     protected void finishExecutionOwn() {
-        System.out.println("ContainerTableUpdateContext EXECUTE");
         if (!update.isEmpty()) {
             update.execute();
         }

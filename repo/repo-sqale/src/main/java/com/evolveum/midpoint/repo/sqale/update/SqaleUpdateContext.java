@@ -62,8 +62,7 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
     protected final JdbcSession jdbcSession;
     protected final R row;
 
-    protected final Map<ItemPath, SqaleUpdateContext<?, ?, ?>> updateSubContexts =
-            new LinkedHashMap<>();
+    protected final Map<ItemPath, SqaleUpdateContext<?, ?, ?>> subcontexts = new LinkedHashMap<>();
 
     public SqaleUpdateContext(
             SqaleTransformerSupport sqlTransformerSupport,
@@ -79,6 +78,7 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
             SqaleUpdateContext<?, ?, ?> parentContext,
             R row) {
         this.parentContext = parentContext;
+        // registering this with parent context must happen outside of constructor!
         this.transformerSupport = parentContext.transformerSupport;
         this.jdbcSession = parentContext.jdbcSession();
         this.row = row;
@@ -117,15 +117,19 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
         return transformer.insert(schemaObject, row, jdbcSession);
     }
 
+    public void addSubcontext(ItemPath itemPath, SqaleUpdateContext<?, ?, ?> subcontext) {
+        subcontexts.put(itemPath, subcontext);
+    }
+
     /**
-     * Executes collected updates if applicable including all sub-contexts.
+     * Executes collected updates if applicable including all subcontexts.
      * Implement the logic for one context in {@link #finishExecutionOwn()}.
      * Updates for subtree are executed first.
      *
      * Insert and delete clauses were all executed by {@link ItemDeltaValueProcessor}s already.
      */
     protected final void finishExecution() throws SchemaException, RepositoryException {
-        for (SqaleUpdateContext<?, ?, ?> sqaleUpdateContext : updateSubContexts.values()) {
+        for (SqaleUpdateContext<?, ?, ?> sqaleUpdateContext : subcontexts.values()) {
             sqaleUpdateContext.finishExecution();
         }
         finishExecutionOwn();

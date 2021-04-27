@@ -14,7 +14,7 @@ import com.evolveum.midpoint.repo.sqale.delta.item.RefTableItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.RefTableItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.NestedMappingResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
-import com.evolveum.midpoint.repo.sqale.mapping.TableRelationResolver;
+import com.evolveum.midpoint.repo.sqale.mapping.ContainerTableRelationResolver;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
@@ -91,7 +91,7 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
         //  of course the join would be implemented in QOwnedBy
         //  BTW: adding OQ on refs is messy, we already have AOR and we would need AOQ for QAssignmentReferenceMapping too.
         addRelationResolver(itemName,
-                new TableRelationResolver<>(containerMapping, joinPredicate));
+                new ContainerTableRelationResolver<>(containerMapping, joinPredicate));
 
         addItemMapping(itemName, new SqaleItemSqlMapper<>(
                 ctx -> new ContainerTableDeltaProcessor<>(ctx, containerMapping)));

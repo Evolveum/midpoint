@@ -11,6 +11,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sqale.mapping.ContainerTableRelationResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemRelationResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
@@ -80,9 +81,21 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
                         + " in mapping " + mapping + " does not support delta modifications!");
             }
 
+            ItemPath subcontextPath = firstName;
+            if (relationResolver instanceof ContainerTableRelationResolver) {
+                Object cid = path.first();
+                path = path.rest();
+                subcontextPath = ItemPath.create(firstName, cid);
+            }
+            // TODO check for existing subcontext
+
             // we know nothing about context and resolver types, so we have to ignore it
             //noinspection unchecked,rawtypes
-            context = ((SqaleItemRelationResolver) relationResolver).resolve(context);
+            SqaleUpdateContext subcontext =
+                    ((SqaleItemRelationResolver) relationResolver)
+                            .resolve(this.context, subcontextPath);
+            context.addSubcontext(subcontextPath, subcontext);
+            context = subcontext;
         }
         return path.asSingleName();
     }
