@@ -42,7 +42,7 @@ public class PerfTestPrismObjectSize extends AbstractSchemaPerformanceTest {
 
     private static final int[] CONTAINER_COUNTS = new int[] { 10, 20, 50, 100, 200, 500, 1000};
 
-    private static final int[] DELTA_PERCENTS = new int[] {10,20,30};
+    private static final int[] DELTA_OP_COUNT = new int[] {1,2,5,10,20,50,100,200};
 
 
     @Test(dataProvider = "combinations")
@@ -104,11 +104,11 @@ public class PerfTestPrismObjectSize extends AbstractSchemaPerformanceTest {
 
     @Test(dataProvider = "combinations")
     public void replaceDelta(ContainerTestParams config) throws SchemaException {
-        for (int percent : DELTA_PERCENTS) {
-            int opCount = config.count * percent / 100;
+        for (int maxOps : DELTA_OP_COUNT) {
+            int opCount = Math.min(config.count, maxOps);
             measureDelta(config, monitorName("replace",config.monitorId(), Integer.toString(opCount)), assignments -> {
                 DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, getPrismContext());
-                for (int i = assignments.size() - 1 - opCount; i < assignments.size(); i++) {
+                for (int i = assignments.size() - opCount; i < assignments.size(); i++) {
                     AssignmentType assignment = assignments.get(i).clone();
                     assignment.description("Modified");
                     delta = (DeltaBuilder<UserType>) delta.item(UserType.F_ASSIGNMENT).replace(assignment.asPrismContainerValue());
@@ -120,12 +120,12 @@ public class PerfTestPrismObjectSize extends AbstractSchemaPerformanceTest {
 
     @Test(dataProvider = "combinations")
     public void addDelta(ContainerTestParams config) throws SchemaException {
-        for (int percent : DELTA_PERCENTS) {
-            int opCount = config.count * percent / 100;
+        for (int maxOps : DELTA_OP_COUNT) {
+            int opCount = maxOps;
             measureDelta(config, monitorName("add",config.monitorId(), Integer.toString(opCount)), assignments -> {
                 DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, getPrismContext());
                 for (int i = 0; i < opCount; i++) {
-                    AssignmentType assignment = assignments.get(i).clone();
+                    AssignmentType assignment = assignments.get(0).clone();
                     assignment.getConstruction().resourceRef(newUuid(), assignment.getConstruction().getResourceRef().getType());
                     assignment.setId(null);
                     delta = (DeltaBuilder<UserType>) delta.item(UserType.F_ASSIGNMENT).add(assignment.asPrismContainerValue());
@@ -137,11 +137,11 @@ public class PerfTestPrismObjectSize extends AbstractSchemaPerformanceTest {
 
     @Test(dataProvider = "combinations")
     public void deleteDelta(ContainerTestParams config) throws SchemaException {
-        for (int percent : DELTA_PERCENTS) {
-            int opCount = config.count * percent / 100;
+        for (int maxOps : DELTA_OP_COUNT) {
+            int opCount = Math.min(config.count, maxOps);
             measureDelta(config, monitorName("delete",config.monitorId(), Integer.toString(opCount)), assignments -> {
                 DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, getPrismContext());
-                for (int i = assignments.size() - 1 - opCount; i < assignments.size(); i++) {
+                for (int i = assignments.size() - opCount; i < assignments.size(); i++) {
                     AssignmentType assignment = assignments.get(i).clone();
                     delta = (DeltaBuilder<UserType>) delta.item(UserType.F_ASSIGNMENT).delete(assignment.asPrismContainerValue());
                 }
@@ -153,11 +153,11 @@ public class PerfTestPrismObjectSize extends AbstractSchemaPerformanceTest {
 
     @Test(dataProvider = "combinations")
     public void deleteNoIdDelta(ContainerTestParams config) throws SchemaException {
-        for (int percent : DELTA_PERCENTS) {
-            int opCount = config.count * percent / 100;
+        for (int maxOps : DELTA_OP_COUNT) {
+            int opCount = Math.min(config.count, maxOps);
             measureDelta(config, monitorName("delete.no.id",config.monitorId(), Integer.toString(opCount)), assignments -> {
                 DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, getPrismContext());
-                for (int i = assignments.size() - 1 - opCount; i < assignments.size(); i++) {
+                for (int i = assignments.size() - opCount; i < assignments.size(); i++) {
                     AssignmentType assignment = assignments.get(i).clone();
                     delta = (DeltaBuilder<UserType>) delta.item(UserType.F_ASSIGNMENT).delete(assignment.asPrismContainerValue());
                 }
