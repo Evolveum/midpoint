@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sqale.update;
 import com.querydsl.core.types.Path;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleNestedMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
@@ -21,20 +23,34 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 public class NestedContainerUpdateContext<S extends Containerable, Q extends FlexibleRelationalPathBase<R>, R>
         extends SqaleUpdateContext<S, Q, R> {
 
-    public NestedContainerUpdateContext(
-            SqaleUpdateContext<?, Q, R> parentContext, S object, R rootRow) {
-        super(parentContext, object, rootRow);
+    private final SqaleNestedMapping<S, Q, R> mapping;
 
-        // TODO
+    public NestedContainerUpdateContext(
+            SqaleUpdateContext<?, Q, R> parentContext,
+            SqaleNestedMapping<S, Q, R> mapping) {
+        super(parentContext, parentContext.row);
+
+        this.mapping = mapping;
     }
 
     @Override
     public Q path() {
-        return null; // TODO
+        //noinspection unchecked
+        return (Q) parentContext.path();
+    }
+
+    @Override
+    public QueryModelMapping<S, Q, R> mapping() {
+        return mapping;
     }
 
     @Override
     public <P extends Path<T>, T> void set(P path, T value) {
-        // TODO delegate to parent
+        parentContext.set(path, value);
+    }
+
+    @Override
+    protected void finishExecutionOwn() {
+        // nothing to do, parent context has all the updates
     }
 }

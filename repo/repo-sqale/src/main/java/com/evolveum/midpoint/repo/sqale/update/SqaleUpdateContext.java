@@ -6,19 +6,23 @@
  */
 package com.evolveum.midpoint.repo.sqale.update;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Path;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
-import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.UriItemDeltaProcessor;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QOwnedByMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.TransformerForOwnedBy;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -31,7 +35,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * For example, given a path `assignment/1/metadata/channel`:
  *
  * * {@link RootUpdateContext} is created for the object, imagine it at the root of the path.
- * * {@link ContainerUpdateContext} is created for `assignment/1` part under the root context.
+ * * {@link ContainerTableUpdateContext} is created for `assignment/1` part under the root context.
  * * {@link NestedContainerUpdateContext} is created for `metadata` part.
  * * One of {@link ItemDeltaValueProcessor} is then created for `channel` based on the type of
  * the property (in this case {@link UriItemDeltaProcessor}) which processes actual values and
@@ -52,28 +56,31 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
 
     protected final Trace logger = TraceManager.getTrace(getClass());
 
+    protected final SqaleUpdateContext<?, ?, ?> parentContext;
+
     protected final SqaleTransformerSupport transformerSupport;
-    protected final SqaleTableMapping<S, Q, R> mapping;
     protected final JdbcSession jdbcSession;
-    protected final S object;
     protected final R row;
 
-    public SqaleUpdateContext(SqaleTransformerSupport sqlTransformerSupport,
-            SqaleTableMapping<S, Q, R> mapping,
-            JdbcSession jdbcSession, S object, R row) {
+    protected final Map<ItemPath, SqaleUpdateContext<?, ?, ?>> subcontexts = new LinkedHashMap<>();
+
+    public SqaleUpdateContext(
+            SqaleTransformerSupport sqlTransformerSupport,
+            JdbcSession jdbcSession,
+            R row) {
+        parentContext = null; // this is the root context without any parent
         this.transformerSupport = sqlTransformerSupport;
-        this.mapping = mapping;
         this.jdbcSession = jdbcSession;
-        this.object = object;
         this.row = row;
     }
 
-    public SqaleUpdateContext(SqaleUpdateContext<?, ?, ?> parentContext, S object, R row) {
+    public SqaleUpdateContext(
+            SqaleUpdateContext<?, ?, ?> parentContext,
+            R row) {
+        this.parentContext = parentContext;
+        // registering this with parent context must happen outside of constructor!
         this.transformerSupport = parentContext.transformerSupport;
-        this.mapping = transformerSupport.sqlRepoContext()
-                .getMappingBySchemaType(SqaleUtils.getClass(object));
         this.jdbcSession = parentContext.jdbcSession();
-        this.object = object;
         this.row = row;
     }
 
@@ -93,15 +100,13 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
         return jdbcSession;
     }
 
-    public S schemaObject() {
-        return object;
-    }
-
     public R row() {
         return row;
     }
 
     public abstract Q path();
+
+    public abstract QueryModelMapping<S, Q, R> mapping();
 
     public abstract <P extends Path<T>, T> void set(P path, T value);
 
@@ -111,4 +116,24 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
                 mapping.createTransformer(transformerSupport());
         return transformer.insert(schemaObject, row, jdbcSession);
     }
+
+    public void addSubcontext(ItemPath itemPath, SqaleUpdateContext<?, ?, ?> subcontext) {
+        subcontexts.put(itemPath, subcontext);
+    }
+
+    /**
+     * Executes collected updates if applicable including all subcontexts.
+     * Implement the logic for one context in {@link #finishExecutionOwn()}.
+     * Updates for subtree are executed first.
+     *
+     * Insert and delete clauses were all executed by {@link ItemDeltaValueProcessor}s already.
+     */
+    protected final void finishExecution() throws SchemaException, RepositoryException {
+        for (SqaleUpdateContext<?, ?, ?> sqaleUpdateContext : subcontexts.values()) {
+            sqaleUpdateContext.finishExecution();
+        }
+        finishExecutionOwn();
+    }
+
+    protected abstract void finishExecutionOwn() throws SchemaException, RepositoryException;
 }

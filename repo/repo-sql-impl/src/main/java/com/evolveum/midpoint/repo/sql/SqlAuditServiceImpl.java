@@ -29,7 +29,9 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -1167,25 +1169,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
-        }
-    }
-
-    /**
-     * This enriches collection of returned values with parent container so that
-     * {@link PrismContainer#getDefinition()} is not null.
-     * It is a bit questionable whether this is a responsibility of the repository-level service.
-     * Even without this the values should have {@link PrismContainer#getComplexTypeDefinition()}
-     * if properly created with {@link PrismContext} as constructor parameter.
-     */
-    @SuppressWarnings("SameParameterValue")
-    private <C extends Containerable> void addContainerDefinition(
-            Class<C> containerableType, List<C> containerableValues) throws SchemaException {
-        PrismContainerDefinition<C> containerDefinition =
-                schemaService.findContainerDefinitionByCompileTimeClass(containerableType);
-        PrismContainer<C> container = containerDefinition.instantiate();
-        for (C containerValue : containerableValues) {
-            //noinspection unchecked
-            container.add(containerValue.asPrismContainerValue());
         }
     }
 }

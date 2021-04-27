@@ -11,6 +11,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sqale.mapping.ContainerTableRelationResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemRelationResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
@@ -25,26 +26,21 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
  * If the modification has multi-part name then it resolves it to the last component first.
  *
  * This component is for delta processing what {@link ValueFilterProcessor} is for filters.
+ * Notable difference is that context and mapping are always related here, even for nested
+ * mappings on the same table we create new context which contains the right mapping, so we
+ * just track context changes here.
  */
 public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
 
-    /** Query context and mapping is not final as it can change during complex path resolution. */
+    /** Query context is not final as it can change during complex path resolution. */
     private SqaleUpdateContext<?, ?, ?> context;
-    private QueryModelMapping<?, ?, ?> mapping;
 
-    public DelegatingItemDeltaProcessor(
-            SqaleUpdateContext<?, ?, ?> context, QueryModelMapping<?, ?, ?> mapping) {
+    public DelegatingItemDeltaProcessor(SqaleUpdateContext<?, ?, ?> context) {
         this.context = context;
-        this.mapping = mapping;
     }
 
     @Override
     public void process(ItemDelta<?, ?> modification) throws RepositoryException {
-        // TODO will we need various types of SqaleUpdateContext too?
-        //  E.g. AccessCertificationWorkItemType is container inside container and to add/delete
-        //  it we need to anchor the context in its parent, not in absolute root of update context.
-        //  Similar situation is adding multi-value references to containers like assignments.
-
         QName itemName = resolvePath(modification.getPath());
         if (itemName == null) {
             // This may indicate forgotten mapping, but normally it means that the item is simply
@@ -52,6 +48,7 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
             return;
         }
 
+        QueryModelMapping<?, ?, ?> mapping = context.mapping();
         ItemSqlMapper<?, ?, ?> itemSqlMapper = mapping.getItemMapper(itemName);
         if (itemSqlMapper instanceof SqaleItemSqlMapper) {
             ((SqaleItemSqlMapper<?, ?, ?>) itemSqlMapper)
@@ -72,6 +69,7 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
             ItemName firstName = path.firstName();
             path = path.rest();
 
+            QueryModelMapping<?, ?, ?> mapping = context.mapping();
             ItemRelationResolver<?, ?> relationResolver = mapping.getRelationResolver(firstName);
             if (relationResolver == null) {
                 return null; // unmapped, not persisted, nothing to do
@@ -83,12 +81,21 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
                         + " in mapping " + mapping + " does not support delta modifications!");
             }
 
+            ItemPath subcontextPath = firstName;
+            if (relationResolver instanceof ContainerTableRelationResolver) {
+                Object cid = path.first();
+                path = path.rest();
+                subcontextPath = ItemPath.create(firstName, cid);
+            }
+            // TODO check for existing subcontext
+
             // we know nothing about context and resolver types, so we have to ignore it
-            @SuppressWarnings({ "rawtypes", "unchecked" })
-            SqaleItemRelationResolver.UpdateResolutionResult resolution =
-                    ((SqaleItemRelationResolver) relationResolver).resolve(context);
-            context = resolution.context;
-            mapping = resolution.mapping;
+            //noinspection unchecked,rawtypes
+            SqaleUpdateContext subcontext =
+                    ((SqaleItemRelationResolver) relationResolver)
+                            .resolve(this.context, subcontextPath);
+            context.addSubcontext(subcontextPath, subcontext);
+            context = subcontext;
         }
         return path.asSingleName();
     }
