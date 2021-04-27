@@ -26,22 +26,22 @@ public class QUserMapping
                 UserType.class, QUser.class);
 
         addItemMapping(F_ADDITIONAL_NAME, polyStringMapper(
-                path(q -> q.additionalNameOrig), path(q -> q.additionalNameNorm)));
-        addItemMapping(F_EMPLOYEE_NUMBER, stringMapper(path(q -> q.employeeNumber)));
+                q -> q.additionalNameOrig, q -> q.additionalNameNorm));
+        addItemMapping(F_EMPLOYEE_NUMBER, stringMapper(q -> q.employeeNumber));
         addItemMapping(F_FAMILY_NAME, polyStringMapper(
-                path(q -> q.familyNameOrig), path(q -> q.familyNameNorm)));
+                q -> q.familyNameOrig, q -> q.familyNameNorm));
         addItemMapping(F_FULL_NAME, polyStringMapper(
-                path(q -> q.fullNameOrig), path(q -> q.fullNameNorm)));
+                q -> q.fullNameOrig, q -> q.fullNameNorm));
         addItemMapping(F_GIVEN_NAME, polyStringMapper(
-                path(q -> q.givenNameOrig), path(q -> q.givenNameNorm)));
+                q -> q.givenNameOrig, q -> q.givenNameNorm));
         addItemMapping(F_HONORIFIC_PREFIX, polyStringMapper(
-                path(q -> q.honorificPrefixOrig), path(q -> q.honorificPrefixNorm)));
+                q -> q.honorificPrefixOrig, q -> q.honorificPrefixNorm));
         addItemMapping(F_HONORIFIC_SUFFIX, polyStringMapper(
-                path(q -> q.honorificSuffixOrig), path(q -> q.honorificSuffixNorm)));
+                q -> q.honorificSuffixOrig, q -> q.honorificSuffixNorm));
         addItemMapping(F_NICK_NAME, polyStringMapper(
-                path(q -> q.nickNameOrig), path(q -> q.nickNameNorm)));
+                q -> q.nickNameOrig, q -> q.nickNameNorm));
         addItemMapping(F_TITLE, polyStringMapper(
-                path(q -> q.titleOrig), path(q -> q.titleNorm)));
+                q -> q.titleOrig, q -> q.titleNorm));
     }
 
     @Override

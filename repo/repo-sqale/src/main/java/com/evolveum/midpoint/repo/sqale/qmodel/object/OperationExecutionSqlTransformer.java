@@ -11,29 +11,32 @@ import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
 
-public class OperationExecutionSqlTransformer
-        extends ContainerSqlTransformer<OperationExecutionType, QOperationExecution, MOperationExecution> {
+public class OperationExecutionSqlTransformer<OR extends MObject>
+        extends ContainerSqlTransformer<OperationExecutionType, QOperationExecution<OR>, MOperationExecution, OR> {
 
     public OperationExecutionSqlTransformer(
-            SqlTransformerSupport transformerSupport, QOperationExecutionMapping mapping) {
+            SqlTransformerSupport transformerSupport, QOperationExecutionMapping<OR> mapping) {
         super(transformerSupport, mapping);
     }
 
-    public void insert(OperationExecutionType schemaObject, MObject ownerRow, JdbcSession jdbcSession) {
+    @Override
+    public MOperationExecution insert(
+            OperationExecutionType schemaObject, OR ownerRow, JdbcSession jdbcSession) {
         MOperationExecution row = initRowObject(schemaObject, ownerRow.oid);
 
         row.status = schemaObject.getStatus();
         row.recordType = schemaObject.getRecordType();
-        setReference(schemaObject.getInitiatorRef(), jdbcSession,
+        setReference(schemaObject.getInitiatorRef(),
                 o -> row.initiatorRefTargetOid = o,
                 t -> row.initiatorRefTargetType = t,
                 r -> row.initiatorRefRelationId = r);
-        setReference(schemaObject.getTaskRef(), jdbcSession,
+        setReference(schemaObject.getTaskRef(),
                 o -> row.taskRefTargetOid = o,
                 t -> row.taskRefTargetType = t,
                 r -> row.taskRefRelationId = r);
         row.timestampValue = MiscUtil.asInstant(schemaObject.getTimestamp());
 
         insert(row, jdbcSession);
+        return row;
     }
 }

@@ -97,7 +97,7 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
     }
 
     private String addObjectWithOid() throws SchemaException {
-        long lastCid = new ContainerValueIdGenerator(object).generate();
+        long lastCid = new ContainerValueIdGenerator().generateForNewObject(object);
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             S schemaObject = object.asObjectable();
             R row = transformer.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
@@ -109,20 +109,19 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
                     .populate(row)
                     .executeWithKey(root.oid);
 
-            row.objectType = objectType;
+            row.objectType = objectType; // sub-entities can use it, now it's safe to set it
             transformer.storeRelatedEntities(row, schemaObject, jdbcSession);
 
+            jdbcSession.commit();
             return Objects.requireNonNull(oid, "OID of inserted object can't be null")
                     .toString();
         }
     }
 
     private String addObjectWithoutOid() throws SchemaException {
-        long lastCid = new ContainerValueIdGenerator(object).generate();
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             S schemaObject = object.asObjectable();
             R row = transformer.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
-            row.containerIdSeq = lastCid + 1;
 
             // first insert without full object, because we don't know the OID yet
             UUID oid = jdbcSession.newInsert(root)
@@ -134,17 +133,21 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
                             .toString();
             object.setOid(oidString);
 
+            long lastCid = new ContainerValueIdGenerator().generateForNewObject(object);
+
             // now to update full object with known OID
             transformer.setFullObject(row, schemaObject);
             jdbcSession.newUpdate(root)
                     .set(root.fullObject, row.fullObject)
+                    .set(root.containerIdSeq, lastCid + 1)
                     .where(root.oid.eq(oid))
                     .execute();
 
             row.oid = oid;
-            row.objectType = objectType;
+            row.objectType = objectType; // sub-entities can use it, now it's safe to set it
             transformer.storeRelatedEntities(row, schemaObject, jdbcSession);
 
+            jdbcSession.commit();
             return oidString;
         }
     }
@@ -163,5 +166,4 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
             }
         }
     }
-
 }

@@ -29,9 +29,9 @@ public class ConnectorSqlTransformer
         row.connectorBundle = schemaObject.getConnectorBundle();
         row.connectorType = schemaObject.getConnectorType();
         row.connectorVersion = schemaObject.getConnectorVersion();
-        row.frameworkId = processCacheableUri(schemaObject.getFramework(), jdbcSession);
+        row.frameworkId = processCacheableUri(schemaObject.getFramework());
 
-        setReference(schemaObject.getConnectorHostRef(), jdbcSession,
+        setReference(schemaObject.getConnectorHostRef(),
                 o -> row.connectorHostRefTargetOid = o,
                 t -> row.connectorHostRefTargetType = t,
                 r -> row.connectorHostRefRelationId = r);

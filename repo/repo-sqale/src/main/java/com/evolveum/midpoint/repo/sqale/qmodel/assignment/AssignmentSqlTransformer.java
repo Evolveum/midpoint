@@ -16,32 +16,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
-public class AssignmentSqlTransformer
-        extends ContainerSqlTransformer<AssignmentType, QAssignment, MAssignment> {
+public class AssignmentSqlTransformer<OR extends MObject>
+        extends ContainerSqlTransformer<AssignmentType, QAssignment<OR>, MAssignment, OR> {
 
     public AssignmentSqlTransformer(
-            SqlTransformerSupport transformerSupport, QAssignmentMapping mapping) {
+            SqlTransformerSupport transformerSupport, QAssignmentMapping<OR> mapping) {
         super(transformerSupport, mapping);
     }
 
     // about duplication see the comment in ObjectSqlTransformer.toRowObjectWithoutFullObject
     @SuppressWarnings("DuplicatedCode")
-    public MAssignment insert(
-            AssignmentType assignment, MObject ownerRow, JdbcSession jdbcSession) {
+    @Override
+    public MAssignment insert(AssignmentType assignment, OR ownerRow, JdbcSession jdbcSession) {
         MAssignment row = initRowObject(assignment, ownerRow.oid);
 
         row.ownerType = ownerRow.objectType;
         row.lifecycleState = assignment.getLifecycleState();
         row.orderValue = assignment.getOrder();
-        setReference(assignment.getOrgRef(), jdbcSession,
+        setReference(assignment.getOrgRef(),
                 o -> row.orgRefTargetOid = o,
                 t -> row.orgRefTargetType = t,
                 r -> row.orgRefRelationId = r);
-        setReference(assignment.getTargetRef(), jdbcSession,
+        setReference(assignment.getTargetRef(),
                 o -> row.targetRefTargetOid = o,
                 t -> row.targetRefTargetType = t,
                 r -> row.targetRefRelationId = r);
-        setReference(assignment.getTenantRef(), jdbcSession,
+        setReference(assignment.getTenantRef(),
                 o -> row.tenantRefTargetOid = o,
                 t -> row.tenantRefTargetType = t,
                 r -> row.tenantRefRelationId = r);
@@ -49,12 +49,12 @@ public class AssignmentSqlTransformer
         // TODO no idea how to do this yet, somehow related to RAssignment.extension
 //        row.extId = assignment.getExtension()...id?;
 //        row.extOid =;
-        row.policySituations = processCacheableUris(assignment.getPolicySituation(), jdbcSession);
+        row.policySituations = processCacheableUris(assignment.getPolicySituation());
         // TODO extensions stored inline (JSON)
 
         ConstructionType construction = assignment.getConstruction();
         if (construction != null) {
-            setReference(construction.getResourceRef(), jdbcSession,
+            setReference(construction.getResourceRef(),
                     o -> row.resourceRefTargetOid = o,
                     t -> row.resourceRefTargetType = t,
                     r -> row.resourceRefRelationId = r);
@@ -76,18 +76,18 @@ public class AssignmentSqlTransformer
 
         MetadataType metadata = assignment.getMetadata();
         if (metadata != null) {
-            setReference(metadata.getCreatorRef(), jdbcSession,
+            setReference(metadata.getCreatorRef(),
                     o -> row.creatorRefTargetOid = o,
                     t -> row.creatorRefTargetType = t,
                     r -> row.creatorRefRelationId = r);
-            row.createChannelId = processCacheableUri(metadata.getCreateChannel(), jdbcSession);
+            row.createChannelId = processCacheableUri(metadata.getCreateChannel());
             row.createTimestamp = MiscUtil.asInstant(metadata.getCreateTimestamp());
 
-            setReference(metadata.getModifierRef(), jdbcSession,
+            setReference(metadata.getModifierRef(),
                     o -> row.modifierRefTargetOid = o,
                     t -> row.modifierRefTargetType = t,
                     r -> row.modifierRefRelationId = r);
-            row.modifyChannelId = processCacheableUri(metadata.getModifyChannel(), jdbcSession);
+            row.modifyChannelId = processCacheableUri(metadata.getModifyChannel());
             row.modifyTimestamp = MiscUtil.asInstant(metadata.getModifyTimestamp());
         }
 

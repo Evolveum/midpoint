@@ -4,13 +4,14 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale;
+package com.evolveum.midpoint.repo.sqale.func;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.testng.Assert.assertTrue;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
@@ -21,11 +22,16 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.MService;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QService;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.MShadow;
@@ -68,6 +74,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(result).isSuccess();
     }
 
+    // region various types of simple items
     @Test
     public void test100ChangeStringAttribute()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
@@ -330,7 +337,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
-        and("serialized form (fullObject) is updated and email is gone");
+        and("serialized form (fullObject) is updated and last run start timestamp is gone");
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
@@ -461,7 +468,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
-        and("serialized form (fullObject) is updated and display order is gone");
+        and("serialized form (fullObject) is updated and dead is null");
         ShadowType shadowObject = repositoryService
                 .getObject(ShadowType.class, shadow1Oid, null, result)
                 .asObjectable();
@@ -535,7 +542,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
-        and("serialized form (fullObject) is updated and display order is gone");
+        and("serialized form (fullObject) is updated and nickname is gone");
         UserType userObject = repositoryService
                 .getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
@@ -637,7 +644,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         when("modifyObject is called");
         repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
 
-        then("operation is successful");
+        then("operation is successful, repository doesn't check target existence");
         assertThatOperationResult(result).isSuccess();
 
         and("serialized form (fullObject) is updated");
@@ -679,7 +686,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
-        and("serialized form (fullObject) is updated and email is gone");
+        and("serialized form (fullObject) is updated and owner ref is gone");
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
@@ -707,7 +714,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         when("modifyObject is called");
         repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
 
-        then("operation is successful, repository doesn't check target existence");
+        then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
         and("serialized form (fullObject) is updated");
@@ -742,7 +749,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
-        and("serialized form (fullObject) is updated and email is gone");
+        and("serialized form (fullObject) is updated and handler URI is gone");
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
@@ -803,7 +810,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
-        and("serialized form (fullObject) is updated and email is gone");
+        and("serialized form (fullObject) is updated and execution status is gone");
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
@@ -814,52 +821,68 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.executionStatus).isNull();
     }
+    // endregion
 
-    // TODO see: ModifyTest#test030ModifyUserOnNonExistingAccountTest
-    //  and src/test/resources/modify/change-add-non-existing.xml
-    @Test(enabled = false)
-    public void test160AddingProjectionRefDoesntCheckTargetExistence()
+    // region multi-value refs
+    @Test
+    public void test160AddingProjectionRefInsertsRowsToTable()
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
         given("delta adding projection ref to non-existent shadow for user 1");
         UUID refTargetOid = UUID.randomUUID();
+        QName refRelation = QName.valueOf("{https://random.org/ns}projection-rel1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(UserType.F_LINK_REF).add(refTargetOid.toString())
+                .item(UserType.F_LINK_REF).add(new ObjectReferenceType()
+                        .oid(refTargetOid.toString())
+                        .type(ShadowType.COMPLEX_TYPE)
+                        .relation(refRelation))
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
-        repositoryService.modifyObject(
-                UserType.class, user1Oid, delta.getModifications(), result);
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
 
-        then("operation is successful");
+        then("operation is successful, ref target doesn't have to exist");
         assertThatOperationResult(result).isSuccess();
 
-        // TODO
-        and("serialized form (fullObject) is not updated");
+        and("serialized form (fullObject) is updated");
         UserType userObject = repositoryService
                 .getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
-        assertThat(userObject.getName()).isNotNull();
-        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version));
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getLinkRef()).hasSize(1)
+                .anyMatch(refMatcher(refTargetOid, refRelation));
 
-        and("externalized column is set to NULL");
+        and("user row version is incremented");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
-        assertThat(row.version).isEqualTo(originalRow.version);
-        assertThat(row.nameOrig).isNotNull();
-        assertThat(row.nameNorm).isNotNull();
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        and("externalized refs are inserted to the dedicated table");
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        UUID ownerOid = UUID.fromString(user1Oid);
+        List<MReference> refs = select(r, r.ownerOid.eq(ownerOid));
+        assertThat(refs).hasSize(1)
+                .anyMatch(refRowMatcher(refTargetOid, MObjectType.SHADOW, refRelation))
+                .allMatch(ref -> ref.ownerOid.equals(ownerOid));
     }
 
     @Test
-    public void test190ChangeOfNonPersistedAttributeWorksOk()
-            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+    public void test161AddingMoreProjectionRefsInsertsRowsToTable()
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
-        given("delta with email change for user 1 using property add modification");
+        given("delta adding projection refs to the same target with different relation for user 1");
+        UUID refTargetOid = UUID.randomUUID();
+        QName refRelation1 = QName.valueOf("{https://random.org/ns}projection-rel1");
+        QName refRelation2 = QName.valueOf("{https://random.org/ns}projection-rel2");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(UserType.F_DESCRIPTION).replace("Description only in serialized form.")
+                .item(UserType.F_LINK_REF).add(
+                        new ObjectReferenceType().oid(refTargetOid.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation1),
+                        new ObjectReferenceType().oid(refTargetOid.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation2))
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -869,16 +892,265 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(result).isSuccess();
 
         and("serialized form (fullObject) is updated");
-        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(userObject.getDescription()).isEqualTo("Description only in serialized form.");
+        assertThat(userObject.getLinkRef()).hasSize(3); // no more checks, we believe in Prism
 
-        and("externalized version is updated");
+        and("user row version is incremented");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        and("externalized refs are inserted to the dedicated table");
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        List<MReference> refs = select(r, r.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(refs).hasSize(3)
+                .anyMatch(refRowMatcher(refTargetOid, refRelation1))
+                .anyMatch(refRowMatcher(refTargetOid, refRelation2));
     }
 
+    @Test
+    public void test162ReplacingProjectionRefs()
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta replacing projection refs w relation for user 1");
+        UUID refTargetOid = UUID.randomUUID();
+        QName refRelation1 = QName.valueOf("{https://random.org/ns}projection-rel3");
+        QName refRelation2 = QName.valueOf("{https://random.org/ns}projection-rel4");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF).replace(
+                        new ObjectReferenceType().oid(refTargetOid.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation1),
+                        new ObjectReferenceType().oid(refTargetOid.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation2))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getLinkRef()).hasSize(2); // no more checks, we believe in Prism
+
+        and("user row version is incremented");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        and("externalized refs are inserted to the dedicated table");
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        List<MReference> refs = select(r, r.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(refs).hasSize(2) // new added, previous three or so are gone
+                .anyMatch(refRowMatcher(refTargetOid, refRelation1))
+                .anyMatch(refRowMatcher(refTargetOid, refRelation2));
+    }
+
+    @Test
+    public void test163ReplacingProjectionRefs()
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+
+        given("user 1 with a few projection refs");
+        UUID refTargetOid1 = UUID.randomUUID();
+        UUID refTargetOid2 = UUID.randomUUID();
+        QName refRelation1 = QName.valueOf("{https://random.org/ns}projection-rel1");
+        QName refRelation2 = QName.valueOf("{https://random.org/ns}projection-rel2");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF).replace(
+                        new ObjectReferenceType().oid(refTargetOid1.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation1), // to delete
+                        new ObjectReferenceType().oid(refTargetOid1.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation2),
+                        new ObjectReferenceType().oid(refTargetOid2.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation1),
+                        new ObjectReferenceType().oid(refTargetOid2.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation2)) // to delete
+                .asObjectDelta(user1Oid);
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        and("delta both adding and deleting multiple projection refs");
+        UUID refTargetOid3 = UUID.randomUUID();
+        UUID refTargetOid4 = UUID.randomUUID();
+        delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF)
+                .delete(new ObjectReferenceType() // type is ignored/ignorable
+                                .oid(refTargetOid1.toString()).relation(refRelation1),
+                        new ObjectReferenceType()
+                                .oid(refTargetOid2.toString()).relation(refRelation2),
+                        new ObjectReferenceType() // nonexistent anyway
+                                .oid(refTargetOid3.toString()).relation(refRelation2),
+                        new ObjectReferenceType() // like add bellow, will be "narrowed" out
+                                .oid(refTargetOid3.toString()).relation(refRelation1))
+                .add(new ObjectReferenceType().oid(refTargetOid3.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation1),
+                        // delete above will be "narrowed" out, this WILL be added
+                        new ObjectReferenceType().oid(refTargetOid3.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation2),
+                        new ObjectReferenceType().oid(refTargetOid4.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation1),
+                        new ObjectReferenceType().oid(refTargetOid4.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation2))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getLinkRef()).hasSize(6)
+                .anyMatch(refMatcher(refTargetOid1, refRelation2))
+                .anyMatch(refMatcher(refTargetOid2, refRelation1))
+                .anyMatch(refMatcher(refTargetOid3, refRelation1))
+                .anyMatch(refMatcher(refTargetOid3, refRelation2))
+                .anyMatch(refMatcher(refTargetOid4, refRelation1))
+                .anyMatch(refMatcher(refTargetOid4, refRelation2));
+
+        and("user row version is incremented");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        and("externalized refs are inserted and deleted accordingly");
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        List<MReference> refs = select(r, r.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(refs).hasSize(6)
+                .anyMatch(refRowMatcher(refTargetOid1, refRelation2))
+                .anyMatch(refRowMatcher(refTargetOid2, refRelation1))
+                .anyMatch(refRowMatcher(refTargetOid3, refRelation1))
+                .anyMatch(refRowMatcher(refTargetOid3, refRelation2))
+                .anyMatch(refRowMatcher(refTargetOid4, refRelation1))
+                .anyMatch(refRowMatcher(refTargetOid4, refRelation2));
+    }
+
+    @Test
+    public void test164DeletingAllProjectionRefsUsingReplace()
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta to replace projection refs with no value");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF).replace()
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and has no projection refs now");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getLinkRef()).isEmpty();
+
+        and("user row version is incremented");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        and("externalized refs are inserted and deleted accordingly");
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
+    }
+
+    @Test
+    public void test170AddingCreateApproverRefsUnderMetadata()
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding create approver refs for user 1");
+        UUID approverOid1 = UUID.randomUUID();
+        UUID approverOid2 = UUID.randomUUID();
+        QName refRelation = QName.valueOf("{https://random.org/ns}approver");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF)
+                .add(new ObjectReferenceType().oid(approverOid1.toString())
+                                .type(UserType.COMPLEX_TYPE).relation(refRelation),
+                        new ObjectReferenceType().oid(approverOid2.toString())
+                                .type(UserType.COMPLEX_TYPE).relation(refRelation))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getMetadata().getCreateApproverRef()).hasSize(2)
+                .anyMatch(refMatcher(approverOid1, refRelation))
+                .anyMatch(refMatcher(approverOid2, refRelation));
+
+        and("user row version is incremented");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        and("externalized refs are inserted to the dedicated table");
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER.defaultAlias();
+        UUID ownerOid = UUID.fromString(user1Oid);
+        List<MReference> refs = select(r, r.ownerOid.eq(ownerOid));
+        assertThat(refs).hasSize(2)
+                .anyMatch(refRowMatcher(approverOid1, refRelation))
+                .anyMatch(refRowMatcher(approverOid2, refRelation));
+    }
+
+    @Test
+    public void test171DeletingMetadataContainerRemovesContainedRefs()
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta to replace metadata with no value");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_METADATA).replace()
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and has no metadata");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getMetadata()).isNull();
+
+        and("externalized refs under metadata are removed");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER.defaultAlias();
+        assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
+        r = QObjectReferenceMapping.INSTANCE_OBJECT_MODIFY_APPROVER.defaultAlias();
+        assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
+    }
+    // endregion
+
+    // region nested (embedded) single-value containers (e.g. metadata)
     @Test
     public void test200ChangeNestedMetadataAttributeWithAddModification()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
@@ -887,7 +1159,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata/createChannel (multi-part path) change for task 1 adding value");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL))
+                .item(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
                 .add("any://channel")
                 .asObjectDelta(task1Oid);
 
@@ -916,7 +1188,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata/createChannel status replace to null ('delete') for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL))
+                .item(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
                 .replace()
                 .asObjectDelta(task1Oid);
 
@@ -930,7 +1202,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
-        and("serialized form (fullObject) is updated and email is gone");
+        and("serialized form (fullObject) is updated and create channel is gone");
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
@@ -950,7 +1222,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata/createChannel (multi-part path) change for task 1 adding value");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL))
+                .item(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
                 .replace("any://channel")
                 .asObjectDelta(task1Oid);
 
@@ -983,7 +1255,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata add with no value for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA)).add()
+                .item(ObjectType.F_METADATA).add()
                 .asObjectDelta(task1Oid);
 
         and("task row previously having some value in metadata container");
@@ -1018,7 +1290,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UUID modifierRefOid = UUID.randomUUID();
         QName modifierRelation = QName.valueOf("{https://random.org/ns}modifier-rel");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA)).add(new MetadataType()
+                .item(ObjectType.F_METADATA).add(new MetadataType()
                         .modifyChannel("any://modify-channel")
                         .modifierRef(modifierRefOid.toString(),
                                 UserType.COMPLEX_TYPE, modifierRelation))
@@ -1062,7 +1334,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UUID creatorRefOid = UUID.randomUUID();
         QName creatorRelation = QName.valueOf("{https://random.org/ns}modifier-rel");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA)).replace(new MetadataType()
+                .item(ObjectType.F_METADATA).replace(new MetadataType()
                         .createChannel("any://create-channel")
                         .modifyChannel("any://modify2-channel")
                         .creatorRef(creatorRefOid.toString(),
@@ -1105,7 +1377,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata replaced with no value for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA)).replace()
+                .item(ObjectType.F_METADATA).replace()
                 .asObjectDelta(task1Oid);
 
         when("modifyObject is called");
@@ -1143,7 +1415,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata replaced with no value for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA)).replace(new MetadataType())
+                .item(ObjectType.F_METADATA).replace(new MetadataType())
                 .asObjectDelta(task1Oid);
 
         when("modifyObject is called");
@@ -1181,7 +1453,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with empty metadata added for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA)).add(new MetadataType())
+                .item(ObjectType.F_METADATA).add(new MetadataType())
                 .asObjectDelta(task1Oid);
 
         when("modifyObject is called");
@@ -1213,10 +1485,338 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.modifyTimestamp).isNull();
     }
 
+    @Test
+    public void test210ChangeDeeplyNestedFocusPasswordCreateTimestamp()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding credential/password/metadata/createTimestamp value for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
+                        PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP)
+                .add(MiscUtil.asXMLGregorianCalendar(1L))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(user.getCredentials().getPassword().getMetadata()
+                .getCreateTimestamp().getMillisecond()).isEqualTo(1);
+
+        and("externalized column is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.passwordCreateTimestamp).isEqualTo(Instant.ofEpochMilli(1));
+    }
+
+    @Test
+    public void test211DeleteDeeplyNestedFocusPasswordCreateTimestamp()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta with metadata/createChannel status replace to null ('delete') for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
+                        PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP)
+                .replace()
+                .asObjectDelta(user1Oid);
+
+        and("user row previously having the passwordCreateTimestamp value");
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(originalRow.passwordCreateTimestamp).isNotNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and password create timestamp is gone");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertTrue(userObject.getCredentials() == null // if removed with last item
+                || userObject.getCredentials().getPassword() == null
+                || userObject.getCredentials().getPassword().getMetadata() == null
+                || userObject.getCredentials().getPassword().getMetadata()
+                .getCreateTimestamp() == null);
+
+        and("externalized column is set to NULL");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.passwordCreateTimestamp).isNull();
+    }
+
+    @Test
+    public void test212AddingDeeplyNestedEmbeddedContainer()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding whole credential/password container user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD)
+                .replace(new PasswordType(prismContext)
+                        .metadata(new MetadataType(prismContext)
+                                .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(1L))))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(user.getCredentials().getPassword().getMetadata()
+                .getModifyTimestamp().getMillisecond()).isEqualTo(1);
+
+        and("externalized column is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.passwordCreateTimestamp).isNull(); // not set, left as null
+        assertThat(row.passwordModifyTimestamp).isEqualTo(Instant.ofEpochMilli(1));
+    }
+
+    @Test
+    public void test213OverwritingParentOfDeeplyNestedEmbeddedContainer()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding whole credential/password container user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_CREDENTIALS)
+                .replace(new CredentialsType(prismContext)
+                        .password(new PasswordType(prismContext)
+                                .metadata(new MetadataType(prismContext)
+                                        .createTimestamp(MiscUtil.asXMLGregorianCalendar(1L)))))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(user.getCredentials().getPassword().getMetadata()
+                .getCreateTimestamp().getMillisecond()).isEqualTo(1);
+        assertThat(user.getCredentials().getPassword().getMetadata().getModifyTimestamp())
+                .isNull();
+
+        and("externalized column is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.passwordModifyTimestamp).isNull(); // cleared
+        assertThat(row.passwordCreateTimestamp).isEqualTo(Instant.ofEpochMilli(1));
+    }
+    // endregion
+
+    // region multi-value containers (e.g. assignments)
+    @Test
+    public void test300AddAssignmentStoresItAndGeneratesMissingId()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding assignment for user 1");
+        UUID roleOid = UUID.randomUUID();
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(new AssignmentType(prismContext)
+                        .targetRef(roleOid.toString(), RoleType.COMPLEX_TYPE)) // default relation
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType UserObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(UserObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = UserObject.getAssignment();
+        assertThat(assignments).isNotNull();
+        // next free CID was assigned
+        assertThat(assignments.get(0).getId()).isEqualTo(originalRow.containerIdSeq);
+
+        and("assignment row is created");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRow.cid).isEqualTo(originalRow.containerIdSeq);
+        assertThat(aRow.containerType).isEqualTo(MContainerType.ASSIGNMENT);
+        assertThat(aRow.targetRefTargetOid).isEqualTo(roleOid);
+        assertThat(aRow.targetRefTargetType).isEqualTo(MObjectType.ROLE);
+        assertCachedUri(aRow.targetRefRelationId, relationRegistry.getDefaultRelation());
+    }
+
+    @Test
+    public void test301ReplaceItemUnderMultiValueAssignment()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta replacing single-value item inside assignment for user 1");
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        MAssignment origAssignmentRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(origAssignmentRow.orderValue).isNull(); // wasn't previously set
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, origAssignmentRow.cid, AssignmentType.F_ORDER)
+                .replace(47)
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType UserObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(UserObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = UserObject.getAssignment();
+        assertThat(assignments).isNotNull();
+        assertThat(assignments.get(0).getOrder()).isEqualTo(47);
+
+        and("assignment row is created");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRow.cid).isEqualTo(origAssignmentRow.cid); // CID should not change
+        assertThat(aRow.orderValue).isEqualTo(47);
+        assertThat(aRow.targetRefTargetOid).isNotNull(); // target ref is still present
+    }
+
+    @Test
+    public void test302AddingMoreAssignmentsIncludingNestedContainersAndRefs()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding two more assignments for user 1");
+        UUID roleOid = UUID.randomUUID();
+        UUID resourceOid = UUID.randomUUID();
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(new AssignmentType(prismContext)
+                                .targetRef(roleOid.toString(), RoleType.COMPLEX_TYPE)
+                                .metadata(new MetadataType()
+                                        .createChannel("create-channel")
+                                        .createApproverRef(UUID.randomUUID().toString(),
+                                                UserType.COMPLEX_TYPE)
+                                        .createApproverRef(UUID.randomUUID().toString(),
+                                                UserType.COMPLEX_TYPE))
+                                .order(48),
+                        new AssignmentType(prismContext)
+                                .construction(new ConstructionType()
+                                        .resourceRef(resourceOid.toString(),
+                                                ResourceType.COMPLEX_TYPE))
+                                .order(49))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType UserObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(UserObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = UserObject.getAssignment();
+        assertThat(assignments).hasSize(3)
+                .allMatch(a -> a.getId() != null && a.getId() < originalRow.containerIdSeq + 2);
+
+        and("assignment rows are created");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq + 2);
+
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRows).hasSize(3)
+                .anyMatch(aRow -> aRow.cid < originalRow.containerIdSeq) // previous one
+                .anyMatch(aRow -> aRow.cid == row.containerIdSeq - 2
+                        && aRow.orderValue == 48
+                        && aRow.targetRefTargetOid.equals(roleOid)
+                        && cachedUriById(aRow.createChannelId).equals("create-channel"))
+                .anyMatch(aRow -> aRow.cid == row.containerIdSeq - 1
+                        && aRow.resourceRefTargetOid.equals(resourceOid));
+
+        QAssignmentReference ar =
+                QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_CREATE_APPROVER.defaultAlias();
+        List<MAssignmentReference> refRows = select(ar, ar.ownerOid.eq(UUID.fromString(user1Oid))
+                .and(ar.assignmentCid.eq(row.containerIdSeq - 2)));
+        assertThat(refRows).hasSize(2)
+                .allMatch(rr -> rr.targetType == MObjectType.USER);
+    }
+
+    // TODO ok to fail now
+    @Test
+    public void test309DeleteAssignmentDeletesItFromTable()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta deleting assignment from user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .delete(new AssignmentType(prismContext).id(1L))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and has no assignment now");
+        UserType UserObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(UserObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = UserObject.getAssignment();
+        assertThat(assignments).isEmpty();
+
+        and("externalized column is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        assertThat(select(a, a.ownerOid.eq(UUID.fromString(user1Oid)))).isEmpty();
+    }
+
     // TODO: "indexed" containers: .item(ItemPath.create(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
+    // endregion
 
     // TODO test for multi-value (e.g. subtypes) with item delta with both add and delete lists
+    //  But with current implementation this can go to the first hundred section...?
 
+    // TODO: photo test, should work fine, but it is kinda special, not part of full object
+
+    // region other tests
     @Test
     public void test900ModificationsMustNotBeNull() {
         OperationResult result = createOperationResult();
@@ -1251,4 +1851,62 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("operation is fatal error");
         assertThatOperationResult(result).isFatalError();
     }
+
+    @Test
+    public void test990ChangeOfNonPersistedAttributeWorksOk()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta with email change for user 1 using property add modification");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_DESCRIPTION).replace("Description only in serialized form.")
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getDescription()).isEqualTo("Description only in serialized form.");
+
+        and("externalized version is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+    }
+
+    @Test
+    public void test991ChangeInsideNonPersistedContainerWorksOk()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta with email change for user 1 using property add modification");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_BEHAVIOR, BehaviorType.F_AUTHENTICATION,
+                        AuthenticationBehavioralDataType.F_FAILED_LOGINS).replace(5)
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getBehavior().getAuthentication().getFailedLogins()).isEqualTo(5);
+
+        and("externalized version is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+    }
+    // endregion
 }

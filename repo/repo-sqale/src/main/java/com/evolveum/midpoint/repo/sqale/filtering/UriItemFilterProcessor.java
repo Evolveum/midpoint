@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqale.filtering;
 
 import java.util.function.Function;
 
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.NumberPath;
 
@@ -17,21 +16,20 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.SinglePathItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
  * Filter processor for URI item paths - represented by string/QName in schema and by int ID in DB.
  * These paths are generally not ordered by, which is a relief, otherwise JOIN would be needed.
  */
-public class UriItemFilterProcessor extends ItemFilterProcessor<PropertyValueFilter<String>> {
+public class UriItemFilterProcessor
+        extends SinglePathItemFilterProcessor<String, NumberPath<Integer>> {
 
-    private final NumberPath<Integer> path;
-
-    public UriItemFilterProcessor(
-            SqlQueryContext<?, ?, ?> context,
-            Function<EntityPath<?>, NumberPath<Integer>> rootToPath) {
-        super(context);
-        this.path = rootToPath.apply(context.path());
+    public <Q extends FlexibleRelationalPathBase<R>, R> UriItemFilterProcessor(
+            SqlQueryContext<?, Q, R> context,
+            Function<Q, NumberPath<Integer>> rootToPath) {
+        super(context, rootToPath);
     }
 
     @Override

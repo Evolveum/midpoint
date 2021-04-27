@@ -25,7 +25,7 @@ public class GenericObjectSqlTransformer
             GenericObjectType genericObject, JdbcSession jdbcSession) {
         MGenericObject row = super.toRowObjectWithoutFullObject(genericObject, jdbcSession);
 
-        row.genericObjectTypeId = processCacheableUri(genericObject.getObjectType(), jdbcSession);
+        row.genericObjectTypeId = processCacheableUri(genericObject.getObjectType());
 
         return row;
     }

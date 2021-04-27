@@ -17,7 +17,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
-import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslJsonbType;
@@ -65,9 +64,7 @@ public class SqaleRepoContext extends SqlRepoContext {
     // This has nothing to do with "repo cache" which is higher than this.
     @PostConstruct
     public void clearCaches() {
-        try (JdbcSession jdbcSession = newJdbcSession().startReadOnlyTransaction()) {
-            uriCache.initialize(jdbcSession);
-        }
+        uriCache.initialize(this::newJdbcSession);
     }
 
     /** @see UriCache#searchId(QName) */
@@ -82,7 +79,7 @@ public class SqaleRepoContext extends SqlRepoContext {
     }
 
     /** @see UriCache#resolveUriToId(String) */
-    public Integer resolveUriToId(String uri) {
+    public @NotNull Integer resolveUriToId(String uri) {
         return uriCache.resolveUriToId(uri);
     }
 
@@ -92,7 +89,7 @@ public class SqaleRepoContext extends SqlRepoContext {
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
-    public Integer processCacheableUri(String uri, JdbcSession jdbcSession) {
-        return uriCache.processCacheableUri(uri, jdbcSession);
+    public Integer processCacheableUri(String uri) {
+        return uriCache.processCacheableUri(uri);
     }
 }

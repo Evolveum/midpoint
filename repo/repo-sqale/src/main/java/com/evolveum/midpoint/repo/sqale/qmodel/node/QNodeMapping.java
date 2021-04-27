@@ -25,7 +25,7 @@ public class QNodeMapping
     private QNodeMapping() {
         super(QNode.TABLE_NAME, DEFAULT_ALIAS_NAME, NodeType.class, QNode.class);
 
-        addItemMapping(F_NODE_IDENTIFIER, stringMapper(path(q -> q.nodeIdentifier)));
+        addItemMapping(F_NODE_IDENTIFIER, stringMapper(q -> q.nodeIdentifier));
     }
 
     @Override

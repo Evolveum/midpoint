@@ -8,32 +8,47 @@ package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
 import java.util.UUID;
 
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTransformerBase;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-public class ReferenceSqlTransformer<Q extends QReference<R>, R extends MReference>
-        extends SqaleTransformerBase<ObjectReferenceType, Q, R> {
+/**
+ * @param <Q> type of entity path for the reference table
+ * @param <R> type of the transformed data, a row bean
+ * @param <OR> row type of the reference owner
+ */
+public class ReferenceSqlTransformer<Q extends QReference<R, OR>, R extends MReference, OR>
+        extends SqaleTransformerBase<Referencable, Q, R>
+        implements TransformerForOwnedBy<Referencable, R, OR> {
+
+    private final QReferenceMapping<Q, R, ?, OR> mapping;
 
     public ReferenceSqlTransformer(
-            SqlTransformerSupport transformerSupport, QReferenceMapping<Q, R> mapping) {
-        super(transformerSupport, mapping);
+            SqlTransformerSupport transformerSupport, QReferenceMapping<Q, R, ?, OR> mapping) {
+        super(transformerSupport);
+        this.mapping = mapping;
+    }
+
+    @Override
+    protected QReferenceMapping<Q, R, ?, OR> mapping() {
+        return mapping;
     }
 
     /**
-     * There is no need to override this as the {@link MReferenceOwner#createReference()} takes
-     * care of the FK-columns initialization directly on the owning row object.
+     * There is no need to override this, only reference creation is different and that is covered
+     * by {@link QReferenceMapping#newRowObject(Object)} including setting FK columns.
      * All the other columns are based on a single schema type, so there is no variation.
      */
-    public void insert(ObjectReferenceType schemaObject,
-            MReferenceOwner<R> ownerRow, JdbcSession jdbcSession) {
-        R row = ownerRow.createReference();
+    @Override
+    public R insert(Referencable schemaObject, OR ownerRow, JdbcSession jdbcSession) {
+        R row = mapping.newRowObject(ownerRow);
         // row.referenceType is DB generated, must be kept NULL, but it will match referenceType
-        row.relationId = processCacheableRelation(schemaObject.getRelation(), jdbcSession);
+        row.relationId = processCacheableRelation(schemaObject.getRelation());
         row.targetOid = UUID.fromString(schemaObject.getOid());
         row.targetType = schemaTypeToObjectType(schemaObject.getType());
 
         insert(row, jdbcSession);
+        return row;
     }
 }

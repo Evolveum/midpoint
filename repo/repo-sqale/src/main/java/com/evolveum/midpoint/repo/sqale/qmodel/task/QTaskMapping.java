@@ -24,38 +24,32 @@ public class QTaskMapping
         super(QTask.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 TaskType.class, QTask.class);
 
-        addItemMapping(TaskType.F_TASK_IDENTIFIER, stringMapper(path(q -> q.taskIdentifier)));
-        addItemMapping(TaskType.F_BINDING, enumMapper(path(q -> q.binding)));
-        addItemMapping(TaskType.F_CATEGORY, stringMapper(path(q -> q.category)));
+        addItemMapping(TaskType.F_TASK_IDENTIFIER, stringMapper(q -> q.taskIdentifier));
+        addItemMapping(TaskType.F_BINDING, enumMapper(q -> q.binding));
+        addItemMapping(TaskType.F_CATEGORY, stringMapper(q -> q.category));
         addItemMapping(TaskType.F_COMPLETION_TIMESTAMP,
-                timestampMapper(path(q -> q.completionTimestamp)));
-        addItemMapping(TaskType.F_EXECUTION_STATUS,
-                enumMapper(path(q -> q.executionStatus)));
+                timestampMapper(q -> q.completionTimestamp));
+        addItemMapping(TaskType.F_EXECUTION_STATUS, enumMapper(q -> q.executionStatus));
         // TODO byte[] fullResult mapping - probably does not make sense?
-        addItemMapping(TaskType.F_HANDLER_URI,
-                uriMapper(path(q -> q.handlerUriId)));
+        addItemMapping(TaskType.F_HANDLER_URI, uriMapper(q -> q.handlerUriId));
         addItemMapping(TaskType.F_LAST_RUN_FINISH_TIMESTAMP,
-                timestampMapper(path(q -> q.lastRunFinishTimestamp)));
+                timestampMapper(q -> q.lastRunFinishTimestamp));
         addItemMapping(TaskType.F_LAST_RUN_START_TIMESTAMP,
-                timestampMapper(path(q -> q.lastRunStartTimestamp)));
-        addItemMapping(TaskType.F_NODE, stringMapper(path(q -> q.node)));
+                timestampMapper(q -> q.lastRunStartTimestamp));
+        addItemMapping(TaskType.F_NODE, stringMapper(q -> q.node));
         addItemMapping(TaskType.F_OBJECT_REF, refMapper(
-                path(q -> q.objectRefTargetOid),
-                path(q -> q.objectRefTargetType),
-                path(q -> q.objectRefRelationId)));
+                q -> q.objectRefTargetOid,
+                q -> q.objectRefTargetType,
+                q -> q.objectRefRelationId));
         addItemMapping(TaskType.F_OWNER_REF, refMapper(
-                path(q -> q.ownerRefTargetOid),
-                path(q -> q.ownerRefTargetType),
-                path(q -> q.ownerRefRelationId)));
-        addItemMapping(TaskType.F_PARENT, stringMapper(path(q -> q.parent)));
-        addItemMapping(TaskType.F_RECURRENCE,
-                enumMapper(path(q -> q.recurrence)));
-        addItemMapping(TaskType.F_RESULT_STATUS,
-                enumMapper(path(q -> q.resultStatus)));
-        addItemMapping(TaskType.F_THREAD_STOP_ACTION,
-                enumMapper(path(q -> q.threadStopAction)));
-        addItemMapping(TaskType.F_WAITING_REASON,
-                enumMapper(path(q -> q.waitingReason)));
+                q -> q.ownerRefTargetOid,
+                q -> q.ownerRefTargetType,
+                q -> q.ownerRefRelationId));
+        addItemMapping(TaskType.F_PARENT, stringMapper(q -> q.parent));
+        addItemMapping(TaskType.F_RECURRENCE, enumMapper(q -> q.recurrence));
+        addItemMapping(TaskType.F_RESULT_STATUS, enumMapper(q -> q.resultStatus));
+        addItemMapping(TaskType.F_THREAD_STOP_ACTION, enumMapper(q -> q.threadStopAction));
+        addItemMapping(TaskType.F_WAITING_REASON, enumMapper(q -> q.waitingReason));
         // TODO dependentTaskIdentifiers String[] mapping not supported yet
     }
 

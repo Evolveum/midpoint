@@ -1,18 +1,10 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.util.statistics;
-
-import ch.qos.logback.classic.Level;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
-import org.aopalliance.intercept.MethodInvocation;
-import org.slf4j.MDC;
 
 import java.io.Serializable;
 import java.lang.management.ManagementFactory;
@@ -20,6 +12,14 @@ import java.lang.management.ThreadMXBean;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import ch.qos.logback.classic.Level;
+import org.aopalliance.intercept.MethodInvocation;
+import org.slf4j.MDC;
+
+import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 
 /**
  * This class provides basically the functionality of MidpointInterceptor. However it was refactored to be callable also
@@ -87,7 +87,7 @@ public final class OperationInvocationRecord implements Serializable {
             methodName = "unknownMethod";
         } else {
             className = operationName.substring(0, i);
-            methodName = operationName.substring(i+1);
+            methodName = operationName.substring(i + 1);
         }
         OperationInvocationRecord ctx = new OperationInvocationRecord(className, methodName, measureCpuTime);
         ctx.beforeCall(arguments);
@@ -141,12 +141,12 @@ public final class OperationInvocationRecord implements Serializable {
     private void beforeCall(Object[] arguments) {
         previousSubsystem = swapSubsystemMark(subsystem != null ? subsystem.name() : null);
 
-        StringBuilder infoLog = new StringBuilder("#### Entry: ");
         invocationId = ID_COUNTER.incrementAndGet();
 
         if (debugEnabled) {
+            StringBuilder infoLog = new StringBuilder("#### Entry: ");
             infoLog.append(invocationId);
-
+            infoLog.append(" ");
             if (traceEnabled) {
                 String depthStringValue = MDC.get(OperationExecutionLogger.MDC_DEPTH_KEY);
                 if (depthStringValue == null || depthStringValue.isEmpty()) {
@@ -155,9 +155,7 @@ public final class OperationInvocationRecord implements Serializable {
                     callDepth = Integer.parseInt(depthStringValue) + 1;
                 }
                 MDC.put(OperationExecutionLogger.MDC_DEPTH_KEY, Integer.toString(callDepth));
-                for (int i = 0; i < callDepth; i++) {
-                    infoLog.append(OperationExecutionLogger.INDENT_STRING);
-                }
+                infoLog.append(OperationExecutionLogger.INDENT_STRING.repeat(Math.max(0, callDepth)));
             }
 
             infoLog.append(shortenedClassName);
@@ -229,9 +227,7 @@ public final class OperationInvocationRecord implements Serializable {
             sb.append(invocationId);
             sb.append(" ");
             if (traceEnabled) {
-                for (int i = 0; i < callDepth + 1; i++) {
-                    sb.append(OperationExecutionLogger.INDENT_STRING);
-                }
+                sb.append(OperationExecutionLogger.INDENT_STRING.repeat(Math.max(0, callDepth + 1)));
             }
             sb.append(shortenedClassName);
             sb.append("->");

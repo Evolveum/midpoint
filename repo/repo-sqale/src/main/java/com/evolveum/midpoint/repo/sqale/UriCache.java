@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -31,8 +32,19 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * no DB access by the URI cache itself;
  * * `resolve` returns URI/ID for ID/URI or throws exception if not found, this is for situations
  * where the entry for URI is expected to exist already, still no DB access required;
- * * finally, {@link #processCacheableUri(String, JdbcSession)} is the only operation that accesses
+ * * finally, {@link #processCacheableUri(String)} is the only operation that accesses
  * the database if the URI is not found in the cache in order to write it there.
+ *
+ * [NOTE]
+ * URI is added in the database in its own separate transaction.
+ * It is tempting to add cached URI as part of the existing transaction, but when the provided
+ * transaction is rolled back, the cache still thinks the URI row is already there.
+ * This could be avoided if the runtime maps were updated *only* after the row was successfully
+ * read from the DB in other operations - which beats the purposes of those fast operations.
+ * Instead we risk adding row that is never used as it is no harm; it will likely be used later.
+ * While there is a potential "attack" on the URI cache, it is good enough for now.
+ * Later perhaps only part of the `m_uri` table will be cached in the runtime and then it may be
+ * possible.
  */
 public class UriCache {
 
@@ -43,22 +55,35 @@ public class UriCache {
      * and returning `null` or throwing exception would not make sense.
      * Typical case is using it for query predicate when searching for unknown URI should result
      * in a condition comparing URI ID attribute (e.g. relation_id) to id that will not be found.
+     * This is completely transient and can be changed if the need arises.
      */
     public static final int UNKNOWN_ID = -1;
 
     private final Map<Integer, String> idToUri = new ConcurrentHashMap<>();
     private final Map<String, Integer> uriToId = new ConcurrentHashMap<>();
 
-    public synchronized void initialize(JdbcSession jdbcSession) {
+    private Supplier<JdbcSession> jdbcSessionSupplier;
+
+    /**
+     * Initializes the URI cache.
+     * Provided {@link JdbcSession} supplier will be used for later writes as well.
+     */
+    public synchronized void initialize(Supplier<JdbcSession> jdbcSessionSupplier) {
+        this.jdbcSessionSupplier = jdbcSessionSupplier;
+
         // this can be called repeatedly in tests, so the clear may be necessary
         idToUri.clear();
         uriToId.clear();
 
         QUri uri = QUri.DEFAULT;
-        List<MUri> result = jdbcSession.newQuery()
-                .select(uri)
-                .from(uri)
-                .fetch();
+        List<MUri> result;
+        try (JdbcSession jdbcSession = jdbcSessionSupplier.get().startReadOnlyTransaction()) {
+            result = jdbcSession.newQuery()
+                    .select(uri)
+                    .from(uri)
+                    .fetch();
+            jdbcSession.commit();
+        }
 
         for (MUri row : result) {
             updateMaps(row);
@@ -129,10 +154,12 @@ public class UriCache {
      * Returns ID for URI creating new cache row in DB as needed.
      * Returns null for null URI parameter.
      */
-    public synchronized @Nullable Integer processCacheableUri(
-            @Nullable String uri, JdbcSession jdbcSession) {
+    public synchronized @Nullable Integer processCacheableUri(@Nullable String uri) {
         if (uri == null) {
             return null;
+        }
+        if (jdbcSessionSupplier == null) {
+            throw new IllegalStateException("URI cache was not initialized yet!");
         }
 
         Integer id = getId(uri);
@@ -141,10 +168,13 @@ public class UriCache {
         }
 
         QUri qu = QUri.DEFAULT;
-        id = jdbcSession.newInsert(qu)
-                .set(qu.uri, uri)
-                .executeWithKey(qu.id);
-        updateMaps(MUri.of(id, uri));
+        try (JdbcSession jdbcSession = jdbcSessionSupplier.get().startTransaction()) {
+            id = jdbcSession.newInsert(qu)
+                    .set(qu.uri, uri)
+                    .executeWithKey(qu.id);
+            updateMaps(MUri.of(id, uri));
+            jdbcSession.commit();
+        }
 
         LOGGER.debug("URI cache inserted URI={} under ID={}", uri, id);
         return id;

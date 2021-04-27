@@ -12,32 +12,34 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
 /**
  * Mapping between {@link QTrigger} and {@link TriggerType}.
+ *
+ * @param <OR> type of the owner row
  */
-public class QTriggerMapping
-        extends QContainerMapping<TriggerType, QTrigger, MTrigger> {
+public class QTriggerMapping<OR extends MObject>
+        extends QContainerMapping<TriggerType, QTrigger<OR>, MTrigger, OR> {
 
     public static final String DEFAULT_ALIAS_NAME = "trg";
 
-    public static final QTriggerMapping INSTANCE = new QTriggerMapping();
+    public static final QTriggerMapping<MObject> INSTANCE = new QTriggerMapping<>();
 
+    // We can't declare Class<QTrigger<OR>>.class, so we cheat a bit.
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private QTriggerMapping() {
         super(QTrigger.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                TriggerType.class, QTrigger.class);
+                TriggerType.class, (Class) QTrigger.class);
 
-        addItemMapping(TriggerType.F_HANDLER_URI,
-                uriMapper(path(q -> q.handlerUriId)));
-        addItemMapping(TriggerType.F_TIMESTAMP,
-                timestampMapper(path(q -> q.timestampValue)));
+        addItemMapping(TriggerType.F_HANDLER_URI, uriMapper(q -> q.handlerUriId));
+        addItemMapping(TriggerType.F_TIMESTAMP, timestampMapper(q -> q.timestampValue));
     }
 
     @Override
-    protected QTrigger newAliasInstance(String alias) {
-        return new QTrigger(alias);
+    protected QTrigger<OR> newAliasInstance(String alias) {
+        return new QTrigger<>(alias);
     }
 
     @Override
-    public TriggerSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
-        return new TriggerSqlTransformer(transformerSupport, this);
+    public TriggerSqlTransformer<OR> createTransformer(SqlTransformerSupport transformerSupport) {
+        return new TriggerSqlTransformer<>(transformerSupport, this);
     }
 
     @Override

@@ -102,7 +102,7 @@ CREATE TYPE SynchronizationSituationType AS ENUM (
 
 CREATE TYPE TaskBindingType AS ENUM ('LOOSE', 'TIGHT');
 
-CREATE TYPE TaskExecutionStatusType AS ENUM ('RUNNABLE', 'WAITING', 'SUSPENDED', 'CLOSED');
+CREATE TYPE TaskExecutionStateType AS ENUM ('RUNNING', 'RUNNABLE', 'WAITING', 'SUSPENDED', 'CLOSED');
 
 CREATE TYPE TaskRecurrenceType AS ENUM ('SINGLE', 'RECURRING');
 
@@ -1036,7 +1036,7 @@ CREATE TABLE m_task (
     binding TaskBindingType,
     category TEXT/*VARCHAR(255)*/,
     completionTimestamp TIMESTAMPTZ,
-    executionStatus TaskExecutionStatusType,
+    executionStatus TaskExecutionStateType,
     fullResult BYTEA,
     handlerUri_id INTEGER REFERENCES m_uri(id),
     lastRunStartTimestamp TIMESTAMPTZ,
@@ -1255,7 +1255,7 @@ CREATE TABLE m_assignment_type (
     modifyChannel_id INTEGER,
     modifyTimestamp TIMESTAMPTZ,
 
-    PRIMARY KEY (owner_oid, cid),
+    -- create PRIMARY KEY (owner_oid, cid) on sub-tables
     -- no need to index owner_oid, it's part of the PK index
 
     CHECK (FALSE) NO INHERIT

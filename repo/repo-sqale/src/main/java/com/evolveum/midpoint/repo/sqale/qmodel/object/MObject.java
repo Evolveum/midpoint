@@ -10,18 +10,17 @@ import java.time.Instant;
 import java.util.UUID;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceOwner;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 
 /**
  * Querydsl "row bean" type related to {@link QObject}.
  * It is also used for other mappings/objects types with no additional columns in their tables.
  */
-public class MObject implements MReferenceOwner<MReference> {
+public class MObject {
 
     public UUID oid;
-    // objectType is read-only, it must be null before insert/updates of the whole M-bean
+    // generated column must be null for insert/updates, but trigger fixes it, so we can use it!
     public MObjectType objectType;
     public String nameOrig;
     public String nameNorm;
@@ -54,20 +53,7 @@ public class MObject implements MReferenceOwner<MReference> {
     }
 
     @Override
-    public MReference createReference() {
-        MReference ref = new MReference();
-        ref.ownerOid = oid;
-        return ref;
-    }
-
-    @Override
     public String toString() {
-        return "MObject{" +
-                "oid=" + oid +
-                ", objectType=" + objectType +
-                ", nameOrig='" + nameOrig + '\'' +
-                ", containerIdSeq=" + containerIdSeq +
-                ", version=" + version +
-                '}';
+        return SqaleUtils.toString(this);
     }
 }

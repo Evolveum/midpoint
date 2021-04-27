@@ -20,11 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
-import com.evolveum.midpoint.repo.sqale.UriCache;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceOwner;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.ReferenceSqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
@@ -40,13 +38,17 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+/**
+ * @param <S> schema type
+ * @param <Q> type of entity path
+ * @param <R> type of the row bean for the table
+ */
 public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBase<R>, R>
         implements SqlTransformer<S, Q, R> {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected final SqaleTransformerSupport transformerSupport;
-    protected final QueryTableMapping<S, Q, R> mapping;
 
     /**
      * Constructor uses {@link SqlTransformerSupport} type even when it really is
@@ -55,12 +57,11 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
      * (Alternative is to parametrize {@link QueryTableMapping} with various {@link SqlTransformer}
      * types which is not convenient at all. This little downcast is low price to pay.)
      */
-    protected SqaleTransformerBase(
-            SqlTransformerSupport transformerSupport,
-            QueryTableMapping<S, Q, R> mapping) {
+    protected SqaleTransformerBase(SqlTransformerSupport transformerSupport) {
         this.transformerSupport = (SqaleTransformerSupport) transformerSupport;
-        this.mapping = mapping;
     }
+
+    protected abstract QueryTableMapping<S, Q, R> mapping();
 
     @Override
     public S toSchemaObject(R row) {
@@ -120,18 +121,11 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
         return MiscUtil.trimString(value, columnMetadata.getSize());
     }
 
-    /**
-     * Returns ID for relation QName without going ot database.
-     * Relation is normalized before consulting {@link UriCache}.
-     * Never returns null, returns default ID for configured default relation.
-     */
-    protected @NotNull Integer resolveRelationToId(QName qName) {
-        return resolveUriToId(
-                QNameUtil.qNameToUri(
-                        transformerSupport.normalizeRelation(qName)));
+    protected @NotNull Integer searchCachedRelationId(QName qName) {
+        return transformerSupport.searchCachedRelationId(qName);
     }
 
-    /** Returns ID for cached URI without going ot database. */
+    /** Returns ID for cached URI without going to the database. */
     protected Integer resolveUriToId(String uri) {
         return transformerSupport.resolveUriToId(uri);
     }
@@ -141,21 +135,21 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
      * Relation is normalized before consulting the cache.
      * Never returns null, returns default ID for configured default relation.
      */
-    protected Integer processCacheableRelation(QName qName, JdbcSession jdbcSession) {
-        return transformerSupport.processCacheableRelation(qName, jdbcSession);
+    protected Integer processCacheableRelation(QName qName) {
+        return transformerSupport.processCacheableRelation(qName);
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
-    protected Integer processCacheableUri(String uri, JdbcSession jdbcSession) {
+    protected Integer processCacheableUri(String uri) {
         return uri != null
-                ? transformerSupport.processCacheableUri(uri, jdbcSession)
+                ? transformerSupport.processCacheableUri(uri)
                 : null;
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
-    protected Integer processCacheableUri(QName qName, JdbcSession jdbcSession) {
+    protected Integer processCacheableUri(QName qName) {
         return qName != null
-                ? transformerSupport.processCacheableUri(QNameUtil.qNameToUri(qName), jdbcSession)
+                ? transformerSupport.processCacheableUri(QNameUtil.qNameToUri(qName))
                 : null;
     }
 
@@ -163,12 +157,12 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
      * Returns IDs as Integer array for URI strings creating new cache row in DB as needed.
      * Returns null for null or empty list on input.
      */
-    protected Integer[] processCacheableUris(List<String> uris, JdbcSession jdbcSession) {
+    protected Integer[] processCacheableUris(List<String> uris) {
         if (uris == null || uris.isEmpty()) {
             return null;
         }
         return uris.stream()
-                .map(uri -> processCacheableUri(uri, jdbcSession))
+                .map(uri -> processCacheableUri(uri))
                 .toArray(Integer[]::new);
     }
 
@@ -190,21 +184,21 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
         }
     }
 
-    protected void setReference(ObjectReferenceType ref, JdbcSession jdbcSession,
+    protected void setReference(ObjectReferenceType ref,
             Consumer<UUID> targetOidConsumer, Consumer<MObjectType> targetTypeConsumer,
             Consumer<Integer> relationIdConsumer) {
         if (ref != null) {
             targetOidConsumer.accept(oidToUUid(ref.getOid()));
             targetTypeConsumer.accept(schemaTypeToObjectType(ref.getType()));
-            relationIdConsumer.accept(processCacheableRelation(ref.getRelation(), jdbcSession));
+            relationIdConsumer.accept(processCacheableRelation(ref.getRelation()));
         }
     }
 
-    protected <REF extends MReference> void storeRefs(
-            @NotNull MReferenceOwner<REF> ownerRow, @NotNull List<ObjectReferenceType> refs,
-            @NotNull QReferenceMapping<?, REF> mapping, @NotNull JdbcSession jdbcSession) {
+    protected <REF extends MReference, OQ extends FlexibleRelationalPathBase<OR>, OR> void storeRefs(
+            @NotNull OR ownerRow, @NotNull List<ObjectReferenceType> refs,
+            @NotNull QReferenceMapping<?, REF, OQ, OR> mapping, @NotNull JdbcSession jdbcSession) {
         if (!refs.isEmpty()) {
-            ReferenceSqlTransformer<?, REF> transformer =
+            ReferenceSqlTransformer<?, REF, OR> transformer =
                     mapping.createTransformer(transformerSupport);
             refs.forEach(ref -> transformer.insert(ref, ownerRow, jdbcSession));
         }
@@ -219,7 +213,7 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
 
     /** Convenient insert shortcut when the row is fully populated. */
     protected void insert(R row, JdbcSession jdbcSession) {
-        jdbcSession.newInsert(mapping.defaultAlias())
+        jdbcSession.newInsert(mapping().defaultAlias())
                 .populate(row)
                 .execute();
     }
