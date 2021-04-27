@@ -1649,10 +1649,10 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(result).isSuccess();
 
         and("serialized form (fullObject) is updated");
-        UserType UserObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
-        assertThat(UserObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        List<AssignmentType> assignments = UserObject.getAssignment();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = userObject.getAssignment();
         assertThat(assignments).isNotNull();
         // next free CID was assigned
         assertThat(assignments.get(0).getId()).isEqualTo(originalRow.containerIdSeq);
@@ -1692,14 +1692,14 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(result).isSuccess();
 
         and("serialized form (fullObject) is updated");
-        UserType UserObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
-        assertThat(UserObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        List<AssignmentType> assignments = UserObject.getAssignment();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = userObject.getAssignment();
         assertThat(assignments).isNotNull();
         assertThat(assignments.get(0).getOrder()).isEqualTo(47);
 
-        and("assignment row is created");
+        and("assignment row is updated properly");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
@@ -1743,14 +1743,14 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(result).isSuccess();
 
         and("serialized form (fullObject) is updated");
-        UserType UserObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
-        assertThat(UserObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        List<AssignmentType> assignments = UserObject.getAssignment();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = userObject.getAssignment();
         assertThat(assignments).hasSize(3)
                 .allMatch(a -> a.getId() != null && a.getId() < originalRow.containerIdSeq + 2);
 
-        and("assignment rows are created");
+        and("new assignment rows are created");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq + 2);
@@ -1774,7 +1774,113 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .allMatch(rr -> rr.targetType == MObjectType.USER);
     }
 
-    // TODO ok to fail now
+    @Test
+    public void test303ModificationsOnOneAssignmentDoesNotAffectOthers()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta changing item inside single assignments for user 1");
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        long assOrder49Cid = selectOne(a,
+                a.ownerOid.eq(UUID.fromString(user1Oid)), a.orderValue.eq(49)).cid;
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, assOrder49Cid, AssignmentType.F_ORDER)
+                .replace(50)
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType UserObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(UserObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = UserObject.getAssignment();
+        assertThat(assignments).hasSize(3)
+                .anyMatch(ass -> ass.getOrder() == 47)
+                .anyMatch(ass -> ass.getOrder() == 48)
+                .anyMatch(ass -> ass.getOrder() == 50);
+
+        and("assignment row is modified");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        MAssignment aRow = selectOne(a,
+                a.ownerOid.eq(UUID.fromString(user1Oid)), a.cid.eq(assOrder49Cid));
+        assertThat(aRow.orderValue).isEqualTo(50);
+
+        and("no other assignment rows are modified");
+        assertThat(count(a, a.ownerOid.eq(UUID.fromString(user1Oid)), a.orderValue.eq(50)))
+                .isEqualTo(1);
+    }
+
+    @Test
+    public void test304MultipleModificationsOfExistingAssignment()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta changing multiple assignments for user 1");
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        long assOrder48Cid = selectOne(a,
+                a.ownerOid.eq(UUID.fromString(user1Oid)), a.orderValue.eq(48)).cid;
+        long assOrder50Cid = selectOne(a,
+                a.ownerOid.eq(UUID.fromString(user1Oid)), a.orderValue.eq(50)).cid;
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, assOrder48Cid, AssignmentType.F_ORDER)
+                .replace(50)
+                .item(UserType.F_ASSIGNMENT, assOrder48Cid, AssignmentType.F_METADATA)
+                .replace()
+                .item(UserType.F_ASSIGNMENT, assOrder50Cid, AssignmentType.F_CONSTRUCTION)
+                .replace()
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType UserObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(UserObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = UserObject.getAssignment();
+        assertThat(assignments).hasSize(3)
+                .anyMatch(ass -> ass.getOrder() == 47) // first one stays 47
+                .anyMatch(ass -> ass.getOrder() == 50  // previously 48
+                        && ass.getMetadata() == null // removed metadata
+                        && ass.getTargetRef() != null)
+                .anyMatch(ass -> ass.getOrder() == 50
+                        && ass.getMetadata() == null // never had any
+                        && ass.getTargetRef() == null
+                        && ass.getConstruction() == null); // removed construction
+
+        and("assignment row is created");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        assertThat(select(a, a.ownerOid.eq(UUID.fromString(user1Oid)))).hasSize(3)
+                .anyMatch(ass -> ass.orderValue == 47) // first one stays 47
+                .anyMatch(ass -> ass.orderValue == 50  // previously 48
+                        && ass.createChannelId == null // removed metadata
+                        && ass.targetRefTargetOid != null)
+                .anyMatch(ass -> ass.orderValue == 50
+                        && ass.createChannelId == null // never had any
+                        && ass.targetRefTargetOid == null
+                        && ass.resourceRefTargetOid == null); // removed construction
+
+        // Approver references were removed from the only assignment that had them.
+        QAssignmentReference ar =
+                QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_CREATE_APPROVER.defaultAlias();
+        assertThat(count(ar, ar.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
+    }
+
+    // TODO ok to fail now, will be fixed after finishing other 30x tests
     @Test
     public void test309DeleteAssignmentDeletesItFromTable()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
@@ -1794,10 +1900,10 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(result).isSuccess();
 
         and("serialized form (fullObject) is updated and has no assignment now");
-        UserType UserObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
-        assertThat(UserObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        List<AssignmentType> assignments = UserObject.getAssignment();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = userObject.getAssignment();
         assertThat(assignments).isEmpty();
 
         and("externalized column is updated");
@@ -1807,8 +1913,6 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
         assertThat(select(a, a.ownerOid.eq(UUID.fromString(user1Oid)))).isEmpty();
     }
-
-    // TODO: "indexed" containers: .item(ItemPath.create(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
     // endregion
 
     // TODO test for multi-value (e.g. subtypes) with item delta with both add and delete lists

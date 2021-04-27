@@ -34,8 +34,6 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 public class ContainerTableRelationResolver<
         Q extends FlexibleRelationalPathBase<R>, R,
         TS extends Containerable, TQ extends QContainer<TR, R> & QOwnedBy<R>, TR extends MContainer>
-        // TODO how to add & QOwnedByMapping without clashing on transformer? perhaps it will not be necessary to capture here
-//        M extends SqaleTableMapping<?, TQ, TR>> // without & the M is not necessary
         implements SqaleItemRelationResolver<Q, R> {
 
     private final QContainerMapping<TS, TQ, TR, R> targetMapping;
@@ -66,7 +64,14 @@ public class ContainerTableRelationResolver<
     @Override
     public ContainerTableUpdateContext<TS, TQ, TR, R> resolve(
             SqaleUpdateContext<?, Q, R> context, ItemPath itemPath) {
-        // TODO actually use that item path
-        return new ContainerTableUpdateContext<>(context, targetMapping);
+        if (itemPath == null || itemPath.size() != 2 || !(itemPath.getSegment(1) instanceof Long)) {
+            throw new IllegalArgumentException(
+                    "Item path provided for container table relation resolver must have two"
+                            + " segments with PCV ID as the second");
+        }
+        TR row = targetMapping.newRowObject(context.row());
+        //noinspection ConstantConditions
+        row.cid = (long) itemPath.getSegment(1);
+        return new ContainerTableUpdateContext<>(context, targetMapping, row);
     }
 }

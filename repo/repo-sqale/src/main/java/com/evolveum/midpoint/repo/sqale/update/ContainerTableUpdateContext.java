@@ -34,17 +34,22 @@ public class ContainerTableUpdateContext<S extends Containerable, Q extends QCon
     private final SQLUpdateClause update;
     private final QContainerMapping<S, Q, R, OR> mapping;
 
+    /**
+     * Creates the context for container component of the path, skeleton/fake row of the container
+     * with pre-filled CID and FK referencing the owner row must be provided.
+     */
     public ContainerTableUpdateContext(
             SqaleUpdateContext<?, ?, OR> parentContext,
-            QContainerMapping<S, Q, R, OR> mapping) {
-        super(parentContext, null); // TODO what is row? fake row with owner + id
+            QContainerMapping<S, Q, R, OR> mapping,
+            R row) {
+        super(parentContext, row);
         this.mapping = mapping;
 
         path = mapping.defaultAlias();
         // we create the update, but only use it if set methods are used
         update = jdbcSession.newUpdate(path)
-                .where(path.isOwnedBy(parentContext.row()));
-        // TODO add CID condition after writing test that checks only the right container is changed :-)
+                .where(path.isOwnedBy(parentContext.row())
+                        .and(path.cid.eq(row.cid)));
     }
 
     public Q path() {
