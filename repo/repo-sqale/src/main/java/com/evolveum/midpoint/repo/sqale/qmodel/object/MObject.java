@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 
 /**
@@ -53,12 +54,6 @@ public class MObject {
 
     @Override
     public String toString() {
-        return "MObject{" +
-                "oid=" + oid +
-                ", objectType=" + objectType +
-                ", nameOrig='" + nameOrig + '\'' +
-                ", containerIdSeq=" + containerIdSeq +
-                ", version=" + version +
-                '}';
+        return SqaleUtils.toString(this);
     }
 }

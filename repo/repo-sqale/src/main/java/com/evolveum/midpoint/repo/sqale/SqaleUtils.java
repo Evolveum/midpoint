@@ -6,6 +6,11 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
+import java.lang.reflect.Field;
+
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -43,5 +48,32 @@ public class SqaleUtils {
     public static <S> Class<S> getClass(S object) {
         //noinspection unchecked
         return (Class<S>) object.getClass();
+    }
+
+    public static String toString(Object object) {
+        return new ToStringUtil(object).toString();
+    }
+
+    private static class ToStringUtil extends ReflectionToStringBuilder {
+
+        @SuppressWarnings("DoubleBraceInitialization")
+        private static final ToStringStyle STYLE = new ToStringStyle() {{
+            setFieldSeparator(", ");
+            setUseShortClassName(true);
+            setUseIdentityHashCode(false);
+        }};
+
+        private ToStringUtil(Object object) {
+            super(object, STYLE);
+        }
+
+        @Override
+        protected boolean accept(Field field) {
+            try {
+                return super.accept(field) && field.get(getObject()) != null;
+            } catch (IllegalAccessException e) {
+                return super.accept(field);
+            }
+        }
     }
 }
