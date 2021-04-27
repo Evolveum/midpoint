@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 
 /**
  * Update context for owned containers stored in tables.
@@ -31,11 +32,11 @@ public class ContainerTableUpdateContext<S extends Containerable, Q extends QCon
 
     private final Q path;
     private final SQLUpdateClause update;
-    private final SqaleTableMapping<S, Q, R> mapping;
+    private final QContainerMapping<S, Q, R, OR> mapping;
 
     public ContainerTableUpdateContext(
             SqaleUpdateContext<?, ?, OR> parentContext,
-            SqaleTableMapping<S, Q, R> mapping) {
+            QContainerMapping<S, Q, R, OR> mapping) {
         super(parentContext, null); // TODO what is row? fake row with owner + id
         this.mapping = mapping;
 

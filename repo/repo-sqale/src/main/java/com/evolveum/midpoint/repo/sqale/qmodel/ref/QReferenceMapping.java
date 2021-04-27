@@ -11,6 +11,7 @@ import java.util.function.BiFunction;
 import com.querydsl.core.types.Predicate;
 
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedByMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;

@@ -48,4 +48,11 @@ public class QLookupTableRowMapping
     public MLookupTableRow newRowObject() {
         return new MLookupTableRow();
     }
+
+    @Override
+    public MLookupTableRow newRowObject(MLookupTable ownerRow) {
+        MLookupTableRow row = newRowObject();
+        row.ownerOid = ownerRow.oid;
+        return row;
+    }
 }

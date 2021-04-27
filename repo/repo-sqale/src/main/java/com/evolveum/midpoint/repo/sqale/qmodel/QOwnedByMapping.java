@@ -4,9 +4,8 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale.qmodel.ref;
+package com.evolveum.midpoint.repo.sqale.qmodel;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedBy;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 
 /**
@@ -18,6 +17,9 @@ import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
  * @param <OR> row type of the owner object
  */
 public interface QOwnedByMapping<S, R, OR> {
+
+    /** Returns a row with foreign key fields referencing the provided owner row. */
+    R newRowObject(OR ownerRow);
 
     TransformerForOwnedBy<S, R, OR> createTransformer(SqlTransformerSupport transformerSupport);
 }

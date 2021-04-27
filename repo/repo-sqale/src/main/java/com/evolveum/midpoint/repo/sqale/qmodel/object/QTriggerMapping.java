@@ -46,4 +46,11 @@ public class QTriggerMapping<OR extends MObject>
     public MTrigger newRowObject() {
         return new MTrigger();
     }
+
+    @Override
+    public MTrigger newRowObject(OR ownerRow) {
+        MTrigger row = newRowObject();
+        row.ownerOid = ownerRow.oid;
+        return row;
+    }
 }

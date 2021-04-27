@@ -14,9 +14,9 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedBy;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.update.ContainerTableUpdateContext;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
@@ -38,11 +38,11 @@ public class ContainerTableRelationResolver<
 //        M extends SqaleTableMapping<?, TQ, TR>> // without & the M is not necessary
         implements SqaleItemRelationResolver<Q, R> {
 
-    private final SqaleTableMapping<TS, TQ, TR> targetMapping;
+    private final QContainerMapping<TS, TQ, TR, R> targetMapping;
     private final BiFunction<Q, TQ, Predicate> joinPredicate;
 
     public ContainerTableRelationResolver(
-            @NotNull SqaleTableMapping<TS, TQ, TR> targetMapping,
+            @NotNull QContainerMapping<TS, TQ, TR, R> targetMapping,
             @NotNull BiFunction<Q, TQ, Predicate> joinPredicate) {
         this.targetMapping = targetMapping;
         this.joinPredicate = joinPredicate;

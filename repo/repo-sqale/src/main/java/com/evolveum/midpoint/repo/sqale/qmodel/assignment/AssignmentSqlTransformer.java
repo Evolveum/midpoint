@@ -28,7 +28,7 @@ public class AssignmentSqlTransformer<OR extends MObject>
     @SuppressWarnings("DuplicatedCode")
     @Override
     public MAssignment insert(AssignmentType assignment, OR ownerRow, JdbcSession jdbcSession) {
-        MAssignment row = initRowObject(assignment, ownerRow.oid);
+        MAssignment row = initRowObject(assignment, ownerRow);
 
         row.ownerType = ownerRow.objectType;
         row.lifecycleState = assignment.getLifecycleState();

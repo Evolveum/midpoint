@@ -22,7 +22,7 @@ public class OperationExecutionSqlTransformer<OR extends MObject>
     @Override
     public MOperationExecution insert(
             OperationExecutionType schemaObject, OR ownerRow, JdbcSession jdbcSession) {
-        MOperationExecution row = initRowObject(schemaObject, ownerRow.oid);
+        MOperationExecution row = initRowObject(schemaObject, ownerRow);
 
         row.status = schemaObject.getStatus();
         row.recordType = schemaObject.getRecordType();

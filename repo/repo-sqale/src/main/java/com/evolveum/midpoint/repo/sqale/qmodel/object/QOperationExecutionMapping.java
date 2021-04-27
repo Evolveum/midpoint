@@ -60,4 +60,11 @@ public class QOperationExecutionMapping<OR extends MObject>
     public MOperationExecution newRowObject() {
         return new MOperationExecution();
     }
+
+    @Override
+    public MOperationExecution newRowObject(OR ownerRow) {
+        MOperationExecution row = newRowObject();
+        row.ownerOid = ownerRow.oid;
+        return row;
+    }
 }

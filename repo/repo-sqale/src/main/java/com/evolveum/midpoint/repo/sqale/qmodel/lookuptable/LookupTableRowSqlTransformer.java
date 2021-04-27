@@ -24,7 +24,7 @@ public class LookupTableRowSqlTransformer
     public MLookupTableRow insert(LookupTableRowType lookupTableRow,
             MLookupTable ownerRow, JdbcSession jdbcSession) {
 
-        MLookupTableRow row = initRowObject(lookupTableRow, ownerRow.oid);
+        MLookupTableRow row = initRowObject(lookupTableRow, ownerRow);
         row.key = lookupTableRow.getKey();
         row.value = lookupTableRow.getValue();
         setPolyString(lookupTableRow.getLabel(), o -> row.labelOrig = o, n -> row.labelNorm = n);

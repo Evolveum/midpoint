@@ -6,14 +6,12 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
-import java.util.UUID;
-
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTransformerBase;
+import com.evolveum.midpoint.repo.sqale.qmodel.TransformerForOwnedBy;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.TransformerForOwnedBy;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 
@@ -44,9 +42,8 @@ public class ContainerSqlTransformer
     /**
      * This creates the right type of object and fills in the base {@link MContainer} attributes.
      */
-    public R initRowObject(S schemaObject, UUID ownerOid) {
-        R row = mapping.newRowObject();
-        row.ownerOid = ownerOid;
+    public R initRowObject(S schemaObject, OR ownerRow) {
+        R row = mapping.newRowObject(ownerRow);
         row.cid = schemaObject.asPrismContainerValue().getId();
         // containerType is generated in DB, must be left null!
         return row;

@@ -9,9 +9,9 @@ package com.evolveum.midpoint.repo.sqale.qmodel.common;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedByMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ContainerSqlTransformer;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QOwnedByMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 
 /**
@@ -47,6 +47,12 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
     protected Q newAliasInstance(String alias) {
         //noinspection unchecked
         return (Q) new QContainer<>(MContainer.class, alias);
+    }
+
+    @Override
+    public R newRowObject(OR ownerRow) {
+        throw new UnsupportedOperationException(
+                "Container bean creation for owner row called on abstract container mapping");
     }
 
     @Override

@@ -123,4 +123,11 @@ public class QAssignmentMapping<OR extends MObject>
     public MAssignment newRowObject() {
         return new MAssignment();
     }
+
+    @Override
+    public MAssignment newRowObject(OR ownerRow) {
+        MAssignment row = newRowObject();
+        row.ownerOid = ownerRow.oid;
+        return row;
+    }
 }

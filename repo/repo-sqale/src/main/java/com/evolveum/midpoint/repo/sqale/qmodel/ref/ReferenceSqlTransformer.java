@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTransformerBase;
+import com.evolveum.midpoint.repo.sqale.qmodel.TransformerForOwnedBy;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 

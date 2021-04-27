@@ -21,7 +21,7 @@ public class TriggerSqlTransformer<OR extends MObject>
 
     @Override
     public MTrigger insert(TriggerType schemaObject, OR ownerRow, JdbcSession jdbcSession) {
-        MTrigger row = initRowObject(schemaObject, ownerRow.oid);
+        MTrigger row = initRowObject(schemaObject, ownerRow);
 
         row.handlerUriId = processCacheableUri(schemaObject.getHandlerUri());
         row.timestampValue = MiscUtil.asInstant(schemaObject.getTimestamp());
