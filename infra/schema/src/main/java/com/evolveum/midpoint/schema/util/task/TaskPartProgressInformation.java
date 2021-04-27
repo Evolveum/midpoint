@@ -55,7 +55,7 @@ public class TaskPartProgressInformation implements DebugDumpable, Serializable 
     public static TaskPartProgressInformation fromPersistentSubtask(TaskType task) {
         String partUri = task.getHandlerUri();
         boolean complete = task.getExecutionStatus() == TaskExecutionStateType.CLOSED;
-        BucketsProgressInformation bucketsProgress = BucketsProgressInformation.fromWorkState(task.getWorkState());
+        BucketsProgressInformation bucketsProgress = getBucketsProgressInformation(task);
         ItemsProgressInformation itemsProgress = ItemsProgressInformation.fromTask(task);
         return new TaskPartProgressInformation(partUri, complete, bucketsProgress, itemsProgress);
     }
@@ -76,9 +76,18 @@ public class TaskPartProgressInformation implements DebugDumpable, Serializable 
      */
     static TaskPartProgressInformation fromSimpleTask(TaskType task) {
         boolean complete = TaskWorkStateUtil.isAllWorkComplete(task);
-        BucketsProgressInformation bucketsProgress = BucketsProgressInformation.fromWorkState(task.getWorkState());
+        BucketsProgressInformation bucketsProgress = getBucketsProgressInformation(task);
         ItemsProgressInformation itemsProgress = ItemsProgressInformation.fromTask(task);
         return new TaskPartProgressInformation(null, complete, bucketsProgress, itemsProgress);
+    }
+
+    private static BucketsProgressInformation getBucketsProgressInformation(TaskType task) {
+        if (TaskWorkStateUtil.isWorker(task)) {
+            // Workers do not have complete information about buckets.
+            return null;
+        } else {
+            return BucketsProgressInformation.fromWorkState(task.getWorkState());
+        }
     }
 
     public String getPartOrHandlerUri() {
