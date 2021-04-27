@@ -24,9 +24,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.MAssignment;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
@@ -1711,6 +1709,72 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(aRow.targetRefTargetOid).isNotNull(); // target ref is still present
     }
 
+    @Test
+    public void test302AddingMoreAssignmentsIncludingNestedContainersAndRefs()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding two more assignments for user 1");
+        UUID roleOid = UUID.randomUUID();
+        UUID resourceOid = UUID.randomUUID();
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(new AssignmentType(prismContext)
+                                .targetRef(roleOid.toString(), RoleType.COMPLEX_TYPE)
+                                .metadata(new MetadataType()
+                                        .createChannel("create-channel")
+                                        .createApproverRef(UUID.randomUUID().toString(),
+                                                UserType.COMPLEX_TYPE)
+                                        .createApproverRef(UUID.randomUUID().toString(),
+                                                UserType.COMPLEX_TYPE))
+                                .order(48),
+                        new AssignmentType(prismContext)
+                                .construction(new ConstructionType()
+                                        .resourceRef(resourceOid.toString(),
+                                                ResourceType.COMPLEX_TYPE))
+                                .order(49))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType UserObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(UserObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = UserObject.getAssignment();
+        assertThat(assignments).hasSize(3)
+                .allMatch(a -> a.getId() != null && a.getId() < originalRow.containerIdSeq + 2);
+
+        and("assignment rows are created");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq + 2);
+
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRows).hasSize(3)
+                .anyMatch(aRow -> aRow.cid < originalRow.containerIdSeq) // previous one
+                .anyMatch(aRow -> aRow.cid == row.containerIdSeq - 2
+                        && aRow.orderValue == 48
+                        && aRow.targetRefTargetOid.equals(roleOid)
+                        && cachedUriById(aRow.createChannelId).equals("create-channel"))
+                .anyMatch(aRow -> aRow.cid == row.containerIdSeq - 1
+                        && aRow.resourceRefTargetOid.equals(resourceOid));
+
+        QAssignmentReference ar =
+                QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_CREATE_APPROVER.defaultAlias();
+        List<MAssignmentReference> refRows = select(ar, ar.ownerOid.eq(UUID.fromString(user1Oid))
+                .and(ar.assignmentCid.eq(row.containerIdSeq - 2)));
+        assertThat(refRows).hasSize(2)
+                .allMatch(rr -> rr.targetType == MObjectType.USER);
+    }
+
+    // TODO ok to fail now
     @Test
     public void test309DeleteAssignmentDeletesItFromTable()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
