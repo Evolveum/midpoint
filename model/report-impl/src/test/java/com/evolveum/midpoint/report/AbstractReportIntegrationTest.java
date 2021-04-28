@@ -23,14 +23,12 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.report.api.ReportConstants;
 
 import com.evolveum.midpoint.report.api.ReportManager;
-import com.evolveum.midpoint.report.impl.ReportJasperCreateTaskHandler;
 
 import com.evolveum.midpoint.report.impl.ReportTaskHandler;
 
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;

@@ -39,7 +39,7 @@ public class ReportDto implements Serializable {
     private String name;
     private String description;
     private JasperExportType exportType;
-    private JasperReportDto jasperReportDto;
+//    private JasperReportDto jasperReportDto;
     private byte[] templateStyle;
     private String virtualizer;
     private Integer virtualizerKickOn;
@@ -54,9 +54,9 @@ public class ReportDto implements Serializable {
     public ReportDto() {
     }
 
-    public ReportDto(byte[] reportJrxml) {
-        this.jasperReportDto = new JasperReportDto(reportJrxml);
-    }
+//    public ReportDto(byte[] reportJrxml) {
+//        this.jasperReportDto = new JasperReportDto(reportJrxml);
+//    }
 
     public ReportDto(ReportType reportType, boolean onlyForPromptingParams) {
         this.oid = reportType.getOid();
@@ -68,7 +68,7 @@ public class ReportDto implements Serializable {
             JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
             this.exportType = jasperConfig.getExport();
             //        this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
-            this.jasperReportDto = new JasperReportDto(jasperConfig.getTemplate(), onlyForPromptingParams);
+//            this.jasperReportDto = new JasperReportDto(jasperConfig.getTemplate(), onlyForPromptingParams);
             this.templateStyle = jasperConfig.getTemplateStyle();
             this.parent = !BooleanUtils.isFalse(jasperConfig.isParent());
             this.virtualizer = jasperConfig.getVirtualizer();
@@ -117,7 +117,7 @@ public class ReportDto implements Serializable {
 
             JasperReportEngineConfigurationType jasperConfig = new JasperReportEngineConfigurationType();
             jasperConfig.setExport(exportType);
-            jasperConfig.setTemplate(jasperReportDto.getTemplate());
+//            jasperConfig.setTemplate(jasperReportDto.getTemplate());
             jasperConfig.setTemplateStyle(templateStyle);
             jasperConfig.setVirtualizer(virtualizer);
             jasperConfig.setVirtualizerKickOn(virtualizerKickOn);
@@ -180,9 +180,9 @@ public class ReportDto implements Serializable {
         this.exportType = exportType;
     }
 
-    public JasperReportDto getJasperReportDto() {
-        return jasperReportDto;
-    }
+//    public JasperReportDto getJasperReportDto() {
+//        return jasperReportDto;
+//    }
 
     public String getVirtualizer() {
         return virtualizer;

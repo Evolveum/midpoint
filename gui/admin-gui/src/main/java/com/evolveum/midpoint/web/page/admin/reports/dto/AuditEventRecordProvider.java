@@ -10,10 +10,8 @@ import java.util.*;
 import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 
@@ -220,7 +218,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
             try {
                 ObjectPaging paging = getPrismContext().queryFactory().createPaging(WebComponentUtil.safeLongToInteger(first), WebComponentUtil.safeLongToInteger(count));
                 Predicate<PrismContainer> handler = (audit) -> auditRecordList.add((AuditEventRecordType) audit.getRealValue());
-                getPageBase().getModelInteractionService().searchObjectFromCollection(collectionRef, AuditEventRecordType.COMPLEX_TYPE, handler,
+                getPageBase().getModelInteractionService().processObjectsFromCollection(collectionRef, AuditEventRecordType.COMPLEX_TYPE, handler,
                         null, paging, null, task, task.getResult(), false);
             } catch (Exception e) {
                 result.recordFatalError(

@@ -54,8 +54,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
-import net.sf.jasperreports.engine.JRValueParameter;
-
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
@@ -1007,24 +1005,6 @@ public class ReportUtils {
         return property != null ?
                     String.join(",", property)
                     : defaultValue;
-    }
-
-    public static Object dumpParams(Map<String, ? extends JRValueParameter> parametersMap, int indent) {
-        StringBuilder sb = new StringBuilder();
-        for (Entry<String, ? extends JRValueParameter> entry : parametersMap.entrySet()) {
-            DebugUtil.debugDumpWithLabelToStringLn(sb, entry.getKey(), entry.getValue().getValue(), indent);
-        }
-        return sb.toString();
-    }
-
-    public static byte[] decodeIfNeeded(byte[] input) {
-        if (input == null || input.length == 0) {
-            return input;
-        }
-        if (input[0] == '<') {
-            return input;
-        }
-        return Base64.decodeBase64(input);
     }
 
     public static Map<String, Object> jasperParamsToAuditParams(Map<String, ? extends Object> jasperParams) {

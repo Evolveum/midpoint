@@ -396,14 +396,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
             reportsMenu.addMenuItem(edit);
         }
 
-        if (classMatches(PageJasperReport.class)) {
-            MenuItem configure = new MenuItem("PageAdmin.menu.top.reports.configure",
-                    PageJasperReport.class);
-            reportsMenu.addMenuItem(configure);
-        }
-
         reportsMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.reports.created", PageCreatedReports.class));
-        reportsMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.reports.new", PageNewReport.class));
 
 
 //        if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl())) {

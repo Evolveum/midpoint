@@ -484,7 +484,7 @@ public abstract class FileFormatController {
             Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging paging, Task task, OperationResult result, boolean recordProgress)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         checkVariables(task);
-        getReportService().getModelInteractionService().searchObjectFromCollection(
+        getReportService().getModelInteractionService().processObjectsFromCollection(
                 collectionConfig, typeForFilter, handler, defaultOptions, paging, variables, task, result, recordProgress);
     }
 }

@@ -85,11 +85,7 @@ public class PageReports extends PageAdmin {
             protected void objectDetailsPerformed(AjaxRequestTarget target, ReportType reportType) {
                 PageParameters pageParameters = new PageParameters();
                 pageParameters.add(OnePageParameterEncoder.PARAMETER, reportType.getOid());
-                if (reportType.getJasper() != null) {
-                    navigateToNext(PageJasperReport.class, pageParameters);
-                } else {
-                    navigateToNext(PageReport.class, pageParameters);
-                }
+                navigateToNext(PageReport.class, pageParameters);
             }
 
             @Override
@@ -312,6 +308,6 @@ public class PageReports extends PageAdmin {
     private void configurePerformed(AjaxRequestTarget target, ReportType report) {
         PageParameters params = new PageParameters();
         params.add(OnePageParameterEncoder.PARAMETER, report.getOid());
-        navigateToNext(PageJasperReport.class, params);
+        navigateToNext(PageReport.class, params);
     }
 }

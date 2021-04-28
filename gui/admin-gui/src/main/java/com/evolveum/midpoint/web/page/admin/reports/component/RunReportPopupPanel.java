@@ -15,7 +15,6 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -55,8 +54,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
-import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportParameterDto;
-import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportParameterPropertiesDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -225,111 +222,6 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         ItemWrapper wrapper = getPageBase().createItemWrapper(item.getObject(), ItemStatus.ADDED, ctx);
         return getPageBase().initItemPanel(ID_PARAMETER, item.getObject().getDefinition().getTypeName(),
                 Model.of(wrapper), new ItemPanelSettingsBuilder().build());
-    }
-
-    private <O extends ObjectType> List<LookupTableRowType> createLookupTableRows(JasperReportParameterDto param, String input) {
-        ItemPath label = null;
-        ItemPath key = null;
-        List<LookupTableRowType> rows = new ArrayList<>();
-
-        JasperReportParameterPropertiesDto properties = param.getProperties();
-
-        if (properties == null) {
-            return null;
-        }
-
-        String pLabel = properties.getLabel();
-        if (pLabel != null) {
-            label = ItemPath.create(pLabel);
-        }
-        String pKey = properties.getKey();
-        if (pKey != null) {
-            key = ItemPath.create(pKey);
-        }
-
-        String pTargetType = properties.getTargetType();
-        Class<O> targetType = null;
-        if (pTargetType != null) {
-            try {
-                targetType = (Class<O>) Class.forName(pTargetType);
-            } catch (ClassNotFoundException e) {
-                error("Error while creating lookup table for input parameter: " + param.getName() + ", " + e.getClass().getSimpleName() + " (" + e.getMessage() + ")");
-
-            }
-        }
-
-        if (label != null && targetType != null && input != null) {
-            OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
-            Task task = createSimpleTask(OPERATION_LOAD_RESOURCES);
-
-            Collection<PrismObject<O>> objects;
-            ObjectQuery query = getPrismContext().queryFor(targetType)
-                    .item(new QName(SchemaConstants.NS_C, pLabel)).startsWith(input)
-                    .matching(new QName(SchemaConstants.NS_MATCHING_RULE, "origIgnoreCase"))
-                    .maxSize(AUTO_COMPLETE_BOX_SIZE)
-                    .build();
-            try {
-                objects = getPageBase().getModelService().searchObjects(targetType, query, SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
-
-                for (PrismObject<O> o : objects) {
-                    Object realKeyValue = null;
-                    PrismProperty<?> labelItem = o.findProperty(label);
-
-                    //TODO: e.g. support not only for property, but also ref, container..
-                    if (labelItem == null || labelItem.isEmpty()) {
-                        continue;
-                    }
-                    PrismProperty<?> keyItem = o.findProperty(key);
-                    if ("oid".equals(pKey)) {
-                        realKeyValue = o.getOid();
-                    }
-                    if (realKeyValue == null && (keyItem == null || keyItem.isEmpty())) {
-                        continue;
-                    }
-
-                    //TODO: support for single/multivalue value
-                    if (!labelItem.isSingleValue()) {
-                        continue;
-                    }
-
-                    Object realLabelValue = labelItem.getRealValue();
-                    realKeyValue = (realKeyValue == null) ? keyItem.getRealValue() : realKeyValue;
-
-                    // TODO: take definition into account
-//                    QName typeName = labelItem.getDefinition().getTypeName();
-
-                    LookupTableRowType row = new LookupTableRowType();
-
-                    if (realKeyValue != null) {
-                        row.setKey(convertObjectToPolyStringType(realKeyValue).getOrig());
-                    } else {
-                        throw new SchemaException("Cannot create lookup table with null key for label: " + realLabelValue);
-                    }
-
-                    row.setLabel(convertObjectToPolyStringType(realLabelValue));
-
-                    rows.add(row);
-                }
-
-                return rows;
-            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-                error("Error while creating lookup table for input parameter: " + param.getName() + ", " + e.getClass().getSimpleName() + " (" + e.getMessage() + ")");
-            }
-
-        }
-        return rows;
-    }
-
-    private PolyStringType convertObjectToPolyStringType(Object o) {
-        if (o instanceof PolyString) {
-            return new PolyStringType((PolyString) o);
-        } else if (o instanceof PolyStringType) {
-            return (PolyStringType) o;
-        } else if (o instanceof String) {
-            return new PolyStringType((String) o);
-        } else {
-            return new PolyStringType(o.toString());
-        }
     }
 
     public Task createSimpleTask(String operation, PrismObject<? extends FocusType> owner) {

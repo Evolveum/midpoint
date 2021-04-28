@@ -499,7 +499,7 @@ public interface ModelInteractionService {
             throws SchemaException, PolicyViolationException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
     @Experimental
-    void searchObjectFromCollection(CollectionRefSpecificationType collection, QName typeForFilter, Predicate<PrismContainer> handler,
+    void processObjectsFromCollection(CollectionRefSpecificationType collection, QName typeForFilter, Predicate<PrismContainer> handler,
             Collection<SelectorOptions<GetOperationOptions>> options, ObjectPaging paging, VariablesMap variables, Task task, OperationResult result, boolean recordProgress) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 }

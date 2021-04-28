@@ -1944,7 +1944,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public void searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter, Predicate<PrismContainer> handler,
+    public void processObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter, Predicate<PrismContainer> handler,
             Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging paging, VariablesMap variables, Task task, OperationResult result, boolean recordProgress)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Class<? extends Containerable> type = null;
