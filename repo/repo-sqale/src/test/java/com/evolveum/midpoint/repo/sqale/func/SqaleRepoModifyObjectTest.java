@@ -1880,17 +1880,137 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(count(ar, ar.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
     }
 
-    // TODO ok to fail now, will be fixed after finishing other 30x tests
     @Test
-    public void test309DeleteAssignmentDeletesItFromTable()
+    public void test305AddingAssignmentWithNewPrefilledCid()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
-        given("delta deleting assignment from user 1");
+        given("delta adding assignments with free CID for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .delete(new AssignmentType(prismContext).id(1L))
+                .add(new AssignmentType(prismContext)
+                        .id(originalRow.containerIdSeq)
+                        .order(1))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and provided CID is used");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = userObject.getAssignment();
+        assertThat(assignments).hasSize(4)
+                .anyMatch(a -> a.getId().equals(originalRow.containerIdSeq));
+
+        and("new assignment row is created");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq + 1);
+
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRows).hasSize(4)
+                .anyMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq)
+                        && aRow.orderValue == 1);
+    }
+
+    @Test
+    public void test306DeleteAssignmentByCid()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta deleting assignments using CID for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .delete(new AssignmentType(prismContext)
+                        .id(originalRow.containerIdSeq - 1)) // last added assignment
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = userObject.getAssignment();
+        assertThat(assignments).hasSize(3)
+                .noneMatch(a -> a.getId().equals(originalRow.containerIdSeq - 1));
+
+        and("new assignment row is created");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq); // no need for change
+
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRows).hasSize(3)
+                .noneMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq - 1));
+    }
+
+    @Test
+    public void test307AddingAssignmentWithUsedBytFreeCid()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        // this is NOT recommended in practice, reusing previous CIDs is messy
+        given("delta adding assignments with used but now free CID for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(new AssignmentType(prismContext)
+                        .id(originalRow.containerIdSeq - 1)
+                        .order(1))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and provided CID is used");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = userObject.getAssignment();
+        assertThat(assignments).hasSize(4)
+                .anyMatch(a -> a.getId().equals(originalRow.containerIdSeq - 1));
+
+        and("new assignment row is created");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq); // no change
+
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRows).hasSize(4)
+                .anyMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq - 1)
+                        && aRow.orderValue == 1);
+    }
+
+    // TODO delete by pattern - as per ItemImpl.remove(V, EquivalenceStrategy)
+
+    @Test
+    public void test309DeleteAllAssignments()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta deleting all assignments from user 1 using replace");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .replace()
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -1906,7 +2026,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         List<AssignmentType> assignments = userObject.getAssignment();
         assertThat(assignments).isEmpty();
 
-        and("externalized column is updated");
+        and("there are no assignment rows for the user now");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
