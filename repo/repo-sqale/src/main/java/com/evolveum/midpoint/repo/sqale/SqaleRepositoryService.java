@@ -17,6 +17,7 @@ import com.querydsl.core.Tuple;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
@@ -75,6 +76,9 @@ public class SqaleRepositoryService implements RepositoryService {
     private final SqlQueryExecutor sqlQueryExecutor;
     private final SqaleTransformerSupport transformerSupport;
     private final SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
+
+    // TODO: see comment in the SystemConfigurationChangeDispatcherImpl for related issues
+    @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
     private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal =
             ThreadLocal.withInitial(ArrayList::new);
@@ -159,7 +163,7 @@ public class SqaleRepositoryService implements RepositoryService {
     }
 
     /** Read object using provided {@link JdbcSession} as a part of already running transaction. */
-    private <S extends ObjectType, R extends MObject> S readByOid(
+    private <S extends ObjectType> S readByOid(
             @NotNull JdbcSession jdbcSession,
             @NotNull Class<S> schemaType,
             @NotNull UUID oid,
@@ -689,13 +693,12 @@ public class SqaleRepositoryService implements RepositoryService {
     @Override
     public RepositoryDiag getRepositoryDiag() {
         return null;
-        // TODO
+        // TODO - see existing SqlRepositoryServiceImpl.getRepositoryDiag
     }
 
     @Override
     public void repositorySelfTest(OperationResult parentResult) {
-
-        // TODO
+        // TODO - SELECT 1 + latency info if we can put it in the result?
     }
 
     @Override
@@ -740,7 +743,8 @@ public class SqaleRepositoryService implements RepositoryService {
 
     @Override
     public void postInit(OperationResult result) throws SchemaException {
-        // TODO
+        LOGGER.debug("Executing repository postInit method");
+        systemConfigurationChangeDispatcher.dispatch(true, true, result);
     }
 
     // TODO use internally in various operations (see old repo)
