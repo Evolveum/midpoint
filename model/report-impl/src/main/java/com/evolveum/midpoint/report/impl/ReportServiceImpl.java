@@ -241,14 +241,14 @@ public class ReportServiceImpl implements ReportService {
     }
 
 
-    private Collection<AuditEventRecord> runAuditQuery(String sqlWhereClause, TypedValue<VariablesMap> jasperAuditParams, OperationResult result) {
+    private Collection<AuditEventRecord> runAuditQuery(String sqlWhereClause, TypedValue<VariablesMap> auditParamsMap, OperationResult result) {
         if (StringUtils.isBlank(sqlWhereClause)) {
             return new ArrayList<>();
         }
 
         String query = "select * from m_audit_event as aer " + sqlWhereClause;
         LOGGER.trace("AAAAAAA: query: {}", query);
-        Map<String, Object> auditParams = ReportUtils.jasperParamsToAuditParams((VariablesMap)jasperAuditParams.getValue());
+        Map<String, Object> auditParams = ReportUtils.paramsToAuditParams((VariablesMap)auditParamsMap.getValue());
         LOGGER.trace("AAAAAAA: auditParams:\n{}", auditParams);
         List<AuditEventRecord> auditRecords = auditService.listRecords(query, auditParams, result);
         LOGGER.trace("AAAAAAA: {} records", auditRecords==null?null:auditRecords.size());
@@ -290,66 +290,6 @@ public class ReportServiceImpl implements ReportService {
         } else {
             throw new IllegalStateException("Reporting script should return something compatible with PrismContainerValue, not a " + obj.getClass());
         }
-    }
-
-    @Override
-    public Collection<AuditEventRecord> evaluateAuditScript(PrismObject<ReportType> report, String script, VariablesMap parameters, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        Collection<AuditEventRecord> results = new ArrayList<>();
-
-        TypedValue<VariablesMap> auditParams = getConvertedParams(parameters);
-        VariablesMap variables = new VariablesMap();
-        variables.put("auditParams", auditParams);
-
-        ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
-        context.setVariables(variables);
-
-        context.setContextDescription("report script"); // TODO: improve
-        context.setTask(task);
-        context.setResult(result);
-        setupExpressionProfiles(context, report);
-
-        Object o = evaluateReportScript(script, context, report);
-
-        // HACK to allow audit reports where query is just a plain string.
-        // Oh my, this code is a mess. This needs a real rewrite. MID-5572
-        if (o instanceof String) {
-            JasperReportEngineConfigurationType jasperConfig = report.asObjectable().getJasper();
-            if (jasperConfig == null) {
-                throw new SchemaException("Jasper reportType not set, cannot determine how to use string query");
-            }
-            JasperReportTypeType reportType = jasperConfig.getReportType();
-            if (reportType == null) {
-                throw new SchemaException("Jasper reportType not set, cannot determine how to use string query");
-            }
-            if (reportType.equals(JasperReportTypeType.AUDIT_SQL)) {
-                return runAuditQuery((String)o, auditParams, result);
-            } else {
-                throw new SchemaException("Jasper reportType is not set to auditSql, cannot determine how to use string query");
-            }
-        }
-
-        if (o != null) {
-
-            if (Collection.class.isAssignableFrom(o.getClass())) {
-                Collection resultSet = (Collection) o;
-                if (resultSet != null && !resultSet.isEmpty()) {
-                    for (Object obj : resultSet) {
-                        if (!(obj instanceof AuditEventRecord)) {
-                            LOGGER.warn("Skipping result, not an audit event record " + obj);
-                            continue;
-                        }
-                        results.add((AuditEventRecord) obj);
-                    }
-
-                }
-
-            } else {
-                results.add((AuditEventRecord) o);
-            }
-        }
-
-        return results;
     }
 
     private TypedValue<VariablesMap> getConvertedParams(VariablesMap parameters) {

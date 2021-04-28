@@ -172,71 +172,6 @@ public class ReportUtils {
         return formatDate.format(createDate);
     }
 
-    public static JasperExportType getExport(JasperReportEngineConfigurationType jasperConfig) {
-        return jasperConfig.getExport();
-    }
-
-    public static String getReportOutputFilePath(ReportType reportType) {
-        JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
-        File exportDir = getExportDir();
-        if (!exportDir.exists() || !exportDir.isDirectory()) {
-            if (!exportDir.mkdir()) {
-                LOGGER.error("Couldn't create export dir {}", exportDir);
-            }
-        }
-
-        String output = new File(exportDir, reportType.getName().getOrig() + " " + getDateTime()).getPath();
-
-        switch (jasperConfig.getExport()) {
-            case PDF:
-                output = output + ".pdf";
-                break;
-            case CSV:
-                output = output + ".csv";
-                break;
-            case XML:
-                output = output + ".xml";
-                break;
-            case XML_EMBED:
-                output = output + "_embed.xml";
-                break;
-            case HTML:
-                output = output + ".html";
-                break;
-            case RTF:
-                output = output + ".rtf";
-                break;
-            case XLS:
-                output = output + ".xls";
-                break;
-            case ODT:
-                output = output + ".odt";
-                break;
-            case ODS:
-                output = output + ".ods";
-                break;
-            case DOCX:
-                output = output + ".docx";
-                break;
-            case XLSX:
-                output = output + ".xlsx";
-                break;
-            case PPTX:
-                output = output + ".pptx";
-                break;
-            case XHTML:
-                output = output + ".x.html";
-                break;
-            case JXL:
-                output = output + ".jxl.xls";
-                break;
-            default:
-                break;
-        }
-
-        return output;
-    }
-
     public static String getPropertyString(String key) {
         return getPropertyString(key, (String) null);
     }
@@ -247,56 +182,12 @@ public class ReportUtils {
         try {
             bundle = ResourceBundle.getBundle("localization/schema", new Locale("en", "US"));
         } catch (MissingResourceException e) {
-            return (defaultValue != null) ? defaultValue : key; //workaround for Jasper Studio
+            return (defaultValue != null) ? defaultValue : key; //workaround for reports
         }
         if (bundle != null && bundle.containsKey(key)) {
             val = bundle.getString(key);
         }
         return val;
-    }
-
-    public static String getPropertyString(String key, Object values, String defaultValue) {
-        if (key == null || values == null) {
-            return defaultValue;
-        }
-
-        if (!List.class.isAssignableFrom(values.getClass())) {
-            return getPropertyString((key.endsWith(".") ? key + values.toString() : key + "." + values.toString()), defaultValue);
-        }
-        List listValues=  (List) values;
-        StringBuilder builder = new StringBuilder();
-        Iterator<Object> objects = listValues.iterator();
-        ResourceBundle bundle;
-        try {
-            bundle = ResourceBundle.getBundle("localization/schema", new Locale("en", "US"));
-        } catch (MissingResourceException e) {
-            return defaultValue.toString() != null ? defaultValue.toString() : key; // workaround for Jasper Studio
-        }
-
-        while (objects.hasNext()) {
-            Object o = objects.next();
-            if (o.getClass().isEnum()) {
-                String constructedKey = (key.endsWith(".")) ? key + ((Enum) o).name(): key +"." + ((Enum) o).name();
-                if (bundle != null && bundle.containsKey(constructedKey)) {
-                    builder.append(bundle.getString(constructedKey));
-                } else {
-                    builder.append(prettyPrintForReport(o));
-                }
-            } else {
-                String constructedKey = (key.endsWith(".")) ? key + o.toString() : key + "." + o.toString();
-                if (bundle != null && bundle.containsKey(key)) {
-                    builder.append(bundle.getString(constructedKey));
-                } else {
-                    builder.append(prettyPrintForReport(o));
-                }
-            }
-            if (objects.hasNext()) {
-                builder.append(", ");
-            }
-        }
-
-        return builder.toString();
-
     }
 
     public static String prettyPrintForReport(QName qname) {
@@ -415,7 +306,7 @@ public class ReportUtils {
         if (ba == null) {
             return "null";
         }
-        return "[" + ((byte[]) ba).length + " bytes]"; //Jasper doesnt like byte[]
+        return "[" + ((byte[]) ba).length + " bytes]";
     }
 
     public static String prettyPrintForReport(Collection prismValueList) {
@@ -445,7 +336,7 @@ public class ReportUtils {
             return "";
         }
 
-        //special handling for byte[], some problems with jasper when printing
+        //special handling for byte[]
         if (byte[].class.equals(value.getClass())) {
             return prettyPrintForReport((byte[]) value);
         }
@@ -1007,21 +898,21 @@ public class ReportUtils {
                     : defaultValue;
     }
 
-    public static Map<String, Object> jasperParamsToAuditParams(Map<String, ? extends Object> jasperParams) {
+    public static Map<String, Object> paramsToAuditParams(Map<String, ? extends Object> params) {
         Map<String, Object> auditParams = new HashMap<>();
-        for (Entry<String, ? extends Object> jasperParam : jasperParams.entrySet()) {
+        for (Entry<String, ? extends Object> param : params.entrySet()) {
             Object value;
-            if(jasperParam.getValue() instanceof TypedValue) {
-                value = ((TypedValue)jasperParam.getValue()).getValue();
+            if(param.getValue() instanceof TypedValue) {
+                value = ((TypedValue)param.getValue()).getValue();
             } else {
-                value = jasperParam.getValue();
+                value = param.getValue();
             }
             if (value instanceof AuditEventTypeType) {
-                auditParams.put(jasperParam.getKey(), AuditEventType.fromSchemaValue((AuditEventTypeType) value));
+                auditParams.put(param.getKey(), AuditEventType.fromSchemaValue((AuditEventTypeType) value));
             } else if (value instanceof AuditEventStageType) {
-                auditParams.put(jasperParam.getKey(), AuditEventStage.fromSchemaValue((AuditEventStageType) value));
+                auditParams.put(param.getKey(), AuditEventStage.fromSchemaValue((AuditEventStageType) value));
             } else {
-                auditParams.put(jasperParam.getKey(), value);
+                auditParams.put(param.getKey(), value);
             }
         }
         return auditParams;

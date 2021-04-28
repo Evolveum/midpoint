@@ -43,7 +43,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -53,7 +52,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author lskublik
  */
-public class ImportReportPopupPanel extends BasePanel<ReportDto> implements Popupable {
+public class ImportReportPopupPanel extends BasePanel<ReportType> implements Popupable {
 
     private static final long serialVersionUID = 1L;
 
@@ -71,11 +70,9 @@ public class ImportReportPopupPanel extends BasePanel<ReportDto> implements Popu
     private static final String ID_NAME_FOR_DATA = "reportDataName";
     private static final String ID_FILE_AS_NAME = "fileAsString";
 
-    private ReportType report;
 
     public ImportReportPopupPanel(String id, @NotNull ReportType report) {
-        super(id);
-        this.report = report;
+        super(id, Model.of(report));
     }
 
     @Override
@@ -147,7 +144,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportDto> implements Popu
         String dataName;
         if (nameModel == null || StringUtils.isEmpty(nameModel.getObject())) {
 
-            dataName = this.report.getName().getOrig() + "-IMPORT " + getDataTime();
+            dataName = getModelObject().getName().getOrig() + "-IMPORT " + getDataTime();
         } else {
             dataName = nameModel.getObject();
         }
@@ -227,7 +224,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportDto> implements Popu
         reportImportData.setFilePath(newFilePath);
         ObjectReferenceType reportRef = new ObjectReferenceType();
         reportRef.setType(ReportType.COMPLEX_TYPE);
-        reportRef.setOid(report.getOid());
+        reportRef.setOid(getModelObject().getOid());
         reportImportData.setReportRef(reportRef);
         Collection<ObjectDelta<? extends ObjectType>> deltas = Collections.singleton(reportImportData.asPrismObject().createAddDelta());
         Task task = getPageBase().createSimpleTask(OPERATION_CREATE_REPORT_DATA);

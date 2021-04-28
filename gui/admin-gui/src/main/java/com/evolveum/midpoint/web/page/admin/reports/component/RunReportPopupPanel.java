@@ -33,32 +33,19 @@ import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.report.api.ReportConstants;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
-import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupable {
+public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupable {
 
     private static final long serialVersionUID = 1L;
 
@@ -77,12 +64,10 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
     private static final String ID_PARAMETERS = "parameters";
     private static final String ID_PARAMETER = "parameter";
 
-    private final ReportType reportType;
     private PrismContainer<ReportParameterType> paramContainer;
 
     public RunReportPopupPanel(String id, final ReportType reportType) {
-        super(id);
-        this.reportType = reportType;
+        super(id, Model.of(reportType));
     }
 
     @Override
@@ -107,7 +92,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
             LOGGER.error("Couldn't create container for report parameters");
             return;
         }
-        for (SearchFilterParameterType parameter : reportType.getObjectCollection().getParameter()) {
+        for (SearchFilterParameterType parameter : getModelObject().getObjectCollection().getParameter()) {
             Class<?> clazz = getPrismContext().getSchemaRegistry().determineClassForType(parameter.getType());
             QName type = getPrismContext().getSchemaRegistry().determineTypeForClass(clazz);
             if (Containerable.class.isAssignableFrom(clazz)) {
@@ -257,7 +242,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
             }
         });
         parameterContainer.getValue().getItems().removeAll(itemForRemoving);
-        runConfirmPerformed(target, reportType, parameterContainer);
+        runConfirmPerformed(target, getModelObject(), parameterContainer);
     }
 
     protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType2,
