@@ -37,7 +37,7 @@
         <displayOrder>123</displayOrder>
         <emphasized>true</emphasized>
         <mapping>
-            <name>usertemplate-costcenter-g001-weak-afterAssignemnts</name>
+            <name>usertemplate-costcenter-g001-weak-afterAssignments</name>
             <strength>weak</strength>
             <expression>
                 <value>G001</value>

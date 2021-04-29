@@ -228,7 +228,7 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
             String id = idTable + ":items:itemsTable:box:tableContainer:table:body:rows:3:cells:3:cell:link";
             tester.clickLink(id);
 
-            Stopwatch stopwatch = stopwatch("showAssignemnts", "User's assignmentTab");
+            Stopwatch stopwatch = stopwatch("showAssignments", "User's assignmentTab");
             try (Split ignored = stopwatch.start()) {
                 clickOnTab(2, PageUser.class);
                 queryListener.start();
