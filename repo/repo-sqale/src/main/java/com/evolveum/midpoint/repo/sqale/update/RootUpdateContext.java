@@ -14,7 +14,7 @@ import java.util.UUID;
 import com.querydsl.core.types.Path;
 import com.querydsl.sql.dml.SQLUpdateClause;
 
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.repo.sqale.ContainerValueIdGenerator;
@@ -32,8 +32,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * TODO
- * Adds execute that processes the modifications and finalizes the update of root entity.
+ * Root context of the update context tree, see {@link SqaleUpdateContext} for more information.
  *
  * @param <S> schema type
  * @param <Q> type of entity path
@@ -111,9 +110,31 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
     private void processModification(ItemDelta<?, ?> modification)
             throws RepositoryException, SchemaException {
         cidGenerator.processModification(modification);
+        resolveContainerIdsForDeletedValues(modification);
         modification.applyTo(getPrismObject());
 
         new DelegatingItemDeltaProcessor(this).process(modification);
+    }
+
+    private void resolveContainerIdsForDeletedValues(ItemDelta<?, ?> modification) {
+        if (!modification.isDelete()) {
+            return;
+        }
+
+        PrismContainer<Containerable> container =
+                getPrismObject().findContainer(modification.getPath());
+        if (container != null) {
+            for (PrismValue value : modification.getValuesToDelete()) {
+                //noinspection unchecked
+                PrismContainerValue<Containerable> pcv = (PrismContainerValue<Containerable>) value;
+                if (pcv.getId() == null) {
+                    PrismContainerValue<Containerable> existingValue = container.findValue(
+                            pcv, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
+                    // We will set CID and use that for DB updates.
+                    pcv.setId(existingValue.getId());
+                }
+            }
+        }
     }
 
     /**

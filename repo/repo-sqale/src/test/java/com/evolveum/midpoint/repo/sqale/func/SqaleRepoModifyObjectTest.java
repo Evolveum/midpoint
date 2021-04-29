@@ -1881,7 +1881,46 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test305AddingAssignmentWithNewPrefilledCid()
+    public void test305DeleteAssignmentByContent()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta deleting assignments without CID by equality for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .delete(new AssignmentType(prismContext).order(50))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and assignments with only order 50");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = userObject.getAssignment();
+        assertThat(assignments).hasSize(2)
+                .anyMatch(a -> a.getOrder().equals(47))
+                // this one had order AND target ref, so it's no match
+                .anyMatch(ass -> ass.getOrder() == 50 && ass.getTargetRef() != null);
+
+        and("corresponding assignment row is deleted");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRows).hasSize(2)
+                .anyMatch(aRow -> aRow.orderValue.equals(47))
+                .anyMatch(ass -> ass.orderValue == 50 && ass.targetRefTargetOid != null);
+    }
+
+    @Test
+    public void test310AddingAssignmentWithNewPrefilledCid()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
@@ -1905,7 +1944,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .asObjectable();
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
         List<AssignmentType> assignments = userObject.getAssignment();
-        assertThat(assignments).hasSize(4)
+        assertThat(assignments).hasSize(3)
                 .anyMatch(a -> a.getId().equals(originalRow.containerIdSeq));
 
         and("new assignment row is created");
@@ -1915,13 +1954,13 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
-        assertThat(aRows).hasSize(4)
+        assertThat(aRows).hasSize(3)
                 .anyMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq)
                         && aRow.orderValue == 1);
     }
 
     @Test
-    public void test306DeleteAssignmentByCid()
+    public void test311DeleteAssignmentByCid()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
@@ -1944,7 +1983,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .asObjectable();
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
         List<AssignmentType> assignments = userObject.getAssignment();
-        assertThat(assignments).hasSize(3)
+        assertThat(assignments).hasSize(2)
                 .noneMatch(a -> a.getId().equals(originalRow.containerIdSeq - 1));
 
         and("new assignment row is created");
@@ -1954,12 +1993,12 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
-        assertThat(aRows).hasSize(3)
+        assertThat(aRows).hasSize(2)
                 .noneMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq - 1));
     }
 
     @Test
-    public void test307AddingAssignmentWithUsedBytFreeCid()
+    public void test312AddingAssignmentWithUsedBytFreeCid()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
@@ -1984,7 +2023,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .asObjectable();
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
         List<AssignmentType> assignments = userObject.getAssignment();
-        assertThat(assignments).hasSize(4)
+        assertThat(assignments).hasSize(3)
                 .anyMatch(a -> a.getId().equals(originalRow.containerIdSeq - 1));
 
         and("new assignment row is created");
@@ -1994,7 +2033,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
-        assertThat(aRows).hasSize(4)
+        assertThat(aRows).hasSize(3)
                 .anyMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq - 1)
                         && aRow.orderValue == 1);
     }
@@ -2002,7 +2041,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     // TODO delete by pattern - as per ItemImpl.remove(V, EquivalenceStrategy)
 
     @Test
-    public void test309DeleteAllAssignments()
+    public void test319DeleteAllAssignments()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
