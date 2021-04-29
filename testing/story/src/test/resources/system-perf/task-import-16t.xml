@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="c32d4da6-bdd3-481d-931a-60ca8a5a01ba"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <name>Import</name>
+
+    <extension>
+        <mext:objectclass>ri:AccountObjectClass</mext:objectclass>
+        <mext:workerThreads>16</mext:workerThreads>
+    </extension>
+
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</handlerUri>
+    <objectRef oid="7eb3a16c-3a33-4ef0-8523-98f0ef7291ba" type="ResourceType" />
+
+    <recurrence>single</recurrence>
+</task>
