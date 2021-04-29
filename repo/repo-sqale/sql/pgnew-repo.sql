@@ -1198,19 +1198,17 @@ CREATE INDEX m_form_name_orig_idx ON m_form (name_orig);
 ALTER TABLE m_form ADD CONSTRAINT m_form_name_norm_key UNIQUE (name_norm);
 -- endregion
 
--- region Assignment/Inducement tables
+-- region Assignment/Inducement table
 -- Represents AssignmentType, see https://wiki.evolveum.com/display/midPoint/Assignment
 -- and also https://wiki.evolveum.com/display/midPoint/Assignment+vs+Inducement
--- TODO: if we never need mix of inducements and assignments then let's have two separate tables
--- consult with Rado/Katka/Palo
--- TODO: partitioning, not by object type, it's not even... hash-something?
+-- TODO: partitioning, probably not by object type, it's not even... hash-something?
 -- select assignmentowner, count(*) From m_assignment group by assignmentowner;
 --1	45 (inducements)
 --0	48756229
--- abstract common structure for m_assignment and m_inducement
-CREATE TABLE m_assignment_type (
-    -- owner_oid + containerType from m_container, final specification in sub-tables
-    -- new column may avoid join to object for some queries
+CREATE TABLE m_assignment (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    -- this is different from other containers, this is not generated, app must provide it
+    containerType ContainerType NOT NULL CHECK (containerType IN ('ASSIGNMENT', 'INDUCEMENT')),
     owner_type ObjectType NOT NULL,
     lifecycleState TEXT/*VARCHAR(255)*/,
     orderValue INTEGER,
@@ -1255,21 +1253,9 @@ CREATE TABLE m_assignment_type (
     modifyChannel_id INTEGER,
     modifyTimestamp TIMESTAMPTZ,
 
-    -- create PRIMARY KEY (owner_oid, cid) on sub-tables
-    -- no need to index owner_oid, it's part of the PK index
-
-    CHECK (FALSE) NO INHERIT
+    PRIMARY KEY (owner_oid, cid)
 )
     INHERITS(m_container);
-
-CREATE TABLE m_assignment (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    containerType ContainerType GENERATED ALWAYS AS ('ASSIGNMENT') STORED,
-
-    PRIMARY KEY (owner_oid, cid)
-    -- no need to index owner_oid, it's part of the PK index
-)
-    INHERITS(m_assignment_type);
 
 CREATE INDEX m_assignment_policySituation_idx ON m_assignment USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_assignment_ext_idx ON m_assignment USING gin (ext);
@@ -1313,25 +1299,6 @@ ALTER TABLE m_assignment_ref_modify_approver ADD CONSTRAINT m_assignment_ref_mod
     FOREIGN KEY (owner_oid, assignment_cid) REFERENCES m_assignment (owner_oid, cid);
 
 -- TODO index targetOid, relation_id?
-
-CREATE TABLE m_inducement (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    containerType ContainerType GENERATED ALWAYS AS ('INDUCEMENT') STORED,
-
-    PRIMARY KEY (owner_oid, cid)
-    -- no need to index owner_oid, it's part of the PK index
-)
-    INHERITS(m_assignment_type);
-
-CREATE INDEX m_inducement_ext_idx ON m_inducement USING gin (ext);
-CREATE INDEX m_inducement_validFrom_idx ON m_inducement (validFrom);
-CREATE INDEX m_inducement_validTo_idx ON m_inducement (validTo);
-CREATE INDEX m_inducement_targetRef_targetOid_idx ON m_inducement (targetRef_targetOid);
-CREATE INDEX m_inducement_tenantRef_targetOid_idx ON m_inducement (tenantRef_targetOid);
-CREATE INDEX m_inducement_orgRef_targetOid_idx ON m_inducement (orgRef_targetOid);
-CREATE INDEX m_inducement_resourceRef_targetOid_idx ON m_inducement (resourceRef_targetOid);
-
--- TODO other tables like for assignments needed? policy situations, refs?
 -- endregion
 
 -- region Other object containers

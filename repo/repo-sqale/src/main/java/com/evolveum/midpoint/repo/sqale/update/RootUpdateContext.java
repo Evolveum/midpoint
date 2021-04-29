@@ -110,13 +110,13 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
     private void processModification(ItemDelta<?, ?> modification)
             throws RepositoryException, SchemaException {
         cidGenerator.processModification(modification);
-        resolveContainerIdsForDeletedValues(modification);
+        resolveContainerIdsForValuesToDelete(modification);
         modification.applyTo(getPrismObject());
 
         new DelegatingItemDeltaProcessor(this).process(modification);
     }
 
-    private void resolveContainerIdsForDeletedValues(ItemDelta<?, ?> modification) {
+    private void resolveContainerIdsForValuesToDelete(ItemDelta<?, ?> modification) {
         if (!modification.isDelete()) {
             return;
         }

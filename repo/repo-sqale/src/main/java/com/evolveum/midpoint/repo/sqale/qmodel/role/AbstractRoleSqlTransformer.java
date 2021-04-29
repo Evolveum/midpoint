@@ -6,12 +6,16 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.role;
 
+import java.util.List;
+
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.AssignmentSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.FocusSqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignSpecificationType;
 
 public class AbstractRoleSqlTransformer<
@@ -37,5 +41,24 @@ public class AbstractRoleSqlTransformer<
         row.requestable = abstractRole.isRequestable();
         row.riskLevel = abstractRole.getRiskLevel();
         return row;
+    }
+
+    @Override
+    public void storeRelatedEntities(
+            @NotNull R row, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) {
+        super.storeRelatedEntities(row, schemaObject, jdbcSession);
+
+        List<AssignmentType> inducement = schemaObject.getInducement();
+        if (!inducement.isEmpty()) {
+            AssignmentSqlTransformer<R> transformer =
+                    mapping().inducementMapping().createTransformer(transformerSupport);
+            inducement.forEach(assignment ->
+                    transformer.insert(assignment, row, jdbcSession));
+        }
+    }
+
+    @Override
+    protected QAbstractRoleMapping<S, Q, R> mapping() {
+        return (QAbstractRoleMapping<S, Q, R>) super.mapping();
     }
 }

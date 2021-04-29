@@ -8,9 +8,11 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.*;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.role.MAbstractRole;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -19,6 +21,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
 /**
  * Mapping between {@link QAssignment} and {@link AssignmentType}.
+ * There are separate instances for assignments and inducements and the instance also knows
+ * the {@link MAssignment#containerType} it should set.
+ * Only the instance for assignments is registered for queries as there is no way to distinguish
+ * between assignments and inducements when searching containers in the Query API anyway.
  *
  * @param <OR> type of the owner row
  */
@@ -27,13 +33,22 @@ public class QAssignmentMapping<OR extends MObject>
 
     public static final String DEFAULT_ALIAS_NAME = "a";
 
-    public static final QAssignmentMapping<MObject> INSTANCE = new QAssignmentMapping<>();
+    /** Default assignment mapping instance, for queries it works for inducements too. */
+    public static final QAssignmentMapping<MObject> INSTANCE =
+            new QAssignmentMapping<>(MContainerType.ASSIGNMENT);
+
+    /** Inducement mapping instance, this must be used for inserting inducements. */
+    public static final QAssignmentMapping<MAbstractRole> INSTANCE_INDUCEMENT =
+            new QAssignmentMapping<>(MContainerType.INDUCEMENT);
+
+    private final MContainerType containerType;
 
     // We can't declare Class<QAssignment<OR>>.class, so we cheat a bit.
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    private QAssignmentMapping() {
+    private QAssignmentMapping(MContainerType containerType) {
         super(QAssignment.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 AssignmentType.class, (Class) QAssignment.class);
+        this.containerType = containerType;
 
         // TODO OWNER_TYPE is new thing and can help avoid join to concrete object table
         //  But this will likely require special treatment/heuristic.
@@ -121,7 +136,9 @@ public class QAssignmentMapping<OR extends MObject>
 
     @Override
     public MAssignment newRowObject() {
-        return new MAssignment();
+        MAssignment row = new MAssignment();
+        row.containerType = this.containerType;
+        return row;
     }
 
     @Override
