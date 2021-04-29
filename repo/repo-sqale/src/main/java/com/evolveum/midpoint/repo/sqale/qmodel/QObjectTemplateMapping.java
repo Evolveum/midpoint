@@ -6,8 +6,11 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType.F_INCLUDE_REF;
+
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 
@@ -24,6 +27,8 @@ public class QObjectTemplateMapping
     private QObjectTemplateMapping() {
         super(QObjectTemplate.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 ObjectTemplateType.class, QObjectTemplate.class);
+
+        addRefMapping(F_INCLUDE_REF, QObjectReferenceMapping.INSTANCE_INCLUDE);
     }
 
     @Override

@@ -78,7 +78,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
                     return;
                 }
 
-                if (!WebComponentUtil.hasAnyArchetypeAssignemnt(getTask())) {
+                if (!WebComponentUtil.hasAnyArchetypeAssignment(getTask())) {
                     try {
                         PrismContainerWrapper<AssignmentType> archetypeAssignment = TaskBasicTabPanel.this.getModelObject().findContainer(TaskType.F_ASSIGNMENT);
                         PrismContainerValue<AssignmentType> archetypeAssignmentValue = archetypeAssignment.getItem().createNewValue();
@@ -314,7 +314,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
     }
 
     private boolean satisfyArchetypeAssignment() {
-        return !WebComponentUtil.hasAnyArchetypeAssignemnt(getTask())
+        return !WebComponentUtil.hasAnyArchetypeAssignment(getTask())
                 || WebComponentUtil.hasArchetypeAssignment(getTask(), SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value())
                 || WebComponentUtil.hasArchetypeAssignment(getTask(), SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
     }

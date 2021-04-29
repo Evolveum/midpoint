@@ -31,15 +31,15 @@ public class TaskSqlTransformer extends ObjectSqlTransformer<TaskType, QTask, MT
         row.completionTimestamp = MiscUtil.asInstant(task.getCompletionTimestamp());
         row.executionStatus = task.getExecutionStatus();
 //        row.fullResult = TODO
-        row.handlerUriId = processCacheableUri(task.getHandlerUri(), jdbcSession);
+        row.handlerUriId = processCacheableUri(task.getHandlerUri());
         row.lastRunStartTimestamp = MiscUtil.asInstant(task.getLastRunStartTimestamp());
         row.lastRunFinishTimestamp = MiscUtil.asInstant(task.getLastRunFinishTimestamp());
         row.node = task.getNode();
-        setReference(task.getObjectRef(), jdbcSession,
+        setReference(task.getObjectRef(),
                 o -> row.objectRefTargetOid = o,
                 t -> row.objectRefTargetType = t,
                 r -> row.objectRefRelationId = r);
-        setReference(task.getOwnerRef(), jdbcSession,
+        setReference(task.getOwnerRef(),
                 o -> row.ownerRefTargetOid = o,
                 t -> row.ownerRefTargetType = t,
                 r -> row.ownerRefRelationId = r);

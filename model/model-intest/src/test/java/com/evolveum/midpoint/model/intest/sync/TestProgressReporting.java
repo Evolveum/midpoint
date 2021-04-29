@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.task.TaskPartProgressInformation;
 import com.evolveum.midpoint.schema.util.task.TaskPerformanceInformation;
 import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
+import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.test.TestResource;
 
@@ -407,6 +409,23 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
 
         TaskPerformanceInformation perf2 = TaskPerformanceInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
         displayDumpable("perf after 2nd run", perf2);
+
+        PrismObject<TaskType> subtask2 = assertTask(rootAfterSuspension2.asObjectable(), "after 2nd run")
+                .subtaskForPart(2)
+                    .getObject();
+        List<TaskType> children2 = TaskTreeUtil.getResolvedSubtasks(subtask2.asObjectable());
+        if (!children2.isEmpty()) {
+            TaskType worker = children2.get(0);
+            assertTask(worker, "worker")
+                    .display()
+                    .structuredProgress()
+                    .display();
+            TaskProgressInformation progressOfSubtask = TaskProgressInformation.fromTaskTree(worker);
+            assertTaskProgress(progressOfSubtask, "worker task progress")
+                    .display()
+                    .part(null)
+                        .assertNoBucketInformation(); // MID-7006
+        }
     }
 
     /**
@@ -513,5 +532,19 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
 
         TaskPerformanceInformation perf2 = TaskPerformanceInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
         displayDumpable("perf after 2nd run", perf2);
+
+        List<TaskType> subtasks = TaskTreeUtil.getResolvedSubtasks(rootAfterSuspension2.asObjectable());
+        if (!subtasks.isEmpty()) {
+            TaskType subtask = subtasks.get(0);
+            assertTask(subtask, "subtask")
+                    .display()
+                    .structuredProgress()
+                        .display();
+            TaskProgressInformation progressOfSubtask = TaskProgressInformation.fromTaskTree(subtask);
+            assertTaskProgress(progressOfSubtask, "subtask progress")
+                    .display()
+                    .part(null)
+                        .assertNoBucketInformation(); // MID-7006
+        }
     }
 }

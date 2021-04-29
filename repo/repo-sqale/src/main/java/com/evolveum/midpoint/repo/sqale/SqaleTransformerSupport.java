@@ -11,7 +11,6 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
-import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -53,15 +52,14 @@ public class SqaleTransformerSupport extends SqlTransformerSupport {
      * Relation is normalized before consulting the cache.
      * Never returns null, returns default ID for configured default relation.
      */
-    public Integer processCacheableRelation(QName qName, JdbcSession jdbcSession) {
+    public Integer processCacheableRelation(QName qName) {
         return processCacheableUri(
-                QNameUtil.qNameToUri(normalizeRelation(qName)),
-                jdbcSession);
+                QNameUtil.qNameToUri(normalizeRelation(qName)));
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
-    public Integer processCacheableUri(String uri, JdbcSession jdbcSession) {
-        return sqaleRepoContext().processCacheableUri(uri, jdbcSession);
+    public Integer processCacheableUri(String uri) {
+        return sqaleRepoContext().processCacheableUri(uri);
     }
 }
 

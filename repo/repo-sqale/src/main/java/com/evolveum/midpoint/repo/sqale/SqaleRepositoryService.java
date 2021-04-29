@@ -17,6 +17,7 @@ import com.querydsl.core.Tuple;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
@@ -34,7 +35,9 @@ import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.sqale.operations.AddObjectOperation;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.update.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.*;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
@@ -73,6 +76,9 @@ public class SqaleRepositoryService implements RepositoryService {
     private final SqlQueryExecutor sqlQueryExecutor;
     private final SqaleTransformerSupport transformerSupport;
     private final SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
+
+    // TODO: see comment in the SystemConfigurationChangeDispatcherImpl for related issues
+    @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
     private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal =
             ThreadLocal.withInitial(ArrayList::new);
@@ -157,7 +163,7 @@ public class SqaleRepositoryService implements RepositoryService {
     }
 
     /** Read object using provided {@link JdbcSession} as a part of already running transaction. */
-    private <S extends ObjectType, R extends MObject> S readByOid(
+    private <S extends ObjectType> S readByOid(
             @NotNull JdbcSession jdbcSession,
             @NotNull Class<S> schemaType,
             @NotNull UUID oid,
@@ -354,7 +360,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
             // TODO: THIS is real start of modifyObjectAttempt
             try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-                SqaleUpdateContext<T, QObject<MObject>, MObject> updateContext =
+                RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
                         prepareUpdateContext(jdbcSession, type, oidUuid);
                 PrismObject<T> prismObject = updateContext.getPrismObject();
                 if (precondition != null && !precondition.holds(prismObject)) {
@@ -389,7 +395,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
     /** Read object for update and returns update context that contains it. */
     private <S extends ObjectType, Q extends QObject<R>, R extends MObject>
-    SqaleUpdateContext<S, Q, R> prepareUpdateContext(
+    RootUpdateContext<S, Q, R> prepareUpdateContext(
             @NotNull JdbcSession jdbcSession,
             @NotNull Class<S> schemaType,
             @NotNull UUID oid)
@@ -412,11 +418,15 @@ public class SqaleRepositoryService implements RepositoryService {
 
         S object = rootMapping.createTransformer(transformerSupport)
                 .toSchemaObject(result, root, Collections.emptyList());
+
         R rootRow = rootMapping.newRowObject();
         rootRow.oid = oid;
         rootRow.containerIdSeq = result.get(root.containerIdSeq);
+        // This column is generated, some sub-entities need it, but we can't push it to DB.
+        rootRow.objectType = MObjectType.fromSchemaType(object.getClass());
         // we don't care about full object in row
-        return new SqaleUpdateContext<>(transformerSupport, jdbcSession, object, rootRow);
+
+        return new RootUpdateContext<>(transformerSupport, jdbcSession, object, rootRow);
     }
 
     private void logTraceModifications(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
@@ -683,13 +693,12 @@ public class SqaleRepositoryService implements RepositoryService {
     @Override
     public RepositoryDiag getRepositoryDiag() {
         return null;
-        // TODO
+        // TODO - see existing SqlRepositoryServiceImpl.getRepositoryDiag
     }
 
     @Override
     public void repositorySelfTest(OperationResult parentResult) {
-
-        // TODO
+        // TODO - SELECT 1 + latency info if we can put it in the result?
     }
 
     @Override
@@ -734,7 +743,8 @@ public class SqaleRepositoryService implements RepositoryService {
 
     @Override
     public void postInit(OperationResult result) throws SchemaException {
-        // TODO
+        LOGGER.debug("Executing repository postInit method");
+        systemConfigurationChangeDispatcher.dispatch(true, true, result);
     }
 
     // TODO use internally in various operations (see old repo)

@@ -13,22 +13,24 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 
 public class LookupTableRowSqlTransformer
-        extends ContainerSqlTransformer<LookupTableRowType, QLookupTableRow, MLookupTableRow> {
+        extends ContainerSqlTransformer<LookupTableRowType, QLookupTableRow, MLookupTableRow, MLookupTable> {
 
     public LookupTableRowSqlTransformer(
             SqlTransformerSupport transformerSupport, QLookupTableRowMapping mapping) {
         super(transformerSupport, mapping);
     }
 
-    public void insert(LookupTableRowType lookupTableRow,
+    @Override
+    public MLookupTableRow insert(LookupTableRowType lookupTableRow,
             MLookupTable ownerRow, JdbcSession jdbcSession) {
 
-        MLookupTableRow row = initRowObject(lookupTableRow, ownerRow.oid);
+        MLookupTableRow row = initRowObject(lookupTableRow, ownerRow);
         row.key = lookupTableRow.getKey();
         row.value = lookupTableRow.getValue();
         setPolyString(lookupTableRow.getLabel(), o -> row.labelOrig = o, n -> row.labelNorm = n);
         row.lastChangeTimestamp = MiscUtil.asInstant(lookupTableRow.getLastChangeTimestamp());
 
         insert(row, jdbcSession);
+        return row;
     }
 }

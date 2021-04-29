@@ -30,12 +30,12 @@ public class AccessCertificationDefinitionSqlTransformer
         MAccessCertificationDefinition row =
                 super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
 
-        row.handlerUriId = processCacheableUri(schemaObject.getHandlerUri(), jdbcSession);
+        row.handlerUriId = processCacheableUri(schemaObject.getHandlerUri());
         row.lastCampaignStartedTimestamp =
                 MiscUtil.asInstant(schemaObject.getLastCampaignStartedTimestamp());
         row.lastCampaignClosedTimestamp =
                 MiscUtil.asInstant(schemaObject.getLastCampaignClosedTimestamp());
-        setReference(schemaObject.getOwnerRef(), jdbcSession,
+        setReference(schemaObject.getOwnerRef(),
                 o -> row.ownerRefTargetOid = o,
                 t -> row.ownerRefTargetType = t,
                 r -> row.ownerRefRelationId = r);

@@ -27,8 +27,8 @@ public class ShadowSqlTransformer
             ShadowType shadow, JdbcSession jdbcSession) {
         MShadow row = super.toRowObjectWithoutFullObject(shadow, jdbcSession);
 
-        row.objectClassId = processCacheableUri(shadow.getObjectClass(), jdbcSession);
-        setReference(shadow.getResourceRef(), jdbcSession,
+        row.objectClassId = processCacheableUri(shadow.getObjectClass());
+        setReference(shadow.getResourceRef(),
                 o -> row.resourceRefTargetOid = o,
                 t -> row.resourceRefTargetType = t,
                 r -> row.resourceRefRelationId = r);

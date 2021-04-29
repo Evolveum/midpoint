@@ -11,20 +11,22 @@ import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
-public class TriggerSqlTransformer
-        extends ContainerSqlTransformer<TriggerType, QTrigger, MTrigger> {
+public class TriggerSqlTransformer<OR extends MObject>
+        extends ContainerSqlTransformer<TriggerType, QTrigger<OR>, MTrigger, OR> {
 
     public TriggerSqlTransformer(
-            SqlTransformerSupport transformerSupport, QTriggerMapping mapping) {
+            SqlTransformerSupport transformerSupport, QTriggerMapping<OR> mapping) {
         super(transformerSupport, mapping);
     }
 
-    public void insert(TriggerType schemaObject, MObject ownerRow, JdbcSession jdbcSession) {
-        MTrigger row = initRowObject(schemaObject, ownerRow.oid);
+    @Override
+    public MTrigger insert(TriggerType schemaObject, OR ownerRow, JdbcSession jdbcSession) {
+        MTrigger row = initRowObject(schemaObject, ownerRow);
 
-        row.handlerUriId = processCacheableUri(schemaObject.getHandlerUri(), jdbcSession);
+        row.handlerUriId = processCacheableUri(schemaObject.getHandlerUri());
         row.timestampValue = MiscUtil.asInstant(schemaObject.getTimestamp());
 
         insert(row, jdbcSession);
+        return row;
     }
 }

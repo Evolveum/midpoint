@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 import java.sql.Types;
 import java.time.Instant;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
@@ -23,9 +24,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QOperationExecution extends QContainer<MOperationExecution> {
+public class QOperationExecution<OR extends MObject> extends QContainer<MOperationExecution, OR> {
 
     private static final long serialVersionUID = -6856661540710930040L;
+
+    /**
+     * If `QOperationExecution.class` is not enough because of generics,
+     * try `QOperationExecution.CLASS`.
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public static final Class<QOperationExecution<MObject>> CLASS =
+            (Class) QOperationExecution.class;
 
     public static final String TABLE_NAME = "m_operation_execution";
 
@@ -75,5 +84,10 @@ public class QOperationExecution extends QContainer<MOperationExecution> {
 
     public QOperationExecution(String variable, String schema, String table) {
         super(MOperationExecution.class, variable, schema, table);
+    }
+
+    @Override
+    public BooleanExpression isOwnedBy(OR ownerRow) {
+        return ownerOid.eq(ownerRow.oid);
     }
 }

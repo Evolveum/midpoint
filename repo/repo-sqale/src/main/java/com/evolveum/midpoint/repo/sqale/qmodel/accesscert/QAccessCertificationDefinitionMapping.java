@@ -29,15 +29,15 @@ public class QAccessCertificationDefinitionMapping
         super(QAccessCertificationDefinition.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 AccessCertificationDefinitionType.class, QAccessCertificationDefinition.class);
 
-        addItemMapping(F_HANDLER_URI, uriMapper(path(q -> q.handlerUriId)));
+        addItemMapping(F_HANDLER_URI, uriMapper(q -> q.handlerUriId));
         addItemMapping(F_LAST_CAMPAIGN_STARTED_TIMESTAMP,
-                timestampMapper(path(q -> q.lastCampaignStartedTimestamp)));
+                timestampMapper(q -> q.lastCampaignStartedTimestamp));
         addItemMapping(F_LAST_CAMPAIGN_CLOSED_TIMESTAMP,
-                timestampMapper(path(q -> q.lastCampaignClosedTimestamp)));
+                timestampMapper(q -> q.lastCampaignClosedTimestamp));
         addItemMapping(F_OWNER_REF, refMapper(
-                path(q -> q.ownerRefTargetOid),
-                path(q -> q.ownerRefTargetType),
-                path(q -> q.ownerRefRelationId)));
+                q -> q.ownerRefTargetOid,
+                q -> q.ownerRefTargetType,
+                q -> q.ownerRefRelationId));
     }
 
     @Override

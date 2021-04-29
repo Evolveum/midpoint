@@ -22,12 +22,10 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.MAssignment;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
@@ -861,7 +859,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted to the dedicated table");
-        QObjectReference r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
         UUID ownerOid = UUID.fromString(user1Oid);
         List<MReference> refs = select(r, r.ownerOid.eq(ownerOid));
         assertThat(refs).hasSize(1)
@@ -905,7 +903,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted to the dedicated table");
-        QObjectReference r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
         List<MReference> refs = select(r, r.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(refs).hasSize(3)
                 .anyMatch(refRowMatcher(refTargetOid, refRelation1))
@@ -948,7 +946,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted to the dedicated table");
-        QObjectReference r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
         List<MReference> refs = select(r, r.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(refs).hasSize(2) // new added, previous three or so are gone
                 .anyMatch(refRowMatcher(refTargetOid, refRelation1))
@@ -983,24 +981,23 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UUID refTargetOid4 = UUID.randomUUID();
         delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_LINK_REF)
-                // add must go first here, even though it overrules conflicting delete later
-                .add(new ObjectReferenceType().oid(refTargetOid3.toString())
-                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation1),
-                        // delete of this lower will be "narrowed" out, this WILL be added
-                        new ObjectReferenceType().oid(refTargetOid3.toString())
-                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation2),
-                        new ObjectReferenceType().oid(refTargetOid4.toString())
-                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation1),
-                        new ObjectReferenceType().oid(refTargetOid4.toString())
-                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation2))
                 .delete(new ObjectReferenceType() // type is ignored/ignorable
                                 .oid(refTargetOid1.toString()).relation(refRelation1),
                         new ObjectReferenceType()
                                 .oid(refTargetOid2.toString()).relation(refRelation2),
                         new ObjectReferenceType() // nonexistent anyway
                                 .oid(refTargetOid3.toString()).relation(refRelation2),
-                        new ObjectReferenceType() // from add above, will be "narrowed" out
+                        new ObjectReferenceType() // like add bellow, will be "narrowed" out
                                 .oid(refTargetOid3.toString()).relation(refRelation1))
+                .add(new ObjectReferenceType().oid(refTargetOid3.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation1),
+                        // delete above will be "narrowed" out, this WILL be added
+                        new ObjectReferenceType().oid(refTargetOid3.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation2),
+                        new ObjectReferenceType().oid(refTargetOid4.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation1),
+                        new ObjectReferenceType().oid(refTargetOid4.toString())
+                                .type(ShadowType.COMPLEX_TYPE).relation(refRelation2))
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -1028,7 +1025,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted and deleted accordingly");
-        QObjectReference r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
         List<MReference> refs = select(r, r.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(refs).hasSize(6)
                 .anyMatch(refRowMatcher(refTargetOid1, refRelation2))
@@ -1068,7 +1065,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted and deleted accordingly");
-        QObjectReference r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
         assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
     }
 
@@ -1110,7 +1107,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted to the dedicated table");
-        QObjectReference r = QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER.defaultAlias();
         UUID ownerOid = UUID.fromString(user1Oid);
         List<MReference> refs = select(r, r.ownerOid.eq(ownerOid));
         assertThat(refs).hasSize(2)
@@ -1146,7 +1143,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
-        QObjectReference r = QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER.defaultAlias();
         assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
         r = QObjectReferenceMapping.INSTANCE_OBJECT_MODIFY_APPROVER.defaultAlias();
         assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
@@ -1162,7 +1159,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata/createChannel (multi-part path) change for task 1 adding value");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL))
+                .item(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
                 .add("any://channel")
                 .asObjectDelta(task1Oid);
 
@@ -1191,7 +1188,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata/createChannel status replace to null ('delete') for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL))
+                .item(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
                 .replace()
                 .asObjectDelta(task1Oid);
 
@@ -1225,7 +1222,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata/createChannel (multi-part path) change for task 1 adding value");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL))
+                .item(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
                 .replace("any://channel")
                 .asObjectDelta(task1Oid);
 
@@ -1258,7 +1255,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata add with no value for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA)).add()
+                .item(ObjectType.F_METADATA).add()
                 .asObjectDelta(task1Oid);
 
         and("task row previously having some value in metadata container");
@@ -1293,7 +1290,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UUID modifierRefOid = UUID.randomUUID();
         QName modifierRelation = QName.valueOf("{https://random.org/ns}modifier-rel");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA)).add(new MetadataType()
+                .item(ObjectType.F_METADATA).add(new MetadataType()
                         .modifyChannel("any://modify-channel")
                         .modifierRef(modifierRefOid.toString(),
                                 UserType.COMPLEX_TYPE, modifierRelation))
@@ -1337,7 +1334,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UUID creatorRefOid = UUID.randomUUID();
         QName creatorRelation = QName.valueOf("{https://random.org/ns}modifier-rel");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA)).replace(new MetadataType()
+                .item(ObjectType.F_METADATA).replace(new MetadataType()
                         .createChannel("any://create-channel")
                         .modifyChannel("any://modify2-channel")
                         .creatorRef(creatorRefOid.toString(),
@@ -1380,7 +1377,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata replaced with no value for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA)).replace()
+                .item(ObjectType.F_METADATA).replace()
                 .asObjectDelta(task1Oid);
 
         when("modifyObject is called");
@@ -1418,7 +1415,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata replaced with no value for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA)).replace(new MetadataType())
+                .item(ObjectType.F_METADATA).replace(new MetadataType())
                 .asObjectDelta(task1Oid);
 
         when("modifyObject is called");
@@ -1456,7 +1453,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with empty metadata added for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ItemPath.create(ObjectType.F_METADATA)).add(new MetadataType())
+                .item(ObjectType.F_METADATA).add(new MetadataType())
                 .asObjectDelta(task1Oid);
 
         when("modifyObject is called");
@@ -1496,8 +1493,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta adding credential/password/metadata/createTimestamp value for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
-                        PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
+                .item(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
+                        PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP)
                 .add(MiscUtil.asXMLGregorianCalendar(1L))
                 .asObjectDelta(user1Oid);
 
@@ -1527,8 +1524,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata/createChannel status replace to null ('delete') for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
-                        PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
+                .item(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
+                        PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP)
                 .replace()
                 .asObjectDelta(user1Oid);
 
@@ -1566,7 +1563,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta adding whole credential/password container user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD))
+                .item(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD)
                 .replace(new PasswordType(prismContext)
                         .metadata(new MetadataType(prismContext)
                                 .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(1L))))
@@ -1600,7 +1597,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta adding whole credential/password container user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(ItemPath.create(FocusType.F_CREDENTIALS))
+                .item(FocusType.F_CREDENTIALS)
                 .replace(new CredentialsType(prismContext)
                         .password(new PasswordType(prismContext)
                                 .metadata(new MetadataType(prismContext)
@@ -1640,9 +1637,156 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         given("delta adding assignment for user 1");
         UUID roleOid = UUID.randomUUID();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(ItemPath.create(UserType.F_ASSIGNMENT))
+                .item(UserType.F_ASSIGNMENT)
                 .add(new AssignmentType(prismContext)
                         .targetRef(roleOid.toString(), RoleType.COMPLEX_TYPE)) // default relation
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = userObject.getAssignment();
+        assertThat(assignments).isNotNull();
+        // next free CID was assigned
+        assertThat(assignments.get(0).getId()).isEqualTo(originalRow.containerIdSeq);
+
+        and("assignment row is created");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRow.cid).isEqualTo(originalRow.containerIdSeq);
+        assertThat(aRow.containerType).isEqualTo(MContainerType.ASSIGNMENT);
+        assertThat(aRow.targetRefTargetOid).isEqualTo(roleOid);
+        assertThat(aRow.targetRefTargetType).isEqualTo(MObjectType.ROLE);
+        assertCachedUri(aRow.targetRefRelationId, relationRegistry.getDefaultRelation());
+    }
+
+    @Test
+    public void test301ReplaceItemUnderMultiValueAssignment()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta replacing single-value item inside assignment for user 1");
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        MAssignment origAssignmentRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(origAssignmentRow.orderValue).isNull(); // wasn't previously set
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, origAssignmentRow.cid, AssignmentType.F_ORDER)
+                .replace(47)
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = userObject.getAssignment();
+        assertThat(assignments).isNotNull();
+        assertThat(assignments.get(0).getOrder()).isEqualTo(47);
+
+        and("assignment row is updated properly");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRow.cid).isEqualTo(origAssignmentRow.cid); // CID should not change
+        assertThat(aRow.orderValue).isEqualTo(47);
+        assertThat(aRow.targetRefTargetOid).isNotNull(); // target ref is still present
+    }
+
+    @Test
+    public void test302AddingMoreAssignmentsIncludingNestedContainersAndRefs()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding two more assignments for user 1");
+        UUID roleOid = UUID.randomUUID();
+        UUID resourceOid = UUID.randomUUID();
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(new AssignmentType(prismContext)
+                                .targetRef(roleOid.toString(), RoleType.COMPLEX_TYPE)
+                                .metadata(new MetadataType()
+                                        .createChannel("create-channel")
+                                        .createApproverRef(UUID.randomUUID().toString(),
+                                                UserType.COMPLEX_TYPE)
+                                        .createApproverRef(UUID.randomUUID().toString(),
+                                                UserType.COMPLEX_TYPE))
+                                .order(48),
+                        new AssignmentType(prismContext)
+                                .construction(new ConstructionType()
+                                        .resourceRef(resourceOid.toString(),
+                                                ResourceType.COMPLEX_TYPE))
+                                .order(49))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = userObject.getAssignment();
+        assertThat(assignments).hasSize(3)
+                .allMatch(a -> a.getId() != null && a.getId() < originalRow.containerIdSeq + 2);
+
+        and("new assignment rows are created");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq + 2);
+
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRows).hasSize(3)
+                .anyMatch(aRow -> aRow.cid < originalRow.containerIdSeq) // previous one
+                .anyMatch(aRow -> aRow.cid == row.containerIdSeq - 2
+                        && aRow.orderValue == 48
+                        && aRow.targetRefTargetOid.equals(roleOid)
+                        && cachedUriById(aRow.createChannelId).equals("create-channel"))
+                .anyMatch(aRow -> aRow.cid == row.containerIdSeq - 1
+                        && aRow.resourceRefTargetOid.equals(resourceOid));
+
+        QAssignmentReference ar =
+                QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_CREATE_APPROVER.defaultAlias();
+        List<MAssignmentReference> refRows = select(ar, ar.ownerOid.eq(UUID.fromString(user1Oid))
+                .and(ar.assignmentCid.eq(row.containerIdSeq - 2)));
+        assertThat(refRows).hasSize(2)
+                .allMatch(rr -> rr.targetType == MObjectType.USER);
+    }
+
+    @Test
+    public void test303ModificationsOnOneAssignmentDoesNotAffectOthers()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta changing item inside single assignments for user 1");
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        long assOrder49Cid = selectOne(a,
+                a.ownerOid.eq(UUID.fromString(user1Oid)), a.orderValue.eq(49)).cid;
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, assOrder49Cid, AssignmentType.F_ORDER)
+                .replace(50)
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -1656,25 +1800,239 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .asObjectable();
         assertThat(UserObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
         List<AssignmentType> assignments = UserObject.getAssignment();
-        assertThat(assignments).isNotNull();
-        assertThat(assignments.get(0).getId()).isNotNull(); // CID was assigned
+        assertThat(assignments).hasSize(3)
+                .anyMatch(ass -> ass.getOrder() == 47)
+                .anyMatch(ass -> ass.getOrder() == 48)
+                .anyMatch(ass -> ass.getOrder() == 50);
 
-        and("externalized column is updated");
+        and("assignment row is modified");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
-        QAssignment a = QAssignmentMapping.INSTANCE.defaultAlias();
-        List<MAssignment> assRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
-        assertThat(assRows).hasSize(1);
+        MAssignment aRow = selectOne(a,
+                a.ownerOid.eq(UUID.fromString(user1Oid)), a.cid.eq(assOrder49Cid));
+        assertThat(aRow.orderValue).isEqualTo(50);
 
-        MAssignment aRow = assRows.get(0);
-        assertThat(aRow.cid).isNotNull();
-        assertThat(aRow.targetRefTargetOid).isEqualTo(roleOid);
-        assertThat(aRow.targetRefTargetType).isEqualTo(MObjectType.ROLE);
-        assertCachedUri(aRow.targetRefRelationId, relationRegistry.getDefaultRelation());
+        and("no other assignment rows are modified");
+        assertThat(count(a, a.ownerOid.eq(UUID.fromString(user1Oid)), a.orderValue.eq(50)))
+                .isEqualTo(1);
     }
 
-    // TODO: "indexed" containers: .item(ItemPath.create(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
+    @Test
+    public void test304MultipleModificationsOfExistingAssignment()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta changing multiple assignments for user 1");
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        long assOrder48Cid = selectOne(a,
+                a.ownerOid.eq(UUID.fromString(user1Oid)), a.orderValue.eq(48)).cid;
+        long assOrder50Cid = selectOne(a,
+                a.ownerOid.eq(UUID.fromString(user1Oid)), a.orderValue.eq(50)).cid;
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, assOrder48Cid, AssignmentType.F_ORDER)
+                .replace(50)
+                .item(UserType.F_ASSIGNMENT, assOrder48Cid, AssignmentType.F_METADATA)
+                .replace()
+                .item(UserType.F_ASSIGNMENT, assOrder50Cid, AssignmentType.F_CONSTRUCTION)
+                .replace()
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType UserObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(UserObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = UserObject.getAssignment();
+        assertThat(assignments).hasSize(3)
+                .anyMatch(ass -> ass.getOrder() == 47) // first one stays 47
+                .anyMatch(ass -> ass.getOrder() == 50  // previously 48
+                        && ass.getMetadata() == null // removed metadata
+                        && ass.getTargetRef() != null)
+                .anyMatch(ass -> ass.getOrder() == 50
+                        && ass.getMetadata() == null // never had any
+                        && ass.getTargetRef() == null
+                        && ass.getConstruction() == null); // removed construction
+
+        and("assignment row is created");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        assertThat(select(a, a.ownerOid.eq(UUID.fromString(user1Oid)))).hasSize(3)
+                .anyMatch(ass -> ass.orderValue == 47) // first one stays 47
+                .anyMatch(ass -> ass.orderValue == 50  // previously 48
+                        && ass.createChannelId == null // removed metadata
+                        && ass.targetRefTargetOid != null)
+                .anyMatch(ass -> ass.orderValue == 50
+                        && ass.createChannelId == null // never had any
+                        && ass.targetRefTargetOid == null
+                        && ass.resourceRefTargetOid == null); // removed construction
+
+        // Approver references were removed from the only assignment that had them.
+        QAssignmentReference ar =
+                QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_CREATE_APPROVER.defaultAlias();
+        assertThat(count(ar, ar.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
+    }
+
+    @Test
+    public void test305AddingAssignmentWithNewPrefilledCid()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding assignments with free CID for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(new AssignmentType(prismContext)
+                        .id(originalRow.containerIdSeq)
+                        .order(1))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and provided CID is used");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = userObject.getAssignment();
+        assertThat(assignments).hasSize(4)
+                .anyMatch(a -> a.getId().equals(originalRow.containerIdSeq));
+
+        and("new assignment row is created");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq + 1);
+
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRows).hasSize(4)
+                .anyMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq)
+                        && aRow.orderValue == 1);
+    }
+
+    @Test
+    public void test306DeleteAssignmentByCid()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta deleting assignments using CID for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .delete(new AssignmentType(prismContext)
+                        .id(originalRow.containerIdSeq - 1)) // last added assignment
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = userObject.getAssignment();
+        assertThat(assignments).hasSize(3)
+                .noneMatch(a -> a.getId().equals(originalRow.containerIdSeq - 1));
+
+        and("new assignment row is created");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq); // no need for change
+
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRows).hasSize(3)
+                .noneMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq - 1));
+    }
+
+    @Test
+    public void test307AddingAssignmentWithUsedBytFreeCid()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        // this is NOT recommended in practice, reusing previous CIDs is messy
+        given("delta adding assignments with used but now free CID for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(new AssignmentType(prismContext)
+                        .id(originalRow.containerIdSeq - 1)
+                        .order(1))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and provided CID is used");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = userObject.getAssignment();
+        assertThat(assignments).hasSize(4)
+                .anyMatch(a -> a.getId().equals(originalRow.containerIdSeq - 1));
+
+        and("new assignment row is created");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq); // no change
+
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRows).hasSize(4)
+                .anyMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq - 1)
+                        && aRow.orderValue == 1);
+    }
+
+    // TODO delete by pattern - as per ItemImpl.remove(V, EquivalenceStrategy)
+
+    @Test
+    public void test309DeleteAllAssignments()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta deleting all assignments from user 1 using replace");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .replace()
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and has no assignment now");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = userObject.getAssignment();
+        assertThat(assignments).isEmpty();
+
+        and("there are no assignment rows for the user now");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        assertThat(select(a, a.ownerOid.eq(UUID.fromString(user1Oid)))).isEmpty();
+    }
     // endregion
 
     // TODO test for multi-value (e.g. subtypes) with item delta with both add and delete lists

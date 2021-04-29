@@ -25,7 +25,7 @@ public class QServiceMapping
         super(QService.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 ServiceType.class, QService.class);
 
-        addItemMapping(F_DISPLAY_ORDER, integerMapper(path(q -> q.displayOrder)));
+        addItemMapping(F_DISPLAY_ORDER, integerMapper(q -> q.displayOrder));
     }
 
     @Override

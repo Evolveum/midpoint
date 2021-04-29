@@ -1255,7 +1255,7 @@ CREATE TABLE m_assignment_type (
     modifyChannel_id INTEGER,
     modifyTimestamp TIMESTAMPTZ,
 
-    PRIMARY KEY (owner_oid, cid),
+    -- create PRIMARY KEY (owner_oid, cid) on sub-tables
     -- no need to index owner_oid, it's part of the PK index
 
     CHECK (FALSE) NO INHERIT

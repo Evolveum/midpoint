@@ -25,27 +25,24 @@ public class QShadowMapping
     private QShadowMapping() {
         super(QShadow.TABLE_NAME, DEFAULT_ALIAS_NAME, ShadowType.class, QShadow.class);
 
-        addItemMapping(ShadowType.F_OBJECT_CLASS,
-                uriMapper(path(q -> q.objectClassId)));
+        addItemMapping(ShadowType.F_OBJECT_CLASS, uriMapper(q -> q.objectClassId));
         addItemMapping(F_RESOURCE_REF, refMapper(
-                path(q -> q.resourceRefTargetOid),
-                path(q -> q.resourceRefTargetType),
-                path(q -> q.resourceRefRelationId)));
-        addItemMapping(F_INTENT, stringMapper(path(q -> q.intent)));
-        addItemMapping(F_KIND, enumMapper(path(q -> q.kind)));
+                q -> q.resourceRefTargetOid,
+                q -> q.resourceRefTargetType,
+                q -> q.resourceRefRelationId));
+        addItemMapping(F_INTENT, stringMapper(q -> q.intent));
+        addItemMapping(F_KIND, enumMapper(q -> q.kind));
         // TODO attemptNumber?
-        addItemMapping(F_DEAD, booleanMapper(path(q -> q.dead)));
-        addItemMapping(F_EXISTS, booleanMapper(path(q -> q.exist)));
+        addItemMapping(F_DEAD, booleanMapper(q -> q.dead));
+        addItemMapping(F_EXISTS, booleanMapper(q -> q.exist));
         addItemMapping(F_FULL_SYNCHRONIZATION_TIMESTAMP,
-                timestampMapper(path(q -> q.fullSynchronizationTimestamp)));
+                timestampMapper(q -> q.fullSynchronizationTimestamp));
         // TODO size filter? how?
-//        addItemMapping(F_PENDING_OPERATION, integerMapper(path(q -> q.pendingOperationCount)));
-        addItemMapping(F_PRIMARY_IDENTIFIER_VALUE,
-                stringMapper(path(q -> q.primaryIdentifierValue)));
-        addItemMapping(F_SYNCHRONIZATION_SITUATION,
-                enumMapper(path(q -> q.synchronizationSituation)));
+//        addItemMapping(F_PENDING_OPERATION, integerMapper(q -> q.pendingOperationCount));
+        addItemMapping(F_PRIMARY_IDENTIFIER_VALUE, stringMapper(q -> q.primaryIdentifierValue));
+        addItemMapping(F_SYNCHRONIZATION_SITUATION, enumMapper(q -> q.synchronizationSituation));
         addItemMapping(F_SYNCHRONIZATION_TIMESTAMP,
-                timestampMapper(path(q -> q.synchronizationTimestamp)));
+                timestampMapper(q -> q.synchronizationTimestamp));
     }
 
     @Override

@@ -251,7 +251,7 @@ public class AssignmentsUtil {
             return sb.toString();
         }
 
-        //TODO fix this.. what do we want to show in the name columns in the case of assignemtnRelation assignemt??
+        //TODO fix this.. what do we want to show in the name columns in the case of assignmentRelation assignment??
         if (assignment.getAssignmentRelation() != null && !assignment.getAssignmentRelation().isEmpty()) {
             for (AssignmentRelationType assignmentRelation : assignment.getAssignmentRelation()) {
                 sb.append("Assignment relation");

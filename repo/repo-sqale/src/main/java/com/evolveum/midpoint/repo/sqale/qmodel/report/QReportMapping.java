@@ -27,9 +27,9 @@ public class QReportMapping
 
         addNestedMapping(ReportType.F_JASPER, JasperReportEngineConfigurationType.class)
                 .addItemMapping(JasperReportEngineConfigurationType.F_ORIENTATION,
-                        enumMapper(path(q -> q.orientation)))
+                        enumMapper(q -> q.orientation))
                 .addItemMapping(JasperReportEngineConfigurationType.F_PARENT,
-                        booleanMapper(path(q -> q.parent)));
+                        booleanMapper(q -> q.parent));
     }
 
     @Override

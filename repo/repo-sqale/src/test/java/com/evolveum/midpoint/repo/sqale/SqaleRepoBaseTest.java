@@ -16,6 +16,8 @@ import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Predicate;
 import com.querydsl.sql.SQLQuery;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
@@ -143,7 +145,14 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         }
     }
 
-    protected <R, Q extends FlexibleRelationalPathBase<R>> R selectOne(
+    protected <R, Q extends FlexibleRelationalPathBase<R>> @NotNull R selectOne(
+            Q path, Predicate... conditions) {
+        R row = selectOneNullable(path, conditions);
+        assertThat(row).isNotNull();
+        return row;
+    }
+
+    protected <R, Q extends FlexibleRelationalPathBase<R>> @Nullable R selectOneNullable(
             Q path, Predicate... conditions) {
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()) {
             return jdbcSession.newQuery()
@@ -154,15 +163,27 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         }
     }
 
-    protected <R extends MObject, Q extends QObject<R>> R selectObjectByOid(
+    protected <R extends MObject, Q extends QObject<R>> @NotNull R selectObjectByOid(
             Class<Q> queryType, String oid) {
         return selectObjectByOid(queryType, UUID.fromString(oid));
     }
 
-    protected <R extends MObject, Q extends QObject<R>> R selectObjectByOid(
+    protected <R extends MObject, Q extends QObject<R>> @NotNull R selectObjectByOid(
+            Class<Q> queryType, UUID oid) {
+        R row = selectNullableObjectByOid(queryType, oid);
+        assertThat(row).isNotNull();
+        return row;
+    }
+
+    protected <R extends MObject, Q extends QObject<R>> @Nullable R selectNullableObjectByOid(
+            Class<Q> queryType, String oid) {
+        return selectNullableObjectByOid(queryType, UUID.fromString(oid));
+    }
+
+    protected <R extends MObject, Q extends QObject<R>> @Nullable R selectNullableObjectByOid(
             Class<Q> queryType, UUID oid) {
         Q path = aliasFor(queryType);
-        return selectOne(path, path.oid.eq(oid));
+        return selectOneNullable(path, path.oid.eq(oid));
     }
 
     protected String cachedUriById(Integer uriId) {
