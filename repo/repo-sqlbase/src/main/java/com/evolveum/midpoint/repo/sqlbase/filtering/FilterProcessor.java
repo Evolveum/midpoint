@@ -22,7 +22,7 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
  * These typically determine what other processor should be used in the next step.
  * The logic starts in {@link ObjectFilterProcessor#process(ObjectFilter)} and determines
  * whether to resolve logical operations or delegate to other specialized filter.
- * *Complex path resolution* is typically here (which may add JOINs), but value evaluation is not.
+ * *Complex path resolution* (which may add JOINs) belongs here, see {@link ValueFilterProcessor}.
  *
  * * {@link ItemFilterProcessor}s for a single Prism item (not necessarily one SQL column).
  * These *process only single/final path component and use the value of the filter*.

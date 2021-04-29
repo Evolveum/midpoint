@@ -18,8 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 /**
  * Mapping between {@link QResource} and {@link ResourceType}.
  */
-public class QResourceMapping
-        extends QObjectMapping<ResourceType, QResource, MResource> {
+public class QResourceMapping extends QObjectMapping<ResourceType, QResource, MResource> {
 
     public static final String DEFAULT_ALIAS_NAME = "res";
 
@@ -30,17 +29,18 @@ public class QResourceMapping
 
         addNestedMapping(F_BUSINESS, ResourceBusinessConfigurationType.class)
                 .addItemMapping(ResourceBusinessConfigurationType.F_ADMINISTRATIVE_STATE,
-                        enumMapper(path(q -> q.businessAdministrativeState)))
+                        enumMapper(q -> q.businessAdministrativeState))
                 .addRefMapping(ResourceBusinessConfigurationType.F_APPROVER_REF,
                         QObjectReferenceMapping.INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER);
+
         addNestedMapping(F_OPERATIONAL_STATE, OperationalStateType.class)
                 .addItemMapping(OperationalStateType.F_LAST_AVAILABILITY_STATUS,
-                        enumMapper(
-                                path(q -> q.operationalStateLastAvailabilityStatus)));
+                        enumMapper(q -> q.operationalStateLastAvailabilityStatus));
+
         addItemMapping(F_CONNECTOR_REF, refMapper(
-                path(q -> q.connectorRefTargetOid),
-                path(q -> q.connectorRefTargetType),
-                path(q -> q.connectorRefRelationId)));
+                q -> q.connectorRefTargetOid,
+                q -> q.connectorRefTargetType,
+                q -> q.connectorRefRelationId));
     }
 
     @Override

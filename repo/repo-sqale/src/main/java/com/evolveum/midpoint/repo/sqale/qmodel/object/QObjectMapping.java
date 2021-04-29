@@ -6,9 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ARCHETYPE_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ROLE_MEMBERSHIP_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.*;
 
 import java.util.Collection;
 
@@ -29,6 +27,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Mapping between {@link QObject} and {@link ObjectType}.
+ *
+ * @param <S> schema type of the object
+ * @param <Q> type of entity path
+ * @param <R> row type related to the {@link Q}
  */
 public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extends MObject>
         extends SqaleTableMapping<S, Q, R> {
@@ -46,14 +48,14 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             @NotNull Class<Q> queryType) {
         super(tableName, defaultAliasName, schemaType, queryType);
 
-        addItemMapping(PrismConstants.T_ID, uuidMapper(path(q -> q.oid)));
+        addItemMapping(PrismConstants.T_ID, uuidMapper(q -> q.oid));
         addItemMapping(F_NAME, polyStringMapper(
-                path(q -> q.nameOrig), path(q -> q.nameNorm)));
+                q -> q.nameOrig, q -> q.nameNorm));
         addItemMapping(F_TENANT_REF, refMapper(
-                path(q -> q.tenantRefTargetOid),
-                path(q -> q.tenantRefTargetType),
-                path(q -> q.tenantRefRelationId)));
-        addItemMapping(F_LIFECYCLE_STATE, stringMapper(path(q -> q.lifecycleState)));
+                q -> q.tenantRefTargetOid,
+                q -> q.tenantRefTargetType,
+                q -> q.tenantRefRelationId));
+        addItemMapping(F_LIFECYCLE_STATE, stringMapper(q -> q.lifecycleState));
         // version/cid_seq is not mapped for queries or deltas, it's managed by repo explicitly
 
         // TODO mapper for policySituations and subtypes
@@ -61,35 +63,98 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
         addNestedMapping(F_METADATA, MetadataType.class)
                 .addItemMapping(MetadataType.F_CREATOR_REF, refMapper(
-                        path(q -> q.creatorRefTargetOid),
-                        path(q -> q.creatorRefTargetType),
-                        path(q -> q.creatorRefRelationId)))
+                        q -> q.creatorRefTargetOid,
+                        q -> q.creatorRefTargetType,
+                        q -> q.creatorRefRelationId))
                 .addItemMapping(MetadataType.F_CREATE_CHANNEL,
-                        uriMapper(path(q -> q.createChannelId)))
+                        uriMapper(q -> q.createChannelId))
                 .addItemMapping(MetadataType.F_CREATE_TIMESTAMP,
-                        timestampMapper(path(q -> q.createTimestamp)))
+                        timestampMapper(q -> q.createTimestamp))
                 .addItemMapping(MetadataType.F_MODIFIER_REF, refMapper(
-                        path(q -> q.modifierRefTargetOid),
-                        path(q -> q.modifierRefTargetType),
-                        path(q -> q.modifierRefRelationId)))
+                        q -> q.modifierRefTargetOid,
+                        q -> q.modifierRefTargetType,
+                        q -> q.modifierRefRelationId))
                 .addItemMapping(MetadataType.F_MODIFY_CHANNEL,
-                        uriMapper(path(q -> q.modifyChannelId)))
+                        uriMapper(q -> q.modifyChannelId))
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
-                        timestampMapper(path(q -> q.modifyTimestamp)))
+                        timestampMapper(q -> q.modifyTimestamp))
                 .addRefMapping(MetadataType.F_CREATE_APPROVER_REF,
-                        QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER)
+                        objectCreateApproverReferenceMapping())
                 .addRefMapping(MetadataType.F_MODIFY_APPROVER_REF,
-                        QObjectReferenceMapping.INSTANCE_OBJECT_MODIFY_APPROVER);
+                        objectModifyApproverReferenceMapping());
+
+        addRefMapping(F_PARENT_ORG_REF, objectParentOrgReferenceMapping());
+
+        addContainerTableMapping(AssignmentHolderType.F_ASSIGNMENT, assignmentMapping(),
+                joinOn((o, a) -> o.oid.eq(a.ownerOid)));
+        addContainerTableMapping(F_OPERATION_EXECUTION, operationExecutionMapping(),
+                joinOn((o, trg) -> o.oid.eq(trg.ownerOid)));
+        addContainerTableMapping(F_TRIGGER, triggerMapping(),
+                joinOn((o, trg) -> o.oid.eq(trg.ownerOid)));
 
         // AssignmentHolderType
-        addRefMapping(F_ARCHETYPE_REF, QObjectReferenceMapping.INSTANCE_ARCHETYPE);
-        addRefMapping(F_PARENT_ORG_REF, QObjectReferenceMapping.INSTANCE_OBJECT_PARENT_ORG);
-        addRefMapping(F_ROLE_MEMBERSHIP_REF, QObjectReferenceMapping.INSTANCE_ROLE_MEMBERSHIP);
+        addRefMapping(F_ARCHETYPE_REF, archetypeReferenceMapping());
+        addRefMapping(F_DELEGATED_REF, delegatedReferenceMapping());
+        addRefMapping(F_ROLE_MEMBERSHIP_REF, roleMembershipReferenceMapping());
+    }
 
-        addContainerTableMapping(AssignmentHolderType.F_ASSIGNMENT, QAssignmentMapping.INSTANCE,
-                joinOn((o, a) -> o.oid.eq(a.ownerOid)));
-        addContainerTableMapping(F_TRIGGER, QTriggerMapping.INSTANCE,
-                joinOn((o, trg) -> o.oid.eq(trg.ownerOid)));
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    @NotNull
+    public QAssignmentMapping<R> assignmentMapping() {
+        //noinspection unchecked
+        return (QAssignmentMapping<R>) QAssignmentMapping.INSTANCE;
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    @NotNull
+    public QOperationExecutionMapping<R> operationExecutionMapping() {
+        //noinspection unchecked
+        return (QOperationExecutionMapping<R>) QOperationExecutionMapping.INSTANCE;
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    @NotNull
+    public QTriggerMapping<R> triggerMapping() {
+        //noinspection unchecked
+        return (QTriggerMapping<R>) QTriggerMapping.INSTANCE;
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    public @NotNull QObjectReferenceMapping<Q, R> archetypeReferenceMapping() {
+        //noinspection unchecked
+        return (QObjectReferenceMapping<Q, R>) QObjectReferenceMapping.INSTANCE_ARCHETYPE;
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    public @NotNull QObjectReferenceMapping<Q, R> delegatedReferenceMapping() {
+        //noinspection unchecked
+        return (QObjectReferenceMapping<Q, R>) QObjectReferenceMapping.INSTANCE_DELEGATED;
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    public @NotNull QObjectReferenceMapping<Q, R> objectCreateApproverReferenceMapping() {
+        //noinspection unchecked
+        return (QObjectReferenceMapping<Q, R>)
+                QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER;
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    public @NotNull QObjectReferenceMapping<Q, R> objectModifyApproverReferenceMapping() {
+        //noinspection unchecked
+        return (QObjectReferenceMapping<Q, R>)
+                QObjectReferenceMapping.INSTANCE_OBJECT_MODIFY_APPROVER;
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    public @NotNull QObjectReferenceMapping<Q, R> objectParentOrgReferenceMapping() {
+        //noinspection unchecked
+        return (QObjectReferenceMapping<Q, R>) QObjectReferenceMapping.INSTANCE_OBJECT_PARENT_ORG;
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    public @NotNull QObjectReferenceMapping<Q, R> roleMembershipReferenceMapping() {
+        //noinspection unchecked
+        return (QObjectReferenceMapping<Q, R>) QObjectReferenceMapping.INSTANCE_ROLE_MEMBERSHIP;
     }
 
     @Override

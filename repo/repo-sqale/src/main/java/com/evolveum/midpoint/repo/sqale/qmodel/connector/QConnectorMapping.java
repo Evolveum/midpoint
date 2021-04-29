@@ -25,14 +25,14 @@ public class QConnectorMapping
     private QConnectorMapping() {
         super(QConnector.TABLE_NAME, DEFAULT_ALIAS_NAME, ConnectorType.class, QConnector.class);
 
-        addItemMapping(F_CONNECTOR_BUNDLE, stringMapper(path(q -> q.connectorBundle)));
-        addItemMapping(F_CONNECTOR_TYPE, stringMapper(path(q -> q.connectorType)));
-        addItemMapping(F_CONNECTOR_VERSION, stringMapper(path(q -> q.connectorVersion)));
-        addItemMapping(F_FRAMEWORK, uriMapper(path(q -> q.frameworkId)));
+        addItemMapping(F_CONNECTOR_BUNDLE, stringMapper(q -> q.connectorBundle));
+        addItemMapping(F_CONNECTOR_TYPE, stringMapper(q -> q.connectorType));
+        addItemMapping(F_CONNECTOR_VERSION, stringMapper(q -> q.connectorVersion));
+        addItemMapping(F_FRAMEWORK, uriMapper(q -> q.frameworkId));
         addItemMapping(F_CONNECTOR_HOST_REF, refMapper(
-                path(q -> q.connectorHostRefTargetOid),
-                path(q -> q.connectorHostRefTargetType),
-                path(q -> q.connectorHostRefRelationId)));
+                q -> q.connectorHostRefTargetOid,
+                q -> q.connectorHostRefTargetType,
+                q -> q.connectorHostRefRelationId));
 
         // TODO mapping for List<String> F_TARGET_SYSTEM_TYPE
     }

@@ -16,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
  * Mapping between {@link QLookupTableRow} and {@link LookupTableRowType}.
  */
 public class QLookupTableRowMapping
-        extends QContainerMapping<LookupTableRowType, QLookupTableRow, MLookupTableRow> {
+        extends QContainerMapping<LookupTableRowType, QLookupTableRow, MLookupTableRow, MLookupTable> {
 
     public static final String DEFAULT_ALIAS_NAME = "ltr";
 
@@ -26,12 +26,12 @@ public class QLookupTableRowMapping
         super(QLookupTableRow.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 LookupTableRowType.class, QLookupTableRow.class);
 
-        addItemMapping(F_KEY, stringMapper(path(q -> q.key)));
+        addItemMapping(F_KEY, stringMapper(q -> q.key));
         addItemMapping(F_LABEL, polyStringMapper(
-                path(q -> q.labelOrig), path(q -> q.labelNorm)));
-        addItemMapping(F_VALUE, stringMapper(path(q -> q.value)));
+                q -> q.labelOrig, q -> q.labelNorm));
+        addItemMapping(F_VALUE, stringMapper(q -> q.value));
         addItemMapping(F_LAST_CHANGE_TIMESTAMP,
-                timestampMapper(path(q -> q.lastChangeTimestamp)));
+                timestampMapper(q -> q.lastChangeTimestamp));
     }
 
     @Override
@@ -47,5 +47,12 @@ public class QLookupTableRowMapping
     @Override
     public MLookupTableRow newRowObject() {
         return new MLookupTableRow();
+    }
+
+    @Override
+    public MLookupTableRow newRowObject(MLookupTable ownerRow) {
+        MLookupTableRow row = newRowObject();
+        row.ownerOid = ownerRow.oid;
+        return row;
     }
 }

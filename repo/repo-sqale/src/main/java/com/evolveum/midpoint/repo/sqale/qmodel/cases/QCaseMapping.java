@@ -27,24 +27,24 @@ public class QCaseMapping
         super(QCase.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 CaseType.class, QCase.class);
 
-        addItemMapping(F_STATE, stringMapper(path(q -> q.state)));
-        addItemMapping(F_CLOSE_TIMESTAMP, timestampMapper(path(q -> q.closeTimestamp)));
+        addItemMapping(F_STATE, stringMapper(q -> q.state));
+        addItemMapping(F_CLOSE_TIMESTAMP, timestampMapper(q -> q.closeTimestamp));
         addItemMapping(F_OBJECT_REF, refMapper(
-                path(q -> q.objectRefTargetOid),
-                path(q -> q.objectRefTargetType),
-                path(q -> q.objectRefRelationId)));
+                q -> q.objectRefTargetOid,
+                q -> q.objectRefTargetType,
+                q -> q.objectRefRelationId));
         addItemMapping(F_PARENT_REF, refMapper(
-                path(q -> q.parentRefTargetOid),
-                path(q -> q.parentRefTargetType),
-                path(q -> q.parentRefRelationId)));
+                q -> q.parentRefTargetOid,
+                q -> q.parentRefTargetType,
+                q -> q.parentRefRelationId));
         addItemMapping(F_REQUESTOR_REF, refMapper(
-                path(q -> q.requestorRefTargetOid),
-                path(q -> q.requestorRefTargetType),
-                path(q -> q.requestorRefRelationId)));
+                q -> q.requestorRefTargetOid,
+                q -> q.requestorRefTargetType,
+                q -> q.requestorRefRelationId));
         addItemMapping(F_TARGET_REF, refMapper(
-                path(q -> q.targetRefTargetOid),
-                path(q -> q.targetRefTargetType),
-                path(q -> q.targetRefRelationId)));
+                q -> q.targetRefTargetOid,
+                q -> q.targetRefTargetType,
+                q -> q.targetRefRelationId));
     }
 
     @Override

@@ -24,6 +24,9 @@ import com.evolveum.midpoint.repo.api.DeleteObjectResult;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.MAccessCertificationDefinition;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDefinition;
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.MAssignmentReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
@@ -212,7 +215,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(userRow.oid).isNotNull();
         assertThat(userRow.containerIdSeq).isEqualTo(3); // next free container number
 
-        QContainer<MContainer> c = aliasFor(QContainer.CLASS);
+        QContainer<MContainer, ?> c = aliasFor(QContainer.CLASS);
         List<MContainer> containers = select(c, c.ownerOid.eq(userRow.oid));
         assertThat(containers).hasSize(2)
                 .allMatch(cRow -> cRow.ownerOid.equals(userRow.oid)
@@ -252,7 +255,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(userRow.oid).isNotNull();
         assertThat(userRow.containerIdSeq).isEqualTo(3); // next free container number
 
-        QContainer<MContainer> c = aliasFor(QContainer.CLASS);
+        QContainer<MContainer, ?> c = aliasFor(QContainer.CLASS);
         List<MContainer> containers = select(c, c.ownerOid.eq(userRow.oid));
         assertThat(containers).hasSize(2)
                 .allMatch(cRow -> cRow.ownerOid.equals(userRow.oid)
@@ -278,7 +281,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         when("adding it to the repository");
         repositoryService.addObject(user.asPrismObject(), null, result);
 
-        then("object and its container rows are created and container IDs are assigned");
+        then("object and its reference rows are created");
         assertThatOperationResult(result).isSuccess();
 
         QUser u = aliasFor(QUser.class);
@@ -289,7 +292,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(userRow.containerIdSeq).isEqualTo(1); // cid sequence is in initial state
 
         UUID userOid = UUID.fromString(user.getOid());
-        QObjectReference or = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        QObjectReference<?> or = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
         List<MReference> projectionRefs = select(or, or.ownerOid.eq(userOid));
         assertThat(projectionRefs).hasSize(2)
                 .allMatch(rRow -> rRow.referenceType == MReferenceType.PROJECTION)
@@ -297,10 +300,47 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .extracting(rRow -> rRow.targetOid.toString())
                 .containsExactlyInAnyOrder(targetRef1, targetRef2);
         // this is the same set of refs queried from the super-table
-        QReference<MReference> r = aliasFor(QReference.CLASS);
+        QReference<MReference, ?> r = aliasFor(QReference.CLASS);
         List<MReference> refs = select(r, r.ownerOid.eq(userOid));
         assertThat(refs).hasSize(2)
                 .allMatch(rRow -> rRow.referenceType == MReferenceType.PROJECTION);
+    }
+
+    @Test
+    public void test206AddObjectWithMultivalueRefsOnAssignment()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("user with ref");
+        String userName = "user" + getTestNumber();
+        UUID approverRef1 = UUID.randomUUID();
+        UUID approverRef2 = UUID.randomUUID();
+        QName approverRelation = QName.valueOf("{https://random.org/ns}conn-rel"); // TODO
+        UserType user = new UserType(prismContext)
+                .name(userName)
+                .assignment(new AssignmentType()
+                        .metadata(new MetadataType()
+                                .createApproverRef(approverRef1.toString(),
+                                        UserType.COMPLEX_TYPE, approverRelation)
+                                .createApproverRef(approverRef2.toString(), UserType.COMPLEX_TYPE)));
+
+        when("adding it to the repository");
+        String oid = repositoryService.addObject(user.asPrismObject(), null, result);
+
+        then("object and its reference rows are created");
+        assertThatOperationResult(result).isSuccess();
+
+        MUser userRow = selectObjectByOid(QUser.class, oid);
+        assertThat(userRow.oid).isNotNull();
+
+        QAssignmentReference ar =
+                QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_CREATE_APPROVER.defaultAlias();
+        List<MAssignmentReference> projectionRefs = select(ar, ar.ownerOid.eq(userRow.oid));
+        assertThat(projectionRefs).hasSize(2)
+                .allMatch(rRow -> rRow.referenceType == MReferenceType.ASSIGNMENT_CREATE_APPROVER)
+                .allMatch(rRow -> rRow.ownerOid.equals(userRow.oid))
+                .allMatch(rRow -> rRow.assignmentCid.equals(1L)) // there's just one container
+                .anyMatch(refRowMatcher(approverRef1, approverRelation));
     }
 
     @Test
@@ -372,7 +412,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         then("it is stored and relevant attributes are in columns");
         assertThatOperationResult(result).isSuccess();
 
-        MObject row = selectObjectByOid(QSystemConfiguration.class, systemConfiguration.getOid());
+        MObject row = selectObjectByOid(
+                QSystemConfiguration.class, systemConfiguration.getOid());
         display("FULL OBJECT: " + new String(row.fullObject, StandardCharsets.UTF_8));
         assertThat(row.nameOrig).isEqualTo(objectName);
         assertThat(row.nameNorm).isEqualTo(objectName); // nothing to normalize here
@@ -420,7 +461,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         then("it is stored with its persisted trigger containers");
         assertThatOperationResult(result).isSuccess();
 
-        QTrigger t = aliasFor(QTrigger.class);
+        QTrigger<?> t = aliasFor(QTrigger.CLASS);
         List<MTrigger> containers = select(t, t.ownerOid.eq(UUID.fromString(systemConfiguration.getOid())));
         assertThat(containers).hasSize(2);
 
@@ -435,7 +476,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertCachedUri(containerRow.handlerUriId, "trigger-2-handler-uri");
         assertThat(containerRow.timestampValue).isEqualTo(Instant.ofEpochMilli(2));
 
-        MObject objectRow = selectObjectByOid(QSystemConfiguration.class, systemConfiguration.getOid());
+        MObject objectRow = selectObjectByOid(
+                QSystemConfiguration.class, systemConfiguration.getOid());
         assertThat(objectRow.containerIdSeq).isEqualTo(5); // next free CID
     }
 
@@ -468,7 +510,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         then("it is stored with its persisted trigger containers");
         assertThatOperationResult(result).isSuccess();
 
-        QOperationExecution oe = aliasFor(QOperationExecution.class);
+        QOperationExecution<?> oe = aliasFor(QOperationExecution.CLASS);
         List<MOperationExecution> containers =
                 select(oe, oe.ownerOid.eq(UUID.fromString(systemConfiguration.getOid())));
         assertThat(containers).hasSize(2);
@@ -587,7 +629,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.connectorRefTargetType).isEqualTo(MObjectType.CONNECTOR);
         assertCachedUri(row.connectorRefRelationId, connectorRelation);
 
-        QObjectReference ref = QObjectReferenceMapping
+        QObjectReference<?> ref = QObjectReferenceMapping
                 .INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER.defaultAlias();
         List<MReference> refs = select(ref, ref.ownerOid.eq(row.oid));
         assertThat(refs).hasSize(2);
@@ -961,7 +1003,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(deleteResult).isNotNull();
         assertThat(deleteResult.getObjectTextRepresentation()).isNotNull();
 
-        assertThat(selectObjectByOid(QUser.class, userOid)).isNull();
+        assertThat(selectNullableObjectByOid(QUser.class, userOid)).isNull();
     }
 
     // slight variation of the above, but using lower-level abstract table
@@ -983,7 +1025,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(deleteResult).isNotNull();
         assertThat(deleteResult.getObjectTextRepresentation()).isNotNull();
 
-        assertThat(selectObjectByOid(QUser.class, userOid)).isNull();
+        assertThat(selectNullableObjectByOid(QUser.class, userOid)).isNull();
     }
 
     @Test

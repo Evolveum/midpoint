@@ -130,6 +130,13 @@ public class TaskWorkStateUtil {
     }
 
     /**
+     * @return True if the task is a worker (in the bucketing sense).
+     */
+    public static boolean isWorker(TaskType task) {
+        return getKind(task) == TaskKindType.WORKER;
+    }
+
+    /**
      * @return True if the task is a partitioned master.
      */
     public static boolean isPartitionedMaster(TaskType task) {

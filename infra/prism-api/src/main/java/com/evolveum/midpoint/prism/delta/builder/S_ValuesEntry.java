@@ -7,10 +7,10 @@
 
 package com.evolveum.midpoint.prism.delta.builder;
 
+import java.util.Collection;
+
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-
-import java.util.Collection;
 
 /**
  * Note: When dealing with PolyStrings, the real values should be of PolyString, not of PolyStringType type.
@@ -27,10 +27,10 @@ public interface S_ValuesEntry {
     S_MaybeDelete add(PrismValue... values);
     S_MaybeDelete add(Collection<? extends PrismValue> values);
 
-    S_ItemEntry delete(Object... realValues);
-    S_ItemEntry deleteRealValues(Collection<?> realValues);
-    S_ItemEntry delete(PrismValue... values);
-    S_ItemEntry delete(Collection<? extends PrismValue> values);
+    S_MaybeAdd delete(Object... realValues);
+    S_MaybeAdd deleteRealValues(Collection<?> realValues);
+    S_MaybeAdd delete(PrismValue... values);
+    S_MaybeAdd delete(Collection<? extends PrismValue> values);
 
     S_ItemEntry replace(Object... realValues);
     S_ItemEntry replaceRealValues(Collection<?> realValues);

@@ -6,33 +6,39 @@
  */
 package com.evolveum.midpoint.repo.sqale.mapping;
 
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleNestedMapping;
+import com.evolveum.midpoint.repo.sqale.update.NestedContainerUpdateContext;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
  * Resolver that maps the nested items (next component of the path) to the same query type columns.
  *
- * @param <Q> type of source entity path
+ * @param <S> schema type for the nested container
+ * @param <Q> query type of entity where the mapping nested and declared
+ * @param <R> row type of {@link Q}
  */
-public class NestedMappingResolver<Q extends FlexibleRelationalPathBase<?>>
-        implements SqaleItemRelationResolver {
+public class NestedMappingResolver<S extends Containerable, Q extends FlexibleRelationalPathBase<R>, R>
+        implements SqaleItemRelationResolver<Q, R> {
 
-    private final QueryModelMapping<?, Q, ?> mapping;
+    private final SqaleNestedMapping<S, Q, R> mapping;
 
-    public NestedMappingResolver(QueryModelMapping<?, Q, ?> mapping) {
+    public NestedMappingResolver(SqaleNestedMapping<S, Q, R> mapping) {
         this.mapping = mapping;
     }
 
     /** Returns the same context and nested mapping. */
     @Override
-    public ResolutionResult resolve(SqlQueryContext<?, ?, ?> context) {
+    public ResolutionResult resolve(SqlQueryContext<?, Q, R> context) {
         return new ResolutionResult(context, mapping);
     }
 
     @Override
-    public UpdateResolutionResult resolve(SqaleUpdateContext<?, ?, ?> context) {
-        return new UpdateResolutionResult(context, mapping);
+    public NestedContainerUpdateContext<S, Q, R> resolve(
+            SqaleUpdateContext<?, Q, R> context, ItemPath ignored) {
+        return new NestedContainerUpdateContext<>(context, mapping);
     }
 }

@@ -8,26 +8,27 @@ package com.evolveum.midpoint.repo.sqlbase.filtering.item;
 
 import java.util.function.Function;
 
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 
-import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
  * Typical item filter processor is related to one table column represented by the {@link #path}.
  * This is typically obtained from context path (typically relational) using mapping function.
  * Typically it's the same function that is also called "primary mapping" and used for ordering.
  *
- * TODO: Currently all extends have `PropertyValueFilter<X>` as first parametrized type.
+ * @param <T> type parameter of processed {@link PropertyValueFilter}
+ * @param <P> type of the Querydsl path
  */
-public abstract class SinglePathItemFilterProcessor<O extends ObjectFilter, P extends Path<?>>
-        extends ItemFilterProcessor<O> {
+public abstract class SinglePathItemFilterProcessor<T, P extends Path<?>>
+        extends ItemFilterProcessor<PropertyValueFilter<T>> {
 
     protected final P path;
 
-    public SinglePathItemFilterProcessor(
-            SqlQueryContext<?, ?, ?> context, Function<EntityPath<?>, P> rootToQueryItem) {
+    public <Q extends FlexibleRelationalPathBase<R>, R> SinglePathItemFilterProcessor(
+            SqlQueryContext<?, Q, R> context, Function<Q, P> rootToQueryItem) {
         super(context);
         this.path = rootToQueryItem.apply(context.path());
     }

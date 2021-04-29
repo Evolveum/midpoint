@@ -21,9 +21,7 @@ import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTransformerBase;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.AssignmentSqlTransformer;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -36,10 +34,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R extends MObject>
         extends SqaleTransformerBase<S, Q, R> {
 
+    private final QObjectMapping<S, Q, R> mapping;
+
     public ObjectSqlTransformer(
             SqlTransformerSupport transformerSupport,
             QObjectMapping<S, Q, R> mapping) {
-        super(transformerSupport, mapping);
+        super(transformerSupport);
+        this.mapping = mapping;
+    }
+
+    @Override
+    protected QObjectMapping<S, Q, R> mapping() {
+        return mapping;
     }
 
     @Override
@@ -89,10 +95,10 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         R row = mapping.newRowObject();
 
         row.oid = oidToUUid(schemaObject.getOid());
-        // objectType MUST be left NULL, it's determined by PG
+        // objectType MUST be left NULL for INSERT, it's determined by PG
         setPolyString(schemaObject.getName(), o -> row.nameOrig = o, n -> row.nameNorm = n);
         // fullObject is managed outside of this method
-        setReference(schemaObject.getTenantRef(), jdbcSession,
+        setReference(schemaObject.getTenantRef(),
                 o -> row.tenantRefTargetOid = o,
                 t -> row.tenantRefTargetType = t,
                 r -> row.tenantRefRelationId = r);
@@ -101,7 +107,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         row.version = SqaleUtils.objectVersionAsInt(schemaObject);
 
         // complex DB fields
-        row.policySituations = processCacheableUris(schemaObject.getPolicySituation(), jdbcSession);
+        row.policySituations = processCacheableUris(schemaObject.getPolicySituation());
         row.subtypes = arrayFor(schemaObject.getSubtype());
         // TODO textInfo (fulltext support)
         //  repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, repositoryContext));
@@ -111,18 +117,18 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         // and needed setters (fields are not "interface-able") would create much more code.
         MetadataType metadata = schemaObject.getMetadata();
         if (metadata != null) {
-            setReference(metadata.getCreatorRef(), jdbcSession,
+            setReference(metadata.getCreatorRef(),
                     o -> row.creatorRefTargetOid = o,
                     t -> row.creatorRefTargetType = t,
                     r -> row.creatorRefRelationId = r);
-            row.createChannelId = processCacheableUri(metadata.getCreateChannel(), jdbcSession);
+            row.createChannelId = processCacheableUri(metadata.getCreateChannel());
             row.createTimestamp = MiscUtil.asInstant(metadata.getCreateTimestamp());
 
-            setReference(metadata.getModifierRef(), jdbcSession,
+            setReference(metadata.getModifierRef(),
                     o -> row.modifierRefTargetOid = o,
                     t -> row.modifierRefTargetType = t,
                     r -> row.modifierRefRelationId = r);
-            row.modifyChannelId = processCacheableUri(metadata.getModifyChannel(), jdbcSession);
+            row.modifyChannelId = processCacheableUri(metadata.getModifyChannel());
             row.modifyTimestamp = MiscUtil.asInstant(metadata.getModifyTimestamp());
         }
         return row;
@@ -143,29 +149,33 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
             @NotNull R row, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) {
         Objects.requireNonNull(row.oid);
 
+        // We're after insert, we can set this for the needs of owned entities (assignments).
+        row.objectType = MObjectType.fromSchemaType(schemaObject.getClass());
+
         MetadataType metadata = schemaObject.getMetadata();
         if (metadata != null) {
             storeRefs(row, metadata.getCreateApproverRef(),
-                    QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER, jdbcSession);
+                    mapping.objectCreateApproverReferenceMapping(), jdbcSession);
             storeRefs(row, metadata.getModifyApproverRef(),
-                    QObjectReferenceMapping.INSTANCE_OBJECT_MODIFY_APPROVER, jdbcSession);
+                    mapping.objectModifyApproverReferenceMapping(), jdbcSession);
         }
 
         List<TriggerType> triggers = schemaObject.getTrigger();
         if (!triggers.isEmpty()) {
-            TriggerSqlTransformer transformer =
-                    QTriggerMapping.INSTANCE.createTransformer(transformerSupport);
+            TriggerSqlTransformer<R> transformer =
+                    mapping.triggerMapping().createTransformer(transformerSupport);
             triggers.forEach(t -> transformer.insert(t, row, jdbcSession));
         }
 
         List<OperationExecutionType> operationExecutions = schemaObject.getOperationExecution();
         if (!operationExecutions.isEmpty()) {
-            OperationExecutionSqlTransformer transformer =
-                    QOperationExecutionMapping.INSTANCE.createTransformer(transformerSupport);
+            OperationExecutionSqlTransformer<R> transformer =
+                    mapping.operationExecutionMapping().createTransformer(transformerSupport);
             operationExecutions.forEach(oe -> transformer.insert(oe, row, jdbcSession));
         }
 
-        // schemaObject.getParentOrgRef() TODO
+        storeRefs(row, schemaObject.getParentOrgRef(),
+                mapping.objectParentOrgReferenceMapping(), jdbcSession);
 
         if (schemaObject instanceof AssignmentHolderType) {
             storeAssignmentHolderEntities(row, (AssignmentHolderType) schemaObject, jdbcSession);
@@ -179,21 +189,21 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
     }
 
     private void storeAssignmentHolderEntities(
-            MObject row, AssignmentHolderType schemaObject, JdbcSession jdbcSession) {
+            R row, AssignmentHolderType schemaObject, JdbcSession jdbcSession) {
         List<AssignmentType> assignments = schemaObject.getAssignment();
         if (!assignments.isEmpty()) {
-            AssignmentSqlTransformer transformer =
-                    QAssignmentMapping.INSTANCE.createTransformer(transformerSupport);
+            AssignmentSqlTransformer<R> transformer =
+                    mapping.assignmentMapping().createTransformer(transformerSupport);
             assignments.forEach(assignment ->
                     transformer.insert(assignment, row, jdbcSession));
         }
 
-        storeRefs(row, schemaObject.getRoleMembershipRef(),
-                QObjectReferenceMapping.INSTANCE_ROLE_MEMBERSHIP, jdbcSession);
-        storeRefs(row, schemaObject.getDelegatedRef(),
-                QObjectReferenceMapping.INSTANCE_DELEGATED, jdbcSession);
         storeRefs(row, schemaObject.getArchetypeRef(),
-                QObjectReferenceMapping.INSTANCE_ARCHETYPE, jdbcSession);
+                mapping.archetypeReferenceMapping(), jdbcSession);
+        storeRefs(row, schemaObject.getDelegatedRef(),
+                mapping.delegatedReferenceMapping(), jdbcSession);
+        storeRefs(row, schemaObject.getRoleMembershipRef(),
+                mapping.roleMembershipReferenceMapping(), jdbcSession);
     }
 
     /**

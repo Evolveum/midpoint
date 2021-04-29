@@ -27,9 +27,9 @@ public class QReportDataMapping
                 ReportDataType.class, QReportData.class);
 
         addItemMapping(F_REPORT_REF, refMapper(
-                path(q -> q.reportRefTargetOid),
-                path(q -> q.reportRefTargetType),
-                path(q -> q.reportRefRelationId)));
+                q -> q.reportRefTargetOid,
+                q -> q.reportRefTargetType,
+                q -> q.reportRefRelationId));
     }
 
     @Override

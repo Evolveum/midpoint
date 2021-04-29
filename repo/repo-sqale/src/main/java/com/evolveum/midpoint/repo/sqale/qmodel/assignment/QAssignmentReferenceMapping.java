@@ -6,6 +6,11 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
+import java.util.function.BiFunction;
+
+import com.querydsl.core.types.Predicate;
+
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -13,14 +18,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 /**
  * Mapping between {@link QObjectReference} and {@link ObjectReferenceType}.
  * The mapping is the same for all subtypes, see different `INSTANCE_*` constants below.
+ *
+ * @param <AOR> type of the row (M-bean) of the assignment owner
  */
-public class QAssignmentReferenceMapping
-        extends QReferenceMapping<QAssignmentReference, MAssignmentReference> {
+public class QAssignmentReferenceMapping<AOR extends MObject>
+        extends QReferenceMapping<QAssignmentReference, MAssignmentReference, QAssignment<AOR>, MAssignment> {
 
-    public static final QAssignmentReferenceMapping INSTANCE_ASSIGNMENT_CREATE_APPROVER =
-            new QAssignmentReferenceMapping("m_assignment_ref_create_approver", "arefca");
-    public static final QAssignmentReferenceMapping INSTANCE_ASSIGNMENT_MODIFY_APPROVER =
-            new QAssignmentReferenceMapping("m_assignment_ref_create_approver", "arefma");
+    public static final QAssignmentReferenceMapping<?> INSTANCE_ASSIGNMENT_CREATE_APPROVER =
+            new QAssignmentReferenceMapping<>("m_assignment_ref_create_approver", "arefca");
+    public static final QAssignmentReferenceMapping<?> INSTANCE_ASSIGNMENT_MODIFY_APPROVER =
+            new QAssignmentReferenceMapping<>("m_assignment_ref_create_approver", "arefma");
 
     private QAssignmentReferenceMapping(String tableName, String defaultAliasName) {
         super(tableName, defaultAliasName, QAssignmentReference.class);
@@ -30,11 +37,19 @@ public class QAssignmentReferenceMapping
 
     @Override
     protected QAssignmentReference newAliasInstance(String alias) {
-        return new QAssignmentReference(alias);
+        return new QAssignmentReference(alias, tableName());
     }
 
     @Override
-    public MAssignmentReference newRowObject() {
-        return new MAssignmentReference();
+    public MAssignmentReference newRowObject(MAssignment ownerRow) {
+        MAssignmentReference row = new MAssignmentReference();
+        row.ownerOid = ownerRow.ownerOid;
+        row.assignmentCid = ownerRow.cid;
+        return row;
+    }
+
+    @Override
+    public BiFunction<QAssignment<AOR>, QAssignmentReference, Predicate> joinOnPredicate() {
+        return (a, r) -> a.ownerOid.eq(r.ownerOid).and(a.cid.eq(r.assignmentCid));
     }
 }

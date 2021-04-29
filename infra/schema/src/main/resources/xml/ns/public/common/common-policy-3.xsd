@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -2480,7 +2480,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            No filter, no virtual assignemnts.
+                            No filter, no virtual assignments.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>

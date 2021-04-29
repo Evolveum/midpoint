@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.lookuptable;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType.F_ROW;
 
-import com.evolveum.midpoint.repo.sqale.mapping.TableRelationResolver;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
@@ -27,9 +26,8 @@ public class QLookupTableMapping
         super(QLookupTable.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 LookupTableType.class, QLookupTable.class);
 
-        addRelationResolver(F_ROW,
-                new TableRelationResolver<>(QLookupTableRow.class,
-                        joinOn((o, t) -> o.oid.eq(t.ownerOid))));
+        addContainerTableMapping(F_ROW, QLookupTableRowMapping.INSTANCE,
+                joinOn((o, t) -> o.oid.eq(t.ownerOid)));
     }
 
     @Override

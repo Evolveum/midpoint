@@ -36,11 +36,11 @@ public class InOidFilterProcessor implements FilterProcessor<InOidFilter> {
 
         if (path instanceof QObject<?>) {
             return ((QObject<?>) path).oid.in(stringsToUuids(filter.getOids()));
-        } else if (path instanceof QContainer<?>) {
+        } else if (path instanceof QContainer<?, ?>) {
             if (filter.isConsiderOwner()) {
-                return ((QContainer<?>) path).ownerOid.in(stringsToUuids(filter.getOids()));
+                return ((QContainer<?, ?>) path).ownerOid.in(stringsToUuids(filter.getOids()));
             } else {
-                return ((QContainer<?>) path).cid.in(stringsToIntegers(filter.getOids()));
+                return ((QContainer<?, ?>) path).cid.in(stringsToIntegers(filter.getOids()));
             }
         }
 
