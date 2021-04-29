@@ -6,10 +6,10 @@ import java.io.IOException;
 
 public class WriteHTMLandCSSForDiagram {
 
-    public void writeDocument(String path, String HTMLName, String jsName, String CSSName) throws IOException {
-        File HTMLfile = new File(path + HTMLName);
-        FileWriter HTMLwriter = new FileWriter(HTMLfile);
-        HTMLwriter.write("<!DOCTYPE html>\n"
+    public void writeDocument(String path, String htmlName, String jsName, String cssName) throws IOException {
+        File htmlFile = new File(path + htmlName);
+        FileWriter htmlWriter = new FileWriter(htmlFile);
+        htmlWriter.write("<!DOCTYPE html>\n"
                 + "<html>\n"
                 + "    <head>\n"
                 + "    <meta charset=\"utf-8\">\n"
@@ -17,7 +17,7 @@ public class WriteHTMLandCSSForDiagram {
                 + "    <meta name=\"viewport\" content=\"width=device-width\">\n"
                 + "\t<title> Connectors style example </title>\n"
                 + "\t<link rel=\"stylesheet\" href=\"../../Treant.css\">\n"
-                + "\t<link rel=\"stylesheet\" href=\"" + CSSName +"\">\n"
+                + "\t<link rel=\"stylesheet\" href=\"" + cssName +"\">\n"
                 + "\t\n"
                 + "\t<link rel=\"stylesheet\" href=\"/home/jan/Downloads/treant-js-master/vendor/perfect-scrollbar/perfect-scrollbar.css\">\n"
                 + "\t\n"
@@ -78,9 +78,9 @@ public class WriteHTMLandCSSForDiagram {
                 + "</body>\n"
                 + "</html>");
 
-        File CSSfile = new File(path + CSSName);
-        FileWriter CSSwriter = new FileWriter(CSSfile);
-        CSSwriter.write("body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,fieldset,input,textarea,p,blockquote,th,td { margin:0; padding:0; }\n"
+        File cssFile = new File(path + cssName);
+        FileWriter cssWriter = new FileWriter(cssFile);
+        cssWriter.write("body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,fieldset,input,textarea,p,blockquote,th,td { margin:0; padding:0; }\n"
                 + "\n"
                 + "\n"
                 + "body { background: #fff; font-family: \"Droid Serif\",Georgia,\"Times New Roman\",Times,serif; color: #444444; overflow: visible}\n"

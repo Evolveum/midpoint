@@ -27,8 +27,8 @@ public class TestRelDiagram {
     public static final QName OBJECT_TYPE_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "ObjectType");
 
     File myObj;
-    //File testFile;
-//    FileWriter testFileWriter;
+    File testFile;
+    FileWriter testFileWriter;
     FileWriter myWriter;
     String diagramName;
     SchemaRegistry schemaRegistry;
@@ -50,8 +50,8 @@ public class TestRelDiagram {
         this.diagramName = diagramName;
         this.myObj = new File(filePath);
         this.myWriter = new FileWriter(myObj);
-        //this.testFile = new File("/home/jan/examplePath.js");
-        //this.testFileWriter = new FileWriter(testFile);
+        this.testFile = new File("/home/jan/examplePath.js");
+        this.testFileWriter = new FileWriter(testFile);
         myWriter.write("var config = {\n"
                 + "\tcontainer: \"#hierarchy\",\n"
                 + "\t\tlevelSeparation: 45,\n"
@@ -193,12 +193,42 @@ public class TestRelDiagram {
         }
     }
 
-    public void callWriteDefinition(String definitionString, Definition definition) throws IOException {
-        if (definition != null && definition.getDiagrams() != null) {
+    Definition testDefinition = null;
+
+    public void callWriteDefinition(String definitionString, PrismContainerDefinition definition) throws IOException {
+        if (definition.getItemName().getLocalPart().equals("configured")) {
+            testDefinition = definition;
+            testFileWriter.write("\nSOMTU" + path);
+        }
+//        if (testDefinition != null && path.contains(testDefinition)) {
+//            testFileWriter.write("\nSUBDEF" + definition);
+//        }
+
+        boolean pathInSchema = true;
+
+        for (Definition definition2 : path) {
+            if (definition2.getDiagrams() == null) {
+                pathInSchema = false;
+                break;
+            } else {
+                boolean isName = false;
+                for (ItemDiagramSpecification spec : definition2.getDiagrams()) {
+                    if (spec.getName().equals(diagramName)) {
+                        isName = true;
+                        break;
+                    }
+                }
+                if (!isName) {
+                    pathInSchema = false;
+                    break;
+                }
+            }
+        }
+
+        if (definition.getDiagrams() != null && pathInSchema) {
             for (ItemDiagramSpecification spec : definition.getDiagrams()) {
                 if (spec.getName().equals(diagramName)) {
                     for (Definition subDefinition : selectedDefinitions) {
-
                         if ((path.contains(subDefinition) || subDefinition == stringToDef.get(definitionString)) && path.indexOf(subDefinition) == mapOfRefDefLevels.get(subDefinition)) { //todo if there will be more than one selected def in path
                             writeDefinition2(subDefinition, definitionString, path.size());
                         }
@@ -226,7 +256,7 @@ public class TestRelDiagram {
             writeSelectedDefinitions();
             myWriter.write("\n" + charConfig + "];");
             myWriter.close();
-            //testPathWriter.close();
+            testFileWriter.close();
         } else {
 
             HashMap<Definition, Integer> defsAndIds = written.get("schema");
@@ -433,6 +463,7 @@ public class TestRelDiagram {
                     Definition subDefinitionDef = stringToDef.get(subDefinition);
                     //myWriter.write("\nHALLOOO" + subDefinition + level);
                     String subDefinitionName = subDefinition.replaceAll("\\d", "");
+
                     if (parentLevel == null) {
                         notClosedUls++;
                         description += "<li><ul><li><h1><a href=\"" + BASE_URL + subDefinitionDef.getTypeName().getLocalPart() + ".html\">" + subDefinitionName + "</a></h1></li>"; // + "level" + level + "ncu" + notClosedUls + "parentlevelisnull"
