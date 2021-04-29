@@ -24,9 +24,7 @@ import com.evolveum.midpoint.repo.api.DeleteObjectResult;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.MAccessCertificationDefinition;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDefinition;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.MAssignmentReference;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentReference;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentReferenceMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
@@ -48,6 +46,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.report.QReport;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportData;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.MResource;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResource;
+import com.evolveum.midpoint.repo.sqale.qmodel.role.MArchetype;
+import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetype;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.MShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QSystemConfiguration;
@@ -75,14 +75,15 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .name(userName);
 
         when("adding it to the repository");
-        repositoryService.addObject(userType.asPrismObject(), null, result);
+        String returnedOid = repositoryService.addObject(userType.asPrismObject(), null, result);
 
         then("operation is successful and user row for it is created");
         assertThatOperationResult(result).isSuccess();
+        assertThat(returnedOid).isEqualTo(userType.getOid());
 
         QUser u = aliasFor(QUser.class);
         MUser row = selectOne(u, u.nameOrig.eq(userName));
-        assertThat(row.oid).isNotNull();
+        assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
         assertThat(row.nameNorm).isNotNull(); // normalized name is stored
         assertThat(row.version).isEqualTo(1); // initial version is set
         // read-only column with value generated/stored in the database
@@ -402,7 +403,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                         .creatorRef(creatorRefOid.toString(), UserType.COMPLEX_TYPE, relation1)
                         .createChannel("create-channel")
                         .createTimestamp(MiscUtil.asXMLGregorianCalendar(1L))
-                        .modifierRef(modifierRefOid.toString(), ServiceType.COMPLEX_TYPE, relation2)
+                        .modifierRef(modifierRefOid.toString(), UserType.COMPLEX_TYPE, relation2)
                         .modifyChannel("modify-channel")
                         .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(2L)));
 
@@ -433,7 +434,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertCachedUri(row.createChannelId, "create-channel");
         assertThat(row.createTimestamp).isEqualTo(Instant.ofEpochMilli(1));
         assertThat(row.modifierRefTargetOid).isEqualTo(modifierRefOid);
-        assertThat(row.modifierRefTargetType).isEqualTo(MObjectType.SERVICE);
+        assertThat(row.modifierRefTargetType).isEqualTo(MObjectType.USER);
         assertCachedUri(row.modifierRefRelationId, relation2);
         assertCachedUri(row.modifyChannelId, "modify-channel");
         assertThat(row.modifyTimestamp).isEqualTo(Instant.ofEpochMilli(2));
@@ -537,6 +538,114 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test803ContainerAssignment() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("object with assignments");
+        String objectName = "sc" + getTestNumber();
+        UUID orgRefOid = UUID.randomUUID();
+        UUID targetRefOid = UUID.randomUUID();
+        UUID tenantRefOid = UUID.randomUUID();
+        UUID resourceRefOid = UUID.randomUUID();
+        UUID creatorRefOid = UUID.randomUUID();
+        UUID modifierRefOid = UUID.randomUUID();
+        QName relation1 = QName.valueOf("{https://random.org/ns}random-rel-1");
+        QName relation2 = QName.valueOf("{https://random.org/ns}random-rel-2");
+        SystemConfigurationType object = new SystemConfigurationType(prismContext)
+                .name(objectName)
+                .assignment(new AssignmentType(prismContext)
+                        .lifecycleState("lifecycle-state")
+                        .order(47)
+                        .orgRef(orgRefOid.toString(), OrgType.COMPLEX_TYPE, relation1)
+                        .targetRef(targetRefOid.toString(), RoleType.COMPLEX_TYPE, relation2)
+                        .tenantRef(tenantRefOid.toString(), OrgType.COMPLEX_TYPE, relation2)
+                        // TODO extId, extOid, ext?
+                        .policySituation("policy-situation-1")
+                        .policySituation("policy-situation-2")
+                        .construction(new ConstructionType()
+                                .resourceRef(resourceRefOid.toString(),
+                                        ResourceType.COMPLEX_TYPE, relation1))
+                        .activation(new ActivationType()
+                                .administrativeStatus(ActivationStatusType.ENABLED)
+                                .effectiveStatus(ActivationStatusType.DISABLED)
+                                .enableTimestamp(MiscUtil.asXMLGregorianCalendar(3L))
+                                .disableTimestamp(MiscUtil.asXMLGregorianCalendar(4L))
+                                .disableReason("disable-reason")
+                                .validityStatus(TimeIntervalStatusType.IN)
+                                .validFrom(MiscUtil.asXMLGregorianCalendar(5L))
+                                .validTo(MiscUtil.asXMLGregorianCalendar(6L))
+                                .validityChangeTimestamp(MiscUtil.asXMLGregorianCalendar(7L))
+                                .archiveTimestamp(MiscUtil.asXMLGregorianCalendar(8L)))
+                        .metadata(new MetadataType()
+                                // multi-value approver refs are tested elsewhere
+                                .creatorRef(creatorRefOid.toString(), UserType.COMPLEX_TYPE, relation1)
+                                .createChannel("create-channel")
+                                .createTimestamp(MiscUtil.asXMLGregorianCalendar(1L))
+                                .modifierRef(modifierRefOid.toString(), UserType.COMPLEX_TYPE, relation2)
+                                .modifyChannel("modify-channel")
+                                .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(2L))))
+                // one more just to see it stores multiple assignments
+                .assignment(new AssignmentType().order(1));
+
+        when("adding it to the repository");
+        repositoryService.addObject(object.asPrismObject(), null, result);
+
+        then("it is stored and rows to child tables are inserted");
+        assertThatOperationResult(result).isSuccess();
+
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(object.getOid())));
+        assertThat(aRows).hasSize(2)
+                .allMatch(ar -> ar.orderValue != null);
+
+        MAssignment row = aRows.stream()
+                .filter(ar -> ar.orderValue == 47)
+                .findFirst().orElseThrow();
+
+        assertThat(row.lifecycleState).isEqualTo("lifecycle-state");
+        assertThat(row.orderValue).isEqualTo(47);
+        assertThat(row.orgRefTargetOid).isEqualTo(orgRefOid);
+        assertThat(row.orgRefTargetType).isEqualTo(MObjectType.ORG);
+        assertCachedUri(row.orgRefRelationId, relation1);
+        assertThat(row.targetRefTargetOid).isEqualTo(targetRefOid);
+        assertThat(row.targetRefTargetType).isEqualTo(MObjectType.ROLE);
+        assertCachedUri(row.targetRefRelationId, relation2);
+        assertThat(row.tenantRefTargetOid).isEqualTo(tenantRefOid);
+        assertThat(row.tenantRefTargetType).isEqualTo(MObjectType.ORG);
+        assertCachedUri(row.tenantRefRelationId, relation2);
+        // complex DB columns
+        // TODO EXT
+        assertThat(resolveCachedUriIds(row.policySituations))
+                .containsExactlyInAnyOrder("policy-situation-1", "policy-situation-2");
+        // construction
+        assertThat(row.resourceRefTargetOid).isEqualTo(resourceRefOid);
+        assertThat(row.resourceRefTargetType).isEqualTo(MObjectType.RESOURCE);
+        assertCachedUri(row.resourceRefRelationId, relation1);
+        // activation
+        assertThat(row.administrativeStatus).isEqualTo(ActivationStatusType.ENABLED);
+        assertThat(row.effectiveStatus).isEqualTo(ActivationStatusType.DISABLED);
+        assertThat(row.enableTimestamp).isEqualTo(Instant.ofEpochMilli(3));
+        assertThat(row.disableTimestamp).isEqualTo(Instant.ofEpochMilli(4));
+        assertThat(row.disableReason).isEqualTo("disable-reason");
+        assertThat(row.validityStatus).isEqualTo(TimeIntervalStatusType.IN);
+        assertThat(row.validFrom).isEqualTo(Instant.ofEpochMilli(5));
+        assertThat(row.validTo).isEqualTo(Instant.ofEpochMilli(6));
+        assertThat(row.validityChangeTimestamp).isEqualTo(Instant.ofEpochMilli(7));
+        assertThat(row.archiveTimestamp).isEqualTo(Instant.ofEpochMilli(8));
+        // metadata
+        assertThat(row.creatorRefTargetOid).isEqualTo(creatorRefOid);
+        assertThat(row.creatorRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(row.creatorRefRelationId, relation1);
+        assertCachedUri(row.createChannelId, "create-channel");
+        assertThat(row.createTimestamp).isEqualTo(Instant.ofEpochMilli(1));
+        assertThat(row.modifierRefTargetOid).isEqualTo(modifierRefOid);
+        assertThat(row.modifierRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(row.modifierRefRelationId, relation2);
+        assertCachedUri(row.modifyChannelId, "modify-channel");
+        assertThat(row.modifyTimestamp).isEqualTo(Instant.ofEpochMilli(2));
+    }
+
+    @Test
     public void test808LookupTable() throws Exception {
         OperationResult result = createOperationResult();
 
@@ -586,10 +695,6 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(containerRow.cid).isEqualTo(3);
         assertThat(containerRow.key).isEqualTo("row3");
     }
-
-    // TODO test for object's related entities?
-    // - trigger
-    // - operation execution
 
     @Test
     public void test810ResourceAndItsBusinessApproverReferences() throws Exception {
@@ -795,7 +900,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.synchronizationTimestamp).isEqualTo(Instant.ofEpochMilli(2));
     }
 
-    // this covers mapping of attributes in FocusSqlTransformer + GenericObject
+    // This covers mapping of attributes in FocusSqlTransformer + GenericObject.
     @Test
     public void test820GenericObject() throws Exception {
         OperationResult result = createOperationResult();
@@ -867,6 +972,54 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         // field specific to GenericObjectType
         assertCachedUri(row.genericObjectTypeId, "some-custom-object-type-uri");
+    }
+
+    // This covers mapping of attributes in AbstractRole + Archetype + inducement mapping.
+    // There is no focus on FocusSqlTransformer that is covered above.
+    @Test
+    public void test821ArchetypeAndInducement() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("archetype object");
+        String objectName = "arch" + getTestNumber();
+        ArchetypeType archetype = new ArchetypeType(prismContext)
+                .name(objectName)
+                .autoassign(new AutoassignSpecificationType().enabled(true))
+                .displayName("display-name")
+                .identifier("identifier")
+                .requestable(false)
+                .riskLevel("extremely-high")
+                // we don't need all attributes here, this is tested in TODO
+                .inducement(new AssignmentType()
+                        .order(2)
+                        .targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE))
+                .inducement(new AssignmentType()
+                        .order(3)
+                        .targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE));
+        // this is no additional attribute specific for archetype
+
+        when("adding it to the repository");
+        repositoryService.addObject(archetype.asPrismObject(), null, result);
+
+        then("it is stored and relevant attributes are in columns");
+        assertThatOperationResult(result).isSuccess();
+
+        UUID archetypeOid = UUID.fromString(archetype.getOid());
+        MArchetype row = selectObjectByOid(QArchetype.class, archetypeOid);
+        // all attributes from MAbstractRole
+        assertThat(row.autoAssignEnabled).isTrue();
+        assertThat(row.displayNameOrig).isEqualTo("display-name");
+        assertThat(row.displayNameNorm).isEqualTo("displayname");
+        assertThat(row.identifier).isEqualTo("identifier");
+        assertThat(row.requestable).isFalse();
+        assertThat(row.riskLevel).isEqualTo("extremely-high");
+
+        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        assertThat(select(a, a.ownerOid.eq(archetypeOid))).hasSize(2)
+                .anyMatch(ar -> ar.orderValue.equals(2))
+                .anyMatch(ar -> ar.orderValue.equals(3))
+                .allMatch(ar -> ar.targetRefTargetOid != null
+                        && ar.targetRefTargetType == MObjectType.ROLE);
     }
 
     // TODO test for focus' related entities?

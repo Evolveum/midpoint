@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleT
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -48,6 +49,16 @@ public class QAbstractRoleMapping<
         addItemMapping(F_IDENTIFIER, stringMapper(q -> q.identifier));
         addItemMapping(F_REQUESTABLE, booleanMapper(q -> q.requestable));
         addItemMapping(F_RISK_LEVEL, stringMapper(q -> q.riskLevel));
+
+        addContainerTableMapping(F_INDUCEMENT, inducementMapping(),
+                joinOn((o, a) -> o.oid.eq(a.ownerOid)));
+    }
+
+    /** Fixes rigid parametric types of static mapping instance to this instance. */
+    @NotNull
+    public QAssignmentMapping<R> inducementMapping() {
+        //noinspection unchecked
+        return (QAssignmentMapping<R>) QAssignmentMapping.INSTANCE_INDUCEMENT;
     }
 
     @Override

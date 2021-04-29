@@ -17,12 +17,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class FocusSqlTransformer<S extends FocusType, Q extends QFocus<R>, R extends MFocus>
         extends ObjectSqlTransformer<S, Q, R> {
 
-    private final QFocusMapping<S, Q, R> mapping;
-
     public FocusSqlTransformer(
             SqlTransformerSupport transformerSupport, QFocusMapping<S, Q, R> mapping) {
         super(transformerSupport, mapping);
-        this.mapping = mapping;
+    }
+
+    @Override
+    protected QFocusMapping<S, Q, R> mapping() {
+        return (QFocusMapping<S, Q, R>) super.mapping();
     }
 
     @SuppressWarnings("DuplicatedCode") // activation code duplicated with assignment
@@ -79,8 +81,8 @@ public class FocusSqlTransformer<S extends FocusType, Q extends QFocus<R>, R ext
         super.storeRelatedEntities(row, schemaObject, jdbcSession);
 
         storeRefs(row, schemaObject.getLinkRef(),
-                mapping.projectionReferenceMapping(), jdbcSession);
+                mapping().projectionReferenceMapping(), jdbcSession);
         storeRefs(row, schemaObject.getPersonaRef(),
-                mapping.personaReferenceMapping(), jdbcSession);
+                mapping().personaReferenceMapping(), jdbcSession);
     }
 }
