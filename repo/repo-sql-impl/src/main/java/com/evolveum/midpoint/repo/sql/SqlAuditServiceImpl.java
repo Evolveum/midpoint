@@ -179,9 +179,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             JdbcSession jdbcSession, AuditEventRecord record) {
         QAuditEventRecordMapping aerMapping = QAuditEventRecordMapping.INSTANCE;
         QAuditEventRecord aer = aerMapping.defaultAlias();
-        MAuditEventRecord aerBean = aerMapping
-                .createTransformer(transformerSupport)
-                .from(record);
+        MAuditEventRecord aerBean = aerMapping.from(record);
         SQLInsertClause insert = jdbcSession.newInsert(aer).populate(aerBean);
 
         Map<String, ColumnMetadata> customColumns = aerMapping.getExtensionColumns();

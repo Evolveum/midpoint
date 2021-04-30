@@ -13,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBusinessConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -49,11 +48,6 @@ public class QResourceMapping extends QObjectMapping<ResourceType, QResource, MR
     @Override
     protected QResource newAliasInstance(String alias) {
         return new QResource(alias);
-    }
-
-    @Override
-    public QResourceMapping createTransformer(SqlTransformerSupport transformerSupport) {
-        return this;
     }
 
     @Override

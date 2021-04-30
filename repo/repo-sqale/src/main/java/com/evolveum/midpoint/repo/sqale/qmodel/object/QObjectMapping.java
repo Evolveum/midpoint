@@ -30,7 +30,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
-import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -180,11 +179,6 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     protected Q newAliasInstance(String alias) {
         //noinspection unchecked
         return (Q) new QObject<>(MObject.class, alias);
-    }
-
-    @Override
-    public SqlTransformer<S, Q, R> createTransformer(SqlTransformerSupport transformerSupport) {
-        return this;
     }
 
     @Override

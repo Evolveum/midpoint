@@ -10,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperReportEngineConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
@@ -38,11 +37,6 @@ public class QReportMapping
     @Override
     protected QReport newAliasInstance(String alias) {
         return new QReport(alias);
-    }
-
-    @Override
-    public QReportMapping createTransformer(SqlTransformerSupport transformerSupport) {
-        return this;
     }
 
     @Override

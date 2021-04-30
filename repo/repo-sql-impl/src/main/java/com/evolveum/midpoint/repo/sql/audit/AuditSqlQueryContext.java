@@ -12,7 +12,6 @@ import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
-import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
@@ -45,11 +44,6 @@ public class AuditSqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
             SqlTransformerSupport transformerSupport,
             SQLQuery<?> query) {
         super(entityPath, mapping, sqlRepoContext, transformerSupport, query);
-    }
-
-    @Override
-    protected SqlTransformer<S, Q, R> createTransformer() {
-        return entityPathMapping.createTransformer(transformerSupport);
     }
 
     @Override

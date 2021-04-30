@@ -15,7 +15,6 @@ import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedByMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -59,11 +58,6 @@ public class QReferenceMapping<Q extends QReference<R, OR>, R extends MReference
     protected Q newAliasInstance(String alias) {
         //noinspection unchecked
         return (Q) new QReference<>(MReference.class, alias);
-    }
-
-    public QReferenceMapping<Q, R, OQ, OR> createTransformer(
-            SqlTransformerSupport transformerSupport) {
-        return this;
     }
 
     /** Defines a contract for creating the reference for the provided owner row. */

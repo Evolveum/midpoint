@@ -18,8 +18,6 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
 import com.evolveum.midpoint.repo.sqale.delta.item.*;
@@ -37,7 +35,6 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterPro
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
-import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -59,9 +56,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<R>, R>
         extends QueryTableMapping<S, Q, R>
-        implements SqaleMappingMixin<S, Q, R>, SqlTransformer<S, Q, R> {
-
-    protected final Logger logger = LoggerFactory.getLogger(getClass());
+        implements SqaleMappingMixin<S, Q, R> {
 
     protected SqaleTableMapping(
             @NotNull String tableName,
@@ -105,7 +100,8 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
      * @param <MS> mapped schema type, see javadoc in {@link QueryTableMapping}
      */
     @Override
-    protected <MS> SqaleItemSqlMapper<MS, Q, R> booleanMapper(Function<Q, BooleanPath> rootToQueryItem) {
+    protected <MS> SqaleItemSqlMapper<MS, Q, R> booleanMapper(
+            Function<Q, BooleanPath> rootToQueryItem) {
         return new SqaleItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
                 ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
@@ -242,7 +238,8 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         return new ObjectReferenceType()
                 .oid(oid)
-                .type(SqaleTransformerSupport.getInstance().schemaClassToQName(repoObjectType.getSchemaType()))
+                .type(SqaleTransformerSupport.getInstance()
+                        .schemaClassToQName(repoObjectType.getSchemaType()))
                 .description(targetName)
                 .targetName(targetName);
     }
@@ -287,7 +284,8 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     /** Returns ID for URI creating new cache row in DB as needed. */
     protected Integer processCacheableUri(QName qName) {
         return qName != null
-                ? SqaleTransformerSupport.getInstance().processCacheableUri(QNameUtil.qNameToUri(qName))
+                ? SqaleTransformerSupport.getInstance()
+                .processCacheableUri(QNameUtil.qNameToUri(qName))
                 : null;
     }
 

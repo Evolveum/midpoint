@@ -10,13 +10,12 @@ import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditItem.TABLE_N
 
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditResource;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditResource;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 
 /**
  * Mapping for {@link QAuditResource}, no transformation supported.
  */
 public class QAuditResourceMapping
-        extends QueryTableMapping<String, QAuditResource, MAuditResource> {
+        extends AuditTableMapping<String, QAuditResource, MAuditResource> {
 
     public static final String DEFAULT_ALIAS_NAME = "ares";
 

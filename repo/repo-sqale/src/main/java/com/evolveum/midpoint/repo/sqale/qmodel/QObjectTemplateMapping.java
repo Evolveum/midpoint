@@ -14,7 +14,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 
 /**
@@ -37,12 +36,6 @@ public class QObjectTemplateMapping
     @Override
     protected QObjectTemplate newAliasInstance(String alias) {
         return new QObjectTemplate(alias);
-    }
-
-    @Override
-    public QObjectTemplateMapping createTransformer(
-            SqlTransformerSupport transformerSupport) {
-        return this;
     }
 
     @Override

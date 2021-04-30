@@ -12,7 +12,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 
 /**
@@ -38,11 +37,6 @@ public class QReportDataMapping
     @Override
     protected QReportData newAliasInstance(String alias) {
         return new QReportData(alias);
-    }
-
-    @Override
-    public QReportDataMapping createTransformer(SqlTransformerSupport transformerSupport) {
-        return this;
     }
 
     @Override

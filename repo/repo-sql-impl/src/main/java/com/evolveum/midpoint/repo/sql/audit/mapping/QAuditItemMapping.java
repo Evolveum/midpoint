@@ -10,14 +10,13 @@ import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditItem.TABLE_N
 
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditItem;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditItem;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Mapping for {@link QAuditItem}, model type is non-containerable {@link ItemPathType}.
  */
 public class QAuditItemMapping
-        extends QueryTableMapping<ItemPathType, QAuditItem, MAuditItem> {
+        extends AuditTableMapping<ItemPathType, QAuditItem, MAuditItem> {
 
     public static final String DEFAULT_ALIAS_NAME = "ai";
 

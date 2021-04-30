@@ -10,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
@@ -60,12 +59,6 @@ public class QTaskMapping
     @Override
     protected QTask newAliasInstance(String alias) {
         return new QTask(alias);
-    }
-
-    @Override
-    public QTaskMapping createTransformer(
-            SqlTransformerSupport transformerSupport) {
-        return this;
     }
 
     @Override

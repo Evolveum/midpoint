@@ -12,7 +12,6 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedByMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 
 /**
  * Mapping between {@link QContainer} and {@link Containerable}.
@@ -53,10 +52,6 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
     public R newRowObject(OR ownerRow) {
         throw new UnsupportedOperationException(
                 "Container bean creation for owner row called on abstract container mapping");
-    }
-
-    public QContainerMapping<S, Q, R, OR> createTransformer(SqlTransformerSupport transformerSupport) {
-        return this;
     }
 
     @Override

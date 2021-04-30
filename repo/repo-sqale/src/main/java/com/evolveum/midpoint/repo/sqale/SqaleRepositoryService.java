@@ -184,8 +184,7 @@ public class SqaleRepositoryService implements RepositoryService {
             throw new ObjectNotFoundException(schemaType, oid.toString());
         }
 
-        return rootMapping.createTransformer(transformerSupport)
-                .toSchemaObject(result, root, options);
+        return rootMapping.toSchemaObject(result, root, options);
     }
 
     @Override
@@ -416,8 +415,7 @@ public class SqaleRepositoryService implements RepositoryService {
             throw new ObjectNotFoundException(schemaType, oid.toString());
         }
 
-        S object = rootMapping.createTransformer(transformerSupport)
-                .toSchemaObject(result, root, Collections.emptyList());
+        S object = rootMapping.toSchemaObject(result, root, Collections.emptyList());
 
         R rootRow = rootMapping.newRowObject();
         rootRow.oid = oid;

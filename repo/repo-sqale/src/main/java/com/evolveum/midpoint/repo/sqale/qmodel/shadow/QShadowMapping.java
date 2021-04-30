@@ -12,7 +12,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -52,12 +51,6 @@ public class QShadowMapping
     @Override
     protected QShadow newAliasInstance(String alias) {
         return new QShadow(alias);
-    }
-
-    @Override
-    public QShadowMapping createTransformer(
-            SqlTransformerSupport transformerSupport) {
-        return this;
     }
 
     @Override
