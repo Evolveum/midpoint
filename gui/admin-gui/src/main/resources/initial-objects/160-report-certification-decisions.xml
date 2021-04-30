@@ -9,8 +9,11 @@
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="00000000-0000-0000-0000-000000000160">
-   <name>Certification decisions report</name>
-   <description>Decisions of individual reviewers for a certification campaign as a whole or for a given campaign stage.</description>
+    <name>Certification decisions report</name>
+    <description>Decisions of individual reviewers for a certification campaign as a whole or for a given campaign stage.</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
+    </assignment>
     <objectCollection>
         <collection>
             <filter>
@@ -37,13 +40,13 @@
                     import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
 
                     for (AccessCertificationWorkItemType workItem : object.getWorkItem()) {
-                        if (stageNumber != null  &amp;&amp; !Objects.equals(workItem.getStageNumber(), stageNumber)) {
-                            continue;
-                        }
-                        if (iteration != null  &amp;&amp; CertCampaignTypeUtil.norm(workItem.getIteration()) != iteration) {
-                            continue;
-                        }
-                        return true;
+                    if (stageNumber != null &amp;&amp; !Objects.equals(workItem.getStageNumber(), stageNumber)) {
+                    continue;
+                    }
+                    if (iteration != null &amp;&amp; CertCampaignTypeUtil.norm(workItem.getIteration()) != iteration) {
+                    continue;
+                    }
+                    return true;
                     }
                     return false;
                 </code>
@@ -104,11 +107,11 @@
                                 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
                                 import com.evolveum.midpoint.report.impl.ReportUtils;
 
-                                if (stageNumber != null  &amp;&amp; !Objects.equals(object.getStageNumber(), stageNumber)) {
-                                    return null;
+                                if (stageNumber != null &amp;&amp; !Objects.equals(object.getStageNumber(), stageNumber)) {
+                                return null;
                                 }
-                                if (iteration != null  &amp;&amp; CertCampaignTypeUtil.norm(object.getIteration()) != iteration) {
-                                    return null;
+                                if (iteration != null &amp;&amp; CertCampaignTypeUtil.norm(object.getIteration()) != iteration) {
+                                return null;
                                 }
 
                                 StringBuilder sb = new StringBuilder(ReportUtils.prettyPrintPerformerOrAssigneesForReport(object.asPrismContainerValue()));
@@ -122,9 +125,9 @@
                                 sb.append(ReportUtils.prettyPrintCertOutcomeForReport(object.getOutput(), true));
                                 comment = ReportUtils.prettyPrintCertCommentForReport(object.getOutput());
                                 if (comment != null) {
-                                    sb.append(" (");
-                                    sb.append(comment);
-                                    sb.append(")");
+                                sb.append(" (");
+                                sb.append(comment);
+                                sb.append(")");
                                 }
 
                                 return sb.toString();

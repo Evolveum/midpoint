@@ -14,14 +14,9 @@
         <condition>
             <script>
                 <code>
-                    System.out.println("START");
-                    System.out.println("#########" + object.getName().getOrig());
-                    System.out.println("#########" + object.getName().getOrig().equals("will"));
                     if (object.getName().getOrig().equals("will")) {
-                    System.out.println("TRUE");
                         return true;
                     }
-                    System.out.println("FALSE");
                     return false;
                 </code>
             </script>

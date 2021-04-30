@@ -28,7 +28,7 @@
             <expression>
                 <script>
                     <code>
-                        list = new ArrayList();
+                        List list = new ArrayList();
                         list.add("TestRole1230");
                         list.add("TestRole123010");
                         return list;

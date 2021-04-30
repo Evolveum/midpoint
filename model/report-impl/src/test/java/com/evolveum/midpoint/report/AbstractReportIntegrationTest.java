@@ -233,147 +233,147 @@ public abstract class AbstractReportIntegrationTest extends AbstractModelIntegra
         importObjectFromFile(REPORT_USER_LIST_SCRIPT_FILE, initResult);
     }
 
-    @Test
+    @Test(priority=1)
     public void test001CreateDashboardReportWithDefaultColumn() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_DASHBOARD_WITH_DEFAULT_COLUMN_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
-    @Test
+    @Test(priority=2)
     public void test002CreateDashboardReportWithView() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_DASHBOARD_WITH_VIEW_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
-    @Test
+    @Test(priority=3)
     public void test003CreateDashboardReportWithTripleView() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_DASHBOARD_WITH_TRIPLE_VIEW_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
-    @Test
+    @Test(priority=4)
     public void test004CreateDashboardReportEmpty() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_DASHBOARD_EMPTY_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
-    @Test
+    @Test(priority=101)
     public void test101CreateAuditCollectionReportWithDefaultColumn() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
-    @Test
+    @Test(priority=102)
     public void test102CreateAuditCollectionReportWithView() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_VIEW_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
-    @Test
+    @Test(priority=103)
     public void test103CreateAuditCollectionReportWithDoubleView() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DOUBLE_VIEW_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
-    @Test
+    @Test(priority=104)
     public void test104CreateAuditCollectionReportWithCondition() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_CONDITION_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
-    @Test
+    @Test(priority=105)
     public void test105CreateAuditCollectionReportEmpty() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_EMPTY_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
-    @Test
+    @Test(priority=110)
     public void test110CreateObjectCollectionReportWithDefaultColumn() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_WITH_DEFAULT_COLUMN_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
-    @Test
+    @Test(priority=111)
     public void test111CreateObjectCollectionReportWithView() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_WITH_VIEW_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
-    @Test
+    @Test(priority=112)
     public void test112CreateObjectCollectionReportWithDoubleView() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_WITH_DOUBLE_VIEW_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
-    @Test
+    @Test(priority=113)
     public void test113CreateObjectCollectionReportWithFilter() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_WITH_FILTER_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
-    @Test
+    @Test(priority=114)
     public void test114CreateObjectCollectionReportWithFilterAndBasicCollection() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
-    @Test
+    @Test(priority=115)
     public void test115CreateObjectCollectionReportWithCondition() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_WITH_CONDITION_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
-    @Test
+    @Test(priority=116)
     public void test116CreateObjectCollectionEmptyReport() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_EMPTY_LIST_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
-    @Test
+    @Test(priority=117)
     public void test117CreateObjectCollectionReportWithFilterAndBasicCollectionWithoutView() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_FILTER_BASIC_COLLECTION_WITHOUT_VIEW_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
-    @Test
+    @Test(priority=118)
     public void test118CreateObjectCollectionWithParamReport() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_WITH_PARAM_OID);
         runReport(report, getParameters("givenName", String.class, "Will"), false);
         basicCheckOutputFile(report);
     }
 
-    @Test
+    @Test(priority=119)
     public void test119CreateObjectCollectionWithSubreportParamReport() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_WITH_SUBREPORT_PARAM_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
-    @Test
+    @Test(priority=120)
     public void test120RunMidpointUsers() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_USER_LIST_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
-    @Test
+    @Test(priority=121)
     public void test121RunMidpointUsersScript() throws Exception {
         if (!isOsUnix()) {
             displaySkip();

@@ -19,8 +19,8 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.PagingConvertor;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
@@ -229,7 +229,7 @@ public class HtmlController extends FileFormatController {
 
         ContainerTag tableBox = createTableBox(label, collectionRefSpecification, compiledCollection,
                 collectionConfig.getCondition(), collectionConfig.getSubreport(),
-                PagingConvertor.createObjectPaging(collectionConfig.getPaging(), getReportService().getPrismContext()), result, true, task);
+                ObjectQueryUtil.convertToObjectPaging(collectionConfig.getPaging(), getReportService().getPrismContext()), result, true, task);
 
         body.append(tableBox.render());
 

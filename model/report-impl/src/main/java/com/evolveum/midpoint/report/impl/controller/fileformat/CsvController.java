@@ -13,7 +13,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.PagingConvertor;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -22,6 +21,7 @@ import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -135,7 +135,7 @@ public class CsvController extends FileFormatController {
 
         return createTableBox(collectionRefSpecification, compiledCollection,
                     collectionConfig.getCondition(), collectionConfig.getSubreport(),
-                PagingConvertor.createObjectPaging(collectionConfig.getPaging(), getReportService().getPrismContext()), result, task);
+                ObjectQueryUtil.convertToObjectPaging(collectionConfig.getPaging(), getReportService().getPrismContext()), result, task);
     }
 
     private CompiledObjectCollectionView createCompiledView(ObjectCollectionReportEngineConfigurationType collectionConfig, boolean useDefaultView, Task task, OperationResult result)

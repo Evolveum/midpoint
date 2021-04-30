@@ -89,226 +89,63 @@ public class ReportServiceImpl implements ReportService {
     @Autowired private ArchetypeManager archetypeManager;
 
     @Autowired private Clock clock;
-//    @Autowired private TaskManager taskManager;
-//    @Autowired private AuditService auditService;
-    @Autowired private ReportService reportService;
     @Autowired private ModelService modelService;
     @Autowired private ModelInteractionService modelInteractionService;
-//    @Autowired private PrismContext prismContext;
-//    @Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
     @Autowired private DashboardService dashboardService;
     @Autowired private LocalizationService localizationService;
-//    @Autowired private ExpressionFactory expressionFactory;
     @Autowired private CommandLineScriptExecutor commandLineScriptExecutor;
     @Autowired private ScriptingService scriptingService;
 
     @Override
-    public ObjectQuery parseQuery(PrismObject<ReportType> report, String query, VariablesMap parameters, Task task, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        if (StringUtils.isBlank(query)) {
-            return null;
-        }
-
-        ObjectQuery parsedQuery;
-        try {
-
-            ExpressionProfile expressionProfile = determineExpressionProfile(report, result);
-
-            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
-            SearchFilterType filterType = prismContext.parserFor(query).parseRealValue(SearchFilterType.class);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("filter(SearchFilterType)\n{}", filterType.debugDump(1));
-            }
-            ObjectFilter filter = prismContext.getQueryConverter().parseFilter(filterType, UserType.class);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("filter(ObjectFilter)\n{}", filter.debugDump(1));
-            }
-            if (!(filter instanceof TypeFilter)) {
-                throw new IllegalArgumentException(
-                        "Defined query must contain type. Use 'type filter' in your report query.");
-            }
-
-            ObjectFilter subFilter = ((TypeFilter) filter).getFilter();
-            ObjectQuery q = prismContext.queryFactory().createQuery(subFilter);
-
-            VariablesMap variables = new VariablesMap();
-            variables.putAll(parameters);
-
-            q = ExpressionUtil.evaluateQueryExpressions(q, variables, expressionProfile, expressionFactory, prismContext,
-                    "parsing expression values for report", task, result);
-            ((TypeFilter) filter).setFilter(q.getFilter());
-            ObjectQueryUtil.simplify(filter, prismContext);
-            parsedQuery = prismContext.queryFactory().createQuery(filter);
-
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("report query (parsed):\n{}", parsedQuery.debugDump(1));
-            }
-        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException
-                | CommunicationException | ConfigurationException | SecurityViolationException e) {
-            LOGGER.error("Cannot convert query, reason: {}", e.getMessage());
-            throw e;
-        } finally {
-            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-        }
-        return parsedQuery;
-
-    }
-
-    @Override
-    public <O extends ObjectType> Collection<PrismObject<O>> searchObjects(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        // List<PrismObject<? extends ObjectType>> results = new ArrayList<>();
-
-        // GetOperationOptions options = GetOperationOptions.createRaw();
-
-        if (!(query.getFilter() instanceof TypeFilter)) {
-            throw new IllegalArgumentException("Query must contain type filter.");
-        }
-
-        TypeFilter typeFilter = (TypeFilter) query.getFilter();
-        QName type = typeFilter.getType();
-        Class<O> clazz = prismContext.getSchemaRegistry().determineCompileTimeClass(type);
-        if (clazz == null) {
-            PrismObjectDefinition<O> objectDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);
-            if (objectDef == null) {
-                throw new SchemaException("Undefined object type used in query, type: " + type);
-            }
-            clazz = objectDef.getCompileTimeClass();
-        }
-
-        ObjectQuery queryForSearch = prismContext.queryFactory().createQuery(typeFilter.getFilter());
-
-        // options.add(new
-        // SelectorOptions(GetOperationOptions.createResolveNames()));
-        GetOperationOptions getOptions = GetOperationOptions.createResolveNames();
-        if (ShadowType.class.isAssignableFrom(clazz) && securityEnforcer.isAuthorized(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.EMPTY, null, task, parentResult)) {
-            LOGGER.trace("Setting searching in raw mode.");
-            getOptions.setRaw(Boolean.TRUE);        // shadows in non-raw mode require specifying resource OID and kind (at least) - todo research this further
-        } else {
-            LOGGER.trace("Setting searching in noFetch mode. Shadows in non-raw mode require specifying resource OID and objectClass (kind) at least.");
-            getOptions.setNoFetch(Boolean.TRUE);
-        }
-        options = SelectorOptions.createCollection(getOptions);
-        List<PrismObject<O>> results;
-        try {
-            results = model.searchObjects(clazz, queryForSearch, options, task, parentResult);
-            return results;
-        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-                | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-            // TODO Auto-generated catch block
-            throw e;
-        }
-
-    }
-
-    @Override
-    public Collection<PrismContainerValue<? extends Containerable>> evaluateScript(PrismObject<ReportType> report, String script, VariablesMap parameters, Task task, OperationResult result)
+    public Object evaluateScript(PrismObject<ReportType> report, @NotNull ExpressionType expression, VariablesMap variables, String shortDesc, Task task, OperationResult result)
                     throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+        Object o;
+        if (expression.getExpressionEvaluator().size() == 1
+                && expression.getExpressionEvaluator().get(0).getValue() instanceof ScriptExpressionEvaluatorType) {
+            ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
+            context.setVariables(variables);
+            context.setContextDescription(shortDesc);
+            context.setTask(task);
+            context.setResult(result);
+            setupExpressionProfiles(context, report);
 
-        VariablesMap variables = new VariablesMap();
-        variables.putAll(parameters);
-
-        TypedValue<VariablesMap> auditParams = getConvertedParams(parameters);
-        // special variable for audit report
-        variables.put("auditParams", auditParams);
-
-        ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
-        context.setVariables(variables);
-        context.setContextDescription("report script"); // TODO: improve
-        context.setTask(task);
-        context.setResult(result);
-        setupExpressionProfiles(context, report);
-
-        Object o = evaluateReportScript(script, context, report);
-
-        List<PrismContainerValue<? extends Containerable>> results = new ArrayList<>();
-        if (o != null) {
-
-            if (Collection.class.isAssignableFrom(o.getClass())) {
-                Collection resultSet = (Collection) o;
-                if (resultSet != null && !resultSet.isEmpty()) {
-                    for (Object obj : resultSet) {
-                        results.add(convertResultingObject(obj));
-                    }
-                }
-
-            } else {
-                results.add(convertResultingObject(o));
+            ScriptExpressionEvaluatorType expressionType = (ScriptExpressionEvaluatorType)expression.getExpressionEvaluator().get(0).getValue();
+            if (expressionType.getObjectVariableMode() == null) {
+                ScriptExpressionEvaluatorConfigurationType defaultScriptConfiguration = report.asObjectable().getDefaultScriptConfiguration();
+                expressionType.setObjectVariableMode(defaultScriptConfiguration == null ? ObjectVariableModeType.OBJECT : defaultScriptConfiguration.getObjectVariableMode());
             }
-        }
+            context.setExpressionType(expressionType);
+            context.setFunctions(createFunctionLibraries());
+            context.setObjectResolver(objectResolver);
 
-        return results;
-    }
+            ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
+                    expressionType, context.getOutputDefinition(), context.getExpressionProfile(), expressionFactory, context.getContextDescription(),
+                    context.getResult());
 
+            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context.getTask(), context.getResult()));
+            @NotNull List<PrismValue> expressionResult;
+            try {
+                expressionResult = scriptExpression.evaluate(context);
+            } finally {
+                ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+            }
 
-    private Collection<AuditEventRecord> runAuditQuery(String sqlWhereClause, TypedValue<VariablesMap> auditParamsMap, OperationResult result) {
-        if (StringUtils.isBlank(sqlWhereClause)) {
-            return new ArrayList<>();
-        }
+            if (expressionResult.isEmpty()) {
+                return null;
+            }
+            if (expressionResult.size() > 1) {
+                throw new ExpressionEvaluationException("Too many results from expression "+context.getContextDescription());
+            }
+            if (expressionResult.get(0) == null ) {
+                return null;
+            }
+            return expressionResult.get(0).getRealValue();
 
-        String query = "select * from m_audit_event as aer " + sqlWhereClause;
-        LOGGER.trace("AAAAAAA: query: {}", query);
-        Map<String, Object> auditParams = ReportUtils.paramsToAuditParams((VariablesMap)auditParamsMap.getValue());
-        LOGGER.trace("AAAAAAA: auditParams:\n{}", auditParams);
-        List<AuditEventRecord> auditRecords = auditService.listRecords(query, auditParams, result);
-        LOGGER.trace("AAAAAAA: {} records", auditRecords==null?null:auditRecords.size());
-        return auditRecords;
-    }
-
-    @Override
-    public Object evaluate(PrismObject<ReportType> report, String script, VariablesMap parameters, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-
-        VariablesMap variables = new VariablesMap();
-        variables.addVariableDefinitions(parameters);
-
-        // special variable for audit report
-        variables.put("auditParams", getConvertedParams(parameters));
-
-        ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
-        context.setVariables(variables);
-        context.setContextDescription("report script"); // TODO: improve
-        context.setTask(task);
-        context.setResult(result);
-        setupExpressionProfiles(context, report);
-
-        Object o = evaluateReportScript(script, context, report);
-
-        return o;
-
-    }
-
-    protected PrismContainerValue convertResultingObject(Object obj) {
-        if (obj instanceof PrismObject) {
-            return ((PrismObject) obj).asObjectable().asPrismContainerValue();
-        } else if (obj instanceof Objectable) {
-            return ((Objectable) obj).asPrismContainerValue();
-        } else if (obj instanceof PrismContainerValue) {
-            return (PrismContainerValue) obj;
-        } else if (obj instanceof Containerable) {
-            return ((Containerable) obj).asPrismContainerValue();
         } else {
-            throw new IllegalStateException("Reporting script should return something compatible with PrismContainerValue, not a " + obj.getClass());
+            o = ExpressionUtil.evaluateExpression(null, variables, null, expression,
+                    determineExpressionProfile(report, result), expressionFactory, shortDesc, task, result);
         }
-    }
-
-    private TypedValue<VariablesMap> getConvertedParams(VariablesMap parameters) {
-        if (parameters == null) {
-            return new TypedValue<>(null, VariablesMap.class);
-        }
-
-        VariablesMap resultParamMap = new VariablesMap();
-        Set<Entry<String, TypedValue>> paramEntries = parameters.entrySet();
-        for (Entry<String, TypedValue> e : paramEntries) {
-            Object value = e.getValue().getValue();
-            if (value instanceof PrismPropertyValue) {
-                resultParamMap.put(e.getKey(), e.getValue().createTransformed(((PrismPropertyValue) value).getValue()));
-            } else {
-                resultParamMap.put(e.getKey(), e.getValue());
-            }
-        }
-
-        return new TypedValue<>(resultParamMap, VariablesMap.class);
+        return o;
     }
 
     private Collection<FunctionLibrary> createFunctionLibraries() {
@@ -326,49 +163,8 @@ public class ReportServiceImpl implements ReportService {
         return functions;
     }
 
-    @Override
     public PrismContext getPrismContext() {
         return prismContext;
-    }
-
-    public <T> Object evaluateReportScript(String codeString, ScriptExpressionEvaluationContext context, PrismObject<ReportType> report) throws ExpressionEvaluationException,
-                    ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, SchemaException {
-
-        ScriptExpressionEvaluatorConfigurationType defaultScriptConfiguration = report.asObjectable().getDefaultScriptConfiguration();
-        ScriptExpressionEvaluatorType expressionType = new ScriptExpressionEvaluatorType();
-        expressionType.setCode(codeString);
-        expressionType.setObjectVariableMode(defaultScriptConfiguration == null ? ObjectVariableModeType.OBJECT : defaultScriptConfiguration.getObjectVariableMode());
-        context.setExpressionType(expressionType);
-        // Be careful about output definition here. We really do NOT want to set it.
-        // Not setting the definition means that we want raw value without any conversion.
-        // This is what we really want, because there may be exotic things such as JRTemplate going through those expressions
-        // We do not have any reasonable prism definitions for those.
-
-        context.setFunctions(createFunctionLibraries());
-        context.setObjectResolver(objectResolver);
-
-        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
-                expressionType, context.getOutputDefinition(), context.getExpressionProfile(), expressionFactory, context.getContextDescription(),
-                context.getResult());
-
-        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context.getTask(), context.getResult()));
-        List<PrismValue> expressionResult;
-        try {
-            expressionResult = scriptExpression.evaluate(context);
-        } finally {
-            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-        }
-
-        if (expressionResult == null || expressionResult.isEmpty()) {
-            return null;
-        }
-        if (expressionResult.size() > 1) {
-            throw new ExpressionEvaluationException("Too many results from expression "+context.getContextDescription());
-        }
-        if (expressionResult.get(0) == null ) {
-            return null;
-        }
-        return expressionResult.get(0).getRealValue();
     }
 
     public ExpressionProfile determineExpressionProfile(PrismObject<ReportType> report, OperationResult result) throws SchemaException, ConfigurationException {
@@ -451,10 +247,6 @@ public class ReportServiceImpl implements ReportService {
 
     public TaskManager getTaskManager() {
         return taskManager;
-    }
-
-    public AuditService getAuditService() {
-        return auditService;
     }
 
     public ModelService getModelService() {

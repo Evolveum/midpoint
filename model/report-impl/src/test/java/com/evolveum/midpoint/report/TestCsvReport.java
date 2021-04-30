@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.function.Supplier;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -100,7 +101,7 @@ public class TestCsvReport extends AbstractReportIntegrationTest {
         super.test103CreateAuditCollectionReportWithDoubleView();
     }
 
-    @Test
+    @Override
     public void test104CreateAuditCollectionReportWithCondition() throws Exception {
         expectedColumns = 8;
         expectedRow = 2;
@@ -156,28 +157,28 @@ public class TestCsvReport extends AbstractReportIntegrationTest {
         super.test115CreateObjectCollectionReportWithCondition();
     }
 
-    @Test
+    @Override
     public void test116CreateObjectCollectionEmptyReport() throws Exception {
         expectedColumns = 6;
         expectedRow = 1;
         super.test116CreateObjectCollectionEmptyReport();
     }
 
-    @Test
+    @Override
     public void test117CreateObjectCollectionReportWithFilterAndBasicCollectionWithoutView() throws Exception {
         expectedColumns = 1;
         expectedRow = 2;
         super.test117CreateObjectCollectionReportWithFilterAndBasicCollectionWithoutView();
     }
 
-    @Test
+    @Override
     public void test118CreateObjectCollectionWithParamReport() throws Exception {
         expectedColumns = 2;
         expectedRow = 2;
         super.test118CreateObjectCollectionWithParamReport();
     }
 
-    @Test
+    @Override
     public void test119CreateObjectCollectionWithSubreportParamReport() throws Exception {
         expectedColumns = 2;
         expectedRow = 2;
@@ -189,52 +190,60 @@ public class TestCsvReport extends AbstractReportIntegrationTest {
         }
     }
 
-    @Test
+    @Override
     public void test120RunMidpointUsers() throws Exception {
         expectedColumns = 6;
         expectedRow = 4;
         super.test120RunMidpointUsers();
     }
 
-    @Test
+    @Override
     public void test121RunMidpointUsersScript() throws Exception {
         expectedColumns = 6;
         expectedRow = 4;
         super.test121RunMidpointUsersScript();
     }
 
-    @Test
+    @Test(priority=200)
     public void test200ImportReportForUser() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_IMPORT_OBJECT_COLLECTION_WITH_CONDITION_OID);
         importReport(report, IMPORT_USERS_FILE_PATH, false);
-        PrismObject<UserType> user = searchObjectByName(UserType.class, "testUser01");
-        assertNotNull("User testUser01 was not created", user);
-        assertEquals(ActivationStatusType.ENABLED, user.asObjectable().getActivation().getAdministrativeStatus());
-        assertEquals("2020-07-07T00:00:00.000+02:00", user.asObjectable().getActivation().getValidFrom().toString());
-        assertEquals("sub1", user.asObjectable().getSubtype().get(0));
-        assertEquals("sub22", user.asObjectable().getSubtype().get(1));
-        assertEquals("Test import: test_NICK", user.asObjectable().getNickName().getOrig());
-        assertEquals("00000000-0000-0000-0000-000000000008", user.asObjectable().getAssignment().get(0).getTargetRef().getOid());
-        assertEquals("00000000-0000-0000-0000-000000000004", user.asObjectable().getAssignment().get(1).getTargetRef().getOid());
+        PrismObject<UserType> user1 = searchObjectByName(UserType.class, "testUser01");
+        assertNotNull("User testUser01 was not created", user1);
+        assertEquals(ActivationStatusType.ENABLED, getValueOrNull(() -> user1.asObjectable().getActivation().getAdministrativeStatus()));
+        assertEquals("2020-07-07T00:00:00.000+02:00", getValueOrNull(() -> user1.asObjectable().getActivation().getValidFrom().toString()));
+        assertEquals("sub1", getValueOrNull(() -> user1.asObjectable().getSubtype().get(0)));
+        assertEquals("sub22", getValueOrNull(() -> user1.asObjectable().getSubtype().get(1)));
+        assertEquals("Test import: test_NICK", getValueOrNull(() ->  user1.asObjectable().getNickName().getOrig()));
+        assertEquals("00000000-0000-0000-0000-000000000008", getValueOrNull(() -> user1.asObjectable().getAssignment().get(0).getTargetRef().getOid()));
+        assertEquals("00000000-0000-0000-0000-000000000004", getValueOrNull(() -> user1.asObjectable().getAssignment().get(1).getTargetRef().getOid()));
 
-        user = searchObjectByName(UserType.class, "testUser02");
-        assertNotNull("User testUser02 was not created", user);
-        assertEquals(ActivationStatusType.ENABLED, user.asObjectable().getActivation().getAdministrativeStatus());
-        assertEquals("2020-07-07T00:00:00.000+02:00", user.asObjectable().getActivation().getValidFrom().toString());
-        assertTrue(user.asObjectable().getSubtype().isEmpty());
-        assertEquals("Test import: test_NICK2", user.asObjectable().getNickName().getOrig());
-        assertTrue(user.asObjectable().getAssignment().isEmpty());
+        PrismObject<UserType> user2 = searchObjectByName(UserType.class, "testUser02");
+        assertNotNull("User testUser02 was not created", user2);
+        assertEquals(ActivationStatusType.ENABLED, getValueOrNull(() -> user2.asObjectable().getActivation().getAdministrativeStatus()));
+        assertEquals("2020-07-07T00:00:00.000+02:00", getValueOrNull(() -> user2.asObjectable().getActivation().getValidFrom().toString()));
+        assertTrue(user2.asObjectable().getSubtype().isEmpty());
+        assertEquals("Test import: test_NICK2", getValueOrNull(() -> user2.asObjectable().getNickName().getOrig()));
+        assertTrue(user2.asObjectable().getAssignment().isEmpty());
 
-        user = searchObjectByName(UserType.class, "testUser03");
-        assertNotNull("User testUser03 was not created", user);
-        assertEquals(ActivationStatusType.ENABLED, user.asObjectable().getActivation().getAdministrativeStatus());
-        assertEquals("2020-07-07T00:00:00.000+02:00", user.asObjectable().getActivation().getValidFrom().toString());
-        assertEquals("sub31", user.asObjectable().getSubtype().get(0));
-        assertEquals("Test import: test_NICK3", user.asObjectable().getNickName().getOrig());
-        assertTrue(user.asObjectable().getAssignment().isEmpty());
+        PrismObject<UserType> user3 = searchObjectByName(UserType.class, "testUser03");
+        assertNotNull("User testUser03 was not created", user3);
+        assertEquals(ActivationStatusType.ENABLED, getValueOrNull(() -> user3.asObjectable().getActivation().getAdministrativeStatus()));
+        assertEquals("2020-07-07T00:00:00.000+02:00", getValueOrNull(() -> user3.asObjectable().getActivation().getValidFrom().toString()));
+        assertEquals("sub31", getValueOrNull(() -> user3.asObjectable().getSubtype().get(0)));
+        assertEquals("Test import: test_NICK3", getValueOrNull(() -> user3.asObjectable().getNickName().getOrig()));
+        assertTrue(user3.asObjectable().getAssignment().isEmpty());
     }
 
-    @Test(dependsOnMethods = {"test115CreateObjectCollectionReportWithCondition"})
+    private Object getValueOrNull(Supplier<Object> function){
+        try {
+            return function.get();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Test(dependsOnMethods = {"test115CreateObjectCollectionReportWithCondition"}, priority = 201)
     public void test201ImportReportFromExportedReport() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_WITH_CONDITION_OID);
         runReport(report, false);
@@ -266,7 +275,7 @@ public class TestCsvReport extends AbstractReportIntegrationTest {
         outputFile.renameTo(new File(outputFile.getParentFile(), "processed-" + outputFile.getName()));
     }
 
-    @Test(dependsOnMethods = {"test200ImportReportForUser"})
+    @Test(dependsOnMethods = {"test200ImportReportForUser"}, priority = 202)
     public void test202ImportReportWithImportScript() throws Exception {
         PrismObject<UserType> testUser02 = searchObjectByName(UserType.class, "testUser02");
         assertNotNull("User testUser02 was not created", testUser02);

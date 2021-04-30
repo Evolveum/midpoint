@@ -13,7 +13,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.report.api.ReportConstants;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -24,7 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -272,10 +270,8 @@ public abstract class FileFormatController {
         }
         Object values = null;
         try {
-            values = ExpressionUtil.evaluateExpression(null, variables, null, expression,
-                    determineExpressionProfile(result), getReportService().getExpressionFactory(), "value for column", task, result);
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-                | ConfigurationException | SecurityViolationException e) {
+            values = getReportService().evaluateScript(report.asPrismObject(), expression, variables, "value for column (export)", task, task.getResult());
+        } catch (Exception e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
         }
         if (values == null || (values instanceof Collection && ((Collection) values).isEmpty())) {
@@ -299,10 +295,8 @@ public abstract class FileFormatController {
     private Object evaluateImportExpression(ExpressionType expression, VariablesMap variables, Task task, OperationResult result) {
         Object value = null;
         try {
-            value = ExpressionUtil.evaluateExpression(null, variables, null, expression,
-                    determineExpressionProfile(result), getReportService().getExpressionFactory(), "value for column", task, result);
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-                | ConfigurationException | SecurityViolationException e) {
+            value = getReportService().evaluateScript(report.asPrismObject(), expression, variables, "value for column (import)", task, task.getResult());
+        } catch (Exception e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
         }
         if (value instanceof PrismValue) {
@@ -445,8 +439,7 @@ public abstract class FileFormatController {
                 Object subreportParameter = null;
                 ExpressionType expression = subreport.getExpression();
                 try {
-                    subreportParameter = ExpressionUtil.evaluateExpression(null, variables, null, expression,
-                            determineExpressionProfile(task.getResult()), getReportService().getExpressionFactory(), "subreport parameter", task, task.getResult());
+                    subreportParameter = getReportService().evaluateScript(report.asPrismObject(), expression, variables, "subreport parameter", task, task.getResult());
                     Class<?> subreportParameterClass;
                     if (subreport.getType() != null) {
                         subreportParameterClass = getReportService().getPrismContext().getSchemaRegistry().determineClassForType(subreport.getType());
@@ -454,8 +447,7 @@ public abstract class FileFormatController {
                         subreportParameterClass = subreportParameter.getClass();
                     }
                     variables.put(subreport.getName(), subreportParameter, subreportParameterClass);
-                } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-                        | ConfigurationException | SecurityViolationException e) {
+                } catch (Exception e) {
                     LOGGER.error("Couldn't execute expression " + expression, e);
                 }
             }

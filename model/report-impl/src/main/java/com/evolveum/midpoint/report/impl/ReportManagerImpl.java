@@ -76,7 +76,7 @@ public class ReportManagerImpl implements ReportManager {
 
     @Autowired private TaskManager taskManager;
     @Autowired private PrismContext prismContext;
-    @Autowired private ReportService reportService;
+    @Autowired private ReportServiceImpl reportService;
     @Autowired private ModelService modelService;
     @Autowired private ClusterExecutionHelper clusterExecutionHelper;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
