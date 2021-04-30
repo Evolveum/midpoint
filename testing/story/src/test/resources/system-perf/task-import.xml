@@ -15,11 +15,10 @@
 
     <extension>
         <mext:objectclass>ri:AccountObjectClass</mext:objectclass>
-        <mext:workerThreads>4</mext:workerThreads>
     </extension>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionStatus>closed</executionStatus> <!-- started on demand -->
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</handlerUri>
     <objectRef oid="7eb3a16c-3a33-4ef0-8523-98f0ef7291ba" type="ResourceType" />

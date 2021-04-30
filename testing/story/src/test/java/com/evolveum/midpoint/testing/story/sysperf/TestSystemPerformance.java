@@ -112,6 +112,9 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
         sourceInitializer = new SourceInitializer(this, RESOURCE_SOURCE, SOURCE_VARIANT, POPULATION_VARIANT, initTask);
         sourceInitializer.run(initResult);
+
+        addObject(TASK_IMPORT.file, initTask, initResult, workerThreadsCustomizer(THREADING_VARIANT.getThreads()));
+        addObject(TASK_RECOMPUTE.file, initTask, initResult, workerThreadsCustomizer(THREADING_VARIANT.getThreads()));
     }
 
     @Override
@@ -179,7 +182,9 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
         when();
 
-        addTask(TASK_IMPORT.file);
+        restartTask(TASK_IMPORT.oid, result);
+        Thread.sleep(500);
+
         waitForTaskFinish(TASK_IMPORT.oid, false, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
                 builder -> builder.taskConsumer(this::recordProgress));
 
@@ -239,9 +244,13 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
     public void test120RecomputeUsers() throws Exception {
         given();
 
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
         when();
 
-        addTask(TASK_RECOMPUTE.file);
+        restartTask(TASK_RECOMPUTE.oid, result);
+        Thread.sleep(500);
 
         lastProgress = 0;
         waitForTaskFinish(TASK_RECOMPUTE.oid, false, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
