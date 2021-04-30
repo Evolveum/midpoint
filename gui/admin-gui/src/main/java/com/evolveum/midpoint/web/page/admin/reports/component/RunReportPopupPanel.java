@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -51,15 +52,11 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
 
     private static final Trace LOGGER = TraceManager.getTrace(RunReportPopupPanel.class);
 
-    private static final String DOT_CLASS = RunReportPopupPanel.class.getName() + ".";
-    private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "createResourceList";
-
     private static final String ID_MAIN_FORM = "mainForm";
 
-    private static final String ID_RUN = "runReport";
+    private static final String ID_RUN_BUTTON = "runReport";
+    private static final String ID_CANCEL_BUTTON = "cancel";
     private static final String ID_POPUP_FEEDBACK = "popupFeedback";
-
-    private static final Integer AUTO_COMPLETE_BOX_SIZE = 10;
 
     private static final String ID_PARAMETERS = "parameters";
     private static final String ID_PARAMETER = "parameter";
@@ -182,7 +179,7 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
         feedback.setOutputMarkupId(true);
         mainForm.add(feedback);
 
-        AjaxSubmitButton addButton = new AjaxSubmitButton(ID_RUN,
+        AjaxSubmitButton runButton = new AjaxSubmitButton(ID_RUN_BUTTON,
                 createStringResource("runReportPopupContent.button.run")) {
             private static final long serialVersionUID = 1L;
 
@@ -197,7 +194,21 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
                 runConfirmPerformed(target);
             }
         };
-        mainForm.add(addButton);
+        runButton.setOutputMarkupId(true);
+        mainForm.add(runButton);
+
+        AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON,
+                createStringResource("userBrowserDialog.button.cancelButton")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                getPageBase().hideMainPopup(target);
+            }
+        };
+        cancelButton.setOutputMarkupId(true);
+        mainForm.add(cancelButton);
 
     }
 
@@ -251,12 +262,12 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
 
     @Override
     public int getWidth() {
-        return 1150;
+        return 900;
     }
 
     @Override
     public int getHeight() {
-        return 560;
+        return 100;
     }
 
     @Override
@@ -266,7 +277,7 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
 
     @Override
     public String getHeightUnit() {
-        return "px";
+        return "%";
     }
 
     @Override
