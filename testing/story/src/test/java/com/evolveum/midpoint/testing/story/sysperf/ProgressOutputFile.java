@@ -2,8 +2,6 @@ package com.evolveum.midpoint.testing.story.sysperf;
 
 import com.evolveum.midpoint.task.api.Task;
 
-import com.google.common.base.MoreObjects;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -24,8 +22,9 @@ class ProgressOutputFile {
 
     void recordProgress(String testName, Task task) {
         long start = task.getLastRunStartTimestamp();
-        long end = MoreObjects.firstNonNull(task.getLastRunFinishTimestamp(), System.currentTimeMillis());
-        long running = end - start;
+        Long lastFinish = task.getLastRunFinishTimestamp();
+        long thisFinish = lastFinish != null && lastFinish > start ? lastFinish : System.currentTimeMillis();
+        long running = thisFinish - start;
         long progress = task.getProgress();
         writer.println(testName + ";" + running + ";" + progress);
         writer.flush();
