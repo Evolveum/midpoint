@@ -507,10 +507,11 @@ public class TestRelDiagram {
 
                         description += "</ul></li><li><ul><li><h1><a href=\"" + BASE_URL + subDefinitionDef.getTypeName().getLocalPart() + ".html\">" + subDefinitionName + "</a></h1></li>"; // "level" + level + "ncu" + notClosedUls + "parent is higher" +
                         mapOfNotClosedUls.put(subDefinition, notClosedUls);
-                        String propertiesOfSubType = writeProperties(def,null);
-                        if (propertiesOfSubType.length() > 4) {
-                            description += propertiesOfSubType.substring(4);
-                        }
+
+                    }
+                    String propertiesOfSubType = writeProperties(subDefinitionDef,null);
+                    if (propertiesOfSubType.length() > 4) {
+                        description += propertiesOfSubType.substring(4);
                     }
                     parentLevel = level;
                 }
@@ -528,7 +529,7 @@ public class TestRelDiagram {
                 ArrayList<String> refs = refsArrays.get(0);
 
                 myWriter.write("\n" + parent.getItemName().getLocalPart() + def.getTypeName().getLocalPart() + "Refs = {");
-                myWriter.write("\n\tparent: " + parent.getItemName().getLocalPart() + ",");
+                myWriter.write("\n\tparent: " + parent.getItemName().getLocalPart() + ","); // todo make as parent selected def
 
                 //String refsInnerHTML = "<div class = \"ref\"><h1>source:<br>" + originalDef.replaceAll("\\d", "") + "</h1><ul>"; // todo make decision if source would be displayed
 
