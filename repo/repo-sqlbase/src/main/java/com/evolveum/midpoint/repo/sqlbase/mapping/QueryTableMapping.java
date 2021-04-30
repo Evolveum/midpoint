@@ -46,7 +46,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * The main goal of this type is to map object query conditions and ORDER BY to SQL.
  * Mappings also takes care of transformation between schema/prism objects and repository objects
  * (row beans or tuples).
- * Objects of various {@link QueryTableMapping} subclasses are factories for the transformer.
  *
  * Other important functions of mapping:
  *
@@ -338,7 +337,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
         try {
             return toSchemaObject(tuple, entityPath, options);
         } catch (SchemaException e) {
-            throw new SqlTransformationException(e);
+            throw new RepositoryMappingException(e);
         }
     }
 

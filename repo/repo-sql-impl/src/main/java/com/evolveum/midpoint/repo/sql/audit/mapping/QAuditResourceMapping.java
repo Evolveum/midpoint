@@ -12,7 +12,7 @@ import com.evolveum.midpoint.repo.sql.audit.beans.MAuditResource;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditResource;
 
 /**
- * Mapping for {@link QAuditResource}, no transformation supported.
+ * Mapping for {@link QAuditResource}.
  */
 public class QAuditResourceMapping
         extends AuditTableMapping<String, QAuditResource, MAuditResource> {

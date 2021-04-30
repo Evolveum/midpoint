@@ -28,8 +28,8 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ObjectFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.RepositoryMappingException;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlDetailFetchMapper;
-import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformationException;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -74,23 +74,22 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     protected final Q entityPath;
     protected final QueryTableMapping<S, Q, R> entityPathMapping;
     protected final SqlRepoContext sqlRepoContext;
-    protected final SqlTransformerSupport transformerSupport;
+    protected final SqlSupportService sqlSupportService;
 
     protected boolean notFilterUsed = false;
 
-    // options stored to modify select clause and also to affect transformation
+    // options stored to modify select clause and also to affect mapping
     protected Collection<SelectorOptions<GetOperationOptions>> options;
 
     protected SqlQueryContext(
             Q entityPath,
             QueryTableMapping<S, Q, R> mapping,
-            SqlRepoContext sqlRepoContext,
-            SqlTransformerSupport transformerSupport,
+            SqlSupportService sqlSupportService,
             SQLQuery<?> query) {
         this.entityPath = entityPath;
         this.entityPathMapping = mapping;
-        this.sqlRepoContext = sqlRepoContext;
-        this.transformerSupport = transformerSupport;
+        this.sqlSupportService = sqlSupportService;
+        this.sqlRepoContext = sqlSupportService.sqlRepoContext();
         this.sqlQuery = query;
     }
 
@@ -297,7 +296,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
             throws SchemaException, QueryException {
         try {
             return result.map(row -> entityPathMapping.toSchemaObjectSafe(row, root(), options));
-        } catch (SqlTransformationException e) {
+        } catch (RepositoryMappingException e) {
             Throwable cause = e.getCause();
             if (cause instanceof SchemaException) {
                 throw (SchemaException) cause;
@@ -344,20 +343,20 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     }
 
     public PrismContext prismContext() {
-        return transformerSupport.prismContext();
+        return sqlSupportService.prismContext();
     }
 
     public <T> Class<? extends T> qNameToSchemaClass(@NotNull QName qName) {
-        return transformerSupport.qNameToSchemaClass(qName);
+        return sqlSupportService.qNameToSchemaClass(qName);
     }
 
     public CanonicalItemPath createCanonicalItemPath(@NotNull ItemPath itemPath) {
-        return transformerSupport.prismContext().createCanonicalItemPath(itemPath);
+        return sqlSupportService.prismContext().createCanonicalItemPath(itemPath);
     }
 
     @NotNull
     public QName normalizeRelation(QName qName) {
-        return transformerSupport.normalizeRelation(qName);
+        return sqlSupportService.normalizeRelation(qName);
     }
 
     public FilterProcessor<InOidFilter> createInOidFilter(SqlQueryContext<?, ?, ?> context) {

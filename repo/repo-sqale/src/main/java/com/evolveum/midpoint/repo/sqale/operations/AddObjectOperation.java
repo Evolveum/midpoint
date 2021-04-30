@@ -18,7 +18,7 @@ import org.postgresql.util.PSQLState;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.sqale.ContainerValueIdGenerator;
-import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
+import com.evolveum.midpoint.repo.sqale.SqaleSupportService;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
@@ -59,11 +59,11 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
     }
 
     /** Inserts the object provided to the constructor and returns its OID. */
-    public String execute(SqaleTransformerSupport transformerSupport)
+    public String execute(SqaleSupportService supportService)
             throws SchemaException, ObjectAlreadyExistsException {
         try {
             // TODO utilize options and result
-            sqlRepoContext = transformerSupport.sqlRepoContext();
+            sqlRepoContext = supportService.sqlRepoContext();
             Class<S> schemaObjectClass = object.getCompileTimeClass();
             objectType = MObjectType.fromSchemaType(schemaObjectClass);
             rootMapping = sqlRepoContext.getMappingBySchemaType(schemaObjectClass);

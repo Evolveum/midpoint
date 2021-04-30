@@ -144,7 +144,7 @@ public class QAssignmentMapping<OR extends MObject>
         return row;
     }
 
-    // about duplication see the comment in ObjectSqlTransformer.toRowObjectWithoutFullObject
+    // about duplication see the comment in QObjectMapping.toRowObjectWithoutFullObject
     @SuppressWarnings("DuplicatedCode")
     @Override
     public MAssignment insert(AssignmentType assignment, OR ownerRow, JdbcSession jdbcSession) {

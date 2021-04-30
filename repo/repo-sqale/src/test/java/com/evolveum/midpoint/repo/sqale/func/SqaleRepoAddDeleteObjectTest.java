@@ -378,7 +378,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
     // region insertion of various types
 
-    // this test covers function of ObjectSqlTransformer and all the basic object fields
+    // this test covers function of QObjectMapping and all the basic object fields
     @Test
     public void test800SystemConfigurationBasicObjectAttributes() throws Exception {
         OperationResult result = createOperationResult();
@@ -900,7 +900,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.synchronizationTimestamp).isEqualTo(Instant.ofEpochMilli(2));
     }
 
-    // This covers mapping of attributes in FocusSqlTransformer + GenericObject.
+    // This covers mapping of attributes in QFocusMapping + GenericObject.
     @Test
     public void test820GenericObject() throws Exception {
         OperationResult result = createOperationResult();
@@ -975,7 +975,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     // This covers mapping of attributes in AbstractRole + Archetype + inducement mapping.
-    // There is no focus on FocusSqlTransformer that is covered above.
+    // There is no focus on QFocusMapping that is covered above.
     @Test
     public void test821ArchetypeAndInducement() throws Exception {
         OperationResult result = createOperationResult();

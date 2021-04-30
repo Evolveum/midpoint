@@ -19,7 +19,7 @@ import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
+import com.evolveum.midpoint.repo.sqale.SqaleSupportService;
 import com.evolveum.midpoint.repo.sqale.delta.item.*;
 import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.UriItemFilterProcessor;
@@ -191,12 +191,6 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 rootToQueryItem);
     }
 
-    // Previously transformer code from here down
-    // TODO inline later
-    protected QueryTableMapping<S, Q, R> mapping() {
-        return this;
-    }
-
     @Override
     public S toSchemaObject(R row) {
         throw new UnsupportedOperationException("Use toSchemaObject(Tuple,...)");
@@ -238,7 +232,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         return new ObjectReferenceType()
                 .oid(oid)
-                .type(SqaleTransformerSupport.getInstance()
+                .type(SqaleSupportService.getInstance()
                         .schemaClassToQName(repoObjectType.getSchemaType()))
                 .description(targetName)
                 .targetName(targetName);
@@ -257,12 +251,12 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     protected @NotNull Integer searchCachedRelationId(QName qName) {
-        return SqaleTransformerSupport.getInstance().searchCachedRelationId(qName);
+        return SqaleSupportService.getInstance().searchCachedRelationId(qName);
     }
 
     /** Returns ID for cached URI without going to the database. */
     protected Integer resolveUriToId(String uri) {
-        return SqaleTransformerSupport.getInstance().resolveUriToId(uri);
+        return SqaleSupportService.getInstance().resolveUriToId(uri);
     }
 
     /**
@@ -271,20 +265,20 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
      * Never returns null, returns default ID for configured default relation.
      */
     protected Integer processCacheableRelation(QName qName) {
-        return SqaleTransformerSupport.getInstance().processCacheableRelation(qName);
+        return SqaleSupportService.getInstance().processCacheableRelation(qName);
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
     protected Integer processCacheableUri(String uri) {
         return uri != null
-                ? SqaleTransformerSupport.getInstance().processCacheableUri(uri)
+                ? SqaleSupportService.getInstance().processCacheableUri(uri)
                 : null;
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
     protected Integer processCacheableUri(QName qName) {
         return qName != null
-                ? SqaleTransformerSupport.getInstance()
+                ? SqaleSupportService.getInstance()
                 .processCacheableUri(QNameUtil.qNameToUri(qName))
                 : null;
     }
@@ -309,7 +303,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     protected MObjectType schemaTypeToObjectType(QName schemaType) {
         return schemaType == null ? null :
                 MObjectType.fromSchemaType(
-                        SqaleTransformerSupport.getInstance().qNameToSchemaClass(schemaType));
+                        SqaleSupportService.getInstance().qNameToSchemaClass(schemaType));
     }
 
     protected void setPolyString(PolyStringType polyString,
@@ -347,7 +341,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     /** Convenient insert shortcut when the row is fully populated. */
     protected void insert(R row, JdbcSession jdbcSession) {
-        jdbcSession.newInsert(mapping().defaultAlias())
+        jdbcSession.newInsert(defaultAlias())
                 .populate(row)
                 .execute();
     }

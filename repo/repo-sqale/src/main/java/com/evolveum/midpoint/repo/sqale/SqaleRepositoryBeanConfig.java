@@ -110,6 +110,7 @@ public class SqaleRepositoryBeanConfig {
     @Bean
     public SqaleRepoContext sqlRepoContext(
             SqaleRepositoryConfiguration repositoryConfiguration,
+            SchemaService schemaService,
             DataSource dataSource) {
         QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry()
                 // ordered alphabetically here, mappings without schema type at the end
@@ -152,7 +153,11 @@ public class SqaleRepositoryBeanConfig {
                 .register(QReferenceMapping.INSTANCE)
                 .seal();
 
-        return new SqaleRepoContext(repositoryConfiguration, dataSource, mappingRegistry);
+        return new SqaleRepoContext(
+                repositoryConfiguration,
+                dataSource,
+                schemaService,
+                mappingRegistry);
     }
 
     @Bean

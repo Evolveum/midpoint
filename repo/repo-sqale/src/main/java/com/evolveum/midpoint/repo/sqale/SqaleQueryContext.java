@@ -24,7 +24,7 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         extends SqlQueryContext<S, Q, R> {
 
     public static <S, Q extends FlexibleRelationalPathBase<R>, R> SqaleQueryContext<S, Q, R> from(
-            Class<S> schemaType, SqaleTransformerSupport transformerSupport,
+            Class<S> schemaType, SqaleSupportService sqaleSupportService,
             SqlRepoContext sqlRepoContext) {
 
         SqaleTableMapping<S, Q, R> rootMapping = sqlRepoContext.getMappingBySchemaType(schemaType);
@@ -35,16 +35,16 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         query.getMetadata().setValidate(true);
 
         return new SqaleQueryContext<>(
-                rootPath, rootMapping, transformerSupport, sqlRepoContext, query);
+                rootPath, rootMapping, sqaleSupportService, sqlRepoContext, query);
     }
 
     private SqaleQueryContext(
             Q entityPath,
             SqaleTableMapping<S, Q, R> mapping,
-            SqaleTransformerSupport transformerSupport,
+            SqaleSupportService sqaleSupportService,
             SqlRepoContext sqlRepoContext,
             SQLQuery<?> query) {
-        super(entityPath, mapping, sqlRepoContext, transformerSupport, query);
+        super(entityPath, mapping, sqaleSupportService, query);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     public @NotNull Integer searchCachedRelationId(QName qName) {
-        return transformerSupport().searchCachedRelationId(qName);
+        return supportService().searchCachedRelationId(qName);
     }
 
     /**
@@ -66,10 +66,10 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     deriveNew(TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping) {
         return (SqlQueryContext<TS, TQ, TR>) new SqaleQueryContext(
                 newPath, (SqaleTableMapping<?, ?, ?>) newMapping,
-                transformerSupport(), sqlRepoContext, sqlQuery);
+                supportService(), sqlRepoContext, sqlQuery);
     }
 
-    private SqaleTransformerSupport transformerSupport() {
-        return (SqaleTransformerSupport) transformerSupport;
+    private SqaleSupportService supportService() {
+        return (SqaleSupportService) sqlSupportService;
     }
 }

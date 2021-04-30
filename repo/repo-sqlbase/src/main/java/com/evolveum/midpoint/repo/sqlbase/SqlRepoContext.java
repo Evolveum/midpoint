@@ -22,6 +22,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
@@ -31,6 +32,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
  */
 public class SqlRepoContext {
 
+    private static SqlRepoContext instance;
+
     private final JdbcRepositoryConfiguration jdbcRepositoryConfiguration;
     protected final Configuration querydslConfig;
     private final QueryModelMappingRegistry mappingRegistry;
@@ -39,12 +42,19 @@ public class SqlRepoContext {
     public SqlRepoContext(
             JdbcRepositoryConfiguration jdbcRepositoryConfiguration,
             DataSource dataSource,
-            QueryModelMappingRegistry mappingRegistry) {
+            SchemaService schemaService, QueryModelMappingRegistry mappingRegistry) {
         this.jdbcRepositoryConfiguration = jdbcRepositoryConfiguration;
         this.querydslConfig = QuerydslUtils.querydslConfiguration(
                 jdbcRepositoryConfiguration.getDatabaseType());
         this.mappingRegistry = mappingRegistry;
         this.dataSource = dataSource;
+
+        // TODO later inject directly into mappers
+        instance = this;
+    }
+
+    public static SqlRepoContext getInstance() {
+        return instance;
     }
 
     public SQLQuery<?> newQuery() {
