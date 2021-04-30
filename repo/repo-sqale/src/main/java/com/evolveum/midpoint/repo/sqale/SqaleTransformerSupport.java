@@ -20,8 +20,15 @@ import com.evolveum.midpoint.util.QNameUtil;
  */
 public class SqaleTransformerSupport extends SqlTransformerSupport {
 
+    private static SqaleTransformerSupport instance;
+
     public SqaleTransformerSupport(SchemaService schemaService, SqaleRepoContext sqaleRepoContext) {
         super(schemaService, sqaleRepoContext);
+        instance = this;
+    }
+
+    public static SqaleTransformerSupport getInstance() {
+        return instance;
     }
 
     private SqaleRepoContext sqaleRepoContext() {

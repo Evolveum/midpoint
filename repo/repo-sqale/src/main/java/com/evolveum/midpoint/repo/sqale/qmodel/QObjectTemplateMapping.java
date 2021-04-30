@@ -8,9 +8,12 @@ package com.evolveum.midpoint.repo.sqale.qmodel;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType.F_INCLUDE_REF;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 
@@ -37,13 +40,22 @@ public class QObjectTemplateMapping
     }
 
     @Override
-    public ObjectTemplateSqlTransformer createTransformer(
+    public QObjectTemplateMapping createTransformer(
             SqlTransformerSupport transformerSupport) {
-        return new ObjectTemplateSqlTransformer(transformerSupport, this);
+        return this;
     }
 
     @Override
     public MObject newRowObject() {
         return new MObject();
+    }
+
+    @Override
+    public void storeRelatedEntities(@NotNull MObject row,
+            @NotNull ObjectTemplateType schemaObject, @NotNull JdbcSession jdbcSession) {
+        super.storeRelatedEntities(row, schemaObject, jdbcSession);
+
+        storeRefs(row, schemaObject.getIncludeRef(),
+                QObjectReferenceMapping.INSTANCE_INCLUDE, jdbcSession);
     }
 }

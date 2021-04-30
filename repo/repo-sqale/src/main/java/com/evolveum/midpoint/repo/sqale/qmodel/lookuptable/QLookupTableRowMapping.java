@@ -9,7 +9,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.lookuptable;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType.*;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 
 /**
@@ -40,11 +41,6 @@ public class QLookupTableRowMapping
     }
 
     @Override
-    public LookupTableRowSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
-        return new LookupTableRowSqlTransformer(transformerSupport, this);
-    }
-
-    @Override
     public MLookupTableRow newRowObject() {
         return new MLookupTableRow();
     }
@@ -53,6 +49,20 @@ public class QLookupTableRowMapping
     public MLookupTableRow newRowObject(MLookupTable ownerRow) {
         MLookupTableRow row = newRowObject();
         row.ownerOid = ownerRow.oid;
+        return row;
+    }
+
+    @Override
+    public MLookupTableRow insert(LookupTableRowType lookupTableRow,
+            MLookupTable ownerRow, JdbcSession jdbcSession) {
+
+        MLookupTableRow row = initRowObject(lookupTableRow, ownerRow);
+        row.key = lookupTableRow.getKey();
+        row.value = lookupTableRow.getValue();
+        setPolyString(lookupTableRow.getLabel(), o -> row.labelOrig = o, n -> row.labelNorm = n);
+        row.lastChangeTimestamp = MiscUtil.asInstant(lookupTableRow.getLastChangeTimestamp());
+
+        insert(row, jdbcSession);
         return row;
     }
 }

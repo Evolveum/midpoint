@@ -9,7 +9,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType.*;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
 
 /**
@@ -51,12 +52,6 @@ public class QOperationExecutionMapping<OR extends MObject>
     }
 
     @Override
-    public OperationExecutionSqlTransformer<OR> createTransformer(
-            SqlTransformerSupport transformerSupport) {
-        return new OperationExecutionSqlTransformer<>(transformerSupport, this);
-    }
-
-    @Override
     public MOperationExecution newRowObject() {
         return new MOperationExecution();
     }
@@ -65,6 +60,27 @@ public class QOperationExecutionMapping<OR extends MObject>
     public MOperationExecution newRowObject(OR ownerRow) {
         MOperationExecution row = newRowObject();
         row.ownerOid = ownerRow.oid;
+        return row;
+    }
+
+    @Override
+    public MOperationExecution insert(
+            OperationExecutionType schemaObject, OR ownerRow, JdbcSession jdbcSession) {
+        MOperationExecution row = initRowObject(schemaObject, ownerRow);
+
+        row.status = schemaObject.getStatus();
+        row.recordType = schemaObject.getRecordType();
+        setReference(schemaObject.getInitiatorRef(),
+                o -> row.initiatorRefTargetOid = o,
+                t -> row.initiatorRefTargetType = t,
+                r -> row.initiatorRefRelationId = r);
+        setReference(schemaObject.getTaskRef(),
+                o -> row.taskRefTargetOid = o,
+                t -> row.taskRefTargetType = t,
+                r -> row.taskRefRelationId = r);
+        row.timestampValue = MiscUtil.asInstant(schemaObject.getTimestamp());
+
+        insert(row, jdbcSession);
         return row;
     }
 }

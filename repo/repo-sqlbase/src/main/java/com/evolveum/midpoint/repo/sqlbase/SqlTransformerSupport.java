@@ -22,12 +22,19 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class SqlTransformerSupport {
 
+    private static SqlTransformerSupport instance;
+
     protected final SchemaService schemaService;
     protected final SqlRepoContext sqlRepoContext;
 
     public SqlTransformerSupport(SchemaService schemaService, SqlRepoContext sqlRepoContext) {
         this.schemaService = schemaService;
         this.sqlRepoContext = sqlRepoContext;
+        instance = this;
+    }
+
+    public static SqlTransformerSupport getInstance() {
+        return instance;
     }
 
     public <T> Class<? extends T> qNameToSchemaClass(QName qName) {

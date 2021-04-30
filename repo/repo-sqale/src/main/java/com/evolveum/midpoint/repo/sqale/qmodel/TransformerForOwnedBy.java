@@ -18,5 +18,4 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 public interface TransformerForOwnedBy<S, R, OR> {
 
     /** Contract for insertion of row of type {@link R} owned by {@link OR}. */
-    R insert(S schemaObject, OR ownerRow, JdbcSession jdbcSession);
 }

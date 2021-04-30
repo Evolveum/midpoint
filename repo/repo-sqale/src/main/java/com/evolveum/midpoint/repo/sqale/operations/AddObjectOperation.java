@@ -19,11 +19,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.sqale.ContainerValueIdGenerator;
 import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -49,7 +48,7 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
 
     private SqlRepoContext sqlRepoContext;
     private Q root;
-    private ObjectSqlTransformer<S, Q, R> transformer;
+    private QObjectMapping<S, Q, R> rootMapping;
     private MObjectType objectType;
 
     public AddObjectOperation(@NotNull PrismObject<S> object,
@@ -67,11 +66,8 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
             sqlRepoContext = transformerSupport.sqlRepoContext();
             Class<S> schemaObjectClass = object.getCompileTimeClass();
             objectType = MObjectType.fromSchemaType(schemaObjectClass);
-            SqaleTableMapping<S, Q, R> rootMapping =
-                    sqlRepoContext.getMappingBySchemaType(schemaObjectClass);
+            rootMapping = sqlRepoContext.getMappingBySchemaType(schemaObjectClass);
             root = rootMapping.defaultAlias();
-            transformer = (ObjectSqlTransformer<S, Q, R>)
-                    rootMapping.createTransformer(transformerSupport);
 
             // we don't want CID generation here, because overwrite works different then normal add
 
@@ -100,9 +96,9 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
         long lastCid = new ContainerValueIdGenerator().generateForNewObject(object);
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             S schemaObject = object.asObjectable();
-            R row = transformer.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
+            R row = rootMapping.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
             row.containerIdSeq = lastCid + 1;
-            transformer.setFullObject(row, schemaObject);
+            rootMapping.setFullObject(row, schemaObject);
 
             UUID oid = jdbcSession.newInsert(root)
                     // default populate mapper ignores null, that's good, especially for objectType
@@ -110,7 +106,7 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
                     .executeWithKey(root.oid);
 
             row.objectType = objectType; // sub-entities can use it, now it's safe to set it
-            transformer.storeRelatedEntities(row, schemaObject, jdbcSession);
+            rootMapping.storeRelatedEntities(row, schemaObject, jdbcSession);
 
             jdbcSession.commit();
             return Objects.requireNonNull(oid, "OID of inserted object can't be null")
@@ -121,7 +117,7 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
     private String addObjectWithoutOid() throws SchemaException {
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             S schemaObject = object.asObjectable();
-            R row = transformer.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
+            R row = rootMapping.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
 
             // first insert without full object, because we don't know the OID yet
             UUID oid = jdbcSession.newInsert(root)
@@ -136,7 +132,7 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
             long lastCid = new ContainerValueIdGenerator().generateForNewObject(object);
 
             // now to update full object with known OID
-            transformer.setFullObject(row, schemaObject);
+            rootMapping.setFullObject(row, schemaObject);
             jdbcSession.newUpdate(root)
                     .set(root.fullObject, row.fullObject)
                     .set(root.containerIdSeq, lastCid + 1)
@@ -145,7 +141,7 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
 
             row.oid = oid;
             row.objectType = objectType; // sub-entities can use it, now it's safe to set it
-            transformer.storeRelatedEntities(row, schemaObject, jdbcSession);
+            rootMapping.storeRelatedEntities(row, schemaObject, jdbcSession);
 
             jdbcSession.commit();
             return oidString;

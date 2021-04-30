@@ -18,7 +18,6 @@ import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.UriItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedByMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.TransformerForOwnedBy;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
@@ -127,9 +126,7 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
 
     @SuppressWarnings("UnusedReturnValue")
     public <TS, TR> TR insertOwnedRow(QOwnedByMapping<TS, TR, R> mapping, TS schemaObject) {
-        TransformerForOwnedBy<TS, TR, R> transformer =
-                mapping.createTransformer(transformerSupport());
-        return transformer.insert(schemaObject, row, jdbcSession);
+        return mapping.insert(schemaObject, row, jdbcSession);
     }
 
     public SqaleUpdateContext<?, ?, ?> getSubcontext(ItemPath itemPath) {

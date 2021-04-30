@@ -260,6 +260,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
      * or cache (I don't like the sound of that). On the other hand they are really lightweight
      * and short lived helpers too, so it shouldn't be a real GC problem.
      */
+    @Deprecated
     public SqlTransformer<S, Q, R> createTransformer(
             SqlTransformerSupport transformerSupport) {
         throw new UnsupportedOperationException("Bean transformer not supported for " + queryType());

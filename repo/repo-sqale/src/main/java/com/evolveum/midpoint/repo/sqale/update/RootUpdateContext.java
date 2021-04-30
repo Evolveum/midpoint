@@ -22,8 +22,8 @@ import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.delta.DelegatingItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
@@ -42,7 +42,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
         extends SqaleUpdateContext<S, Q, R> {
 
     private final S object;
-    protected final QueryTableMapping<S, Q, R> mapping;
+    protected final QObjectMapping<S, Q, R> mapping;
     private final Q rootPath;
     private final SQLUpdateClause update;
     private final int objectVersion;
@@ -148,10 +148,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
         update.set(rootPath.version, newVersion);
 
         update.set(rootPath.containerIdSeq, cidGenerator.lastUsedId() + 1);
-
-        ObjectSqlTransformer<S, Q, R> transformer =
-                (ObjectSqlTransformer<S, Q, R>) mapping.createTransformer(transformerSupport);
-        update.set(rootPath.fullObject, transformer.createFullObject(object));
+        update.set(rootPath.fullObject, mapping.createFullObject(object));
 
         long rows = update.execute();
         if (rows != 1) {

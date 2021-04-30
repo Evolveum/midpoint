@@ -7,9 +7,7 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.other;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 
 /**
@@ -30,13 +28,6 @@ public class QFunctionLibraryMapping
     @Override
     protected QFunctionLibrary newAliasInstance(String alias) {
         return new QFunctionLibrary(alias);
-    }
-
-    @Override
-    public ObjectSqlTransformer<FunctionLibraryType, QFunctionLibrary, MObject>
-    createTransformer(SqlTransformerSupport transformerSupport) {
-        // no special class needed, no additional columns
-        return new ObjectSqlTransformer<>(transformerSupport, this);
     }
 
     @Override

@@ -8,9 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.cases;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.*;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 /**
@@ -53,14 +51,9 @@ public class QCaseMapping
     }
 
     @Override
-    public ObjectSqlTransformer<CaseType, QCase, MCase>
-    createTransformer(SqlTransformerSupport transformerSupport) {
-        // no special class needed, no additional columns
-        return new ObjectSqlTransformer<>(transformerSupport, this);
-    }
-
-    @Override
     public MCase newRowObject() {
         return new MCase();
     }
+
+    // TODO transformation code
 }

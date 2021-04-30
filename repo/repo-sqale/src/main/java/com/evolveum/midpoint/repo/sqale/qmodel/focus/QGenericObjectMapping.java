@@ -6,7 +6,9 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 
 /**
@@ -30,13 +32,17 @@ public class QGenericObjectMapping
     }
 
     @Override
-    public GenericObjectSqlTransformer createTransformer(
-            SqlTransformerSupport transformerSupport) {
-        return new GenericObjectSqlTransformer(transformerSupport, this);
+    public MGenericObject newRowObject() {
+        return new MGenericObject();
     }
 
     @Override
-    public MGenericObject newRowObject() {
-        return new MGenericObject();
+    public @NotNull MGenericObject toRowObjectWithoutFullObject(
+            GenericObjectType genericObject, JdbcSession jdbcSession) {
+        MGenericObject row = super.toRowObjectWithoutFullObject(genericObject, jdbcSession);
+
+        row.genericObjectTypeId = processCacheableUri(genericObject.getObjectType());
+
+        return row;
     }
 }
