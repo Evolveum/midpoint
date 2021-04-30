@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public class WriteHTMLandCSSForDiagram {
 
-    public void writeDocument(String path, String htmlName, String jsName, String cssName) throws IOException {
+    public void writeDocument(String path, String libraryPath, String htmlName, String jsName, String cssName) throws IOException {
         File htmlFile = new File(path + htmlName);
         FileWriter htmlWriter = new FileWriter(htmlFile);
         htmlWriter.write("<!DOCTYPE html>\n"
@@ -16,22 +16,22 @@ public class WriteHTMLandCSSForDiagram {
                 + "    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge,chrome=1\">\n"
                 + "    <meta name=\"viewport\" content=\"width=device-width\">\n"
                 + "\t<title> Connectors style example </title>\n"
-                + "\t<link rel=\"stylesheet\" href=\"../../Treant.css\">\n"
+                + "\t<link rel=\"stylesheet\" href=\"" + libraryPath + "Treant.css\">\n"
                 + "\t<link rel=\"stylesheet\" href=\"" + cssName +"\">\n"
                 + "\t\n"
-                + "\t<link rel=\"stylesheet\" href=\"/home/jan/Downloads/treant-js-master/vendor/perfect-scrollbar/perfect-scrollbar.css\">\n"
+                + "\t<link rel=\"stylesheet\" href=\"" + libraryPath + "perfect-scrollbar.css\">\n"
                 + "\t\n"
                 + "</head>\n"
                 + "<body>\n"
                 + "\t<div class=\"chart\" id=\"hierarchy\"></div>\n"
                 + "\t\n"
-                + "\t<script src=\"../../vendor/jquery.min.js\"></script>\n"
-                + "    \t<script src=\"../../vendor/jquery.easing.js\"></script>\n"
+                + "\t<script src=\"" + libraryPath + "jquery.min.js\"></script>\n"
+                + "    \t<script src=\"" + libraryPath + "jquery.easing.js\"></script>\n"
                 + "\t\n"
-                + "\t<script src=\"../../vendor/raphael.js\"></script>\n"
-                + "\t<script src=\"../../Treant.js\"></script>\n"
+                + "\t<script src=\"" + libraryPath + "raphael.js\"></script>\n"
+                + "\t<script src=\"" + libraryPath + "Treant.js\"></script>\n"
                 + "\t<script src=\"" + jsName + "\"></script>\n"
-                + "\t<script src=\"/home/jan/node_modules/@panzoom/panzoom/dist/panzoom.js\"></script>\n"
+                + "\t<script src=\"" + libraryPath + "panzoom.js\"></script>\n"
                 + "\n"
                 + "\t<script>\n"
                 + "\ttree = new Treant( chart_config );\n"
@@ -187,5 +187,7 @@ public class WriteHTMLandCSSForDiagram {
                 + ".Treant .collapse-switch { width: 100%; height: 100%; border: none;}\n"
                 + ".Treant .node.collapsed { background-color: rgb(230, 230, 230); }\n"
                 + ".Treant .node.collapsed .collapse-switch { background: none; }");
+        htmlWriter.close();
+        cssWriter.close();
     }
 }

@@ -168,9 +168,9 @@ public class SchemaDocMojo extends AbstractMojo {
 
     }
 
-    public void renderRelationDiagram(PrismSchema schema, SchemaRegistry schemaRegistry, String diagramName, String path, String htmlName, String jsName, String cssName) throws IOException { // Default value for path is resourceDir
+    public void renderRelationDiagram(PrismSchema schema, SchemaRegistry schemaRegistry, String diagramName, String path, String libraryPath, String htmlName, String jsName, String cssName) throws IOException { // Default value for path is resourceDir
         if (path == null) {
-            path = resourcesDir.getAbsolutePath();
+            path = resourcesDir.getAbsolutePath(); // todo resourceDir is null????
         }
 
         if (htmlName == null) {
@@ -186,7 +186,7 @@ public class SchemaDocMojo extends AbstractMojo {
         }
 
         WriteHTMLandCSSForDiagram writeDiagram = new WriteHTMLandCSSForDiagram();
-        writeDiagram.writeDocument(path, htmlName, jsName, cssName);
+        writeDiagram.writeDocument(path, libraryPath, htmlName, jsName, cssName);
 
         try {
             TestRelDiagram testSchema = new TestRelDiagram(path + jsName, diagramName, schemaRegistry); //ObjectType.class, "/home/jan/example.js"
