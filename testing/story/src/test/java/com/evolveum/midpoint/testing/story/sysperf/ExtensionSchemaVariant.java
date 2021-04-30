@@ -10,9 +10,10 @@ package com.evolveum.midpoint.testing.story.sysperf;
 enum ExtensionSchemaVariant {
 
     BASIC("basic"),
-    BIG("big"),
-    BIG_GLOBAL("big-global"),
-    INDEXED("indexed");
+    INDEXED("indexed"),
+    BIG("big"), // don't use: does not make any difference
+    BIG_GLOBAL("big-global") // don't use: does not make any difference
+    ;
 
     private static final String PROP_EXTENSION_SCHEMA = "schema";
 
