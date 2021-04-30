@@ -23,6 +23,8 @@ enum SourceVariant {
     MS2_5("ms2-5", "resource-source-ms0002.xml", 1, 1, 5),
     MS20_5("ms20-5", "resource-source-ms0020.xml", 10, 10, 5),
     MS110_5("ms110-5", "resource-source-ms0110.xml", 100, 10, 5),
+    MS110_20("ms110-20", "resource-source-ms0110.xml", 100, 10, 20),
+    MS110_100("ms110-100", "resource-source-ms0110.xml", 100, 10, 100),
     MS110_1000("ms110-1000", "resource-source-ms0110.xml", 100, 10, 1000);
 
     private static final String PROP_SOURCE = "source";
