@@ -187,7 +187,7 @@ $$;
 -- URI can be anything, for QNames the format is based on QNameUtil ("prefix-url#localPart").
 CREATE TABLE m_uri (
     id SERIAL NOT NULL PRIMARY KEY,
-    uri TEXT/*VARCHAR(255)*/ NOT NULL UNIQUE
+    uri TEXT NOT NULL UNIQUE
 );
 
 -- There can be more constants pre-filled, but that adds overhead, let the first-start do it.
@@ -215,13 +215,13 @@ CREATE TABLE m_object (
     oid UUID NOT NULL,
     -- objectType will be overridden with GENERATED value in concrete table
     objectType ObjectType NOT NULL,
-    name_orig TEXT/*VARCHAR(255)*/ NOT NULL,
-    name_norm TEXT/*VARCHAR(255)*/ NOT NULL,
+    name_orig TEXT NOT NULL,
+    name_norm TEXT NOT NULL,
     fullObject BYTEA,
     tenantRef_targetOid UUID,
     tenantRef_targetType ObjectType,
     tenantRef_relation_id INTEGER REFERENCES m_uri(id),
-    lifecycleState TEXT/*VARCHAR(255)*/, -- TODO what is this? how many distinct values?
+    lifecycleState TEXT, -- TODO what is this? how many distinct values?
     cid_seq BIGINT NOT NULL DEFAULT 1, -- sequence for container id, next free cid
     version INTEGER NOT NULL DEFAULT 1,
     -- complex DB columns, add indexes as needed per concrete table, e.g. see m_user
@@ -366,15 +366,15 @@ CREATE INDEX m_ref_role_member_targetOid_relation_id_idx
 CREATE TABLE m_focus (
     -- will be overridden with GENERATED value in concrete table
     objectType ObjectType NOT NULL,
-    costCenter TEXT/*VARCHAR(255)*/,
-    emailAddress TEXT/*VARCHAR(255)*/,
+    costCenter TEXT,
+    emailAddress TEXT,
     photo BYTEA, -- will be TOAST-ed if necessary
-    locale TEXT/*VARCHAR(255)*/,
-    locality_orig TEXT/*VARCHAR(255)*/,
-    locality_norm TEXT/*VARCHAR(255)*/,
-    preferredLanguage TEXT/*VARCHAR(255)*/,
-    telephoneNumber TEXT/*VARCHAR(255)*/,
-    timezone TEXT/*VARCHAR(255)*/,
+    locale TEXT,
+    locality_orig TEXT,
+    locality_norm TEXT,
+    preferredLanguage TEXT,
+    telephoneNumber TEXT,
+    timezone TEXT,
     -- credential/password/metadata
     passwordCreateTimestamp TIMESTAMPTZ,
     passwordModifyTimestamp TIMESTAMPTZ,
@@ -383,7 +383,7 @@ CREATE TABLE m_focus (
     effectiveStatus ActivationStatusType,
     enableTimestamp TIMESTAMPTZ,
     disableTimestamp TIMESTAMPTZ,
-    disableReason TEXT/*VARCHAR(255)*/,
+    disableReason TEXT,
     validityStatus TimeIntervalStatusType,
     validFrom TIMESTAMPTZ,
     validTo TIMESTAMPTZ,
@@ -445,23 +445,23 @@ ALTER TABLE m_generic_object ADD CONSTRAINT m_generic_object_name_norm_key UNIQU
 CREATE TABLE m_user (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('USER') STORED,
-    additionalName_orig TEXT/*VARCHAR(255)*/,
-    additionalName_norm TEXT/*VARCHAR(255)*/,
-    employeeNumber TEXT/*VARCHAR(255)*/,
-    familyName_orig TEXT/*VARCHAR(255)*/,
-    familyName_norm TEXT/*VARCHAR(255)*/,
-    fullName_orig TEXT/*VARCHAR(255)*/,
-    fullName_norm TEXT/*VARCHAR(255)*/,
-    givenName_orig TEXT/*VARCHAR(255)*/,
-    givenName_norm TEXT/*VARCHAR(255)*/,
-    honorificPrefix_orig TEXT/*VARCHAR(255)*/,
-    honorificPrefix_norm TEXT/*VARCHAR(255)*/,
-    honorificSuffix_orig TEXT/*VARCHAR(255)*/,
-    honorificSuffix_norm TEXT/*VARCHAR(255)*/,
-    nickName_orig TEXT/*VARCHAR(255)*/,
-    nickName_norm TEXT/*VARCHAR(255)*/,
-    title_orig TEXT/*VARCHAR(255)*/,
-    title_norm TEXT/*VARCHAR(255)*/
+    additionalName_orig TEXT,
+    additionalName_norm TEXT,
+    employeeNumber TEXT,
+    familyName_orig TEXT,
+    familyName_norm TEXT,
+    fullName_orig TEXT,
+    fullName_norm TEXT,
+    givenName_orig TEXT,
+    givenName_norm TEXT,
+    honorificPrefix_orig TEXT,
+    honorificPrefix_norm TEXT,
+    honorificSuffix_orig TEXT,
+    honorificSuffix_norm TEXT,
+    nickName_orig TEXT,
+    nickName_norm TEXT,
+    title_orig TEXT,
+    title_norm TEXT
 )
     INHERITS (m_focus);
 
@@ -484,13 +484,13 @@ CREATE INDEX m_user_employeeNumber_idx ON m_user (employeeNumber);
 /* TODO JSON of polystrings?
 CREATE TABLE m_user_organization (
   user_oid UUID NOT NULL,
-  norm     TEXT/*VARCHAR(255)*/,
-  orig     TEXT/*VARCHAR(255)*/
+  norm     TEXT,
+  orig     TEXT
 );
 CREATE TABLE m_user_organizational_unit (
   user_oid UUID NOT NULL,
-  norm     TEXT/*VARCHAR(255)*/,
-  orig     TEXT/*VARCHAR(255)*/
+  norm     TEXT,
+  orig     TEXT
 );
  */
 -- endregion
@@ -501,11 +501,11 @@ CREATE TABLE m_abstract_role (
     -- will be overridden with GENERATED value in concrete table
     objectType ObjectType NOT NULL,
     autoAssignEnabled BOOLEAN,
-    displayName_orig TEXT/*VARCHAR(255)*/,
-    displayName_norm TEXT/*VARCHAR(255)*/,
-    identifier TEXT/*VARCHAR(255)*/,
+    displayName_orig TEXT,
+    displayName_norm TEXT,
+    identifier TEXT,
     requestable BOOLEAN,
-    riskLevel TEXT/*VARCHAR(255)*/,
+    riskLevel TEXT,
 
     CHECK (FALSE) NO INHERIT
 )
@@ -515,7 +515,7 @@ CREATE TABLE m_abstract_role (
 CREATE TABLE m_role (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ROLE') STORED,
-    roleType TEXT/*VARCHAR(255)*/
+    roleType TEXT
 )
     INHERITS (m_abstract_role);
 
@@ -627,7 +627,7 @@ CREATE TABLE m_access_cert_case (
     containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CASE') STORED,
     administrativeStatus INTEGER,
     archiveTimestamp TIMESTAMPTZ,
-    disableReason TEXT/*VARCHAR(255)*/,
+    disableReason TEXT,
     disableTimestamp TIMESTAMPTZ,
     effectiveStatus INTEGER,
     enableTimestamp TIMESTAMPTZ,
@@ -635,7 +635,7 @@ CREATE TABLE m_access_cert_case (
     validTo TIMESTAMPTZ,
     validityChangeTimestamp TIMESTAMPTZ,
     validityStatus INTEGER,
-    currentStageOutcome TEXT/*VARCHAR(255)*/,
+    currentStageOutcome TEXT,
     fullObject BYTEA,
     iteration INTEGER NOT NULL,
     objectRef_targetOid UUID,
@@ -644,7 +644,7 @@ CREATE TABLE m_access_cert_case (
     orgRef_targetOid UUID,
     orgRef_targetType ObjectType,
     orgRef_relation_id INTEGER REFERENCES m_uri(id),
-    outcome TEXT/*VARCHAR(255)*/,
+    outcome TEXT,
     remediedTimestamp TIMESTAMPTZ,
     reviewDeadline TIMESTAMPTZ,
     reviewRequestedTimestamp TIMESTAMPTZ,
@@ -666,7 +666,7 @@ CREATE TABLE m_access_cert_wi (
     containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_WORK_ITEM') STORED,
     closeTimestamp TIMESTAMPTZ,
     iteration INTEGER NOT NULL,
-    outcome TEXT/*VARCHAR(255)*/,
+    outcome TEXT,
     outputChangeTimestamp TIMESTAMPTZ,
     performerRef_targetOid UUID,
     performerRef_targetType ObjectType,
@@ -758,14 +758,14 @@ CREATE TABLE m_shadow (
     resourceRef_targetOid UUID,
     resourceRef_targetType ObjectType,
     resourceRef_relation_id INTEGER REFERENCES m_uri(id),
-    intent TEXT/*VARCHAR(255)*/,
+    intent TEXT,
     kind ShadowKindType,
     attemptNumber INTEGER, -- TODO how is this mapped?
     dead BOOLEAN,
     exist BOOLEAN,
     fullSynchronizationTimestamp TIMESTAMPTZ,
     pendingOperationCount INTEGER,
-    primaryIdentifierValue TEXT/*VARCHAR(255)*/,
+    primaryIdentifierValue TEXT,
 --     status INTEGER, TODO how is this mapped? See RUtil.copyResultFromJAXB called from RTask and OperationResultMapper
     synchronizationSituation SynchronizationSituationType,
     synchronizationTimestamp TIMESTAMPTZ
@@ -804,7 +804,7 @@ ALTER TABLE m_shadow ADD CONSTRAINT iPrimaryIdentifierValueWithOC
 CREATE TABLE m_node (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('NODE') STORED,
-    nodeIdentifier TEXT/*VARCHAR(255)*/
+    nodeIdentifier TEXT
 )
     INHERITS (m_object);
 
@@ -963,10 +963,10 @@ ALTER TABLE m_lookup_table ADD CONSTRAINT m_lookup_table_name_norm_key UNIQUE (n
 CREATE TABLE m_lookup_table_row (
     owner_oid UUID NOT NULL REFERENCES m_lookup_table(oid) ON DELETE CASCADE,
     containerType ContainerType GENERATED ALWAYS AS ('LOOKUP_TABLE_ROW') STORED,
-    key TEXT/*VARCHAR(255)*/,
-    value TEXT/*VARCHAR(255)*/,
-    label_orig TEXT/*VARCHAR(255)*/,
-    label_norm TEXT/*VARCHAR(255)*/,
+    key TEXT,
+    value TEXT,
+    label_orig TEXT,
+    label_norm TEXT,
     lastChangeTimestamp TIMESTAMPTZ,
 
     PRIMARY KEY (owner_oid, cid)
@@ -980,9 +980,9 @@ ALTER TABLE m_lookup_table_row
 CREATE TABLE m_connector (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('CONNECTOR') STORED,
-    connectorBundle TEXT/*VARCHAR(255)*/, -- typically a package name
-    connectorType TEXT/*VARCHAR(255)*/, -- typically a class name
-    connectorVersion TEXT/*VARCHAR(255)*/,
+    connectorBundle TEXT, -- typically a package name
+    connectorType TEXT, -- typically a class name
+    connectorVersion TEXT,
     framework_id INTEGER REFERENCES m_uri(id),
     connectorHostRef_targetOid UUID,
     connectorHostRef_targetType ObjectType,
@@ -1004,7 +1004,7 @@ ALTER TABLE m_connector ADD CONSTRAINT m_connector_name_norm_key UNIQUE (name_no
 -- TODO array/json in m_connector table
 -- CREATE TABLE m_connector_target_system (
 --     connector_oid UUID NOT NULL,
---     targetSystemType TEXT/*VARCHAR(255)*/
+--     targetSystemType TEXT
 -- );
 -- ALTER TABLE m_connector_target_system
 --     ADD CONSTRAINT fk_connector_target_system FOREIGN KEY (connector_oid) REFERENCES m_connector;
@@ -1013,8 +1013,8 @@ ALTER TABLE m_connector ADD CONSTRAINT m_connector_name_norm_key UNIQUE (name_no
 CREATE TABLE m_connector_host (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('CONNECTOR_HOST') STORED,
-    hostname TEXT/*VARCHAR(255)*/,
-    port TEXT/*VARCHAR(32)*/
+    hostname TEXT,
+    port TEXT
 )
     INHERITS (m_object);
 
@@ -1032,23 +1032,23 @@ ALTER TABLE m_connector_host ADD CONSTRAINT m_connector_host_name_norm_key UNIQU
 CREATE TABLE m_task (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('TASK') STORED,
-    taskIdentifier TEXT/*VARCHAR(255)*/,
+    taskIdentifier TEXT,
     binding TaskBindingType,
-    category TEXT/*VARCHAR(255)*/,
+    category TEXT,
     completionTimestamp TIMESTAMPTZ,
     executionStatus TaskExecutionStateType,
     fullResult BYTEA,
     handlerUri_id INTEGER REFERENCES m_uri(id),
     lastRunStartTimestamp TIMESTAMPTZ,
     lastRunFinishTimestamp TIMESTAMPTZ,
-    node TEXT/*VARCHAR(255)*/, -- node_id only for information purposes
+    node TEXT, -- node_id only for information purposes
     objectRef_targetOid UUID,
     objectRef_targetType ObjectType,
     objectRef_relation_id INTEGER REFERENCES m_uri(id),
     ownerRef_targetOid UUID,
     ownerRef_targetType ObjectType,
     ownerRef_relation_id INTEGER REFERENCES m_uri(id),
-    parent TEXT/*VARCHAR(255)*/, -- value of taskIdentifier
+    parent TEXT, -- value of taskIdentifier
     recurrence TaskRecurrenceType,
     resultStatus OperationResultStatusType,
     threadStopAction ThreadStopActionType,
@@ -1075,7 +1075,7 @@ CREATE INDEX m_task_dependentTaskIdentifiers_idx ON m_task USING GIN(dependentTa
 CREATE TABLE m_case (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('CASE') STORED,
-    state TEXT/*VARCHAR(255)*/,
+    state TEXT,
     closeTimestamp TIMESTAMPTZ,
     objectRef_targetOid UUID,
     objectRef_targetType ObjectType,
@@ -1210,7 +1210,7 @@ CREATE TABLE m_assignment (
     -- this is different from other containers, this is not generated, app must provide it
     containerType ContainerType NOT NULL CHECK (containerType IN ('ASSIGNMENT', 'INDUCEMENT')),
     owner_type ObjectType NOT NULL,
-    lifecycleState TEXT/*VARCHAR(255)*/,
+    lifecycleState TEXT,
     orderValue INTEGER,
     orgRef_targetOid UUID,
     orgRef_targetType ObjectType,
@@ -1223,7 +1223,7 @@ CREATE TABLE m_assignment (
     tenantRef_relation_id INTEGER REFERENCES m_uri(id),
     -- TODO what is this? see RAssignment.getExtension (both extId/Oid)
     extId INTEGER,
-    extOid TEXT/*VARCHAR(36)*/, -- is this UUID too?
+    extOid TEXT, -- is this UUID too?
     policySituations INTEGER[], -- soft-references m_uri, add index per table
     ext JSONB,
     -- construction
@@ -1235,7 +1235,7 @@ CREATE TABLE m_assignment (
     effectiveStatus ActivationStatusType,
     enableTimestamp TIMESTAMPTZ,
     disableTimestamp TIMESTAMPTZ,
-    disableReason TEXT/*VARCHAR(255)*/,
+    disableReason TEXT,
     validityStatus TimeIntervalStatusType,
     validFrom TIMESTAMPTZ,
     validTo TIMESTAMPTZ,
@@ -1347,10 +1347,10 @@ CREATE INDEX m_operation_execution_timestampValue_idx ON m_operation_execution (
 CREATE TABLE m_ext_item (
     id SERIAL NOT NULL,
     kind INTEGER, -- see RItemKind, is this necessary? does it contain cardinality?
-    name TEXT/*VARCHAR(157)*/, -- no path for nested props needed?
-    type TEXT/*VARCHAR(32)*/, -- data type TODO enum?
-    storageType TEXT/*VARCHAR(32)*/ NOT NULL default 'EXT_JSON', -- type of storage (JSON, column, table separate/common, etc.)
-    storageInfo TEXT/*VARCHAR(32)*/, -- optional storage detail, name of column or table if necessary
+    name TEXT, -- no path for nested props needed?
+    type TEXT, -- data type TODO enum?
+    storageType TEXT NOT NULL default 'EXT_JSON', -- type of storage (JSON, column, table separate/common, etc.)
+    storageInfo TEXT, -- optional storage detail, name of column or table if necessary
 
     PRIMARY KEY (id)
 );
@@ -1379,8 +1379,8 @@ CREATE TABLE m_object_ext_long (
 CREATE TABLE m_object_ext_poly (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
     ext_item_id VARCHAR(32) NOT NULL,
-    orig TEXT/*VARCHAR(255)*/ NOT NULL,
-    norm TEXT/*VARCHAR(255)*/,
+    orig TEXT NOT NULL,
+    norm TEXT,
     PRIMARY KEY (owner_oid, ext_item_id, orig)
 );
 CREATE TABLE m_object_ext_reference (
@@ -1394,7 +1394,7 @@ CREATE TABLE m_object_ext_reference (
 CREATE TABLE m_object_ext_string (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
     ext_item_id VARCHAR(32) NOT NULL,
-    value TEXT/*VARCHAR(255)*/ NOT NULL,
+    value TEXT NOT NULL,
     PRIMARY KEY (owner_oid, ext_item_id, value)
 );
 
@@ -1430,8 +1430,8 @@ CREATE TABLE m_assignment_ext_poly (
   item_id                      INTEGER         NOT NULL,
   anyContainer_owner_id        INTEGER         NOT NULL,
   anyContainer_owner_owner_oid UUID  NOT NULL,
-  orig                         TEXT/*VARCHAR(255)*/ NOT NULL,
-  norm                         TEXT/*VARCHAR(255)*/,
+  orig                         TEXT NOT NULL,
+  norm                         TEXT,
   PRIMARY KEY (anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, orig)
 );
 CREATE TABLE m_assignment_ext_reference (
@@ -1447,7 +1447,7 @@ CREATE TABLE m_assignment_ext_string (
   item_id                      INTEGER         NOT NULL,
   anyContainer_owner_id        INTEGER         NOT NULL,
   anyContainer_owner_owner_oid UUID  NOT NULL,
-  stringValue                  TEXT/*VARCHAR(255)*/ NOT NULL,
+  stringValue                  TEXT NOT NULL,
   PRIMARY KEY (anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, stringValue)
 );
 CREATE TABLE m_assignment_extension (
@@ -1465,42 +1465,42 @@ CREATE TABLE m_audit_delta (
   deltaOid          UUID,
   deltaType         INTEGER,
   fullResult        BYTEA,
-  objectName_norm   TEXT/*VARCHAR(255)*/,
-  objectName_orig   TEXT/*VARCHAR(255)*/,
-  resourceName_norm TEXT/*VARCHAR(255)*/,
-  resourceName_orig TEXT/*VARCHAR(255)*/,
+  objectName_norm   TEXT,
+  objectName_orig   TEXT,
+  resourceName_norm TEXT,
+  resourceName_orig TEXT,
   resourceOid       UUID,
   status            INTEGER,
   PRIMARY KEY (record_id, checksum)
 );
 CREATE TABLE m_audit_event (
   id                BIGSERIAL NOT NULL,
-  attorneyName      TEXT/*VARCHAR(255)*/,
+  attorneyName      TEXT,
   attorneyOid       UUID,
-  channel           TEXT/*VARCHAR(255)*/,
-  eventIdentifier   TEXT/*VARCHAR(255)*/,
+  channel           TEXT,
+  eventIdentifier   TEXT,
   eventStage        INTEGER,
   eventType         INTEGER,
-  hostIdentifier    TEXT/*VARCHAR(255)*/,
-  initiatorName     TEXT/*VARCHAR(255)*/,
+  hostIdentifier    TEXT,
+  initiatorName     TEXT,
   initiatorOid      UUID,
   initiatorType     INTEGER,
   message           VARCHAR(1024),
-  nodeIdentifier    TEXT/*VARCHAR(255)*/,
+  nodeIdentifier    TEXT,
   outcome           INTEGER,
-  parameter         TEXT/*VARCHAR(255)*/,
-  remoteHostAddress TEXT/*VARCHAR(255)*/,
-  requestIdentifier TEXT/*VARCHAR(255)*/,
-  result            TEXT/*VARCHAR(255)*/,
-  sessionIdentifier TEXT/*VARCHAR(255)*/,
-  targetName        TEXT/*VARCHAR(255)*/,
+  parameter         TEXT,
+  remoteHostAddress TEXT,
+  requestIdentifier TEXT,
+  result            TEXT,
+  sessionIdentifier TEXT,
+  targetName        TEXT,
   targetOid         UUID,
-  targetOwnerName   TEXT/*VARCHAR(255)*/,
+  targetOwnerName   TEXT,
   targetOwnerOid    UUID,
   targetOwnerType   INTEGER,
   targetType        INTEGER,
-  taskIdentifier    TEXT/*VARCHAR(255)*/,
-  taskOID           TEXT/*VARCHAR(255)*/,
+  taskIdentifier    TEXT,
+  taskOID           TEXT,
   timestampValue    TIMESTAMPTZ,
   PRIMARY KEY (id)
 );
@@ -1511,23 +1511,23 @@ CREATE TABLE m_audit_item (
 );
 CREATE TABLE m_audit_prop_value (
   id        BIGSERIAL NOT NULL,
-  name      TEXT/*VARCHAR(255)*/,
+  name      TEXT,
   record_id BIGINT,
   value     VARCHAR(1024),
   PRIMARY KEY (id)
 );
 CREATE TABLE m_audit_ref_value (
   id              BIGSERIAL NOT NULL,
-  name            TEXT/*VARCHAR(255)*/,
+  name            TEXT,
   oid             UUID,
   record_id       BIGINT,
-  targetName_norm TEXT/*VARCHAR(255)*/,
-  targetName_orig TEXT/*VARCHAR(255)*/,
-  type            TEXT/*VARCHAR(255)*/,
+  targetName_norm TEXT,
+  targetName_orig TEXT,
+  type            TEXT,
   PRIMARY KEY (id)
 );
 CREATE TABLE m_audit_resource (
-  resourceOid       TEXT/*VARCHAR(255)*/ NOT NULL,
+  resourceOid       TEXT NOT NULL,
   record_id       BIGINT         NOT NULL,
   PRIMARY KEY (record_id, resourceOid)
 );
@@ -1540,7 +1540,7 @@ CREATE TABLE m_case_wi (
   originalAssigneeRef_relation      VARCHAR(157),
   originalAssigneeRef_targetOid     UUID,
   originalAssigneeRef_targetType    INTEGER,
-  outcome                           TEXT/*VARCHAR(255)*/,
+  outcome                           TEXT,
   performerRef_relation             VARCHAR(157),
   performerRef_targetOid            UUID,
   performerRef_targetType           INTEGER,
@@ -1588,8 +1588,8 @@ CREATE TABLE m_object_ext_poly (
   item_id   INTEGER         NOT NULL,
   owner_oid UUID  NOT NULL,
   ownerType INTEGER         NOT NULL,
-  orig      TEXT/*VARCHAR(255)*/ NOT NULL,
-  norm      TEXT/*VARCHAR(255)*/,
+  orig      TEXT NOT NULL,
+  norm      TEXT,
   PRIMARY KEY (owner_oid, ownerType, item_id, orig)
 );
 CREATE TABLE m_object_ext_reference (
@@ -1605,7 +1605,7 @@ CREATE TABLE m_object_ext_string (
   item_id     INTEGER         NOT NULL,
   owner_oid   UUID  NOT NULL,
   ownerType   INTEGER         NOT NULL,
-  stringValue TEXT/*VARCHAR(255)*/ NOT NULL,
+  stringValue TEXT NOT NULL,
   PRIMARY KEY (owner_oid, ownerType, item_id, stringValue)
 );
 CREATE TABLE m_org_closure (
@@ -1617,8 +1617,8 @@ CREATE TABLE m_org_closure (
 
 CREATE TABLE m_org (
   displayOrder INTEGER,
-  name_norm    TEXT/*VARCHAR(255)*/,
-  name_orig    TEXT/*VARCHAR(255)*/,
+  name_norm    TEXT,
+  name_orig    TEXT,
   tenant       BOOLEAN,
   oid          UUID NOT NULL,
   PRIMARY KEY (oid)
@@ -2014,8 +2014,8 @@ create index idx_qrtz_ft_tg on qrtz_fired_triggers(SCHED_NAME,TRIGGER_GROUP);
 
 -- region Schema versioning and upgrading
 CREATE TABLE m_global_metadata (
-    name TEXT/*VARCHAR(255)*/ PRIMARY KEY,
-    value TEXT/*VARCHAR(255)*/
+    name TEXT PRIMARY KEY,
+    value TEXT
 );
 
 /*
