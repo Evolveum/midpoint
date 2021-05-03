@@ -18,10 +18,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 class RecomputationConfiguration {
 
-    private static final String PROP = "recompute";
+    private static final String PROP = "recomputation";
     private static final String PROP_THREADS = PROP + ".threads";
 
-    private static final File TASK_TEMPLATE_FILE = new File(TEST_DIR, "task-recompute.vm.xml");
+    private static final File TASK_TEMPLATE_FILE = new File(TEST_DIR, "task-recomputation.vm.xml");
 
     private static final String RECOMPUTE_TASK_OID = "f5920848-6c8f-4eda-ae26-2b961d6dae1b";
 
@@ -44,7 +44,7 @@ class RecomputationConfiguration {
 
     @Override
     public String toString() {
-        return "RecomputeConfiguration{" +
+        return "RecomputationConfiguration{" +
                 "threads=" + threads +
                 '}';
     }

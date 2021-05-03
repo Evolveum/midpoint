@@ -20,7 +20,7 @@ import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
-class ImportsConfiguration {
+class ImportConfiguration {
 
     private static final String PROP = "import";
     private static final String PROP_THREADS = PROP + ".threads";
@@ -33,7 +33,7 @@ class ImportsConfiguration {
 
     private final List<TestResource<TaskType>> generatedTasks;
 
-    private ImportsConfiguration() {
+    private ImportConfiguration() {
         threads = Integer.parseInt(System.getProperty(PROP_THREADS, "0"));
         noOpRuns = Integer.parseInt(System.getProperty(PROP_NO_OP_RUNS, "1"));
 
@@ -60,8 +60,8 @@ class ImportsConfiguration {
                 '}';
     }
 
-    public static ImportsConfiguration setup() {
-        ImportsConfiguration configuration = new ImportsConfiguration();
+    public static ImportConfiguration setup() {
+        ImportConfiguration configuration = new ImportConfiguration();
         System.out.println("Import: " + configuration);
         return configuration;
     }

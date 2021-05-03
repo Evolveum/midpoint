@@ -19,12 +19,12 @@ class SummaryOutputFile {
 
     void logStart() {
         writer.println("Started: " + new Date(START) + " (" + START + ")");
-        writer.printf("Extension schema variant: %s\n", EXTENSION_SCHEMA_VARIANT);
+        writer.printf("Schema: %s\n", SCHEMA_CONFIGURATION);
         writer.printf("Sources: %s\n", SOURCES_CONFIGURATION);
         writer.printf("Targets: %s\n", TARGETS_CONFIGURATION);
         writer.printf("Roles: %s\n", ROLES_CONFIGURATION);
-        writer.printf("Imports: %s\n", IMPORTS_CONFIGURATION);
-        writer.printf("Reconciliations: %s\n", RECONCILIATIONS_CONFIGURATION);
+        writer.printf("Import: %s\n", IMPORTS_CONFIGURATION);
+        writer.printf("Reconciliation: %s\n", RECONCILIATIONS_CONFIGURATION);
         writer.printf("Recomputation: %s\n", RECOMPUTATION_CONFIGURATION);
         writer.printf("Progress file: %s\n\n", ProgressOutputFile.FILE);
         writer.flush();
