@@ -22,14 +22,14 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.SerializationOptions;
-import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
+import com.evolveum.midpoint.repo.sqale.SqaleSupportService;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.SqlSupportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -198,8 +198,8 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         PrismObject<S> prismObject;
         String serializedForm = new String(fullObject, StandardCharsets.UTF_8);
         try {
-            SqlTransformerSupport.ParseResult<S> result =
-                    SqaleTransformerSupport.getInstance().parsePrismObject(serializedForm);
+            SqlSupportService.ParseResult<S> result =
+                    SqaleSupportService.getInstance().parsePrismObject(serializedForm);
             prismObject = result.prismObject;
             if (result.parsingContext.hasWarnings()) {
                 logger.warn("Object {} parsed with {} warnings",
@@ -253,7 +253,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         //  repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, repositoryContext));
         // TODO extensions stored inline (JSON) - that is ext column
 
-        // This is duplicate code with AssignmentSqlTransformer.toRowObject, but making interface
+        // This is duplicate code with QAssignmentMapping.insert, but making interface
         // and needed setters (fields are not "interface-able") would create much more code.
         MetadataType metadata = schemaObject.getMetadata();
         if (metadata != null) {
@@ -354,7 +354,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                     "Serialized object must have assigned OID and version: " + schemaObject);
         }
 
-        return SqaleTransformerSupport.getInstance().createStringSerializer()
+        return SqaleSupportService.getInstance().createStringSerializer()
                 .itemsToSkip(fullObjectItemsToSkip())
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()

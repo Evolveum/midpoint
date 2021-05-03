@@ -104,7 +104,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private final SchemaService schemaService;
 
     private final SqlQueryExecutor sqlQueryExecutor;
-    private final SqlTransformerSupport transformerSupport;
+    private final SqlSupportService transformerSupport;
 
     private volatile SystemConfigurationAuditType auditConfiguration;
 
@@ -116,7 +116,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         this.sqlRepoContext = sqlRepoContext;
         this.schemaService = schemaService;
         this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
-        this.transformerSupport = new SqlTransformerSupport(schemaService, sqlRepoContext);
+        this.transformerSupport = new SqlSupportService(schemaService, sqlRepoContext);
     }
 
     public SqlRepoContext getSqlRepoContext() {
@@ -179,7 +179,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             JdbcSession jdbcSession, AuditEventRecord record) {
         QAuditEventRecordMapping aerMapping = QAuditEventRecordMapping.INSTANCE;
         QAuditEventRecord aer = aerMapping.defaultAlias();
-        MAuditEventRecord aerBean = aerMapping.from(record);
+        MAuditEventRecord aerBean = aerMapping.toRowObject(record);
         SQLInsertClause insert = jdbcSession.newInsert(aer).populate(aerBean);
 
         Map<String, ColumnMetadata> customColumns = aerMapping.getExtensionColumns();

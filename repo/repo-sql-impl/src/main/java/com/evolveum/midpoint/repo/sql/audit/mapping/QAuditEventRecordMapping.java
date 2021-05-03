@@ -28,7 +28,7 @@ import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.SqlSupportService;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.CanonicalItemPathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.DetailTableItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumOrdinalItemFilterProcessor;
@@ -149,7 +149,7 @@ public class QAuditEventRecordMapping
 
     private AuditEventRecordType mapSimpleAttributes(MAuditEventRecord row) {
         // prismContext in constructor ensures complex type definition
-        return new AuditEventRecordType(SqlTransformerSupport.getInstance().prismContext())
+        return new AuditEventRecordType(SqlSupportService.getInstance().prismContext())
                 .repoId(row.id)
                 .channel(row.channel)
                 .eventIdentifier(row.eventIdentifier)
@@ -194,7 +194,6 @@ public class QAuditEventRecordMapping
         }
     }
 
-    // the rest of sub-entities do not deserve the dedicated transformer classes (yet)
     private void mapChangedItems(AuditEventRecordType record, List<String> changedItemPaths) {
         if (changedItemPaths == null) {
             return;
@@ -275,11 +274,8 @@ public class QAuditEventRecordMapping
 
     /**
      * Transforms {@link AuditEventRecord} to {@link MAuditEventRecord} without any subentities.
-     * <p>
-     * Design notes: Arguably, this code could be in {@link MAuditEventRecord}.
-     * Also the
      */
-    public MAuditEventRecord from(AuditEventRecord record) {
+    public MAuditEventRecord toRowObject(AuditEventRecord record) {
         MAuditEventRecord bean = new MAuditEventRecord();
         bean.id = record.getRepoId(); // this better be null if we want to insert
         bean.eventIdentifier = record.getEventIdentifier();
@@ -330,7 +326,7 @@ public class QAuditEventRecordMapping
 
     private Integer targetTypeToRepoOrdinal(PrismReferenceValue targetOwner) {
         //noinspection rawtypes
-        Class objectClass = SqlTransformerSupport.getInstance()
+        Class objectClass = SqlSupportService.getInstance()
                 .qNameToSchemaClass(targetOwner.getTargetType());
         //noinspection unchecked
         return MiscUtil.enumOrdinal(RObjectType.getByJaxbType(objectClass));

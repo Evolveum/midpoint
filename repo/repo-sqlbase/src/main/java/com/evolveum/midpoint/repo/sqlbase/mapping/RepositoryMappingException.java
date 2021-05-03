@@ -10,9 +10,9 @@ package com.evolveum.midpoint.repo.sqlbase.mapping;
  * Runtime exception wrapping other exception that occurred during object transformation
  * inside mapping (e.g. tuple to schema object).
  */
-public class SqlTransformationException extends RuntimeException {
+public class RepositoryMappingException extends RuntimeException {
 
-    public SqlTransformationException(Throwable cause) {
+    public RepositoryMappingException(Throwable cause) {
         super(cause);
     }
 }

@@ -18,7 +18,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.repo.sqale.ContainerValueIdGenerator;
-import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
+import com.evolveum.midpoint.repo.sqale.SqaleSupportService;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.delta.DelegatingItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
@@ -49,12 +49,12 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
 
     private ContainerValueIdGenerator cidGenerator;
 
-    public RootUpdateContext(SqaleTransformerSupport transformerSupport,
+    public RootUpdateContext(SqaleSupportService supportService,
             JdbcSession jdbcSession, S object, R rootRow) {
-        super(transformerSupport, jdbcSession, rootRow);
+        super(supportService, jdbcSession, rootRow);
 
         this.object = object;
-        mapping = transformerSupport.sqlRepoContext()
+        mapping = supportService.sqlRepoContext()
                 .getMappingBySchemaType(SqaleUtils.getClass(object));
         rootPath = mapping.defaultAlias();
         objectVersion = objectVersionAsInt(object);
@@ -101,7 +101,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
             }
         }
 
-        transformerSupport.normalizeAllRelations(prismObject);
+        supportService.normalizeAllRelations(prismObject);
         finishExecution();
 
         return modifications;

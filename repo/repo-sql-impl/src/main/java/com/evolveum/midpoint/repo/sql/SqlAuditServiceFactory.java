@@ -98,7 +98,7 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
             // in SqlBaseService. Perhaps the base class is useless and these factories can provide
             // PerformanceMonitor for the services.
             return new SqlRepoContext(defaultBaseHelper.getConfiguration(),
-                    defaultBaseHelper.dataSource(), auditModelMapping);
+                    defaultBaseHelper.dataSource(), schemaService, auditModelMapping);
         }
 
         LOGGER.info("Configuring SQL audit service to use a different datasource");
@@ -110,7 +110,7 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
 
         DataSourceFactory dataSourceFactory = new DataSourceFactory(config);
         DataSource dataSource = dataSourceFactory.createDataSource();
-        return new SqlRepoContext(config, dataSource, auditModelMapping);
+        return new SqlRepoContext(config, dataSource, schemaService, auditModelMapping);
     }
 
     private void initCustomColumns(
