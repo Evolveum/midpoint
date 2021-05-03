@@ -1,7 +1,6 @@
 package com.evolveum.midpoint.testing.story.sysperf;
 
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import java.io.File;

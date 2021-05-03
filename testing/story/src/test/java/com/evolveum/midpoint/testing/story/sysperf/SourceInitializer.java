@@ -19,52 +19,65 @@ import org.apache.commons.lang3.RandomStringUtils;
 
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
+import java.util.List;
+
+import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.ROLES_CONFIGURATION;
+import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.SOURCES_CONFIGURATION;
 
 public class SourceInitializer {
 
     private final TestSystemPerformance test;
-    private final DummyTestResource resource;
-    private final SourceVariant sourceVariant;
-    private final PopulationVariant populationVariant;
+    private final List<DummyTestResource> resources;
     private final Task initTask;
 
     private static final String ACCOUNT_NAME = "u-%08d";
 
-    SourceInitializer(TestSystemPerformance test, DummyTestResource resource, SourceVariant sourceVariant,
-            PopulationVariant populationVariant, Task initTask) {
+    SourceInitializer(TestSystemPerformance test, List<DummyTestResource> resources, Task initTask) {
         this.test = test;
-        this.resource = resource;
-        this.sourceVariant = sourceVariant;
-        this.populationVariant = populationVariant;
+        this.resources = resources;
         this.initTask = initTask;
     }
 
     public void run(OperationResult result) throws Exception {
-        initializeResource(result);
-        createAccounts();
-    }
-
-    private void initializeResource(OperationResult result) throws Exception {
-        test.initDummyResource(resource, initTask, result);
-    }
-
-    private void createAccounts() throws ConflictException, FileNotFoundException, SchemaViolationException,
-            ObjectAlreadyExistsException, InterruptedException, ConnectException {
-        for (int u = 0; u < populationVariant.getAccounts(); u++) {
-            createAccount(u);
+        boolean primary = true;
+        for (DummyTestResource resource : resources) {
+            initializeResource(resource, result);
+            createAccounts(resource, primary);
+            primary = false;
         }
     }
 
-    private void createAccount(int u) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException,
-            FileNotFoundException, ConflictException, InterruptedException {
-        String name = getAccountName(u);
-        DummyAccount account = resource.controller.addAccount(name);
-        addAttributes(account, SourceVariant.A_SINGLE_NAME, sourceVariant.getSingleValuedAttributes(), 1);
-        addAttributes(account, SourceVariant.A_MULTI_NAME, sourceVariant.getMultiValuedAttributes(),
-                sourceVariant.getAttributeValues());
+    private void initializeResource(DummyTestResource resource, OperationResult result) throws Exception {
+        test.initDummyResource(resource, initTask, result);
     }
 
-    String getAccountName(int u) {
+    private void createAccounts(DummyTestResource resource, boolean primary)
+            throws ConflictException, FileNotFoundException, SchemaViolationException,
+            ObjectAlreadyExistsException, InterruptedException, ConnectException {
+        for (int u = 0; u < SOURCES_CONFIGURATION.getNumberOfAccounts(); u++) {
+            createAccount(u, resource, primary);
+        }
+    }
+
+    private void createAccount(int u, DummyTestResource resource, boolean primary)
+            throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException,
+            ConflictException, InterruptedException {
+        String name = getAccountName(u);
+        DummyAccount account = resource.controller.addAccount(name);
+        if (primary) {
+            addAttributes(account, SourcesConfiguration.A_SINGLE_NAME, SOURCES_CONFIGURATION.getSingleValuedMappings(), 1);
+            addRoles(account);
+        }
+        addAttributes(account, SourcesConfiguration.A_MULTI_NAME, SOURCES_CONFIGURATION.getMultiValuedMappings(),
+                SOURCES_CONFIGURATION.getAttributeValues());
+    }
+
+    private void addRoles(DummyAccount account) throws ConflictException, FileNotFoundException, SchemaViolationException,
+            InterruptedException, ConnectException {
+        account.addAttributeValues(SourcesConfiguration.A_ROLE, ROLES_CONFIGURATION.getRolesForAccount());
+    }
+
+    static String getAccountName(int u) {
         return String.format(ACCOUNT_NAME, u);
     }
 

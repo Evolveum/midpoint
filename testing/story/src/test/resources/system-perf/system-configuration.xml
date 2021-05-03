@@ -39,6 +39,10 @@
             <append>true</append>
         </appender>
     </logging>
+    <defaultObjectPolicyConfiguration>
+        <type>UserType</type>
+        <objectTemplateRef oid="0c77fde5-4ad5-49ce-8ee9-14f330660d8e" />
+    </defaultObjectPolicyConfiguration>
     <internals>
         <focusConstraintsChecking>
             <skipWhenNoChange>true</skipWhenNoChange>
