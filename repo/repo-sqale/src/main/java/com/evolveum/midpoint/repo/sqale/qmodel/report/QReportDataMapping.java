@@ -8,8 +8,10 @@ package com.evolveum.midpoint.repo.sqale.qmodel.report;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType.F_REPORT_REF;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 
 /**
@@ -38,12 +40,20 @@ public class QReportDataMapping
     }
 
     @Override
-    public ReportDataSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
-        return new ReportDataSqlTransformer(transformerSupport, this);
+    public MReportData newRowObject() {
+        return new MReportData();
     }
 
     @Override
-    public MReportData newRowObject() {
-        return new MReportData();
+    public @NotNull MReportData toRowObjectWithoutFullObject(
+            ReportDataType reportData, JdbcSession jdbcSession) {
+        MReportData row = super.toRowObjectWithoutFullObject(reportData, jdbcSession);
+
+        setReference(reportData.getReportRef(),
+                o -> row.reportRefTargetOid = o,
+                t -> row.reportRefTargetType = t,
+                r -> row.reportRefRelationId = r);
+
+        return row;
     }
 }

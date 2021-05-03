@@ -11,17 +11,24 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.SqlSupportService;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.QNameUtil;
 
 /**
- * Extension of {@link SqlTransformerSupport} adding Sqale features like {@link UriCache} support.
+ * Extension of {@link SqlSupportService} adding Sqale features like {@link UriCache} support.
  */
-public class SqaleTransformerSupport extends SqlTransformerSupport {
+public class SqaleSupportService extends SqlSupportService {
 
-    public SqaleTransformerSupport(SchemaService schemaService, SqaleRepoContext sqaleRepoContext) {
+    private static SqaleSupportService instance;
+
+    public SqaleSupportService(SchemaService schemaService, SqaleRepoContext sqaleRepoContext) {
         super(schemaService, sqaleRepoContext);
+        instance = this;
+    }
+
+    public static SqaleSupportService getInstance() {
+        return instance;
     }
 
     private SqaleRepoContext sqaleRepoContext() {

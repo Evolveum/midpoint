@@ -8,7 +8,9 @@ package com.evolveum.midpoint.repo.sqale.qmodel.role;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType.F_ROLE_TYPE;
 
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
@@ -34,12 +36,17 @@ public class QRoleMapping
     }
 
     @Override
-    public RoleSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
-        return new RoleSqlTransformer(transformerSupport, this);
+    public MRole newRowObject() {
+        return new MRole();
     }
 
     @Override
-    public MRole newRowObject() {
-        return new MRole();
+    public @NotNull MRole toRowObjectWithoutFullObject(
+            RoleType schemaObject, JdbcSession jdbcSession) {
+        MRole row = super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
+
+        row.roleType = schemaObject.getRoleType();
+
+        return row;
     }
 }

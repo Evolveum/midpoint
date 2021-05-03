@@ -8,8 +8,13 @@ package com.evolveum.midpoint.repo.sqale.qmodel.lookuptable;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType.F_ROW;
 
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 /**
@@ -36,12 +41,21 @@ public class QLookupTableMapping
     }
 
     @Override
-    public LookupTableSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
-        return new LookupTableSqlTransformer(transformerSupport, this);
+    public MLookupTable newRowObject() {
+        return new MLookupTable();
     }
 
     @Override
-    public MLookupTable newRowObject() {
-        return new MLookupTable();
+    public void storeRelatedEntities(
+            @NotNull MLookupTable lookupTable,
+            @NotNull LookupTableType schemaObject,
+            @NotNull JdbcSession jdbcSession) {
+        super.storeRelatedEntities(lookupTable, schemaObject, jdbcSession);
+
+        List<LookupTableRowType> rows = schemaObject.getRow();
+        if (!rows.isEmpty()) {
+            rows.forEach(row ->
+                    QLookupTableRowMapping.INSTANCE.insert(row, lookupTable, jdbcSession));
+        }
     }
 }

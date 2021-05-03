@@ -7,9 +7,7 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.system;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
 /**
@@ -30,13 +28,6 @@ public class QSecurityPolicyMapping
     @Override
     protected QSecurityPolicy newAliasInstance(String alias) {
         return new QSecurityPolicy(alias);
-    }
-
-    @Override
-    public ObjectSqlTransformer<SecurityPolicyType, QSecurityPolicy, MObject>
-    createTransformer(SqlTransformerSupport transformerSupport) {
-        // no special class needed, no additional columns
-        return new ObjectSqlTransformer<>(transformerSupport, this);
     }
 
     @Override

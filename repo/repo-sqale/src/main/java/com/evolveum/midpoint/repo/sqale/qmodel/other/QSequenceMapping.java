@@ -7,9 +7,7 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.other;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
 
 /**
@@ -29,13 +27,6 @@ public class QSequenceMapping extends QObjectMapping<SequenceType, QSequence, MO
     @Override
     protected QSequence newAliasInstance(String alias) {
         return new QSequence(alias);
-    }
-
-    @Override
-    public ObjectSqlTransformer<SequenceType, QSequence, MObject>
-    createTransformer(SqlTransformerSupport transformerSupport) {
-        // no special class needed, no additional columns
-        return new ObjectSqlTransformer<>(transformerSupport, this);
     }
 
     @Override

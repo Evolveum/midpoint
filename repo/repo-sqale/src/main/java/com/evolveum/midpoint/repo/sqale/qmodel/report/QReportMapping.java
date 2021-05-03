@@ -6,8 +6,10 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.report;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperReportEngineConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
@@ -38,12 +40,21 @@ public class QReportMapping
     }
 
     @Override
-    public ReportSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
-        return new ReportSqlTransformer(transformerSupport, this);
+    public MReport newRowObject() {
+        return new MReport();
     }
 
     @Override
-    public MReport newRowObject() {
-        return new MReport();
+    public @NotNull MReport toRowObjectWithoutFullObject(
+            ReportType schemaObject, JdbcSession jdbcSession) {
+        MReport row = super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
+
+        JasperReportEngineConfigurationType jasper = schemaObject.getJasper();
+        if (jasper != null) {
+            row.orientation = jasper.getOrientation();
+            row.parent = jasper.isParent();
+        }
+
+        return row;
     }
 }

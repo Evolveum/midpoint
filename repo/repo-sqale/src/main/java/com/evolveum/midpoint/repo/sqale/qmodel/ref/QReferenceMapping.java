@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
+import java.util.UUID;
 import java.util.function.BiFunction;
 
 import com.querydsl.core.types.Predicate;
@@ -13,7 +14,7 @@ import com.querydsl.core.types.Predicate;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedByMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -59,12 +60,6 @@ public class QReferenceMapping<Q extends QReference<R, OR>, R extends MReference
         return (Q) new QReference<>(MReference.class, alias);
     }
 
-    @Override
-    public ReferenceSqlTransformer<Q, R, OR> createTransformer(
-            SqlTransformerSupport transformerSupport) {
-        return new ReferenceSqlTransformer<>(transformerSupport, this);
-    }
-
     /** Defines a contract for creating the reference for the provided owner row. */
     public R newRowObject(OR ownerRow) {
         throw new UnsupportedOperationException(
@@ -75,5 +70,22 @@ public class QReferenceMapping<Q extends QReference<R, OR>, R extends MReference
     public BiFunction<OQ, Q, Predicate> joinOnPredicate() {
         throw new UnsupportedOperationException(
                 "joinOnPredicate not supported on abstract reference mapping");
+    }
+
+    /**
+     * There is no need to override this, only reference creation is different and that is covered
+     * by {@link QReferenceMapping#newRowObject(Object)} including setting FK columns.
+     * All the other columns are based on a single schema type, so there is no variation.
+     */
+    @Override
+    public R insert(Referencable schemaObject, OR ownerRow, JdbcSession jdbcSession) {
+        R row = newRowObject(ownerRow);
+        // row.referenceType is DB generated, must be kept NULL, but it will match referenceType
+        row.relationId = processCacheableRelation(schemaObject.getRelation());
+        row.targetOid = UUID.fromString(schemaObject.getOid());
+        row.targetType = schemaTypeToObjectType(schemaObject.getType());
+
+        insert(row, jdbcSession);
+        return row;
     }
 }

@@ -8,8 +8,10 @@ package com.evolveum.midpoint.repo.sqale.qmodel.node;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType.F_NODE_IDENTIFIER;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
 /**
@@ -34,13 +36,15 @@ public class QNodeMapping
     }
 
     @Override
-    public NodeSqlTransformer createTransformer(
-            SqlTransformerSupport transformerSupport) {
-        return new NodeSqlTransformer(transformerSupport, this);
+    public MNode newRowObject() {
+        return new MNode();
     }
 
     @Override
-    public MNode newRowObject() {
-        return new MNode();
+    public @NotNull MNode toRowObjectWithoutFullObject(NodeType node, JdbcSession jdbcSession) {
+        MNode row = super.toRowObjectWithoutFullObject(node, jdbcSession);
+
+        row.nodeIdentifier = node.getNodeIdentifier();
+        return row;
     }
 }

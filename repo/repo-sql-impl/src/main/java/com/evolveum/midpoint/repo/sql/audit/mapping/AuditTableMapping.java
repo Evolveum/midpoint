@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sql.audit;
+package com.evolveum.midpoint.repo.sql.audit.mapping;
 
 import java.util.Collection;
 
@@ -14,33 +14,27 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.SqlSupportService;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
-import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-/** Transformation functionality common for audit. */
-public abstract class AuditSqlTransformerBase<S, Q extends FlexibleRelationalPathBase<R>, R>
-        implements SqlTransformer<S, Q, R> {
+/**
+ * Common functionality for audit table mapping, mostly around row/object transformation.
+ */
+public abstract class AuditTableMapping<S, Q extends FlexibleRelationalPathBase<R>, R>
+        extends QueryTableMapping<S, Q, R> {
 
-    protected final SqlTransformerSupport transformerSupport;
-    protected final QueryTableMapping<S, Q, R> mapping;
-
-    protected AuditSqlTransformerBase(
-            SqlTransformerSupport transformerSupport, QueryTableMapping<S, Q, R> mapping) {
-        this.transformerSupport = transformerSupport;
-        this.mapping = mapping;
+    protected AuditTableMapping(@NotNull String tableName, @NotNull String defaultAliasName, @NotNull Class<S> schemaType, @NotNull Class<Q> queryType) {
+        super(tableName, defaultAliasName, schemaType, queryType);
     }
 
     @Override
     public S toSchemaObject(
-            Tuple tuple, Q entityPath, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws SchemaException {
+            Tuple tuple, Q entityPath, Collection<SelectorOptions<GetOperationOptions>> options) {
         S schemaObject = toSchemaObject(tuple.get(entityPath));
         processExtensionColumns(schemaObject, tuple, entityPath);
         return schemaObject;
@@ -69,7 +63,8 @@ public abstract class AuditSqlTransformerBase<S, Q extends FlexibleRelationalPat
 
         return new ObjectReferenceType()
                 .oid(oid)
-                .type(transformerSupport.schemaClassToQName(repoObjectType.getJaxbClass()))
+                .type(SqlSupportService.getInstance()
+                        .schemaClassToQName(repoObjectType.getJaxbClass()))
                 .description(targetName)
                 .targetName(targetName);
     }
@@ -108,5 +103,10 @@ public abstract class AuditSqlTransformerBase<S, Q extends FlexibleRelationalPat
                     "trimString with column metadata without specified size: " + columnMetadata);
         }
         return MiscUtil.trimString(value, columnMetadata.getSize());
+    }
+
+    @Override
+    public S toSchemaObject(R row) {
+        throw new UnsupportedOperationException("Implemented in subclasses only");
     }
 }

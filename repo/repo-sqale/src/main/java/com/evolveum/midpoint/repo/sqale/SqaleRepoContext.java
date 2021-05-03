@@ -20,6 +20,7 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslJsonbType;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -32,8 +33,9 @@ public class SqaleRepoContext extends SqlRepoContext {
     public SqaleRepoContext(
             JdbcRepositoryConfiguration jdbcRepositoryConfiguration,
             DataSource dataSource,
+            SchemaService schemaService,
             QueryModelMappingRegistry mappingRegistry) {
-        super(jdbcRepositoryConfiguration, dataSource, mappingRegistry);
+        super(jdbcRepositoryConfiguration, dataSource, schemaService, mappingRegistry);
 
         // each enum type must be registered if we want to map it as objects (to PG enum types)
         querydslConfig.register(new EnumAsObjectType<>(ActivationStatusType.class));

@@ -10,14 +10,13 @@ import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditItem.TABLE_N
 
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditRefValue;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditRefValue;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceType;
 
 /**
  * Mapping between {@link QAuditRefValue} and {@link AuditEventRecordReferenceType}.
  */
 public class QAuditRefValueMapping
-        extends QueryTableMapping<AuditEventRecordReferenceType, QAuditRefValue, MAuditRefValue> {
+        extends AuditTableMapping<AuditEventRecordReferenceType, QAuditRefValue, MAuditRefValue> {
 
     public static final String DEFAULT_ALIAS_NAME = "aref";
 

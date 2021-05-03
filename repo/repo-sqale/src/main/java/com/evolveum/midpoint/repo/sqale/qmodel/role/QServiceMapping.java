@@ -8,7 +8,9 @@ package com.evolveum.midpoint.repo.sqale.qmodel.role;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType.F_DISPLAY_ORDER;
 
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 /**
@@ -34,12 +36,17 @@ public class QServiceMapping
     }
 
     @Override
-    public ServiceSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
-        return new ServiceSqlTransformer(transformerSupport, this);
+    public MService newRowObject() {
+        return new MService();
     }
 
     @Override
-    public MService newRowObject() {
-        return new MService();
+    public @NotNull MService toRowObjectWithoutFullObject(
+            ServiceType schemaObject, JdbcSession jdbcSession) {
+        MService row = super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
+
+        row.displayOrder = schemaObject.getDisplayOrder();
+
+        return row;
     }
 }

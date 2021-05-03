@@ -9,8 +9,10 @@ package com.evolveum.midpoint.repo.sqale.qmodel.connector;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType.F_HOSTNAME;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType.F_PORT;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 
 /**
@@ -37,12 +39,18 @@ public class QConnectorHostMapping
     }
 
     @Override
-    public ConnectorHostSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
-        return new ConnectorHostSqlTransformer(transformerSupport, this);
+    public MConnectorHost newRowObject() {
+        return new MConnectorHost();
     }
 
     @Override
-    public MConnectorHost newRowObject() {
-        return new MConnectorHost();
+    public @NotNull MConnectorHost toRowObjectWithoutFullObject(
+            ConnectorHostType schemaObject, JdbcSession jdbcSession) {
+        MConnectorHost row = super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
+
+        row.hostname = schemaObject.getHostname();
+        row.port = schemaObject.getPort();
+
+        return row;
     }
 }

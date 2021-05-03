@@ -7,7 +7,8 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
 /**
@@ -38,11 +39,6 @@ public class QTriggerMapping<OR extends MObject>
     }
 
     @Override
-    public TriggerSqlTransformer<OR> createTransformer(SqlTransformerSupport transformerSupport) {
-        return new TriggerSqlTransformer<>(transformerSupport, this);
-    }
-
-    @Override
     public MTrigger newRowObject() {
         return new MTrigger();
     }
@@ -51,6 +47,17 @@ public class QTriggerMapping<OR extends MObject>
     public MTrigger newRowObject(OR ownerRow) {
         MTrigger row = newRowObject();
         row.ownerOid = ownerRow.oid;
+        return row;
+    }
+
+    @Override
+    public MTrigger insert(TriggerType schemaObject, OR ownerRow, JdbcSession jdbcSession) {
+        MTrigger row = initRowObject(schemaObject, ownerRow);
+
+        row.handlerUriId = processCacheableUri(schemaObject.getHandlerUri());
+        row.timestampValue = MiscUtil.asInstant(schemaObject.getTimestamp());
+
+        insert(row, jdbcSession);
         return row;
     }
 }

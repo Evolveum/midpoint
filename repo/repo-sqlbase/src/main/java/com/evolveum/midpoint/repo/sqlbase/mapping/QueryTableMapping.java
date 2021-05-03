@@ -11,6 +11,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
@@ -26,7 +27,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
@@ -35,6 +35,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Common supertype for mapping items/attributes between schema (prism) classes and tables.
@@ -43,9 +44,8 @@ import com.evolveum.midpoint.util.QNameUtil;
  * related to-many detail tables.
  *
  * The main goal of this type is to map object query conditions and ORDER BY to SQL.
- * Transformation between schema/prism objects and repository objects (row beans or tuples) is
- * delegated to {@link SqlTransformer}.
- * Objects of various {@link QueryTableMapping} subclasses are factories for the transformer.
+ * Mappings also takes care of transformation between schema/prism objects and repository objects
+ * (row beans or tuples).
  *
  * Other important functions of mapping:
  *
@@ -254,18 +254,6 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
-     * Creates {@link SqlTransformer} of row bean to schema type, override if provided.
-     * TODO: rethink/confirm this create mechanism, currently the SqlTransformerSupport is managed
-     * component without any other state and so are transformers, perhaps we can pre-create them
-     * or cache (I don't like the sound of that). On the other hand they are really lightweight
-     * and short lived helpers too, so it shouldn't be a real GC problem.
-     */
-    public SqlTransformer<S, Q, R> createTransformer(
-            SqlTransformerSupport transformerSupport) {
-        throw new UnsupportedOperationException("Bean transformer not supported for " + queryType());
-    }
-
-    /**
      * Returns collection of all registered {@link SqlDetailFetchMapper}s.
      */
     public final Collection<SqlDetailFetchMapper<R, ?, ?, ?>> detailFetchMappers() {
@@ -322,6 +310,35 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     public R newRowObject() {
         throw new UnsupportedOperationException(
                 "Row bean creation not implemented for query type " + queryType().getName());
+    }
+
+    /**
+     * Transforms row of {@link R} type to schema type {@link S}.
+     * If pre-generated bean is used as row it does not include extension (dynamic) columns,
+     * which is OK if extension columns are used only for query and their information
+     * is still contained in the object somehow else (e.g. full object LOB).
+     *
+     * Alternative would be dynamically generated list of select expressions and transforming
+     * row to M object directly from {@link com.querydsl.core.Tuple}.
+     */
+    public abstract S toSchemaObject(R row) throws SchemaException;
+
+    /**
+     * Transforms row Tuple containing attributes of {@link R} to schema type {@link S}.
+     * Entity path can be used to access tuple elements.
+     * This allows loading also dynamically defined columns (like extensions).
+     */
+    public abstract S toSchemaObject(Tuple row, Q entityPath,
+            Collection<SelectorOptions<GetOperationOptions>> options)
+            throws SchemaException;
+
+    public S toSchemaObjectSafe(Tuple tuple, Q entityPath,
+            Collection<SelectorOptions<GetOperationOptions>> options) {
+        try {
+            return toSchemaObject(tuple, entityPath, options);
+        } catch (SchemaException e) {
+            throw new RepositoryMappingException(e);
+        }
     }
 
     @Override

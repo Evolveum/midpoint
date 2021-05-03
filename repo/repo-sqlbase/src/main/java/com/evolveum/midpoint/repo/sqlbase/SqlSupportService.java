@@ -16,18 +16,27 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
- * Holds various component dependencies that are used during schema to DB transformations.
+ * Holds various component dependencies that are for query and update contexts and in mappers.
  * Components can be obtained to execute calls on them, but preferably the needed logic
  * can be implemented here (better abstraction).
+ *
+ * TODO: Unify/merge with SqlRepoContext and let it provide all the "services".
  */
-public class SqlTransformerSupport {
+public class SqlSupportService {
+
+    private static SqlSupportService instance;
 
     protected final SchemaService schemaService;
     protected final SqlRepoContext sqlRepoContext;
 
-    public SqlTransformerSupport(SchemaService schemaService, SqlRepoContext sqlRepoContext) {
+    public SqlSupportService(SchemaService schemaService, SqlRepoContext sqlRepoContext) {
         this.schemaService = schemaService;
         this.sqlRepoContext = sqlRepoContext;
+        instance = this;
+    }
+
+    public static SqlSupportService getInstance() {
+        return instance;
     }
 
     public <T> Class<? extends T> qNameToSchemaClass(QName qName) {

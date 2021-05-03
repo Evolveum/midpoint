@@ -11,8 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedByMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ContainerSqlTransformer;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 
 /**
  * Mapping between {@link QContainer} and {@link Containerable}.
@@ -56,14 +55,23 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
     }
 
     @Override
-    public ContainerSqlTransformer<S, Q, R, OR> createTransformer(
-            SqlTransformerSupport transformerSupport) {
-        return new ContainerSqlTransformer<>(transformerSupport, this);
-    }
-
-    @Override
     public R newRowObject() {
         //noinspection unchecked
         return (R) new MContainer();
+    }
+
+    /**
+     * This creates the right type of object and fills in the base {@link MContainer} attributes.
+     */
+    public R initRowObject(S schemaObject, OR ownerRow) {
+        R row = newRowObject(ownerRow);
+        row.cid = schemaObject.asPrismContainerValue().getId();
+        // containerType is generated in DB, must be left null!
+        return row;
+    }
+
+    @Override
+    public R insert(S schemaObject, OR ownerRow, JdbcSession jdbcSession) {
+        throw new UnsupportedOperationException("insert not implemented in the subclass");
     }
 }

@@ -7,9 +7,7 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.other;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormType;
 
 /**
@@ -29,13 +27,6 @@ public class QFormMapping extends QObjectMapping<FormType, QForm, MObject> {
     @Override
     protected QForm newAliasInstance(String alias) {
         return new QForm(alias);
-    }
-
-    @Override
-    public ObjectSqlTransformer<FormType, QForm, MObject>
-    createTransformer(SqlTransformerSupport transformerSupport) {
-        // no special class needed, no additional columns
-        return new ObjectSqlTransformer<>(transformerSupport, this);
     }
 
     @Override

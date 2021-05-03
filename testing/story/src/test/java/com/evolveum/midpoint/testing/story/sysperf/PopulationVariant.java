@@ -7,11 +7,10 @@
 
 package com.evolveum.midpoint.testing.story.sysperf;
 
-import com.evolveum.midpoint.test.DummyTestResource;
-
 enum PopulationVariant {
 
     P10("10", 10),
+    P100("100", 100),
     P1K("1k", 1000),
     P10K("10k", 10000),
     P100K("100k", 100_000),

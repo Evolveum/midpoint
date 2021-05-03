@@ -10,14 +10,13 @@ import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditPropertyValu
 
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditPropertyValue;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditPropertyValue;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
 
 /**
  * Mapping for {@link QAuditPropertyValue}.
  */
 public class QAuditPropertyValueMapping
-        extends QueryTableMapping<AuditEventRecordPropertyType, QAuditPropertyValue, MAuditPropertyValue> {
+        extends AuditTableMapping<AuditEventRecordPropertyType, QAuditPropertyValue, MAuditPropertyValue> {
 
     public static final String DEFAULT_ALIAS_NAME = "apv";
 
