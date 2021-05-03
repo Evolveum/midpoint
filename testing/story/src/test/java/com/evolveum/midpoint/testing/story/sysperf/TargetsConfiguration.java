@@ -8,13 +8,13 @@
 package com.evolveum.midpoint.testing.story.sysperf;
 
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.*;
+import static com.evolveum.midpoint.testing.story.sysperf.Util.mapOf;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -108,7 +108,7 @@ class TargetsConfiguration {
 
         File generated = new File(TARGET_DIR, generatedFileName);
         VelocityGenerator.generate(RESOURCE_TARGET_TEMPLATE_FILE, generated,
-                Map.of("resourceOid", oid,
+                mapOf("resourceOid", oid,
                         "resourceInstance", getResourceInstance(index),
                         "multiValuedIndexList", Util.createIndexList(multiValuedMappings),
                         "singleValuedIndexList", Util.createIndexList(singleValuedMappings)));
@@ -134,7 +134,7 @@ class TargetsConfiguration {
                 .map(r -> r.oid)
                 .collect(Collectors.toList());
         VelocityGenerator.generate(ROLE_TARGETS_TEMPLATE_FILE, ROLE_TARGETS.file,
-                Map.of("oidList", targetOidList));
+                mapOf("oidList", targetOidList));
     }
 
     List<DummyTestResource> getGeneratedResources() {

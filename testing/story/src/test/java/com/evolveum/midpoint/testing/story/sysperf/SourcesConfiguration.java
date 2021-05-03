@@ -20,11 +20,12 @@ import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TARGET_DIR;
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TEST_DIR;
+
+import static com.evolveum.midpoint.testing.story.sysperf.Util.mapOf;
 
 import static java.util.Collections.emptyList;
 
@@ -127,7 +128,7 @@ class SourcesConfiguration {
 
         File generated = new File(TARGET_DIR, generatedFileName);
         VelocityGenerator.generate(RESOURCE_TEMPLATE_FILE, generated,
-                Map.of("resourceOid", oid,
+                mapOf("resourceOid", oid,
                         "resourceInstance", getResourceInstance(index),
                         "multiValuedIndexList", Util.createIndexList(multiValuedMappings),
                         "singleValuedIndexList", primary ?

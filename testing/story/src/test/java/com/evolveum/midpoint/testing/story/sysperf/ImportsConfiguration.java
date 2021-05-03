@@ -9,11 +9,11 @@ package com.evolveum.midpoint.testing.story.sysperf;
 
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TARGET_DIR;
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TEST_DIR;
+import static com.evolveum.midpoint.testing.story.sysperf.Util.mapOf;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import com.evolveum.midpoint.test.DummyTestResource;
@@ -81,7 +81,7 @@ class ImportsConfiguration {
 
         File generated = new File(TARGET_DIR, generatedFileName);
         VelocityGenerator.generate(TASK_TEMPLATE_FILE, generated,
-                Map.of("taskOid", taskOid,
+                mapOf("taskOid", taskOid,
                         "index", String.format("%03d", index),
                         "resourceOid", resource.oid,
                         "workerThreads", threads));

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.testing.story.sysperf;
 
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.*;
 
+import static com.evolveum.midpoint.testing.story.sysperf.Util.mapOf;
+
 import static java.util.Collections.emptyList;
 
 import java.io.File;
@@ -134,13 +136,18 @@ class RolesConfiguration {
 
     private String createTechnicalRoleDefinition(int index, String oid) {
         String fileName = String.format("generated-technical-role-%04d.xml", index);
-        String resourceOid = TARGETS_CONFIGURATION.getGeneratedResources()
-                .get(index % TARGETS_CONFIGURATION.getNumberOfResources())
-                .oid;
+        String resourceOid;
+        if (TARGETS_CONFIGURATION.getNumberOfResources() > 0) {
+            resourceOid = TARGETS_CONFIGURATION.getGeneratedResources()
+                    .get(index % TARGETS_CONFIGURATION.getNumberOfResources())
+                    .oid;
+        } else {
+            resourceOid = "";
+        }
 
         File generated = new File(TARGET_DIR, fileName);
         VelocityGenerator.generate(TECHNICAL_ROLE_TEMPLATE_FILE, generated,
-                Map.of("oid", oid,
+                mapOf("oid", oid,
                         "index", String.format("%04d", index),
                         "resourceOid", resourceOid));
 
@@ -188,7 +195,7 @@ class RolesConfiguration {
 
         File generated = new File(TARGET_DIR, fileName);
         VelocityGenerator.generate(BUSINESS_ROLE_TEMPLATE_FILE, generated,
-                Map.of("oid", oid,
+                mapOf("oid", oid,
                         "name", getBusinessRoleName(index),
                         "inducedOidList", inducedOidList));
 
@@ -205,7 +212,7 @@ class RolesConfiguration {
     List<String> getRolesForAccount() {
         int assignedRoles = randomFromInterval(numberOfAssignmentsMin, numberOfAssignmentsMax);
         if (assignedRoles == 0) {
-            return List.of();
+            return emptyList();
         } else {
             List<String> businessRolesNames = IntStream.range(0, numberOfBusinessRoles)
                     .mapToObj(this::getBusinessRoleName)

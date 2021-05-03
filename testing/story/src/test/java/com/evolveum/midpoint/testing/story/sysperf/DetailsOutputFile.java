@@ -20,7 +20,7 @@ class DetailsOutputFile {
         writer = new PrintWriter(new FileWriter(FILE));
     }
 
-    void logTestFinish(String testName, TaskType taskAfter) {
+    void logTaskFinish(String testName, TaskType taskAfter) {
         writer.printf("********** %s FINISHED **********\n\n", testName);
         writer.println(StatisticsUtil.format(taskAfter.getOperationStats()));
         writer.println();

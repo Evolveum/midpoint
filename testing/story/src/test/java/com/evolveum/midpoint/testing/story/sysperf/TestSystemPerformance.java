@@ -14,8 +14,11 @@ import static com.evolveum.midpoint.tools.testng.TestMonitor.PERF_REPORT_PREFIX_
 
 import java.io.File;
 import java.io.IOException;
-
-import com.evolveum.midpoint.tools.testng.TestReportSection;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -29,17 +32,14 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.tools.testng.PerformanceTestMixin;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.tools.testng.TestReportSection;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -233,7 +233,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
             TestResource<TaskType> taskImport = TASK_IMPORT_LIST.get(taskIndex);
 
             lastProgress = 0;
-            addTask(taskImport, result);
+            addTask(taskImport.file);
             waitForTaskFinish(taskImport.oid, false, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
                     builder -> builder.taskConsumer(this::recordProgress));
 
@@ -268,10 +268,9 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 .collect(Collectors.toSet());
         displayValue("Technical roles for " + accountName, technicalRoles);
 
-        assertUserAfterByUsername(accountName)
+        PrismObject<UserType> user = assertUserAfterByUsername(accountName)
                 .assertAssignments(roles.size() + 1) // 1. archetype
-                .assertRoleMemberhipRefs(roles.size() + technicalRoles.size() + 2) // 1. archetype, 2. role-targets
-                .assertLinks(SOURCES_CONFIGURATION.getNumberOfResources() + TARGETS_CONFIGURATION.getNumberOfResources(), 0)
+                .assertLinks(SOURCES_CONFIGURATION.getNumberOfResources() + TARGETS_CONFIGURATION.getNumberOfResources())
                 .extension()
                     .assertSize(SOURCES_CONFIGURATION.getSingleValuedMappings() + SOURCES_CONFIGURATION.getMultiValuedMappings())
                     .property(ItemPath.create(getSingleValuedPropertyName(0)))
@@ -280,7 +279,14 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                     .property(ItemPath.create(getMultiValuedPropertyName(0)))
                         .assertSize(SOURCES_CONFIGURATION.getAttributeValues() * SOURCES_CONFIGURATION.getNumberOfResources())
                         .end()
-                    .end();
+                    .end()
+                .getObject();
+
+        if (TARGETS_CONFIGURATION.getNumberOfResources() > 0) {
+            assertThat(user.asObjectable().getRoleMembershipRef().size())
+                    .as("# of role membership refs")
+                    .isEqualTo(roles.size() + technicalRoles.size() + 2); // 1. archetype, 2. role-targets)
+        }
     }
 
     private String getTechnicalRoleName(String membership) {
@@ -357,7 +363,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
                 lastProgress = 0;
                 if (run == 0) {
-                    addTask(reconTask, result);
+                    addTask(reconTask.file);
                 } else {
                     restartTask(reconTask.oid, result);
                     Thread.sleep(500);
@@ -381,13 +387,10 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
     public void test130RecomputeUsers() throws Exception {
         given();
 
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
         when();
 
         lastProgress = 0;
-        addTask(TASK_RECOMPUTE, result);
+        addTask(TASK_RECOMPUTE.file);
         waitForTaskFinish(TASK_RECOMPUTE.oid, false, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
                 builder -> builder.taskConsumer(this::recordProgress));
 
