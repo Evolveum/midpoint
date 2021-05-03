@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.common;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedByMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
@@ -27,17 +28,20 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
 
     public static final String DEFAULT_ALIAS_NAME = "c";
 
-    public static final
-    QContainerMapping<Containerable, QContainer<MContainer, Object>, MContainer, Object> INSTANCE =
-            new QContainerMapping<>(QContainer.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                    Containerable.class, QContainer.CLASS);
+    public static QContainerMapping<?, ?, ?, ?> initContainerMapping(@NotNull SqaleRepoContext repositoryContext) {
+        return new QContainerMapping<>(
+                QContainer.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                Containerable.class, QContainer.CLASS,
+                repositoryContext);
+    }
 
     protected QContainerMapping(
             @NotNull String tableName,
             @NotNull String defaultAliasName,
             @NotNull Class<S> schemaType,
-            @NotNull Class<Q> queryType) {
-        super(tableName, defaultAliasName, schemaType, queryType);
+            @NotNull Class<Q> queryType,
+            @NotNull SqaleRepoContext repositoryContext) {
+        super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
 
         // CID is not mapped directly, it is used by path resolver elsewhere
     }

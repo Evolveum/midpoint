@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.UserType.*;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -21,11 +22,13 @@ public class QUserMapping
 
     public static final String DEFAULT_ALIAS_NAME = "u";
 
-    public static final QUserMapping INSTANCE = new QUserMapping();
+    public static QUserMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QUserMapping(repositoryContext);
+    }
 
-    private QUserMapping() {
+    private QUserMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QUser.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                UserType.class, QUser.class);
+                UserType.class, QUser.class, repositoryContext);
 
         addItemMapping(F_ADDITIONAL_NAME, polyStringMapper(
                 q -> q.additionalNameOrig, q -> q.additionalNameNorm));

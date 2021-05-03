@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
+import java.util.Objects;
 import java.util.function.BiFunction;
 import javax.xml.namespace.QName;
 
@@ -65,6 +66,7 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
     /** Defines reference mapping for both query and modifications. */
     default SqaleMappingMixin<S, Q, R> addRefMapping(
             @NotNull QName itemName, @NotNull QReferenceMapping<?, ?, Q, R> referenceMapping) {
+        Objects.requireNonNull(referenceMapping, "referenceMapping");
         addItemMapping(itemName, new SqaleItemSqlMapper<>(
                 ctx -> new RefTableItemFilterProcessor<>(ctx, referenceMapping),
                 ctx -> new RefTableItemDeltaProcessor<>(ctx, referenceMapping)));

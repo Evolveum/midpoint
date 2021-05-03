@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sql.audit.mapping;
 
 import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditItem.TABLE_NAME;
 
+import java.util.Objects;
+
 import com.querydsl.sql.SQLServerTemplates;
 import com.querydsl.sql.SQLTemplates;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +41,7 @@ public class QAuditDeltaMapping
     }
 
     public static QAuditDeltaMapping get() {
-        return instance;
+        return Objects.requireNonNull(instance);
     }
 
     private QAuditDeltaMapping(@NotNull SqlRepoContext repositoryContext) {

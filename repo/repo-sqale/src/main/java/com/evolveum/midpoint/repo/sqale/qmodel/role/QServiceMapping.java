@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType.F
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
@@ -21,11 +22,13 @@ public class QServiceMapping
 
     public static final String DEFAULT_ALIAS_NAME = "svc";
 
-    public static final QServiceMapping INSTANCE = new QServiceMapping();
+    public static QServiceMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QServiceMapping(repositoryContext);
+    }
 
-    private QServiceMapping() {
+    private QServiceMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QService.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                ServiceType.class, QService.class);
+                ServiceType.class, QService.class, repositoryContext);
 
         addItemMapping(F_DISPLAY_ORDER, integerMapper(q -> q.displayOrder));
     }

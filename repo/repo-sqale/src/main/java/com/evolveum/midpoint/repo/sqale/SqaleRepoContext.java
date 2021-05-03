@@ -30,8 +30,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public class SqaleRepoContext extends SqlRepoContext {
 
-    private static SqaleRepoContext instance;
-
     private final UriCache uriCache;
 
     public SqaleRepoContext(
@@ -65,13 +63,6 @@ public class SqaleRepoContext extends SqlRepoContext {
         querydslConfig.register(new QuerydslJsonbType());
 
         uriCache = new UriCache();
-
-        instance = this;
-    }
-
-    @Deprecated
-    public static SqaleRepoContext getInstance() {
-        return instance;
     }
 
     // This has nothing to do with "repo cache" which is higher than this.

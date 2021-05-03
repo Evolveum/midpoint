@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.report;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperReportEngineConfigurationType;
@@ -21,11 +22,13 @@ public class QReportMapping
 
     public static final String DEFAULT_ALIAS_NAME = "rep";
 
-    public static final QReportMapping INSTANCE = new QReportMapping();
+    public static QReportMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QReportMapping(repositoryContext);
+    }
 
-    private QReportMapping() {
+    private QReportMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QReport.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                ReportType.class, QReport.class);
+                ReportType.class, QReport.class, repositoryContext);
 
         addNestedMapping(ReportType.F_JASPER, JasperReportEngineConfigurationType.class)
                 .addItemMapping(JasperReportEngineConfigurationType.F_ORIENTATION,

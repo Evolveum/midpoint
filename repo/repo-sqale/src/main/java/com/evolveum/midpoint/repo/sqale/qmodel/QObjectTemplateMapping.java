@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplat
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
@@ -24,13 +25,15 @@ public class QObjectTemplateMapping
 
     public static final String DEFAULT_ALIAS_NAME = "ot";
 
-    public static final QObjectTemplateMapping INSTANCE = new QObjectTemplateMapping();
+    public static QObjectTemplateMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QObjectTemplateMapping(repositoryContext);
+    }
 
-    private QObjectTemplateMapping() {
+    private QObjectTemplateMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QObjectTemplate.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                ObjectTemplateType.class, QObjectTemplate.class);
+                ObjectTemplateType.class, QObjectTemplate.class, repositoryContext);
 
-        addRefMapping(F_INCLUDE_REF, QObjectReferenceMapping.INSTANCE_INCLUDE);
+        addRefMapping(F_INCLUDE_REF, QObjectReferenceMapping.initForInclude(repositoryContext));
     }
 
     @Override
@@ -49,6 +52,6 @@ public class QObjectTemplateMapping
         super.storeRelatedEntities(row, schemaObject, jdbcSession);
 
         storeRefs(row, schemaObject.getIncludeRef(),
-                QObjectReferenceMapping.INSTANCE_INCLUDE, jdbcSession);
+                QObjectReferenceMapping.getForInclude(), jdbcSession);
     }
 }

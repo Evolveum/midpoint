@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
@@ -22,10 +23,13 @@ public class QConnectorMapping
 
     public static final String DEFAULT_ALIAS_NAME = "con";
 
-    public static final QConnectorMapping INSTANCE = new QConnectorMapping();
+    public static QConnectorMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QConnectorMapping(repositoryContext);
+    }
 
-    private QConnectorMapping() {
-        super(QConnector.TABLE_NAME, DEFAULT_ALIAS_NAME, ConnectorType.class, QConnector.class);
+    private QConnectorMapping(@NotNull SqaleRepoContext repositoryContext) {
+        super(QConnector.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                ConnectorType.class, QConnector.class, repositoryContext);
 
         addItemMapping(F_CONNECTOR_BUNDLE, stringMapper(q -> q.connectorBundle));
         addItemMapping(F_CONNECTOR_TYPE, stringMapper(q -> q.connectorType));

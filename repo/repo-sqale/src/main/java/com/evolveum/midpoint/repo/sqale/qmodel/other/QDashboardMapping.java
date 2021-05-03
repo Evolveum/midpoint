@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.other;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardType;
@@ -18,11 +21,13 @@ public class QDashboardMapping
 
     public static final String DEFAULT_ALIAS_NAME = "d";
 
-    public static final QDashboardMapping INSTANCE = new QDashboardMapping();
+    public static QDashboardMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QDashboardMapping(repositoryContext);
+    }
 
-    private QDashboardMapping() {
+    private QDashboardMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QDashboard.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                DashboardType.class, QDashboard.class);
+                DashboardType.class, QDashboard.class, repositoryContext);
     }
 
     @Override

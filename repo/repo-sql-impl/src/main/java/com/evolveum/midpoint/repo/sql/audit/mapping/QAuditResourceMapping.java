@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sql.audit.mapping;
 
 import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditItem.TABLE_NAME;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditResource;
@@ -30,7 +32,7 @@ public class QAuditResourceMapping
     }
 
     public static QAuditResourceMapping get() {
-        return instance;
+        return Objects.requireNonNull(instance);
     }
 
     private QAuditResourceMapping(@NotNull SqlRepoContext repositoryContext) {

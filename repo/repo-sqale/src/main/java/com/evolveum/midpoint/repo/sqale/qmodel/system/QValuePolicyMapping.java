@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.system;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
@@ -18,11 +21,13 @@ public class QValuePolicyMapping
 
     public static final String DEFAULT_ALIAS_NAME = "vp";
 
-    public static final QValuePolicyMapping INSTANCE = new QValuePolicyMapping();
+    public static QValuePolicyMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QValuePolicyMapping(repositoryContext);
+    }
 
-    private QValuePolicyMapping() {
+    private QValuePolicyMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QValuePolicy.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                ValuePolicyType.class, QValuePolicy.class);
+                ValuePolicyType.class, QValuePolicy.class, repositoryContext);
     }
 
     @Override

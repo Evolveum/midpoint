@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventReco
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
@@ -57,7 +58,7 @@ public class QAuditEventRecordMapping
     }
 
     public static QAuditEventRecordMapping get() {
-        return instance;
+        return Objects.requireNonNull(instance);
     }
 
     private QAuditEventRecordMapping(@NotNull SqlRepoContext repositoryContext) {

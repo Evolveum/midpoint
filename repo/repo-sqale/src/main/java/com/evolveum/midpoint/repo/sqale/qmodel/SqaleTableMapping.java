@@ -30,11 +30,11 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
@@ -50,6 +50,19 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Mapping superclass with common functions for {@link QObject} and non-objects (e.g. containers).
  * See javadoc in {@link QueryTableMapping} for more.
  *
+ * Mappings are often initialized using static `init*(repositoryContext)` methods, various
+ * suffixes are used for these reasons:
+ *
+ * * To differentiate various instances for the same mapping type, e.g. various references
+ * stored in separate tables;
+ * * or to avoid return type clash of the `init` method, even though they are static
+ * and technically independent Java meddles too much.
+ *
+ * Some subclasses (typically containers and refs) track their instances and avoid unnecessary
+ * instance creation for the same init method; the instance is available via matching `get*()`.
+ * Other subclasses (most objects) don't have `get()` methods but can be obtained using
+ * {@link QueryModelMappingRegistry#getByQueryType(Class)}, or by schema type (e.g. in tests).
+ *
  * @param <S> schema type
  * @param <Q> type of entity path
  * @param <R> row type related to the {@link Q}
@@ -64,17 +77,12 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull String defaultAliasName,
             @NotNull Class<S> schemaType,
             @NotNull Class<Q> queryType,
-            @NotNull SqlRepoContext repositoryContext) {
+            @NotNull SqaleRepoContext repositoryContext) {
         super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
     }
 
     public SqaleRepoContext repositoryContext() {
-//        return (SqaleRepoContext) super.repositoryContext();
-        // TODO remove this version when mapping is provided properly in config
-        SqaleRepoContext repositoryContext = (SqaleRepoContext) super.repositoryContext();
-        return repositoryContext != null
-                ? repositoryContext
-                : SqaleRepoContext.getInstance();
+        return (SqaleRepoContext) super.repositoryContext();
     }
 
     /**
