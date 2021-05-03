@@ -6,7 +6,15 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<resource oid="7eb3a16c-3a33-4ef0-8523-98f0ef7291ba"
+<!--
+Configuration parameters:
+ - resourceOid
+ - resourceInstance
+ - multiValuedIndexList: list of formatted indices of multi-valued property->attribute mappings (e.g. 0000, 0001, ...)
+ - singleValuedIndexList: list of formatted indices of single-valued property->attribute mappings (e.g. 0000, 0001, ...)
+-->
+
+<resource oid="$resourceOid"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
@@ -16,7 +24,7 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 
-    <name>Dummy Resource</name>
+    <name>$resourceInstance</name>
     <connectorRef type="c:ConnectorType">
         <filter>
             <q:and>
@@ -34,7 +42,7 @@
     <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
-            <icfi:instanceId>source</icfi:instanceId>
+            <icfi:instanceId>$resourceInstance</icfi:instanceId>
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
             <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -51,39 +59,75 @@
             <objectClass>ri:AccountObjectClass</objectClass>
             <attribute>
                 <ref>icfs:name</ref>
-                <inbound>
-                    <target>
+                <outbound>
+                    <source>
                         <path>name</path>
-                    </target>
-                </inbound>
+                    </source>
+                </outbound>
             </attribute>
+#foreach($index in $singleValuedIndexList)
             <attribute>
-                <ref>ri:a-single-0000</ref>
-                <inbound>
+                <ref>ri:a-single-$index</ref>
+                <outbound>
+                    <source>
+                        <path>extension/p-single-$index</path>
+                    </source>
                     <expression>
                         <script>
-                            <code>input</code>
+                            <code>p-single-$index</code>
                         </script>
                     </expression>
-                    <target>
-                        <path>extension/p-single-0000</path>
-                    </target>
-                </inbound>
+                </outbound>
             </attribute>
+#end
+#foreach($index in $multiValuedIndexList)
             <attribute>
-                <ref>ri:a-multi-0000</ref>
-                <inbound>
+                <ref>ri:a-multi-$index</ref>
+                <outbound>
+                    <source>
+                        <path>extension/p-multi-$index</path>
+                    </source>
                     <expression>
                         <script>
-                            <code>input</code>
+                            <code>p-multi-$index</code>
                         </script>
                     </expression>
-                    <target>
-                        <path>extension/p-multi-0000</path>
-                    </target>
-                </inbound>
+                </outbound>
+            </attribute>
+#end
+
+            <attribute>
+                <ref>ri:membership</ref>
+                <!-- filled in by constructions in technical roles -->
+            </attribute>
+
+            <association>
+                <ref>ri:group</ref>
+                <tolerant>true</tolerant>
+                <kind>entitlement</kind>
+                <intent>group</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:members</associationAttribute>
+                <valueAttribute>icfs:name</valueAttribute>
+            </association>
+
+        </objectType>
+
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <default>true</default>
+            <objectClass>ri:GroupObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <source>
+                        <path>identifier</path>
+                    </source>
+                </outbound>
             </attribute>
         </objectType>
+
     </schemaHandling>
 
     <synchronization>
@@ -105,24 +149,18 @@
             </reaction>
             <reaction>
                 <situation>deleted</situation>
-                <synchronize>true</synchronize>
                 <action>
                     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
                 </action>
             </reaction>
             <reaction>
                 <situation>unlinked</situation>
-                <synchronize>true</synchronize>
                 <action>
                     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
                 </action>
             </reaction>
             <reaction>
                 <situation>unmatched</situation>
-                <synchronize>true</synchronize>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-                </action>
             </reaction>
         </objectSynchronization>
     </synchronization>

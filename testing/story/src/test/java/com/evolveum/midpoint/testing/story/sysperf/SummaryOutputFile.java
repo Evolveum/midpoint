@@ -20,15 +20,18 @@ class SummaryOutputFile {
     void logStart() {
         writer.println("Started: " + new Date(START) + " (" + START + ")");
         writer.printf("Extension schema variant: %s\n", EXTENSION_SCHEMA_VARIANT);
-        writer.printf("Source variant: %s\n", SOURCE_VARIANT);
-        writer.printf("Threading variant: %s\n", THREADING_VARIANT);
-        writer.printf("Population variant: %s\n", POPULATION_VARIANT);
+        writer.printf("Sources: %s\n", SOURCES_CONFIGURATION);
+        writer.printf("Targets: %s\n", TARGETS_CONFIGURATION);
+        writer.printf("Roles: %s\n", ROLES_CONFIGURATION);
+        writer.printf("Imports: %s\n", IMPORTS_CONFIGURATION);
+        writer.printf("Reconciliations: %s\n", RECONCILIATIONS_CONFIGURATION);
+        writer.printf("Recomputation: %s\n", RECOMPUTATION_CONFIGURATION);
         writer.printf("Progress file: %s\n\n", ProgressOutputFile.FILE);
         writer.flush();
     }
 
-    void logTestFinish(String testName, long executionTime, double timePerAccount) {
-        writer.printf("********** %s FINISHED **********\n\n", testName);
+    void logTaskFinish(String desc, long executionTime, double timePerAccount) {
+        writer.printf("********** FINISHED: %s **********\n\n", desc);
         writer.printf("Task execution time: %,d ms\n", executionTime);
         writer.printf("Time per account: %,.1f ms\n\n", timePerAccount);
         writer.flush();

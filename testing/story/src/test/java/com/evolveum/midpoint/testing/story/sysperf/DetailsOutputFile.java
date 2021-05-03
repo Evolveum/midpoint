@@ -21,8 +21,8 @@ class DetailsOutputFile {
         writer = new PrintWriter(new FileWriter(FILE));
     }
 
-    void logTestFinish(String testName, TaskType taskAfter, TaskPerformanceInformation performanceInformation) {
-        writer.printf("********** %s FINISHED **********\n\n", testName);
+    void logTaskFinish(String desc, TaskType taskAfter, TaskPerformanceInformation performanceInformation) {
+        writer.printf("********** FINISHED: %s **********\n\n", desc);
         writer.println(TaskOperationStatsUtil.format(taskAfter.getOperationStats()));
         writer.println();
         writer.println(performanceInformation.debugDump());
